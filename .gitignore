@@ -1,0 +1,20 @@
+# Track only the project code, results and deck; course handouts and drafts stay local.
+/*
+!/.gitignore
+!/README.md
+!/cot-disclosure/
+!/presentation/
+
+# secrets
+.env
+
+# generated or heavy
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+cot-disclosure/cache/
+presentation/slide-*.jpg
+presentation/*.pdf
+*.bak
+.DS_Store
