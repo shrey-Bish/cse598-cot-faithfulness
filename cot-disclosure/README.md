@@ -1,15 +1,15 @@
 # cot-disclosure
 
-Do reasoning models' private traces and public answers tell the same story?
+Do thinking models tell the same story in their private reasoning and in their final answer?
 
-Thinking models return two channels: a private scratchpad (`reasoning_content`)
-and the reply a user sees (`content`). This harness measures what shows up in
-the first and disappears from the second, using ASU Research Computing's free
-LLM endpoint.
+A thinking model sends back two things: its private reasoning (the `reasoning_content`
+field) and the reply a user sees (the `content` field). We give models puzzles, sometimes
+with a hint, and check what shows up in the first and goes missing from the second. All
+calls go to ASU Research Computing's free model service.
 
 ## Setup
 
-Python 3.9+ with only the standard library. No GPU, no `pip install`.
+You only need Python 3.9 or newer. No GPU and nothing to install.
 
 ```bash
 cp .env.example .env      # then paste your key from https://voyager.rc.asu.edu -> LLM Access
@@ -18,23 +18,25 @@ cp .env.example .env      # then paste your key from https://voyager.rc.asu.edu 
 ## Run
 
 ```bash
-python run.py ladder                     # find the difficulty where models start failing
-python run.py pilot --level 7 9 --n 30   # control vs suggested-answer cue, 7 people / 9 swaps
+python run.py ladder                     # find how hard the puzzles must be before models slip
+python run.py pilot --level 7 9 --n 30   # no hint vs a suggested answer, 7 people and 9 swaps
 python run.py pilot --models olmo3-32b-instruct olmo3-32b-think --level 7 9
 ```
 
-### Progress-presentation round (responds to the proposal review)
+### The progress-presentation round (our reply to the proposal review)
 
 ```bash
-python experiments.py run --workers 20   # 1,056 calls: repeated no-hint runs, balanced wrong
-                                         # hints, correct hints, "think briefly", "answer only"
-python analyze.py                        # report + results/summary.json (works on partial runs)
+python experiments.py run --workers 20   # 1,056 calls: no-hint repeats, wrong hints spread
+                                         # across letters, right hints, "think briefly", "answer only"
+python analyze.py                        # prints the report and writes results/summary.json
+                                         # (works on a half-finished run too)
 ```
 
-Design: 24 shuffled-object puzzles (7 people, 15 swaps) with correct answers
-balanced across A–G; per item, no hint × 3 seeds, wrong hint × 2 (positions
-balanced), correct hint × 1; temperature 0.6, fixed seeds, 16k max tokens,
-streamed. Three instruct/thinking pairs: Olmo 3 7B, Olmo 3 32B, Qwen3 30B-A3B.
+What we ran: 24 swap puzzles (7 people, 15 swaps), with right answers spread evenly
+across A to G. For each puzzle we ask with no hint 3 times, with a wrong hint 2 times
+(the hinted letters are spread out too), and with a right hint once. Randomness
+(temperature) is 0.6, random seeds are fixed so runs repeat exactly, and replies can be
+up to 16,000 tokens. Three model pairs: Olmo 3 7B, Olmo 3 32B, Qwen3 30B.
 
 ### Slides
 
@@ -44,43 +46,49 @@ npm install          # pptxgenjs, react-icons, sharp
 node build_deck.js   # writes CSE598_progress_presentation.pptx
 ```
 
-The deck reads every number from `results/summary.json`, so rerunning
-`analyze.py` and then `build_deck.js` refreshes it.
+The slides read every number from `results/summary.json`, so if you rerun
+`analyze.py` and then `build_deck.js`, the slides update.
 
-Every response is cached in `cache/`, so rerunning a command re-analyses
-without new API calls. Delete `cache/` to force fresh calls. Raw per-call
-results land in `results/*.jsonl`.
+We save every reply in `cache/`, so running a command again redoes the analysis
+without calling the models again. Delete `cache/` if you want fresh calls. The raw
+result for each call goes to `results/*.jsonl`.
 
 ## Files
 
-| File | Purpose |
+| File | What it does |
 |---|---|
-| `client.py` | API client: retries, backoff, on-disk cache, splits trace from answer |
-| `tasks.py` | Procedurally generated puzzles with exact answers (shuffled objects, race ordering) |
-| `parse.py` | Extracts the final letter; handles `Answer: (X)`, `\boxed{X}`, bold, prose |
-| `detect.py` | Keyword detectors: cue acknowledgement, uncertainty, self-correction |
-| `run.py` | `ladder` and `pilot` experiments plus summary tables |
+| `client.py` | Calls the model service: retries, waits between tries, saves replies, splits the reasoning from the answer |
+| `tasks.py` | Makes new puzzles with one right answer (swap puzzles, race order puzzles) |
+| `parse.py` | Finds the answer letter, whether the model wrote `Answer: (X)`, `\boxed{X}`, bold, or plain text |
+| `detect.py` | Keyword checks: does the text mention the hint, show doubt, or correct itself |
+| `run.py` | The `ladder` and `pilot` experiments and their summary tables |
+| `audit.py` | Shows each keyword match in its sentence, so we can check the keyword checks by eye |
+| `experiments.py` | The progress-presentation round |
+| `analyze.py` | Turns the raw results into the numbers on the slides |
 
-## Things we learned about the endpoint (verified 2026-10-01/02)
+## What we learned about the model service (checked 2026-10-01 and 02)
 
-- Thinking models return the trace in a separate `reasoning_content` field.
-- **Set `max_tokens` high (we use 8000).** When a response is cut off, the trace
-  is *not* returned separately: all of the raw reasoning lands in `content`, the
-  user-facing field. At `max_tokens=1500` we saw 5,929 characters of private
-  reasoning in `content` and an empty `reasoning_content`.
-- `reasoning_effort` is accepted but ignored (low and high gave ~7,300 chars
-  each). Prompt wording does work: "think very briefly" roughly halves the trace.
-- Thinking cannot be switched off: `chat_template_kwargs={"enable_thinking": false}`
-  is ignored on all 7 thinking models tried, including Qwen 3.5/3.6/3.8 hybrids.
-- `seed` is honored (same seed, same output at temperature 0.8), so repeats are reproducible.
-- Responses over ~100 s fail with Cloudflare HTTP 524 unless streamed; `client.py` streams,
-  and requests `stream_options.include_usage` so token counts still come back.
-- Models often ignore the requested answer format and write `\boxed{E}`; this
-  silently failed 17% of answers before `parse.py` handled it.
+- Thinking models send their reasoning in a separate `reasoning_content` field.
+- **Allow long replies (we use 16,000 tokens).** When a reply gets cut off, the reasoning
+  is *not* kept separate: all of it lands in `content`, the part the user sees. With a
+  1,500-token limit we saw 5,929 characters of private reasoning in `content` and nothing
+  in `reasoning_content`.
+- The `reasoning_effort` setting is accepted but does nothing (low and high both gave
+  about 7,300 characters). Wording does work: "think very briefly" cuts the reasoning
+  by 30% to 48%.
+- Thinking can't be turned off. `chat_template_kwargs={"enable_thinking": false}` is
+  ignored on all 7 thinking models we tried, including the Qwen 3.5, 3.6 and 3.8 models.
+- The `seed` setting works (same seed, same reply at temperature 0.8), so runs repeat exactly.
+- Replies that take more than about 100 seconds fail with a Cloudflare 524 error unless
+  they are streamed (sent back in pieces). `client.py` streams, and asks for
+  `stream_options.include_usage` so token counts still come back.
+- Models often ignore the answer format we ask for and write `\boxed{E}` instead. In our
+  difficulty test, 54 of 118 answers (46%) weren't in the `Answer: (X)` form, and a simple
+  reader would have marked them wrong. `parse.py` handles these.
 
-## Known limitations
+## Limits
 
-- `detect.py` is keyword matching. Headline numbers must be checked against a
-  hand-labelled sample before they are reported.
-- Puzzles are synthetic. They avoid training-data contamination but are not
-  the full BIG-Bench Hard distribution.
+- `detect.py` only matches keywords. We will check our main numbers against replies we
+  label by hand before we report them.
+- The puzzles are made up by our code. That means no model has seen them before, but
+  they don't cover the full range of BIG-Bench Hard tasks.
