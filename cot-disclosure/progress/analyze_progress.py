@@ -531,9 +531,11 @@ def expB_section():
                     "run_ids": [r["run_id"] for r in rs]}
     sec["cells"] = cells
     capped = [r for r in nocue + cued if r["finish_reason"] == "length"]
-    sec["capped_replies_streamed"] = metric(sum(len(r["final_text"]) > 0 for r in capped), len(capped), src_c,
-                                            "expB_section", note="capped (16,000 tokens, streamed) replies whose "
-                                                                 "visible field is non-empty")
+    sec["capped_replies_streamed_leaked"] = metric(
+        sum(not r["reasoning_text"] and len(r["final_text"]) > 0 for r in capped), len(capped), src_c, "expB_section",
+        note="capped (16,000 tokens, streamed) replies with an empty private field and reasoning in the visible "
+             "field (same leak definition as the truncation sweep)",
+        cut_during_visible_answer=sum(bool(r["reasoning_text"]) and len(r["final_text"]) > 0 for r in capped))
     return sec
 
 
@@ -593,17 +595,19 @@ def fig_expB(summary):
         a1.tick_params(axis="y", length=0)
         a1.legend(loc="upper center", bbox_to_anchor=(0.45, -0.17), frameon=False, fontsize=10)
         pm = [b["cells"][f"{m}|{ch}|all"]["private_mention"] for m, ch in rows]
+        pb = [b["cells"][f"{m}|{ch}|all"]["private_keyword_no_cue"] for m, ch in rows]
         fm = [b["cells"][f"{m}|{ch}|all"]["final_mention"] for m, ch in rows]
         a2.barh(y + h / 2, [x["num"] if x else 0 for x in pm], height=h, color=C["private"], label="private reasoning")
         a2.barh(y - h / 2, [x["num"] for x in fm], height=h, color=C["final"], label="final answer")
-        for yy, x in zip(y + h / 2, pm):
-            a2.text((x["num"] if x else 0) + 0.3, yy, f"{x['num']}/{x['den']}" if x else "no private channel",
+        for yy, x, bx in zip(y + h / 2, pm, pb):
+            a2.text((x["num"] if x else 0) + 0.3, yy,
+                    f"{x['num']}/{x['den']}  (no cue: {bx['num']}/{bx['den']})" if x else "no private channel",
                     va="center", fontsize=11)
         for yy, x in zip(y - h / 2, fm):
             a2.text(x["num"] + 0.3, yy, f"{x['num']}/{x['den']}", va="center", fontsize=11)
         a2.set_yticks(y)
         a2.set_yticklabels([])
-        a2.set_xlim(0, max([x["den"] for x in fm] + [1]) * 1.35)
+        a2.set_xlim(0, max([x["den"] for x in fm] + [1]) * 1.75)
         a2.set_xlabel("cued runs where the cue keywords fire", fontsize=12)
         a2.set_title("Mentions the cue (keyword pre-sort)", fontsize=13, loc="left")
         a2.tick_params(axis="y", length=0)
@@ -611,8 +615,8 @@ def fig_expB(summary):
         n_total = sum(b["cells"][f"{m}|{ch}|all"]["n_items"] for m, ch in rows)
         fig.subplots_adjust(wspace=0.08)
         out["F9"] = finish(fig, "F9_expB_cue_by_channel",
-                           f"Experiment B, cued runs: n = {n_total} (up to 20 items per model × 2 channels × 1 run)\n"
-                           f"Tool channel is a simulated tool block inside the user turn", [CUED, NOCUE],
+                           f"Experiment B: n = {n_total} cued runs (11–20 items per model × 2 channels)\n"
+                           f"'Tool' = simulated tool block inside the user turn", [CUED, NOCUE],
                            top=0.80, bottom=0.27, left=0.20, right=0.97)
     return out
 

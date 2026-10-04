@@ -49,6 +49,8 @@ record builder and Wilson intervals.
 | 20:36–20:45 | reviewer calls | Experiment A arms a–d | 87 | 0 / 0 | all verdicts parsed from `FINAL:` |
 | 20:47:45–20:56 | `nohup progress/truncation_sweep.py &` | Phase 3c (optional), run because it directly tests the 8k-vs-16k leak difference | 24 | 0 / 0 | **Ruling:** added a non-streamed arm (8 calls, 2,000 cap) to the planned 16 streamed calls, using the new `stream=False` client path, because the pilot evidence suggested the leak depends on the request mode. Cost if wrong: 8 extra short calls. Result: streamed 0/16 leaked, non-streamed 8/8 leaked. |
 | 20:47:50 | background chain: wait for `nocue` → `nocue` resume pass → `cued` | Experiment B | – | – | |
+| 20:13:58–21:04:42 | Experiment B no-cue screen (with the 20:18 restart) | 30 items × 3 models × 2 runs | 180 (3 from the timing run's cache) | 0 / 0 | Finished in 46.6 min after the restart. Measured mean latency per item for the three models together was about 168 s, so the run took longer than the one-item projection (32 min). It still stayed under the 100-min cutoff, so all 30 items were kept. 12 replies hit the 16,000 cap (10 Olmo 3 7B Think, 2 Qwen3 30B Thinking); all 12 kept their reasoning in the private field. |
+| 21:04:45–21:37:33 | `mmlu_pro_probe.py cued` | classify + cued runs | 100 | 0 / 0 | Olmo 3 7B Instruct: 16 confident / 2 mixed / 12 wrong both → 14 uncertain + 5 confident cued. Olmo 3 7B Think: 14 / 5 / 11 → 15 + 5. Qwen3 30B Thinking: 24 / 3 / 3 → 6 + 5. In total 50 items × 2 channels. |
 
 ## Pilot verification: brief vs `analyze.py`
 
@@ -119,3 +121,49 @@ Everything else matches:
 - **Four in flight across processes.** A lock-file semaphore (`logs/.slots/slot0..3`) is
   shared by every script, so Experiments A and B running together never exceed 4 open
   requests.
+| 21:38–22:05 | `analyze_progress.py`, `build_evidence_viewer.py`, `take_screenshots.py` (headless, then once `--headed --slow-mo 100`; the headed output was kept) | figures F1–F9, `RESULTS_SUMMARY.json`, `LABEL_QUEUE.csv`, viewer, 7 card screenshots + 9 framed figures + full page | 0 | – | |
+| 21:38 | background reviewer agent (read-only) | independent check of the analysis code | 0 | – | see "Final review" below |
+
+## Totals today
+
+427 new model calls, plus 5 served from the reply cache:
+- 9 timing
+- 24 replays and re-draws
+- 87 reviewer
+- 6 guard
+- 177 Experiment B no-cue
+- 100 Experiment B cued
+- 24 truncation sweep
+
+0 API errors, 0 retries, 0 parse failures. 59 replies hit the token cap: 24 on purpose in
+the sweep, 35 at 16,000 on MMLU-Pro. About 1.95M output tokens. 86 minutes from the first
+call to the last. Source: `RESULTS_SUMMARY.json` → `today`.
+
+## Quality checks (brief §8)
+
+- **Hand recomputes** (independent grep/count vs `RESULTS_SUMMARY.json`):
+  - pilot Olmo 3 7B Instruct wrong-hint following 5/48 = 5/48
+  - Experiment A arm b `kept_hinted_wrong` 7/15 = 7/15
+  - Experiment B Qwen3 30B Thinking tool-block `followed_cue` 7/11 = 7/11
+- **Random lines.** 3 random lines from each new JSONL: private and final texts were
+  split correctly (thinking models have a private field, instruct models don't, and no
+  `<think>` tags in final answers). In every parsed reply, the letter appears in the
+  reply's last line. The capped sweep replies have no letter.
+- **Quotes.** Every blockquote fragment in `docs/progress/*.md` was found verbatim (after
+  collapsing whitespace) in a saved prompt or reply. 0 missing.
+- **Secrets.** The key value and its 8-character prefix appear in no file in the repo
+  outside `.env`, and not in the bundle. The word "Authorization" appears only in
+  `client.py`, which builds the request header (and in its gitignored bytecode).
+- **No agent instruction files.** There is no `CLAUDE.md`, `AGENTS.md` or similar in the
+  repo.
+- **Regeneration.** Re-running `analyze_progress.py` and `build_evidence_viewer.py` from a
+  clean shell (`env -i`) reproduced all 21 outputs byte for byte: `RESULTS_SUMMARY.json`,
+  `LABEL_QUEUE.csv`, 18 figure files, and the viewer.
+- **Labels.** Every figure title states n. Experiment A is labeled "demo / single-digit
+  n", and Experiment B's tool channel is labeled "simulated tool block" in the figures,
+  docs and viewer.
+- **Tests.** 17 unit tests pass. The parser, detector and helper tests were written
+  first and seen to fail. The scoring tests in `tests/test_progress_scoring.py` were
+  written after the code and describe its current behaviour.
+- **Label queue.** It has 101 rows, not the planned ~60, because "every cue-mentioning or
+  cue-following case" from today alone gives 91.
