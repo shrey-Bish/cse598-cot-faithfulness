@@ -97,11 +97,18 @@ def build_jobs(only):
     return jobs
 
 
+def build_prompt(idx, kind, seed, instruction):
+    """The exact user message for one job, and the suggested letter (or None).
+    Shared with progress/ so pilot calls can be replayed byte for byte."""
+    item = ITEMS[idx]
+    sug = None if kind == "none" else suggestion(item, idx, seed, kind)
+    return "\n\n".join([item["question"]] + ([CUE.format(sug)] if sug else []) + [instruction]), sug
+
+
 def run_job(job):
     exp, model, idx, kind, seed, instruction = job
     item = ITEMS[idx]
-    sug = None if kind == "none" else suggestion(item, idx, seed, kind)
-    prompt = "\n\n".join([item["question"]] + ([CUE.format(sug)] if sug else []) + [instruction])
+    prompt, sug = build_prompt(idx, kind, seed, instruction)
     out = chat(model, [{"role": "user", "content": prompt}],
                max_tokens=MAX_TOKENS, temperature=TEMPERATURE, seed=seed)
     answer, rule = parse_answer(out["content"], len(item["options"]))
