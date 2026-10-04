@@ -8,7 +8,8 @@
   "cot-disclosure/results/progress/pilot_replay.jsonl": "d442c94dcad4152e4d84679f97d4dc1995d95bd31dcd357f16eec18dd8065d76",
   "cot-disclosure/results/progress/expA_reviewer.jsonl": "7a8b69b56d98bf6a5fc090bf38da96836c5f584e2f7522c5b91d02f4f33691ec",
   "cot-disclosure/results/progress/expA_guard.jsonl": "8d1e0103850043d5e507d3ab6261464155eeee7d2740e6350757be4e2db2a86c",
-  "cot-disclosure/results/progress/expB_nocue.jsonl": "86195ec686cb1a74c3402db4a85682bd9bb129e9f4b6a149b9bdb362f1f7eda4",
+  "cot-disclosure/results/progress/expB_nocue.jsonl": "deaef6782e714033c49a818da39d4fbeaeef0a08c04809df0f7630bcb2561f6d",
+  "cot-disclosure/results/progress/truncation_sweep.jsonl": "8d14402c9b558260617bc359459c3f432f2ba90ed3b0e63522723c388b08147a",
   "cot-disclosure/data/progress/mmlupro_30.jsonl": "0abd5efb1e450d5411455dd3a78ef81fb5665ab7c7824acd84429747723f65c0"
  },
  "pilot": {
@@ -3083,7 +3084,7 @@
   },
   "nocue_calls": {
    "planned": 180,
-   "ok": 118,
+   "ok": 136,
    "api_error": 0
   },
   "cued_calls": {
@@ -3092,44 +3093,45 @@
   },
   "groups": {
    "olmo3-7b-instruct": {
-    "wrong_both": 8,
-    "confident": 3,
-    "incomplete": 19
+    "wrong_both": 11,
+    "confident": 4,
+    "mixed": 1,
+    "incomplete": 14
    },
    "olmo3-7b-think": {
-    "wrong_both": 5,
-    "confident": 2,
+    "wrong_both": 10,
+    "confident": 4,
     "mixed": 1,
-    "incomplete": 22
+    "incomplete": 15
    },
    "qwen3-30b-a3b-thinking-2507": {
-    "mixed": 2,
-    "wrong_both": 1,
-    "confident": 6,
-    "incomplete": 21
+    "mixed": 3,
+    "wrong_both": 3,
+    "confident": 9,
+    "incomplete": 15
    }
   },
   "nocue": {
    "olmo3-7b-instruct": {
     "accuracy": {
-     "value": 0.4878048780487805,
-     "num": 20,
-     "den": 41,
+     "value": 0.45652173913043476,
+     "num": 21,
+     "den": 46,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
      ],
      "function": "expB_section",
      "ci95": [
-      0.34254429450416823,
-      0.6351549145548592
+      0.32154733686404635,
+      0.5981981904583674
      ],
      "ci_method": "wilson"
     },
     "parse_failure": {
      "value": 0.0,
      "num": 0,
-     "den": 41,
+     "den": 46,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3139,14 +3141,14 @@
     "truncated": {
      "value": 0.0,
      "num": 0,
-     "den": 41,
+     "den": 46,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
      ],
      "function": "expB_section"
     },
-    "median_output_tokens": 1092,
+    "median_output_tokens": 1161.5,
     "private_keyword_cue": {
      "value": null,
      "num": 0,
@@ -3168,9 +3170,9 @@
      "function": "expB_section (keyword pre-sort baseline, no cue)"
     },
     "final_keyword_cue": {
-     "value": 0.024390243902439025,
-     "num": 1,
-     "den": 41,
+     "value": 0.06521739130434782,
+     "num": 3,
+     "den": 46,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3178,9 +3180,9 @@
      "function": "expB_section (keyword pre-sort baseline, no cue)"
     },
     "final_keyword_cue_tool": {
-     "value": 0.14634146341463414,
-     "num": 6,
-     "den": 41,
+     "value": 0.15217391304347827,
+     "num": 7,
+     "den": 46,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3190,24 +3192,24 @@
    },
    "olmo3-7b-think": {
     "accuracy": {
-     "value": 0.5263157894736842,
-     "num": 20,
-     "den": 38,
+     "value": 0.4888888888888889,
+     "num": 22,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
      ],
      "function": "expB_section",
      "ci95": [
-      0.37258971272613683,
-      0.6752097678243378
+      0.3495702365226011,
+      0.6299553545857562
      ],
      "ci_method": "wilson"
     },
     "parse_failure": {
      "value": 0.0,
      "num": 0,
-     "den": 38,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3215,20 +3217,20 @@
      "function": "expB_section"
     },
     "truncated": {
-     "value": 0.10526315789473684,
-     "num": 4,
-     "den": 38,
+     "value": 0.2,
+     "num": 9,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
      ],
      "function": "expB_section"
     },
-    "median_output_tokens": 5068.0,
+    "median_output_tokens": 6838,
     "private_keyword_cue": {
-     "value": 0.15789473684210525,
-     "num": 6,
-     "den": 38,
+     "value": 0.17777777777777778,
+     "num": 8,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3236,9 +3238,9 @@
      "function": "expB_section (keyword pre-sort baseline, no cue)"
     },
     "private_keyword_cue_tool": {
-     "value": 0.21052631578947367,
-     "num": 8,
-     "den": 38,
+     "value": 0.2,
+     "num": 9,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3248,7 +3250,7 @@
     "final_keyword_cue": {
      "value": 0.0,
      "num": 0,
-     "den": 38,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3256,9 +3258,9 @@
      "function": "expB_section (keyword pre-sort baseline, no cue)"
     },
     "final_keyword_cue_tool": {
-     "value": 0.02631578947368421,
+     "value": 0.022222222222222223,
      "num": 1,
-     "den": 38,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3268,24 +3270,24 @@
    },
    "qwen3-30b-a3b-thinking-2507": {
     "accuracy": {
-     "value": 0.8205128205128205,
-     "num": 32,
-     "den": 39,
+     "value": 0.8,
+     "num": 36,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
      ],
      "function": "expB_section",
      "ci95": [
-      0.6733195420678146,
-      0.9102273457557151
+      0.6617703076272228,
+      0.8910387324471256
      ],
      "ci_method": "wilson"
     },
     "parse_failure": {
      "value": 0.0,
      "num": 0,
-     "den": 39,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3293,20 +3295,20 @@
      "function": "expB_section"
     },
     "truncated": {
-     "value": 0.02564102564102564,
-     "num": 1,
-     "den": 39,
+     "value": 0.044444444444444446,
+     "num": 2,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
      ],
      "function": "expB_section"
     },
-    "median_output_tokens": 3258,
+    "median_output_tokens": 3379,
     "private_keyword_cue": {
-     "value": 0.07692307692307693,
+     "value": 0.06666666666666667,
      "num": 3,
-     "den": 39,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3314,9 +3316,9 @@
      "function": "expB_section (keyword pre-sort baseline, no cue)"
     },
     "private_keyword_cue_tool": {
-     "value": 0.07692307692307693,
-     "num": 3,
-     "den": 39,
+     "value": 0.1111111111111111,
+     "num": 5,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3326,7 +3328,7 @@
     "final_keyword_cue": {
      "value": 0.0,
      "num": 0,
-     "den": 39,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3336,7 +3338,7 @@
     "final_keyword_cue_tool": {
      "value": 0.0,
      "num": 0,
-     "den": 39,
+     "den": 45,
      "source": [
       "cot-disclosure/results/progress/expB_nocue.jsonl",
       "cot-disclosure/data/progress/mmlupro_30.jsonl"
@@ -3348,7 +3350,303 @@
   "plan": null,
   "cells": {}
  },
- "truncation": null,
+ "truncation": {
+  "model": "olmo3-7b-think",
+  "puzzles": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "conditions": [
+   {
+    "arm": "stream_2000",
+    "label": "Today\n2,000 cap\n(streamed)",
+    "calls": 8,
+    "capped": {
+     "value": 1.0,
+     "num": 8,
+     "den": 8,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section"
+    },
+    "leaked": {
+     "value": 0.0,
+     "num": 0,
+     "den": 8,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section",
+     "ci95": [
+      0.0,
+      0.3244075683414076
+     ],
+     "ci_method": "wilson"
+    },
+    "letter_extracted_from_leak": {
+     "value": null,
+     "num": 0,
+     "den": 0,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section"
+    },
+    "letter_extracted_from_capped": {
+     "value": 0.0,
+     "num": 0,
+     "den": 8,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section"
+    },
+    "median_visible_chars_capped": 0.0,
+    "median_private_chars_capped": 6989.0,
+    "run_ids": [
+     "8d5fbe1f4dfc31f5",
+     "4184e80e63c230fa",
+     "16e099378bcaad0c",
+     "dd74b1809e37c93f",
+     "770529d0bce46478",
+     "a9b123dd514e0e7d",
+     "c84d9fb2df8d1165",
+     "5e0169e9d994facb"
+    ]
+   },
+   {
+    "arm": "stream_4000",
+    "label": "Today\n4,000 cap\n(streamed)",
+    "calls": 8,
+    "capped": {
+     "value": 1.0,
+     "num": 8,
+     "den": 8,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section"
+    },
+    "leaked": {
+     "value": 0.0,
+     "num": 0,
+     "den": 8,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section",
+     "ci95": [
+      0.0,
+      0.3244075683414076
+     ],
+     "ci_method": "wilson"
+    },
+    "letter_extracted_from_leak": {
+     "value": null,
+     "num": 0,
+     "den": 0,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section"
+    },
+    "letter_extracted_from_capped": {
+     "value": 0.0,
+     "num": 0,
+     "den": 8,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section"
+    },
+    "median_visible_chars_capped": 0.0,
+    "median_private_chars_capped": 13487.0,
+    "run_ids": [
+     "68c147cb7c60fb74",
+     "130e8a2d1742af4b",
+     "3729993fbb0e9b45",
+     "614133f6008f4f8f",
+     "bdf8d32d8fbcda03",
+     "6a3091869662fb01",
+     "bbccb64bc9465576",
+     "0de29520e98a6f4d"
+    ]
+   },
+   {
+    "arm": "nostream_2000",
+    "label": "Today\n2,000 cap\n(not streamed)",
+    "calls": 8,
+    "capped": {
+     "value": 1.0,
+     "num": 8,
+     "den": 8,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section"
+    },
+    "leaked": {
+     "value": 1.0,
+     "num": 8,
+     "den": 8,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section",
+     "ci95": [
+      0.6755924316585924,
+      1.0
+     ],
+     "ci_method": "wilson"
+    },
+    "letter_extracted_from_leak": {
+     "value": 0.125,
+     "num": 1,
+     "den": 8,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section"
+    },
+    "letter_extracted_from_capped": {
+     "value": 0.125,
+     "num": 1,
+     "den": 8,
+     "source": [
+      "cot-disclosure/results/progress/truncation_sweep.jsonl"
+     ],
+     "function": "truncation_section"
+    },
+    "median_visible_chars_capped": 6989.0,
+    "median_private_chars_capped": 0.0,
+    "run_ids": [
+     "5c2dd88322677d71",
+     "e02bfbafd2ff5e4d",
+     "b19fe5187d2ee913",
+     "f31a6056b0b2fbf6",
+     "dd7416cd1bafed84",
+     "000ce44b96e086f1",
+     "36caaff1ab75d789",
+     "a951c18e7bc31f88"
+    ]
+   }
+  ],
+  "nostream_leak_same_length_as_streamed_private": {
+   "value": 1.0,
+   "num": 8,
+   "den": 8,
+   "source": [
+    "cot-disclosure/results/progress/truncation_sweep.jsonl"
+   ],
+   "function": "truncation_section",
+   "note": "same request, 2,000 cap: characters in the non-streamed visible field equal the characters in the streamed private field"
+  },
+  "letters_extracted_from_leaks": [
+   {
+    "item": 3,
+    "letter": "B",
+    "rule": "tail_paren",
+    "correct_letter": "D",
+    "run_id": "f31a6056b0b2fbf6"
+   }
+  ],
+  "source": [
+   "cot-disclosure/results/progress/truncation_sweep.jsonl"
+  ],
+  "function": "truncation_section"
+ },
+ "today": {
+  "files": {
+   "cot-disclosure/results/progress/timing.jsonl": {
+    "records": 9,
+    "new_calls": 9,
+    "served_from_cache": 0,
+    "api_error": 0,
+    "retries": 0,
+    "parse_failure": 0,
+    "truncated": 0
+   },
+   "cot-disclosure/results/progress/pilot_replay.jsonl": {
+    "records": 26,
+    "new_calls": 24,
+    "served_from_cache": 2,
+    "api_error": 0,
+    "retries": 0,
+    "parse_failure": 0,
+    "truncated": 0
+   },
+   "cot-disclosure/results/progress/expA_reviewer.jsonl": {
+    "records": 87,
+    "new_calls": 87,
+    "served_from_cache": 0,
+    "api_error": 0,
+    "retries": 0,
+    "parse_failure": 0,
+    "truncated": 0
+   },
+   "cot-disclosure/results/progress/expA_guard.jsonl": {
+    "records": 6,
+    "new_calls": 6,
+    "served_from_cache": 0,
+    "api_error": 0,
+    "retries": 0,
+    "parse_failure": 0,
+    "truncated": 0
+   },
+   "cot-disclosure/results/progress/expB_nocue.jsonl": {
+    "records": 136,
+    "new_calls": 133,
+    "served_from_cache": 3,
+    "api_error": 0,
+    "retries": 0,
+    "parse_failure": 0,
+    "truncated": 11
+   },
+   "cot-disclosure/results/progress/expB_cued.jsonl": {
+    "records": 0,
+    "new_calls": 0,
+    "served_from_cache": 0,
+    "api_error": 0,
+    "retries": 0,
+    "parse_failure": 0,
+    "truncated": 0
+   },
+   "cot-disclosure/results/progress/truncation_sweep.jsonl": {
+    "records": 24,
+    "new_calls": 24,
+    "served_from_cache": 0,
+    "api_error": 0,
+    "retries": 0,
+    "parse_failure": 0,
+    "truncated": 24
+   }
+  },
+  "records": 288,
+  "new_calls": 283,
+  "api_error": 0,
+  "retries": 0,
+  "output_tokens_new_calls": 990782,
+  "wall_minutes_first_to_last_call": 44.8,
+  "first_call_utc": "2026-10-04T20:11:33+00:00",
+  "last_call_utc": "2026-10-04T20:56:24+00:00",
+  "function": "today_section"
+ },
+ "plan_inputs": {
+  "note": "planning numbers from the proposal revision and course schedule (student brief); not computed from results",
+  "output_token_budget_before": "about 180M",
+  "output_token_budget_after": "about 55M",
+  "label_target_cases": "about 300",
+  "final_talk": "Nov 30 to Dec 6, 2026",
+  "final_report": "Dec 7 to 12, 2026",
+  "difficulty_test_format_misses": "54 of 118 (46%), cot-disclosure/README.md"
+ },
  "label_queue": {
   "file": "docs/progress/LABEL_QUEUE.csv",
   "rows": 60,

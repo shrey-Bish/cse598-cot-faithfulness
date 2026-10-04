@@ -616,8 +616,8 @@ def truncation_section():
     if not rows:
         return None
     conds = []
-    labels = {"stream_2000": "Sweep: 2,000 cap\n(streamed)", "stream_4000": "Sweep: 4,000 cap\n(streamed)",
-              "nostream_2000": "Sweep: 2,000 cap\n(not streamed)"}
+    labels = {"stream_2000": "Today\n2,000 cap\n(streamed)", "stream_4000": "Today\n4,000 cap\n(streamed)",
+              "nostream_2000": "Today\n2,000 cap\n(not streamed)"}
     for arm in ("stream_2000", "stream_4000", "nostream_2000"):
         rs = [r for r in rows if r["condition"] == arm]
         if not rs:
@@ -634,7 +634,18 @@ def truncation_section():
                       "median_visible_chars_capped": st.median(len(r["final_text"]) for r in capped) if capped else None,
                       "median_private_chars_capped": st.median(len(r["reasoning_text"] or "") for r in capped) if capped else None,
                       "run_ids": [r["run_id"] for r in rs]})
+    streamed = {r["item_id"]: len(r["reasoning_text"] or "") for r in rows if r["condition"] == "stream_2000"}
+    ns = [r for r in rows if r["condition"] == "nostream_2000"]
+    same_len = [r for r in ns if r["item_id"] in streamed]
+    extracted = [r for r in ns if r["leak"] and r["parsed_letter"]]
     return {"model": "olmo3-7b-think", "puzzles": sorted({r["item_id"] for r in rows}), "conditions": conds,
+            "nostream_leak_same_length_as_streamed_private": metric(
+                sum(len(r["final_text"]) == streamed[r["item_id"]] for r in same_len), len(same_len), [TRUNC],
+                "truncation_section", note="same request, 2,000 cap: characters in the non-streamed visible field "
+                                           "equal the characters in the streamed private field"),
+            "letters_extracted_from_leaks": [{"item": r["item_id"], "letter": r["parsed_letter"], "rule": r["parse_rule"],
+                                              "correct_letter": r["correct_letter"], "run_id": r["run_id"]}
+                                             for r in extracted],
             "source": [rel(TRUNC)], "function": "truncation_section"}
 
 
@@ -711,6 +722,41 @@ def around_kw(text, pattern, width=220):
     if not m:
         return text[:2 * width]
     return text[max(0, m.start() - width):m.end() + width]
+
+
+# ================================================================ today's totals
+def today_section():
+    from datetime import datetime, timezone
+    files = [TIMING, REPLAY, EXPA, GUARD, NOCUE, CUED, TRUNC]
+    per_file, recs = {}, []
+    for f in files:
+        rows = load(f)
+        recs += rows
+        per_file[rel(f)] = {"records": len(rows), "new_calls": sum(not r.get("cached") for r in rows),
+                            "served_from_cache": sum(bool(r.get("cached")) for r in rows),
+                            "api_error": sum(r["status"] != "ok" for r in rows),
+                            "retries": sum(r.get("retries") or 0 for r in rows),
+                            "parse_failure": sum(r.get("parse_status") == "parse_failure" for r in rows),
+                            "truncated": sum(r.get("parse_status") == "truncated" for r in rows)}
+    live = [r for r in recs if not r.get("cached")]
+    starts = [datetime.fromisoformat(r["timestamp_utc"]).timestamp() - (r["latency_s"] or 0) for r in live]
+    ends = [datetime.fromisoformat(r["timestamp_utc"]).timestamp() for r in live]
+    toks = sum((r["usage"] or {}).get("completion_tokens") or 0 for r in live)
+    return {"files": per_file, "records": len(recs), "new_calls": len(live),
+            "api_error": sum(r["status"] != "ok" for r in recs), "retries": sum(r.get("retries") or 0 for r in recs),
+            "output_tokens_new_calls": toks,
+            "wall_minutes_first_to_last_call": round((max(ends) - min(starts)) / 60, 1) if live else None,
+            "first_call_utc": datetime.fromtimestamp(min(starts), timezone.utc).isoformat(timespec="seconds") if live else None,
+            "last_call_utc": datetime.fromtimestamp(max(ends), timezone.utc).isoformat(timespec="seconds") if live else None,
+            "function": "today_section"}
+
+
+PLAN_INPUTS = {
+    "note": "planning numbers from the proposal revision and course schedule (student brief); not computed from results",
+    "output_token_budget_before": "about 180M", "output_token_budget_after": "about 55M",
+    "label_target_cases": "about 300", "final_talk": "Nov 30 to Dec 6, 2026", "final_report": "Dec 7 to 12, 2026",
+    "difficulty_test_format_misses": "54 of 118 (46%), cot-disclosure/README.md",
+}
 
 
 # ================================================================ figures
@@ -896,8 +942,8 @@ def fig_trunc_timing(summary):
     out = {}
     p, tr = summary["pilot"]["truncation"], summary.get("truncation")
     # F5: where the reasoning went when the reply hit the token cap
-    bars = [("Earlier ladder run\n8,000-token cap", p["ladder_8000_cap"]["num"], p["ladder_8000_cap"]["den"]),
-            ("Progress round\n16,000-token cap (streamed)", p["main_grid_16000_cap"]["num"], p["main_grid_16000_cap"]["den"])]
+    bars = [("Ladder run\n8,000 cap\n(earlier)", p["ladder_8000_cap"]["num"], p["ladder_8000_cap"]["den"]),
+            ("Pilot grid\n16,000 cap\n(streamed)", p["main_grid_16000_cap"]["num"], p["main_grid_16000_cap"]["den"])]
     if tr:
         for c in tr["conditions"]:
             bars.append((c["label"], c["leaked"]["num"], c["leaked"]["den"]))
@@ -911,7 +957,7 @@ def fig_trunc_timing(summary):
     for xi, b in zip(x, bars):
         ax.text(xi, b[2] + 0.2, f"{b[1]}/{b[2]} leaked", ha="center", va="bottom", fontsize=13)
     ax.set_xticks(x)
-    ax.set_xticklabels([b[0] for b in bars], fontsize=12)
+    ax.set_xticklabels([b[0] for b in bars], fontsize=13)
     ax.set_ylabel("replies cut off at the cap")
     ax.set_ylim(0, max(b[2] for b in bars) * 1.25)
     ax.legend(loc="upper right", frameon=False, fontsize=12)
@@ -920,7 +966,7 @@ def fig_trunc_timing(summary):
     out["F5"] = finish(fig, "F5_pilot_truncation_leak",
                        f"Replies cut off at the token cap: does private reasoning leak?\n"
                        f"Olmo 3 7B Think, n = {n_total} capped replies across {len(bars)} conditions",
-                       sources, top=0.80, bottom=0.2)
+                       sources, top=0.80, bottom=0.24)
 
     # F6: timing and tokens, two panels (no shared axis)
     t = summary.get("timing")
@@ -973,6 +1019,8 @@ def build():
         "expA": expA_section(),
         "expB": expB_section(),
         "truncation": truncation_section(),
+        "today": today_section(),
+        "plan_inputs": PLAN_INPUTS,
     }
     summary["label_queue"] = label_queue()
     return summary

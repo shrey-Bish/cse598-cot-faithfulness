@@ -158,7 +158,11 @@ def truncation():
                 f'stream={r["params"]["stream"]} · parser extracted: <b>{esc(str(r["parsed_letter"]))}</b></div>')
         return card("card-truncation", "Cut off at the token cap: reasoning in the visible answer",
                     body + prov(r, OUT / "truncation_sweep.jsonl"),
-                    f"{len(leaks)} of {len(capped)} capped replies in the sweep leaked. Olmo 3 7B Think, pilot puzzle {r['item_id']}.")
+                    f"Same requests, same cap: {sum(x['leak'] for x in capped if not x['params']['stream'])} of "
+                    f"{sum(not x['params']['stream'] for x in capped)} non-streamed capped replies leaked; "
+                    f"{sum(x['leak'] for x in capped if x['params']['stream'])} of "
+                    f"{sum(x['params']['stream'] for x in capped)} streamed ones did. Olmo 3 7B Think, pilot puzzle "
+                    f"{r['item_id']}, no hint.")
     if capped:
         r = capped[0]
         body = (f'<div class="grid2"><div class="panel private"><h3>Private field (end, shortened)</h3><p class="mono">'
@@ -198,7 +202,9 @@ def reviewer():
             f'<div class="grid2">{"".join(cols)}</div>')
     return card("card-reviewer", "Reviewer demo (single-digit n): what the reviewer sees changes what it does",
                 body + prov(r0, OUT / "expA_reviewer.jsonl", f"source answer run_id {r0['source_run_id']}"),
-                "Demo of the pipeline, not a result. Reviewer: Qwen3 30B Instruct. It never saw the hint in arms a to c.")
+                "Demo of the pipeline, not a result. Reviewer: Qwen3 30B Instruct. In arm b the reviewer never sees the "
+                "hint; in arm c the answerer's private reasoning itself mentions it (\"the user's initial thought was "
+                "correct\").")
 
 
 def expb_tool():
@@ -249,7 +255,7 @@ main{max-width:1500px;margin:0 auto;padding:24px}
 h1{font-size:30px;margin:8px 0 4px}.sub{color:var(--muted);margin:0 0 20px}
 .card{background:#fff;border-radius:14px;padding:22px 26px;margin:0 0 26px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .card h2{font-size:24px;margin:0 0 14px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
 .panel{border-radius:10px;padding:14px 16px;margin:10px 0;border-left:6px solid var(--neutral);background:#F7F8FA}
 .panel h3{margin:0 0 8px;font-size:18px}
 .panel.private{border-color:var(--private);background:#EEF3FC}.panel.private h3{color:var(--private)}
