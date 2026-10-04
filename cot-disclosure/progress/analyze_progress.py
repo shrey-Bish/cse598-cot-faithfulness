@@ -458,6 +458,9 @@ def expB_section():
     for m in B_MODELS:
         rs = [r for r in nocue if r["model"] == m]
         sec["groups"][m] = dict(Counter(g for (mm, _), g in groups.items() if mm == m))
+        trunc_items = {r["item_id"] for r in rs if r["parse_status"] == "truncated"}
+        sec.setdefault("groups_items_with_a_truncated_run", {})[m] = dict(Counter(
+            groups[(m, q)] for q in trunc_items))
         toks = [(r["usage"] or {}).get("completion_tokens") for r in rs if (r["usage"] or {}).get("completion_tokens")]
         sec["nocue"][m] = {
             "accuracy": wilson_metric(sum(r["parsed_letter"] == r["correct_letter"] for r in rs), len(rs), src_n,
@@ -527,6 +530,10 @@ def expB_section():
                     "parse_failure_or_truncated": sum(r["parse_status"] != "ok" for r in rs),
                     "run_ids": [r["run_id"] for r in rs]}
     sec["cells"] = cells
+    capped = [r for r in nocue + cued if r["finish_reason"] == "length"]
+    sec["capped_replies_streamed"] = metric(sum(len(r["final_text"]) > 0 for r in capped), len(capped), src_c,
+                                            "expB_section", note="capped (16,000 tokens, streamed) replies whose "
+                                                                 "visible field is non-empty")
     return sec
 
 

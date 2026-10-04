@@ -43,6 +43,14 @@ Either the 32B serving setup isn't deterministic under a seed, or the checkpoint
 ID changed between the pilot and today. We can't tell which from the API. This is one more
 reason to keep the 32B identity marked unconfirmed.
 
+Replays aren't fully reproducible on the 7B and Qwen endpoints either. In Experiment A,
+7 of 14 replays of pilot runs matched exactly. The misses were 6 Olmo 3 7B Instruct
+replies and 1 Qwen3 30B Thinking reply. Length didn't predict a match: an 8,093-token
+reply matched exactly, while a 1,191-token one didn't. Those replays ran while other
+requests were in flight, which can change numerics on a batched server; we can't confirm
+the cause from the API. Seeds make runs repeatable only in part, so every reply is now
+saved.
+
 ## Architecture (from the upstream model cards; not checked against the served weights)
 
 | | Olmo 3 7B | Olmo 3 / 3.1 32B | Qwen3-30B-A3B (2507) |

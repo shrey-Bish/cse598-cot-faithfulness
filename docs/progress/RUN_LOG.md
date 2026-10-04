@@ -47,6 +47,8 @@ record builder and Wilson intervals.
 | 20:28–20:35 | redraws | – | 12 | 0 / 0 | puzzle 4: followed on seed 100; puzzle 5: seeds 100–104 → F, F, F, B, D (followed on the 5th); puzzle 14: 6 draws → A, A, A, A, G, C (never followed; case skipped). |
 | 20:34–20:36 | guard re-asks (seed 3) | counterfactual guard (ii) | 6 | 0 / 0 | |
 | 20:36–20:45 | reviewer calls | Experiment A arms a–d | 87 | 0 / 0 | all verdicts parsed from `FINAL:` |
+| 20:47:45–20:56 | `nohup progress/truncation_sweep.py &` | Phase 3c (optional), run because it directly tests the 8k-vs-16k leak difference | 24 | 0 / 0 | **Ruling:** added a non-streamed arm (8 calls, 2,000 cap) to the planned 16 streamed calls, using the new `stream=False` client path, because the pilot evidence suggested the leak depends on the request mode. Cost if wrong: 8 extra short calls. Result: streamed 0/16 leaked, non-streamed 8/8 leaked. |
+| 20:47:50 | background chain: wait for `nocue` → `nocue` resume pass → `cued` | Experiment B | – | – | |
 
 ## Pilot verification: brief vs `analyze.py`
 
