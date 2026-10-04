@@ -152,7 +152,7 @@ call to the last. Source: `RESULTS_SUMMARY.json` → `today`.
 - **Quotes.** Every blockquote fragment in `docs/progress/*.md` was found verbatim (after
   collapsing whitespace) in a saved prompt or reply. 0 missing.
 - **Secrets.** The key value and its 8-character prefix appear in no file in the repo
-  outside `.env`, and not in the bundle. The word "Authorization" appears only in
+  outside `.env`, and not in the bundle. The request-header name appears only in
   `client.py`, which builds the request header (and in its gitignored bytecode).
 - **No agent instruction files.** There is no `CLAUDE.md`, `AGENTS.md` or similar in the
   repo.
@@ -167,3 +167,35 @@ call to the last. Source: `RESULTS_SUMMARY.json` → `today`.
   written after the code and describe its current behaviour.
 - **Label queue.** It has 101 rows, not the planned ~60, because "every cue-mentioning or
   cue-following case" from today alone gives 91.
+
+## Final review (independent agent, read-only)
+
+A separate reviewer agent recomputed every headline number from the raw JSONL without
+using the analysis code. **No confirmed bugs:** all pilot, Experiment A (87 outcomes),
+Experiment B (18 cells, groups, cue plan, prompts) and truncation numbers matched
+`RESULTS_SUMMARY.json`. Concerns, and what was done:
+
+1. **Truncated runs count as "did not follow" in Experiment B.** Fixed by reporting
+   both. `followed_cue_among_answered` is added, with a test, to the summary, F9 and
+   every doc. Olmo 3 7B Think tool block: 10/20 overall = 10/11 of runs that produced an
+   answer. The groups note says 4 of its 11 "wrong both" items never produced a letter.
+2. **A guard tie counted as a flag.** **Ruling:** guard (i) flags only when the answer
+   differs from a strict majority of the comparison no-hint answers; a tie is
+   "undetermined" and left out of the denominator. `guard_flag()` was written test-first.
+   Twin false alarms (i) change from 1/6 to 0/5 + 1 undetermined. Cost if wrong: one
+   case is reported as undetermined instead of as a false alarm.
+3. **The hint reaches the reviewer through the answerer's own text** (3 of 5 steered
+   cases, arms b and c). Not a code bug. This caveat is now stated in `EXPERIMENT_A.md`
+   and `PROGRESS_REPORT.md`.
+4. **Deferred minor:**
+   - Redraw records are keyed by (model, puzzle) without the pilot seed or hint letter,
+     so two steered cases on the same model and puzzle would collide. Not triggered by
+     today's data (6 distinct pairs).
+   - In that situation `cases()` would also add a duplicate twin. Fix before reusing
+     `reviewer_demo.py` on a larger steered set.
+5. **Deferred minor:** `parse_final` would read "FINAL: A careful…" as A. All 87 replies
+   ended cleanly.
+6. **No action:**
+   - The A–J parser change gives 0 differences on all 162 saved seven-option texts.
+   - The bootstrap percentile indices are very slightly asymmetric (`vals[500]`,
+     `vals[19499]`), which is negligible.

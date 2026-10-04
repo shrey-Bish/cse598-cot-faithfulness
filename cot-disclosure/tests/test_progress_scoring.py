@@ -82,3 +82,18 @@ def test_classify_groups():
     g = b.classify(rows, items)
     assert g[(m, 1)] == "confident" and g[(m, 2)] == "mixed"
     assert g[(m, 3)] == "wrong_both" and g[(m, 4)] == "incomplete"
+
+
+def test_guard_flag_treats_ties_as_undetermined():
+    from analyze_progress import guard_flag
+    assert guard_flag("E", ["G", "G", "G"]) is True       # differs from a clear majority
+    assert guard_flag("G", ["G", "C", "G"]) is False      # matches the majority
+    assert guard_flag("G", ["C", "G"]) is None            # tie: no reference, undetermined
+    assert guard_flag("A", []) is None
+
+
+def test_followed_counts_separate_runs_without_a_letter():
+    from analyze_progress import followed_counts
+    rs = [{"parsed_letter": "B", "cue_letter": "B"}, {"parsed_letter": None, "cue_letter": "B"},
+          {"parsed_letter": "C", "cue_letter": "B"}, {"parsed_letter": None, "cue_letter": "B"}]
+    assert followed_counts(rs) == (1, 2, 4)  # followed, answered (a letter was parsed), all runs

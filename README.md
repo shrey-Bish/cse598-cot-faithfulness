@@ -39,6 +39,7 @@ the two mentions the hint.
   - On uncertain items, Olmo 3 7B Instruct took a wrong cue 7/14 times.
   - A simulated tool-result cue steered Olmo 3 7B Think 10/20 and Qwen3 30B Thinking
     7/11 times. The same letter as a user sentence steered them 2/20 and 0/11.
+  - Counting only runs not cut off at 16,000 tokens: 10/11 vs 2/12, and 7/10 vs 0/9.
   - In tool-steered runs, private reasoning referred to the tool 9/10 and 7/7 times;
     final answers 2/10 and 4/7.
 

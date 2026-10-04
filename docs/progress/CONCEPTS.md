@@ -173,8 +173,8 @@ here, how we measure it, and an example from our data. Numbers come from
   Experiment B uses a **simulated tool block**: text formatted as a tool result inside
   the user turn. Voyager's real tool-role turn is untested.
 - **Example.** Same cue letter, different channel. Olmo 3 7B Think followed the user
-  sentence 2/20 times and the simulated tool block 10/20 times. Qwen3 30B Thinking: 0/11
-  vs 7/11.
+  sentence 2/20 times and the simulated tool block 10/20 times (2/12 vs 10/11 among
+  runs that finished). Qwen3 30B Thinking: 0/11 vs 7/11.
 
 ## Monitorability
 
@@ -217,9 +217,10 @@ here, how we measure it, and an example from our data. Numbers come from
   fresh no-hint re-ask (seed 3). Each is applied to steered cases (hits) and to twins
   (false alarms).
 - **Example.**
-  - Existing-data guard: flagged 5/5 steered cases, false alarm on 1/6 twins.
-  - Fresh re-ask: also 5/5 and 1/6. The false alarm came from Olmo 3 7B Instruct
-    answering a different wrong letter on the re-ask.
+  - Existing-data guard (majority of the other no-hint answers; ties undetermined):
+    flagged 5/5 steered cases, 0/5 twins, 1 twin undetermined.
+  - Fresh re-ask: flagged 5/5 steered cases and 1/6 twins. The false alarm came from
+    Olmo 3 7B Instruct answering a different wrong letter on the re-ask.
 
 ## Laundering
 

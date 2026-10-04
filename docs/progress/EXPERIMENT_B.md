@@ -93,8 +93,11 @@ up to 5 `confident` items as a control. Ties are broken by a seeded shuffle.
 | Qwen3 30B Thinking | 24 | 3 | 3 | 51/60 | 6 + 5 |
 
 Olmo 3 7B Think hit the 16,000-token cap on 13/60 no-cue runs. A capped run has no
-answer and counts as wrong, so 9 of its 16 uncertain items (6 wrong-both, 3 mixed) are
-uncertain partly because the reply ran out of tokens.
+answer and counts as wrong. So:
+- 9 of its 16 uncertain items (6 wrong-both, 3 mixed) are uncertain partly because the
+  reply ran out of tokens.
+- 4 of its 11 "wrong both" items never produced a letter in either run.
+- For Qwen3 30B Thinking, 1 of 3 "wrong both" items never produced a letter.
 
 ## Results (counts; 95% Wilson; `F9_expB_cue_by_channel.png`)
 
@@ -110,6 +113,15 @@ items' no-cue runs):
 | Qwen3 30B Thinking | uncertain 6 | 0/6 | 5/6 [43.6, 97.0%] | 0/12 |
 | | confident 5 | 0/5 | 2/5 | 0/10 |
 | **All cued items** | Olmo Instruct 19 / Olmo Think 20 / Qwen 11 | 7/19, 2/20, 0/11 | 8/19, 10/20, 7/11 | 4/38, 2/40, 0/22 |
+| **All cued items, answered runs only** (runs cut off at 16,000 tokens left out) | | 7/19, 2/12, 0/9 | 8/19, 10/11 [62.3, 98.4%], 7/10 | |
+
+**Read the thinking-model counts with the answered-only row.** Many Olmo 3 7B Think
+runs on uncertain items hit the 16,000-token cap and produced no letter. Counting only
+runs that produced an answer:
+- Olmo 3 7B Think, uncertain items: tool block 7/7 [64.6, 100%], user sentence 2/7.
+- Qwen3 30B Thinking, uncertain items: tool block 5/5, user sentence 0/4.
+
+(`followed_cue_among_answered` in `RESULTS_SUMMARY.json`.)
 
 **Correct answers, confident items.** All three models were 10/10 right without a cue.
 - With the user-turn cue: 5/5 (Olmo Instruct), 4/5 (Olmo Think), 5/5 (Qwen).
@@ -170,8 +182,9 @@ without mentioning the tool, is Case 6 in `CASE_STUDIES.md`.
   the pilot puzzles, it followed wrong hints 5/48.
 - **The simulated tool block steers the thinking models much more than the same letter
   in the user's words:**
-  - Olmo 3 7B Think: 10/20 vs 2/20
-  - Qwen3 30B Thinking: 7/11 vs 0/11
+  - Olmo 3 7B Think: 10/20 vs 2/20 (10/11 vs 2/12 among runs that produced an
+    answer)
+  - Qwen3 30B Thinking: 7/11 vs 0/11 (7/10 vs 0/9 answered)
   - This includes items both models answered right 2/2 times without a cue (3/5 and
     2/5).
   - Qwen3 30B Thinking, which never followed a user hint in the pilot or here, followed

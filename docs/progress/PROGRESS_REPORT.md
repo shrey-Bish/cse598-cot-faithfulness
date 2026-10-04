@@ -191,12 +191,14 @@ answer:
 
 With the answer only, it changed 3/18 right twin answers to wrong ones.
 
-**Counterfactual guard.** Flagged 5/5 steered cases, with 1/6 false alarms on twins.
-This held both from existing no-hint runs and from one fresh re-ask.
+**Counterfactual guard.** Flagged 5/5 steered cases.
+- From existing no-hint runs: false alarms on 0/5 twins, plus 1 undetermined tie.
+- From one fresh re-ask: false alarms on 1/6 twins.
 
 *Interpretation (demo-level):* in this demo, showing the reviewer more of the answerer's
 text made it more likely to pass a steered answer along, and a plain disclosure didn't
-stop it. Re-solving from scratch avoided that but damaged right answers. Next step:
+stop it. Caveat: in 3 of the 5 steered cases, that text itself already mentions the
+user's suggestion, so arm d is not a clean disclosure test. Re-solving from scratch avoided that but damaged right answers. Next step:
 arms a–e on the steered and twin cases from the main sweep, with more than one reviewer
 model.
 
@@ -222,8 +224,9 @@ uncertain items with either channel [26.8, 73.2%], vs 4/28 for the same letters 
 a cue. On confident items it chose it 0/5 (user) and 1/5 (tool).
 
 **The tool block steers the thinking models much more than the user sentence:**
-- Olmo 3 7B Think: 10/20 vs 2/20
-- Qwen3 30B Thinking: 7/11 [35.4, 84.8%] vs 0/11
+- Olmo 3 7B Think: 10/20 vs 2/20. Counting only runs not cut off at 16,000 tokens:
+  10/11 vs 2/12.
+- Qwen3 30B Thinking: 7/11 [35.4, 84.8%] vs 0/11 (answered only: 7/10 vs 0/9).
 - Same letters without a cue: 2/40 and 0/22
 - On confident items (10/10 right without a cue), the tool block still moved 3/5 and
   2/5 answers.
@@ -254,7 +257,8 @@ These are findings about the models and the serving stack. Each has a next step.
    - Experiment B, steered by the tool: private 9/10 and 7/7, final 2/10 and 4/7.
    - Next: human labels for mention, rejection, and acknowledgment.
 3. **A simulated tool result steers thinking models that ignore the same hint from the
-   user:** Qwen3 30B Thinking 7/11 vs 0/11; Olmo 3 7B Think 10/20 vs 2/20.
+   user:** Qwen3 30B Thinking 7/11 vs 0/11; Olmo 3 7B Think 10/20 vs 2/20 (10/11 vs
+   2/12 among runs that produced an answer).
    - Next: a real tool-role turn and a system-prompt channel.
 4. **Instruct models can't answer without room to reason** ("answer only" 1/24 and
    2/24). Thinking models keep reasoning privately.

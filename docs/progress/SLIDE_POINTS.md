@@ -145,10 +145,12 @@ track, the cap must be set per model, and 'think briefly' is our dose knob."
   - 3/3 with private reasoning (one case)
   - 6/15 even when told the user suggested it
   - With the answer only, it damaged 3/18 right twin answers.
-  - The counterfactual guard flagged 5/5 steered cases, with 1/6 false alarms.
+  - The counterfactual guard flagged 5/5 steered cases. False alarms on twins: 0/5
+    (+1 undetermined) from existing runs, 1/6 from a fresh re-ask.
 - **Experiment B (30 MMLU-Pro items; user sentence vs simulated tool block):**
   - On uncertain items, Olmo 3 7B Instruct took the cue 7/14 times.
-  - The tool block steered the thinking models (Olmo Think 10/20, Qwen 7/11), where the
+  - The tool block steered the thinking models (Olmo Think 10/20, or 10/11 of runs that
+    finished; Qwen 7/11), where the
     user sentence mostly didn't (2/20, 0/11).
   - When steered, private reasoning referred to the tool 9/10 and 7/7 times; final
     answers 2/10 and 4/7.
