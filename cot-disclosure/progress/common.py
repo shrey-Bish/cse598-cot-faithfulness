@@ -11,6 +11,7 @@ import hashlib
 import json
 import logging
 import math
+import random
 import sys
 import threading
 import time
@@ -77,9 +78,12 @@ _SLOTS.mkdir(exist_ok=True)
 @contextmanager
 def slot():
     """Hold one of MAX_IN_FLIGHT lock files while a request is open, so every
-    process together never has more than four requests in flight."""
+    process together never has more than four requests in flight. The jittered
+    waits keep it fair: without them a thread that just released a slot takes it
+    straight back and a second process starves."""
+    time.sleep(random.uniform(0, 0.4))
     while True:
-        for i in range(MAX_IN_FLIGHT):
+        for i in random.sample(range(MAX_IN_FLIGHT), MAX_IN_FLIGHT):
             fh = open(_SLOTS / f"slot{i}", "w")
             try:
                 fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -92,7 +96,7 @@ def slot():
                 fcntl.flock(fh, fcntl.LOCK_UN)
                 fh.close()
             return
-        time.sleep(0.25)
+        time.sleep(random.uniform(0.05, 0.3))
 
 
 # ---------------------------------------------------------------- records

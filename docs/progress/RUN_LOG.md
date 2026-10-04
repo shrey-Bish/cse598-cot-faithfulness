@@ -41,6 +41,12 @@ record builder and Wilson intervals.
 | 20:11:34–20:13:35 | `progress/timing_run.py` | catalog + timing | 9 (+1 `/models`) | 0 / 0 | 55 catalog IDs, 6/6 study models present. Projected Experiment B: 32 min no-cue + 22 min cued at 4 in flight (< 100 min, so all 30 items kept). |
 | 20:13:58 | `nohup progress/mmlu_pro_probe.py nocue &` | Experiment B no-cue screen | 180 planned | see below | resumable by run_id |
 | 20:14:10 | `nohup progress/reviewer_demo.py all &` | Experiment A: replay → guard → review | ~114 planned | see below | shares the 4 request slots with Experiment B |
+| 20:18:04 | killed and restarted both jobs | fix slot starvation | – | – | Experiment A had made no progress in 4 min: Experiment B's threads re-took every freed slot at once. `common.slot()` now waits a random 0–0.4 s before trying and polls in random order. Up to 4 in-flight B calls were abandoned (not cached); both jobs resumed by run_id. |
+| 20:19–20:28 | replays (in `reviewer_demo.py all`) | recover pilot texts | 14 | 0 / 0 | 7/14 replays byte-identical to the stored pilot run. Olmo 3 7B Instruct steered puzzles 4, 5, 14 diverged and answered correctly on replay. Twin puzzles 4, 5, 14 diverged but stayed correct. One Qwen evidence replay (puzzle 4) diverged. |
+| 20:22:10 | killed and restarted A with a new `redraw` step | recover steered texts that replays could not | – | – | **Ruling:** for steered cases whose replay diverged, same prompt and hinted letter with fresh seeds 100–105; keep the first reply that picks the hinted letter, labeled `redraw_same_prompt_new_seed`; skip the case if none does. Cost if wrong: two of five steered answers in Experiment A are new samples, not pilot texts (labeled everywhere). |
+| 20:28–20:35 | redraws | – | 12 | 0 / 0 | puzzle 4: followed on seed 100; puzzle 5: seeds 100–104 → F, F, F, B, D (followed on the 5th); puzzle 14: 6 draws → A, A, A, A, G, C (never followed; case skipped). |
+| 20:34–20:36 | guard re-asks (seed 3) | counterfactual guard (ii) | 6 | 0 / 0 | |
+| 20:36–20:45 | reviewer calls | Experiment A arms a–d | 87 | 0 / 0 | all verdicts parsed from `FINAL:` |
 
 ## Pilot verification: brief vs `analyze.py`
 
