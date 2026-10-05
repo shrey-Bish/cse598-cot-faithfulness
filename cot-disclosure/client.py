@@ -103,9 +103,10 @@ def _stream(payload):
         return parse_stream_lines(response)
 
 
-def parse_stream_lines(lines):
-    """Fold server-sent-event lines into content, reasoning (and the field it came
-    in), finish reason, usage, and tool calls (their fragments joined by index)."""
+def iter_stream_lines(lines):
+    """Yield ("reasoning" | "content", text piece) as server-sent-event lines arrive, then
+    ("end", folded) where folded has content, reasoning (and the field it came in), finish
+    reason, usage, and tool calls (their fragments joined by index)."""
     content, reasoning, finish, usage, field, calls = [], [], None, {}, None, {}
     for raw in lines:
         line = raw.decode("utf-8", "replace").strip()
@@ -118,13 +119,15 @@ def parse_stream_lines(lines):
         usage = chunk.get("usage") or usage
         for choice in chunk.get("choices", []):
             delta = choice.get("delta") or {}
-            if delta.get("content"):
-                content.append(delta["content"])
             name = "reasoning_content" if delta.get("reasoning_content") else "reasoning"
             piece = delta.get(name)
             if piece:
                 reasoning.append(piece)
                 field = field or name
+                yield "reasoning", piece
+            if delta.get("content"):
+                content.append(delta["content"])
+                yield "content", delta["content"]
             for tc in delta.get("tool_calls") or []:
                 slot = calls.setdefault(tc.get("index", 0), {"id": None, "type": "function",
                                                              "function": {"name": "", "arguments": ""}})
@@ -133,8 +136,61 @@ def parse_stream_lines(lines):
                 slot["function"]["name"] += fn.get("name") or ""
                 slot["function"]["arguments"] += fn.get("arguments") or ""
             finish = choice.get("finish_reason") or finish
-    return {"content": "".join(content), "reasoning": "".join(reasoning), "finish": finish, "usage": usage,
-            "reasoning_field": field, "tool_calls": [calls[i] for i in sorted(calls)]}
+    yield "end", {"content": "".join(content), "reasoning": "".join(reasoning), "finish": finish, "usage": usage,
+                  "reasoning_field": field, "tool_calls": [calls[i] for i in sorted(calls)]}
+
+
+def parse_stream_lines(lines):
+    """The folded result of a whole stream (see iter_stream_lines)."""
+    for kind, value in iter_stream_lines(lines):
+        if kind == "end":
+            return value
+
+
+def chat_live(model, messages, max_tokens=8000, temperature=0.0, seed=None):
+    """Like chat(), but a generator for interactive use: yields ("reasoning" | "content",
+    piece) as the reply streams in, then ("done", result) with the same fields as chat().
+    Uses and fills the same cache (same key as chat()); no retries, so a failure shows at once."""
+    payload = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": temperature}
+    if seed is not None:
+        payload["seed"] = seed
+    digest = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:24]
+    cached = CACHE_DIR / f"{digest}.json"
+    if cached.exists():
+        result = {"retries": 0, "latency_s": None, "reasoning_field": None, "tool_calls": [],
+                  **json.loads(cached.read_text()), "cached": True}
+        if result["reasoning"]:
+            yield "reasoning", result["reasoning"]
+        if result["content"]:
+            yield "content", result["content"]
+        yield "done", result
+        return
+    start = time.monotonic()
+    request = urllib.request.Request(
+        f"{BASE_URL}/chat/completions",
+        data=json.dumps({**payload, "stream": True, "stream_options": {"include_usage": True}}).encode(),
+        headers={"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=300) as response:
+            for kind, value in iter_stream_lines(response):
+                if kind == "end":
+                    out = value
+                else:
+                    yield kind, value
+    except urllib.error.HTTPError as err:
+        yield "done", {"content": "", "reasoning": "", "finish": "error", "usage": {}, "error": f"HTTP {err.code}",
+                       "retries": 0, "latency_s": None, "reasoning_field": None, "tool_calls": [], "cached": False}
+        return
+    except Exception as err:
+        yield "done", {"content": "", "reasoning": "", "finish": "error", "usage": {}, "error": type(err).__name__,
+                       "retries": 0, "latency_s": None, "reasoning_field": None, "tool_calls": [], "cached": False}
+        return
+    result = {"content": out["content"], "reasoning": out["reasoning"], "finish": out["finish"], "usage": out["usage"],
+              "error": None, "retries": 0, "latency_s": round(time.monotonic() - start, 2),
+              "reasoning_field": out["reasoning_field"], "tool_calls": out["tool_calls"]}
+    cached.write_text(json.dumps(result))
+    yield "done", {**result, "cached": False}
 
 
 def _post(payload):

@@ -34,3 +34,32 @@ def test_streamed_tool_call_fragments_are_joined():
     assert out["finish"] == "tool_calls"
     assert out["tool_calls"] == [{"id": "call_1", "type": "function",
                                   "function": {"name": "lookup_answer_key", "arguments": "{\"question_id\": \"7\"}"}}]
+
+
+def test_iter_stream_lines_yields_pieces_then_the_folded_result():
+    from client import iter_stream_lines
+    lines = [sse({"choices": [{"delta": {"reasoning": "think "}}]}),
+             sse({"choices": [{"delta": {"content": "Answer: "}}]}),
+             sse({"choices": [{"delta": {"content": "(B)"}, "finish_reason": "stop"}]}),
+             sse({"choices": [], "usage": {"completion_tokens": 3}}), b"data: [DONE]"]
+    events = list(iter_stream_lines(lines))
+    assert events[:3] == [("reasoning", "think "), ("content", "Answer: "), ("content", "(B)")]
+    kind, folded = events[-1]
+    assert kind == "end" and folded == parse_stream_lines(lines)
+
+
+def test_chat_live_replays_a_cached_reply_without_network(tmp_path, monkeypatch):
+    import client
+    monkeypatch.setattr(client, "CACHE_DIR", tmp_path)
+    payload = {"model": "m", "messages": [{"role": "user", "content": "q"}], "max_tokens": 10, "temperature": 0.6,
+               "seed": 1}
+    import hashlib
+    digest = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:24]
+    (tmp_path / f"{digest}.json").write_text(json.dumps({"content": "Answer: (C)", "reasoning": "hmm", "finish": "stop",
+                                                         "usage": {}, "error": None}))
+    def no_net(*a, **k):
+        raise AssertionError("no network for a cached reply")
+    monkeypatch.setattr(client.urllib.request, "urlopen", no_net)
+    events = list(client.chat_live("m", payload["messages"], max_tokens=10, temperature=0.6, seed=1))
+    assert ("reasoning", "hmm") in events and ("content", "Answer: (C)") in events
+    assert events[-1][0] == "done" and events[-1][1]["cached"] is True

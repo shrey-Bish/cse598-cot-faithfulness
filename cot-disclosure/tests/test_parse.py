@@ -47,3 +47,15 @@ def test_parse_final_reads_reviewer_verdict():
     # no FINAL line: falls back to the general parser, and says so
     assert parse_final("So the answer is (F).", 7) == ("F", "fallback:answer_is")
     assert parse_final("FINAL: J", 10) == ("J", "final")
+
+
+def test_parse_answer_span_points_at_the_text_it_read():
+    from parse import parse_answer_span
+    text = "Maybe (C)? No.\nSo the answer is B.\nAnswer: (B)"
+    letter, rule, span = parse_answer_span(text, 7)
+    assert (letter, rule) == ("B", "answer_colon") and text[span[0]:span[1]] == "Answer: (B)"
+    letter, rule, span = parse_answer_span("final: \\boxed{E}", 7)
+    assert (letter, rule) == ("E", "boxed") and "\\boxed{E" in "final: \\boxed{E}"[span[0]:span[1]]
+    letter, rule, span = parse_answer_span("it must be option (D) then", 7)
+    assert (letter, rule) == ("D", "tail_paren") and "it must be option (D) then"[span[0]:span[1]] == "(D)"
+    assert parse_answer_span("no letter here", 7) == (None, "none", None)

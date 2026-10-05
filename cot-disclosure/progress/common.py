@@ -113,6 +113,28 @@ def parse_status(out, letter):
     return "ok" if letter else "parse_failure"
 
 
+def make_record(out, *, experiment, item_id, model, condition, repeat, messages, n_options, correct_letter=None,
+                arm=None, cue_letter=None, cue_channel=None, temperature=PILOT_TEMPERATURE,
+                max_tokens=PILOT_MAX_TOKENS, seed=None, stream=True, run_id_=None):
+    """The JSONL record for one finished call (`out` as returned by client.chat or chat_live)."""
+    letter, rule = parse_answer(out["content"], n_options)
+    return {
+        "run_id": run_id_ or run_id(experiment, item_id, model, condition, arm, repeat), "experiment": experiment,
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "model": model, "item_id": item_id, "condition": condition, "arm": arm, "repeat": repeat,
+        "cue_letter": cue_letter, "cue_channel": cue_channel, "correct_letter": correct_letter,
+        "prompt_messages": messages,
+        "prompt_sha256": hashlib.sha256(json.dumps(messages, sort_keys=True).encode()).hexdigest(),
+        "params": {"temperature": temperature, "max_tokens": max_tokens, "seed": seed, "stream": stream},
+        "latency_s": out.get("latency_s"), "cached": out.get("cached", False),
+        "finish_reason": out["finish"], "usage": out["usage"],
+        "reasoning_field": out.get("reasoning_field"),
+        "reasoning_text": out["reasoning"] or None, "final_text": out["content"],
+        "parsed_letter": letter, "parse_rule": rule, "parse_status": parse_status(out, letter),
+        "status": "api_error" if out["error"] else "ok", "error_type": out["error"], "retries": out.get("retries", 0),
+    }
+
+
 def call(log, *, experiment, item_id, model, condition, repeat, messages, n_options,
          correct_letter=None, arm=None, cue_letter=None, cue_channel=None,
          temperature=PILOT_TEMPERATURE, max_tokens=PILOT_MAX_TOKENS, seed=None,
@@ -126,28 +148,15 @@ def call(log, *, experiment, item_id, model, condition, repeat, messages, n_opti
     with slot():
         out = chat(model, messages, max_tokens=max_tokens, temperature=temperature, seed=seed,
                    backoff=BACKOFF, on_retry=on_retry, stream=stream)
-    letter, rule = parse_answer(out["content"], n_options)
-    status = "api_error" if out["error"] else "ok"
-    rec = {
-        "run_id": rid, "experiment": experiment,
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "model": model, "item_id": item_id, "condition": condition, "arm": arm, "repeat": repeat,
-        "cue_letter": cue_letter, "cue_channel": cue_channel, "correct_letter": correct_letter,
-        "prompt_messages": messages,
-        "prompt_sha256": hashlib.sha256(json.dumps(messages, sort_keys=True).encode()).hexdigest(),
-        "params": {"temperature": temperature, "max_tokens": max_tokens, "seed": seed,
-                   "stream": stream},
-        "latency_s": out.get("latency_s"), "cached": out.get("cached", False),
-        "finish_reason": out["finish"], "usage": out["usage"],
-        "reasoning_field": out.get("reasoning_field"),
-        "reasoning_text": out["reasoning"] or None, "final_text": out["content"],
-        "parsed_letter": letter, "parse_rule": rule, "parse_status": parse_status(out, letter),
-        "status": status, "error_type": out["error"], "retries": out.get("retries", 0),
-    }
+    rec = make_record(out, experiment=experiment, item_id=item_id, model=model, condition=condition, repeat=repeat,
+                      messages=messages, n_options=n_options, correct_letter=correct_letter, arm=arm,
+                      cue_letter=cue_letter, cue_channel=cue_channel, temperature=temperature,
+                      max_tokens=max_tokens, seed=seed, stream=stream, run_id_=rid)
+    status = rec["status"]
     rec.update(extra or {})
     tokens = (out["usage"] or {}).get("completion_tokens")
     log.info(f"call {experiment} run_id={rid} model={model} cond={condition} arm={arm} rep={repeat} "
-             f"status={status} finish={out['finish']} letter={letter} tokens={tokens} "
+             f"status={status} finish={out['finish']} letter={rec['parsed_letter']} tokens={tokens} "
              f"latency={out.get('latency_s')}s cached={rec['cached']} retries={rec['retries']}")
     return rec
 

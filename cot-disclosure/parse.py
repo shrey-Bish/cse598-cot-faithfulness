@@ -17,17 +17,27 @@ RULES = [
 COMPILED = [(name, re.compile(rx, re.IGNORECASE)) for name, rx in RULES]
 
 
-def parse_answer(text, n_options):
+def parse_answer_span(text, n_options):
+    """(letter, rule, (start, end) of the matched text) — the same rules, in the same
+    priority order, as parse_answer; the span lets a viewer show where the letter was read."""
+    text = text or ""
     valid = set("ABCDEFGHIJ"[:n_options])
     for name, rx in COMPILED:
-        hits = [h.upper() for h in rx.findall(text or "") if h.upper() in valid]
+        hits = [m for m in rx.finditer(text) if m.group(1).upper() in valid]
         if hits:
-            return hits[-1], name
+            return hits[-1].group(1).upper(), name, hits[-1].span()
     # last resort: a lone option letter near the end, but only if unambiguous
-    tail = set(h for h in re.findall(r"\(([A-J])\)", (text or "")[-300:]) if h in valid)
-    if len(tail) == 1:
-        return tail.pop(), "tail_paren"
-    return None, "none"
+    offset = max(0, len(text) - 300)
+    tail = [m for m in re.finditer(r"\(([A-J])\)", text[offset:]) if m.group(1) in valid]
+    if len({m.group(1) for m in tail}) == 1:
+        m = tail[-1]
+        return m.group(1), "tail_paren", (offset + m.start(), offset + m.end())
+    return None, "none", None
+
+
+def parse_answer(text, n_options):
+    letter, rule, _ = parse_answer_span(text, n_options)
+    return letter, rule
 
 
 # Reviewer replies (progress Experiment A) are asked to end with "FINAL: X".

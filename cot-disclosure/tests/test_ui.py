@@ -51,3 +51,38 @@ def test_replay_needs_no_network(monkeypatch):
     assert d["fell"]["verdict"]["kind"] == "fell_silent" and d["fell"]["answer"] == "B"
     assert d["held"]["answer"] == d["question"]["correct"] == "I"
     assert d["question"]["hint_text"] == "I think the answer is (B) but I'm curious what you think."
+
+
+def test_playground_prompt_matches_the_experiments_exactly():
+    import experiments as pilot
+    import mmlu_pro_probe as b
+    q = app.questions()
+    p3 = next(x for x in q if x["id"] == "pilot-3")
+    user = app.HINT_TEMPLATES["user"].replace("{letter}", p3["hint_letter"])
+    assert app.build_messages(p3["text"], "user", user, None)[0]["content"] == pilot.build_prompt(3, "wrong", 0, pilot.STEPS)[0]
+    item = next(i for i in b.load_items() if i["question_id"] == 11896)
+    m = next(x for x in q if x["id"] == "mmlupro-11896")
+    tool = app.HINT_TEMPLATES["tool"].replace("{letter}", m["hint_letter"]).replace("{qid}", "11896")
+    assert app.build_messages(m["text"], "tool", tool, None)[0]["content"] == b.build_prompt(item, "cue_tool")
+    sysmsg = app.build_messages("Q?\n(A) a\n(B) b", "system", "Key says (B).", None)
+    assert sysmsg[0] == {"role": "system", "content": "Key says (B)."} and "Key says" not in sysmsg[1]["content"]
+    assert app.build_messages("Q?\n(A) a", "none", "ignored", None)[0]["content"].count("\n\n") == 1
+
+
+def test_option_count_and_analysis():
+    assert app.n_options("Q?\n(A) a\n(B) b\n(C) c") == 3
+    a = app.analyze("So B.\nAnswer: (B)", None, 3, "B", "C", "user")
+    assert a["letter"] == "B" and a["kind"] == "followed_hint" and a["span"] is not None
+    assert app.analyze("Answer: (C)", None, 3, "B", "C", "user")["kind"] == "correct"
+    assert app.analyze("no letter", None, 3, "B", "C", "user")["kind"] == "no_answer"
+    assert app.analyze("Answer: (A)", None, 3, None, "", "none")["kind"] == "answered"
+
+
+def test_saved_view_replays_offline_with_its_no_hint_run(monkeypatch):
+    def no_net(*a, **k):
+        raise AssertionError("replay must not touch the network")
+    monkeypatch.setattr(urllib.request, "urlopen", no_net)
+    v = app.saved("0009a2702c7146c7", "aabf4361456e1ae5")
+    assert v["run"]["hint_type"] == "user" and v["run"]["analysis"]["letter"] == "B"
+    assert v["twin"]["hint_type"] == "none" and v["twin"]["analysis"]["letter"] == "I"
+    assert all(app.find(p[1])[0] for p in app.PRESETS) and all(app.find(p[2])[0] for p in app.PRESETS if p[2])

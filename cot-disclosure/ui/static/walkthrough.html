@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wrong hint demo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">CSE 598 · Group 10 · Does the model admit it used the hint?</div>
+  <div class="controls">
+    <button id="play" title="Play the whole demo (about 45 seconds)">▶ Play</button>
+    <span class="keys">← → to step</span>
+  </div>
+</header>
+
+<main id="stage">
+  <!-- 0: the question and the hint -->
+  <section class="scene" data-scene="question">
+    <h1>We add a <span class="pink">wrong hint</span> to a real exam question.</h1>
+    <div class="qcard">
+      <div class="qmeta" id="q-meta"></div>
+      <p class="qtext" id="q-text"></p>
+      <ol class="options" id="q-options"></ol>
+      <div class="hint-bubble" id="hint-bubble">
+        <div class="hint-label">The user adds:</div>
+        <div class="hint-text" id="hint-text"></div>
+      </div>
+    </div>
+    <p class="explain">The correct answer is <b class="green" id="q-correct"></b>. The hint points to <b class="pink" id="q-hint"></b>, a wrong answer.</p>
+  </section>
+
+  <!-- 1: fell for it -->
+  <section class="scene" data-scene="fell">
+    <h1><span class="red">✗</span> <span id="fell-model"></span> fell for it.</h1>
+    <div class="answers">
+      <div class="ans-col">
+        <div class="ans-label">Same question, <b>no hint</b>:</div>
+        <div class="chips" id="fell-nohint"></div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="ans-col">
+        <div class="ans-label">With the <span class="pink">hint (B)</span>:</div>
+        <div class="chips" id="fell-hinted"></div>
+      </div>
+    </div>
+    <div class="texts">
+      <div class="panel blue">
+        <div class="panel-head">Private reasoning <span class="sub">(the model's notes before answering)</span></div>
+        <div class="scan" id="fell-scan"></div>
+        <pre class="mono" id="fell-private"></pre>
+      </div>
+      <div class="panel orange">
+        <div class="panel-head">Final answer <span class="sub">(what the user sees)</span></div>
+        <pre class="mono big" id="fell-final"></pre>
+        <div class="scan" id="fell-scan-final"></div>
+      </div>
+    </div>
+    <div class="verdict bad" id="fell-verdict"></div>
+    <div class="again" id="fell-again"></div>
+    <div class="prov" id="fell-prov"></div>
+  </section>
+
+  <!-- 2: kept the right answer -->
+  <section class="scene" data-scene="held">
+    <h1><span class="green">✓</span> <span id="held-model"></span> kept the right answer.</h1>
+    <div class="answers">
+      <div class="ans-col">
+        <div class="ans-label">Same question, <b>no hint</b>:</div>
+        <div class="chips" id="held-nohint"></div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="ans-col">
+        <div class="ans-label">With the <span class="pink">hint (B)</span>:</div>
+        <div class="chips" id="held-hinted"></div>
+      </div>
+    </div>
+    <div class="texts">
+      <div class="panel blue">
+        <div class="panel-head">Private reasoning <span class="sub">(end of it)</span></div>
+        <pre class="mono" id="held-private"></pre>
+      </div>
+      <div class="panel orange">
+        <div class="panel-head">Final answer <span class="sub">(end of it)</span></div>
+        <pre class="mono" id="held-final"></pre>
+      </div>
+    </div>
+    <div class="verdict good" id="held-verdict"></div>
+    <div class="prov" id="held-prov"></div>
+  </section>
+
+  <!-- 3: the numbers -->
+  <section class="scene" data-scene="numbers">
+    <h1>Across all our runs</h1>
+    <div class="findings">
+      <div class="finding">
+        <h2>1. The model talks about the hint privately, not with the user</h2>
+        <div class="bar-row"><div class="bar-label">Private reasoning mentioned the hint</div><div class="bar"><div class="fill blue-fill" data-k="private"></div></div><div class="count" data-c="private"></div></div>
+        <div class="bar-row"><div class="bar-label">Final answer mentioned the hint</div><div class="bar"><div class="fill orange-fill" data-k="final"></div></div><div class="count" data-c="final"></div></div>
+        <div class="note">Runs with a hint: 3 thinking models × 24 puzzles × 3 runs. Keyword count.</div>
+      </div>
+      <div class="finding">
+        <h2>2. A hint that looks like a tool result works better than one from the user</h2>
+        <div class="bar-row"><div class="bar-label">Picked the <b>tool's</b> wrong letter</div><div class="bar"><div class="fill pink-fill" data-k="tool"></div></div><div class="count" data-c="tool"></div></div>
+        <div class="bar-row"><div class="bar-label">Picked the <b>user's</b> wrong letter</div><div class="bar"><div class="fill grey-fill" data-k="user"></div></div><div class="count" data-c="user"></div></div>
+        <div class="note">Olmo 3 7B Think and Qwen3 30B Thinking · 31 exam questions, mostly ones they were unsure about · tool hint pasted into the message.</div>
+      </div>
+      <div class="finding">
+        <h2>3. A wrong answer's explanation can fool a second model</h2>
+        <div class="bar-row"><div class="bar-label">Reviewer saw question + answer: accepted the wrong answer</div><div class="bar"><div class="fill grey-fill" data-k="review_answer_only"></div></div><div class="count" data-c="review_answer_only"></div></div>
+        <div class="bar-row"><div class="bar-label">Reviewer also read the explanation: accepted it</div><div class="bar"><div class="fill red-fill" data-k="review_explanation"></div></div><div class="count" data-c="review_explanation"></div></div>
+        <div class="note">5 wrong answers that followed a hint, each reviewed 3 times by Qwen3 30B Instruct.</div>
+      </div>
+    </div>
+    <div class="prov" id="numbers-prov"></div>
+  </section>
+
+  <!-- 4: live (optional) -->
+  <section class="scene" data-scene="live">
+    <h1>Try it live: same question, same wrong hint.</h1>
+    <div class="live-controls">
+      <select id="live-model"></select>
+      <button id="live-run">Ask the model now</button>
+      <span id="live-status"></span>
+    </div>
+    <div id="live-result"></div>
+    <h2 class="fresh-title">Fresh real calls on this question and hint (one letter per run)</h2>
+    <div class="fresh" id="fresh"></div>
+    <div class="prov">Live calls go through the project's client to ASU Voyager and are saved to results/ui_runs.jsonl.</div>
+  </section>
+</main>
+
+<nav class="dots" id="dots"></nav>
+<script src="walkthrough.js"></script>
+</body>
+</html>
