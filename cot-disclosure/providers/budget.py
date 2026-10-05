@@ -105,7 +105,7 @@ def table(input_tokens, output_tokens, budget=DEFAULT_CAP):
     for model, p in prices().items():
         per_call = cost(model, input_tokens, output_tokens)
         rows.append({"model": model, "provider": p["provider"], "usd_per_call": per_call,
-                     "calls_per_budget": int(budget // per_call) if per_call else None})
+                     "calls_per_budget": int(budget / per_call + 1e-9) if per_call else None})  # avoid float floor error
     return rows
 
 

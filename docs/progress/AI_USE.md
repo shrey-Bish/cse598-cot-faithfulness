@@ -27,7 +27,7 @@ It also wrote the unit tests in `cot-disclosure/tests/`.
 **Ran the model calls** on ASU's Voyager service:
 - the timing run
 - Experiment A (the reviewer demo)
-- Experiment B (MMLU-Pro with a user or simulated-tool cue)
+- Experiment B (MMLU-Pro with a user or simulated-tool hint)
 - the truncation sweep
 
 Every call's prompt, reply, and settings are saved in `cot-disclosure/results/progress/`.
@@ -48,3 +48,42 @@ members.
 the talk, and the report. Every number in these notes can be regenerated from the saved
 JSONL with `python cot-disclosure/progress/analyze_progress.py`. Any number the team
 quotes should be checked against `RESULTS_SUMMARY.json` before it goes on a slide.
+
+## Scope update (2026-10-04, branch `scope-update`)
+
+The same AI coding agent, again from a written brief the student supplied:
+
+**Docs.**
+- Updated the docs to the new scope:
+  - a scope section in `PROGRESS_REPORT.md`
+  - new risks in `FAILURES_AND_RISKS.md`
+  - new plain-language entries in `CONCEPTS.md`
+  - "hint" instead of "cue" throughout
+  - `SLIDE_POINTS.md` regenerated from the v2 deck
+- Wrote `docs/plan/` (project plan, three track pages, budget).
+
+**Numbers.** Computed two new sets of numbers from saved results:
+- the private/final mention overlap in Test 1
+- Test 2's combined thinking-model counts
+
+**Provider research.** Read each provider's current documentation and pricing on
+2026-10-04 (through a research sub-agent) and recorded the facts, with sources, in
+`cot-disclosure/configs/models.yaml` and `prices.yaml`.
+
+**Code.** Wrote:
+- the provider adapters and the budget guard
+- the answer-key tool with real tool calls
+- the Track B runner
+- the Track C agents
+- the Track A dataset builder and source tags
+- tests (42 pass)
+
+**Model calls.** Made only free Voyager calls:
+- the tool-support check: about a dozen calls, first tried in a scratch script, then saved by `check_tool_support.py`, which reused the cached replies
+- 14 calls for the 2-question live team run
+
+No paid API was called: there are no OpenAI, Anthropic or xAI keys yet.
+
+**Not done by the AI:** human labeling, the Track B sweep, and model training. The team
+reviews and owns the plan, the code and the report.
+

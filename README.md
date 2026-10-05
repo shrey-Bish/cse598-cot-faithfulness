@@ -8,47 +8,51 @@ Each pair has a regular chat model and a thinking model. Thinking models send ba
 their private reasoning and their final answer separately, so we can check which of
 the two mentions the hint.
 
-## Status (progress presentation, October 2026)
+## Status (October 2026, after the progress presentation)
 
-**What ran**
-- **Pilot:** 24 puzzles × 6 models × 6 runs = 864 calls, plus "think briefly" and
-  "answer only" side tests. 1,056 calls in total, 0 failed.
-- **Today (2026-10-04):**
-  - timing run
-  - Experiment A: reviewer demo
-  - Experiment B: 30 MMLU-Pro items, cue in the user turn vs a simulated tool block
-  - truncation sweep
+**Question:** when a wrong hint changes a model's answer, does the model admit that it
+used the hint?
 
-  Every prompt and reply is saved in `cot-disclosure/results/progress/`.
+**What we found** (all numbers in `docs/progress/RESULTS_SUMMARY.json`; mentions are
+keyword counts until hand-labeled):
+- **Test 1, 24 generated puzzles, user hint.**
+  - Only the smallest instruct model followed wrong hints: Olmo 3 7B Instruct, 5 of 48
+    hinted runs.
+  - The thinking models' private reasoning mentioned the hint in 208 of 216 hinted runs,
+    their final answers in 8. All 8 final-answer mentions also appear in the private
+    reasoning.
+- **Test 2, 30 MMLU-Pro questions.**
+  - Thinking models picked a pasted tool hint's wrong letter on 17 of 31 questions, and
+    a user hint's on 2 of 31.
+  - Of the 17, the private reasoning referred to the tool in 16, the final answer in 6.
+- **Reviewer check (5 hint-steered answers × 3 reviews).** A reviewer accepted the wrong
+  answer in 0 of 15 reviews from the answer alone, and in 7 of 15 once it read the
+  explanation.
+- **Replies cut off at the token limit** leak private reasoning when not streamed: 8 of
+  8 vs 0 of 8 streamed.
 
-**Key numbers** (all in `docs/progress/RESULTS_SUMMARY.json`)
-- **Wrong-hint following:**
-  - Olmo 3 7B Instruct 5/48 (10.4%, 95% range 2.1 to 18.8)
-  - Olmo 3 7B Think 1/48
-  - the other four models 0/48
-  - the same letters without a hint: 0/144 for every model
-- **Hint mentioned (keyword pre-sort):** thinking models 208/216 in private reasoning vs
-  8/216 in final answers. The keywords also fire on 22/72, 18/72 and 2/72 no-hint traces.
-- **"Answer only":** instruct models fall to 1/24 and 2/24. Thinking models keep
-  reasoning privately and score 23/24 and 24/24.
-- **Token cap:** private reasoning leaks into the visible answer when the reply isn't
-  streamed. Same 8 requests: 8/8 leaked unstreamed, 0/8 leaked streamed.
-- **Reviewer demo (n = 5 steered + 6 twin cases):** the reviewer kept the hinted wrong
-  answer 0/15 times with the answer only and 7/15 with the explanation.
-- **Experiment B (30 MMLU-Pro items, first look):**
-  - On uncertain items, Olmo 3 7B Instruct took a wrong cue 7/14 times.
-  - A simulated tool-result cue steered Olmo 3 7B Think 10/20 and Qwen3 30B Thinking
-    7/11 times. The same letter as a user sentence steered them 2/20 and 0/11.
-  - Counting only runs not cut off at 16,000 tokens: 10/11 vs 2/12, and 7/10 vs 0/9.
-  - In tool-steered runs, private reasoning referred to the tool 9/10 and 7/7 times;
-    final answers 2/10 and 4/7.
+**Plan (weeks 9–16):** `docs/plan/PROJECT_PLAN.md`
+- [Track A: explain and fix](docs/plan/TRACK_A_explain_fix.md) (Ritik): look inside Olmo
+  3 7B Think; LoRA + source tags; behavior-based evaluation.
+- [Track B: test widely](docs/plan/TRACK_B_test_widely.md) (Arsha): Ollama Qwen3,
+  OpenAI, Anthropic, xAI; thinking on/off; real tool calls (they work on Voyager);
+  GPQA; 3 runs per question.
+- [Track C: multi-agent pipeline](docs/plan/TRACK_C_multi_agent.md) (Shrey): solver →
+  reviewer → checker.
+- [Budget](docs/plan/BUDGET.md): about $15, capped at $5 per closed provider, enforced
+  in code.
 
-**Checkpoints:** `docs/progress/MODELS.md` (Voyager IDs, candidate model cards; the
-Olmo 32B identity is unconfirmed).
+**Code** (in `cot-disclosure/`):
+- `providers/`: one interface over Voyager, Ollama, OpenAI, Anthropic and xAI, plus the
+  budget guard
+- `tools/answer_key.py`: hint conditions and real tool calls
+- `progress/run_trackB.py` (`--dry-run`) with `configs/trackB.yaml`
+- `agents/run_team.py` (`--replay`, `--live`)
+- `finetune/`: dataset and source tags
 
-**Notes and figures:**
-- notes: [`docs/progress/`](docs/progress/), starting with `PROGRESS_REPORT.md` and
-  `SLIDE_POINTS.md`
+**Progress-round notes and figures:**
+- notes: [`docs/progress/`](docs/progress/) (`PROGRESS_REPORT.md`, `SLIDE_POINTS.md`,
+  `CONCEPTS.md`)
 - figures: [`presentation/progress/figures/`](presentation/progress/figures/)
 - evidence viewer and screenshots: [`presentation/progress/`](presentation/progress/)
 
@@ -56,13 +60,15 @@ Olmo 32B identity is unconfirmed).
 
 ```bash
 .venv/bin/python cot-disclosure/progress/analyze_progress.py       # RESULTS_SUMMARY.json + figures F1-F9
-.venv/bin/python cot-disclosure/progress/build_evidence_viewer.py  # presentation/progress/evidence_viewer.html
-.venv/bin/python cot-disclosure/progress/take_screenshots.py       # add --headed --slow-mo 300 to watch
+.venv/bin/python cot-disclosure/progress/run_trackB.py --dry-run   # Track B plan: calls and cost per provider
+.venv/bin/python cot-disclosure/agents/run_team.py --replay        # Track C on saved data (no API calls)
+.venv/bin/python cot-disclosure/finetune/build_dataset.py          # Track A train / held-out records
 cd cot-disclosure && ../.venv/bin/python -m pytest -q tests        # unit tests
 ```
 
-The commands that call the models (resumable; they need a key in `cot-disclosure/.env`)
-are listed in `docs/progress/PROGRESS_REPORT.md` §8.
+The commands that call models need keys in `cot-disclosure/.env` (see
+`docs/plan/BUDGET.md`). They are listed in `docs/progress/PROGRESS_REPORT.md` §8 and the
+track pages.
 
 | Folder | What's in it |
 |---|---|

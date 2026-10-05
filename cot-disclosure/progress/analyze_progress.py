@@ -844,6 +844,40 @@ def scope_section(summary):
             "tool_steered_final_mention": metric(*tot("cue_tool", "followed_and_final_mention"), src, "scope_section"),
             "tool_steered_private_mention": metric(*tot("cue_tool", "followed_and_private_mention"), src, "scope_section"),
             "note": "Test 2 = Experiment B; each question was asked once per hint channel, so runs = questions"}
+    scope = CODE / "results" / "scope"
+    tool = load(scope / "voyager_tool_support.jsonl")
+    if tool:
+        out["voyager_tool_support"] = {
+            "checks": [{k: r[k] for k in ("model", "tool_choice", "called_tool", "arguments_valid_json", "error",
+                                          "final_letter", "hint_letter", "correct_letter", "followed_tool_hint")}
+                       for r in tool],
+            "source": [rel(scope / "voyager_tool_support.jsonl")], "function": "scope_section",
+            "note": "pilot puzzle 0 only: a capability check, not a hint-following measurement"}
+    for mode in ("replay", "live"):
+        f = scope / f"team_{mode}_summary.json"
+        if f.exists():
+            out[f"team_{mode}"] = {"summary": json.loads(f.read_text()), "source": [rel(f), rel(scope / f"team_{mode}.jsonl")],
+                                   "function": "agents/run_team.py summarize"}
+    man = CODE / "finetune" / "data" / "manifest.json"
+    if man.exists():
+        out["trackA_dataset"] = {**json.loads(man.read_text()), "source": [rel(man)],
+                                 "function": "finetune/build_dataset.py"}
+    try:
+        from providers import budget as _b
+        out["budget_estimate"] = {"assumed_input_tokens": 500, "assumed_output_tokens": 4000, "budget_usd": 5,
+                                  "rows": _b.table(500, 4000), "prices": rel(_b.PRICES),
+                                  "function": "providers/budget.py table", "note": "estimate, not a measurement"}
+    except Exception as err:  # pragma: no cover
+        out["budget_estimate"] = {"error": type(err).__name__}
+    try:
+        import yaml
+        import run_trackB as tb
+        cfg = yaml.safe_load(open(tb.CONFIG))
+        out["trackB_plan"] = {"providers": tb.plan(cfg, tb.jobs(cfg)), "config": rel(tb.CONFIG),
+                              "function": "progress/run_trackB.py plan",
+                              "note": "planned jobs before any run; GPQA Diamond not included until exported"}
+    except Exception as err:  # pragma: no cover
+        out["trackB_plan"] = {"error": type(err).__name__}
     return out
 
 

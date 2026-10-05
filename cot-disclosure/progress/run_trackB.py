@@ -66,22 +66,34 @@ def jobs(cfg, only_provider=None):
     return out
 
 
-def dry_run(cfg, todo):
+def plan(cfg, todo):
+    """Jobs and estimated cost per provider (tool_real counts two calls: lookup + answer)."""
     est = cfg["estimate"]
-    calls = Counter(j["model"]["provider"] for j in todo)
-    cost = defaultdict(float)
+    out = {}
     for j in todo:
         p, model = j["model"]["provider"], j["model"]["model"]
-        n = 2 if j["condition"] == "tool_real" else 1   # tool call + answer
+        row = out.setdefault(p, {"jobs": 0, "calls": 0, "est_usd": 0.0, "paid": p in budget.PAID})
+        n = 2 if j["condition"] == "tool_real" else 1
+        row["jobs"] += 1
+        row["calls"] += n
         if p in budget.PAID:
-            cost[p] += n * budget.cost(model, est["input_tokens"], est["output_tokens"])
-    print(f"Track B plan: {len(todo)} jobs ({cfg['runs_per_question']} runs per question), estimate assumes "
-          f"{est['input_tokens']} input / {est['output_tokens']} output tokens per call")
-    for p, n in sorted(calls.items()):
-        line = f"  {p:10} {n:6,} jobs"
-        if p in budget.PAID:
-            cap = budget.cap(p)
-            line += f"   est. ${cost[p]:8.2f}   cap ${cap:.2f}   {'OVER CAP: trim the plan' if cost[p] > cap else 'within cap'}"
+            row["est_usd"] += n * budget.cost(model, est["input_tokens"], est["output_tokens"])
+    for p, row in out.items():
+        row["est_usd"] = round(row["est_usd"], 2)
+        if row["paid"]:
+            row["cap_usd"] = budget.cap(p)
+    return out
+
+
+def dry_run(cfg, todo):
+    est = cfg["estimate"]
+    print(f"Track B plan: {len(todo)} jobs ({cfg['runs_per_question']} runs per question by default), estimate "
+          f"assumes {est['input_tokens']} input / {est['output_tokens']} output tokens per call")
+    for p, row in sorted(plan(cfg, todo).items()):
+        line = f"  {p:10} {row['jobs']:6,} jobs {row['calls']:6,} calls"
+        if row["paid"]:
+            over = row["est_usd"] > row["cap_usd"]
+            line += f"   est. ${row['est_usd']:8.2f}   cap ${row['cap_usd']:.2f}   {'OVER CAP: trim the plan' if over else 'within cap'}"
         else:
             line += "   free"
         print(line)

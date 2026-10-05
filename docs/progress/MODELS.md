@@ -23,7 +23,7 @@ from the ID. The serving metadata doesn't confirm it.
 | `qwen3-30b-a3b-instruct-2507` | Qwen3 | 30.5B total, 3.3B active | instruct (never thinks) | Qwen/Qwen3-30B-A3B-Instruct-2507 | none | 891 | 995 | 951 / 10.2 s |
 | `qwen3-30b-a3b-thinking-2507` | Qwen3 | 30.5B total, 3.3B active | thinking (always thinks) | Qwen/Qwen3-30B-A3B-Thinking-2507 | `reasoning` | 3,996.5 | 4,252 | 3,951 / 40.0 s |
 
-On MMLU-Pro (timing run, one item, no cue): `olmo3-7b-instruct` 707 tokens in 5.9 s,
+On MMLU-Pro (timing run, one item, no hint): `olmo3-7b-instruct` 707 tokens in 5.9 s,
 `olmo3-7b-think` 7,959 tokens in 75.6 s, `qwen3-30b-a3b-thinking-2507` 4,724 tokens in 47.8 s.
 
 **Usage fields.** The streamed `usage` block reports `completion_tokens`. It does not
