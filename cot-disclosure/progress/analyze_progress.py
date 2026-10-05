@@ -803,6 +803,50 @@ PLAN_INPUTS = {
 }
 
 
+# ================================================================ scope update (after the progress talk)
+def mention_overlap(runs):
+    """Split hinted runs by where the keyword pre-sort fires: both channels, private
+    reasoning only, final answer only, neither. Uses the per-run flags stored in the
+    pilot records (trace.cue = private reasoning, said.cue = final answer)."""
+    c = Counter()
+    for x in runs:
+        p_, f_ = x["trace"]["cue"], x["said"]["cue"]
+        c["both" if p_ and f_ else "private_only" if p_ else "final_only" if f_ else "neither"] += 1
+    return {k: c.get(k, 0) for k in ("both", "private_only", "final_only", "neither")}
+
+
+def scope_section(summary):
+    rows = [r for r in load(PILOT) if r["exp"] == "main" and r["error"] is None]
+    hinted = {m: [x for x in rows if x["model"] == m and x["cue_kind"] in ("wrong", "correct") and x["trace_chars"] > 0]
+              for m in THINKING}
+    overlap = {m: {**mention_overlap(v), "runs": len(v)} for m, v in hinted.items()}
+    allr = [x for v in hinted.values() for x in v]
+    overlap["all_thinking"] = {**mention_overlap(allr), "runs": len(allr)}
+    out = {"pilot_mention_overlap": {**overlap, "source": [rel(PILOT)],
+                                     "function": "scope_section.mention_overlap",
+                                     "note": "keyword pre-sort flags stored per run (trace.cue, said.cue); "
+                                             "wrong- and right-hint runs of the three thinking models"}}
+    b = summary.get("expB")
+    if b:
+        thinking_b = ["olmo3-7b-think", "qwen3-30b-a3b-thinking-2507"]
+        def tot(channel, key):
+            ms = [b["cells"][f"{m}|{channel}|all"][key] for m in thinking_b]
+            return sum(x["num"] for x in ms), sum(x["den"] for x in ms)
+        src = [CUED, NOCUE]
+        out["test2_thinking_combined"] = {
+            "models": thinking_b,
+            "tool_hint_followed": wilson_metric(*tot("cue_tool", "followed_cue"), src, "scope_section"),
+            "user_hint_followed": wilson_metric(*tot("cue_user", "followed_cue"), src, "scope_section"),
+            "tool_hint_followed_answered_only": wilson_metric(*tot("cue_tool", "followed_cue_among_answered"), src,
+                                                              "scope_section"),
+            "user_hint_followed_answered_only": wilson_metric(*tot("cue_user", "followed_cue_among_answered"), src,
+                                                              "scope_section"),
+            "tool_steered_final_mention": metric(*tot("cue_tool", "followed_and_final_mention"), src, "scope_section"),
+            "tool_steered_private_mention": metric(*tot("cue_tool", "followed_and_private_mention"), src, "scope_section"),
+            "note": "Test 2 = Experiment B; each question was asked once per hint channel, so runs = questions"}
+    return out
+
+
 # ================================================================ figures
 import matplotlib  # noqa: E402
 matplotlib.use("Agg")
@@ -1067,6 +1111,7 @@ def build():
         "plan_inputs": PLAN_INPUTS,
     }
     summary["label_queue"] = label_queue()
+    summary["scope_numbers"] = scope_section(summary)
     return summary
 
 

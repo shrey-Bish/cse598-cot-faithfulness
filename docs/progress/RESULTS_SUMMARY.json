@@ -6921,6 +6921,130 @@
   },
   "with_text": 91
  },
+ "scope_numbers": {
+  "pilot_mention_overlap": {
+   "olmo3-7b-think": {
+    "both": 0,
+    "private_only": 66,
+    "final_only": 0,
+    "neither": 6,
+    "runs": 72
+   },
+   "olmo3-32b-think": {
+    "both": 0,
+    "private_only": 71,
+    "final_only": 0,
+    "neither": 1,
+    "runs": 72
+   },
+   "qwen3-30b-a3b-thinking-2507": {
+    "both": 8,
+    "private_only": 63,
+    "final_only": 0,
+    "neither": 1,
+    "runs": 72
+   },
+   "all_thinking": {
+    "both": 8,
+    "private_only": 200,
+    "final_only": 0,
+    "neither": 8,
+    "runs": 216
+   },
+   "source": [
+    "cot-disclosure/results/progress.jsonl"
+   ],
+   "function": "scope_section.mention_overlap",
+   "note": "keyword pre-sort flags stored per run (trace.cue, said.cue); wrong- and right-hint runs of the three thinking models"
+  },
+  "test2_thinking_combined": {
+   "models": [
+    "olmo3-7b-think",
+    "qwen3-30b-a3b-thinking-2507"
+   ],
+   "tool_hint_followed": {
+    "value": 0.5483870967741935,
+    "num": 17,
+    "den": 31,
+    "source": [
+     "cot-disclosure/results/progress/expB_cued.jsonl",
+     "cot-disclosure/results/progress/expB_nocue.jsonl"
+    ],
+    "function": "scope_section",
+    "ci95": [
+     0.3777216751371326,
+     0.7083826412814458
+    ],
+    "ci_method": "wilson"
+   },
+   "user_hint_followed": {
+    "value": 0.06451612903225806,
+    "num": 2,
+    "den": 31,
+    "source": [
+     "cot-disclosure/results/progress/expB_cued.jsonl",
+     "cot-disclosure/results/progress/expB_nocue.jsonl"
+    ],
+    "function": "scope_section",
+    "ci95": [
+     0.01787478336061983,
+     0.2071863688721744
+    ],
+    "ci_method": "wilson"
+   },
+   "tool_hint_followed_answered_only": {
+    "value": 0.8095238095238095,
+    "num": 17,
+    "den": 21,
+    "source": [
+     "cot-disclosure/results/progress/expB_cued.jsonl",
+     "cot-disclosure/results/progress/expB_nocue.jsonl"
+    ],
+    "function": "scope_section",
+    "ci95": [
+     0.5999943512871267,
+     0.9233243500065463
+    ],
+    "ci_method": "wilson"
+   },
+   "user_hint_followed_answered_only": {
+    "value": 0.09523809523809523,
+    "num": 2,
+    "den": 21,
+    "source": [
+     "cot-disclosure/results/progress/expB_cued.jsonl",
+     "cot-disclosure/results/progress/expB_nocue.jsonl"
+    ],
+    "function": "scope_section",
+    "ci95": [
+     0.026518767198269788,
+     0.2891413926484656
+    ],
+    "ci_method": "wilson"
+   },
+   "tool_steered_final_mention": {
+    "value": 0.35294117647058826,
+    "num": 6,
+    "den": 17,
+    "source": [
+     "cot-disclosure/results/progress/expB_cued.jsonl",
+     "cot-disclosure/results/progress/expB_nocue.jsonl"
+    ],
+    "function": "scope_section"
+   },
+   "tool_steered_private_mention": {
+    "value": 0.9411764705882353,
+    "num": 16,
+    "den": 17,
+    "source": [
+     "cot-disclosure/results/progress/expB_cued.jsonl",
+     "cot-disclosure/results/progress/expB_nocue.jsonl"
+    ],
+    "function": "scope_section"
+   },
+   "note": "Test 2 = Experiment B; each question was asked once per hint channel, so runs = questions"
+  }
+ },
  "figures": {
   "F1": "presentation/progress/figures/F1_pilot_hint_following.png",
   "F2": "presentation/progress/figures/F2_pilot_mentions_by_channel.png",
