@@ -29,9 +29,9 @@ def main():
             suffix = "" if w == 1920 else "_1280x720"
             page = browser.new_page(viewport={"width": w, "height": h})
             page.goto(a.url)
-            page.wait_for_selector("#chips-with .chip")
+            page.wait_for_selector("#col-with .rchip")
             for i, ex in enumerate(examples, 1):
-                page.click(f'.ex[data-id="{ex['id']}"]')
+                page.select_option("#example", ex["id"])
                 page.wait_for_timeout(1200)          # saved runs and the featured reply load
                 page.screenshot(path=str(out / f"playground_{i}_{ex['id']}{suffix}.png"))
                 overflow = page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
