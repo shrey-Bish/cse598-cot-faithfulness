@@ -33,7 +33,7 @@ CACHE_DIR.mkdir(exist_ok=True)
 
 
 def chat(model, messages, max_tokens=8000, temperature=0.0, seed=None, retries=4,
-         backoff=None, on_retry=None, stream=True):
+         backoff=None, on_retry=None, stream=True, tools=None, tool_choice=None):
     """Return {content, reasoning, finish, usage, error, retries, latency_s,
     reasoning_field, cached}. `reasoning` is the separate private trace thinking
     models emit in `reasoning_content`; `reasoning_field` names the field it came in.
@@ -42,26 +42,33 @@ def chat(model, messages, max_tokens=8000, temperature=0.0, seed=None, retries=4
     by default the original 1, 2, 4, 8 s schedule with jitter is kept.
     on_retry: optional callback(attempt, error, wait_s) so callers can log retries.
     stream=False sends one non-streamed request (only for short replies: the
-    proxy cuts requests idle for ~100 s); it gets its own cache key."""
+    proxy cuts requests idle for ~100 s); it gets its own cache key.
+    tools / tool_choice are passed through in the OpenAI chat format; the model's
+    tool calls come back in `tool_calls`. Without tools the cache key is unchanged."""
     payload = {"model": model, "messages": messages,
                "max_tokens": max_tokens, "temperature": temperature}
     if seed is not None:
         payload["seed"] = seed
+    if tools:
+        payload["tools"] = tools
+        if tool_choice is not None:
+            payload["tool_choice"] = tool_choice
     key = payload if stream else {**payload, "stream": False}  # streamed keys unchanged
     digest = hashlib.sha256(json.dumps(key, sort_keys=True).encode()).hexdigest()[:24]
     cached = CACHE_DIR / f"{digest}.json"
     if cached.exists():
-        return {"retries": 0, "latency_s": None, "reasoning_field": None,
+        return {"retries": 0, "latency_s": None, "reasoning_field": None, "tool_calls": [],
                 **json.loads(cached.read_text()), "cached": True}
 
     last_error, waits = None, list(backoff) if backoff else None
     for attempt in range(retries):
         start = time.monotonic()
         try:
-            content, reasoning, finish, usage, field = (_stream if stream else _post)(payload)
-            result = {"content": content, "reasoning": reasoning,
-                      "finish": finish, "usage": usage, "error": None, "retries": attempt,
-                      "latency_s": round(time.monotonic() - start, 2), "reasoning_field": field}
+            out = (_stream if stream else _post)(payload)
+            result = {"content": out["content"], "reasoning": out["reasoning"],
+                      "finish": out["finish"], "usage": out["usage"], "error": None, "retries": attempt,
+                      "latency_s": round(time.monotonic() - start, 2),
+                      "reasoning_field": out["reasoning_field"], "tool_calls": out["tool_calls"]}
             cached.write_text(json.dumps(result))
             return {**result, "cached": False}
         except urllib.error.HTTPError as err:
@@ -78,7 +85,7 @@ def chat(model, messages, max_tokens=8000, temperature=0.0, seed=None, retries=4
         time.sleep(wait)
     return {"content": "", "reasoning": "", "finish": "error", "usage": {},
             "error": last_error, "retries": attempt, "latency_s": None,
-            "reasoning_field": None, "cached": False}
+            "reasoning_field": None, "tool_calls": [], "cached": False}
 
 
 def _stream(payload):
@@ -92,28 +99,42 @@ def _stream(payload):
                          "stream_options": {"include_usage": True}}).encode(),  # usage arrives in the last chunk
         headers={"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"},
     )
-    content, reasoning, finish, usage, field = [], [], None, {}, None
     with urllib.request.urlopen(request, timeout=300) as response:  # per-read timeout
-        for raw in response:
-            line = raw.decode("utf-8", "replace").strip()
-            if not line.startswith("data:"):
-                continue
-            data = line[5:].strip()
-            if data == "[DONE]":
-                break
-            chunk = json.loads(data)
-            usage = chunk.get("usage") or usage
-            for choice in chunk.get("choices", []):
-                delta = choice.get("delta") or {}
-                if delta.get("content"):
-                    content.append(delta["content"])
-                name = "reasoning_content" if delta.get("reasoning_content") else "reasoning"
-                piece = delta.get(name)
-                if piece:
-                    reasoning.append(piece)
-                    field = field or name
-                finish = choice.get("finish_reason") or finish
-    return "".join(content), "".join(reasoning), finish, usage, field
+        return parse_stream_lines(response)
+
+
+def parse_stream_lines(lines):
+    """Fold server-sent-event lines into content, reasoning (and the field it came
+    in), finish reason, usage, and tool calls (their fragments joined by index)."""
+    content, reasoning, finish, usage, field, calls = [], [], None, {}, None, {}
+    for raw in lines:
+        line = raw.decode("utf-8", "replace").strip()
+        if not line.startswith("data:"):
+            continue
+        data = line[5:].strip()
+        if data == "[DONE]":
+            break
+        chunk = json.loads(data)
+        usage = chunk.get("usage") or usage
+        for choice in chunk.get("choices", []):
+            delta = choice.get("delta") or {}
+            if delta.get("content"):
+                content.append(delta["content"])
+            name = "reasoning_content" if delta.get("reasoning_content") else "reasoning"
+            piece = delta.get(name)
+            if piece:
+                reasoning.append(piece)
+                field = field or name
+            for tc in delta.get("tool_calls") or []:
+                slot = calls.setdefault(tc.get("index", 0), {"id": None, "type": "function",
+                                                             "function": {"name": "", "arguments": ""}})
+                slot["id"] = tc.get("id") or slot["id"]
+                fn = tc.get("function") or {}
+                slot["function"]["name"] += fn.get("name") or ""
+                slot["function"]["arguments"] += fn.get("arguments") or ""
+            finish = choice.get("finish_reason") or finish
+    return {"content": "".join(content), "reasoning": "".join(reasoning), "finish": finish, "usage": usage,
+            "reasoning_field": field, "tool_calls": [calls[i] for i in sorted(calls)]}
 
 
 def _post(payload):
@@ -127,8 +148,9 @@ def _post(payload):
     choice = (body.get("choices") or [{}])[0]
     message = choice.get("message") or {}
     field = next((k for k in ("reasoning_content", "reasoning") if message.get(k)), None)
-    return (message.get("content") or "", message.get(field) or "" if field else "",
-            choice.get("finish_reason"), body.get("usage") or {}, field)
+    return {"content": message.get("content") or "", "reasoning": message.get(field) or "" if field else "",
+            "finish": choice.get("finish_reason"), "usage": body.get("usage") or {}, "reasoning_field": field,
+            "tool_calls": message.get("tool_calls") or []}
 
 
 def list_models():

@@ -1,0 +1,32 @@
+{
+ "answer_only": {
+  "reviews": 33,
+  "items": 6,
+  "solver_wrong_reviews": 15,
+  "wrong_reached_final": "3 of 33 reviews",
+  "caught": "15 of 15 reviews of wrong solver answers",
+  "false_alarms": "6 of 18 reviews of right solver answers",
+  "escalated": 18,
+  "tokens": 145417
+ },
+ "plus_explanation": {
+  "reviews": 33,
+  "items": 6,
+  "solver_wrong_reviews": 15,
+  "wrong_reached_final": "2 of 33 reviews",
+  "caught": "15 of 15 reviews of wrong solver answers",
+  "false_alarms": "5 of 18 reviews of right solver answers",
+  "escalated": 18,
+  "tokens": 250464
+ },
+ "plus_private": {
+  "reviews": 6,
+  "items": 1,
+  "solver_wrong_reviews": 3,
+  "wrong_reached_final": "0 of 6 reviews",
+  "caught": "3 of 3 reviews of wrong solver answers",
+  "false_alarms": "0 of 3 reviews of right solver answers",
+  "escalated": 3,
+  "tokens": 80099
+ }
+}

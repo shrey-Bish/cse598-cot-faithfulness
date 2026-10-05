@@ -1,0 +1,42 @@
+{
+ "answer_only": {
+  "reviews": 2,
+  "items": 2,
+  "solver_wrong_reviews": 1,
+  "wrong_reached_final": "0 of 2 reviews",
+  "caught": "1 of 1 reviews of wrong solver answers",
+  "false_alarms": "0 of 1 reviews of right solver answers",
+  "escalated": 1,
+  "tokens": 17311
+ },
+ "plus_explanation": {
+  "reviews": 2,
+  "items": 2,
+  "solver_wrong_reviews": 1,
+  "wrong_reached_final": "0 of 2 reviews",
+  "caught": "1 of 1 reviews of wrong solver answers",
+  "false_alarms": "0 of 1 reviews of right solver answers",
+  "escalated": 1,
+  "tokens": 17306
+ },
+ "plus_private": {
+  "reviews": 2,
+  "items": 2,
+  "solver_wrong_reviews": 1,
+  "wrong_reached_final": "0 of 2 reviews",
+  "caught": "1 of 1 reviews of wrong solver answers",
+  "false_alarms": "0 of 1 reviews of right solver answers",
+  "escalated": 1,
+  "tokens": 23880
+ },
+ "plus_tool_log": {
+  "reviews": 2,
+  "items": 2,
+  "solver_wrong_reviews": 1,
+  "wrong_reached_final": "0 of 2 reviews",
+  "caught": "1 of 1 reviews of wrong solver answers",
+  "false_alarms": "0 of 1 reviews of right solver answers",
+  "escalated": 1,
+  "tokens": 23990
+ }
+}
