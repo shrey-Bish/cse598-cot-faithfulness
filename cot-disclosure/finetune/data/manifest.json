@@ -1,0 +1,51 @@
+{
+ "target_model": "olmo3-7b-think",
+ "records": {
+  "train": 196,
+  "heldout": 120
+ },
+ "items": {
+  "train": 24,
+  "heldout": 30
+ },
+ "by_channel": {
+  "train": {
+   "user": 112,
+   "tool_pasted": 56,
+   "tool_real": 28
+  },
+  "heldout": {
+   "user": 30,
+   "tool_pasted": 30,
+   "system": 30,
+   "tool_real": 30
+  }
+ },
+ "target_from_no_hint_majority": {
+  "train": 189,
+  "heldout": 84
+ },
+ "no_hint_majority_is_correct": {
+  "train": 182,
+  "heldout": 68
+ },
+ "heldout_wordings_seen_in_training": 0,
+ "wordings": {
+  "train": [
+   "user_p1",
+   "user_p2",
+   "user_p3",
+   "user_p4",
+   "tool_p1",
+   "tool_p2",
+   "tool_real_p1"
+  ],
+  "heldout": [
+   "user_turpin",
+   "tool_progress",
+   "system_note",
+   "tool_real_progress"
+  ]
+ },
+ "note": "target_reasoning is empty: generating checked-hint reasoning is a later step (README)"
+}

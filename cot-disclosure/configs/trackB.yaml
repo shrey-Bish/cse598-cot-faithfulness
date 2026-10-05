@@ -1,0 +1,34 @@
+# Track B sweep plan. `python progress/run_trackB.py --dry-run` prints the call count and
+# estimated cost per provider; nothing runs without --run. Prices: configs/prices.yaml.
+runs_per_question: 3
+max_tokens: 16000            # open models (pilot setting; always streamed on Voyager)
+closed_max_tokens: 8000      # closed models: caps spend per call
+temperature: 0.6             # sent only where the provider allows it
+estimate:                    # for the dry-run cost estimate only (an assumption, not a measurement)
+  input_tokens: 500
+  output_tokens: 4000
+
+question_sets:
+  pilot_puzzles: {source: pilot, n: 24}                              # generated, uncontaminated
+  mmlupro_30:    {source: mmlupro, path: data/progress/mmlupro_30.jsonl}
+  gpqa_diamond:  {source: gpqa, path: data/gpqa_diamond.jsonl, note: "gated on Hugging Face; request access, then export to this path"}
+
+conditions: [none, user, tool_pasted, tool_real, system]
+
+models:
+  # open, free
+  - {provider: voyager, model: olmo3-7b-think}
+  - {provider: voyager, model: qwen3-30b-a3b-thinking-2507}
+  - {provider: voyager, model: qwen3-30b-a3b-instruct-2507}
+  - {provider: ollama,  model: "qwen3:8b", thinking: true}
+  - {provider: ollama,  model: "qwen3:8b", thinking: false}
+  # closed, capped at $5 per provider; smallest reasoning model with thinking on and off
+  - {provider: openai,    model: gpt-6-luna, thinking: true, question_sets: [pilot_puzzles, mmlupro_30]}
+  - {provider: openai,    model: gpt-6-luna, thinking: false, question_sets: [pilot_puzzles, mmlupro_30]}
+  # Anthropic and xAI at 3 runs x 5 conditions would pass their $5 caps (dry run, 2026-10-04:
+  # ~$22 and ~$11), so they run 1 run per question on fewer conditions. Haiku 4.5 retires
+  # no sooner than 2026-10-15: re-check the model before running.
+  - {provider: anthropic, model: claude-haiku-4-5-20251001, thinking: true,  question_sets: [mmlupro_30], conditions: [none, user, tool_real], runs_per_question: 1}
+  - {provider: anthropic, model: claude-haiku-4-5-20251001, thinking: false, question_sets: [mmlupro_30], conditions: [none, user, tool_real], runs_per_question: 1}
+  - {provider: xai,       model: grok-4.3, thinking: true,  question_sets: [mmlupro_30], conditions: [none, user, tool_pasted, tool_real], runs_per_question: 1}
+  - {provider: xai,       model: grok-4.3, thinking: false, question_sets: [mmlupro_30], conditions: [none, user, tool_pasted, tool_real], runs_per_question: 1}

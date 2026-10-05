@@ -803,6 +803,84 @@ PLAN_INPUTS = {
 }
 
 
+# ================================================================ scope update (after the progress talk)
+def mention_overlap(runs):
+    """Split hinted runs by where the keyword pre-sort fires: both channels, private
+    reasoning only, final answer only, neither. Uses the per-run flags stored in the
+    pilot records (trace.cue = private reasoning, said.cue = final answer)."""
+    c = Counter()
+    for x in runs:
+        p_, f_ = x["trace"]["cue"], x["said"]["cue"]
+        c["both" if p_ and f_ else "private_only" if p_ else "final_only" if f_ else "neither"] += 1
+    return {k: c.get(k, 0) for k in ("both", "private_only", "final_only", "neither")}
+
+
+def scope_section(summary):
+    rows = [r for r in load(PILOT) if r["exp"] == "main" and r["error"] is None]
+    hinted = {m: [x for x in rows if x["model"] == m and x["cue_kind"] in ("wrong", "correct") and x["trace_chars"] > 0]
+              for m in THINKING}
+    overlap = {m: {**mention_overlap(v), "runs": len(v)} for m, v in hinted.items()}
+    allr = [x for v in hinted.values() for x in v]
+    overlap["all_thinking"] = {**mention_overlap(allr), "runs": len(allr)}
+    out = {"pilot_mention_overlap": {**overlap, "source": [rel(PILOT)],
+                                     "function": "scope_section.mention_overlap",
+                                     "note": "keyword pre-sort flags stored per run (trace.cue, said.cue); "
+                                             "wrong- and right-hint runs of the three thinking models"}}
+    b = summary.get("expB")
+    if b:
+        thinking_b = ["olmo3-7b-think", "qwen3-30b-a3b-thinking-2507"]
+        def tot(channel, key):
+            ms = [b["cells"][f"{m}|{channel}|all"][key] for m in thinking_b]
+            return sum(x["num"] for x in ms), sum(x["den"] for x in ms)
+        src = [CUED, NOCUE]
+        out["test2_thinking_combined"] = {
+            "models": thinking_b,
+            "tool_hint_followed": wilson_metric(*tot("cue_tool", "followed_cue"), src, "scope_section"),
+            "user_hint_followed": wilson_metric(*tot("cue_user", "followed_cue"), src, "scope_section"),
+            "tool_hint_followed_answered_only": wilson_metric(*tot("cue_tool", "followed_cue_among_answered"), src,
+                                                              "scope_section"),
+            "user_hint_followed_answered_only": wilson_metric(*tot("cue_user", "followed_cue_among_answered"), src,
+                                                              "scope_section"),
+            "tool_steered_final_mention": metric(*tot("cue_tool", "followed_and_final_mention"), src, "scope_section"),
+            "tool_steered_private_mention": metric(*tot("cue_tool", "followed_and_private_mention"), src, "scope_section"),
+            "note": "Test 2 = Experiment B; each question was asked once per hint channel, so runs = questions"}
+    scope = CODE / "results" / "scope"
+    tool = load(scope / "voyager_tool_support.jsonl")
+    if tool:
+        out["voyager_tool_support"] = {
+            "checks": [{k: r[k] for k in ("model", "tool_choice", "called_tool", "arguments_valid_json", "error",
+                                          "final_letter", "hint_letter", "correct_letter", "followed_tool_hint")}
+                       for r in tool],
+            "source": [rel(scope / "voyager_tool_support.jsonl")], "function": "scope_section",
+            "note": "pilot puzzle 0 only: a capability check, not a hint-following measurement"}
+    for mode in ("replay", "live"):
+        f = scope / f"team_{mode}_summary.json"
+        if f.exists():
+            out[f"team_{mode}"] = {"summary": json.loads(f.read_text()), "source": [rel(f), rel(scope / f"team_{mode}.jsonl")],
+                                   "function": "agents/run_team.py summarize"}
+    man = CODE / "finetune" / "data" / "manifest.json"
+    if man.exists():
+        out["trackA_dataset"] = {**json.loads(man.read_text()), "source": [rel(man)],
+                                 "function": "finetune/build_dataset.py"}
+    try:
+        from providers import budget as _b
+        out["budget_estimate"] = {"assumed_input_tokens": 500, "assumed_output_tokens": 4000, "budget_usd": 5,
+                                  "rows": _b.table(500, 4000), "prices": rel(_b.PRICES),
+                                  "function": "providers/budget.py table", "note": "estimate, not a measurement"}
+    except Exception as err:  # pragma: no cover
+        out["budget_estimate"] = {"error": type(err).__name__}
+    try:
+        import yaml
+        import run_trackB as tb
+        cfg = yaml.safe_load(open(tb.CONFIG))
+        out["trackB_plan"] = {"providers": tb.plan(cfg, tb.jobs(cfg)), "config": rel(tb.CONFIG),
+                              "function": "progress/run_trackB.py plan",
+                              "note": "planned jobs before any run; GPQA Diamond not included until exported"}
+    except Exception as err:  # pragma: no cover
+        out["trackB_plan"] = {"error": type(err).__name__}
+    return out
+
+
 # ================================================================ figures
 import matplotlib  # noqa: E402
 matplotlib.use("Agg")
@@ -1067,6 +1145,7 @@ def build():
         "plan_inputs": PLAN_INPUTS,
     }
     summary["label_queue"] = label_queue()
+    summary["scope_numbers"] = scope_section(summary)
     return summary
 
 

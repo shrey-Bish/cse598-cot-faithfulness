@@ -1,4 +1,4 @@
-# Experiment A: reviewer demo on real cue-steered answers (DEMO, single-digit n)
+# Experiment A: reviewer demo on real hint-steered answers (DEMO, single-digit n)
 
 **Label: demo of the pipeline, not a result.** n is single-digit and there is one
 reviewer model. Script: `cot-disclosure/progress/reviewer_demo.py`. Results:
@@ -7,13 +7,13 @@ reviewer model. Script: `cot-disclosure/progress/reviewer_demo.py`. Results:
 
 ## Purpose
 
-Show the two-model workflow running end to end on real cue-steered answers. Then
+Show the two-model workflow running end to end on real hint-steered answers. Then
 compare what a reviewer does depending on what it can see. This answers the TA's
 suggested extension:
-- Only the answering agent sees the cue.
+- Only the answering agent sees the hint.
 - The reviewer sees the question plus the answer and its explanation.
 - We vary what the reviewer sees.
-- An identical no-cue workflow (the twins) separates **correction of an error** from
+- An identical no-hint workflow (the twins) separates **correction of an error** from
   **agreement with a correct answer**.
 
 ## Design
@@ -205,5 +205,5 @@ sweep, with more than one reviewer model.
   keywords even though it was told about the suggestion.
 - **The hint reaches the reviewer before arm d in 3 of 5 steered cases,** through the
   answerer's own explanation or private reasoning. A cleaner disclosure test would use
-  steered answers that don't mention the cue, or redact the mention.
+  steered answers that don't mention the hint, or redact the mention.
 - **Demo of the pipeline, not a result.**

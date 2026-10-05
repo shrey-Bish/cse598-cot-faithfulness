@@ -1,0 +1,77 @@
+# What each provider's official docs said on 2026-10-04 (read that day; sources inline).
+# Adapters read this file; nothing here is guessed. "unverified" marks what the docs did
+# not confirm. Re-check before each sweep: model lineups and parameters change.
+checked: "2026-10-04"
+
+providers:
+  voyager:
+    endpoint: "https://openai.rc.asu.edu/v1/chat/completions (streamed; client.py)"
+    reasoning: "open models return private reasoning in full in the streamed `reasoning` field (renamed from `reasoning_content`; seen 2026-10-04)"
+    thinking_toggle: "none: enable_thinking is ignored (cot-disclosure/README.md); use instruct/thinking twins or the 'think briefly' prompt"
+    tool_calls: "OpenAI chat format; tested 2026-10-04, see docs/plan/TRACK_B_test_widely.md and results/scope/voyager_tool_support.jsonl"
+    seed: "supported (README, checked 2026-10-01)"
+    cost: free
+  openai:
+    endpoint: "https://api.openai.com/v1/responses"
+    auth: "bearer token from $OPENAI_API_KEY"
+    reasoning_returned: summary   # raw reasoning tokens are not exposed
+    request: 'reasoning: {effort, summary: auto}; effort none turns reasoning off where allowed; temperature/top_p not allowed while reasoning is on'
+    tools: "function tools; function_call -> function_call_output; pass reasoning items back with tool outputs"
+    seed: "not supported on /v1/responses"
+    notes: "reasoning summaries may require organization verification (docs); which models return summaries: unverified"
+    sources:
+      - https://developers.openai.com/api/docs/guides/reasoning.md
+      - https://developers.openai.com/api/docs/guides/latest-model.md
+      - https://developers.openai.com/api/docs/guides/function-calling
+      - https://developers.openai.com/api/reference/resources/responses/methods/create.md
+  anthropic:
+    endpoint: "https://api.anthropic.com/v1/messages"
+    auth: "x-api-key: $ANTHROPIC_API_KEY; anthropic-version: 2023-06-01"
+    reasoning_returned: summary   # "No display setting returns the raw chain of thought"
+    tools: "tool_use blocks -> user message with tool_result blocks; echo the assistant turn (with thinking blocks) unchanged"
+    seed: "not supported"
+    notes: "billing covers full thinking tokens, not the summary length"
+    sources:
+      - https://platform.claude.com/docs/en/build-with-claude/extended-thinking
+      - https://platform.claude.com/docs/en/build-with-claude/thinking
+      - https://platform.claude.com/docs/en/build-with-claude/thinking-troubleshooting
+      - https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview
+  xai:
+    endpoint: "https://api.x.ai/v1/responses"
+    auth: "bearer token from $XAI_API_KEY"
+    reasoning_returned: summary   # "we expose summarizations"; encrypted_content always returned
+    request: 'reasoning: {effort}; presence/frequency penalties and stop error on reasoning models'
+    tools: "same shapes as the OpenAI Responses API"
+    seed: "Chat Completions only (best effort); not on Responses"
+    sources:
+      - https://docs.x.ai/developers/model-capabilities/text/reasoning.md
+      - https://docs.x.ai/developers/tools/function-calling.md
+      - https://docs.x.ai/developers/rest-api-reference/inference/responses.md
+  ollama:
+    endpoint: "http://localhost:11434/api/chat (stream: false)"
+    reasoning_returned: full      # message.thinking, open weights run locally
+    request: 'think: true | false; options: {temperature, seed, num_predict}'
+    tools: "message.tool_calls without ids, arguments as an object; results go back as {role: tool, tool_name, content}"
+    notes: "eval_count may or may not include thinking tokens: unverified; POST /api/show reports thinking.values per model"
+    sources:
+      - https://docs.ollama.com/api/chat
+      - https://docs.ollama.com/capabilities/thinking
+      - https://docs.ollama.com/capabilities/tool-calling
+    cost: free
+
+models:
+  # --- open models on Voyager (the progress-run models)
+  olmo3-7b-instruct:            {provider: voyager, thinking: never}
+  olmo3-7b-think:               {provider: voyager, thinking: always, tool_calls: "did not call the tool unprompted; forced tool_choice gave malformed arguments (2026-10-04 test)"}
+  qwen3-30b-a3b-instruct-2507:  {provider: voyager, thinking: never}
+  qwen3-30b-a3b-thinking-2507:  {provider: voyager, thinking: always}
+  # --- open models via Ollama (local)
+  "qwen3:8b":                   {provider: ollama, thinking: toggle, toggle: "think true/false", note: "hybrid Qwen3; use for a clean thinking on/off comparison"}
+  "qwen3:30b":                  {provider: ollama, thinking: always, note: "tag points to qwen3:30b-a3b-thinking-2507 (registry digests); think=false behaviour unverified"}
+  # --- closed models (smallest reasoning model first)
+  gpt-6-luna:                   {provider: openai, thinking: toggle, efforts: [none, low, medium, high, xhigh, max], off_effort: "none", visibility: summary}
+  gpt-6-astra:                  {provider: openai, thinking: always, efforts: [low, medium, high, xhigh, max], visibility: summary, note: "effort none returns HTTP 400"}
+  claude-haiku-4-5-20251001:    {provider: anthropic, thinking: toggle, mode: budget, min_budget_tokens: 1024, visibility: summary, note: "retirement not sooner than 2026-10-15; plan a replacement"}
+  claude-opus-5-5:              {provider: anthropic, thinking: always, mode: adaptive, efforts: [low, medium, high, xhigh, max], visibility: summary, note: "send display: summarized or thinking text is empty; non-default temperature and forced tool_choice return 400"}
+  grok-4.3:                     {provider: xai, thinking: toggle, efforts: [none, low, medium, high, xhigh], off_effort: "none", visibility: summary, note: "effort none as the off switch comes from the model page only (not cross-confirmed)"}
+  grok-4.7:                     {provider: xai, thinking: always, efforts: [low, medium, high, xhigh], visibility: summary, note: "reasoning cannot be disabled"}

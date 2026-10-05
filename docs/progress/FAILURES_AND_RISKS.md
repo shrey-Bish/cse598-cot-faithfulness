@@ -1,17 +1,12 @@
-# Failures found in the systems, and risks (one slide)
+# Risks (updated after the progress presentation)
 
-| Failure or risk | Evidence and plan |
-|---|---|
-| **The smallest instruct model follows wrong hints** | Olmo 3 7B Instruct: 5/48 wrong-hint runs (10.4%, range 2.1 to 18.8 points) vs 0/144 without a hint. → Cue uncertain items, where steering should be larger (Experiment B, then GPQA / MMLU-Pro screen). |
-| **Final answers drop what private reasoning says** | Thinking models: hint mentioned in 208/216 private traces vs 8/216 final answers (keyword pre-sort). → Human labels separate mention / rejection / acknowledgment. |
-| **Instruct models can't answer without room to reason** | "Answer only": 21/24 → 1/24 and 24/24 → 2/24. Thinking models keep reasoning privately (21/24, 23/24 replies). → Report "no-CoT" conditions per track. |
-| **Private reasoning leaks at the token cap when the reply isn't streamed** | Same 8 requests at a 2,000-token cap: streamed 0/8 leaked, non-streamed 8/8 leaked (whole trace in the visible field). The parser read a wrong letter from 1 leak. Earlier ladder run: 10/10. → Always stream; treat `finish_reason = length` as "no answer". |
-| **A reviewer can pass a steered answer along (demo)** | Reviewer kept the hinted wrong answer 0/15 (answer only), 7/15 (+ explanation), 3/3 (+ private reasoning, 1 case), 6/15 (+ "the user suggested"); with answer only it broke 3/18 right twin answers. n = 5 + 6 cases. → Arms a–e with twins at scale, more than one reviewer. |
-| **A tool result steers thinking models, and the final answer often hides it** | Experiment B (simulated tool block): Olmo 3 7B Think followed it 10/20, or 10/11 of finished runs (user sentence 2/20), Qwen3 30B Thinking 7/11 (user 0/11), even on items they got right 2/2 without a cue. Steered runs: private reasoning referred to the tool 9/10 and 7/7, final answer 2/10 and 4/7. → Real tool-role turn, system channel, human labels. |
-| **Keyword counts over-fire** | The `cue` keywords fire on 22/72, 18/72, 2/72 no-hint private traces ("the user …"). → Treat as pre-sort only; two raters, Cohen's kappa. |
-| **Replays are not always deterministic** | Seeded replay matched the pilot on 4/6 models in the timing run (not Olmo 32B), and on 7/14 pilot runs in Experiment A. Pilot texts were not saved. → Save every prompt and reply (done today). |
-| **Twins differ in training, not only thinking** | Separately post-trained checkpoints (`MODELS.md`). → Report checkpoint differences; use "think briefly" for a same-weights dose. |
-| **Olmo 32B identity unconfirmed** | No upstream name in the catalog; 32B replays differ from the pilot. → Ask Research Computing which checkpoint is served. |
-| **Budget** | Thinking replies average 4,252 to 8,535 output tokens; some MMLU-Pro replies hit 16,000. → Timing run before each sweep (done today, `F6`). |
-| **GPQA Diamond is gated; tool-turn format untested** | Request access; test a real tool-role message on Voyager before the cue-channel sweep. |
-| Operational today | 427 new calls, 0 API errors, 0 retries, 0 parse failures. 59 replies hit the cap: 24 were set on purpose in the sweep, 35 were at 16,000 tokens on MMLU-Pro, mostly Olmo 3 7B Think. One job starved another for 4 min until the shared 4-slot limiter was made fair. |
+The four risks for the rest of the project, each with what we saw and the plan. Numbers
+come from `docs/progress/RESULTS_SUMMARY.json`. The failures found in the models are listed
+in `PROGRESS_REPORT.md` §5.
+
+| Risk | What we saw | Plan |
+|---|---|---|
+| **1. Too few models to generalize** | Test 2 used two thinking models (Olmo 3 7B Think, Qwen3 30B Thinking), 11 to 20 questions each, one run each, and a pasted tool hint. Voyager can't switch thinking off. | Track B: more open and closed thinking models, thinking on vs off in the same model (Ollama `qwen3:8b`, gpt-6-luna, Haiku 4.5, grok-4.3), real tool calls, GPQA Diamond, 3 runs per question (`docs/plan/TRACK_B_test_widely.md`). |
+| **2. Keyword counts are rough** | The hint keyword fires on 22 of 72 no-hint private traces of Olmo 3 7B Think ("the user asks…"). A keyword can't tell "the user says E, but it is D" from "the user says E, so E". | Two people label each reply in `LABEL_QUEUE.csv` (101 rows) by hand; report their agreement (Cohen's kappa). |
+| **3. Long replies are cut off and can leak private reasoning** | Olmo 3 7B Think hit the 16,000-token limit in 13 of 60 no-hint MMLU-Pro runs. With identical requests cut off at 2,000 tokens, private reasoning landed in the visible answer in 8 of 8 non-streamed replies and 0 of 8 streamed ones. | Always stream; count a cut-off reply as unanswered, never parse a letter from it; raise the limit where the budget allows. |
+| **4. Fine-tuning could teach the model to hide the hint** | If training rewards text that looks honest, the model can change its words instead of its behavior. OpenAI reported this in 2025 with reasoning monitors. | Train and judge on behavior (does the answer still follow the hint?). Evaluate on held-out questions with hint wordings unseen in training. Track a hiding check: follows the hint without mentioning it (`docs/plan/TRACK_A_explain_fix.md`). |
