@@ -1,19 +1,25 @@
-# Track only the project code, results and deck; course handouts and drafts stay local.
+# Track only the project code, results, notes and deck; course handouts and drafts stay local.
 /*
 !/.gitignore
+!/README.md
+!/cot-disclosure/
+!/presentation/
+!/docs/
 
 # secrets
 .env
 
-# # generated or heavy
-# node_modules/
-# .venv/
-# __pycache__/
-# *.pyc
-# cot-disclosure/cache/
-# presentation/slide-*.jpg
-# presentation/*.pdf
-# *.bak
-# .DS_Store
+# generated or heavy
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+cot-disclosure/cache/
+cot-disclosure/logs/
+presentation/slide-*.jpg
+presentation/*.pdf
+*.bak
+.DS_Store
 
-# .md
+# PowerPoint lock files, created while a deck is open
+~$*
