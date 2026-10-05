@@ -18,3 +18,5 @@ presentation/slide-*.jpg
 presentation/*.pdf
 *.bak
 .DS_Store
+
+.md
