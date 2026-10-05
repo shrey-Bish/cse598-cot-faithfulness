@@ -91,7 +91,7 @@ button:hover { background: var(--panel); } button:disabled { opacity: 0.5; curso
 .p-head .sub { font-weight: 400; color: var(--grey); font-size: 0.88em; }
 .p-head .count { margin-left: auto; font-weight: 400; color: var(--grey); font-size: 0.85em; white-space: nowrap; }
 .p-body { white-space: pre-wrap; word-break: break-word; overflow-y: auto; margin-top: 0.3em; }
-.private { max-height: 30vh; } .final { max-height: 24vh; }
+.private { max-height: 30vh; position: relative; } .final { max-height: 24vh; }
 .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.8em; line-height: 1.5; }
 .p-body .none { font-family: inherit; color: var(--grey); font-style: italic; }
 mark.kw { background: var(--pink); color: #fff; border-radius: 3px; padding: 0 2px; }
