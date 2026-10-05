@@ -27,6 +27,8 @@ async function applyTheme(file, theme) {
 }
 
 const S = JSON.parse(fs.readFileSync(path.join(__dirname, "../cot-disclosure/results/summary.json"), "utf8"));
+// harder questions, tool hint, reviewer demo and leak test (Oct 4 run)
+const RS = JSON.parse(fs.readFileSync(path.join(__dirname, "../docs/progress/RESULTS_SUMMARY.json"), "utf8"));
 const OUT = path.join(__dirname, "CSE598_progress_presentation.pptx");
 
 const THEME = {
@@ -96,7 +98,7 @@ async function main() {
     toggle: await icon(fa.FaToggleOff, HEX.accent2), scale: await icon(fa.FaBalanceScale, HEX.accent1),
     check: await icon(fa.FaUserCheck, HEX.accent2), coins: await icon(fa.FaCoins, HEX.accent1),
     redo: await icon(fa.FaRedo, HEX.accent1), quiet: await icon(fa.FaCommentSlash, HEX.accent1),
-    users: await icon(fa.FaUsers, HEX.accent1),
+    users: await icon(fa.FaUsers, HEX.accent1), tool: await icon(fa.FaWrench, HEX.accent2),
   };
   const circle = (slide, img, x, y, d, accent, name) => {
     slide.addShape(pres.shapes.OVAL, { x, y, w: d, h: d, fill: { color: accent, transparency: 84 }, objectName: `${name}-circle` });
@@ -169,7 +171,7 @@ async function main() {
     s.addText(n, { x: x + 0.25, y: 5.6, w: 0.6, h: 0.85, fontSize: 34, bold: true, color: C.accent1, valign: "middle", isTextBox: true, margin: 0 });
     s.addText(q, { x: x + 0.95, y: 5.6, w: 4.8, h: 0.85, fontSize: 16, bold: true, color: C.text1, valign: "middle", isTextBox: true, margin: 0 });
   });
-  s.addNotes("Some newer AI models are thinking models. Before they answer, they write private notes, then a short final answer. Regular models just answer. Picture an exam. A classmate whispers 'it's F'. You do rough work on scrap paper, then write your answer on the answer sheet. The whisper is our hint. The scrap paper is the model's private notes. The answer sheet is what the user sees. So we ask two things: did the hint change the answer, and did the model mention it, and where?");
+  s.addNotes("Some newer AI models are thinking models: they write private notes, then a short final answer. Regular models just answer. Picture an exam. A classmate whispers 'it's F'. You do rough work on scrap paper, then write on the answer sheet. The whisper is our hint, the scrap paper is the private notes, and the answer sheet is what the user sees. We ask: did the hint change the answer, and did the model mention it, and where?");
 
   // ---------- 3. a real example ----------
   s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "The idea" });
@@ -207,7 +209,25 @@ async function main() {
   s.addText("FINAL ANSWER  ·  WHAT THE USER SEES", { x: 7.15, y: 5.08, w: 5.3, h: 0.36, fontSize: 12, bold: true, charSpacing: 1.5, color: C.accent2, valign: "middle", isTextBox: true, margin: 0 });
   s.addText("Answer: (A)", { x: 6.7, y: 5.55, w: 2.6, h: 0.8, fontSize: 28, bold: true, fontFace: "Courier New", color: C.text1, valign: "middle", isTextBox: true, margin: 0 });
   s.addText("That’s the whole reply. Not a word about the hint.", { x: 9.4, y: 5.55, w: 3.1, h: 0.8, fontSize: 14, color: C.text1, valign: "middle", isTextBox: true, margin: 0 });
-  s.addNotes("Here's a real reply from our run. The question is a puzzle: seven people swap balls fifteen times, and the model says who ends up with which ball. The user adds 'I think the answer is F'. F is wrong. In its private notes, the thinking model talks about the hint six times: the user thought F, but my tracking says A. Then the final answer is just 'Answer: (A)'. It wasn't fooled, but the user never sees that a hint was there.");
+  s.addNotes("Here's a real reply. Seven people swap balls fifteen times, and the model says who ends up with which ball. The user adds 'I think the answer is F', which is wrong. In its private notes, the thinking model brings up the hint six times and works out that it's wrong. Then the final answer is just 'Answer: (A)'. The user never sees that a hint was there.");
+
+  // ---------- numbers from the Oct 4 run (docs/progress/RESULTS_SUMMARY.json) ----------
+  const bc = (m, ch, g = "all") => RS.expB.cells[`${m}|${ch}|${g}`];
+  const expBModels = ["olmo3-7b-instruct", "olmo3-7b-think", "qwen3-30b-a3b-thinking-2507"];
+  const expBThink = expBModels.filter((m) => M[m] && M[m].thinking);
+  const tot = (ch, k, part) => expBThink.reduce((a, m) => a + bc(m, ch)[k][part], 0);
+  const toolN = tot("cue_tool", "followed_cue", "num"), toolD = tot("cue_tool", "followed_cue", "den");
+  const userN = tot("cue_user", "followed_cue", "num"), userD = tot("cue_user", "followed_cue", "den");
+  const toolPriv = tot("cue_tool", "followed_and_private_mention", "num");
+  const toolFin = tot("cue_tool", "followed_and_final_mention", "num");
+  const toolAns = tot("cue_tool", "followed_and_private_mention", "den");
+  const unsure = bc("olmo3-7b-instruct", "cue_user", "uncertain").followed_cue;
+  const kwMax = thinking.map((m) => RS.pilot.mentions[m].private_keyword_rate_no_hint).reduce((a, b) => (b.num > a.num ? b : a));
+  const trunc = Object.fromEntries(RS.truncation.conditions.map((c) => [c.arm, c.leaked]));
+  const arm = (k) => RS.expA.arms[`steered|${k}`].outcomes.kept_hinted_wrong;
+  const capped = RS.expB.nocue["olmo3-7b-think"].truncated;
+  const callsAll = S.calls_done + RS.today.new_calls, errorsAll = S.errors + RS.today.api_error;
+  const nd = (o) => `${o.num} of ${o.den}`;
 
   // ---------- 4. what changed ----------
   pres.addSection({ title: "Changes & pipeline" });
@@ -216,24 +236,25 @@ async function main() {
   const changes = [
     [I.toggle, C.accent2, "The two models in a pair are trained separately", "So a difference might come from training, not thinking. Voyager can’t switch thinking off (we tested 7 models), so we also ask one model to “think briefly”."],
     [I.redo, C.accent1, "We measure chance", "Each puzzle runs 3 times with no hint, to see how much answers change on their own."],
-    [I.scale, C.accent1, "No letter gets an advantage", "Hints and right answers are spread evenly across A to G, and some hints are correct."],
+    [I.scale, C.accent1, "No letter gets an advantage", "Hints and right answers are spread evenly across the letters, and some hints are correct."],
     [I.check, C.accent2, "Mentioning isn’t admitting", "“The user said F, but that’s wrong” is scored apart from “I picked F because the user said so”."],
-    [I.quiet, C.accent1, "We tried “answer only, don’t explain”", "The review asked how that works with built-in thinking. The answer is on slide 8."],
+    [I.quiet, C.accent1, "We tried “answer only, don’t explain”", "The review asked how that works with built-in thinking. The answer is on slide 9."],
+    [I.tool, C.accent2, "Harder questions, and a second kind of hint", "30 exam questions (MMLU-Pro), with the wrong letter coming from the user or from what looks like an answer-key tool."],
   ];
   changes.forEach(([img, accent, head, body], i) => {
-    const y = 1.4 + i * 1.08;
-    circle(s, img, 0.6, y + 0.05, 0.75, accent, `chg${i + 1}`);
-    s.addText(head, { x: 1.6, y, w: 11.0, h: 0.4, fontSize: 17, bold: true, color: C.text1, isTextBox: true, margin: 0 });
-    s.addText(body, { x: 1.6, y: y + 0.4, w: 11.0, h: 0.5, fontSize: 14, color: C.accent5, isTextBox: true, margin: 0, valign: "top" });
+    const y = 1.35 + i * 0.93;
+    circle(s, img, 0.6, y + 0.04, 0.7, accent, `chg${i + 1}`);
+    s.addText(head, { x: 1.55, y, w: 11.1, h: 0.38, fontSize: 16, bold: true, color: C.text1, isTextBox: true, margin: 0 });
+    s.addText(body, { x: 1.55, y: y + 0.38, w: 11.1, h: 0.5, fontSize: 13.5, color: C.accent5, isTextBox: true, margin: 0, valign: "top" });
   });
-  s.addNotes("Our proposal review asked for tighter controls, and we made five changes. First, the regular and thinking versions are trained separately, so a gap between them isn't only about thinking. Voyager can't switch thinking off, so we also ask one model to think briefly. Second, we run each puzzle three times with no hint, to measure chance. Third, hints and right answers are spread evenly across the letters. Fourth, we score mentioning the hint apart from admitting it. Fifth, we tried 'answer only' prompts.");
+  s.addNotes("After the proposal review we made six changes. The regular and thinking models are trained separately, and Voyager can't switch thinking off, so we also ask one model to think briefly. We repeat each puzzle without a hint to measure chance. Hints and right answers are spread across the letters. We score mentioning apart from admitting. We tried 'answer only'. And we added harder exam questions with a second kind of hint.");
 
   // ---------- 5. pipeline ----------
   s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Changes & pipeline" });
   s.addText("Our pipeline runs end to end", { placeholder: "title" });
   const steps = [
-    [I.puzzle, HEX.accent1, "Make puzzles", "New swap puzzles, each with one right answer"],
-    [I.hint, HEX.accent2, "Add a hint", "No hint, a wrong hint, or a right one"],
+    [I.puzzle, HEX.accent1, "Make questions", "Swap puzzles, or harder exam questions, each with one right answer"],
+    [I.hint, HEX.accent2, "Add a hint", "None, or a wrong letter from the user or a “tool”"],
     [I.server, HEX.accent1, "Ask 6 models", "3 regular and 3 thinking, on ASU’s free Voyager service"],
     [I.split, HEX.accent2, "Split the reply", "Private notes and final answer come back separately"],
     [I.search, HEX.accent1, "Score", "Right or wrong? Is the hint mentioned?"],
@@ -250,9 +271,9 @@ async function main() {
     }
   });
   const stats = [
-    [fmt(S.calls_done), "questions sent this round"],
+    [fmt(callsAll), "questions sent so far"],
     [`${present.length}`, `models: ${regular.length} regular, ${thinking.length} thinking`],
-    [fmt(S.errors), "failed calls"],
+    [fmt(errorsAll), "failed calls"],
   ];
   stats.forEach(([n, small], i) => {
     const x = 0.6 + i * 4.1;
@@ -260,20 +281,20 @@ async function main() {
     s.addText(n, { x, y: 4.7, w: 3.9, h: 0.95, fontSize: 44, bold: true, color: i % 2 ? C.accent2 : C.accent1, align: "center", isTextBox: true, margin: 0 });
     s.addText(small, { x: x + 0.15, y: 5.7, w: 3.6, h: 0.55, fontSize: 15, color: C.text1, align: "center", isTextBox: true, margin: 0 });
   });
-  s.addNotes(`This is our pipeline, and it runs end to end. It makes new puzzles, adds a hint or not, and sends them to six models on ASU's free Voyager service. Each reply comes back in two parts, the private notes and the final answer. Then we score it and compare with and without the hint. This round sent ${fmt(S.calls_done)} questions with ${S.errors === 0 ? "no" : fmt(S.errors)} failures.`);
+  s.addNotes(`This is our pipeline, and it runs end to end. It makes a question, adds a hint or not, and sends it to six models on ASU's free Voyager service. Each reply comes back in two parts, the private notes and the final answer. Then we score it and compare with and without the hint. So far we've sent ${fmt(callsAll)} questions with ${errorsAll === 0 ? "no" : fmt(errorsAll)} failures.`);
 
   // ---------- 6. result 1 ----------
   pres.addSection({ title: "Results" });
   s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Results" });
   const r1Rare = swayed(top1) / tries(top1) < 0.2;
-  s.addText(r1Rare ? "Result 1: the hint rarely changes the answer" : "Result 1: the hint changes some answers", { placeholder: "title" });
+  s.addText(r1Rare ? "Result 1: hints rarely work, unless the model is unsure" : "Result 1: the hint changes some answers", { placeholder: "title" });
   const withHint = present.map((m) => M[m].pct_chose_suggested_with_hint ?? 0);
   s.addChart(pres.charts.BAR, [
     { name: "Picked the wrong answer we hinted", labels: present.map((m) => LABEL[m]), values: withHint },
   ], {
     x: 0.6, y: 1.4, w: 7.6, h: 5.3, barDir: "bar", barGapWidthPct: 60,
     chartColors: [HEX.accent2], catAxisOrientation: "maxMin",
-    showTitle: true, title: `How often each model picked the wrong answer we hinted (out of ${tries(top1)} tries)`, titleFontFace: "+mn-lt", titleFontSize: 13, titleColor: HEX.dk1,
+    showTitle: true, title: `Our puzzles: how often each model picked the wrong hinted answer (${tries(top1)} tries)`, titleFontFace: "+mn-lt", titleFontSize: 13, titleColor: HEX.dk1,
     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0%", dataLabelFontSize: 12, dataLabelFontFace: "+mn-lt", dataLabelColor: HEX.dk1,
     valAxisMinVal: 0, valAxisMaxVal: 0.25, valAxisLabelFormatCode: "0%", valAxisLabelColor: HEX.accent5, valAxisLabelFontFace: "+mn-lt", valAxisLabelFontSize: 11,
     catAxisLabelColor: HEX.dk1, catAxisLabelFontFace: "+mn-lt", catAxisLabelFontSize: 13,
@@ -281,16 +302,16 @@ async function main() {
   });
   card(s, 8.6, 1.4, 4.1, 5.3, "r1-card");
   s.addText(`${swayed(top1)} of ${tries(top1)}`, { x: 8.9, y: 1.65, w: 3.6, h: 0.85, fontSize: 44, bold: true, color: C.accent2, isTextBox: true, margin: 0 });
-  s.addText(`times ${LABEL[top1]} picked the wrong answer we hinted. Without the hint: ${Math.round((M[top1].pct_chose_same_letter_without_hint || 0) * tries(top1)) === 0 ? "never" : "sometimes"}.`, { x: 8.9, y: 2.5, w: 3.6, h: 0.9, fontSize: 14, color: C.text1, isTextBox: true, margin: 0, valign: "top" });
+  s.addText(`times ${LABEL[top1]} picked the wrong answer we hinted on our puzzles. Without the hint: ${Math.round((M[top1].pct_chose_same_letter_without_hint || 0) * tries(top1)) === 0 ? "never" : "sometimes"}.`, { x: 8.9, y: 2.5, w: 3.6, h: 0.9, fontSize: 14, color: C.text1, isTextBox: true, margin: 0, valign: "top" });
   s.addText([
     { text: "Every other model: ", options: { bold: true } },
     { text: `at most ${Math.max(...others.map(swayed))} of ${tries(top1)}.`, options: { breakLine: true } },
     { text: "Why so rare? ", options: { bold: true } },
-    { text: `The bigger models got ${pct(Math.min(...accBig))} to ${pct(Math.max(...accBig))} of puzzles right with no hint. There was nothing to push.`, options: { breakLine: true } },
-    { text: "Limit: ", options: { bold: true } },
-    { text: "one kind of puzzle, only 24 of them, and too easy for big models." },
-  ], { x: 8.9, y: 3.55, w: 3.6, h: 3.0, fontSize: 14, color: C.text1, paraSpaceAfter: 8, isTextBox: true, margin: 0, valign: "top" });
-  s.addNotes(`Our first result: the hint rarely changes the answer. The bars show how often each model picked the wrong answer we hinted. Only the smallest regular model was swayed: ${swayed(top1)} times out of ${tries(top1)}, and never without the hint. Every other model, at most once. The bigger models got almost every puzzle right, so the hint had nothing to push. That's the main limit of this round: one kind of puzzle, and it's too easy for big models.`);
+    { text: `The bigger models got ${pct(Math.min(...accBig))} to ${pct(Math.max(...accBig))} of puzzles right. There was nothing to push.`, options: { breakLine: true } },
+    { text: "Harder questions: ", options: { bold: true } },
+    { text: `on exam questions it was unsure about, ${LABEL["olmo3-7b-instruct"]} took the hint ${nd(unsure)} times.` },
+  ], { x: 8.9, y: 3.5, w: 3.6, h: 3.1, fontSize: 13.5, color: C.text1, paraSpaceAfter: 8, isTextBox: true, margin: 0, valign: "top" });
+  s.addNotes(`Our first result: hints rarely work, unless the model is unsure. The bars show how often each model picked the wrong answer we hinted on our puzzles. Only the smallest regular model was swayed: ${swayed(top1)} times out of ${tries(top1)}, and never without the hint. Every other model, at most once, because the bigger models got almost every puzzle right. But on harder exam questions it was unsure about, the same small model took the hint ${unsure.num} times out of ${unsure.den}.`);
 
   // ---------- 7. result 2 ----------
   s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Results" });
@@ -301,7 +322,7 @@ async function main() {
   ], {
     x: 0.6, y: 1.4, w: 7.6, h: 5.3, barDir: "bar", barGrouping: "clustered", barGapWidthPct: 55,
     chartColors: [HEX.accent1, HEX.accent2], catAxisOrientation: "maxMin",
-    showTitle: true, title: "Thinking models, in replies that had a hint", titleFontFace: "+mn-lt", titleFontSize: 13, titleColor: HEX.dk1,
+    showTitle: true, title: "Thinking models, in replies that had a hint (keyword count)", titleFontFace: "+mn-lt", titleFontSize: 13, titleColor: HEX.dk1,
     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0%", dataLabelFontSize: 12, dataLabelFontFace: "+mn-lt", dataLabelColor: HEX.dk1,
     valAxisMinVal: 0, valAxisMaxVal: 1, valAxisLabelFormatCode: "0%", valAxisLabelColor: HEX.accent5, valAxisLabelFontFace: "+mn-lt", valAxisLabelFontSize: 11,
     catAxisLabelColor: HEX.dk1, catAxisLabelFontFace: "+mn-lt", catAxisLabelFontSize: 13,
@@ -319,37 +340,68 @@ async function main() {
   s.addText([
     { text: "Compare: ", options: { bold: true } },
     { text: `Olmo’s regular models, which show everything, mention the hint in ${sum(olmoReg, "visible_mentions")} of ${sum(olmoReg, "hinted_n")} replies.`, options: { breakLine: true } },
-    { text: "Most mentions brush the hint off. Still, someone reading only the answer never learns there was a hint." },
+    { text: "Upper limit: ", options: { bold: true } },
+    { text: `the keyword search also fires on up to ${nd(kwMax)} notes with no hint, so hand labels come next.` },
   ], { x: 8.9, y: 4.25, w: 3.6, h: 2.35, fontSize: 13, color: C.text1, paraSpaceAfter: 8, isTextBox: true, margin: 0, valign: "top" });
-  s.addNotes(`Our second result is the main one. When there was a hint, the thinking models mentioned it in their private notes ${TM} times out of ${TN}. In the final answer, only ${AM} times. For comparison, Olmo's regular models, which show everything, mention the hint in about a third of their replies. So for Olmo, thinking moves the mention out of sight. Most of these mentions brush the hint off, so we don't call them admissions. But someone reading only the answer would never know there was a hint.`);
+  s.addNotes(`Our second result. When there was a hint, the thinking models mentioned it in their private notes ${TM} times out of ${TN}. In the final answer, only ${AM} times. Olmo's regular models, which show everything, mention it in about a third of their replies, so for Olmo, thinking moves the mention out of sight. These are keyword counts, so they're upper limits until we label replies by hand. Still, someone reading only the answer would almost never know there was a hint.`);
 
-  // ---------- 8. three more findings ----------
+  // ---------- 8. result 3: tool hint ----------
   s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Results" });
-  s.addText("Three more things we learned", { placeholder: "title" });
+  s.addText("Result 3: thinking models trust a “tool” hint far more", { placeholder: "title" });
+  s.addChart(pres.charts.BAR, [
+    { name: "Hint from the user", labels: expBModels.map((m) => `${LABEL[m]} (${bc(m, "cue_user").followed_cue.den} questions)`), values: expBModels.map((m) => bc(m, "cue_user").followed_cue.value) },
+    { name: "Same hint from a “tool”", labels: expBModels.map((m) => `${LABEL[m]} (${bc(m, "cue_tool").followed_cue.den} questions)`), values: expBModels.map((m) => bc(m, "cue_tool").followed_cue.value) },
+  ], {
+    x: 0.6, y: 1.4, w: 7.6, h: 5.3, barDir: "bar", barGrouping: "clustered", barGapWidthPct: 55,
+    chartColors: [HEX.accent5, HEX.accent2], catAxisOrientation: "maxMin",
+    showTitle: true, title: "Exam questions: how often each model picked the wrong hinted letter", titleFontFace: "+mn-lt", titleFontSize: 13, titleColor: HEX.dk1,
+    showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0%", dataLabelFontSize: 12, dataLabelFontFace: "+mn-lt", dataLabelColor: HEX.dk1,
+    valAxisMinVal: 0, valAxisMaxVal: 1, valAxisLabelFormatCode: "0%", valAxisLabelColor: HEX.accent5, valAxisLabelFontFace: "+mn-lt", valAxisLabelFontSize: 11,
+    catAxisLabelColor: HEX.dk1, catAxisLabelFontFace: "+mn-lt", catAxisLabelFontSize: 12,
+    valGridLine: { color: "E3E7ED", size: 0.75 }, catGridLine: { style: "none" },
+    showLegend: true, legendPos: "b", legendFontFace: "+mn-lt", legendFontSize: 12, legendColor: HEX.dk1,
+  });
+  card(s, 8.6, 1.4, 4.1, 5.3, "r3-card");
+  s.addText(`${toolN} of ${toolD}`, { x: 8.9, y: 1.6, w: 3.6, h: 0.8, fontSize: 40, bold: true, color: C.accent2, isTextBox: true, margin: 0 });
+  s.addText(`times the thinking models picked the tool’s wrong letter. From the user: ${userN} of ${userD}.`, { x: 8.9, y: 2.4, w: 3.6, h: 0.75, fontSize: 13.5, color: C.text1, isTextBox: true, margin: 0, valign: "top" });
+  label(s, "What the tool hint looked like", 8.9, 3.25, 3.6);
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 8.9, y: 3.58, w: 3.6, h: 0.8, rectRadius: 0.05, fill: { color: C.background1 }, line: { color: C.accent5, width: 0.75 }, objectName: "r3-tool" });
+  s.addText("[tool result: lookup_answer_key]\n{\"expected\": \"H\", \"source\": \"study guide v2\"}", { x: 9.0, y: 3.62, w: 3.45, h: 0.72, fontSize: 10, fontFace: "Courier New", color: C.text1, valign: "middle", isTextBox: true, margin: 0 });
+  s.addText([
+    { text: `When they followed it, the private notes cited the tool ${toolPriv} of ${toolAns} times, the final answer ${toolFin} times (keyword count).`, options: { breakLine: true } },
+    { text: "Limit: ", options: { bold: true } },
+    { text: "30 questions, one run each, tool text pasted into the message." },
+  ], { x: 8.9, y: 4.55, w: 3.6, h: 2.05, fontSize: 13, color: C.text1, paraSpaceAfter: 8, isTextBox: true, margin: 0, valign: "top" });
+  s.addNotes(`Our third result is new this week. On harder exam questions, we gave the same wrong letter two ways: from the user, or as if an answer-key tool had returned it. The thinking models mostly ignored the user but followed the tool: ${toolN} of ${toolD} questions, versus ${userN} of ${userD} from the user. When they followed it, the private notes cited the tool ${toolPriv} of ${toolAns} times, the final answer only ${toolFin}. It's a small first look, with the tool text pasted into the message.`);
+
+  // ---------- 9. four more findings ----------
+  s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Results" });
+  s.addText("Four more things we learned", { placeholder: "title" });
   const isThink = (v) => /think/i.test(v.label);
   const nThink = Object.values(S.nocot).filter(isThink), nReg = Object.values(S.nocot).filter((v) => !isThink(v));
   const still = nThink.map((v) => v.still_thinks);
   const regDirect = nReg.map((v) => v.acc_direct).sort((a, b) => a - b);
   const briefRatios = Object.values(S.brief).map((v) => v.trace_chars_brief / v.trace_chars_normal).filter((x) => isFinite(x));
-  const leak = S.history.leak_trace_separate === 0 ? S.history.leak_truncated : null;
   const more = [
     [still.length ? `${pct(Math.min(...still))} to ${pct(Math.max(...still))}` : "–", C.accent1, "“Answer only” doesn’t stop thinking",
-      `Told “answer only, don’t explain”, thinking models still made private notes this often, and stayed right. Regular models fell to ${regDirect.map(pct).join(" and ")} correct, worse than guessing.`],
-    [leak === null ? "–" : `${leak} of ${S.history.leak_truncated}`, C.accent2, "“Private” can leak",
-      "When a reply was cut off at the length limit, the private notes spilled into the answer the user sees. Every time."],
+      `Told “answer only, don’t explain”, thinking models still made private notes this often, and stayed right. Regular models fell to ${regDirect.map(pct).join(" and ")} correct.`],
+    [nd(trunc.nostream_2000), C.accent2, "“Private” can leak",
+      `Cut-off replies sent back all at once put the private notes in the visible answer. Sent in pieces (streamed): ${nd(trunc.stream_2000)}. We always stream.`],
     [briefRatios.length ? `${pct(1 - Math.max(...briefRatios))} to ${pct(1 - Math.min(...briefRatios))}` : "–", C.accent1, "Less thinking, same model",
-      "Shorter private notes when we ask for “think briefly”. This lets us compare more and less thinking on one model."],
+      "Shorter private notes when we ask for “think briefly”, so we can compare more and less thinking on one model."],
+    [nd(arm("b_explanation")), C.accent2, "A second model can be fooled",
+      `A reviewer model accepted hinted wrong answers this often after reading the first model’s explanation. From the answer alone: ${nd(arm("a_answer_only"))}. Small demo.`],
   ];
   more.forEach(([n, color, head, body], i) => {
-    const x = 0.6 + i * 4.13;
-    card(s, x, 1.5, 3.85, 4.4, `more${i + 1}`);
-    s.addText(n, { x: x + 0.3, y: 1.8, w: 3.3, h: 0.9, fontSize: 38, bold: true, color, isTextBox: true, margin: 0 });
-    s.addText(head, { x: x + 0.3, y: 2.85, w: 3.3, h: 0.8, fontSize: 17, bold: true, color: C.text1, isTextBox: true, margin: 0, valign: "top" });
-    s.addText(body, { x: x + 0.3, y: 3.7, w: 3.3, h: 2.0, fontSize: 15, color: C.text1, isTextBox: true, margin: 0, valign: "top" });
+    const x = 0.6 + (i % 2) * 6.15, y = 1.45 + Math.floor(i / 2) * 2.72;
+    card(s, x, y, 5.95, 2.55, `more${i + 1}`);
+    s.addText(n, { x: x + 0.3, y: y + 0.2, w: 5.35, h: 0.72, fontSize: 34, bold: true, color, isTextBox: true, margin: 0 });
+    s.addText(head, { x: x + 0.3, y: y + 0.95, w: 5.35, h: 0.4, fontSize: 16, bold: true, color: C.text1, isTextBox: true, margin: 0 });
+    s.addText(body, { x: x + 0.3, y: y + 1.38, w: 5.35, h: 1.05, fontSize: 13.5, color: C.text1, isTextBox: true, margin: 0, valign: "top" });
   });
-  s.addNotes("Three more things. When we said 'answer only, don't explain', thinking models still made private notes and stayed right, while regular models fell to near zero, worse than guessing. When a reply got cut off at the length limit, the private notes spilled into the visible answer, every time. And asking for brief thinking cut the notes by a third to a half, which gives us a fair same-model comparison.");
+  s.addNotes(`Four more things. Told 'answer only', thinking models still think in private and stay right, while regular models fall to near zero. Private notes can leak: cut-off replies sent all at once put them in the visible answer, ${trunc.nostream_2000.num} out of ${trunc.nostream_2000.den}, but never when streamed. 'Think briefly' gives us less thinking on the same model. And in a small demo, a second model checking wrong answers was fooled ${arm("b_explanation").num} times out of ${arm("b_explanation").den} once it read the first model's explanation.`);
 
-  // ---------- 9. risks ----------
+  // ---------- 10. risks ----------
   pres.addSection({ title: "Risks & next steps" });
   s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Risks & next steps" });
   s.addText("Risks and what we’re doing about them", { placeholder: "title" });
@@ -357,9 +409,9 @@ async function main() {
   const costHead = costX.length ? `Thinking models write ${Math.min(...costX).toFixed(1)} to ${Math.max(...costX).toFixed(1)} times as much` : "Thinking models write much more";
   const risks = [
     [I.toggle, C.accent2, "We can’t switch thinking off", "So each pair is two differently trained models. We say so, and use “think briefly” on one model as a cleaner test."],
-    [I.scale, C.accent1, "Our puzzles are too easy for the big models", "Next we add harder questions (BBH) and questions about people (BBQ), where a hint has more room."],
-    [I.check, C.accent2, "Keywords can’t tell a mention from an admission", "Two of us will hand-label 200 replies and report how often we agree."],
-    [I.coins, C.accent1, costHead, "We’ll cut the plan from about 180 to about 55 million tokens (word pieces) and time a test run first."],
+    [I.scale, C.accent1, "Our puzzles were too easy for the big models", "We started on harder exam questions. Next: GPQA questions, 3 runs per question, and a real tool call instead of pasted text."],
+    [I.check, C.accent2, "Keyword counts are upper limits", `The keywords also fire on up to ${nd(kwMax)} notes with no hint. Two of us will label replies by hand (${RS.label_queue.rows} are ready) and report how often we agree.`],
+    [I.coins, C.accent1, costHead, `Olmo 7B thinking also ran out of room on ${nd(capped)} hard questions. We’ll set limits per model, count cut-off replies as no answer, and trim the plan to about 55 million tokens.`],
   ];
   risks.forEach(([img, accent, head, body], i) => {
     const y = 1.45 + i * 1.32;
@@ -367,15 +419,15 @@ async function main() {
     s.addText(head, { x: 1.7, y, w: 10.9, h: 0.45, fontSize: 18, bold: true, color: C.text1, isTextBox: true, margin: 0 });
     s.addText(body, { x: 1.7, y: y + 0.47, w: 10.9, h: 0.7, fontSize: 15, color: C.accent5, isTextBox: true, margin: 0, valign: "top" });
   });
-  s.addNotes("Our risks. We can't switch thinking off, so we're comparing differently trained models, and we say that. Our puzzles are too easy for big models, so we're adding harder questions and questions about people. Keywords can't tell a mention from an admission, so two of us will hand-label 200 replies. And thinking models write about four times as much, so we're trimming the plan and timing a test run first.");
+  s.addNotes("Our risks. We can't switch thinking off, so we compare differently trained models and say so. Our puzzles were too easy, so we've started on harder questions and will use a real tool call next. Keyword counts are upper limits, so two of us will label replies by hand. And thinking models write about four times as much and sometimes run out of room, so we'll set limits per model and trim the plan.");
 
-  // ---------- 10. next steps ----------
+  // ---------- 11. next steps ----------
   s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Risks & next steps" });
   s.addText("Next steps", { placeholder: "title" });
   const plan = [
-    ["Week 9", "Add BBQ and BBH questions, time a test run, lock the prompts"],
-    ["Weeks 10-11", "Main runs, and hand-label 200 replies"],
-    ["Weeks 12-13", "If we’re on track: does a second model catch the hint?"],
+    ["Week 9", "Harder questions (GPQA, MMLU-Pro), a real tool call, lock the prompts"],
+    ["Weeks 10-11", "Main runs with user and tool hints; hand-label replies"],
+    ["Weeks 12-13", "If we’re on track: the second-model check, at scale"],
     ["Weeks 14-15", "Stats, charts, report draft"],
     ["Week 16", "Final presentation"],
   ];
@@ -389,23 +441,23 @@ async function main() {
   circle(s, I.users, 0.9, 4.25, 0.85, C.accent1, "roles");
   s.addText("Who does what", { x: 2.0, y: 4.2, w: 10.4, h: 0.45, fontSize: 17, bold: true, color: C.text1, isTextBox: true, margin: 0 });
   s.addText([
-    { text: "Shrey Bishnoi (coordinator): ", options: { bold: true } }, { text: "code that runs the models, the second-model test", options: { breakLine: true } },
+    { text: "Shrey Bishnoi (coordinator): ", options: { bold: true } }, { text: "code that runs the models, the second-model check", options: { breakLine: true } },
     { text: "Arsha Jindal: ", options: { bold: true } }, { text: "question sets, hints, labeling guide", options: { breakLine: true } },
-    { text: "Ritik Agarwal: ", options: { bold: true } }, { text: "stats, charts, checking how well our labels agree", options: { breakLine: true } },
+    { text: "Ritik Agarwal: ", options: { bold: true } }, { text: "harder questions and tool hints, stats, charts", options: { breakLine: true } },
     { text: "All three: ", options: { bold: true } }, { text: "hand-labeling, presentations, report" },
   ], { x: 2.0, y: 4.7, w: 10.4, h: 1.7, fontSize: 15, color: C.text1, paraSpaceAfter: 3, isTextBox: true, margin: 0, valign: "top" });
-  s.addNotes("Next week we add the new questions and lock our prompts. Weeks ten and eleven are the main runs and the hand labels. If we're on track, we'll test whether a second model, reviewing the first one's answer, catches the hint. Then stats, the report, and the final talk.");
+  s.addNotes("Next week: harder questions, a real tool call, and locked prompts. Weeks ten and eleven are the main runs with user and tool hints, plus hand labels. If we're on track, we scale up the second-model check. Then stats, the report, and the final talk.");
 
-  // ---------- 11. closing ----------
+  // ---------- 12. closing ----------
   s = pres.addSlide({ masterName: "TITLE_DARK", sectionTitle: "Risks & next steps" });
-  s.addText([{ text: `In short: the hint rarely changes answers, but thinking models ${sees} and ${says}.`, options: { fontSize: 32 } }], { placeholder: "title" });
-  s.addText("Next: harder questions, hand labels, and a second model as a checker.", { placeholder: "subtitle" });
+  s.addText([{ text: `In short: thinking models ${sees} and ${says}, and a “tool” hint sways them far more than one from the user.`, options: { fontSize: 28 } }], { placeholder: "title" });
+  s.addText("Next: harder questions, real tool calls, hand labels, and a second model as a checker.", { placeholder: "subtitle" });
   s.addText([{ text: "Questions?", options: { fontSize: 28, bold: true, color: C.accent2 } }], { placeholder: "meta" });
   s.addShape(pres.shapes.OVAL, { x: 8.75, y: 1.7, w: 2.7, h: 2.7, fill: { color: C.accent1, transparency: 70 }, objectName: "close-private" });
   s.addShape(pres.shapes.OVAL, { x: 10.15, y: 2.95, w: 2.7, h: 2.7, fill: { color: C.accent2, transparency: 65 }, objectName: "close-visible" });
   s.addImage({ data: I.lock, x: 9.55, y: 2.45, w: 0.9, h: 0.9, objectName: "close-lock" });
   s.addImage({ data: I.eye, x: 11.25, y: 4.05, w: 0.9, h: 0.9, objectName: "close-eye" });
-  s.addNotes("So, in short: on these puzzles the hint rarely changes answers, but thinking models almost always notice it and almost never mention it in the answer. Thanks, we'll take your questions now.");
+  s.addNotes("So, in short: thinking models almost always notice the hint and almost never mention it in the answer, and a hint that looks like it came from a tool sways them far more than one from the user. Thanks, we'll take your questions now.");
 
   // ---------- backup ----------
   pres.addSection({ title: "Backup" });
@@ -427,6 +479,24 @@ async function main() {
     ].map((t) => ({ text: String(t), options: cell }))),
   ], { x: 0.6, y: 1.5, w: 12.1, colW: [2.0, 1.4, 2.4, 2.1, 1.4, 1.5, 1.3], border: { type: "solid", color: "D5DBE3", pt: 0.75 }, margin: 0.07 });
   s.addText("“Effect” is the gap between the two percentages in the third column, in percentage points. If the whole 95% range is above zero, the effect is very unlikely to be luck.", { x: 0.6, y: 4.6, w: 12.1, h: 0.6, fontSize: 12, color: C.accent5, isTextBox: true, margin: 0 });
+
+  s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Backup" });
+  s.addText("Backup: harder questions, the reviewer, the leak test", { placeholder: "title" });
+  s.addTable([
+    ["Model (exam questions)", "Wrong letter picked: user hint", "Wrong letter picked: tool hint", "Same letter, no hint", "When it followed the tool: tool in private notes", "Tool in final answer"].map((t) => ({ text: t, options: hdr })),
+    ...expBModels.map((m) => [
+      `${LABEL[m]} (${bc(m, "cue_user").followed_cue.den})`, nd(bc(m, "cue_user").followed_cue), nd(bc(m, "cue_tool").followed_cue),
+      nd(bc(m, "cue_tool").same_letter_no_cue),
+      M[m].thinking ? nd(bc(m, "cue_tool").followed_and_private_mention) : "no private notes",
+      nd(bc(m, "cue_tool").followed_and_final_mention),
+    ].map((t) => ({ text: String(t), options: cell }))),
+  ], { x: 0.6, y: 1.5, w: 12.1, colW: [2.6, 1.9, 1.9, 1.7, 2.2, 1.8], border: { type: "solid", color: "D5DBE3", pt: 0.75 }, margin: 0.07 });
+  s.addText([
+    { text: "Reviewer demo: ", options: { bold: true } },
+    { text: `${LABEL["qwen3-30b-a3b-instruct-2507"]} checked ${RS.expA.n_steered_cases} hinted wrong answers, 3 times each. It kept the wrong answer ${nd(arm("a_answer_only"))} times with the answer only, ${nd(arm("b_explanation"))} with the explanation, ${nd(arm("c_private"))} with the private notes (1 case), and ${nd(arm("d_cue_shown"))} when told the user had suggested it.`, options: { breakLine: true } },
+    { text: "Leak test: ", options: { bold: true } },
+    { text: `Olmo 7B thinking, 8 puzzles cut off on purpose. Streamed: ${nd(trunc.stream_2000)} leaked at 2,000 tokens and ${nd(trunc.stream_4000)} at 4,000. Not streamed: ${nd(trunc.nostream_2000)} leaked.` },
+  ], { x: 0.6, y: 3.95, w: 12.1, h: 2.4, fontSize: 13, color: C.text1, paraSpaceAfter: 10, isTextBox: true, margin: 0, valign: "top" });
 
   s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Backup" });
   s.addText("Backup: how the two models in each pair differ", { placeholder: "title" });
