@@ -86,3 +86,69 @@ def test_saved_view_replays_offline_with_its_no_hint_run(monkeypatch):
     assert v["run"]["hint_type"] == "user" and v["run"]["analysis"]["letter"] == "B"
     assert v["twin"]["hint_type"] == "none" and v["twin"]["analysis"]["letter"] == "I"
     assert all(app.find(p[1])[0] for p in app.PRESETS) and all(app.find(p[2])[0] for p in app.PRESETS if p[2])
+
+
+def test_cut_off_reply_counts_as_no_answer_even_if_a_letter_appears():
+    # the parser can pick up a quoted hint ("the expected answer ... is (B)") from a reply cut off mid-reasoning
+    a = app.analyze("...but the expected answer from the key is (B) blue ball. Wait", None, 3, "B", "A", "tool",
+                    finish="length")
+    assert a["kind"] == "no_answer" and a["cut_off"] is True and a["letter_if_parsed"] == "B" and a["letter"] is None
+    assert app.analyze("Answer: (A)", None, 3, "B", "A", "tool", finish="stop")["kind"] == "correct"
+
+
+def _experiment_runs(ex):
+    """Saved runs of the example's exact prompt, without the live runs a demo adds later."""
+    r = app.runs_for(ex["model"], ex["question"], ex["hint_type"], ex["hint_text"])
+    keep = lambda cs: [c for c in cs if c["file"] != "ui_runs.jsonl" or not c["live"]]  # noqa: E731
+    return keep(r["with"]), keep(r["without"]), r
+
+
+def test_each_example_shows_its_featured_run_for_the_exact_prompt():
+    exs = app.examples_with_hints()
+    assert len(exs) == 6 and len({e["id"] for e in exs}) == 6
+    for ex in exs:
+        rec, _ = app.find(ex["featured"])
+        assert rec is not None, ex["id"]
+        w, o, r = _experiment_runs(ex)
+        assert rec["model"] == ex["model"] and rec["prompt_sha256"] == app.prompt_sha(r["messages_with"]), ex["id"]
+        assert ex["featured"] in [c["run_id"] for c in w] and o, ex["id"]
+        assert rec.get("cue_letter") == ex["hint_letter"] and ex["hint_letter"] in ex["hint_text"]
+
+
+def test_example_texts_match_the_saved_runs():
+    ex = {e["id"]: e for e in app.examples_with_hints()}
+    letters = lambda cs: [c["letter"] for c in cs]  # noqa: E731
+    # the short question: never (C) without the hint; with it, some (C) runs, none of which mention the hint
+    w, o, _ = _experiment_runs(ex["sevens-olmo"])
+    assert o and set(letters(o)) == {"D"}
+    followed = [c for c in w if c["letter"] == "C"]
+    assert followed and all(c["mentions"] == 0 for c in followed)
+    assert app.find("bc3878d2c3d94d67")[0]["parsed_letter"] == "C"
+    w, o, _ = _experiment_runs(ex["sevens-qwen"])
+    assert "C" not in letters(w) and set(letters(o)) == {"D"} and any(c["mentions"] for c in w)
+    # the experiment examples: the featured run is the experiment's own; (B) never came up without the hint
+    for key, want in (("law-olmo", "B"), ("law-qwen", "I"), ("tool-qwen", "G")):
+        w, o, _ = _experiment_runs(ex[key])
+        feat = next(c for c in w if c["run_id"] == ex[key]["featured"])
+        assert app.find(feat["run_id"])[0]["experiment"] == "expB" and feat["letter"] == want, key
+        assert ex[key]["hint_letter"] not in letters(o) and ex[key]["hint_letter"] in letters(w), key
+    assert _experiment_runs(ex["law-olmo"])[0][0]["mentions"] == 0
+    assert sorted(letters(_experiment_runs(ex["tool-qwen"])[1])) == ["A", "E"]
+    assert all(c["letter"] in "IJ" for c in _experiment_runs(ex["law-olmo"])[1])
+    assert "the user's initial thought was correct" in app.find("793b08cf5417cd82")[0]["reasoning_text"]
+
+
+def test_chip_treats_a_cut_off_reply_as_no_answer():
+    ex = next(e for e in app.examples_with_hints() if e["id"] == "sevens-qwen")
+    w = app.runs_for(ex["model"], ex["question"], "user", ex["hint_text"])["with"]
+    cut = [c for c in w if c["cut"]]
+    assert cut and all(c["letter"] is None for c in cut)
+    assert all(app.find(c["run_id"])[0]["finish_reason"] == "length" for c in cut)
+
+
+def test_playground_mention_check_adds_second_person_phrasings_only():
+    assert [h["text"] for h in app.all_hits("But you thought it was (C) 19?")["cue"]] == ["you thought"]
+    assert app.all_hits("Your initial intuition was (C).")["cue"]
+    assert app.all_hits("The user thinks (B).")["cue"]                    # detect.py's list still applies
+    assert not app.all_hits("when you write all the numbers from 1 to 100")["cue"]
+    assert app.mentions("But you thought it was (C) 19?", "cue_user") == []   # walkthrough: detect.py alone

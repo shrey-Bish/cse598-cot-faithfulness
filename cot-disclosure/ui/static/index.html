@@ -3,108 +3,73 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wrong-hint playground</title>
+<title>Wrong-hint demo</title>
 <link rel="stylesheet" href="playground.css">
 </head>
 <body>
 <header class="bar">
-  <div class="title">Wrong-hint playground <span class="sub">· does the hint change the answer, and does the model say so?</span></div>
-  <nav><a class="tab on" href="/">Playground</a><a class="tab" href="/walkthrough.html">45-second walkthrough</a></nav>
+  <div class="title">Does a wrong hint change the answer, and does the model say so?</div>
+  <a class="tab" href="/walkthrough.html">45-second walkthrough</a>
 </header>
 
+<nav class="examples" id="examples"></nav>
+<p class="say" id="say"></p>
+
 <div class="layout">
-  <!-- ================= controls ================= -->
-  <aside class="controls">
-    <section class="box">
-      <label class="h">Load a saved run <span class="hint-q" title="Real replies saved from our experiments. Opens instantly, no network.">?</span></label>
-      <div class="row">
-        <select id="saved"></select>
-        <button id="load">Load</button>
-      </div>
-    </section>
+  <!-- left: the question, the hint, the model -->
+  <section class="card ask">
+    <div class="label">Question <button class="edit" data-edit="qtext" title="Edit the question">✎</button></div>
+    <div class="question" id="qview"></div>
+    <textarea id="qtext" class="hidden" rows="6" spellcheck="false"></textarea>
+    <div class="correct-line">Correct answer: <b class="green" id="correct"></b></div>
 
-    <section class="box">
-      <label class="h">1 · Question</label>
-      <select id="qsel"></select>
-      <textarea id="qtext" rows="9" spellcheck="false"></textarea>
-      <div class="row small">
-        <span>Correct answer</span><select id="correct"></select>
-        <span class="muted" id="nopt"></span>
-      </div>
-    </section>
+    <div class="label">Hint
+      <select id="htype">
+        <option value="user">from the user</option>
+        <option value="tool">as a tool result</option>
+        <option value="system">in the system prompt</option>
+        <option value="none">no hint</option>
+      </select>
+      <span class="small">points to</span> <select id="hletter"></select>
+      <button class="edit" data-edit="htext" title="Edit the hint wording">✎</button>
+    </div>
+    <div class="bubble" id="hview"></div>
+    <textarea id="htext" class="hidden" rows="3" spellcheck="false"></textarea>
 
-    <section class="box">
-      <label class="h">2 · Hint <span class="hint-q" title="Extra text that points to an answer. In our tests it points to a wrong one.">?</span></label>
-      <div class="seg" id="htype">
-        <button data-t="none">No hint</button>
-        <button data-t="user">User</button>
-        <button data-t="tool">Tool result</button>
-        <button data-t="system">System prompt</button>
-      </div>
-      <div class="row small" id="hletter-row">
-        <span>Points to</span><select id="hletter"></select>
-        <a href="#" id="hreset" class="link">reset wording</a>
-      </div>
-      <textarea id="htext" rows="3" spellcheck="false"></textarea>
-      <div class="muted small" id="hnote"></div>
-    </section>
-
-    <section class="box">
-      <label class="h">3 · Model</label>
-      <select id="model"></select>
-      <div class="muted small" id="mnote"></div>
-      <div class="row small settings">
-        <label>Temperature <input id="temp" type="number" step="0.1" min="0" max="2" value="0.6"></label>
-        <label>Max tokens <input id="maxtok" type="number" step="500" min="100" max="32000" value="16000"></label>
-        <label>Seed <input id="seed" type="number" placeholder="random"></label>
-      </div>
-    </section>
+    <div class="label">Model <select id="model"></select> <span class="small" id="mspeed"></span></div>
 
     <div class="runbar">
-      <button class="primary" id="run-hint">▶ Run with hint</button>
-      <button id="run-plain">Run without hint</button>
-      <button id="run-both" class="primary-outline">⇆ Run both</button>
+      <button class="primary" id="run-with">▶ Ask with the hint ×<span class="nrun">4</span></button>
+      <button id="run-without">Ask without ×<span class="nrun">4</span></button>
     </div>
-    <details class="box prompt">
-      <summary>Prompt that will be sent</summary>
-      <pre id="preview"></pre>
+    <details class="settings"><summary>Settings</summary>
+      <label>Runs <input id="nruns" type="number" min="1" max="8" value="4"></label>
+      <label>Temperature <input id="temp" type="number" step="0.1" min="0" max="2" value="0.6"></label>
+      <label>Max tokens <input id="maxtok" type="number" step="500" min="200" value="2000"></label>
     </details>
-    <div class="muted tiny">Live calls go to ASU Voyager through the project's client and are saved to
-      <code>results/ui_runs.jsonl</code>. Thinking models can take 30–100 s.</div>
-  </aside>
+  </section>
 
-  <!-- ================= results ================= -->
-  <main class="results">
-    <div class="compare" id="compare"></div>
-    <div class="cols" id="cols">
-      <div class="empty">
-        <h2>Pick a question, choose a hint, and press Run.</h2>
-        <p>You will see the model's <span class="blue">private reasoning</span> and its <span class="orange">final answer</span>
-          as they stream in, then the letter we read from it, whether it matches the <span class="pink">hint</span>, and
-          whether either text mentions the hint.</p>
-        <p>Tip: <b>⇆ Run both</b> asks the same model with and without the hint, side by side. Or load a saved run on the left.</p>
-      </div>
+  <!-- right: the answers, one chip per run, and one reply -->
+  <section class="card answers">
+    <div class="row-title">Without the hint <span class="tally" id="tally-without"></span></div>
+    <div class="chips" id="chips-without"></div>
+    <div class="row-title">With the hint <span class="pink" id="hint-tag"></span> <span class="tally" id="tally-with"></span></div>
+    <div class="chips" id="chips-with"></div>
+    <div class="verdict" id="verdict"></div>
+    <div class="legend">
+      <span><i class="dot hint"></i>picked the hint</span><span><i class="dot right"></i>correct</span>
+      <span><i class="dot other"></i>other answer</span><span>💬 reply mentions the hint</span><span>✂ cut off (no answer)</span>
     </div>
-  </main>
+
+    <div class="reply" id="reply">
+      <div class="reply-head" id="reply-head">Click any answer above to read that reply.</div>
+      <div class="final mono" id="reply-final"></div>
+      <details class="private" id="reply-private-box"><summary id="reply-private-sum">Private reasoning</summary>
+        <div class="mono" id="reply-private"></div></details>
+      <details class="raw"><summary>Prompt sent and saved record</summary><pre id="reply-raw"></pre></details>
+    </div>
+  </section>
 </div>
-
-<template id="col-tpl">
-  <div class="col">
-    <div class="col-head">
-      <div class="col-title"></div>
-      <div class="col-status"></div>
-    </div>
-    <div class="panel blue-p">
-      <div class="p-head">Private reasoning <span class="sub">— the model's notes before answering; users normally don't see this</span><span class="count"></span></div>
-      <div class="p-body mono private"></div>
-    </div>
-    <div class="panel orange-p">
-      <div class="p-head">Final answer <span class="sub">— what the user sees</span><span class="count"></span></div>
-      <div class="p-body mono final"></div>
-    </div>
-    <div class="parsed"></div>
-  </div>
-</template>
 
 <script src="playground.js"></script>
 </body>

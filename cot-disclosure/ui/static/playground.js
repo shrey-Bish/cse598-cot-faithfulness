@@ -1,230 +1,213 @@
-// Wrong-hint playground: edit the question and the hint, pick a model, run it live (streamed),
-// and see the reply parsed and keyword-checked by the project's own code. Saved runs load offline.
+// Wrong-hint demo: pick an example, ask the model (several runs in parallel), and see one letter
+// per run, with and without the hint. Click any letter to read that reply. Every letter is a
+// real run: saved runs of this exact prompt, plus the live runs you make.
 const $ = (id) => document.getElementById(id);
 const LETTERS = "ABCDEFGHIJ";
-const RULES = {
-  answer_colon: "found “Answer: (X)”", boxed: "found “\\boxed{X}”", answer_is: "found “the answer is X”",
-  bold: "found a bold **X**", tail_paren: "only one “(X)” near the end", none: "no answer letter found",
-};
-let C = null;              // catalog from the server
-let hintType = "user", hintEdited = false;
+let D = null, ex = null, rows = { with: [], without: [] }, selected = null, hintEdited = false, refreshTimer = null;
 
 const esc = (s) => (s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const fmt = (n) => (n ?? 0).toLocaleString("en-US");
-const qById = (id) => C.questions.find((q) => q.id === id);
-const modelName = (id) => (C.models.find((m) => m.id === id) || {}).name || id;
+const model = () => D.models.find((m) => m.id === $("model").value);
+const hintType = () => $("htype").value;
+const hintLetter = () => $("hletter").value;
 
 // ---------------------------------------------------------------- inputs
-function letterOptions(sel, n, withUnknown) {
-  sel.innerHTML = (withUnknown ? `<option value="">unknown</option>` : "") +
-    LETTERS.slice(0, n).split("").map((l) => `<option value="${l}">(${l})</option>`).join("");
-}
-function countOptions(text) {
+function options(text) {
   const m = [...(text || "").matchAll(/^\(([A-J])\)/gm)].map((x) => x[1]);
-  return m.length ? LETTERS.indexOf(m.sort().pop()) + 1 : 10;
+  return m.length ? LETTERS.indexOf(m.sort().pop()) + 1 : 4;
 }
-function qid() {
-  const id = $("qsel").value;
-  if (id.startsWith("mmlupro-")) return id.slice(8);
-  return id === "custom" ? '"custom"' : `"${id}"`;
+function renderQuestion() {
+  const text = $("qtext").value, L = hintLetter(), C = $("correct").dataset.v;
+  $("qview").innerHTML = text.split("\n").map((line) => {
+    const m = line.match(/^\(([A-J])\)/);
+    if (!m) return `<div>${esc(line) || "&nbsp;"}</div>`;
+    const cls = m[1] === C ? "right" : (hintType() !== "none" && m[1] === L ? "hinted" : "");
+    return `<div class="opt ${cls}" data-letter="${m[1]}" title="Click to mark this as the correct answer">${esc(line)}</div>`;
+  }).join("");
+  $("qview").querySelectorAll(".opt").forEach((o) => (o.onclick = () => { setCorrect(o.dataset.letter); renderQuestion(); drawRows(); }));
 }
-function hintTemplate() {
-  const L = $("hletter").value || "A";
-  if (hintType === "none") return "";
-  return C.hint_templates[hintType].replaceAll("{letter}", L).replaceAll("{qid}", qid());
+function setCorrect(letter) {
+  $("correct").dataset.v = letter || "";
+  const line = ($("qtext").value.match(new RegExp(`^\\(${letter}\\)(.*)$`, "m")) || [])[1] || "";
+  $("correct").textContent = letter ? `(${letter})${line}` : "not set";
 }
-function setHintType(t, keepText) {
-  hintType = t;
-  document.querySelectorAll("#htype button").forEach((b) => b.classList.toggle("on", b.dataset.t === t));
-  const none = t === "none";
-  $("htext").style.display = $("hletter-row").style.display = none ? "none" : "";
-  $("hnote").textContent = {
-    none: "The model gets only the question and the answer instruction.",
-    user: "The user names a letter, in the wording of Turpin et al. (2023). You can edit it.",
-    tool: "Simulated tool result: text that looks like an answer-key lookup, pasted into the user's message.",
-    system: "The hint goes into the system prompt, before the question.",
-  }[t];
-  $("run-hint").disabled = none;
-  $("run-both").disabled = none;
-  if (!keepText) { $("htext").value = hintTemplate(); hintEdited = false; }
-  preview();
+function template() {
+  if (hintType() === "none") return "";
+  return D.hint_templates[hintType()].replaceAll("{letter}", hintLetter()).replaceAll("{qid}", ex.qid);
 }
-function onQuestion() {
-  const id = $("qsel").value, q = qById(id);
-  if (q) {
-    $("qtext").value = q.text;
-    letterOptions($("correct"), countOptions(q.text), true);
-    $("correct").value = q.correct;
-    letterOptions($("hletter"), countOptions(q.text), false);
-    $("hletter").value = q.hint_letter;
-  } else {
-    $("qtext").value = "Write your question here.\n(A) first option\n(B) second option\n(C) third option\n(D) fourth option";
-    letterOptions($("correct"), 4, true);
-    letterOptions($("hletter"), 4, false);
-    $("hletter").value = "B";
-  }
-  onQText();
-  $("htext").value = hintTemplate(); hintEdited = false;
-  preview();
+function renderHint() {
+  const none = hintType() === "none";
+  $("hview").className = "bubble" + (none ? " none" : "");
+  $("hview").textContent = none ? "No hint: the model sees only the question." : $("htext").value;
+  $("hletter").disabled = none;
+  $("hint-tag").textContent = none ? "" : `(${hintLetter()})`;
+  $("run-with").disabled = none;
+  renderQuestion();
 }
-function onQText() {
-  const n = countOptions($("qtext").value), keepC = $("correct").value, keepH = $("hletter").value;
-  letterOptions($("correct"), n, true); $("correct").value = keepC && LETTERS.indexOf(keepC) < n ? keepC : "";
-  letterOptions($("hletter"), n, false); $("hletter").value = keepH && LETTERS.indexOf(keepH) < n ? keepH : "A";
-  $("nopt").textContent = `${n} options found`;
-  preview();
+function letterSelect(n) {
+  const keep = hintLetter();
+  $("hletter").innerHTML = LETTERS.slice(0, n).split("").map((l) => `<option value="${l}">(${l})</option>`).join("");
+  if (keep && LETTERS.indexOf(keep) < n) $("hletter").value = keep;
 }
-function onModel() {
-  const m = C.models.find((x) => x.id === $("model").value);
-  $("mnote").textContent = m.thinking
-    ? "Thinks privately first: you get private reasoning and a final answer (30–100 s)."
-    : "Answers directly: no private reasoning, only the final answer (about 10–20 s).";
+function speed() {
+  $("mspeed").textContent = model().thinking ? "thinks privately first · about 1–3 min per run" : "answers directly · about 5–20 s per run";
 }
-function messagesFor(withHint) {
-  // mirror of app.py build_messages, for the preview only; the server returns what it really sent
-  const t = withHint ? hintType : "none", h = $("htext").value.trim(), parts = [$("qtext").value.trim()], msgs = [];
-  if ((t === "user" || t === "tool") && h) parts.push(h);
-  if (t === "system" && h) msgs.push({ role: "system", content: h });
-  parts.push(C.instruction);
-  msgs.push({ role: "user", content: parts.join("\n\n") });
-  return msgs;
-}
-const showMsgs = (msgs) => msgs.map((m) => `[${m.role}]\n${m.content}`).join("\n\n");
-function preview() { if (C) $("preview").textContent = showMsgs(messagesFor(hintType !== "none")); }
 
-// ---------------------------------------------------------------- result columns
-function newCol(title) {
-  const el = $("col-tpl").content.firstElementChild.cloneNode(true);
-  el.querySelector(".col-title").textContent = title;
-  $("cols").appendChild(el);
+function selectExample(id) {
+  ex = D.examples.find((e) => e.id === id);
+  document.querySelectorAll(".ex").forEach((b) => b.classList.toggle("on", b.dataset.id === id));
+  $("qtext").value = ex.question;
+  letterSelect(options(ex.question));
+  setCorrect(ex.correct);
+  $("htype").value = ex.hint_type;
+  $("hletter").value = ex.hint_letter;
+  $("htext").value = ex.hint_text || "";
+  hintEdited = false;
+  $("model").value = ex.model;
+  $("maxtok").value = ex.thinking ? 16000 : 2000;
+  $("say").textContent = ex.say;
+  ["qtext", "htext"].forEach((t) => $(t).classList.add("hidden"));
+  document.querySelectorAll(".edit").forEach((b) => b.classList.remove("on"));
+  speed(); renderHint();
+  clearReply();
+  refresh(ex.featured);
+}
+
+// ---------------------------------------------------------------- saved runs of this exact prompt
+async function refresh(showRun) {
+  const req = { model: $("model").value, question: $("qtext").value, hint_type: hintType(), hint_text: $("htext").value };
+  const r = await (await fetch("/api/runs", { method: "POST", body: JSON.stringify(req) })).json();
+  rows = { with: r.with, without: r.without };
+  drawRows();
+  if (showRun && rows.with.some((c) => c.run_id === showRun)) showReply(showRun);
+}
+function laterRefresh() { clearTimeout(refreshTimer); refreshTimer = setTimeout(() => refresh(), 400); }
+
+// ---------------------------------------------------------------- chips, tallies, verdict
+function chipEl(c, row) {
+  const L = hintLetter(), C = $("correct").dataset.v;
+  const el = document.createElement("div");
+  if (c.wait) {
+    el.className = "chip wait";
+    el.textContent = "…";
+    return el;
+  }
+  const cls = c.cut ? "cut" : c.letter && row === "with" && c.letter === L ? "hint" : c.letter && c.letter === C ? "right" : "";
+  el.className = `chip ${cls}${c.live ? " live" : ""}${c.run_id === selected ? " sel" : ""}${c.fresh ? " pop" : ""}`;
+  el.textContent = c.cut ? "✂" : c.letter || "–";
+  el.title = `run ${c.run_id}${c.seed != null ? " · seed " + c.seed : ""}${c.live ? " · made in this demo" : ""}`;
+  if (row === "with" && c.mentions && !c.cut) el.innerHTML += `<span class="m" title="the reply mentions the hint (keyword check)">💬</span>`;
+  el.onclick = () => showReply(c.run_id);
   return el;
 }
-function clearCols() { $("cols").innerHTML = ""; $("compare").innerHTML = ""; }
+function drawRows() {
+  for (const row of ["with", "without"]) {
+    const box = $(`chips-${row}`);
+    box.innerHTML = "";
+    rows[row].filter((c) => c.run_id !== "error").forEach((c) => box.appendChild(chipEl(c, row)));
+    if (!rows[row].length) box.innerHTML = `<span class="small">No runs of this exact prompt yet — press Ask.</span>`;
+  }
+  tallies();
+}
+function mostCommon(cs) {
+  const n = {};
+  cs.forEach((c) => c.letter && (n[c.letter] = (n[c.letter] || 0) + 1));
+  return Object.entries(n).sort((a, b) => b[1] - a[1])[0];
+}
+function tallies() {
+  const L = hintLetter(), done = (r) => rows[r].filter((c) => !c.wait && c.run_id !== "error");
+  const w = done("with"), o = done("without");
+  const top = mostCommon(o);
+  const runs = (n) => `${n} run${n > 1 ? "s" : ""}`;
+  $("tally-without").textContent = o.length ? (top ? `${top[1]} of ${runs(o.length)} answered (${top[0]})` : `${runs(o.length)}, no answer`) : "";
+  const follow = w.filter((c) => c.letter === L);
+  $("tally-with").textContent = w.length && hintType() !== "none" ? `${follow.length} of ${runs(w.length)} picked the hint’s (${L})` : "";
+  const v = $("verdict");
+  if (!w.length || hintType() === "none") { v.textContent = ""; v.className = "verdict"; return; }
+  const baseL = o.filter((c) => c.letter === L).length, said = follow.filter((c) => c.mentions).length;
+  const told = follow.length === 1 ? (said ? "it mentions the hint" : "it doesn’t mention the hint")
+             : said === 0 ? "none of them mention the hint" : said === follow.length ? "all of them mention the hint"
+             : `${said} of ${follow.length} mention the hint`;
+  if (follow.length && !baseL) {
+    v.className = "verdict bad";
+    v.textContent = `Hint followed in ${follow.length} of ${w.length} run${w.length > 1 ? "s" : ""} · ` +
+      (o.length ? `never without it · ` : `no runs without it yet · `) + told;
+  } else if (follow.length) {
+    v.className = "verdict meh";
+    v.textContent = `${follow.length} of ${w.length} runs picked (${L}), but it picks (${L}) without the hint too.`;
+  } else {
+    const k = mostCommon(w);
+    v.className = "verdict good";
+    v.textContent = `No run picked the hint’s (${L})` + (k ? `: it kept (${k[0]}).` : ".");
+  }
+}
 
+// ---------------------------------------------------------------- one reply
 function highlight(text, ranges) {
-  const rs = ranges.filter((r) => r && r.end > r.start).sort((a, b) => a.start - b.start);
   let out = "", pos = 0;
-  for (const r of rs) {
+  for (const r of ranges.filter((r) => r && r.end > r.start).sort((a, b) => a.start - b.start)) {
     if (r.start < pos) continue;
     out += esc(text.slice(pos, r.start)) + `<mark class="${r.cls}">${esc(text.slice(r.start, r.end))}</mark>`;
     pos = r.end;
   }
   return out + esc(text.slice(pos));
 }
-
-function renderTexts(col, priv, fin, a, pattern) {
-  const pb = col.querySelector(".private"), fb = col.querySelector(".final");
-  const pr = a ? a.private_hits[pattern].map((h) => ({ ...h, cls: "kw" })) : [];
-  const fr = a ? a.final_hits[pattern].map((h) => ({ ...h, cls: "kw" })) : [];
-  if (a && a.span) fr.push({ start: a.span[0], end: a.span[1], cls: "ans" });
-  pb.innerHTML = priv ? highlight(priv, pr) : `<span class="none">${a ? "No private reasoning: this model answers directly." : "…"}</span>`;
-  fb.innerHTML = fin ? highlight(fin, fr) : `<span class="none">${a ? "(empty)" : "…"}</span>`;
-  col.querySelector(".blue-p .count").textContent = priv ? `${fmt(priv.length)} characters` : "";
-  col.querySelector(".orange-p .count").textContent = fin ? `${fmt(fin.length)} characters` : "";
+function clearReply() {
+  selected = null;
+  $("reply-head").textContent = "Click any letter above to read that reply.";
+  $("reply-final").innerHTML = ""; $("reply-private").innerHTML = ""; $("reply-raw").textContent = "";
+  $("reply-private-box").classList.add("hidden");
 }
-
-function chip(label, letter, cls) {
-  return `<div class="chipbox"><div class="chip ${cls}">${letter ?? "–"}</div>${label}</div>`;
+function paintReply(run) {
+  const a = run.analysis, pat = run.hint_type === "tool" ? "cue_tool" : "cue", hinted = run.hint_type !== "none";
+  const fr = hinted ? a.final_hits[pat].map((h) => ({ ...h, cls: "kw" })) : [];
+  if (a.span) fr.push({ start: a.span[0], end: a.span[1], cls: "ans" });
+  const lead = (run.final || "").length - (run.final || "").trimStart().length;
+  $("reply-final").innerHTML = run.final ? highlight(run.final.slice(lead), fr.map((r) => ({ ...r, start: r.start - lead, end: r.end - lead })))
+                                         : "<i>(empty)</i>";
+  const priv = run.private || "";
+  $("reply-private-box").classList.toggle("hidden", !priv);
+  const ph = hinted ? a.private_hits[pat] : [];
+  $("reply-private-sum").textContent = `Private reasoning · ${fmt(priv.length)} characters` +
+    (hinted ? ` · ${ph.length ? ph.length + " keyword match" + (ph.length > 1 ? "es" : "") + " for the hint" : "no mention of the hint"}` : "");
+  $("reply-private").innerHTML = highlight(priv, ph.map((h) => ({ ...h, cls: "kw" })));
+  const answer = a.cut_off ? "cut off at the token limit: no answer" : a.letter ? `answered (${a.letter})` : "no answer letter found";
+  const where = a.span ? ` · read from “${esc(run.final.slice(a.span[0], a.span[1]))}”` : "";
+  $("reply-head").innerHTML = `${hinted ? "With the hint" : "Without the hint"} · ${answer}` +
+    `<span class="sub">${where} · run ${run.record.run_id}${run.record.latency_s ? " · " + run.record.latency_s + " s" : ""}</span>`;
+  $("reply-raw").textContent = run.record.prompt_messages.map((m) => `[${m.role}]\n${m.content}`).join("\n\n") +
+    "\n\n---- saved record ----\n" + JSON.stringify(run.record, null, 1);
 }
-function verdictOf(a, hasHint, hintLetter, correct) {
-  if (a.kind === "followed_hint")
-    return ["bad", `Picked the hint’s letter (${hintLetter})${correct && hintLetter !== correct ? ", a wrong answer" : ""}.`];
-  if (a.kind === "correct") return ["good", `Correct answer (${correct})${hasHint ? ". It did not follow the hint." : "."}`];
-  if (a.kind === "wrong_other") return ["meh", `Wrong answer (${a.letter})${hasHint ? ", but not the hint’s letter" : ""}.`];
-  if (a.kind === "no_answer") return ["bad", "No answer letter found in the final answer."];
-  return ["meh", `Answered (${a.letter}). No correct answer was set, so it isn't scored.`];
+async function showReply(runId) {
+  selected = runId; drawRows();
+  const run = await (await fetch(`/api/record?run_id=${runId}`)).json();
+  if (run.error) { $("reply-head").innerHTML = `<span class="err">${esc(run.error)}</span>`; return; }
+  paintReply({ ...run, private: run.private, final: run.final });
 }
-
-function renderParsed(col, run, pattern) {
-  const a = run.analysis, rec = run.record, hasHint = run.hint_type !== "none";
-  const L = run.hint_letter, ok = run.correct;
-  const cls = (x) => (x == null ? "" : hasHint && x === L ? "hint" : ok && x === ok ? "right" : ok ? "wrong" : "");
-  const [vc, vt] = verdictOf(a, hasHint, L, ok);
-  const kw = (hits, where) => hits.length
-    ? `${where}: <b>${hits.length} match${hits.length > 1 ? "es" : ""}</b> <span class="kwlist">${hits.slice(0, 6).map((h) => `<span>${esc(h.text)}</span>`).join("")}</span>`
-    : `${where}: <b>no match</b>`;
-  const priv = run.private ? kw(a.private_hits[pattern], "private reasoning") : "private reasoning: none returned";
-  const ans = a.letter ? `Letter read from <mark class="ans">${esc((run.final || "").slice(a.span[0], a.span[1]))}</mark> (${RULES[a.rule]})`
-                       : RULES.none;
-  const cut = rec.finish_reason === "length" ? `<span class="badge warn">cut off at ${fmt(rec.params.max_tokens)} tokens: counted as no answer</span>` : "";
-  col.querySelector(".parsed").innerHTML =
-    `<div class="chips">${chip("The model answered", a.letter, cls(a.letter))}` +
-    (hasHint ? chip("The hint said", L, "hint") : "") + chip("The correct answer", ok || "?", ok ? "right" : "") + `</div>` +
-    `<div class="verdict ${vc}">${vt}</div>` +
-    `<div class="facts">${ans}</div>` +
-    `<div class="facts">Keyword check (${pattern === "cue_tool" ? "tool-hint words" : "user-hint words"}): ${priv} · ${kw(a.final_hits[pattern], "final answer")}</div>` +
-    `<div class="facts muted">A keyword match shows the text may refer to the hint; reading it decides whether it admits using it.</div>` +
-    `<div class="facts">${cut}<span class="badge">${fmt((rec.usage || {}).completion_tokens)} output tokens</span>` +
-    `<span class="badge">${rec.latency_s != null ? rec.latency_s + " s" : rec.cached ? "from the reply cache" : "saved run"}</span>` +
-    `<span class="badge">seed ${rec.params.seed ?? "–"}</span><span class="badge">temperature ${rec.params.temperature}</span></div>` +
-    `<div class="facts muted">run ${rec.run_id} · ${esc(run.file || "results/ui_runs.jsonl")}</div>` +
-    `<details class="raw"><summary>Prompt sent</summary><pre>${esc(showMsgs(rec.prompt_messages))}</pre></details>` +
-    `<details class="raw"><summary>Saved record (raw)</summary><pre>${esc(JSON.stringify(rec, null, 1))}</pre></details>`;
-}
-
-function showRun(col, run, pattern) {
-  renderTexts(col, run.private, run.final, run.analysis, pattern);
-  renderParsed(col, run, pattern);
-  col.querySelector(".col-status").textContent = run.model_name;
-}
-
-function compare(plain, hinted) {
-  if (!plain || !hinted) return;
-  const x = plain.analysis.letter, z = hinted.analysis.letter, L = hinted.hint_letter, p = hinted.analysis;
-  const silent = !p.private_hits[patternFor(hinted.hint_type)].length && !p.final_hits[patternFor(hinted.hint_type)].length;
-  let cls = "meh", msg;
-  if (z && z === L && x !== L) {
-    cls = "bad";
-    msg = `The hint changed the answer: (${x ?? "–"}) without it, (${z}) with it, the hint’s letter.` +
-          (silent ? " Neither text mentions the hint (keyword check)." : "");
-  } else if (x && z === x) {
-    cls = z === hinted.correct ? "good" : "meh";
-    msg = `Same answer with and without the hint: (${x}).`;
-  } else {
-    msg = `Different answers: (${x ?? "–"}) without the hint, (${z ?? "–"}) with it${z === L ? "" : " (not the hint’s letter)"}.`;
-  }
-  $("compare").innerHTML = `<div class="msg ${cls}">${msg}</div>`;
-}
-const patternFor = (t) => (t === "tool" ? "cue_tool" : "cue");
 
 // ---------------------------------------------------------------- live runs
-function body(withHint) {
-  return {
-    model: $("model").value, question: $("qtext").value, correct: $("correct").value || null,
-    hint_type: withHint ? hintType : "none", hint_text: withHint ? $("htext").value : null,
-    hint_letter: withHint ? $("hletter").value : null, instruction: C.instruction,
-    temperature: $("temp").value, max_tokens: $("maxtok").value, seed: $("seed").value,
-    source_id: $("qsel").value === "custom" ? "custom" : $("qsel").value,
-  };
-}
-
-async function stream(col, req, pattern) {
-  let priv = "", fin = "", t0 = Date.now(), pending = false, done = false;
-  const status = col.querySelector(".col-status");
-  const tick = setInterval(() => {
-    if (!done) status.innerHTML = `<span class="dot"></span>${modelName(req.model)} · ${Math.round((Date.now() - t0) / 1000)} s · ${fmt(priv.length + fin.length)} characters`;
+async function liveRun(withHint, slot, first) {
+  const req = { model: $("model").value, question: $("qtext").value, correct: $("correct").dataset.v || null,
+                hint_type: withHint ? hintType() : "none", hint_text: withHint ? $("htext").value : null,
+                hint_letter: withHint ? hintLetter() : null, instruction: D.instruction,
+                temperature: $("temp").value, max_tokens: $("maxtok").value, seed: "", source_id: ex.id };
+  let priv = "", fin = "", t0 = Date.now(), result = null;
+  if (first) {
+    $("reply-head").innerHTML = `${withHint ? "With the hint" : "Without the hint"} · <span class="sub">asking ${esc(model().name)}…</span>`;
+    $("reply-private-box").classList.toggle("hidden", !model().thinking);
+    $("reply-private-box").open = true;
+  }
+  const tick = first && setInterval(() => {
+    if (selected !== "__live__") return;
+    $("reply-head").innerHTML = `${withHint ? "With the hint" : "Without the hint"} · <span class="sub">live · ${Math.round((Date.now() - t0) / 1000)} s · ${fmt(priv.length + fin.length)} characters</span>`;
   }, 250);
-  const thinks = (C.models.find((m) => m.id === req.model) || {}).thinking;
-  const noPrivate = `<span class="none">This model answers directly: it has no private reasoning.</span>`;
-  if (!thinks) col.querySelector(".private").innerHTML = noPrivate;
-  const paint = () => {
-    pending = false;
-    if (done) return;                    // the finished view has already been drawn
-    const pb = col.querySelector(".private"), fb = col.querySelector(".final");
-    const stick = (el) => el.scrollHeight - el.scrollTop - el.clientHeight < 40;
-    const sp = stick(pb), sf = stick(fb);
-    if (priv) pb.textContent = priv; else if (thinks) pb.textContent = "…"; else pb.innerHTML = noPrivate;
-    fb.textContent = fin || (priv ? "(still thinking… the final answer comes after the private reasoning)" : "…");
-    if (sp) pb.scrollTop = pb.scrollHeight;
-    if (sf) fb.scrollTop = fb.scrollHeight;
-  };
   try {
     const resp = await fetch("/api/run", { method: "POST", body: JSON.stringify(req) });
     const reader = resp.body.getReader(), dec = new TextDecoder();
-    let buf = "", result = null;
-    while (true) {
-      const { value, done: end } = await reader.read();
-      if (end) break;
+    let buf = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
       buf += dec.decode(value, { stream: true });
       let i;
       while ((i = buf.indexOf("\n")) >= 0) {
@@ -233,103 +216,75 @@ async function stream(col, req, pattern) {
         else if (ev.type === "content") fin += ev.text;
         else if (ev.type === "result") result = ev;
         else if (ev.type === "error") throw new Error(ev.error);
-        if (!pending) { pending = true; requestAnimationFrame(paint); }
+      }
+      if (first && selected === "__live__") {
+        $("reply-final").textContent = fin; $("reply-private").textContent = priv;
+        $("reply-final").scrollTop = 1e9; $("reply-private").scrollTop = 1e9;
       }
     }
-    if (!result) throw new Error("the stream ended early");
-    if (result.record.status !== "ok") throw new Error(result.record.error_type || "call failed");
-    const run = { private: priv, final: fin, analysis: result.analysis, record: result.record,
-                  hint_type: req.hint_type, hint_letter: req.hint_letter, correct: req.correct,
-                  model_name: modelName(req.model), file: "results/ui_runs.jsonl" };
-    done = true;
-    showRun(col, run, pattern);
-    status.textContent = `${run.model_name} · done in ${Math.round((Date.now() - t0) / 1000)} s`;
-    return run;
-  } catch (e) {
-    done = true;
-    status.innerHTML = `<span class="err">Failed: ${esc(e.message)}</span>`;
-    col.querySelector(".parsed").innerHTML = `<div class="err">The live call failed (${esc(e.message)}). Check the network and the Voyager key in cot-disclosure/.env, or load a saved run.</div>`;
-    return null;
-  } finally {
-    clearInterval(tick);
-  }
-}
-
-async function run(mode) {
-  clearCols();
-  const buttons = ["run-hint", "run-plain", "run-both", "load"].map($);
-  buttons.forEach((b) => (b.disabled = true));
-  const pattern = patternFor(hintType);
-  try {
-    if (mode === "both") {
-      const left = newCol("Without the hint"), right = newCol(`With the hint (${$("hletter").value})`);
-      const [p, h] = await Promise.all([stream(left, body(false), pattern), stream(right, body(true), pattern)]);
-      compare(p, h);
-    } else if (mode === "hint") {
-      await stream(newCol(`With the hint (${$("hletter").value})`), body(true), pattern);
-    } else {
-      await stream(newCol("Without the hint"), body(false), pattern);
+    if (!result || result.record.status !== "ok") throw new Error((result && result.record.error_type) || "the call failed");
+    const a = result.analysis, pat = req.hint_type === "tool" ? "cue_tool" : "cue";
+    slot.c = { run_id: result.record.run_id, letter: a.letter, cut: a.cut_off, live: true, fresh: true,
+               mentions: a.private_hits[pat].length + a.final_hits[pat].length, seed: result.record.params.seed };
+    drawRows();
+    slot.c.fresh = false;
+    if (first && selected === "__live__") {
+      selected = slot.c.run_id;
+      paintReply({ private: priv, final: fin, analysis: a, record: result.record, hint_type: req.hint_type });
+      drawRows();
     }
+  } catch (e) {
+    slot.c = { run_id: "error" };
+    if (first || selected === "__live__") $("reply-head").innerHTML = `<span class="err">Live call failed (${esc(e.message)}). The letters already shown are saved real runs.</span>`;
+    drawRows();
   } finally {
-    buttons.forEach((b) => (b.disabled = false));
-    setHintType(hintType, true);
+    if (tick) clearInterval(tick);
   }
 }
-
-// ---------------------------------------------------------------- saved runs
-function savedLabel(s) {
-  const hint = s.hint === "none" ? "no hint" : `${s.hint} hint → (${s.hint_letter})`;
-  return `${s.model} · ${s.item} · ${hint} · answered (${s.answer ?? "–"})${s.correct ? ", correct (" + s.correct + ")" : ""}`;
-}
-async function loadSaved() {
-  const [runId, twinId] = $("saved").value.split("|");
-  const d = await (await fetch(`/api/saved?run_id=${runId}${twinId ? "&twin_id=" + twinId : ""}`)).json();
-  if (d.error) { $("compare").innerHTML = `<div class="msg bad">${esc(d.error)}</div>`; return; }
-  const r = d.run;
-  // put the run's inputs into the controls, so it can be edited and re-run live
-  const match = C.questions.find((q) => q.text.trim() === r.question.trim());
-  $("qsel").value = match ? match.id : "custom";
-  $("qtext").value = r.question; onQText();
-  if (r.correct) $("correct").value = r.correct;
-  $("model").value = r.model; onModel();
-  setHintType(r.hint_type === "none" ? "user" : r.hint_type, true);
-  if (r.hint_letter) $("hletter").value = r.hint_letter;
-  $("htext").value = r.hint_text || hintTemplate(); hintEdited = !!r.hint_text;
-  preview();
-  clearCols();
-  const pattern = patternFor(r.hint_type);
-  if (d.twin) {
-    showRun(newCol("Without the hint (saved)"), d.twin, pattern);
-  }
-  showRun(newCol(r.hint_type === "none" ? "Without the hint (saved)" : `With the hint (${r.hint_letter}) (saved)`), r, pattern);
-  if (d.twin) compare(d.twin, r);
+async function ask(withHint) {
+  const n = Math.max(1, Math.min(8, +$("nruns").value || 4));
+  const row = withHint ? "with" : "without";
+  const slots = Array.from({ length: n }, () => ({ c: { wait: true } }));
+  // each slot's chip is a live object in the row, replaced in place when its reply arrives
+  slots.forEach((s) => rows[row].push(new Proxy({}, { get: (_, k) => s.c[k] })));
+  selected = "__live__";
+  $("reply-final").innerHTML = ""; $("reply-private").innerHTML = "";
+  drawRows();
+  ["run-with", "run-without"].forEach((b) => ($(b).disabled = true));
+  await Promise.all(slots.map((s, i) => liveRun(withHint, s, i === 0)));
+  rows[row] = rows[row].filter((c) => c.run_id !== "error");
+  ["run-with", "run-without"].forEach((b) => ($(b).disabled = false));
+  renderHint();
+  drawRows();
 }
 
 // ---------------------------------------------------------------- start
-fetch("/api/catalog").then((r) => r.json()).then((c) => {
-  C = c;
-  const groups = {};
-  c.questions.forEach((q) => (groups[q.set] = groups[q.set] || []).push(q));
-  $("qsel").innerHTML = Object.entries(groups).map(([g, qs]) =>
-    `<optgroup label="${g}">${qs.map((q) => `<option value="${q.id}">${esc(q.label)}</option>`).join("")}</optgroup>`).join("") +
-    `<optgroup label="Your own"><option value="custom">Write your own question…</option></optgroup>`;
-  $("model").innerHTML = c.models.map((m) => `<option value="${m.id}">${m.name}${m.thinking ? "  (thinks first)" : ""}</option>`).join("");
-  $("saved").innerHTML = `<optgroup label="Examples">${c.presets.map((p) => `<option value="${p.run_id}|${p.twin_id || ""}">${esc(p.label)}</option>`).join("")}</optgroup>` +
-    `<optgroup label="All saved runs (${c.saved.length})">${c.saved.map((s) => `<option value="${s.run_id}">${esc(savedLabel(s))}</option>`).join("")}</optgroup>`;
-  $("qsel").value = "mmlupro-1112";
-  $("model").value = "qwen3-30b-a3b-thinking-2507";
-  onQuestion(); onModel(); setHintType("user");
-  document.querySelectorAll("#htype button").forEach((b) => (b.onclick = () => setHintType(b.dataset.t)));
-  $("qsel").onchange = onQuestion;
-  $("qtext").oninput = onQText;
-  $("hletter").onchange = () => { if (!hintEdited) $("htext").value = hintTemplate(); preview(); };
-  $("htext").oninput = () => { hintEdited = true; preview(); };
-  $("hreset").onclick = (e) => { e.preventDefault(); $("htext").value = hintTemplate(); hintEdited = false; preview(); };
-  $("model").onchange = onModel;
-  $("run-hint").onclick = () => run("hint");
-  $("run-plain").onclick = () => run("plain");
-  $("run-both").onclick = () => run("both");
-  $("load").onclick = loadSaved;
-  document.addEventListener("keydown", (e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") run(hintType === "none" ? "plain" : "both"); });
-  loadSaved();   // open on the saved "fell for it" example, so the page is never empty
+fetch("/api/examples").then((r) => r.json()).then((d) => {
+  D = d;
+  let html = "", group = null;
+  d.examples.forEach((e) => {
+    if (e.group !== group) { group = e.group; html += `<span class="group">${esc(group)}</span>`; }
+    const m = d.models.find((x) => x.id === e.model).name;
+    html += `<button class="ex" data-id="${e.id}">${esc(e.title)} <span class="m">· ${esc(m)}</span></button>`;
+  });
+  $("examples").innerHTML = html;
+  document.querySelectorAll(".ex").forEach((b) => (b.onclick = () => selectExample(b.dataset.id)));
+  $("model").innerHTML = d.models.map((m) => `<option value="${m.id}">${m.name}</option>`).join("");
+  $("model").onchange = () => { speed(); $("maxtok").value = model().thinking ? 16000 : 2000; clearReply(); refresh(); };
+  $("htype").onchange = () => { $("htext").value = template(); hintEdited = false; renderHint(); clearReply(); refresh(); };
+  $("hletter").onchange = () => { if (!hintEdited) $("htext").value = template(); renderHint(); clearReply(); refresh(); };
+  $("qtext").oninput = () => {
+    const n = options($("qtext").value), C = $("correct").dataset.v;
+    letterSelect(n); setCorrect(C && LETTERS.indexOf(C) < n ? C : ""); renderQuestion(); laterRefresh();
+  };
+  $("htext").oninput = () => { hintEdited = true; renderHint(); laterRefresh(); };
+  $("nruns").oninput = () => document.querySelectorAll(".nrun").forEach((s) => (s.textContent = $("nruns").value));
+  document.querySelectorAll(".edit").forEach((b) => (b.onclick = () => {
+    const t = $(b.dataset.edit);
+    t.classList.toggle("hidden"); b.classList.toggle("on", !t.classList.contains("hidden"));
+    if (!t.classList.contains("hidden")) t.focus();
+  }));
+  $("run-with").onclick = () => ask(true);
+  $("run-without").onclick = () => ask(false);
+  selectExample(d.examples[0].id);
 });

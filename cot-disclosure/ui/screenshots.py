@@ -1,8 +1,11 @@
-"""Screenshot every demo scene (after its animation) at 1920x1080 and 1280x720.
+"""Screenshot the playground's six examples (saved runs only, no live calls) and every
+walkthrough scene (after its animation), at 1920x1080 and 1280x720.
 
   python cot-disclosure/ui/app.py &          # the demo must be running
   python cot-disclosure/ui/screenshots.py    # -> presentation/progress/ui_screenshots/
 """
+import json
+import urllib.request
 import argparse
 from pathlib import Path
 
@@ -21,13 +24,24 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as pw:
         browser = pw.chromium.launch()
+        examples = json.load(urllib.request.urlopen(a.url + "/api/examples"))["examples"]
         for w, h in ((1920, 1080), (1280, 720)):
+            suffix = "" if w == 1920 else "_1280x720"
             page = browser.new_page(viewport={"width": w, "height": h})
             page.goto(a.url)
+            page.wait_for_selector("#chips-with .chip")
+            for i, ex in enumerate(examples, 1):
+                page.click(f'.ex[data-id="{ex['id']}"]')
+                page.wait_for_timeout(1200)          # saved runs and the featured reply load
+                page.screenshot(path=str(out / f"playground_{i}_{ex['id']}{suffix}.png"))
+                overflow = page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
+                print(f"{w}x{h} playground {ex['id']}: saved{' (HORIZONTAL OVERFLOW)' if overflow else ''}")
+            page.close()
+            page = browser.new_page(viewport={"width": w, "height": h})
+            page.goto(a.url + "/walkthrough.html")
             page.wait_for_selector(".scene.active")
             for i, name in enumerate(NAMES):
                 page.wait_for_timeout(6500)          # let the scene's animation finish
-                suffix = "" if w == 1920 else "_1280x720"
                 page.screenshot(path=str(out / f"{name}{suffix}.png"))
                 overflow = page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
                 print(f"{w}x{h} {name}: saved{' (HORIZONTAL OVERFLOW)' if overflow else ''}")
