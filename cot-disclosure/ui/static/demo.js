@@ -1,4 +1,4 @@
-// Wrong-hint demo v2: the examples from the progress presentation, with exactly the runs it
+// Wrong-hint demo: the examples from the progress presentation, with exactly the runs it
 // counted (Test 2: 2 without a hint, 1 user hint, 1 tool hint; Test 1: 3 without, 2 wrong hint,
 // 1 right hint). One column per condition, side by side. "Rerun live" makes a fresh set of the
 // same runs, shown on its own; clicking an example always brings back its original runs.
@@ -169,7 +169,7 @@ async function showRun(gkey) {
   }
   let v = r.view || views[r.run_id];
   if (!v) {
-    v = await (await fetch(`/api/record?run_id=${r.run_id}&strict=1`)).json();
+    v = await (await fetch(`/api/record?run_id=${r.run_id}`)).json();
     views[r.run_id] = v;
   }
   if (myGen !== gen || sel[gkey] !== r.key) return;
@@ -214,8 +214,10 @@ function banner() {
   else if (wl === H && ol && ol !== H) { cls = "bad"; txt = `The ${who} changed the answer: (${ol}) without it, (${H}) with it. ${said}`; }
   else if (wl === H && ol === H) txt = `(${H}) with and without the ${who}.`;
   else if (wl === H) { cls = "bad"; txt = `Picked the ${who}’s (${H}). ${said}`; }
-  else { cls = "good"; txt = `Not fooled by the ${who}: (${wl})` + (ol ? (ol === wl ? ", the same as without it." : `, (${ol}) without it.`) : ".")
-         + (w.private_mentions || w.final_mentions ? ` It mentions ${it}.` : ""); }
+  else if (wl === ex.correct) {
+    cls = "good"; txt = `Not fooled by the ${who}: the correct (${wl})` + (ol ? (ol === wl ? ", the same as without it." : `; (${ol}) without it.`) : ".")
+         + (w.private_mentions || w.final_mentions ? ` It mentions ${it}.` : "");
+  } else txt = `With the ${who}: (${wl}), wrong but not the hint’s letter` + (ol ? `; (${ol}) without it.` : ".");
   const hintLetters = new Set(groups.filter((g) => g.key !== "none" && g.key !== "right").flatMap((g) => g.runs.map((r) => r.hint_letter)));
   const parts = groups.filter((g) => g.key !== "right").map((g) => {
     const rs = g.runs.filter(done);
@@ -232,7 +234,7 @@ async function liveRun(r, g, myGen) {
   const c = cols[g.key], streaming = () => myGen === gen && sel[g.key] === r.key;
   const req = { model: ex.model, messages: r.messages, hint_type: r.hint_type, hint_letter: r.hint_letter,
                 correct: ex.correct, temperature: r.temperature, max_tokens: r.max_tokens, seed: "",
-                source_id: `v2:${ex.id}:${r.key}`, experiment: "ui_v2_rerun", strict: true };
+                source_id: `v2:${ex.id}:${r.key}` };
   let priv = "", fin = "", result = null;
   const t0 = Date.now();
   const tick = setInterval(() => { if (streaming()) c.status.innerHTML = `<span class="dot"></span>live · ${Math.round((Date.now() - t0) / 1000)} s`; }, 250);
@@ -308,7 +310,7 @@ function presentationFacts(d) {
 }
 
 // ---------------------------------------------------------------- start
-fetch("/api/v2/examples").then((r) => r.json()).then((d) => {
+fetch("/api/examples").then((r) => r.json()).then((d) => {
   D = d;
   $("exlist").innerHTML = d.examples.map((e) =>
     `<button class="exbtn" data-id="${e.id}"><span class="t">${esc(e.title)}</span>` +

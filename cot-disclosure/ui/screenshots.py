@@ -1,12 +1,12 @@
-"""Screenshot the playground's six examples and v2's six presentation examples and the charts
-page (saved runs only, no live calls) and every walkthrough scene (after its animation), at 1920x1080 and 1280x720.
+"""Screenshot the demo's six examples and the charts page (saved runs only, no live calls) and
+every walkthrough scene (after its animation), at 1920x1080 and 1280x720.
 
   python cot-disclosure/ui/app.py &          # the demo must be running
   python cot-disclosure/ui/screenshots.py    # -> presentation/progress/ui_screenshots/
 """
+import argparse
 import json
 import urllib.request
-import argparse
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -27,25 +27,15 @@ def main():
         examples = json.load(urllib.request.urlopen(a.url + "/api/examples"))["examples"]
         for w, h in ((1920, 1080), (1280, 720)):
             suffix = "" if w == 1920 else "_1280x720"
-            page = browser.new_page(viewport={"width": w, "height": h})
+            page = browser.new_page(viewport={"width": w, "height": h})       # the presentation's examples
             page.goto(a.url)
-            page.wait_for_selector("#col-with .rchip")
-            for i, ex in enumerate(examples, 1):
-                page.select_option("#example", ex["id"])
-                page.wait_for_timeout(1200)          # saved runs and the featured reply load
-                page.screenshot(path=str(out / f"playground_{i}_{ex['id']}{suffix}.png"))
-                overflow = page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
-                print(f"{w}x{h} playground {ex['id']}: saved{' (HORIZONTAL OVERFLOW)' if overflow else ''}")
-            page.close()
-            page = browser.new_page(viewport={"width": w, "height": h})       # v2: the presentation's runs
-            page.goto(a.url + "/v2.html")
             page.wait_for_selector(".exbtn")
-            for i, ex in enumerate(json.load(urllib.request.urlopen(a.url + "/api/v2/examples"))["examples"], 1):
+            for i, ex in enumerate(examples, 1):
                 page.click(f'.exbtn[data-id="{ex['id']}"]')
-                page.wait_for_timeout(1200)
-                page.screenshot(path=str(out / f"v2_{i}_{ex['id']}{suffix}.png"))
+                page.wait_for_timeout(1200)          # the saved runs load
+                page.screenshot(path=str(out / f"demo_{i}_{ex['id']}{suffix}.png"))
                 overflow = page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
-                print(f"{w}x{h} v2 {ex['id']}: saved{' (HORIZONTAL OVERFLOW)' if overflow else ''}")
+                print(f"{w}x{h} demo {ex['id']}: saved{' (HORIZONTAL OVERFLOW)' if overflow else ''}")
             page.close()
             page = browser.new_page(viewport={"width": w, "height": h})       # the presentation's charts
             page.goto(a.url + "/charts.html")
