@@ -1,0 +1,38 @@
+/* v2: the presentation's own runs. Builds on playground.css. */
+.exlist { display: flex; flex-direction: column; gap: 0.35em; }
+.exbtn { text-align: left; padding: 0.4em 0.65em; border-radius: 8px; line-height: 1.3; }
+.exbtn .t { font-weight: 600; display: block; }
+.exbtn .m { color: var(--grey); font-size: 0.82em; }
+.exbtn.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.exbtn.on .m { color: #C8CFDD; }
+.tag { font-weight: 500; font-size: 0.78em; color: var(--grey); margin-left: 0.3em; }
+.qbox { white-space: pre-wrap; font-size: 0.86em; line-height: 1.4; max-height: 13em; overflow-y: auto; }
+.qbox .opt { padding: 0 0.35em; border-radius: 5px; }
+.qbox .opt.right { background: var(--green-soft); }
+.qbox .opt.hinted { background: var(--pink-soft); }
+.hbox { background: var(--pink-soft); color: var(--pink); border-left: 4px solid var(--pink); border-radius: 8px;
+        padding: 0.4em 0.6em; white-space: pre-wrap; word-break: break-word;
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.8em; }
+.hbox.none { background: var(--panel); color: var(--grey); border-color: var(--grey); font-family: inherit; }
+.model-name { font-weight: 600; }
+
+/* the runs, one row per condition, as counted in the presentation */
+.groups { border: 1px solid var(--line); border-radius: 10px; padding: 0.5em 0.8em; margin-bottom: 0.8em; }
+.groups .head { font-size: 0.8em; color: var(--grey); margin-bottom: 0.25em; }
+.groups .head b { color: var(--navy); }
+.grow { display: grid; grid-template-columns: 14em 1fr; align-items: center; gap: 0.6em; padding: 0.22em 0; }
+.grow + .grow { border-top: 1px solid var(--line); }
+.glabel { font-weight: 600; font-size: 0.92em; }
+.glabel .n { font-weight: 400; color: var(--grey); font-size: 0.88em; }
+.gchips { display: flex; gap: 0.4em; flex-wrap: wrap; align-items: center; }
+.gchips .rchip { width: auto; min-width: 2.1em; height: 2.1em; padding: 0 0.35em; font-size: 1em; }
+.rchip .arrow { font-weight: 500; font-size: 0.72em; margin-left: 0.2em; opacity: 0.85; }
+.rchip.notext { border-style: dashed; }
+.gnote { font-size: 0.8em; color: var(--grey); margin-left: 0.3em; }
+.letteronly { background: var(--panel); border-radius: 10px; padding: 0.7em 0.9em; font-size: 0.92em; }
+.letteronly p { margin: 0.25em 0; }
+.compare .msg.live { background: #FFF4E5; color: #8A4B08; }
+.ghead { display: flex; justify-content: space-between; align-items: center; gap: 0.8em; margin-bottom: 0.2em; }
+.ghead .head { margin: 0; }
+.gbtns { display: flex; gap: 0.4em; flex-shrink: 0; }
+.gbtns button { padding: 0.3em 0.8em; }

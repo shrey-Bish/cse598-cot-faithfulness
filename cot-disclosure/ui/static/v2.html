@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wrong-hint demo v2</title>
+<link rel="stylesheet" href="playground.css">
+<link rel="stylesheet" href="v2.css">
+</head>
+<body>
+<header class="bar">
+  <div class="title">Does a wrong hint change the answer, and does the model say so?</div>
+</header>
+
+<div class="layout">
+  <!-- ================= the example ================= -->
+  <aside class="controls">
+    <section class="box">
+      <label class="h">Examples from the presentation</label>
+      <div class="exlist" id="exlist"></div>
+    </section>
+
+    <section class="box">
+      <label class="h">Question <span class="tag" id="test-label"></span></label>
+      <div class="qbox" id="qview"></div>
+    </section>
+
+    <section class="box">
+      <label class="h" id="hint-label">Hint</label>
+      <div class="hbox" id="hview"></div>
+    </section>
+
+    <section class="box">
+      <label class="h">Model</label>
+      <div id="model-name" class="model-name"></div>
+    </section>
+
+  </aside>
+
+  <!-- ================= the runs ================= -->
+  <main class="results">
+    <div class="compare" id="compare"></div>
+    <div class="groups">
+      <div class="ghead"><div class="head" id="ghead"></div>
+        <div class="gbtns"><button id="original" class="hidden">↺ Back to the original runs</button>
+          <button class="primary" id="rerun">▶ Rerun live</button></div></div>
+      <div id="groups"></div>
+    </div>
+    <div class="cols" id="cols">
+      <div class="col" id="col-base"></div>
+      <div class="col" id="col-hint"></div>
+    </div>
+  </main>
+</div>
+
+<template id="col-tpl">
+  <div class="col-head">
+    <div class="col-title"></div>
+    <div class="col-status"></div>
+  </div>
+  <div class="panel blue-p">
+    <div class="p-head">Private reasoning <span class="sub">hidden from users</span><span class="count"></span></div>
+    <div class="p-body mono private"></div>
+  </div>
+  <div class="panel orange-p">
+    <div class="p-head">Final answer <span class="sub">what users see</span><span class="count"></span></div>
+    <div class="p-body mono final"></div>
+  </div>
+  <div class="parsed"></div>
+</template>
+
+<script src="v2.js"></script>
+</body>
+</html>

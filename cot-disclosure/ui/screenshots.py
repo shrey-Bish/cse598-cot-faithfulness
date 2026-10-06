@@ -1,5 +1,5 @@
-"""Screenshot the playground's six examples (saved runs only, no live calls) and every
-walkthrough scene (after its animation), at 1920x1080 and 1280x720.
+"""Screenshot the playground's six examples and v2's six presentation examples (saved runs
+only, no live calls) and every walkthrough scene (after its animation), at 1920x1080 and 1280x720.
 
   python cot-disclosure/ui/app.py &          # the demo must be running
   python cot-disclosure/ui/screenshots.py    # -> presentation/progress/ui_screenshots/
@@ -36,6 +36,16 @@ def main():
                 page.screenshot(path=str(out / f"playground_{i}_{ex['id']}{suffix}.png"))
                 overflow = page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
                 print(f"{w}x{h} playground {ex['id']}: saved{' (HORIZONTAL OVERFLOW)' if overflow else ''}")
+            page.close()
+            page = browser.new_page(viewport={"width": w, "height": h})       # v2: the presentation's runs
+            page.goto(a.url + "/v2.html")
+            page.wait_for_selector(".exbtn")
+            for i, ex in enumerate(json.load(urllib.request.urlopen(a.url + "/api/v2/examples"))["examples"], 1):
+                page.click(f'.exbtn[data-id="{ex['id']}"]')
+                page.wait_for_timeout(1200)
+                page.screenshot(path=str(out / f"v2_{i}_{ex['id']}{suffix}.png"))
+                overflow = page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
+                print(f"{w}x{h} v2 {ex['id']}: saved{' (HORIZONTAL OVERFLOW)' if overflow else ''}")
             page.close()
             page = browser.new_page(viewport={"width": w, "height": h})
             page.goto(a.url + "/walkthrough.html")
