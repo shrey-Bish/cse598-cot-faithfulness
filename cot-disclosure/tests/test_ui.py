@@ -213,3 +213,29 @@ def test_rerun_sends_the_exact_saved_prompt(monkeypatch, tmp_path):
     assert sent["messages"] == rec["prompt_messages"]
     saved = json.loads((tmp_path / "runs.jsonl").read_text())
     assert saved["experiment"] == "ui_v2_rerun" and out[-1]["analysis"]["letter"] == "G"
+
+
+def test_charts_match_the_presentation_slide():
+    d = app.charts_data()
+    assert all(d["inputs_unchanged"].values())       # the result files behind the summary are untouched
+    pct = lambda x: round(100 * x["k"] / x["n"])     # noqa: E731
+    # slide 4, Test 1: 10%, 2%, then 0% for the other four models; 0 of 144 without a hint
+    assert [pct(m["followed"]) for m in d["test1"]] == [10, 2, 0, 0, 0, 0]
+    assert all(m["followed"]["n"] == 48 and m["same_letter_no_hint"]["k"] == 0 for m in d["test1"])
+    # slide 4, Test 2: user vs tool on 19, 20 and 11 questions; without a hint 0 to 11%
+    t2 = {m["id"]: m for m in d["test2"]}
+    assert [(t2[m]["questions"], pct(t2[m]["user"]), pct(t2[m]["tool"])) for m in app.TEST2_MODELS] == \
+        [(19, 37, 42), (20, 10, 50), (11, 0, 64)]
+    assert max(pct(m["without"]) for m in d["test2"]) == 11 and min(pct(m["without"]) for m in d["test2"]) == 0
+    tt = d["thinking_tools"]
+    assert (tt["tool_hint_followed"]["k"], tt["user_hint_followed"]["k"], tt["tool_hint_followed"]["n"]) == (17, 2, 31)
+    assert (d["mention_totals"]["private"]["k"], d["mention_totals"]["final"]["k"], d["mention_totals"]["final"]["n"]) == (208, 8, 216)
+
+
+def test_protocol_counts_match_the_presentation():
+    p = app.charts_data()["protocol"]
+    # slide 2: "3 without, 2 with a wrong hint, 1 with the right one"; 216 = hinted runs of the 3 thinking models
+    assert p["test1"]["per_question"] == {"none": [3], "wrong": [2], "right": [1]}
+    assert (p["test1"]["puzzles"], p["test1"]["models"], p["test1"]["runs"], p["test1"]["runs_with_hint_thinking"]) == (24, 6, 864, 216)
+    assert p["test2"]["per_question"] == {"none": [2], "user": [1], "tool": [1]}
+    assert (p["test2"]["questions"], p["test2"]["models"], p["test2"]["runs_without"], p["test2"]["runs_with"]) == (30, 3, 180, 100)

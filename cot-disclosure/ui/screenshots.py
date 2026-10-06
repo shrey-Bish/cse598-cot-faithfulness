@@ -1,5 +1,5 @@
-"""Screenshot the playground's six examples and v2's six presentation examples (saved runs
-only, no live calls) and every walkthrough scene (after its animation), at 1920x1080 and 1280x720.
+"""Screenshot the playground's six examples and v2's six presentation examples and the charts
+page (saved runs only, no live calls) and every walkthrough scene (after its animation), at 1920x1080 and 1280x720.
 
   python cot-disclosure/ui/app.py &          # the demo must be running
   python cot-disclosure/ui/screenshots.py    # -> presentation/progress/ui_screenshots/
@@ -46,6 +46,13 @@ def main():
                 page.screenshot(path=str(out / f"v2_{i}_{ex['id']}{suffix}.png"))
                 overflow = page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
                 print(f"{w}x{h} v2 {ex['id']}: saved{' (HORIZONTAL OVERFLOW)' if overflow else ''}")
+            page.close()
+            page = browser.new_page(viewport={"width": w, "height": h})       # the presentation's charts
+            page.goto(a.url + "/charts.html")
+            page.wait_for_selector("#c-test2 svg")
+            page.wait_for_timeout(500)
+            page.screenshot(path=str(out / f"charts{suffix}.png"), full_page=True)
+            print(f"{w}x{h} charts: saved")
             page.close()
             page = browser.new_page(viewport={"width": w, "height": h})
             page.goto(a.url + "/walkthrough.html")

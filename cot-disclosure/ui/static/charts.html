@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Presentation results</title>
+<link rel="stylesheet" href="charts.css">
+</head>
+<body>
+<header class="bar">
+  <div class="title">Results from the progress presentation: all models</div>
+  <a class="navlink" href="/v2.html">← Examples</a>
+</header>
+<p class="source" id="source"></p>
+
+<main class="grid">
+  <section class="card wide">
+    <h2>The runs behind these charts</h2>
+    <div class="proto" id="proto"></div>
+  </section>
+
+  <section class="card">
+    <h2>Test 1 · 24 easy puzzles · user hint</h2>
+    <p class="sub">Share of runs where the model picked the hint’s wrong option (48 runs per model)</p>
+    <div class="chart" id="c-test1"></div>
+    <p class="note" id="n-test1"></p>
+    <details class="tbl"><summary>Show as a table</summary><div id="t-test1"></div></details>
+  </section>
+
+  <section class="card">
+    <h2>Test 2 · 30 harder exam questions · user hint vs. tool hint</h2>
+    <p class="sub">Share of questions where the model picked the hint’s wrong option</p>
+    <div class="legend" id="l-test2"></div>
+    <div class="chart" id="c-test2"></div>
+    <p class="note">Questions each model was unsure about (number in brackets). Each question was asked once per hint,
+      and twice without a hint.</p>
+    <details class="tbl"><summary>Show as a table</summary><div id="t-test2"></div></details>
+  </section>
+
+  <section class="card">
+    <h2>Test 1 · hinted puzzle runs · does each text mention the hint?</h2>
+    <p class="sub">Share of runs with a hint (wrong or right) whose text mentions it (keyword check, 72 runs per model)</p>
+    <div class="legend" id="l-ment"></div>
+    <div class="chart" id="c-ment"></div>
+    <p class="note" id="n-ment"></p>
+    <details class="tbl"><summary>Show as a table</summary><div id="t-ment"></div></details>
+  </section>
+
+  <section class="card">
+    <h2>Test 2 · thinking models · tool hint vs. user hint</h2>
+    <p class="sub">Olmo 3 7B Think and Qwen3 30B Thinking combined (31 questions)</p>
+    <div class="tiles" id="tiles"></div>
+    <p class="note">A keyword match only shows that a text may refer to the hint; replies are being labeled by hand.</p>
+  </section>
+</main>
+
+<div class="tip hidden" id="tip"></div>
+<script src="charts.js"></script>
+</body>
+</html>

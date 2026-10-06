@@ -14,6 +14,7 @@ import random
 import re
 import sys
 import threading
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -588,6 +589,68 @@ def nocue_correct(nocue, model, ex):
     return next(r["correct_letter"] for r in nocue if r["model"] == model and str(r["item_id"]) == ex["item"])
 
 
+# ---------------------------------------------------------------- charts: the presentation's numbers
+SUMMARY = CODE.parent / "docs" / "progress" / "RESULTS_SUMMARY.json"
+PILOT_MODELS = [m for m, _, _ in MODELS]
+TEST2_MODELS = ["olmo3-7b-instruct", "olmo3-7b-think", "qwen3-30b-a3b-thinking-2507"]
+
+
+def _kn(x):
+    return {"k": x["num"], "n": x["den"]} if x else None
+
+
+def charts_data():
+    """Every number on the charts page, read from RESULTS_SUMMARY.json (written by
+    progress/analyze_progress.py from the result files), plus a check that those files are
+    unchanged since the summary was written."""
+    s = json.loads(SUMMARY.read_text())
+    root = CODE.parent
+    check = {f: hashlib.sha256((root / f).read_bytes()).hexdigest() == h if (root / f).exists() else None
+             for f, h in s["inputs_sha256"].items()}
+    pilot_, cells = s["pilot"], s["expB"]["cells"]
+    test1 = [{"id": m, "name": NAMES[m], "thinking": t,
+              "followed": _kn(pilot_["hint_following"][m]["wrong_hint_following"]),
+              "same_letter_no_hint": _kn(pilot_["hint_following"][m]["same_letter_without_hint"]),
+              "right_hint_accuracy": _kn(pilot_["hint_following"][m]["right_hint_accuracy"]),
+              "accuracy_no_hint": _kn(pilot_["accuracy"][m]["none"])} for m, _, t in MODELS]
+    test2 = []
+    for m in TEST2_MODELS:
+        u, t = cells[f"{m}|cue_user|all"], cells[f"{m}|cue_tool|all"]
+        test2.append({"id": m, "name": NAMES[m], "questions": u["n_items"],
+                      "user": _kn(u["followed_cue"]), "tool": _kn(t["followed_cue"]),
+                      "without": _kn(t["same_letter_no_cue"]),
+                      "user_final_mention": _kn(u["final_mention"]), "tool_final_mention": _kn(t["final_mention"]),
+                      "user_private_mention": _kn(u["private_mention"]), "tool_private_mention": _kn(t["private_mention"]),
+                      "user_run_ids": u["run_ids"], "tool_run_ids": t["run_ids"]})
+    mentions = [{"id": m, "name": NAMES[m], "thinking": t,
+                 "private": _kn(pilot_["mentions"][m].get("private_mentions_hinted")),
+                 "final": _kn(pilot_["mentions"][m]["final_mentions_hinted"])} for m, _, t in MODELS]
+    combined = s["scope_numbers"]["test2_thinking_combined"]
+    # how many runs each question got, counted from the result files themselves
+    main = [r for r in load(RES / "progress.jsonl") if r["exp"] == "main"]
+    t1_per = {kind: sorted({n for (m, i, k), n in Counter((r["model"], r["item"], r["cue_kind"]) for r in main).items() if k == kind})
+              for kind in ("none", "wrong", "correct")}
+    nocue = [r for r in latest(load(PROG / "expB_nocue.jsonl")) if r["status"] == "ok"]
+    cued = [r for r in latest(load(PROG / "expB_cued.jsonl")) if r["status"] == "ok"]
+    t2_none = sorted(set(Counter((r["model"], r["item_id"]) for r in nocue).values()))
+    t2_hint = {ch: sorted(set(Counter((r["model"], r["item_id"]) for r in cued if r["cue_channel"] == ch).values()))
+               for ch in ("cue_user", "cue_tool")}
+    protocol = {
+        "test1": {"puzzles": len({r["item"] for r in main}), "models": len({r["model"] for r in main}), "runs": len(main),
+                  "per_question": {"none": t1_per["none"], "wrong": t1_per["wrong"], "right": t1_per["correct"]},
+                  "runs_with_hint_thinking": sum(1 for r in main if r["thinking"] and r["cue_kind"] != "none")},
+        "test2": {"questions": len({r["item_id"] for r in nocue}), "models": len({r["model"] for r in nocue}),
+                  "runs_without": len(nocue), "runs_with": len(cued),
+                  "per_question": {"none": t2_none, "user": t2_hint["cue_user"], "tool": t2_hint["cue_tool"]}},
+    }
+    return {"summary": "docs/progress/RESULTS_SUMMARY.json", "generated_by": s["generated_by"], "inputs_unchanged": check,
+            "protocol": protocol, "test1": test1, "test2": test2, "mentions": mentions,
+            "mention_totals": {"private": _kn(pilot_["private_mentions_all_thinking"]),
+                               "final": _kn(pilot_["final_mentions_all_thinking"])},
+            "thinking_tools": {k: _kn(combined[k]) for k in ("tool_hint_followed", "user_hint_followed",
+                                                             "tool_steered_private_mention", "tool_steered_final_mention")}}
+
+
 # ---------------------------------------------------------------- server
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):
@@ -616,6 +679,8 @@ class Handler(SimpleHTTPRequestHandler):
             from urllib.parse import parse_qs, urlparse
             q = parse_qs(urlparse(self.path).query)
             return self._json(record_view(q.get("run_id", [""])[0], q.get("strict", ["0"])[0] == "1"))
+        if self.path == "/api/charts":
+            return self._json(charts_data())
         if self.path == "/api/v2/examples":
             return self._json({"examples": v2_examples(), "instruction": pilot.STEPS})
         if self.path.startswith("/api/saved?"):

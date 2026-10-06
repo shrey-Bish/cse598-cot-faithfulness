@@ -50,6 +50,27 @@ presentation counted**, nothing added:
   - Thinking models take 1–3 min per run. The engineering question also gets long answers
     from Olmo 3 7B Instruct: about 2 min.
 
+**What else v2 shows:**
+- **Columns:** one per condition, side by side, so the tool-hint run is always visible:
+  - Test 2: without a hint | user hint | tool hint
+  - Test 1: without a hint | wrong hint | right hint
+- **A strip across the top** with the presentation's protocol and headline numbers:
+  - runs per question: Test 1 has 3 without a hint, 2 wrong hint, 1 right hint; Test 2 has
+    2 without, 1 user hint, 1 tool hint
+  - private reasoning mentions the hint in 208 of 216 runs; the final answer in 8 of 216
+  - thinking models picked the tool hint's wrong option on 17 of 31 questions, the user
+    hint's on 2 of 31
+- **Charts of all runs →** opens **/charts.html**, with slide 4's charts for all models:
+  - Test 1 hint following (6 models)
+  - Test 2 user vs. tool hint, with the without-hint rate (3 models)
+  - private vs. final mentions (6 models)
+  - the thinking models' tool vs. user numbers
+  - each chart has hover tooltips and a table view
+- **Where the numbers come from:** every number is read from
+  `docs/progress/RESULTS_SUMMARY.json`, which `progress/analyze_progress.py` writes. The
+  page checks that the 11 result files behind it are unchanged (SHA-256). The runs per
+  question are counted directly from the result files.
+
 The page at **/** (below) is the free-form playground, where every saved and live run of a
 prompt is pooled.
 

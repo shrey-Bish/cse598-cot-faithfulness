@@ -8,9 +8,11 @@
 <link rel="stylesheet" href="v2.css">
 </head>
 <body>
-<header class="bar">
+<header class="bar v2bar">
   <div class="title">Does a wrong hint change the answer, and does the model say so?</div>
+  <a class="navlink" href="/charts.html">Charts of all runs →</a>
 </header>
+<section class="pfacts" id="pfacts" aria-label="Numbers from the presentation"></section>
 
 <div class="layout">
   <!-- ================= the example ================= -->
@@ -26,8 +28,8 @@
     </section>
 
     <section class="box">
-      <label class="h" id="hint-label">Hint</label>
-      <div class="hbox" id="hview"></div>
+      <label class="h">Hints</label>
+      <div id="hview"></div>
     </section>
 
     <section class="box">
@@ -46,10 +48,7 @@
           <button class="primary" id="rerun">▶ Rerun live</button></div></div>
       <div id="groups"></div>
     </div>
-    <div class="cols" id="cols">
-      <div class="col" id="col-base"></div>
-      <div class="col" id="col-hint"></div>
-    </div>
+    <div class="cols" id="cols"></div>
   </main>
 </div>
 
