@@ -1,0 +1,16 @@
+# The model client, parser, detector, experiments and demo app use only the standard
+# library (Python 3.9+, macOS or Linux). These packages are for the analysis, tests and tooling.
+# Tested with Python 3.14 and the versions in brackets.
+
+pytest              # tests (9.1)
+PyYAML              # configs/*.yaml: providers, budget, Track B runner (6.0)
+matplotlib          # progress/analyze_progress.py figures (3.11)
+numpy               # progress/analyze_progress.py (2.5)
+datasets            # progress/mmlu_pro_probe.py select (5.0)
+python-pptx         # progress/extract_slides.py (1.0)
+playwright          # screenshot tools; then run: playwright install chromium (1.63)
+
+# Track A (finetune/); the source-tag tests skip without them
+torch               # (2.14)
+transformers        # (5.18)
+peft                # LoRA training (0.21)

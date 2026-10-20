@@ -1,94 +1,130 @@
-# cot-disclosure
+# cot-disclosure: the code
 
-Do thinking models tell the same story in their private reasoning and in their final answer?
-
-A thinking model sends back two things: its private reasoning (the `reasoning_content`
-field) and the reply a user sees (the `content` field). We give models puzzles, sometimes
-with a hint, and check what shows up in the first and goes missing from the second. All
-calls go to ASU Research Computing's free model service.
+Everything that calls the models, saves the runs, computes the numbers and runs the
+demo. What the project found so far is in [`../docs/OVERVIEW.md`](../docs/OVERVIEW.md);
+what comes next is in [`../docs/PLAN.md`](../docs/PLAN.md).
 
 ## Setup
 
-You only need Python 3.9 or newer. No GPU and nothing to install.
+**Python.** The model client, parser, experiments and demo app use only the standard
+library (Python 3.9+, macOS or Linux: `progress/common.py` uses `fcntl`). The analysis,
+tests and Track A need a few packages:
 
 ```bash
-cp .env.example .env      # then paste your key from https://voyager.rc.asu.edu -> LLM Access
+python3 -m venv ../.venv && ../.venv/bin/pip install -r requirements.txt
+../.venv/bin/playwright install chromium     # only for the screenshot tools
 ```
 
-## Run
+**Keys** go in `cot-disclosure/.env`, which is gitignored and never printed:
 
 ```bash
-python run.py ladder                     # find how hard the puzzles must be before models slip
-python run.py pilot --level 7 9 --n 30   # no hint vs a suggested answer, 7 people and 9 swaps
-python run.py pilot --models olmo3-32b-instruct olmo3-32b-think --level 7 9
+cp .env.example .env
 ```
 
-### The progress-presentation round (our reply to the proposal review)
+| Variable | What it's for |
+|---|---|
+| `RC_LLM_API_KEY` | ASU Voyager (https://voyager.rc.asu.edu → LLM Access → Create Key) |
+| `RC_LLM_BASE_URL` | Defaults to `https://openai.rc.asu.edu/v1` |
+| `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `XAI_API_KEY` | Track B closed models. Must be real provider keys: the adapters refuse a key equal to the Voyager key. |
+| `OPENAI_CAP_USD`, `ANTHROPIC_CAP_USD`, `XAI_CAP_USD` | Spending caps; default $5 each |
+
+Only public benchmark questions go to outside providers.
+
+## Commands
+
+Run from the repo root unless noted. Everything that calls a model is resumable and
+appends to `results/`. Nothing overwrites a saved run.
+
+**Recompute numbers (no API calls):**
 
 ```bash
-python experiments.py run --workers 20   # 1,056 calls: no-hint repeats, wrong hints spread
-                                         # across letters, right hints, "think briefly", "answer only"
-python analyze.py                        # prints the report and writes results/summary.json
-                                         # (works on a half-finished run too)
+.venv/bin/python cot-disclosure/progress/analyze_progress.py      # docs/progress/RESULTS_SUMMARY.json, figures F1-F9, LABEL_QUEUE.csv
+cd cot-disclosure && ../.venv/bin/python -m pytest -q tests        # 61 tests, no network
 ```
 
-What we ran: 24 swap puzzles (7 people, 15 swaps), with right answers spread evenly
-across A to G. For each puzzle we ask with no hint 3 times, with a wrong hint 2 times
-(the hinted letters are spread out too), and with a right hint once. Randomness
-(temperature) is 0.6, random seeds are fixed so runs repeat exactly, and replies can be
-up to 16,000 tokens. Three model pairs: Olmo 3 7B, Olmo 3 32B, Qwen3 30B.
-
-### Slides
+**The demo app:**
 
 ```bash
-cd ../presentation
-npm install          # pptxgenjs, react-icons, sharp
-node build_deck.js   # writes CSE598_progress_presentation.pptx
+python3 cot-disclosure/ui/app.py                                   # http://127.0.0.1:8765; see ui/README.md
 ```
 
-The slides read every number from `results/summary.json`, so if you rerun
-`analyze.py` and then `build_deck.js`, the slides update.
+**The tracks:**
 
-We save every reply in `cache/`, so running a command again redoes the analysis
-without calling the models again. Delete `cache/` if you want fresh calls. The raw
-result for each call goes to `results/*.jsonl`.
+```bash
+.venv/bin/python cot-disclosure/progress/run_trackB.py --dry-run   # Track B: calls and cost per provider
+.venv/bin/python cot-disclosure/progress/run_trackB.py --run --only-provider voyager --limit 1
+.venv/bin/python cot-disclosure/agents/run_team.py --replay        # Track C on saved data, no calls
+.venv/bin/python cot-disclosure/agents/run_team.py --live --n 5    # Track C live on Voyager
+.venv/bin/python cot-disclosure/finetune/build_dataset.py          # Track A train / held-out records
+cd cot-disclosure && ../.venv/bin/python -m providers.budget --status   # spend so far, per provider
+```
+
+**The progress-round experiments** (already run; rerunning needs a Voyager key):
+
+```bash
+cd cot-disclosure
+python experiments.py run --workers 20        # Test 1: 24 puzzles x 6 models (1,056 calls)
+python analyze.py                             # Test 1 numbers -> results/summary.json
+../.venv/bin/python progress/timing_run.py
+../.venv/bin/python progress/mmlu_pro_probe.py select      # Test 2: pick 30 MMLU-Pro items
+../.venv/bin/python progress/mmlu_pro_probe.py nocue       # Test 2: no-hint runs
+../.venv/bin/python progress/mmlu_pro_probe.py cued        # Test 2: user and tool hints
+../.venv/bin/python progress/reviewer_demo.py all          # Experiment A
+../.venv/bin/python progress/truncation_sweep.py
+../.venv/bin/python progress/check_tool_support.py         # real tool calls on Voyager
+```
+
+Replies are cached in `cache/` (local, not in git), keyed by the exact request, so a
+rerun with the same seed reuses them. Delete `cache/` for fresh calls.
 
 ## Files
 
-| File | What it does |
+| Path | What it does |
 |---|---|
-| `client.py` | Calls the model service: retries, waits between tries, saves replies, splits the reasoning from the answer |
-| `tasks.py` | Makes new puzzles with one right answer (swap puzzles, race order puzzles) |
-| `parse.py` | Finds the answer letter, whether the model wrote `Answer: (X)`, `\boxed{X}`, bold, or plain text |
-| `detect.py` | Keyword checks: does the text mention the hint, show doubt, or correct itself |
-| `run.py` | The `ladder` and `pilot` experiments and their summary tables |
-| `audit.py` | Shows each keyword match in its sentence, so we can check the keyword checks by eye |
-| `experiments.py` | The progress-presentation round |
-| `analyze.py` | Turns the raw results into the numbers on the slides |
+| `client.py` | Calls Voyager: streaming, splits private reasoning from the final answer, caches replies, retries transport errors, passes tool calls; `chat_live` streams piece by piece to the UI |
+| `tasks.py` | Generates puzzles with one right answer (ball swaps, race order) |
+| `parse.py` | Finds the answer letter (A–J): `Answer: (X)`, `\boxed{X}`, "the answer is X", bold, trailing `(X)`; `parse_final` for the reviewer's `FINAL: X` |
+| `detect.py` | Keyword pre-sort: `cue` (user hint), `cue_tool` (tool hint), uncertainty, self-correction, acknowledgment |
+| `audit.py` | Shows each keyword match in its sentence, to check the keywords by eye |
+| `experiments.py`, `analyze.py` | Test 1 grid and prompts (`build_prompt` rebuilds any pilot prompt exactly); its numbers |
+| `run.py` | The Oct 1–2 difficulty ladder and first pilot |
+| `progress/common.py` | One record format for every call, the fair 4-request limiter (`slot`), run IDs, Wilson intervals |
+| `progress/mmlu_pro_probe.py` | Test 2 (Experiment B) |
+| `progress/reviewer_demo.py` | Experiment A (reviewer arms and guard) |
+| `progress/truncation_sweep.py`, `timing_run.py` | Cut-off leak test; timing and catalog check |
+| `progress/analyze_progress.py` | Every reported number → `docs/progress/RESULTS_SUMMARY.json`, figures, label queue |
+| `progress/check_tool_support.py` | Real tool calls on Voyager |
+| `progress/run_trackB.py` | Track B runner with dry run and budget guard (`configs/trackB.yaml`) |
+| `progress/build_evidence_viewer.py`, `take_screenshots.py`, `extract_slides.py`, `make_bundle.py` | Presentation tooling |
+| `providers/` | One interface over Voyager, Ollama, OpenAI, Anthropic, xAI (`base.py`); `budget.py` caps and logs spend |
+| `tools/answer_key.py` | Hint conditions (`none`, `user`, `tool_pasted`, `tool_real`, `system`) and the `lookup_answer_key` tool |
+| `agents/` | Track C: `solver.py`, `reviewer.py`, `checker.py`, `run_team.py` |
+| `finetune/` | Track A: `build_dataset.py`, `source_tags.py` ([README](finetune/README.md)) |
+| `configs/` | `models.yaml` (provider facts), `prices.yaml`, `trackB.yaml` |
+| `ui/` | The demo app ([README](ui/README.md)) |
+| `data/progress/mmlupro_30.jsonl` | The 30 Test 2 questions |
+| `results/` | Every saved run (map in `docs/OVERVIEW.md` §8) |
 
-## What we learned about the model service (checked 2026-10-01 and 02)
+## Voyager facts that matter for new code
 
-- Thinking models send their reasoning in a separate `reasoning_content` field.
-- **Allow long replies (we use 16,000 tokens).** When a reply gets cut off, the reasoning
-  is *not* kept separate: all of it lands in `content`, the part the user sees. With a
-  1,500-token limit we saw 5,929 characters of private reasoning in `content` and nothing
-  in `reasoning_content`.
-- The `reasoning_effort` setting is accepted but does nothing (low and high both gave
-  about 7,300 characters). Wording does work: "think very briefly" cuts the reasoning
-  by 30% to 48%.
-- Thinking can't be turned off. `chat_template_kwargs={"enable_thinking": false}` is
-  ignored on all 7 thinking models we tried, including the Qwen 3.5, 3.6 and 3.8 models.
-- The `seed` setting works (same seed, same reply at temperature 0.8), so runs repeat exactly.
-- Replies that take more than about 100 seconds fail with a Cloudflare 524 error unless
-  they are streamed (sent back in pieces). `client.py` streams, and asks for
-  `stream_options.include_usage` so token counts still come back.
-- Models often ignore the answer format we ask for and write `\boxed{E}` instead. In our
-  difficulty test, 54 of 118 answers (46%) weren't in the `Answer: (X)` form, and a simple
-  reader would have marked them wrong. `parse.py` handles these.
+- **Stream every request.** Replies over about 100 s fail with Cloudflare 524 otherwise,
+  and a non-streamed reply cut off at the token limit puts the private reasoning in the
+  visible answer.
+- **A cut-off reply** (`finish_reason == "length"`) is no answer. Never parse a letter
+  from it.
+- **Private reasoning arrives in the `reasoning` field** (formerly `reasoning_content`).
+  `client.py` reads both.
+- **Thinking can't be switched off** (`enable_thinking: false` is ignored), and
+  `reasoning_effort` does nothing. "Think very briefly" in the prompt does shorten it.
+- **Seeds repeat runs only partly** (not at all on the 32B endpoints), so save every
+  prompt and reply. `progress/common.make_record` does.
+- **Keep at most 4 requests in flight** (`progress/common.slot`).
+- **Tool calls work in the OpenAI chat format** on Qwen3 30B and Olmo 3 7B Instruct.
+  Olmo 3 7B Think doesn't make valid calls.
 
 ## Limits
 
-- `detect.py` only matches keywords. We will check our main numbers against replies we
-  label by hand before we report them.
-- The puzzles are made up by our code. That means no model has seen them before, but
-  they don't cover the full range of BIG-Bench Hard tasks.
+- `detect.py` matches keywords only. Hand labels (`docs/progress/LABELING_GUIDE.md`)
+  decide what a reply actually says.
+- The puzzles are generated (uncontaminated but narrow). MMLU-Pro is public and may be in
+  the models' training data.

@@ -1,4 +1,4 @@
-"""Track B: the same wrong hint through four channels, on more models (see docs/plan/TRACK_B_test_widely.md).
+"""Track B: the same wrong hint through four channels, on more models (see docs/PLAN.md, Track B).
 
   python progress/run_trackB.py --dry-run                     # call count and estimated cost per provider
   python progress/run_trackB.py --run --only-provider voyager # resumable; writes results/trackB/<provider>.jsonl

@@ -3,9 +3,8 @@
   python cot-disclosure/progress/extract_slides.py
   python cot-disclosure/progress/extract_slides.py --deck path/to/deck.pptx
 
-Default deck: presentation/progress/CSE598_Group10_progress_final.pptx. If that file is
-missing, the newest committed deck (presentation/CSE598_Group10_progress_Presentation_v2.pptx)
-is used and the page says so.
+Default deck: the presented one, presentation/CSE598_Group10_progress_Presentation_v3.pptx.
+The output is regenerated on demand and is not kept in git.
 """
 import argparse
 from pathlib import Path
@@ -13,17 +12,10 @@ from pathlib import Path
 from pptx import Presentation
 
 REPO = Path(__file__).resolve().parents[2]
-FINAL = REPO / "presentation" / "progress" / "CSE598_Group10_progress_final.pptx"
+FINAL = REPO / "presentation" / "CSE598_Group10_progress_Presentation_v3.pptx"
 FALLBACK = REPO / "presentation" / "CSE598_Group10_progress_Presentation_v2.pptx"
 OUT = REPO / "docs" / "progress" / "SLIDE_POINTS.md"
-NOTES = [
-    "Track letters on the deck follow the earlier plan (A = more models, Arsha; B = multi-agent, Shrey; "
-    "C = explain and fix, Ritik). The scope update uses A = explain and fix (Ritik), B = test widely (Arsha), "
-    "C = multi-agent (Shrey); see docs/plan/PROJECT_PLAN.md.",
-    "The deck plans DeepSeek V4 Flash for thinking on/off; the scope update plans closed models from OpenAI, "
-    "Anthropic and xAI plus Qwen3 in Ollama (docs/plan/TRACK_B_test_widely.md).",
-    "The deck says 'cue' in a few places (slide 3); the docs now say 'hint'.",
-]
+NOTES = []  # v3 matches docs/PLAN.md (track letters, models, "hint" wording)
 
 
 def shape_text(shape):
@@ -51,8 +43,9 @@ def main():
     if deck != FINAL:
         out += [f"**Note:** `{FINAL.relative_to(REPO)}` was not found, so this page comes from "
                 f"`{deck.relative_to(REPO)}`. Re-run the script once the final deck is in place.", ""]
-    out += ["**Differences from the updated scope** (checked by hand when this page was generated):", ""]
-    out += [f"- {n}" for n in NOTES] + [""]
+    if NOTES:
+        out += ["**Differences from the updated scope** (checked by hand when this page was generated):", ""]
+        out += [f"- {n}" for n in NOTES] + [""]
     for i, slide in enumerate(pres.slides, 1):
         lines = [l for sh in slide.shapes for l in shape_text(sh)]
         title = lines[0] if lines else f"Slide {i}"

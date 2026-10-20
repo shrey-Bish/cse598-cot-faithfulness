@@ -8,7 +8,7 @@ providers:
     endpoint: "https://openai.rc.asu.edu/v1/chat/completions (streamed; client.py)"
     reasoning: "open models return private reasoning in full in the streamed `reasoning` field (renamed from `reasoning_content`; seen 2026-10-04)"
     thinking_toggle: "none: enable_thinking is ignored (cot-disclosure/README.md); use instruct/thinking twins or the 'think briefly' prompt"
-    tool_calls: "OpenAI chat format; tested 2026-10-04, see docs/plan/TRACK_B_test_widely.md and results/scope/voyager_tool_support.jsonl"
+    tool_calls: "OpenAI chat format; tested 2026-10-04, see docs/PLAN.md (Track B) and results/scope/voyager_tool_support.jsonl"
     seed: "supported (README, checked 2026-10-01)"
     cost: free
   openai:

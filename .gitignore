@@ -23,3 +23,6 @@ presentation/*.pdf
 
 # PowerPoint lock files, created while a deck is open
 ~$*
+
+# regenerated on demand by cot-disclosure/progress/extract_slides.py
+docs/progress/SLIDE_POINTS.md

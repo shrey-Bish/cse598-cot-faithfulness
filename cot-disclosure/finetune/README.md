@@ -69,7 +69,8 @@ are then trained on examples where the model:
 ## Training plan (Sol, weeks 13–14)
 
 - **Base:** `allenai/Olmo-3-7B-Think`. The checkpoint behind Voyager's
-  `olmo3-7b-think` is the candidate; see `docs/progress/MODELS.md`.
+  `olmo3-7b-think` is only the candidate (`docs/OVERVIEW.md` §5), so re-measure the base
+  model on Sol first.
 - **Model wrapper:**
   - `peft` LoRA on the attention and MLP projections (`q_proj, k_proj, v_proj, o_proj,
     gate_proj, up_proj, down_proj`)
