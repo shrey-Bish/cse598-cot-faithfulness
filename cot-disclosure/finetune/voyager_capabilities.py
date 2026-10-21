@@ -15,6 +15,17 @@ Call 0 asks the puzzle with no hint, to get the model's own reasoning. The tests
     message naming a wrong letter, in the OpenAI chat format (call 6). If the server's prompt
     token count shows the tool text was not rendered, call 7 sends the same turn in Olmo's
     own roles (assistant function_calls + environment message) through completions.
+  3b if prompt_logprobs is refused on a streamed request and call 7 was not needed, call 8 asks
+    for the prompt's log-probabilities the other way: echo=true + logprobs, still streamed,
+    rendered with the template the server applies (below).
+
+Findings (2026-10-21 run):
+  - The chat endpoint renders olmo3-7b-think with the Olmo 3 *Instruct* chat template
+    (SERVED_TEMPLATE), not the Think repo's own: prompt-token counts match it exactly. Its
+    generation prompt has no "<think>"; tool messages become an "environment" turn.
+  - With continue_final_message, the server drops a leading "<think>" from the assistant
+    content (counts match only without it). "<think>" is 3 ordinary tokens, not a special one.
+  - prompt_logprobs is refused when streaming; echo=true + logprobs gives the same numbers.
 
 The server's usage.prompt_tokens is compared with local renderings of the same request, to
 see which chat template the server applies and whether a tool turn reached the model.
@@ -43,6 +54,7 @@ from tools.answer_key import TOOL_NAME, TOOL_SPEC, tool_reply  # noqa: E402
 
 MODEL = "olmo3-7b-think"
 TOKENIZER = "allenai/Olmo-3-7B-Think"      # the candidate checkpoint behind Voyager's olmo3-7b-think
+SERVED_TEMPLATE = ("allenai/Olmo-3-7B-Instruct", "chat_template.jinja")   # what Voyager's chat endpoint applies
 EXPERIMENT = "trackA_voyager_capabilities"
 OUT = CODE / "results" / "trackA" / "voyager_capabilities.jsonl"
 SEED = 20261021
@@ -65,9 +77,26 @@ def tokenizer():
     return AutoTokenizer.from_pretrained(TOKENIZER)
 
 
+def served_template():
+    from huggingface_hub import hf_hub_download
+    return Path(hf_hub_download(*SERVED_TEMPLATE)).read_text()
+
+
 def render(tok, messages, **kw):
     text = tok.apply_chat_template(messages, tokenize=False, **kw)
     return text, len(tok(text, add_special_tokens=False)["input_ids"])
+
+
+def dict_args(messages):
+    """vLLM parses tool-call arguments into dicts before the template sees them; do the same."""
+    out = []
+    for m in messages:
+        m = dict(m)
+        if m.get("tool_calls"):
+            m["tool_calls"] = [{**tc, "function": {**tc["function"], "arguments": json.loads(tc["function"]["arguments"])}}
+                               for tc in m["tool_calls"]]
+        out.append(m)
+    return out
 
 
 def cut_mid_sentence(text, frac=0.4):
@@ -132,6 +161,16 @@ def env_turn(p, tok, tool_call):
                      "wraps it in <function_calls> tags")
 
 
+def echo_spec(p, tok, reasoning):
+    """Call 8: the forced-answer prompt as the server would render it, asking for every prompt
+    token's log-probability through echo (prompt_logprobs is refused when streaming)."""
+    user = [{"role": "user", "content": p["question"] + "\n\n" + STEPS}]
+    head, _ = render(tok, user, add_generation_prompt=True, chat_template=served_template())
+    return dict(n=8, test="3_prompt_logprobs", arm="completions_echo_served_template", endpoint="completions",
+                messages=user, prompt=head + "<think>" + reasoning + "</think>\n\nAnswer: (",
+                extra={"echo": True, "logprobs": 1}, max_tokens=1)
+
+
 def do_call(spec, p, saved):
     rid = run_id(EXPERIMENT, p["id"], MODEL, spec["test"], spec["arm"], 0)
     if rid in saved:                                             # resumable: reuse a saved call
@@ -162,12 +201,16 @@ def check(spec, rec, p, tok):
          "server_prompt_tokens": (rec["usage"] or {}).get("prompt_tokens"),
          "field": "reasoning" if rec["reasoning_text"] else ("content" if rec["final_text"] else None)}
     if spec["endpoint"] == "chat":
-        kw = {"continue_final_message": True} if spec.get("extra", {}) and spec["extra"].get("continue_final_message") \
+        kw = {"continue_final_message": True} if spec.get("extra") and spec["extra"].get("continue_final_message") \
             else {"add_generation_prompt": True}
-        try:
-            c["local_prompt_tokens"] = render(tok, spec["messages"], **kw)[1]
-        except Exception as err:
-            c["local_prompt_tokens"] = f"render failed: {type(err).__name__}"
+        for name, tmpl in (("think_template", None), ("served_instruct_template", served_template())):
+            try:
+                extra = {"chat_template": tmpl} if tmpl else {}
+                tools = {"tools": spec["tools"]} if spec.get("tools") and tmpl else {}
+                c[f"local_prompt_tokens_{name}"] = render(tok, dict_args(spec["messages"]), **kw, **extra, **tools)[1]
+            except Exception as err:
+                c[f"local_prompt_tokens_{name}"] = f"render failed: {type(err).__name__}"
+        c["local_prompt_tokens"] = c["local_prompt_tokens_think_template"]
     else:
         c["local_prompt_tokens"] = len(tok(spec["prompt"], add_special_tokens=False)["input_ids"])
     if spec["test"] == "1_continue":
@@ -185,6 +228,12 @@ def check(spec, rec, p, tok):
                   "letter_probs": {k: round(v, 4) for k, v in sorted(letters.items())}})
     elif spec["test"] == "3_prompt_logprobs":
         plp = rec.get("prompt_logprobs")
+        if spec.get("extra", {}).get("echo"):          # echoed prompt tokens arrive as completion logprobs
+            lp = rec.get("logprobs") or []
+            scored = [e for e in lp if e.get("logprob") is not None]
+            plp = lp[:-1] if lp else None             # the last entry is the one generated token
+            c["echo_entries_with_logprob"] = len(scored)
+            c["echo_text_matches_prompt"] = (rec["final_text"] or "").startswith(spec["prompt"][:200])
         c.update({"prompt_logprobs_returned": bool(plp), "prompt_logprobs_entries": len(plp) if plp else 0})
     elif spec["test"] == "4_tool_turn":
         d = detect(text)
@@ -214,10 +263,13 @@ def report(rows):
               f"{c['error'] or ''} |")
     print()
     for spec, rec, c in rows:
+        served = c.get("local_prompt_tokens_served_instruct_template")
         print(f"[{spec['n']}] {spec['arm']}: prompt tokens server {c['server_prompt_tokens']} vs local "
-              f"{c['local_prompt_tokens']}; output field {c['field']}")
+              f"{c['local_prompt_tokens']}" + (f" (Think template) / {served} (served Instruct template)" if served else "")
+              + f"; output field {c['field']}")
         for k in ("seam", "next_token", "top10", "mass_on_letters", "letter_probs", "logprobs_returned",
-                  "prompt_logprobs_entries", "answer", "followed_tool", "correct", "mentions_tool", "finish",
+                  "prompt_logprobs_entries", "echo_entries_with_logprob", "echo_text_matches_prompt",
+                  "answer", "followed_tool", "correct", "mentions_tool", "finish",
                   "tool_text_reached_model"):
             if k in c:
                 print(f"     {k}: {c[k]}")
@@ -238,12 +290,15 @@ def main():
         for s in specs:
             print(f"  call {s['n']}: {s['test']} / {s['arm']} / {s['endpoint']}, max_tokens {s['max_tokens']}")
         print("  call 7: only if call 6 shows the tool turn was not rendered: the same turn in Olmo's own roles")
+        print("  call 8: only if prompt_logprobs is refused and call 7 was not used: echo + logprobs instead")
         print(f"at most {calls} calls; estimate at {SEC_PER_CALL} s per call, {IN_FLIGHT} in flight, in {waves} "
               f"dependent waves: about {waves * SEC_PER_CALL / 60:.1f} min (calls 1-5 are short and take seconds)")
         print(f"output: {OUT.relative_to(CODE.parent)}")
         return
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    saved = {r["run_id"]: r for r in latest(load(OUT)) if r["status"] == "ok"}
+    # resumable: reuse saved calls, including requests the server rejected (HTTP 4xx is deterministic)
+    saved = {r["run_id"]: r for r in latest(load(OUT))
+             if r["status"] == "ok" or str(r.get("error_type") or "").startswith("HTTP 4")}
     user = [{"role": "user", "content": p["question"] + "\n\n" + STEPS}]
     base_spec = dict(n=0, test="0_baseline", arm="chat_no_hint", endpoint="chat", messages=user, extra=None,
                      max_tokens=FULL_TOKENS)
@@ -270,6 +325,11 @@ def main():
         spec7 = env_turn(p, tok, tool_call)
         rec7 = do_call(spec7, p, saved)
         rows.append((spec7, rec7, check(spec7, rec7, p, tok)))
+    plp_row = next(c for s, r, c in rows if s["n"] == 5)
+    if not plp_row["prompt_logprobs_returned"] and reached:   # call 8 only if call 7 was not used (8 calls at most)
+        spec8 = echo_spec(p, tok, base["reasoning_text"])
+        rec8 = do_call(spec8, p, saved)
+        rows.append((spec8, rec8, check(spec8, rec8, p, tok)))
     report([(base_spec, base, check(base_spec, base, p, tok))] + rows)
     summary = OUT.with_name("voyager_capabilities_summary.json")
     summary.write_text(json.dumps({"puzzle": {k: p[k] for k in ("id", "correct", "wrong", "level")},
