@@ -115,6 +115,16 @@ in three instruct / thinking pairs.
 - Thinking can't be switched off on Voyager (`enable_thinking: false` is ignored). The
   "think briefly" prompt shortens the private reasoning by 29.8% (Olmo 3 7B Think) and
   47.7% (Qwen3 30B Thinking).
+- **Voyager serves `olmo3-7b-think` with the Olmo 3 *Instruct* chat template, not the
+  Think repo's own** (checked Oct 21: prompt-token counts match it exactly).
+  - Its default system prompt is "You are a helpful function-calling AI assistant…".
+  - Its generation prompt has no `<think>`.
+  - A tool message becomes an `environment` turn, so **an inserted tool turn reaches the
+    model**.
+  - So every saved Voyager run of this model used the Instruct format. From Track A on,
+    Olmo prompts are rendered locally in the official Think format
+    (`cot-disclosure/finetune/templates/olmo3_think_tools.jinja`) and sent to
+    `/v1/completions`.
 
 **Voyager's model IDs changed on Oct 21.**
 - **Families replace the six IDs.** The six IDs above were replaced by one family ID per
@@ -143,7 +153,8 @@ in three instruct / thinking pairs.
 - temperature 0.6 and `max_tokens` 16,000
 - seed = repeat index
 - streamed
-- no system prompt, one user turn
+- one user turn and no system message of our own (the server's template adds its default
+  system prompt)
 
 ## 6. Experiments and results
 
@@ -367,8 +378,9 @@ Details: [`cot-disclosure/ui/README.md`](../cot-disclosure/ui/README.md).
   `configs/trackB.yaml` if needed.
 - **GPQA Diamond** is gated: request access and export it to
   `cot-disclosure/data/gpqa_diamond.jsonl`.
-- **Olmo 3 7B Think doesn't make valid tool calls,** so its real-tool condition needs a
-  different design (insert the call and reply ourselves, or use the pasted hint only).
+- **Olmo 3 7B Think doesn't make valid tool calls itself** (Oct 4). But a tool turn we
+  insert reaches it (Oct 21), so the real-tool condition can use that: Track A's
+  `tool_injected`.
 - **Labeling hasn't started.**
   - `progress/LABEL_QUEUE.csv` has 101 rows. 10 of them need their text regenerated
     first.

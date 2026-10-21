@@ -147,9 +147,11 @@ harder questions, and 3 runs per question.
 
 **Real tool calls on Voyager** (checked Oct 4, one puzzle each):
 - Qwen3 30B Instruct, Qwen3 30B Thinking and Olmo 3 7B Instruct call the tool.
-- **Olmo 3 7B Think** doesn't call it on its own, and its forced call is invalid. Decide:
-  put the call and reply into the conversation ourselves, or use the pasted hint only.
-  Record which.
+- **Olmo 3 7B Think** doesn't call it on its own, and its forced call is invalid.
+  - A call and reply we insert ourselves do reach it (Oct 21, Track A Step 1): the tool
+    message is rendered as an `environment` turn.
+  - Track A's `tool_injected` condition (`tools/answer_key.py`) does this. It's the
+    natural real-tool design for this model.
 
 **Dry-run plan** (Oct 4, before GPQA; assumes 500 input + 4,000 output tokens per call):
 

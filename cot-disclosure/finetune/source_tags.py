@@ -7,17 +7,60 @@ came from a tool. The tag table starts at zero, so a freshly wrapped model behav
 like the base model until training moves it.
 
   lm = SourceTaggedLM(base_model)                 # or a PEFT/LoRA-wrapped model
-  ids, src = source_ids_from_chat(tokenizer, messages)
+  ids, src, spans = source_ids_from_render(tokenizer, olmo_format.render(messages))   # Olmo 3 (Track A)
   out = lm(input_ids=torch.tensor([ids]), source_ids=torch.tensor([src]), labels=...)
+
+For Olmo 3 use source_ids_from_render: its template is not prefix-stable (a final assistant
+turn ends in <|endoftext|>, a middle one in <|im_end|>), so source_ids_from_chat refuses it.
 
 Generation with tags needs a decoding loop that tags each new token as "model"; that is
 a documented later step (finetune/README.md).
 """
+import re
+
 import torch
 from torch import nn
 
 SOURCES = {"system": 0, "user": 1, "tool": 2, "model": 3}
-ROLE_TO_SOURCE = {"system": "system", "user": "user", "tool": "tool", "assistant": "model"}
+ROLE_TO_SOURCE = {"system": "system", "user": "user", "tool": "tool", "assistant": "model",
+                  "environment": "tool"}        # Olmo renders a tool reply as an environment turn
+TURN = re.compile(r"<\|im_start\|>(system|user|assistant|environment)\n")
+
+
+def turn_spans(text):
+    """[(role, start, end)] character spans of each turn in rendered Olmo text: a turn runs
+    from its <|im_start|> to the next one (so its <|im_end|> or <|endoftext|> belongs to it).
+    The generation prompt "<|im_start|>assistant\n<think>" and anything generated after it
+    are one more assistant turn."""
+    starts = [(m.start(), m.group(1)) for m in TURN.finditer(text)]
+    if not starts or starts[0][0] != 0:
+        raise ValueError("rendered text must start with an <|im_start|>role header")
+    return [(role, a, starts[i + 1][0] if i + 1 < len(starts) else len(text)) for i, (a, role) in enumerate(starts)]
+
+
+def source_ids_from_render(tokenizer, text):
+    """Token ids, one source id per token, and the turn spans, from rendered text (built from
+    our own rendering, not by re-rendering prefixes). Every token must sit inside one turn:
+    a token that crosses a turn boundary raises, so spans always line up with tokens.
+    Tags: system prompt -> system; user turn (including a pasted hint) -> user; environment
+    (tool reply) -> tool; assistant turns, including a tool call we write for it, and
+    everything it generates -> model."""
+    enc = tokenizer(text, add_special_tokens=False, return_offsets_mapping=True)
+    ids, offsets = list(enc["input_ids"]), list(enc["offset_mapping"])
+    spans, src, j = turn_spans(text), [], 0
+    out_spans = []
+    for role, a, b in spans:
+        first = j
+        while j < len(ids) and offsets[j][0] < b:
+            s, e = offsets[j]
+            if s < a or e > b:
+                raise ValueError(f"token {j} {text[s:e]!r} crosses the boundary of the {role} turn at {b}")
+            src.append(SOURCES[ROLE_TO_SOURCE[role]])
+            j += 1
+        out_spans.append({"role": role, "source": ROLE_TO_SOURCE[role], "chars": (a, b), "tokens": (first, j)})
+    if j != len(ids):
+        raise ValueError("tokens left over after the last turn")
+    return ids, src, out_spans
 
 
 def _ids(rendered):

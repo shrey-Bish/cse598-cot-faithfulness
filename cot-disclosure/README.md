@@ -137,7 +137,18 @@ rerun with the same seed reuses them. Delete `cache/` for fresh calls.
   prompt and reply. `progress/common.make_record` does.
 - **Keep at most 4 requests in flight** (`progress/common.slot`).
 - **Tool calls work in the OpenAI chat format** on Qwen3 30B and Olmo 3 7B Instruct.
-  Olmo 3 7B Think doesn't make valid calls.
+  Olmo 3 7B Think doesn't make valid calls itself. A tool turn we insert (an assistant
+  call + a `tool` message) does reach it (checked Oct 21).
+- **`olmo3-7b-think` is served with the Olmo 3 Instruct chat template** (checked Oct 21).
+  - The template has its own default system prompt and no `<think>` in the generation
+    prompt.
+  - Tool messages become an `environment` turn.
+  - With `continue_final_message` the server drops a leading `<think>` from the assistant
+    content.
+  - Track A renders Olmo prompts itself (`finetune/olmo_format.py`) and uses
+    `/v1/completions`.
+- **`prompt_logprobs` is refused on streamed requests;** `echo: true` + `logprobs` gives
+  prompt-token log-probabilities instead (Oct 21).
 
 ## Limits
 

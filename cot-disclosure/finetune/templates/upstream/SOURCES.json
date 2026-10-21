@@ -1,0 +1,16 @@
+{
+ "olmo3_7b_think.jinja": {
+  "repo": "allenai/Olmo-3-7B-Think",
+  "file": "chat_template.jinja",
+  "revision": "d97e442d7cc678210054dbcc9b440894d62c89a4",
+  "sha256": "6d549883b5ed12879e191845c256a30c7dfd4eced0a4f160060a3ea0199d9e3a",
+  "chars": 1652
+ },
+ "olmo3_7b_instruct.jinja": {
+  "repo": "allenai/Olmo-3-7B-Instruct",
+  "file": "chat_template.jinja",
+  "revision": "6e5971d9eba42665f5bd5a0fcf047f299ce1dccc",
+  "sha256": "f5186d42d99c8a0445d37fd8a6c7ccf07fe3e24a29ce622d8bd245da9507b12b",
+  "chars": 2613
+ }
+}
