@@ -33,7 +33,7 @@ CACHE_DIR.mkdir(exist_ok=True)
 
 
 def chat(model, messages, max_tokens=8000, temperature=0.0, seed=None, retries=4,
-         backoff=None, on_retry=None, stream=True, tools=None, tool_choice=None):
+         backoff=None, on_retry=None, stream=True, tools=None, tool_choice=None, extra=None):
     """Return {content, reasoning, finish, usage, error, retries, latency_s,
     reasoning_field, cached}. `reasoning` is the separate private trace thinking
     models emit in `reasoning_content`; `reasoning_field` names the field it came in.
@@ -44,7 +44,10 @@ def chat(model, messages, max_tokens=8000, temperature=0.0, seed=None, retries=4
     stream=False sends one non-streamed request (only for short replies: the
     proxy cuts requests idle for ~100 s); it gets its own cache key.
     tools / tool_choice are passed through in the OpenAI chat format; the model's
-    tool calls come back in `tool_calls`. Without tools the cache key is unchanged."""
+    tool calls come back in `tool_calls`. Without tools the cache key is unchanged.
+    extra: more request fields sent as-is (vLLM options such as continue_final_message,
+    logprobs, top_logprobs, prompt_logprobs); they join the cache key only when given.
+    Token log-probabilities, when requested, come back in `logprobs` / `prompt_logprobs`."""
     payload = {"model": model, "messages": messages,
                "max_tokens": max_tokens, "temperature": temperature}
     if seed is not None:
@@ -53,7 +56,29 @@ def chat(model, messages, max_tokens=8000, temperature=0.0, seed=None, retries=4
         payload["tools"] = tools
         if tool_choice is not None:
             payload["tool_choice"] = tool_choice
+    if extra:
+        payload.update(extra)
     key = payload if stream else {**payload, "stream": False}  # streamed keys unchanged
+    return _request(payload, key, "/chat/completions", stream, retries, backoff, on_retry)
+
+
+def complete(model, prompt, max_tokens=8000, temperature=0.0, seed=None, retries=4, backoff=None, on_retry=None,
+             extra=None):
+    """The raw text-completion endpoint (/v1/completions): `prompt` is sent as-is, so the
+    caller renders the chat template itself (e.g. to continue a partial reasoning trace).
+    Always streamed. Same result fields as chat(); `content` is the generated text and
+    `reasoning` is empty (no reasoning parser runs on this endpoint)."""
+    payload = {"model": model, "prompt": prompt, "max_tokens": max_tokens, "temperature": temperature}
+    if seed is not None:
+        payload["seed"] = seed
+    if extra:
+        payload.update(extra)
+    return _request(payload, {**payload, "endpoint": "completions"}, "/completions", True, retries, backoff,
+                    on_retry)
+
+
+def _request(payload, key, path, stream, retries, backoff, on_retry):
+    """Cache lookup, then the request with retries on transport errors (never cached)."""
     digest = hashlib.sha256(json.dumps(key, sort_keys=True).encode()).hexdigest()[:24]
     cached = CACHE_DIR / f"{digest}.json"
     if cached.exists():
@@ -64,15 +89,21 @@ def chat(model, messages, max_tokens=8000, temperature=0.0, seed=None, retries=4
     for attempt in range(retries):
         start = time.monotonic()
         try:
-            out = (_stream if stream else _post)(payload)
+            out = _stream(payload, path) if stream else _post(payload)
             result = {"content": out["content"], "reasoning": out["reasoning"],
                       "finish": out["finish"], "usage": out["usage"], "error": None, "retries": attempt,
                       "latency_s": round(time.monotonic() - start, 2),
                       "reasoning_field": out["reasoning_field"], "tool_calls": out["tool_calls"]}
+            for k in ("logprobs", "prompt_logprobs"):     # only when the request asked for them
+                if out.get(k):
+                    result[k] = out[k]
             cached.write_text(json.dumps(result))
             return {**result, "cached": False}
         except urllib.error.HTTPError as err:
             last_error = f"HTTP {err.code}"
+            detail = _error_detail(err)
+            if detail:
+                last_error += f": {detail}"
             if err.code not in (408, 429, 500, 502, 503, 504, 524):
                 break
         except Exception as err:  # timeouts, dropped connections
@@ -88,13 +119,27 @@ def chat(model, messages, max_tokens=8000, temperature=0.0, seed=None, retries=4
             "reasoning_field": None, "tool_calls": [], "cached": False}
 
 
-def _stream(payload):
+def _error_detail(err):
+    """The server's error message (vLLM puts it in {"message": ...} or {"error": {"message": ...}}),
+    trimmed. It never contains the request headers."""
+    try:
+        body = json.loads(err.read().decode("utf-8", "replace"))
+    except Exception:
+        return ""
+    if not isinstance(body, dict):
+        return ""
+    inner = body.get("error")
+    msg = body.get("message") or (inner.get("message") if isinstance(inner, dict) else inner)
+    return str(msg or "")[:300]
+
+
+def _stream(payload, path="/chat/completions"):
     """Stream the response. The endpoint sits behind Cloudflare, which returns
     HTTP 524 for any request idle for ~100s; long reasoning traces on large
     models exceeded that. Streaming keeps bytes flowing so the proxy never
     times out. The cache key is computed without `stream`, so it is unchanged."""
     request = urllib.request.Request(
-        f"{BASE_URL}/chat/completions",
+        f"{BASE_URL}{path}",
         data=json.dumps({**payload, "stream": True,
                          "stream_options": {"include_usage": True}}).encode(),  # usage arrives in the last chunk
         headers={"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"},
@@ -106,8 +151,11 @@ def _stream(payload):
 def iter_stream_lines(lines):
     """Yield ("reasoning" | "content", text piece) as server-sent-event lines arrive, then
     ("end", folded) where folded has content, reasoning (and the field it came in), finish
-    reason, usage, and tool calls (their fragments joined by index)."""
+    reason, usage, tool calls (their fragments joined by index), and, when requested, token
+    log-probabilities (`logprobs`: chat entries, or completion tokens/top_logprobs) and
+    `prompt_logprobs`. Text-completion chunks (`choices[].text`) count as content."""
     content, reasoning, finish, usage, field, calls = [], [], None, {}, None, {}
+    logprobs, prompt_logprobs = [], None
     for raw in lines:
         line = raw.decode("utf-8", "replace").strip()
         if not line.startswith("data:"):
@@ -117,7 +165,19 @@ def iter_stream_lines(lines):
             break
         chunk = json.loads(data)
         usage = chunk.get("usage") or usage
+        prompt_logprobs = chunk.get("prompt_logprobs") or prompt_logprobs
         for choice in chunk.get("choices", []):
+            prompt_logprobs = choice.get("prompt_logprobs") or prompt_logprobs
+            lp = choice.get("logprobs")
+            if isinstance(lp, dict) and lp.get("content"):          # chat format: one entry per token
+                logprobs += lp["content"]
+            elif isinstance(lp, dict) and lp.get("tokens"):         # completions format: parallel lists
+                tops = lp.get("top_logprobs") or [None] * len(lp["tokens"])
+                logprobs += [{"token": t, "logprob": l, "top_logprobs": top}
+                             for t, l, top in zip(lp["tokens"], lp.get("token_logprobs") or [], tops)]
+            if choice.get("text"):
+                content.append(choice["text"])
+                yield "content", choice["text"]
             delta = choice.get("delta") or {}
             name = "reasoning_content" if delta.get("reasoning_content") else "reasoning"
             piece = delta.get(name)
@@ -137,7 +197,8 @@ def iter_stream_lines(lines):
                 slot["function"]["arguments"] += fn.get("arguments") or ""
             finish = choice.get("finish_reason") or finish
     yield "end", {"content": "".join(content), "reasoning": "".join(reasoning), "finish": finish, "usage": usage,
-                  "reasoning_field": field, "tool_calls": [calls[i] for i in sorted(calls)]}
+                  "reasoning_field": field, "tool_calls": [calls[i] for i in sorted(calls)],
+                  "logprobs": logprobs, "prompt_logprobs": prompt_logprobs}
 
 
 def parse_stream_lines(lines):

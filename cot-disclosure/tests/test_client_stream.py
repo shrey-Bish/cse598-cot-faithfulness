@@ -63,3 +63,70 @@ def test_chat_live_replays_a_cached_reply_without_network(tmp_path, monkeypatch)
     events = list(client.chat_live("m", payload["messages"], max_tokens=10, temperature=0.6, seed=1))
     assert ("reasoning", "hmm") in events and ("content", "Answer: (C)") in events
     assert events[-1][0] == "done" and events[-1][1]["cached"] is True
+
+
+def test_completion_chunks_and_their_logprobs():
+    lines = [sse({"choices": [{"text": " B", "logprobs": {"tokens": [" B"], "token_logprobs": [-0.1],
+                                                          "top_logprobs": [{" B": -0.1, " C": -2.5}]}}]}),
+             sse({"choices": [{"text": ")", "finish_reason": "length",
+                               "logprobs": {"tokens": [")"], "token_logprobs": [-0.01], "top_logprobs": [{")": -0.01}]}}]}),
+             sse({"choices": [], "usage": {"prompt_tokens": 40, "completion_tokens": 2}}), b"data: [DONE]"]
+    out = parse_stream_lines(lines)
+    assert out["content"] == " B)" and out["reasoning"] == "" and out["finish"] == "length"
+    assert [e["token"] for e in out["logprobs"]] == [" B", ")"]
+    assert out["logprobs"][0]["top_logprobs"] == {" B": -0.1, " C": -2.5}
+
+
+def test_chat_logprobs_and_prompt_logprobs_are_collected():
+    lines = [sse({"prompt_logprobs": [None, {"12": {"logprob": -1.0}}],
+                  "choices": [{"delta": {"content": "A"},
+                               "logprobs": {"content": [{"token": "A", "logprob": -0.2,
+                                                         "top_logprobs": [{"token": "A", "logprob": -0.2}]}]}}]}),
+             sse({"choices": [{"delta": {}, "finish_reason": "length"}]}), b"data: [DONE]"]
+    out = parse_stream_lines(lines)
+    assert out["content"] == "A" and out["logprobs"][0]["token"] == "A"
+    assert out["prompt_logprobs"] == [None, {"12": {"logprob": -1.0}}]
+    plain = parse_stream_lines([sse({"choices": [{"delta": {"content": "x"}}]}), b"data: [DONE]"])
+    assert plain["logprobs"] == [] and plain["prompt_logprobs"] is None
+
+
+def _cached(tmp_path, key, result):
+    import hashlib
+    digest = hashlib.sha256(json.dumps(key, sort_keys=True).encode()).hexdigest()[:24]
+    (tmp_path / f"{digest}.json").write_text(json.dumps(result))
+
+
+def test_chat_cache_key_unchanged_without_extra_and_separate_with_it(tmp_path, monkeypatch):
+    import client
+    monkeypatch.setattr(client, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(client.urllib.request, "urlopen", lambda *a, **k: (_ for _ in ()).throw(AssertionError("net")))
+    msgs = [{"role": "user", "content": "q"}]
+    base = {"model": "m", "messages": msgs, "max_tokens": 5, "temperature": 0.6, "seed": 1}
+    _cached(tmp_path, base, {"content": "plain", "reasoning": "", "finish": "stop", "usage": {}, "error": None})
+    _cached(tmp_path, {**base, "logprobs": True}, {"content": "with lp", "reasoning": "", "finish": "stop",
+                                                  "usage": {}, "error": None})
+    assert client.chat("m", msgs, max_tokens=5, temperature=0.6, seed=1)["content"] == "plain"
+    assert client.chat("m", msgs, max_tokens=5, temperature=0.6, seed=1, extra={"logprobs": True})["content"] == "with lp"
+
+
+def test_complete_uses_its_own_cache_key(tmp_path, monkeypatch):
+    import client
+    monkeypatch.setattr(client, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(client.urllib.request, "urlopen", lambda *a, **k: (_ for _ in ()).throw(AssertionError("net")))
+    payload = {"model": "m", "prompt": "<|im_start|>user\nq", "max_tokens": 1, "temperature": 0.6, "seed": 1}
+    _cached(tmp_path, {**payload, "endpoint": "completions"},
+            {"content": " C", "reasoning": "", "finish": "length", "usage": {}, "error": None})
+    out = client.complete("m", payload["prompt"], max_tokens=1, temperature=0.6, seed=1)
+    assert out["content"] == " C" and out["cached"] is True
+
+
+def test_http_error_detail_is_read_safely():
+    import io
+    import urllib.error
+    from client import _error_detail
+    def err(body):
+        return urllib.error.HTTPError("u", 400, "bad", {}, io.BytesIO(body))
+    assert _error_detail(err(b'{"error": {"message": "role tool not supported"}}')) == "role tool not supported"
+    assert _error_detail(err(b'{"message": "bad role"}')) == "bad role"
+    assert _error_detail(err(b'{"error": "plain string"}')) == "plain string"
+    assert _error_detail(err(b"not json")) == ""
