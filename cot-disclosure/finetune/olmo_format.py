@@ -44,13 +44,18 @@ def _dict_args(messages):
     return out
 
 
-def render(messages, add_generation_prompt=True, template=None):
+def render(messages, add_generation_prompt=True, template=None, tools=None):
     """The exact prompt text. With add_generation_prompt it ends with the assistant header and
-    "<think>", so the model's raw output is its reasoning, then "</think>", then the answer."""
+    "<think>", so the model's raw output is its reasoning, then "</think>", then the answer.
+    tools (OpenAI-style specs) only change the default system prompt: it then declares them
+    in the Olmo 3 Instruct template's words instead of "no functions" (SYSTEM_PROMPTS)."""
     from transformers.utils.chat_template_utils import render_jinja_template
-    rendered, _ = render_jinja_template([_dict_args(messages)], chat_template=template or PINNED,
+    rendered, _ = render_jinja_template([_dict_args(messages)], tools=tools, chat_template=template or PINNED,
                                         add_generation_prompt=add_generation_prompt, eos_token=EOS)
     return rendered[0]
+
+
+SYSTEM_PROMPTS = ("think_default", "think_declared_functions")   # tools=None / tools=[...]
 
 
 def split(raw):
@@ -74,7 +79,7 @@ def function_calls(final):
 
 
 def generate(model, messages, *, max_tokens=16000, temperature=0.6, seed=None, stop_after_call=False,
-             backoff=None, extra=None, prefix=""):
+             backoff=None, extra=None, prefix="", tools=None):
     """One streamed /v1/completions call on the rendered conversation (+ an optional reasoning
     prefix after "<think>"). Returns client.complete's result with `reasoning` and `content`
     split at </think>, plus `raw` (the generated text) and `prompt` (what was sent).
@@ -82,7 +87,7 @@ def generate(model, messages, *, max_tokens=16000, temperature=0.6, seed=None, s
     stop_after_call ends generation right after a written tool call, so the caller can answer
     it (the call text is kept)."""
     from client import complete
-    prompt = render(messages, add_generation_prompt=True) + prefix
+    prompt = render(messages, add_generation_prompt=True, tools=tools) + prefix
     body = dict(extra or {})
     if stop_after_call:
         body.update({"stop": ["</function_calls>"], "include_stop_str_in_output": True})

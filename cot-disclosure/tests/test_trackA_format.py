@@ -151,3 +151,15 @@ def test_a_token_crossing_a_turn_boundary_raises():
         source_ids_from_render(CharTok(merge_across="\n<|im_start|>"), text)
     with pytest.raises(ValueError):
         turn_spans("no header")
+
+
+def test_declared_functions_replace_only_the_no_functions_sentence():
+    msgs, _ = answer_key.build(Q, 7, "tool_injected", "B")
+    tools = [answer_key.TOOL_SPEC]
+    plain, declared = olmo_format.render(msgs), olmo_format.render(msgs, tools=tools)
+    no_fn = "You do not currently have access to any functions. <functions></functions>"
+    instr = olmo_format.render(msgs, template=INSTRUCT, tools=tools)       # the Instruct template's own wording
+    i = instr.index("You are provided with function signatures"); j = instr.index("<|im_end|>", i)
+    assert no_fn in plain and no_fn not in declared
+    assert declared == plain.replace(no_fn, instr[i:j], 1)                   # nothing else changes
+    assert '"name": "lookup_answer_key"' in declared

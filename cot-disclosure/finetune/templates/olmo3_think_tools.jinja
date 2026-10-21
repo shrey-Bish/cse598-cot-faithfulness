@@ -1,12 +1,17 @@
 {#- Olmo 3 7B Think's own chat template, plus tool turns rendered the way the Olmo 3 Instruct template renders them (the Think template can't show them):
     - assistant tool_calls -> <function_calls>name(key=value, ...)</function_calls>
     - a tool message      -> an <|im_start|>environment turn
+    - only when tools are passed: the default system prompt declares them in the Instruct
+      template's own words, replacing just "You do not currently have access to any
+      functions. <functions></functions>" (Track A step 2b arm "declared functions")
   Think part: allenai/Olmo-3-7B-Think@d97e442d7cc678210054dbcc9b440894d62c89a4 (chat_template.jinja, sha256 6d549883b5ed1287...)
   Tool part:  allenai/Olmo-3-7B-Instruct@6e5971d9eba42665f5bd5a0fcf047f299ce1dccc (chat_template.jinja, sha256 f5186d42d99c8a04...)
   Without a tool turn it renders exactly the official Think template (tests/test_trackA_format.py). -#}
-{% set has_system = messages|selectattr('role', 'equalto', 'system')|list|length > 0 %}{% if not has_system %}{{ '<|im_start|>system
+{% set has_system = messages|selectattr('role', 'equalto', 'system')|list|length > 0 %}{% if not has_system %}{% if tools is none %}{{ '<|im_start|>system
 You are OLMo, a helpful function-calling AI assistant built by Ai2. Your date cutoff is November 2024, and your model weights are available at https://huggingface.co/allenai. You do not currently have access to any functions. <functions></functions><|im_end|>
-' }}{% endif %}{% for message in messages %}{% if message['role'] == 'system' %}{{ '<|im_start|>system
+' }}{% else %}{{ '<|im_start|>system
+You are OLMo, a helpful function-calling AI assistant built by Ai2. Your date cutoff is November 2024, and your model weights are available at https://huggingface.co/allenai. ' }}{{- 'You are provided with function signatures within <functions></functions> XML tags. You may call one or more functions to assist with the user query. Output any function calls within <function_calls></function_calls> XML tags. Do not make assumptions about what values to plug into functions.' -}}{{- '<functions>' -}}{{- tools | tojson -}}{{- '</functions><|im_end|>
+' -}}{% endif %}{% endif %}{% for message in messages %}{% if message['role'] == 'system' %}{{ '<|im_start|>system
 ' + message['content'] }}{% if message.get('functions', none) is not none %}{{ ' <functions>' + message['functions'] + '</functions><|im_end|>
 ' }}{% else %}{{ ' You do not currently have access to any functions. <functions></functions><|im_end|>
 ' }}{% endif %}{% elif message['role'] == 'user' %}{% if message.get('functions', none) is not none %}{{ '<|im_start|>user
