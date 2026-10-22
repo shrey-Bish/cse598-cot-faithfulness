@@ -63,7 +63,7 @@ TOP = 10
 LETTERS = "ABCDEFGHIJ"
 MIN_SENTENCE = 20            # a "sentence" shorter than this joins the next (list numbers, "Wait.")
 RISE = 0.10
-EST_S_PER_REQUEST = 1.0      # dry-run guess until the pilot measures it
+EST_S_PER_REQUEST = 0.5      # pilot (2026-10-22): median 0.38 s holding a slot, 83% of prompt tokens cached
 LETTER_TOKEN = re.compile(r"\s*([A-J])\)?\s*")
 
 
@@ -268,14 +268,23 @@ def probe_run(rec, own, items, batch=BATCH):
             **analyse(rec, ends, curve, own.get(rec["item_id"]), it["cue_letter"])}
 
 
-def current_probes(rows, sources=None):
-    """The newest ok record per source run, kept only while that source run is still current."""
-    sources = {source_key(r) for r in runs_to_probe()[0]} if sources is None else sources
+def current_probes(rows, sources=None, own=None):
+    """The newest ok record per source run, kept only while that source run is still current. The
+    own no-hint answer is re-read from the current Step 2b runs (continuing cut-off runs can change
+    it); the curve keeps every letter, so no call is needed."""
+    if sources is None:
+        runs, own = runs_to_probe()
+        sources = {source_key(r) for r in runs}
     newest = {}
     for r in rows:
         if r["status"] == "ok":
             newest[(r["source_run_id"], r["source_timestamp_utc"])] = r
-    return [r for key, r in newest.items() if key in sources]
+    out = [r for key, r in newest.items() if key in sources]
+    if own is not None:
+        for r in out:
+            r["own_letter"] = own.get(r["item_id"])
+            r["own_prob"] = [p["probs"].get(r["own_letter"]) if r["own_letter"] else None for p in r["curve"]]
+    return out
 
 
 def run(runs, own, items, batch=BATCH, out_path=None, workers=4):

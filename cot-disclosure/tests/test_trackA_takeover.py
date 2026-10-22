@@ -182,3 +182,11 @@ def test_figures_draw_from_synthetic_runs(monkeypatch, tmp_path):
     assert "takeover_points.png" in names and "takeover_mean_curves.png" in names
     assert "takeover_curves_tool-pasted_followed_1.png" in names and "takeover_curves_no-hint_no-hint_1.png" in names
     assert all(p.exists() and p.with_suffix(".svg").exists() for p in paths)
+
+
+def test_the_own_answer_is_re_read_from_the_current_runs(monkeypatch):
+    monkeypatch.setattr(tk, "complete", fake_complete([]))
+    r = tk.probe_run(rec(), {}, ITEMS)
+    assert r["own_letter"] is None
+    [fresh] = tk.current_probes([r], {tk.source_key(rec())}, {7: "A"})
+    assert fresh["own_letter"] == "A" and fresh["own_prob"][0] == pytest.approx(0.7)
