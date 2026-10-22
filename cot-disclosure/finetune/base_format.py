@@ -12,10 +12,15 @@ Every run records its system prompt. Runs go to results/trackA/base_format.jsonl
   python finetune/base_format.py --dry-run       # jobs, calls, estimated time; no calls
   python finetune/base_format.py                 # run (resumable)
   python finetune/base_format.py --report        # hint following per channel vs Test 2's saved runs
+  python finetune/base_format.py --extend        # repair saved runs that stopped early (see below)
 
-A reply cut off at the token limit is no answer (its letter is kept only as
-parsed_letter_if_not_cut). An inserted tool turn whose reply calls the tool again gets the
-same result, at most twice more; still calling after that is no answer.
+A reply that stops early is continued from where it stopped, up to the 65,536-token context:
+cut off at the 16,000-token cap, or (inserted tool turn) the stop string for a call fired
+inside the reasoning, where the model was only quoting a call. A reply still cut off at the
+context is no answer (its letter is kept only as parsed_letter_if_not_cut). An inserted tool
+turn whose reply calls the tool again (in the final answer, after </think>) gets the same
+result, at most twice more; still calling after that is no answer. --extend applies the same
+continuation to saved runs, and reruns runs whose stream closed before a finish reason.
 
 Voyager changed its model IDs on 2026-10-21 during the first attempt. client.py now maps
 olmo3-7b-think to the family ID olmo3-7b at reasoning_effort medium and guards the run
@@ -64,6 +69,7 @@ CONTRADICTION = re.compile(
 TEMPERATURE, MAX_TOKENS = 0.6, 16000
 SEC_PER_CALL, MEASURED_SEC, IN_FLIGHT = 68, 78, 4        # brief's rule; Test 2 median for this model
 ROUTE = route(MODEL)                                     # (Voyager ID, reasoning_effort) used now
+MAX_CONTINUATIONS = 20                                   # per round, while the context has room
 NOT_RUN_PASSES = 2                                       # extra passes for runs aborted by the idle timeout
 
 
@@ -79,24 +85,45 @@ def jobs(items):
 
 
 def generate_round(msgs, cond, rep, tools, extensions):
-    """One generation; a reply that hits MAX_TOKENS is continued up to the model's context
-    (olmo_format.extend), so the effective limit is the 65,536-token context, not 16,000."""
+    """One generation; a reply that stopped early is continued (continue_if_cut), so the
+    effective limit is the 65,536-token context, not 16,000."""
     with slot():
         out = olmo_format.generate(MODEL, msgs, max_tokens=MAX_TOKENS, temperature=TEMPERATURE, seed=rep,
                                    stop_after_call=cond == INJECTED, backoff=BACKOFF, tools=tools)
     return continue_if_cut(out, cond, rep, extensions)
 
 
+def stopped_early(out, cond):
+    """Why a reply must go on, or None: cut off at its token cap ("length"), or, with an inserted
+    tool turn, the stop string for a call fired inside the reasoning, where the model was only
+    quoting a call (seen 7 times in Step 2b, 2026-10-22). A call counts only in the final answer,
+    after </think>."""
+    if out["error"]:
+        return None
+    if out["finish"] == "length":
+        return "length"
+    raw = out.get("raw") or ""
+    if (cond == INJECTED and out["finish"] == "stop" and olmo_format.THINK_CLOSE not in raw
+            and raw.rstrip().endswith("</function_calls>")):
+        return "call quoted in the reasoning"
+    return None
+
+
 def continue_if_cut(out, cond, rep, extensions):
-    if out["finish"] != "length" or out["error"]:
-        return out
-    with slot():
-        ext = olmo_format.extend(MODEL, out["prompt"], out["raw"], out["usage"], temperature=TEMPERATURE, seed=rep,
-                                 stop_after_call=cond == INJECTED, backoff=BACKOFF)
-    if ext is None:
-        return out
-    extensions.append(ext["extension"])
-    return ext
+    """Continue a reply from exactly where it stopped (olmo_format.extend) for as long as it
+    stopped early and the context has room."""
+    for _ in range(MAX_CONTINUATIONS):
+        why = stopped_early(out, cond)
+        if why is None:
+            return out
+        with slot():
+            ext = olmo_format.extend(MODEL, out["prompt"], out["raw"], out["usage"], temperature=TEMPERATURE,
+                                     seed=rep, stop_after_call=cond == INJECTED, backoff=BACKOFF)
+        if ext is None:
+            return out
+        extensions.append({**ext["extension"], "reason": why})
+        out = ext
+    return out
 
 
 def record(out, it, cond, rep, arm, messages, tools, rounds, model_calls, transcript, extensions, experiment):
@@ -139,15 +166,35 @@ def one(it, cond, rep, arm=None, experiment=EXPERIMENT):
     return record(out, it, cond, rep, arm, messages, tools, rounds, model_calls, transcript, extensions, experiment)
 
 
+def saved_reply(rec):
+    return {"prompt": rec["rendered_prompt"], "raw": rec["raw_text"] or "", "usage": rec["usage"],
+            "finish": rec["finish_reason"], "error": rec.get("error_type")}
+
+
+def has_room(usage):
+    used = (usage or {}).get("prompt_tokens", 0) + (usage or {}).get("completion_tokens", 0)
+    return olmo_format.CONTEXT - used - olmo_format.CONTEXT_MARGIN >= 256
+
+
+def repairs(rows):
+    """(saved runs that stopped early and can go on, runs whose stream closed before a finish
+    reason: rerun from the start)."""
+    ok = [r for r in rows if r["status"] == "ok"]
+    go_on = [r for r in ok if stopped_early(saved_reply(r), r["condition"]) and has_room(r["usage"])]
+    rerun = [r for r in ok if r["finish_reason"] is None and not r.get("error_type")]
+    return go_on, rerun
+
+
 def extend_saved(rec, it):
-    """Continue a saved run that was cut off at 16,000 tokens before automatic continuation
-    existed: its final round goes on from where it stopped; an inserted-tool reply that then
-    calls the tool again gets the usual answers (within the same round limit)."""
+    """Continue a saved run that stopped early before automatic continuation existed (cut off at
+    16,000 tokens, or a call quoted in the reasoning tripped the stop): its final round goes on
+    from where it stopped; an inserted-tool reply that then calls the tool again gets the usual
+    answers (within the same round limit)."""
     cond, rep, arm = rec["condition"], rec["repeat"], rec.get("arm")
     tools = [TOOL_SPEC] if arm == DECLARED else None
-    extensions = []
-    last = {"prompt": rec["rendered_prompt"], "raw": rec["raw_text"] or "", "usage": rec["usage"],
-            "finish": "length", "error": None}
+    extensions = list(rec.get("extensions") or [])
+    last = saved_reply(rec)
+    why = stopped_early(last, cond)
     out = continue_if_cut(last, cond, rep, extensions)
     if out is last:                                   # no room left in the context
         return None
@@ -174,20 +221,34 @@ def extend_saved(rec, it):
             out = {**out, "content": "", "no_answer_reason": "still calling the tool"}
     new = record(out, it, cond, rep, arm, messages, tools, rounds, model_calls, transcript, extensions, EXPERIMENT)
     new["extended_saved_run"] = {"timestamp_utc": rec["timestamp_utc"], "completion_tokens": (rec["usage"] or {}).get(
-        "completion_tokens"), "reason": "cut off at the 16,000-token limit; continued up to the 65,536-token context"}
+        "completion_tokens"), "reason": "cut off at the 16,000-token limit; continued up to the 65,536-token context"
+        if why == "length" else "a call quoted in the reasoning tripped the stop string; continued from there"}
+    if rec.get("extended_saved_run"):
+        new["extended_saved_run"]["earlier"] = rec["extended_saved_run"]
+    return new
+
+
+def rerun_saved(rec, it):
+    """Rerun from the start a saved run whose stream closed before a finish reason."""
+    new = one(it, rec["condition"], rec["repeat"], rec.get("arm"))
+    new["rerun_of"] = {"timestamp_utc": rec["timestamp_utc"], "reason": "the stream closed before a finish reason "
+                       "(a dropped connection the client did not catch before 2026-10-22)"}
     return new
 
 
 def extend_pass(items):
-    """Continue every current run that was cut off at 16,000 tokens and not yet continued."""
+    """Continue every current run that stopped early and has room; rerun the ones whose stream
+    closed before a finish reason."""
     by_id = {it["question_id"]: it for it in items}
-    todo = [r for r in current(load(OUT)) if r["status"] == "ok" and r["finish_reason"] == "length"
-            and not r.get("extensions") and not r.get("extended_saved_run")]
-    print(f"{len(todo)} runs cut off at {MAX_TOKENS:,} tokens to continue up to the {olmo_format.CONTEXT:,}-token "
-          f"context", flush=True)
+    go_on, rerun = repairs(current(load(OUT)))
+    print(f"{len(go_on)} runs that stopped early to continue up to the {olmo_format.CONTEXT:,}-token context "
+          f"({dict(Counter(stopped_early(saved_reply(r), r['condition']) for r in go_on))}); {len(rerun)} runs whose "
+          f"stream closed early to rerun", flush=True)
     start = time.monotonic()
+    todo = go_on + rerun
     with ThreadPoolExecutor(IN_FLIGHT) as pool:
-        futures = [pool.submit(extend_saved, r, by_id[r["item_id"]]) for r in todo]
+        futures = [pool.submit(extend_saved, r, by_id[r["item_id"]]) for r in go_on]
+        futures += [pool.submit(rerun_saved, r, by_id[r["item_id"]]) for r in rerun]
         try:
             for n, fut in enumerate(as_completed(futures), 1):
                 rec = fut.result()
@@ -336,18 +397,19 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="jobs, calls and estimated time; no calls")
     ap.add_argument("--report", action="store_true", help="summarize the saved runs; no calls")
     ap.add_argument("--extend", action="store_true",
-                    help="continue saved runs cut off at 16,000 tokens up to the 65,536-token context")
+                    help="repair saved runs: continue those that stopped early (cut off at 16,000 tokens, or a call quoted in the reasoning tripped the stop) up to the 65,536-token context; rerun those whose stream closed early")
     a = ap.parse_args()
     items = questions()
     if a.report:
         return report()
     if a.extend:
-        todo = [r for r in current(load(OUT)) if r["status"] == "ok" and r["finish_reason"] == "length"
-                and not r.get("extensions") and not r.get("extended_saved_run")]
+        go_on, rerun = repairs(current(load(OUT)))
         if a.dry_run:
-            print(f"{len(todo)} cut-off runs to continue (1 call each, plus inserted-tool rounds if the model calls "
-                  f"the tool again); each may add up to {olmo_format.CONTEXT - 16500:,} tokens (about 50 tokens/s, "
-                  f"so up to ~15 min a call); {IN_FLIGHT} in flight")
+            print(f"{len(go_on)} runs that stopped early to continue "
+                  f"({dict(Counter(stopped_early(saved_reply(r), r['condition']) for r in go_on))}; 1 call each, plus "
+                  f"more if the model quotes a call again or calls the tool); {len(rerun)} runs whose stream closed "
+                  f"early to rerun from the start; each call may add up to {olmo_format.CONTEXT - 16500:,} tokens "
+                  f"(about 50 tokens/s, so up to ~15 min a call); {IN_FLIGHT} in flight")
             return
         preflight(MODEL)
         extend_pass(items)

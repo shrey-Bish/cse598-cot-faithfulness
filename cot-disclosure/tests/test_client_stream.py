@@ -86,7 +86,8 @@ def test_chat_logprobs_and_prompt_logprobs_are_collected():
     out = parse_stream_lines(lines)
     assert out["content"] == "A" and out["logprobs"][0]["token"] == "A"
     assert out["prompt_logprobs"] == [None, {"12": {"logprob": -1.0}}]
-    plain = parse_stream_lines([sse({"choices": [{"delta": {"content": "x"}}]}), b"data: [DONE]"])
+    plain = parse_stream_lines([sse({"choices": [{"delta": {"content": "x"}, "finish_reason": "stop"}]}),
+                                b"data: [DONE]"])
     assert plain["logprobs"] == [] and plain["prompt_logprobs"] is None
 
 
@@ -142,3 +143,22 @@ def test_a_list_of_prompts_keeps_each_choice_separate():
     assert [c["text"] for c in out["choices"]] == ["B", "C"]                     # ordered by prompt index
     assert out["choices"][1]["logprobs"][0]["top_logprobs"] == {"C": -0.2, "B": -1.9}
     assert [c["finish"] for c in out["choices"]] == ["length", "length"]
+
+
+def test_a_stream_that_closes_without_a_finish_reason_is_retried_and_never_cached(tmp_path, monkeypatch):
+    import pytest
+    import client
+    cut = [sse({"choices": [{"text": "Let me think"}]})]                       # closed mid-reply
+    with pytest.raises(client.IncompleteStream):
+        parse_stream_lines(cut)
+    with pytest.raises(client.IncompleteStream):                               # a list: every prompt needs one
+        parse_stream_lines([sse({"choices": [{"index": 0, "text": "A", "finish_reason": "length"}]}),
+                            sse({"choices": [{"index": 1, "text": "B"}]}), b"data: [DONE]"])
+    monkeypatch.setattr(client, "CACHE_DIR", tmp_path)
+    streams = iter([cut, [sse({"choices": [{"text": "A", "finish_reason": "stop"}]}), b"data: [DONE]"]])
+    monkeypatch.setattr(client, "_stream", lambda payload, path: parse_stream_lines(next(streams)))
+    key = {"model": "m", "prompt": "p", "max_tokens": 5, "temperature": 0.0, "endpoint": "completions"}
+    _cached(tmp_path, key, {"content": "Let me", "reasoning": "", "finish": None, "usage": {}, "error": None})
+    out = client.complete("m", "p", max_tokens=5, backoff=[0, 0, 0])            # old cut-short entry: not reused
+    assert out["content"] == "A" and out["finish"] == "stop" and out["retries"] == 1 and not out["cached"]
+    assert client.complete("m", "p", max_tokens=5)["cached"]                  # the complete reply is cached

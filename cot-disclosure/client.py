@@ -74,6 +74,11 @@ class IdleTimeout(RuntimeError):
     """Guard d: no token arrived for IDLE_S seconds."""
 
 
+class IncompleteStream(RuntimeError):
+    """The stream closed before the server sent a finish reason (seen 3 times in 240 Track A
+    runs, 2026-10-22): a dropped connection, so it is retried and never cached."""
+
+
 # ---------------------------------------------------------------- model IDs
 def load_voyager_ids(path=MODELS_YAML):
     """{our model name: (Voyager ID, reasoning_effort)} from configs/models.yaml. Uses PyYAML when
@@ -284,9 +289,10 @@ def _request(payload, key, path, stream, retries, backoff, on_retry, name=None, 
     if use_cache:
         digest = hashlib.sha256(json.dumps(key, sort_keys=True).encode()).hexdigest()[:24]
         cached = CACHE_DIR / f"{digest}.json"
-        if cached.exists():
+        saved = json.loads(cached.read_text()) if cached.exists() else None
+        if saved and saved.get("finish") is not None:      # a cut-short stream cached before 2026-10-22 is not reused
             return {"retries": 0, "latency_s": None, "reasoning_field": None, "tool_calls": [], "served_model": None,
-                    **json.loads(cached.read_text()), **meta, "cached": True}
+                    **saved, **meta, "cached": True}
     if guard:
         preflight(name)
 
@@ -426,6 +432,8 @@ def iter_stream_lines(lines, idle_s=None, clock=time.monotonic):
                 slot["function"]["name"] += fn.get("name") or ""
                 slot["function"]["arguments"] += fn.get("arguments") or ""
             finish = choice.get("finish_reason") or finish
+    if finish is None or any(c["finish"] is None for c in by_choice.values()):
+        raise IncompleteStream("the stream closed before a finish reason")
     yield "end", {"content": "".join(content), "reasoning": "".join(reasoning), "finish": finish, "usage": usage,
                   "reasoning_field": field, "tool_calls": [calls[i] for i in sorted(calls)],
                   "logprobs": logprobs, "prompt_logprobs": prompt_logprobs, "served_model": served,

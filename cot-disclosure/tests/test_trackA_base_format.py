@@ -140,3 +140,67 @@ def test_extend_math_leaves_room_for_the_prompt(monkeypatch):
     assert sent["max_tokens"] == 65536 - 16500 - 64 and sent["prompt"] == "PROMPTso far"
     assert out["content"] == "Answer: (A)" and out["usage"]["completion_tokens"] == 16005
     assert olmo_format.extend("m", "P", "r", {"prompt_tokens": 65000, "completion_tokens": 400}) is None
+
+
+QUOTED = "The user wrote <function_calls>lookup_answer_key(question_id=1)</function_calls>"
+
+
+def quoting_generate():
+    """The model quotes the call while thinking; the stop string ends the reply there."""
+    def gen(model, msgs, **kw):
+        assert kw["stop_after_call"]
+        return {"content": "", "raw": "Let me check. " + QUOTED, "reasoning": "Let me check. " + QUOTED, "prompt": "P",
+                "finish": "stop", "usage": {"prompt_tokens": 300, "completion_tokens": 40}, "error": None,
+                "retries": 0, "latency_s": 1.0, "reasoning_field": "split_at_think_close", "tool_calls": [],
+                "cached": False}
+    return gen
+
+
+def continuing_extend(tails):
+    seen = []
+
+    def extend(model, prompt, raw, usage, **kw):
+        seen.append(raw)
+        whole = raw + tails[len(seen) - 1]
+        reasoning, final = olmo_format.split(whole)
+        return {"content": final, "raw": whole, "prompt": prompt, "reasoning": reasoning, "finish": "stop",
+                "usage": {"prompt_tokens": 300, "completion_tokens": 100 * len(seen)}, "error": None, "retries": 0,
+                "latency_s": 1.0, "reasoning_field": "split_at_think_close", "tool_calls": [], "cached": False,
+                "extension": {"from_completion_tokens": 40, "added_tokens": 60, "finish": "stop"}}
+    return extend, seen
+
+
+def test_a_call_quoted_inside_the_reasoning_does_not_end_the_reply(monkeypatch):
+    monkeypatch.setattr(olmo_format, "generate", quoting_generate())
+    extend, seen = continuing_extend([" Again: " + QUOTED, " Anyway 7.</think>\n\nAnswer: (C)"])
+    monkeypatch.setattr(olmo_format, "extend", extend)
+    rec = bf.one(bf.questions()[0], "tool_injected", 0, bf.DECLARED)
+    assert seen == ["Let me check. " + QUOTED, "Let me check. " + QUOTED + " Again: " + QUOTED]
+    assert rec["parsed_letter"] == "C" and rec["tool_calls_by_model"] == 0 and len(rec["tool_rounds"]) == 1
+    assert [e["reason"] for e in rec["extensions"]] == ["call quoted in the reasoning"] * 2
+    assert rec["reasoning_text"].endswith("Anyway 7.")
+
+
+def test_a_real_call_after_the_reasoning_still_stops_and_gets_its_answer(monkeypatch):
+    call = "<function_calls>lookup_answer_key(question_id=1)</function_calls>"
+    gen, calls = fake_generate([call, "Answer: (C)"])                         # "...</think>" + call: a real call
+    monkeypatch.setattr(olmo_format, "generate", gen)
+    monkeypatch.setattr(olmo_format, "extend", lambda *a, **k: pytest.fail("a real call is not continued"))
+    rec = bf.one(bf.questions()[0], "tool_injected", 1)
+    assert rec["tool_calls_by_model"] == 1 and rec["parsed_letter"] == "C"
+
+
+def test_the_repair_pass_picks_stopped_early_and_cut_short_runs():
+    base = {"status": "ok", "error_type": None, "usage": {"prompt_tokens": 300, "completion_tokens": 40},
+            "rendered_prompt": "P"}
+    quoted = {**base, "run_id": "q", "condition": "tool_injected", "finish_reason": "stop",
+              "raw_text": "Let me check. " + QUOTED}
+    cut = {**base, "run_id": "c", "condition": "user", "finish_reason": "length", "raw_text": "long"}
+    full = {**base, "run_id": "f", "condition": "user", "finish_reason": "length", "raw_text": "long",
+            "usage": {"prompt_tokens": 500, "completion_tokens": 65000}}                  # no room left
+    short = {**base, "run_id": "s", "condition": "tool_pasted", "finish_reason": None, "usage": {},
+             "raw_text": "Let me th"}                                                   # the stream closed early
+    done = {**base, "run_id": "d", "condition": "user", "finish_reason": "stop", "raw_text": "x</think>Answer: (A)"}
+    eos = {**base, "run_id": "e", "condition": "tool_injected", "finish_reason": "stop", "raw_text": "no close"}
+    to_continue, to_rerun = bf.repairs([quoted, cut, full, short, done, eos])
+    assert [r["run_id"] for r in to_continue] == ["q", "c"] and [r["run_id"] for r in to_rerun] == ["s"]
