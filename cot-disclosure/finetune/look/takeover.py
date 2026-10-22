@@ -254,6 +254,9 @@ def probe_run(rec, own, items, batch=BATCH):
         if got is None:
             return {**head, "status": "not_run" if out["error"].startswith("IdleTimeout") else "api_error",
                     "error_type": out["error"], "probes_done": len(curve)}
+        if any(not (entry or {}).get("top_logprobs") for _, entry in got):
+            return {**head, "status": "api_error", "error_type": "a probe came back without log-probs",
+                    "probes_done": len(curve)}
         for k, (tok, entry) in zip(ks, got):
             probs, floor = letter_probs(entry, letters)
             curve[k] = {"k": k, "probs": probs, "floor": floor, "token": tok}
@@ -268,6 +271,12 @@ def probe_run(rec, own, items, batch=BATCH):
             **analyse(rec, ends, curve, own.get(rec["item_id"]), it["cue_letter"])}
 
 
+def complete_curve(rec):
+    """An ok record whose every probe has its top-10 log-probs (pass 1 ran before the client
+    caught streams that close early)."""
+    return rec["status"] == "ok" and all(p["floor"] is not None for p in rec["curve"])
+
+
 def current_probes(rows, sources=None, own=None):
     """The newest ok record per source run, kept only while that source run is still current. The
     own no-hint answer is re-read from the current Step 2b runs (continuing cut-off runs can change
@@ -277,7 +286,7 @@ def current_probes(rows, sources=None, own=None):
         sources = {source_key(r) for r in runs}
     newest = {}
     for r in rows:
-        if r["status"] == "ok":
+        if complete_curve(r):
             newest[(r["source_run_id"], r["source_timestamp_utc"])] = r
     out = [r for key, r in newest.items() if key in sources]
     if own is not None:
@@ -290,7 +299,7 @@ def current_probes(rows, sources=None, own=None):
 def run(runs, own, items, batch=BATCH, out_path=None, workers=4):
     out_path = out_path or OUT
     preflight(MODEL)
-    done = {(r["source_run_id"], r["source_timestamp_utc"]) for r in load(out_path) if r["status"] == "ok"}
+    done = {(r["source_run_id"], r["source_timestamp_utc"]) for r in load(out_path) if complete_curve(r)}
     todo = [r for r in runs if source_key(r) not in done]
     print(f"{len(runs)} runs to probe, {len(runs) - len(todo)} already done, {len(todo)} to run", flush=True)
     start, results = time.monotonic(), []
@@ -432,7 +441,7 @@ def main():
     runs, own = runs_to_probe()
     if a.pilot:
         runs = pick_pilot(runs)
-    done = {(r["source_run_id"], r["source_timestamp_utc"]) for r in load(OUT) if r["status"] == "ok"}
+    done = {(r["source_run_id"], r["source_timestamp_utc"]) for r in load(OUT) if complete_curve(r)}
     todo = [r for r in runs if source_key(r) not in done]
     sizes = [len(sentence_ends(r["reasoning_text"])) + 1 for r in todo]
     n_requests = sum(len(order(s, a.batch)) for s in sizes) + (3 if a.pilot and a.batch > 1 else 0)

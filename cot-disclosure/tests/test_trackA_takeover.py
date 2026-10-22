@@ -128,7 +128,8 @@ def test_a_resisted_run_and_a_no_hint_run(monkeypatch):
 def test_errors_mark_the_run_and_never_fake_a_curve(monkeypatch):
     def short(model, prompt, **kw):                                           # one result for a list of prompts
         return {"error": None, "content": "A", "logprobs": [], "choices": [{"text": "A", "logprobs": []}]}
-    monkeypatch.setattr(tk, "complete", lambda m, p, **kw: {"error": None, "content": "A", "logprobs": []}
+    entry = [{"token": "A", "logprob": -0.1, "top_logprobs": {"A": -0.1}}]
+    monkeypatch.setattr(tk, "complete", lambda m, p, **kw: {"error": None, "content": "A", "logprobs": entry}
                         if isinstance(p, str) else short(m, p))
     r = tk.probe_run(rec(), {}, ITEMS, batch=2)
     assert r["status"] == "api_error" and "results for" in r["error_type"] and "curve" not in r
@@ -190,3 +191,21 @@ def test_the_own_answer_is_re_read_from_the_current_runs(monkeypatch):
     assert r["own_letter"] is None
     [fresh] = tk.current_probes([r], {tk.source_key(rec())}, {7: "A"})
     assert fresh["own_letter"] == "A" and fresh["own_prob"][0] == pytest.approx(0.7)
+
+
+def test_a_probe_without_log_probs_fails_its_run_and_gaps_are_not_done(monkeypatch):
+    inner = fake_complete([])
+
+    def gap(model, prompt, **kw):
+        out = inner(model, prompt, **kw)
+        if "first step" in prompt and "tool says" not in prompt:              # one probe comes back bare
+            out["logprobs"] = []
+        return out
+    monkeypatch.setattr(tk, "complete", gap)
+    r = tk.probe_run(rec(), {}, ITEMS)
+    assert r["status"] == "api_error" and "without log-probs" in r["error_type"]
+    monkeypatch.setattr(tk, "complete", fake_complete([]))
+    good = tk.probe_run(rec(), {}, ITEMS)
+    holed = {**good, "curve": [{**good["curve"][0], "floor": None}] + good["curve"][1:]}
+    assert tk.complete_curve(good) and not tk.complete_curve(holed)
+    assert tk.current_probes([holed], {tk.source_key(rec())}) == []
