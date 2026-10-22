@@ -95,3 +95,15 @@ def test_contradiction_remarks_are_found_in_every_round():
     sents = bf.contradiction_sentences(rec)
     assert len(sents) == 2 and "access to any functions" in sents[0] and sents[1].startswith("Odd")
     assert not bf.contradiction_sentences({"reasoning_text": "The tool says B. Let me check the swaps."})
+
+
+def test_only_runs_through_the_current_route_count_and_reruns_say_what_they_supersede():
+    old = {"run_id": "r1", "timestamp_utc": "2026-10-21T20:58:05+00:00", "model": "olmo3-7b-think", "status": "ok"}
+    new = {**old, "timestamp_utc": "2026-10-22T01:00:00+00:00", "requested_model_id": "olmo3-7b",
+           "reasoning_effort": "medium"}
+    other = {"run_id": "r2", "model": "olmo3-7b-think", "status": "ok", "requested_model_id": "olmo3-7b",
+             "reasoning_effort": "low", "timestamp_utc": "x"}
+    assert bf.ROUTE == ("olmo3-7b", "medium")
+    assert bf.current([old]) == [] and bf.current([old, new]) == [new] and bf.current([other]) == []
+    note = bf.supersedes(old)
+    assert note["timestamp_utc"] == old["timestamp_utc"] and "2026-10-21" in note["reason"]

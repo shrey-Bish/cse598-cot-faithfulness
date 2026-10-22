@@ -69,8 +69,11 @@ are then trained on examples where the model:
 ## Training plan (Sol, weeks 13–14)
 
 - **Base:** `allenai/Olmo-3-7B-Think`. The checkpoint behind Voyager's
-  `olmo3-7b-think` is only the candidate (`docs/OVERVIEW.md` §5), so re-measure the base
-  model on Sol first.
+  `olmo3-7b-think` is only the candidate (`docs/OVERVIEW.md` §5), so first run the
+  two-part checkpoint check in `docs/PLAN.md` (Track A).
+  - Strict on the first 2,047 tokens.
+  - Near-ties only beyond that.
+  - If it fails, re-measure the base model on the GPU.
 - **Model wrapper:**
   - `peft` LoRA on the attention and MLP projections (`q_proj, k_proj, v_proj, o_proj,
     gate_proj, up_proj, down_proj`)

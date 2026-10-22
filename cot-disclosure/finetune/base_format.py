@@ -16,6 +16,13 @@ Every run records its system prompt. Runs go to results/trackA/base_format.jsonl
 A reply cut off at the token limit is no answer (its letter is kept only as
 parsed_letter_if_not_cut). An inserted tool turn whose reply calls the tool again gets the
 same result, at most twice more; still calling after that is no answer.
+
+Voyager changed its model IDs on 2026-10-21 during the first attempt. client.py now maps
+olmo3-7b-think to the family ID olmo3-7b at reasoning_effort medium and guards the run
+(catalog check and identity canary first, hourly canary, idle timeout). A run counts as done
+only if it went through the current route, so the 11 runs saved before the change are
+rerun; each new record says which one it supersedes. Runs that come back "not_run" (idle
+timeout) are retried in up to two more passes.
 """
 import argparse
 import math
@@ -30,7 +37,8 @@ CODE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "progress"))
 
-from common import BACKOFF, append, done_ids, latest, load, make_record, run_id, slot, wilson  # noqa: E402
+from client import CanaryFailed, ModelUnavailable, preflight, route  # noqa: E402
+from common import BACKOFF, append, latest, load, make_record, run_id, slot, wilson  # noqa: E402
 from finetune import olmo_format  # noqa: E402
 from mmlu_pro_probe import load_items, question_block  # noqa: E402
 from detect import detect  # noqa: E402
@@ -55,6 +63,8 @@ CONTRADICTION = re.compile(
     re.IGNORECASE)
 TEMPERATURE, MAX_TOKENS = 0.6, 16000
 SEC_PER_CALL, MEASURED_SEC, IN_FLIGHT = 68, 78, 4        # brief's rule; Test 2 median for this model
+ROUTE = route(MODEL)                                     # (Voyager ID, reasoning_effort) used now
+NOT_RUN_PASSES = 2                                       # extra passes for runs aborted by the idle timeout
 
 
 def questions():
@@ -102,18 +112,51 @@ def one(it, cond, rep, arm=None, experiment=EXPERIMENT):
     return rec
 
 
+def current(rows):
+    """The latest record per run, if it went through the current route. Runs saved before
+    Voyager's ID change (no requested_model_id) are not current: they are rerun."""
+    return [r for r in latest(rows) if (r.get("requested_model_id"), r.get("reasoning_effort")) == ROUTE]
+
+
+def supersedes(prev):
+    return {"timestamp_utc": prev["timestamp_utc"], "model_id": prev["model"],
+            "reason": "Voyager model IDs changed on 2026-10-21: rerun through the new route"}
+
+
+def job_id(j):
+    return run_id(EXPERIMENT, j[0]["question_id"], MODEL, j[1], j[3], j[2])
+
+
 def run(items):
-    finished = done_ids(OUT)
-    todo = [j for j in jobs(items) if run_id(EXPERIMENT, j[0]["question_id"], MODEL, j[1], j[3], j[2]) not in finished]
-    print(f"{len(jobs(items))} runs, {len(jobs(items)) - len(todo)} already saved, {len(todo)} to run")
-    start = time.monotonic()
-    with ThreadPoolExecutor(IN_FLIGHT) as pool:
-        futures = [pool.submit(one, *j) for j in todo]
-        for n, fut in enumerate(as_completed(futures), 1):
-            rec = fut.result()
-            append(OUT, rec)
-            if n % 10 == 0 or n == len(todo):
-                print(f"  {n}/{len(todo)} done, {(time.monotonic() - start) / 60:.1f} min")
+    preflight(MODEL)            # /v1/models and the identity canary before anything; raises (stops) on failure
+    for attempt in range(1 + NOT_RUN_PASSES):
+        rows = load(OUT)
+        done = {r["run_id"] for r in current(rows) if r["status"] == "ok"}
+        old = {r["run_id"]: r for r in latest(rows) if r.get("requested_model_id") is None}
+        todo = [j for j in jobs(items) if job_id(j) not in done]
+        if not todo:
+            break
+        print(f"pass {attempt + 1}: {len(jobs(items))} runs, {len(jobs(items)) - len(todo)} done through "
+              f"{ROUTE[0]}@{ROUTE[1]}, {len(todo)} to run ({sum(job_id(j) in old for j in todo)} rerun from before "
+              f"the ID change)", flush=True)
+        start = time.monotonic()
+        with ThreadPoolExecutor(IN_FLIGHT) as pool:
+            futures = [pool.submit(one, *j) for j in todo]
+            try:
+                for n, fut in enumerate(as_completed(futures), 1):
+                    rec = fut.result()
+                    if rec["run_id"] in old:
+                        rec["supersedes"] = supersedes(old[rec["run_id"]])
+                    append(OUT, rec)
+                    if n % 10 == 0 or n == len(todo):
+                        print(f"  {n}/{len(todo)} done, {(time.monotonic() - start) / 60:.1f} min", flush=True)
+            except (ModelUnavailable, CanaryFailed):
+                pool.shutdown(wait=False, cancel_futures=True)       # don't start the queued jobs
+                raise
+        not_run = [r for r in current(load(OUT)) if r["status"] == "not_run"]
+        if not not_run:
+            break
+        print(f"{len(not_run)} runs not run (no token for 10 minutes); retrying them", flush=True)
 
 
 def rate(k, n):
@@ -136,12 +179,17 @@ def contradiction_sentences(rec):
 
 def report():
     items = {it["question_id"]: it for it in questions()}
-    mine = [r for r in latest(load(OUT)) if r["status"] == "ok"]
+    rows = load(OUT)
+    mine = [r for r in current(rows) if r["status"] == "ok"]
     old = [r for r in latest(load(TEST2_CUED)) if r["model"] == MODEL and r["status"] == "ok"]
     old_none = [r for r in latest(load(TEST2_NOCUE)) if r["model"] == MODEL and r["status"] == "ok"
                 and r["item_id"] in items]
-    print(f"{len(mine)} runs in {OUT.name}; 95% Wilson intervals; a cut-off reply is no answer; "
-          f"mentions and remarks are keyword counts\n")
+    superseded = sum(1 for r in rows if r.get("requested_model_id") is None)
+    not_run = sum(1 for r in current(rows) if r["status"] == "not_run")
+    served = Counter(r.get("served_model") for r in mine)
+    print(f"{len(mine)} runs through {ROUTE[0]}@{ROUTE[1]} in {OUT.name} (served by {dict(served)}); "
+          f"{superseded} older records from before the ID change are superseded and left out; {not_run} not run.\n"
+          f"95% Wilson intervals; a cut-off reply is no answer; mentions and remarks are keyword counts\n")
     print("| channel | system prompt | runs | picked the hint letter | answered | cut off | mentions the hint (final answer) "
           "| Test 2, served format |")
     print("|---|---|---|---|---|---|---|---|")

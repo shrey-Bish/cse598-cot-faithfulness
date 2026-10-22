@@ -61,6 +61,20 @@ follows hints. It followed 1 of 48 user hints on puzzles and 10 of 20 tool hints
 Test 2 (10 of 11 among answered runs). Run it on ASU Sol. Voyager's checkpoint is only
 the candidate, so re-measure the base model on Sol first.
 
+**Checkpoint check before any GPU number** (Step 8, week 13). Compare per-token
+log-probabilities of 5 saved prompt + reply texts from Voyager (echo) with a local forward
+pass. Two-part rule (set Oct 21):
+- **Strict on the first 2,047 tokens:** the same top token at every position, and max
+  absolute difference under 0.01.
+- **Beyond that,** where long prompts are processed in chunks and drift slightly:
+  - report the mean, median and max difference
+  - count top-token mismatches only where the top two tokens are within 0.1 probability
+    of each other (near-ties)
+  - a mismatch outside a near-tie is a failure
+- **If it fails,** Voyager isn't serving this checkpoint, and every base number must be
+  re-measured on the GPU.
+- The echo calls need `logprobs: 2` to get the top two tokens.
+
 **Method.**
 1. **Look inside** (weeks 13–14), on saved steered and unsteered runs of the same
    question:
