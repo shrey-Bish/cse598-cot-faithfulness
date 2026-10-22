@@ -55,3 +55,17 @@ def test_call_end_to_end_with_stub_client(monkeypatch):
     rec = common.call(logging.getLogger("t"), experiment="t", item_id=1, model="m", condition="none", repeat=0,
                       messages=[{"role": "user", "content": "q"}], n_options=7, extra={"x": 1})
     assert rec["parsed_letter"] == "C" and rec["x"] == 1
+
+
+def test_boot_diff_resamples_questions_together():
+    import pytest
+    from common import boot_diff
+    a = {q: [1, 1, 0] for q in range(10)}                     # 2 of 3 in every question
+    b = {q: [0, 0, 0] for q in range(10)}
+    d, lo, hi = boot_diff(a, b)
+    assert d == pytest.approx(2 / 3) and lo == pytest.approx(2 / 3) and hi == pytest.approx(2 / 3)
+    mixed = {q: [1] if q < 5 else [0] for q in range(10)}       # the gap lives in which questions are drawn
+    d, lo, hi = boot_diff(mixed, b)
+    assert d == 0.5 and lo < 0.5 < hi and boot_diff(mixed, b) == (d, lo, hi)    # fixed seed: reproducible
+    d, lo, hi = boot_diff({0: [1], 1: [1]}, {0: [0], 2: [0]})                    # only shared questions count
+    assert (d, lo, hi) == (1.0, 1.0, 1.0)

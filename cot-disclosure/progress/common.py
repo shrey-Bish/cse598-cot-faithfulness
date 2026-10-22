@@ -199,6 +199,22 @@ def done_ids(path):
 
 
 # ---------------------------------------------------------------- statistics
+def boot_diff(a, b, n=20000, seed=0):
+    """Difference in rate between two systems (a - b) over the questions both have, with a 95%
+    percentile bootstrap clustered by question: a and b map question -> 0/1 outcomes, and each
+    resample draws questions (with all their runs, in both systems) with replacement.
+    Returns (difference, low, high)."""
+    qs = sorted(set(a) & set(b), key=str)
+
+    def diff(sample):
+        ra = [x for q in sample for x in a[q]]
+        rb = [x for q in sample for x in b[q]]
+        return sum(ra) / len(ra) - sum(rb) / len(rb) if ra and rb else None
+    rng = random.Random(seed)
+    vals = sorted(v for v in (diff([rng.choice(qs) for _ in qs]) for _ in range(n)) if v is not None)
+    return diff(qs), vals[int(0.025 * len(vals))], vals[int(0.975 * len(vals)) - 1]
+
+
 def wilson(k, n, z=1.959964):
     """Wilson score 95% interval for k successes out of n."""
     if not n:
