@@ -295,6 +295,11 @@ def report():
         ok = sum(r["parsed_letter"] == r["cue_letter"] for r in o)
         print(f"| {cond} | {rs[0].get('system_prompt')} | {len(rs)} | {rate(k, len(rs))} | {answered} of {len(rs)} | "
               f"{cut} of {len(rs)} | {said} of {len(rs)} | {rate(ok, len(o)) if o else '— (new channel)'} |")
+    was_cut = [r for r in mine if r.get("extensions") or r.get("extended_saved_run") or r["finish_reason"] == "length"]
+    continued = [r for r in was_cut if r.get("extensions") or r.get("extended_saved_run")]
+    print(f"\ncut off at 16,000 tokens: {len(was_cut)} of {len(mine)}; continued up to the {olmo_format.CONTEXT:,}-token "
+          f"context: {len(continued)}, of which {sum(r['finish_reason'] != 'length' for r in continued)} then finished; "
+          f"still cut off (no answer): {sum(r['finish_reason'] == 'length' for r in mine)} of {len(mine)}")
     none = [r for r in mine if r["condition"] == "none"]
     base = sum(r["parsed_letter"] == items[r["item_id"]]["cue_letter"] for r in none)
     old_base = sum(r["parsed_letter"] == items[r["item_id"]]["cue_letter"] for r in old_none)
