@@ -9,6 +9,10 @@ The training run itself is the plan below.
 |---|---|---|
 | `build_dataset.py` | Builds train and held-out records from saved runs. Each record is one question, one wrong hint, Olmo 3 7B Think's own no-hint answer, and the correct answer. | Yes. Writes `data/train.jsonl` (196 records), `data/heldout.jsonl` (120), `data/manifest.json`. |
 | `source_tags.py` | Source tags: a learned `Embedding(4, hidden_size)` added to each input token, marking its source (system, user, tool, model). Ids come from chat-template role spans. | Yes. Unit-tested on a tiny random model on CPU (`tests/test_source_tags.py`). |
+| `voyager_capabilities.py`, `voyager_ids_check.py` | Step 1: what Voyager's endpoints accept (completions, echo log-probs, stops). The 2026-10-21 model-ID change checks. | Done. `results/trackA/voyager_capabilities*.json*`, `voyager_ids_check.jsonl`. |
+| `templates/`, `olmo_format.py`, `template_revisions.py`, `show_spans.py` | Step 2: the pinned format. The official Think template plus the Instruct template's tool turns. Rendered locally, sent to `/v1/completions`, split at `</think>` by us. A reply cut off at 16,000 tokens is continued up to the 65,536-token context (`extend`). | Yes. `tests/test_trackA_format.py`. |
+| `smoke_2b.py`, `base_format.py` | Step 2b: the base model in the pinned format. 20 MMLU-Pro Test 2 questions × no hint, user, tool pasted, tool inserted, and tool inserted with the function declared. `--report` gives channels, both inserted arms and the contradiction keyword count. | Running. `results/trackA/base_format.jsonl`. |
+| `look/takeover.py`, `look/plot_takeover.py` | Step 3: the takeover curve. After each sentence of a saved run, force `</think>\n\nAnswer: (` and read the option letters' probabilities (top 10). Gives the takeover point, whether a hint mention comes just before it, and, for resisted runs, the rise and fall. One probe per request on Voyager (its gateway refuses a list of prompts); the last probe goes first so the server's prefix cache holds the reasoning. | Written and tested (`tests/test_trackA_takeover.py`). Runs after Step 2b. |
 
 ## The idea in one paragraph
 
