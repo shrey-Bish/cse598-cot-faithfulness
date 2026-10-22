@@ -22,7 +22,8 @@ sys.path.insert(0, str(CODE))
 import experiments as pilot  # noqa: E402
 from parse import parse_answer  # noqa: E402
 from providers import budget, generate  # noqa: E402
-from providers.base import MissingKey  # noqa: E402
+from client import preflight  # noqa: E402
+from providers.base import MissingKey, route_fields, status_of  # noqa: E402
 from tools.answer_key import build, run_tool_loop  # noqa: E402
 
 CONFIG = CODE / "configs" / "trackB.yaml"
@@ -115,9 +116,10 @@ def run_one(cfg, j):
         reply, transcript = gen(messages=msgs), msgs
     letter = parse_answer(reply.final_text, item["n_options"])[0] if not reply.error else None
     return {"run_id": j["run_id"], "experiment": "trackB", "provider": m["provider"], "model": m["model"],
+            **route_fields(reply),
             "thinking": m.get("thinking"), "set": item["set"], "item_id": item["item_id"], "condition": j["condition"],
             "repeat": j["repeat"], "hint_letter": None if j["condition"] == "none" else item["hint_letter"],
-            "correct_letter": item["correct"], "parsed_letter": letter, "status": "api_error" if reply.error else "ok",
+            "correct_letter": item["correct"], "parsed_letter": letter, "status": status_of(reply),
             "error_type": reply.error, "finish_reason": reply.finish_reason, "final_text": reply.final_text,
             "reasoning_text": reply.reasoning_text, "reasoning_visibility": reply.reasoning_visibility,
             "tool_steps": steps, "called_tool": bool(steps and steps[0]["tool_calls"]), "usage": reply.usage,
@@ -140,6 +142,8 @@ def main():
         dry_run(cfg, todo)
         return
     todo = todo[: a.limit] if a.limit else todo
+    for name in sorted({j["model"]["model"] for j in todo if j["model"]["provider"] == "voyager"}):
+        preflight(name)          # /v1/models + identity canary before any job; raises (stops) on failure
     workers = 4 if a.only_provider in (None, "voyager") else 1   # paid providers: one at a time under the guard
 
     def safe(j):

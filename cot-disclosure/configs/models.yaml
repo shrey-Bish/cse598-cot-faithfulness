@@ -3,11 +3,26 @@
 # not confirm. Re-check before each sweep: model lineups and parameters change.
 checked: "2026-10-04"
 
+# Our model names -> [Voyager ID, reasoning_effort]. Since 2026-10-21 Voyager serves each
+# instruct/thinking pair under one family ID, and reasoning_effort picks the member:
+# none = the instruct model (the default), low/medium/high = the thinking model. They are
+# still two separately trained checkpoints, not thinking switched on and off in one model.
+# client.py applies this mapping to every request; our names stay everywhere else (they also
+# label the saved runs). Thinking models must send a non-none effort (client.py refuses).
+voyager_ids:
+  olmo3-7b-instruct: [olmo3-7b, none]
+  olmo3-7b-think: [olmo3-7b, medium]
+  olmo3-32b-instruct: [olmo3-32b, none]
+  olmo3-32b-think: [olmo3-32b, medium]
+  qwen3-30b-a3b-instruct-2507: [qwen3-30b-a3b, none]
+  qwen3-30b-a3b-thinking-2507: [qwen3-30b-a3b, medium]
+
 providers:
   voyager:
     endpoint: "https://openai.rc.asu.edu/v1/chat/completions (streamed; client.py)"
     reasoning: "open models return private reasoning in full in the streamed `reasoning` field (renamed from `reasoning_content`; seen 2026-10-04)"
-    thinking_toggle: "none: enable_thinking is ignored (cot-disclosure/README.md); use instruct/thinking twins or the 'think briefly' prompt"
+    thinking_toggle: "since 2026-10-21 reasoning_effort picks the checkpoint: none = instruct, low/medium/high = thinking (voyager_ids above); enable_thinking is ignored; the 'think briefly' prompt shortens thinking within one checkpoint"
+    ids_changed: "2026-10-21: the six study IDs were replaced by families olmo3-7b, olmo3-32b, qwen3-30b-a3b; the new olmo3-7b@medium route matches the old olmo3-7b-think exactly on the first 2,047 prompt tokens (results/trackA/voyager_ids_check.jsonl on the Track A branch)"
     tool_calls: "OpenAI chat format; tested 2026-10-04, see docs/PLAN.md (Track B) and results/scope/voyager_tool_support.jsonl"
     seed: "supported (README, checked 2026-10-01)"
     cost: free

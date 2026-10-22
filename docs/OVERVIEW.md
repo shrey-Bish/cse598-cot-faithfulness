@@ -99,7 +99,7 @@ reruns) are kept separate from the experiments.
 Six open-weight models on ASU's free **Voyager** service (OpenAI-compatible API, vLLM),
 in three instruct / thinking pairs.
 
-| Voyager ID | Candidate upstream model | Type | Median output tokens, Test 1 no-hint |
+| Our name (the Voyager ID until Oct 21) | Candidate upstream model | Type | Median output tokens, Test 1 no-hint |
 |---|---|---|---|
 | `olmo3-7b-instruct` | allenai/Olmo-3-7B-Instruct | dense, 7B | 2,020.5 |
 | `olmo3-7b-think` | allenai/Olmo-3-7B-Think | dense, 7B | 8,025.5 |
@@ -115,6 +115,29 @@ in three instruct / thinking pairs.
 - Thinking can't be switched off on Voyager (`enable_thinking: false` is ignored). The
   "think briefly" prompt shortens the private reasoning by 29.8% (Olmo 3 7B Think) and
   47.7% (Qwen3 30B Thinking).
+
+**Voyager's model IDs changed on Oct 21.**
+- **Families replace the six IDs.** The six IDs above were replaced by one family ID per
+  pair (`olmo3-7b`, `olmo3-32b`, `qwen3-30b-a3b`), and `reasoning_effort` chooses the member.
+  - `none`, the default, is the instruct checkpoint.
+  - `low`, `medium` and `high` are the thinking checkpoint.
+  - These are still two separately trained models, not one model with thinking switched on
+    and off.
+- **Our six names stay.** `cot-disclosure/client.py` maps them on every request
+  (`configs/models.yaml`) and guards each run (see the code README).
+- **We treat the new `olmo3-7b` + `medium` route as the same checkpoint as the old
+  `olmo3-7b-think`.** Step 1's exact 5,185-token prompt was sent again with echo
+  log-probabilities:
+  - **Exact agreement on the first 2,047 positions** (max difference 0.0003, at one
+    position). The drift starts at position 2,047.
+  - **Small drift after that:** mean 0.006, max 0.19.
+  - **All 24 top-token mismatches are near-ties.** The old top token's probability was at
+    most 0.56, with the alternative within about 0.05.
+  - **For scale:** the Instruct checkpoint against the same reference has 654 mismatches,
+    mean 0.32, max 20.7.
+  - **The likely cause, not confirmed,** is that the server processes long prompts in
+    2,048-token chunks (chunked prefill), so numerics shift after the first chunk.
+  - Data: `results/trackA/voyager_ids_check.jsonl` on the Track A branch.
 
 **Settings used in every experiment:**
 - temperature 0.6 and `max_tokens` 16,000

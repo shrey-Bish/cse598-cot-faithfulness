@@ -25,6 +25,8 @@ sys.path.insert(0, str(CODE / "progress"))
 import experiments as pilot  # noqa: E402
 from agents import checker, reviewer, solver  # noqa: E402
 from agents.common import log_step, tokens  # noqa: E402
+from client import preflight  # noqa: E402
+from providers.base import route_fields  # noqa: E402
 from common import load, latest  # noqa: E402
 from parse import parse_answer  # noqa: E402
 from providers import generate  # noqa: E402
@@ -73,6 +75,9 @@ def live(n, path):
     picks = [x for pair in zip(bad, good) for x in pair][:n]
     sp, sm = SOLVER_MODEL
     rp, rm = REVIEWER_MODEL
+    for provider, model in (SOLVER_MODEL, REVIEWER_MODEL):
+        if provider == "voyager":
+            preflight(model)     # /v1/models + identity canary before any call; raises (stops) on failure
     gen_s = lambda **kw: generate(sp, sm, max_tokens=16000, temperature=0.6, **{"seed": 0, **kw})  # noqa: E731
     gen_r = lambda **kw: generate(rp, rm, max_tokens=2000, temperature=0.6, seed=0, **kw)  # noqa: E731
     rows = []
@@ -83,10 +88,12 @@ def live(n, path):
         log_step(path, mode="live", agent="solver", item_id=item["item_id"], model=sm, bad_lookup=is_bad,
                  tool_letter=tool_letter, letter=s_letter, correct=item["correct"], steps=steps,
                  reasoning_visibility=s_reply.reasoning_visibility, final_text=s_reply.final_text,
-                 reasoning_text=s_reply.reasoning_text, usage=s_reply.usage, error=s_reply.error)
+                 reasoning_text=s_reply.reasoning_text, usage=s_reply.usage, error=s_reply.error,
+                 **route_fields(s_reply))
         c_reply, c_letter, flag = checker.check(gen_s, item, s_letter)
         log_step(path, mode="live", agent="checker", item_id=item["item_id"], model=sm, letter=c_letter,
-                 flag=flag, final_text=c_reply.final_text, usage=c_reply.usage, error=c_reply.error)
+                 flag=flag, final_text=c_reply.final_text, usage=c_reply.usage, error=c_reply.error,
+                 **route_fields(c_reply))
         for variant in reviewer.VARIANTS:
             r_reply, r_letter, rule = reviewer.review(gen_r, variant, item["question"], s_letter, item["n_options"],
                                                       final_text=s_reply.final_text,
@@ -97,7 +104,7 @@ def live(n, path):
                            letter=r_letter, parse_rule=rule, solver_letter=s_letter, correct=item["correct"],
                            bad_lookup=is_bad, solver_wrong=s_letter != item["correct"], checker_flag=flag, **res,
                            tokens=sum(tokens(x)["input"] + tokens(x)["output"] for x in (s_reply, c_reply, r_reply)),
-                           final_text=r_reply.final_text, error=r_reply.error)
+                           final_text=r_reply.final_text, error=r_reply.error, **route_fields(r_reply))
             rows.append(row)
     return rows
 

@@ -37,6 +37,23 @@ class Reply:
         return asdict(self)
 
 
+ROUTE_FIELDS = ("requested_model_id", "reasoning_effort", "served_model")
+
+
+def route_fields(reply):
+    """The model ID sent, the reasoning_effort sent and the model the server reports, for records
+    (Voyager fills them in; other providers leave them None)."""
+    raw = (reply.raw or {}) if reply else {}
+    return {k: raw.get(k) for k in ROUTE_FIELDS}
+
+
+def status_of(reply):
+    """ok / not_run (an idle timeout: retry later) / api_error."""
+    if not reply.error:
+        return "ok"
+    return "not_run" if str(reply.error).startswith("IdleTimeout") else "api_error"
+
+
 def load_env():
     """Read cot-disclosure/.env into os.environ (values are never printed)."""
     env = CODE / ".env"

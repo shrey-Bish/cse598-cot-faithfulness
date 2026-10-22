@@ -1,8 +1,10 @@
 """ASU Voyager (OpenAI-compatible, vLLM-served open models) through the repo's client.py.
 
-Thinking can't be switched on or off on Voyager (README: `enable_thinking` is ignored),
-so `thinking` is recorded but not sent. Private reasoning comes back in full in the
-streamed `reasoning` field, so visibility is "full" when present.
+`model` is one of our model names; client.py maps it to the Voyager family ID and the
+reasoning_effort that picks the instruct or the thinking checkpoint (configs/models.yaml,
+since 2026-10-21) and applies the guards. `thinking` is recorded but not sent: the model
+name already fixes the checkpoint. Private reasoning comes back in full in the streamed
+`reasoning` field, so visibility is "full" when present.
 """
 import sys
 import time
@@ -33,4 +35,6 @@ def generate(model, messages, *, tools=None, thinking=None, max_tokens=16000, te
                "reasoning_tokens": None, "raw": usage},
         latency_s=out.get("latency_s") or round(time.monotonic() - start, 2), cost_usd=0.0, error=out["error"],
         raw={"cached": out.get("cached"), "reasoning_field": out.get("reasoning_field"),
-             "thinking_requested": thinking, "thinking_sent": False})
+             "thinking_requested": thinking, "thinking_sent": False,
+             "requested_model_id": out.get("requested_model_id"), "reasoning_effort": out.get("reasoning_effort"),
+             "served_model": out.get("served_model")})

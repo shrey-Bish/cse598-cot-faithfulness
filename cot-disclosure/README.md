@@ -114,8 +114,25 @@ rerun with the same seed reuses them. Delete `cache/` for fresh calls.
   from it.
 - **Private reasoning arrives in the `reasoning` field** (formerly `reasoning_content`).
   `client.py` reads both.
-- **Thinking can't be switched off** (`enable_thinking: false` is ignored), and
-  `reasoning_effort` does nothing. "Think very briefly" in the prompt does shorten it.
+- **Model IDs changed on Oct 21: `reasoning_effort` now chooses the model.**
+  - Each instruct/thinking pair is one family ID (`olmo3-7b`, `olmo3-32b`,
+    `qwen3-30b-a3b`). `none` (the default!) gives the instruct checkpoint;
+    `low`/`medium`/`high` give the thinking one.
+  - These are still two separately trained models, not thinking switched on and off in
+    one model. `enable_thinking` is still ignored. "Think very briefly" in the prompt still
+    shortens the reasoning.
+  - Keep using our six names (`olmo3-7b-think`, …). `client.py` maps them through
+    `configs/models.yaml` (`voyager_ids`) on every request and never sends an old ID.
+- **The client guards every Voyager run:**
+  - a thinking model can't be sent with effort `none`
+  - the first request checks `/v1/models` and stops if the family ID is gone, or no
+    longer serves our model at that effort
+  - an identity canary runs at the start and hourly: an echo call on a short reference
+    text (`configs/canary/<name>.json`, under 2,048 tokens). The run stops unless the
+    top tokens match and the max log-prob difference is under 0.01.
+  - no token for 10 minutes aborts a request as `not_run` (retry it later), never "no
+    answer"
+  - every record saves `requested_model_id`, `reasoning_effort` and `served_model`
 - **Seeds repeat runs only partly** (not at all on the 32B endpoints), so save every
   prompt and reply. `progress/common.make_record` does.
 - **Keep at most 4 requests in flight** (`progress/common.slot`).

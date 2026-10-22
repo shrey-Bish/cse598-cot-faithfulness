@@ -131,8 +131,19 @@ def make_record(out, *, experiment, item_id, model, condition, repeat, messages,
         "reasoning_field": out.get("reasoning_field"),
         "reasoning_text": out["reasoning"] or None, "final_text": out["content"],
         "parsed_letter": letter, "parse_rule": rule, "parse_status": parse_status(out, letter),
-        "status": "api_error" if out["error"] else "ok", "error_type": out["error"], "retries": out.get("retries", 0),
+        "status": status_of(out), "error_type": out["error"], "retries": out.get("retries", 0),
+        # what was sent and what answered (client.py; Voyager IDs changed on 2026-10-21)
+        "requested_model_id": out.get("requested_model_id"), "reasoning_effort": out.get("reasoning_effort"),
+        "served_model": out.get("served_model"),
     }
+
+
+def status_of(out):
+    """ok; not_run for an idle timeout (no token for 10 minutes: aborted, retry it later, never
+    "no answer"); api_error for anything else."""
+    if not out["error"]:
+        return "ok"
+    return "not_run" if str(out["error"]).startswith("IdleTimeout") else "api_error"
 
 
 def call(log, *, experiment, item_id, model, condition, repeat, messages, n_options,
