@@ -130,3 +130,15 @@ def test_http_error_detail_is_read_safely():
     assert _error_detail(err(b'{"message": "bad role"}')) == "bad role"
     assert _error_detail(err(b'{"error": "plain string"}')) == "plain string"
     assert _error_detail(err(b"not json")) == ""
+
+
+def test_a_list_of_prompts_keeps_each_choice_separate():
+    lines = [sse({"choices": [{"index": 1, "text": "C", "logprobs": {"tokens": ["C"], "token_logprobs": [-0.2],
+                                                                      "top_logprobs": [{"C": -0.2, "B": -1.9}]}}]}),
+             sse({"choices": [{"index": 0, "text": "B", "finish_reason": "length",
+                               "logprobs": {"tokens": ["B"], "token_logprobs": [-0.1], "top_logprobs": [{"B": -0.1}]}}]}),
+             sse({"choices": [{"index": 1, "text": "", "finish_reason": "length"}]}), b"data: [DONE]"]
+    out = parse_stream_lines(lines)
+    assert [c["text"] for c in out["choices"]] == ["B", "C"]                     # ordered by prompt index
+    assert out["choices"][1]["logprobs"][0]["top_logprobs"] == {"C": -0.2, "B": -1.9}
+    assert [c["finish"] for c in out["choices"]] == ["length", "length"]

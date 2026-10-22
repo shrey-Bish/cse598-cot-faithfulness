@@ -303,6 +303,8 @@ def _request(payload, key, path, stream, retries, backoff, on_retry, name=None, 
             for k in ("logprobs", "prompt_logprobs"):     # only when the request asked for them
                 if out.get(k):
                     result[k] = out[k]
+            if len(out.get("choices") or []) > 1:          # a list of prompts: each one's own result
+                result["choices"] = out["choices"]
             if cached is not None:
                 cached.write_text(json.dumps(result))
             return {**result, "cached": False}
@@ -368,6 +370,7 @@ def iter_stream_lines(lines, idle_s=None, clock=time.monotonic):
     arrived for that long, even if the server keeps the connection busy with other lines."""
     content, reasoning, finish, usage, field, calls = [], [], None, {}, None, {}
     logprobs, prompt_logprobs, served = [], None, None
+    by_choice = {}          # a list of prompts in one completions request: each prompt's own text and log-probs
     last = clock()
     for raw in lines:
         if idle_s is not None and clock() - last > idle_s:
@@ -384,19 +387,24 @@ def iter_stream_lines(lines, idle_s=None, clock=time.monotonic):
         prompt_logprobs = chunk.get("prompt_logprobs") or prompt_logprobs
         for choice in chunk.get("choices", []):
             prompt_logprobs = choice.get("prompt_logprobs") or prompt_logprobs
+            own = by_choice.setdefault(choice.get("index", 0), {"text": "", "logprobs": [], "finish": None})
             lp = choice.get("logprobs")
             if isinstance(lp, dict) and lp.get("content"):          # chat format: one entry per token
                 logprobs += lp["content"]
                 last = clock()
             elif isinstance(lp, dict) and lp.get("tokens"):         # completions format: parallel lists
                 tops = lp.get("top_logprobs") or [None] * len(lp["tokens"])
-                logprobs += [{"token": t, "logprob": l, "top_logprobs": top}
-                             for t, l, top in zip(lp["tokens"], lp.get("token_logprobs") or [], tops)]
+                entries = [{"token": t, "logprob": l, "top_logprobs": top}
+                           for t, l, top in zip(lp["tokens"], lp.get("token_logprobs") or [], tops)]
+                logprobs += entries
+                own["logprobs"] += entries
                 last = clock()
             if choice.get("text"):
                 content.append(choice["text"])
+                own["text"] += choice["text"]
                 last = clock()
                 yield "content", choice["text"]
+            own["finish"] = choice.get("finish_reason") or own["finish"]
             delta = choice.get("delta") or {}
             name = "reasoning_content" if delta.get("reasoning_content") else "reasoning"
             piece = delta.get(name)
@@ -420,7 +428,8 @@ def iter_stream_lines(lines, idle_s=None, clock=time.monotonic):
             finish = choice.get("finish_reason") or finish
     yield "end", {"content": "".join(content), "reasoning": "".join(reasoning), "finish": finish, "usage": usage,
                   "reasoning_field": field, "tool_calls": [calls[i] for i in sorted(calls)],
-                  "logprobs": logprobs, "prompt_logprobs": prompt_logprobs, "served_model": served}
+                  "logprobs": logprobs, "prompt_logprobs": prompt_logprobs, "served_model": served,
+                  "choices": [by_choice[i] for i in sorted(by_choice)]}
 
 
 def parse_stream_lines(lines, idle_s=None):
