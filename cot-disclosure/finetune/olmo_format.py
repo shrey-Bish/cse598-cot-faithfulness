@@ -108,3 +108,31 @@ def assistant_turn(reply):
     """For tools.answer_key.run_injected: the assistant message that replays a reply in the
     conversation (its whole generated text, after the "<think>" the prompt opened)."""
     return {"role": "assistant", "content": THINK_OPEN + reply["raw"]}
+
+
+CONTEXT = 65536        # olmo3-7b: context_window and max_input_tokens in Voyager's /v1/models (2026-10-21)
+CONTEXT_MARGIN = 64
+
+
+def extend(model, prompt, raw, usage, *, temperature=0.6, seed=None, stop_after_call=False, backoff=None):
+    """Continue a reply that hit its token cap, from exactly where it stopped, up to the model's
+    context: the same streamed /v1/completions request on prompt + the text so far. Equivalent
+    to one run with the larger cap (the first part is reused, not regenerated). Returns a reply
+    like generate()'s, covering the whole text, or None if the context has no room left.
+    A reply still cut off at the context limit is no answer (finish "length")."""
+    from client import complete
+    used = (usage or {}).get("prompt_tokens", 0) + (usage or {}).get("completion_tokens", 0)
+    room = CONTEXT - used - CONTEXT_MARGIN
+    if room < 256:
+        return None
+    body = {"stop": ["</function_calls>"], "include_stop_str_in_output": True} if stop_after_call else None
+    out = complete(model, prompt + raw, max_tokens=room, temperature=temperature, seed=seed, backoff=backoff, extra=body)
+    whole = raw + (out["content"] or "")
+    reasoning, final = split(whole)
+    added = (out.get("usage") or {}).get("completion_tokens") or 0
+    return {**out, "raw": whole, "prompt": prompt, "reasoning": reasoning, "content": final,
+            "reasoning_field": "split_at_think_close",
+            "usage": {"prompt_tokens": (usage or {}).get("prompt_tokens"),
+                      "completion_tokens": (usage or {}).get("completion_tokens", 0) + added},
+            "extension": {"from_completion_tokens": (usage or {}).get("completion_tokens", 0), "added_tokens": added,
+                          "max_tokens_continuation": room, "finish": out["finish"], "error": out["error"]}}

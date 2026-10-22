@@ -42,7 +42,7 @@ from common import BACKOFF, append, latest, load, make_record, run_id, slot, wil
 from finetune import olmo_format  # noqa: E402
 from mmlu_pro_probe import load_items, question_block  # noqa: E402
 from detect import detect  # noqa: E402
-from tools.answer_key import INJECTED, MAX_EXTRA_ROUNDS, TOOL_SPEC, build, run_injected  # noqa: E402
+from tools.answer_key import INJECTED, MAX_EXTRA_ROUNDS, TOOL_SPEC, build, run_injected, tool_reply  # noqa: E402
 
 MODEL = "olmo3-7b-think"
 EXPERIMENT = "trackA_base_format"
@@ -78,28 +78,34 @@ def jobs(items):
     return plain + [(it, cond, rep, arm) for it in items for (cond, arm), n in ARMS.items() for rep in range(n)]
 
 
-def one(it, cond, rep, arm=None, experiment=EXPERIMENT):
+def generate_round(msgs, cond, rep, tools, extensions):
+    """One generation; a reply that hits MAX_TOKENS is continued up to the model's context
+    (olmo_format.extend), so the effective limit is the 65,536-token context, not 16,000."""
+    with slot():
+        out = olmo_format.generate(MODEL, msgs, max_tokens=MAX_TOKENS, temperature=TEMPERATURE, seed=rep,
+                                   stop_after_call=cond == INJECTED, backoff=BACKOFF, tools=tools)
+    return continue_if_cut(out, cond, rep, extensions)
+
+
+def continue_if_cut(out, cond, rep, extensions):
+    if out["finish"] != "length" or out["error"]:
+        return out
+    with slot():
+        ext = olmo_format.extend(MODEL, out["prompt"], out["raw"], out["usage"], temperature=TEMPERATURE, seed=rep,
+                                 stop_after_call=cond == INJECTED, backoff=BACKOFF)
+    if ext is None:
+        return out
+    extensions.append(ext["extension"])
+    return ext
+
+
+def record(out, it, cond, rep, arm, messages, tools, rounds, model_calls, transcript, extensions, experiment):
     qid, letter = it["question_id"], it["cue_letter"]
-    messages, _ = build(question_block(it), qid, cond, None if cond == "none" else letter)
-    rid = run_id(experiment, qid, MODEL, cond, arm, rep)
-    tools = [TOOL_SPEC] if arm == DECLARED else None
-
-    def gen(msgs):
-        with slot():
-            return olmo_format.generate(MODEL, msgs, max_tokens=MAX_TOKENS, temperature=TEMPERATURE, seed=rep,
-                                        stop_after_call=cond == INJECTED, backoff=BACKOFF, tools=tools)
-
-    rounds, model_calls, transcript = None, None, None
-    if cond == INJECTED:
-        out, transcript, rounds, model_calls = run_injected(gen, messages, question_id=qid, letter=letter,
-                                                            find_calls=olmo_format.find_calls,
-                                                            assistant_turn=olmo_format.assistant_turn)
-    else:
-        out = gen(messages)
     rec = make_record(out, experiment=experiment, item_id=qid, model=MODEL, condition=cond, repeat=rep, arm=arm,
                       messages=messages, n_options=len(it["options"]), correct_letter=it["answer"],
                       cue_letter=None if cond == "none" else letter, cue_channel=None if cond == "none" else cond,
-                      temperature=TEMPERATURE, max_tokens=MAX_TOKENS, seed=rep, run_id_=rid)
+                      temperature=TEMPERATURE, max_tokens=MAX_TOKENS, seed=rep,
+                      run_id_=run_id(experiment, qid, MODEL, cond, arm, rep))
     if rec["finish_reason"] == "length":           # cut off = no answer; a letter in it may quote the hint
         rec["parsed_letter_if_not_cut"], rec["parsed_letter"] = rec["parsed_letter"], None
     rec.update({"format": "olmo3_think_tools", "template_sha256": olmo_format.PINNED_SHA256,
@@ -108,8 +114,90 @@ def one(it, cond, rep, arm=None, experiment=EXPERIMENT):
                 "endpoint": "completions", "rendered_prompt": out.get("prompt"), "raw_text": out.get("raw"),
                 "category": it["category"], "tool_rounds": rounds, "tool_calls_by_model": model_calls,
                 "transcript": transcript if rounds and len(rounds) > 1 else None,
-                "no_answer_reason": out.get("no_answer_reason")})
+                "no_answer_reason": out.get("no_answer_reason"),
+                "token_limit": {"first_segment": MAX_TOKENS, "continued_up_to_context": olmo_format.CONTEXT},
+                "extensions": extensions or None})
     return rec
+
+
+def one(it, cond, rep, arm=None, experiment=EXPERIMENT):
+    qid, letter = it["question_id"], it["cue_letter"]
+    messages, _ = build(question_block(it), qid, cond, None if cond == "none" else letter)
+    tools = [TOOL_SPEC] if arm == DECLARED else None
+    extensions = []
+
+    def gen(msgs):
+        return generate_round(msgs, cond, rep, tools, extensions)
+
+    rounds, model_calls, transcript = None, None, None
+    if cond == INJECTED:
+        out, transcript, rounds, model_calls = run_injected(gen, messages, question_id=qid, letter=letter,
+                                                            find_calls=olmo_format.find_calls,
+                                                            assistant_turn=olmo_format.assistant_turn)
+    else:
+        out = gen(messages)
+    return record(out, it, cond, rep, arm, messages, tools, rounds, model_calls, transcript, extensions, experiment)
+
+
+def extend_saved(rec, it):
+    """Continue a saved run that was cut off at 16,000 tokens before automatic continuation
+    existed: its final round goes on from where it stopped; an inserted-tool reply that then
+    calls the tool again gets the usual answers (within the same round limit)."""
+    cond, rep, arm = rec["condition"], rec["repeat"], rec.get("arm")
+    tools = [TOOL_SPEC] if arm == DECLARED else None
+    extensions = []
+    last = {"prompt": rec["rendered_prompt"], "raw": rec["raw_text"] or "", "usage": rec["usage"],
+            "finish": "length", "error": None}
+    out = continue_if_cut(last, cond, rep, extensions)
+    if out is last:                                   # no room left in the context
+        return None
+    messages = rec["prompt_messages"]
+    rounds, model_calls, transcript = rec.get("tool_rounds"), rec.get("tool_calls_by_model"), rec.get("transcript")
+    if cond == INJECTED:
+        rounds = list(rounds or []) + [{"round": len(rounds or []), "extended": True, "finish": out["finish"],
+                                        "error": out["error"], "calls": [c[1] for c in olmo_format.find_calls(out)],
+                                        "usage": out["usage"]}]
+        calls = olmo_format.find_calls(out) if not out["error"] else []
+        model_calls = (model_calls or 0) + len(calls)
+        left = MAX_EXTRA_ROUNDS + 1 - (len(rounds) - 1)  # rounds still allowed after this one
+        if calls and left > 1:
+            msgs = (transcript or messages) + [olmo_format.assistant_turn(out)]
+            for name, _ in calls:
+                msgs.append({"role": "tool", "name": name, "content": tool_reply(rec["item_id"], rec["cue_letter"])})
+            out, transcript, more, n = run_injected(lambda m: generate_round(m, cond, rep, tools, extensions), msgs,
+                                                     question_id=rec["item_id"], letter=rec["cue_letter"],
+                                                     find_calls=olmo_format.find_calls,
+                                                     assistant_turn=olmo_format.assistant_turn, max_extra=left - 2)
+            rounds += more
+            model_calls += n
+        elif calls:
+            out = {**out, "content": "", "no_answer_reason": "still calling the tool"}
+    new = record(out, it, cond, rep, arm, messages, tools, rounds, model_calls, transcript, extensions, EXPERIMENT)
+    new["extended_saved_run"] = {"timestamp_utc": rec["timestamp_utc"], "completion_tokens": (rec["usage"] or {}).get(
+        "completion_tokens"), "reason": "cut off at the 16,000-token limit; continued up to the 65,536-token context"}
+    return new
+
+
+def extend_pass(items):
+    """Continue every current run that was cut off at 16,000 tokens and not yet continued."""
+    by_id = {it["question_id"]: it for it in items}
+    todo = [r for r in current(load(OUT)) if r["status"] == "ok" and r["finish_reason"] == "length"
+            and not r.get("extensions") and not r.get("extended_saved_run")]
+    print(f"{len(todo)} runs cut off at {MAX_TOKENS:,} tokens to continue up to the {olmo_format.CONTEXT:,}-token "
+          f"context", flush=True)
+    start = time.monotonic()
+    with ThreadPoolExecutor(IN_FLIGHT) as pool:
+        futures = [pool.submit(extend_saved, r, by_id[r["item_id"]]) for r in todo]
+        try:
+            for n, fut in enumerate(as_completed(futures), 1):
+                rec = fut.result()
+                if rec:
+                    append(OUT, rec)
+                if n % 5 == 0 or n == len(todo):
+                    print(f"  {n}/{len(todo)} continued, {(time.monotonic() - start) / 60:.1f} min", flush=True)
+        except (ModelUnavailable, CanaryFailed):
+            pool.shutdown(wait=False, cancel_futures=True)
+            raise
 
 
 def current(rows):
@@ -242,9 +330,22 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="jobs, calls and estimated time; no calls")
     ap.add_argument("--report", action="store_true", help="summarize the saved runs; no calls")
+    ap.add_argument("--extend", action="store_true",
+                    help="continue saved runs cut off at 16,000 tokens up to the 65,536-token context")
     a = ap.parse_args()
     items = questions()
     if a.report:
+        return report()
+    if a.extend:
+        todo = [r for r in current(load(OUT)) if r["status"] == "ok" and r["finish_reason"] == "length"
+                and not r.get("extensions") and not r.get("extended_saved_run")]
+        if a.dry_run:
+            print(f"{len(todo)} cut-off runs to continue (1 call each, plus inserted-tool rounds if the model calls "
+                  f"the tool again); each may add up to {olmo_format.CONTEXT - 16500:,} tokens (about 50 tokens/s, "
+                  f"so up to ~15 min a call); {IN_FLIGHT} in flight")
+            return
+        preflight(MODEL)
+        extend_pass(items)
         return report()
     js = jobs(items)
     if a.dry_run:

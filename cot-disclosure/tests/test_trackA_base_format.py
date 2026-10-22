@@ -55,6 +55,7 @@ def fake_generate(finals, finish="stop"):
 def test_a_cut_off_reply_is_no_answer(monkeypatch):
     gen, _ = fake_generate(["\n\nAnswer: (B)"], finish="length")
     monkeypatch.setattr(olmo_format, "generate", gen)
+    monkeypatch.setattr(olmo_format, "extend", lambda *a, **k: None)      # no room left to continue
     it = bf.questions()[0]
     rec = bf.one(it, "user", 0)
     assert rec["parsed_letter"] is None and rec["parsed_letter_if_not_cut"] == "B"
@@ -107,3 +108,35 @@ def test_only_runs_through_the_current_route_count_and_reruns_say_what_they_supe
     assert bf.current([old]) == [] and bf.current([old, new]) == [new] and bf.current([other]) == []
     note = bf.supersedes(old)
     assert note["timestamp_utc"] == old["timestamp_utc"] and "2026-10-21" in note["reason"]
+
+
+def test_a_cut_off_reply_is_continued_up_to_the_context(monkeypatch):
+    gen, _ = fake_generate(["partial"], finish="length")
+    monkeypatch.setattr(olmo_format, "generate", gen)
+    seen = []
+
+    def fake_extend(model, prompt, raw, usage, **kw):
+        seen.append((prompt, raw, usage))
+        return {"content": "\n\nAnswer: (C)", "raw": raw + " more.</think>\n\nAnswer: (C)", "prompt": prompt,
+                "reasoning": raw + " more.", "finish": "stop", "usage": {"completion_tokens": 30000}, "error": None,
+                "retries": 0, "latency_s": 2.0, "reasoning_field": "split_at_think_close", "tool_calls": [],
+                "cached": False, "extension": {"from_completion_tokens": 9, "added_tokens": 29991, "finish": "stop"}}
+    monkeypatch.setattr(olmo_format, "extend", fake_extend)
+    rec = bf.one(bf.questions()[0], "user", 0)
+    assert seen and seen[0][1].startswith("thinking about it")             # continued from the text so far
+    assert rec["parsed_letter"] == "C" and rec["finish_reason"] == "stop" and len(rec["extensions"]) == 1
+    assert rec["token_limit"]["continued_up_to_context"] == 65536
+
+
+def test_extend_math_leaves_room_for_the_prompt(monkeypatch):
+    sent = {}
+
+    def fake_complete(model, prompt, max_tokens, **kw):
+        sent.update(max_tokens=max_tokens, prompt=prompt)
+        return {"content": "x</think>Answer: (A)", "finish": "stop", "usage": {"completion_tokens": 5}, "error": None}
+    import client
+    monkeypatch.setattr(client, "complete", fake_complete)
+    out = olmo_format.extend("olmo3-7b-think", "PROMPT", "so far", {"prompt_tokens": 500, "completion_tokens": 16000})
+    assert sent["max_tokens"] == 65536 - 16500 - 64 and sent["prompt"] == "PROMPTso far"
+    assert out["content"] == "Answer: (A)" and out["usage"]["completion_tokens"] == 16005
+    assert olmo_format.extend("m", "P", "r", {"prompt_tokens": 65000, "completion_tokens": 400}) is None
