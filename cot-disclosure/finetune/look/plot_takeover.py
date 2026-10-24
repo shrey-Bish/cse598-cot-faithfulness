@@ -102,8 +102,8 @@ def plot_curves(rows, figs=FIGS):
                                 clip_on=False)
                 if r.get("takeover_k") is not None:
                     ax.axvline(r["takeover_frac"], color=C["ink"], lw=1, ls="--")
-                ax.set_title(f"Q{r['item_id']} run {r['repeat']} · {r['n_sentences']} sent. · "
-                             f"hint {r['hint_letter']}, own {r['own_letter'] or '—'}, final {r['final_letter']}",
+                ax.set_title(f"Q{r['item_id']} run {r['repeat']} · {r['n_sentences']} sentences\n"
+                             f"hint {r['hint_letter']} · own {r['own_letter'] or '—'} · final {r['final_letter']}",
                              fontsize=8, loc="left")
                 ax.set_ylim(-0.1, 1.02)
                 ax.set_yticks([0, 0.5, 1])
@@ -116,8 +116,8 @@ def plot_curves(rows, figs=FIGS):
                        plt.Line2D([], [], color=C["ink"], lw=1, ls="--"),
                        plt.Line2D([], [], color=C["cue"], lw=1, marker="|", ls="none", markersize=8)]
             fig.legend(handles, ["hint letter", "own no-hint answer", "takeover point", "sentence mentions the hint"],
-                       loc="upper right", ncol=4, frameon=False, bbox_to_anchor=(0.99, 0.985))
-            fig.subplots_adjust(top=0.88, bottom=0.08, left=0.04, right=0.99, hspace=0.45, wspace=0.12)
+                       loc="upper left", ncol=4, frameon=False, bbox_to_anchor=(0.015, 0.955))
+            fig.subplots_adjust(top=0.85, bottom=0.08, left=0.04, right=0.99, hspace=0.75, wspace=0.12)
             pages = math.ceil(len(rs) / PER_PAGE)
             out.append(finish(fig, figs / slug(label, kind, page),
                               f"Answer probability after each sentence: {label} hint, {kind} runs"
@@ -186,12 +186,13 @@ def plot_means(rows, figs=FIGS):
             ax.plot(mid, binned(nohint), color=KIND_COLOR["no hint"], lw=2, label=f"no hint ({len(nohint)})")
         ax.set_title(label, loc="left")
         ax.set_xlim(0, 1)
+        ax.set_xticks([0, 0.25, 0.5, 0.75, 1], ["0", "0.25", "0.5", "0.75", "1"])
         ax.set_ylim(0, 1)
         ax.set_xlabel("share of the reasoning")
         ax.grid(axis="y", color=C["grid"], lw=0.8)
-        ax.legend(loc="upper left", frameon=False)
+        ax.legend(loc="center right", frameon=False)
     axes[0][0].set_ylabel("mean probability of the hint letter")
-    fig.subplots_adjust(top=0.86, bottom=0.1, left=0.06, right=0.98, wspace=0.08)
+    fig.subplots_adjust(top=0.86, bottom=0.1, left=0.06, right=0.98, wspace=0.14)
     return [finish(fig, figs / "takeover_mean_curves",
                    "The hint letter's probability through the reasoning, by outcome", len(rows))]
 

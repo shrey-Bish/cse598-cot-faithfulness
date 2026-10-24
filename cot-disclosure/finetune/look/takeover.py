@@ -410,18 +410,18 @@ def report(rows=None):
               f"{med([r['takeover_frac'] for r in found])} | "
               f"{rate(sum(bool(r['mention_within_2_before']) for r in mid), len(mid))} | "
               f"{f'{100 * statistics.mean(chance):.0f}%' if chance else '—'} |")
-    print("\nResisted runs (and no-hint runs, for the question's hint letter): does the hint letter rise, and where "
-          "does it fall back")
-    print(f"| channel | runs | rose by {RISE:.2f} or more | ever the most likely letter | peak probability | "
-          "peak position | falls back at |")
+    print("\nResisted runs (and no-hint runs, for the question's hint letter): does the hint letter lead or rise, and "
+          "where does it fall back. Positions are shares of the reasoning.")
+    print(f"| channel | runs | hint leads before any reasoning | ever the most likely letter | the hint letter last "
+          f"leads at | rose by {RISE:.2f} or more above its start | after such a rise, gives back half at |")
     print("|---|---|---|---|---|---|---|")
     for cond, arm, label in GROUPS + [("none", None, "no hint")]:
         rs = [r for r in rows if r["condition"] == cond and r.get("arm") == arm and r["kind"] != "followed"]
         if not rs:
             continue
-        print(f"| {label} | {len(rs)} | {rate(sum(r['hint_rose'] for r in rs), len(rs))} | "
-              f"{rate(sum(r['hint_ever_top'] for r in rs), len(rs))} | {med([r['hint_peak'] for r in rs], '{:.3f}')} | "
-              f"{med([r['hint_peak_frac'] for r in rs])} | {med([r['falls_back_frac'] for r in rs])} |")
+        print(f"| {label} | {len(rs)} | {rate(sum(r['top_letters'][0] == r['hint_letter'] for r in rs), len(rs))} | "
+              f"{rate(sum(r['hint_ever_top'] for r in rs), len(rs))} | {med([r['hint_last_top_frac'] for r in rs])} | "
+              f"{rate(sum(r['hint_rose'] for r in rs), len(rs))} | {med([r['falls_back_frac'] for r in rs])} |")
     print(f"\nChecks: the forced answer after the whole reasoning equals the run's own final letter in "
           f"{rate(sum(r['forced_end_matches_final'] for r in rows), len(rows))}; probability on the option letters "
           f"per probe, median {med([m for r in rows for m in r['letter_mass']], '{:.3f}')}.")
