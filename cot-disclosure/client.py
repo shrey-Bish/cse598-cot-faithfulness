@@ -59,6 +59,9 @@ CANARY_LOG = HERE / "results" / "voyager_canary.jsonl"
 IDLE_S = 600                  # guard d: no token for 10 minutes -> abort, "not run"
 CANARY_EVERY_S = 3600         # guard c: hourly during long runs
 CANARY_TOL = 0.01
+CANARY_RETRY_S = 120          # canary unreachable: pause requests, retry it every 2 minutes ...
+CANARY_OUTAGE_S = 1800        # ... and halt after 30 minutes without a reply
+_sleep, _clock = time.sleep, time.monotonic      # tests replace these
 GUARDS = True                 # guards b and c; tests switch them off
 
 
@@ -72,6 +75,27 @@ class CanaryFailed(RuntimeError):
 
 class IdleTimeout(RuntimeError):
     """Guard d: no token arrived for IDLE_S seconds."""
+
+
+class CanaryUnreachable(RuntimeError):
+    """The canary got no reply (network or gateway), so there is no identity verdict. preflight
+    pauses requests and retries it; callers never see this error."""
+
+
+TRANSPORT = ("URLError", "ConnectionError", "ConnectionResetError", "ConnectionRefusedError", "ConnectionAbortedError",
+             "BrokenPipeError", "RemoteDisconnected", "IncompleteRead", "IncompleteStream", "TimeoutError", "timeout",
+             "SSLError", "IdleTimeout", "APIConnectionError", "APITimeoutError", "RateLimitError", "InternalServerError")
+
+
+def transport_error(error):
+    """True for a request that never got a whole reply: a dropped or refused connection, a
+    timeout, a stream cut short, an idle timeout, or a gateway error (HTTP 5xx, 408, 429). Such a
+    run is "not_run" and retried later, never "no answer"."""
+    err = str(error or "")
+    if err.startswith("HTTP "):
+        code = err[5:8]
+        return code.isdigit() and (int(code) >= 500 or int(code) in (408, 429))
+    return err.split(":", 1)[0].strip() in TRANSPORT
 
 
 class IncompleteStream(RuntimeError):
@@ -147,7 +171,8 @@ _catalog_ok, _canary_at, _halted, _warned = set(), {}, None, set()
 def preflight(name):
     """Guards b and c for one of our model names (no-op for other names or with GUARDS off).
     Runs before a network request; raises ModelUnavailable or CanaryFailed, and once either has
-    failed, every later call in this process raises the same error."""
+    failed, every later call in this process raises the same error. A canary that gets no reply
+    is not a failure: requests pause while it retries (wait_out_outage)."""
     global _halted
     if not GUARDS or name not in VOYAGER_IDS:
         return
@@ -159,11 +184,30 @@ def preflight(name):
                 check_catalog(name)
                 _catalog_ok.add(name)
             if time.time() - _canary_at.get(name, 0) > CANARY_EVERY_S:
-                run_canary(name)
+                try:
+                    run_canary(name)
+                except CanaryUnreachable as err:
+                    wait_out_outage(name, err)
                 _canary_at[name] = time.time()
         except (ModelUnavailable, CanaryFailed) as err:
             _halted = (type(err), str(err))
             raise
+
+
+def wait_out_outage(name, first):
+    """Voyager did not answer the canary. Hold the lock (so every thread's next request waits)
+    and retry the canary every CANARY_RETRY_S. Returns when it passes; raises CanaryFailed on an
+    identity mismatch, or once Voyager has been unreachable for CANARY_OUTAGE_S."""
+    start = _clock()
+    print(f"[client] Voyager unreachable ({first}); requests paused, canary retried every {CANARY_RETRY_S} s "
+          f"for up to {CANARY_OUTAGE_S // 60} min", file=sys.stderr)
+    while True:
+        _sleep(CANARY_RETRY_S)
+        try:
+            return run_canary(name)
+        except CanaryUnreachable as err:
+            if _clock() - start >= CANARY_OUTAGE_S:
+                raise CanaryFailed(f"Voyager unreachable for {CANARY_OUTAGE_S // 60} minutes ({err}); halted") from err
 
 
 def check_catalog(name, models=None):
@@ -214,6 +258,7 @@ def run_canary(name):
         return None
     ref = json.loads(path.read_text())
     out = canary_request(name, ref)
+    unreachable = transport_error(out["error"])
     res = {"pass": False, "reason": out["error"]} if out["error"] else compare_logprobs(ref["logprobs"], out["logprobs"])
     served_ok = out.get("served_model") == ref["served_model"]
     ok = res["pass"] and served_ok
@@ -223,9 +268,12 @@ def run_canary(name):
             f.write(json.dumps({"timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                                 "model": name, "requested_model_id": out["requested_model_id"],
                                 "reasoning_effort": out["reasoning_effort"], "served_model": out.get("served_model"),
-                                "pass": ok, **res}) + "\n")
+                                **res, "pass": None if unreachable else ok,
+                                **({"unreachable": True} if unreachable else {})}) + "\n")
     except OSError:
         pass
+    if unreachable:                                   # no reply: no verdict on identity
+        raise CanaryUnreachable(out["error"])
     if not ok:
         raise CanaryFailed(f"identity canary failed for {name}: served {out.get('served_model')!r} "
                            f"(want {ref['served_model']!r}), {res}")
@@ -332,6 +380,9 @@ def _request(payload, key, path, stream, retries, backoff, on_retry, name=None, 
         if on_retry:
             on_retry(attempt + 1, last_error, wait)
         time.sleep(wait)
+    if guard and name in VOYAGER_IDS and transport_error(last_error):
+        with _lock:                                   # Voyager may be down: the next request checks first
+            _canary_at.pop(name, None)
     return {"content": "", "reasoning": "", "finish": "error", "usage": {},
             "error": last_error, "retries": attempt, "latency_s": None,
             "reasoning_field": None, "tool_calls": [], "served_model": None, **meta, "cached": False}

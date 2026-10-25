@@ -24,7 +24,7 @@ CODE = HERE.parent                                # cot-disclosure
 REPO = CODE.parent
 sys.path.insert(0, str(CODE))
 
-from client import chat  # noqa: E402
+from client import chat, transport_error  # noqa: E402
 from parse import parse_answer  # noqa: E402
 
 RESULTS = CODE / "results"
@@ -139,11 +139,11 @@ def make_record(out, *, experiment, item_id, model, condition, repeat, messages,
 
 
 def status_of(out):
-    """ok; not_run for an idle timeout (no token for 10 minutes: aborted, retry it later, never
-    "no answer"); api_error for anything else."""
+    """ok; not_run when the request never got a whole reply (idle timeout, dropped connection,
+    stream cut short, gateway 5xx: retry it later, never "no answer"); api_error for anything else."""
     if not out["error"]:
         return "ok"
-    return "not_run" if str(out["error"]).startswith("IdleTimeout") else "api_error"
+    return "not_run" if transport_error(out["error"]) else "api_error"
 
 
 def call(log, *, experiment, item_id, model, condition, repeat, messages, n_options,
@@ -213,6 +213,19 @@ def boot_diff(a, b, n=20000, seed=0):
     rng = random.Random(seed)
     vals = sorted(v for v in (diff([rng.choice(qs) for _ in qs]) for _ in range(n)) if v is not None)
     return diff(qs), vals[int(0.025 * len(vals))], vals[int(0.975 * len(vals)) - 1]
+
+
+def boot_mean(groups, n=20000, seed=0):
+    """Mean of values grouped by question, with a 95% percentile bootstrap clustered by question
+    (each resample draws questions, with all their values). Returns (mean, low, high)."""
+    qs = sorted(groups, key=str)
+
+    def mean(sample):
+        vals = [x for q in sample for x in groups[q]]
+        return sum(vals) / len(vals) if vals else None
+    rng = random.Random(seed)
+    vals = sorted(v for v in (mean([rng.choice(qs) for _ in qs]) for _ in range(n)) if v is not None)
+    return mean(qs), vals[int(0.025 * len(vals))], vals[int(0.975 * len(vals)) - 1]
 
 
 def wilson(k, n, z=1.959964):

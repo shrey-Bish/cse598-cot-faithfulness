@@ -130,8 +130,13 @@ rerun with the same seed reuses them. Delete `cache/` for fresh calls.
   - an identity canary runs at the start and hourly: an echo call on a short reference
     text (`configs/canary/<name>.json`, under 2,048 tokens). The run stops unless the
     top tokens match and the max log-prob difference is under 0.01.
-  - no token for 10 minutes aborts a request as `not_run` (retry it later), never "no
-    answer"
+  - a canary that gets no reply is not a verdict: new requests pause, the canary is
+    retried every 2 minutes, and the run resumes when it passes. It halts only on an
+    identity mismatch, or after 30 minutes unreachable. A request that fails in transit
+    also makes the canary due at once.
+  - a request that never got a whole reply (no token for 10 minutes, a dropped
+    connection, a stream cut short, a gateway 5xx) is `not_run` (retried later), never
+    "no answer"
   - every record saves `requested_model_id`, `reasoning_effort` and `served_model`
 - **Seeds repeat runs only partly** (not at all on the 32B endpoints), so save every
   prompt and reply. `progress/common.make_record` does.

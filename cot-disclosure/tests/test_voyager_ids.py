@@ -189,3 +189,86 @@ def test_idle_timeout_aborts_and_marks_the_run_not_run(monkeypatch, tmp_path):
                       messages=[], n_options=4)
     assert rec["status"] == "not_run" and rec["parsed_letter"] is None
     assert not list(tmp_path.glob("*.json"))                                # never cached
+
+
+class FakeClock:
+    """Stands in for the client's sleep and clock during an outage."""
+    def __init__(self):
+        self.t, self.slept = 0.0, []
+
+    def sleep(self, s):
+        self.slept.append(s)
+        self.t += s
+
+    def __call__(self):
+        return self.t
+
+
+def outage(monkeypatch, tmp_path, replies):
+    """The canary's echo calls return `replies` in turn (an error string = no reply)."""
+    ref = {"text": "t", "params": {"temperature": 0.6, "seed": 0}, "served_model": "olmo3-7b-think",
+           "logprobs": lp(["a", "b"], [None, -1.0], [None, "b"])}
+    (tmp_path / "olmo3-7b-think.json").write_text(json.dumps(ref))
+    monkeypatch.setattr(client, "CANARY_DIR", tmp_path)
+    monkeypatch.setattr(client, "CANARY_LOG", tmp_path / "canary.jsonl")
+    monkeypatch.setattr(client, "GUARDS", True)
+    monkeypatch.setattr(client, "list_models", lambda: CATALOG)
+    good = {"error": None, "logprobs": lp(["a", "b", "z"], [None, -1.0, -0.5], [None, "b", "z"]),
+            "served_model": "olmo3-7b-think", "requested_model_id": "olmo3-7b", "reasoning_effort": "medium"}
+    it = iter(replies)
+
+    def canary(name, r):
+        x = next(it)
+        return good if x == "ok" else ({**good, "served_model": x} if x.startswith("olmo") else
+                                       {**good, "error": x, "logprobs": [], "served_model": None})
+    monkeypatch.setattr(client, "canary_request", canary)
+    clock = FakeClock()
+    monkeypatch.setattr(client, "_sleep", clock.sleep)
+    monkeypatch.setattr(client, "_clock", clock)
+    return clock
+
+
+def test_an_unreachable_canary_pauses_and_resumes(monkeypatch, tmp_path):
+    clock = outage(monkeypatch, tmp_path, ["URLError", "HTTP 502", "ConnectionResetError", "ok"])
+    client.preflight("olmo3-7b-think")                                       # no halt
+    assert clock.slept == [120, 120, 120] and client._halted is None
+    log = [json.loads(x) for x in (tmp_path / "canary.jsonl").read_text().splitlines()]
+    assert [x["pass"] for x in log] == [None, None, None, True] and log[0]["unreachable"]
+
+
+def test_unreachable_for_30_minutes_halts(monkeypatch, tmp_path):
+    clock = outage(monkeypatch, tmp_path, ["URLError"] * 20)
+    with pytest.raises(client.CanaryFailed, match="unreachable for 30 minutes"):
+        client.preflight("olmo3-7b-think")
+    assert sum(clock.slept) == 1800 and len(clock.slept) == 15
+    with pytest.raises(client.CanaryFailed):
+        client.preflight("olmo3-7b-think")                                    # halted for the rest of the run
+
+
+def test_an_identity_mismatch_still_halts_at_once(monkeypatch, tmp_path):
+    clock = outage(monkeypatch, tmp_path, ["URLError", "olmo3-7b-instruct"])
+    with pytest.raises(client.CanaryFailed, match="identity"):
+        client.preflight("olmo3-7b-think")
+    assert clock.slept == [120]
+    outage(monkeypatch, tmp_path, ["HTTP 404: model not found"])           # the server answered: a verdict
+    monkeypatch.setattr(client, "_halted", None)
+    with pytest.raises(client.CanaryFailed):
+        client.preflight("olmo3-7b-think")
+
+
+def test_requests_that_fail_in_transit_are_not_run_and_make_the_canary_due(monkeypatch, tmp_path):
+    from common import status_of
+    from providers.base import Reply, status_of as reply_status
+    for err in ("URLError", "ConnectionResetError", "IncompleteStream", "TimeoutError", "HTTP 503", "HTTP 524",
+                "HTTP 429", "IdleTimeout: no token for 600 s"):
+        assert status_of({"error": err}) == "not_run", err
+    for err in ("HTTP 400: error processing request body", "HTTP 404"):
+        assert status_of({"error": err}) == "api_error", err
+    assert reply_status(Reply("voyager", "m", error="URLError")) == "not_run"
+    assert reply_status(Reply("voyager", "m", error="HTTP 400")) == "api_error"
+    assert reply_status(Reply("openai", "m", error="BadRequestError: bad")) == "api_error"
+    monkeypatch.setattr(client, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(client, "_canary_at", {"olmo3-7b-think": 10 ** 12})   # canary not due
+    monkeypatch.setattr(client, "_stream", lambda payload, path: (_ for _ in ()).throw(client.urllib.error.URLError("x")))
+    out = client.complete("olmo3-7b-think", "p", max_tokens=5, seed=1, backoff=[0, 0, 0])
+    assert out["error"] == "URLError" and "olmo3-7b-think" not in client._canary_at   # next request checks first

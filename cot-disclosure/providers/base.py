@@ -48,10 +48,12 @@ def route_fields(reply):
 
 
 def status_of(reply):
-    """ok / not_run (an idle timeout: retry later) / api_error."""
+    """ok / not_run (no whole reply: idle timeout, dropped connection, gateway 5xx; retry later) /
+    api_error."""
+    from client import transport_error
     if not reply.error:
         return "ok"
-    return "not_run" if str(reply.error).startswith("IdleTimeout") else "api_error"
+    return "not_run" if transport_error(reply.error) else "api_error"
 
 
 def load_env():
