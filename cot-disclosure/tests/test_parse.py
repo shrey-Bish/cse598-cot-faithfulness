@@ -59,3 +59,13 @@ def test_parse_answer_span_points_at_the_text_it_read():
     letter, rule, span = parse_answer_span("it must be option (D) then", 7)
     assert (letter, rule) == ("D", "tail_paren") and "it must be option (D) then"[span[0]:span[1]] == "(D)"
     assert parse_answer_span("no letter here", 7) == (None, "none", None)
+
+
+def test_markdown_bold_around_answer_is_read():
+    from parse import parse_answer
+    assert parse_answer("Rounding to the nearest option gives **D) 209 μF**.\n\n**Answer**: D", 10) == ("D", "answer_colon")
+    assert parse_answer("**Answer**: (C)", 7) == ("C", "answer_colon")
+    assert parse_answer("**Answer:** B", 7) == ("B", "answer_colon")              # already read before
+    assert parse_answer("The **answer** is E.", 7) == ("E", "answer_is")
+    assert parse_answer("**Final Answer**: A", 7) == ("A", "answer_colon")
+    assert parse_answer("Check the answer_key: B", 7)[1] != "answer_colon"         # not an answer line

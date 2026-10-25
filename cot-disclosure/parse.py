@@ -8,10 +8,11 @@ limits which letters count, so seven-option puzzles behave exactly as before.
 """
 import re
 
+# "answer" may be wrapped in markdown bold ("**Answer**: D"); before 2026-10-25 that form was not read.
 RULES = [
-    ("answer_colon", r"answer\s*[:：]\s*\**\s*\(?([A-J])\)?(?![a-z])"),
+    ("answer_colon", r"answer\**\s*[:：]\s*\**\s*\(?([A-J])\)?(?![a-z])"),
     ("boxed", r"\\boxed\{\s*(?:\\text\{)?\s*\(?([A-J])\)?"),
-    ("answer_is", r"answer\s+is\s*:?\s*\**\s*\(?([A-J])\)?(?![a-z])"),
+    ("answer_is", r"answer\**\s+is\s*:?\s*\**\s*\(?([A-J])\)?(?![a-z])"),
     ("bold", r"\*\*\s*\(?([A-J])\)?\s*\*\*"),
 ]
 COMPILED = [(name, re.compile(rx, re.IGNORECASE)) for name, rx in RULES]
