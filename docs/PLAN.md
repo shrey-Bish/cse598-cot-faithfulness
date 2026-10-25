@@ -81,10 +81,16 @@ pass. Two-part rule (set Oct 21):
    - attention from the reasoning tokens to the hint tokens, per layer and head (steered
      vs not, user vs tool)
    - where the hinted answer takes over: the probability of each letter at each
-     reasoning sentence (logit lens, or a forced "Answer: (" continuation), and whether
-     it follows a repetition of the hint
+     reasoning sentence, by early answering (Lanham et al. 2023: cut the reasoning, close
+     it, force "Answer: ("), and whether it follows a repetition of the hint. Done on
+     Voyager (Oct 22–25, `finetune/look/takeover.py`). A forced answer is
+     off-distribution for a thinking model, most of all before any reasoning.
    - a causal check: remove or mask the repeated hint sentence and see if the answer
      goes back
+   - **Default cases** for the deletion test and activation patching: followed runs
+     whose takeover comes in the second half of the reasoning, on questions the model
+     gets right in both of its no-hint runs (26 runs,
+     `results/trackA/takeover_cases.jsonl`)
 2. **Training data** (`finetune/build_dataset.py`, runs today).
    - 196 training records (the 24 puzzles, paraphrased hints only) and 120 held-out (the
      30 MMLU-Pro items, the exact test wordings). 0 held-out wordings appear in training.

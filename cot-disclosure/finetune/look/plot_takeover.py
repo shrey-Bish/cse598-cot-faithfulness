@@ -51,8 +51,9 @@ def series(r, key):
 
 
 def xs(r):
+    """Each probe's position as a share of the reasoning (dense or adaptive probes)."""
     n = max(1, r["n_sentences"])
-    return [k / n for k in range(r["n_sentences"] + 1)]
+    return [p["k"] / n for p in r["curve"]]
 
 
 def finish(fig, path, title, n_runs):

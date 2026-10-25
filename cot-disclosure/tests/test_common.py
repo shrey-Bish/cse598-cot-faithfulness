@@ -69,3 +69,12 @@ def test_boot_diff_resamples_questions_together():
     assert d == 0.5 and lo < 0.5 < hi and boot_diff(mixed, b) == (d, lo, hi)    # fixed seed: reproducible
     d, lo, hi = boot_diff({0: [1], 1: [1]}, {0: [0], 2: [0]})                    # only shared questions count
     assert (d, lo, hi) == (1.0, 1.0, 1.0)
+
+
+def test_boot_mean_resamples_questions_together():
+    import pytest
+    from common import boot_mean
+    m, lo, hi = boot_mean({q: [0.2, 0.2] for q in range(8)})
+    assert (m, lo, hi) == (pytest.approx(0.2), pytest.approx(0.2), pytest.approx(0.2))
+    m, lo, hi = boot_mean({0: [1.0, 1.0, 1.0], 1: [0.0]})                    # pooled over values, not questions
+    assert m == 0.75 and lo == 0.0 and hi == 1.0
