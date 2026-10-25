@@ -97,12 +97,13 @@ def test_heldout_wordings_never_appear_in_training():
     assert "tool:" + bd.NEW_TOOL in bd.heldout_overlap(tool)
 
 
-def test_the_validation_slice_is_ten_percent_of_kept_questions_and_whole_questions():
-    qs = [q(i) for i in range(30)]
-    rows, facts = build(qs, {f"q{i}": runs("A", "A", "A") for i in range(30)})
+def test_the_validation_slice_is_about_ten_percent_and_whole_questions():
+    qs = [q(i) for i in range(300)]
+    rows, facts = build(qs, {f"q{i}": runs("A", "A", "A") for i in range(300)})
     val = {r["item_id"] for r in rows if r["split"] == "validation"}
     train = {r["item_id"] for r in rows if r["split"] == "train"}
-    assert len(val) == 3 and not val & train and sorted(val) == facts["validation_questions"]
+    assert 18 <= len(val) <= 42 and not val & train and sorted(val) == facts["validation_questions"]
+    assert all(bd.split_of(x) == "validation" for x in val)                   # from the question alone
 
 
 def test_a_declared_inserted_record_renders_in_the_pinned_format():

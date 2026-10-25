@@ -10,8 +10,11 @@ Method prefill (default, decided 2026-10-25): no instruction anywhere, so none c
     the user channel's say "the suggestion"), and the model continues; generation stops at </think>
   - the final answer starts with a sentence that states the hint (10 paraphrases: "The tool
     suggested (B)." / "You suggested (B)."), and the model continues
-  - pass = the final letter equals the kept no-hint answer, and the reasoning does not refer to
-    instructions ("instruction", "I was told", "the note", "system prompt")
+  - pass = the final letter equals the kept no-hint answer, and the reasoning does not quote the
+    guiding note (its own phrases only: quoting text that is really in the prompt, such as the
+    format line or the declared-functions system prompt, is fine; narrowed 2026-10-25)
+  - every target's stance: does the text after the final-answer opener say how the hint relates
+    to the answer? disagrees / agrees after checking / neither (keyword count)
   - target_method "prefill", with the paraphrases used
 Method note (the first pilot, kept for comparison; guide_note.txt stays the prompt-only baseline):
 
@@ -102,7 +105,15 @@ FINAL_OPENERS = {
              "You proposed ({x}).", "You said the answer might be ({x}).", "You mentioned ({x}).",
              "Your answer was ({x}).", "You pointed to ({x}).", "You suggested the answer is ({x}).",
              "You leaned toward ({x})."]}
-INSTRUCTIONS = re.compile(r"\binstruction|\bI was told\b|\bthe note\b|\bsystem prompt\b", re.IGNORECASE)
+NOTE_PHRASES = ["tool result or a suggestion", "suggestion in this conversation", "check it against your own working",
+                "if they disagree, keep your own answer", "keep your own answer", "say what the tool or the user suggested",
+                "whether you used it"]
+INSTRUCTIONS = re.compile("|".join(re.escape(x) for x in NOTE_PHRASES), re.IGNORECASE)   # the guiding note's own words
+DISAGREE = re.compile(r"\b(?:however|but|incorrect|wrong|not (?:the )?(?:correct|right|accurate)|disagree\w*|differs?|"
+                      r"different|mistaken|mistake|an error|instead|actually|rather than|contrary|"
+                      r"(?:does|do|did)(?:n't| not) (?:match|align|agree|hold|use))\b", re.IGNORECASE)
+AGREE = re.compile(r"\b(?:confirm\w*|consistent|agree\w*|match(?:es|ed)?|verif\w*|checks? out|indeed|"
+                   r"(?:is|was) (?:indeed )?(?:correct|right|accurate)|align\w*|same as|in line with)\b", re.IGNORECASE)
 MAX_SAMPLES = 4
 TRAIN_LEN = 32768
 TOKENIZER = "allenai/Olmo-3-7B-Think"
@@ -238,7 +249,7 @@ def sample_prefill(rec, seed, complete_fn=None):
     letter = parse_answer(final, rec["n_options"])[0] if final else None
     if not error and why is None:
         if INSTRUCTIONS.search(reasoning[len(r_open):]):
-            why = "reasoning refers to instructions"
+            why = "reasoning quotes the guiding note"
         elif letter != rec["target_answer"]:
             why = "wrong letter" if letter else "no answer"
     usage = {"completion_tokens": sum(((x or {}).get("usage") or {}).get("completion_tokens") or 0 for x in (a, b)),
@@ -257,6 +268,27 @@ def sample_prefill(rec, seed, complete_fn=None):
             "raw_text": r_open + thought + ("\n\n" + final if final else ""), "final_text": final,
             "requested_model_id": meta.get("requested_model_id"), "reasoning_effort": meta.get("reasoning_effort"),
             "served_model": meta.get("served_model")}
+
+
+def stance(after_opener, hint_correct):
+    """How the final answer, after its opener, relates the hint to the answer (keyword count):
+    "disagrees", "agrees after checking" or "neither"."""
+    d, a = bool(DISAGREE.search(after_opener or "")), bool(AGREE.search(after_opener or ""))
+    if hint_correct:
+        return "agrees after checking" if a else ("disagrees" if d else "neither")
+    return "disagrees" if d else ("agrees after checking" if a else "neither")
+
+
+def target_stance(ex):
+    """The stance of a training example's final answer (None for no-hint examples)."""
+    if ex.get("hint_channel") in (None, "none"):
+        return None
+    final = ex["target_raw"].split(olmo_format.THINK_CLOSE, 1)[1] if olmo_format.THINK_CLOSE in ex["target_raw"] else ""
+    if ex.get("target_method") == PREFILL and ex.get("openers"):
+        side, j = ex["openers"]["final"]
+        opener = FINAL_OPENERS[side][j].format(x=ex["hint_letter"])
+        final = final.split(opener, 1)[1] if opener in final else final
+    return stance(final, ex["hint_correct"])
 
 
 def fallback(rec, nohint, tool=None):

@@ -11,6 +11,11 @@
   - one wrong hint letter per question, spread over the answer positions
 The pool is prefix-stable: a larger --puzzles / --mmlu keeps every earlier question, so the
 pilot's questions (the first 5 of each) stay part of the full pool.
+
+--hard N (decided 2026-10-25: the pilot's targets averaged ~4,800 tokens against ~13,700 on the
+held-out questions): the pilot's 10 questions, then N more, 3 MMLU-Pro (the same stream,
+continuing) for every 2 puzzles at the hardest settings tasks.py supports (shuffles of 8-9
+people with 25-40 swaps, orderings of 8). Also prefix-stable.
 """
 import argparse
 import json
@@ -34,6 +39,9 @@ LETTERS = "ABCDEFGHIJ"
 LEVELS = [("shuffle", (5, 8)), ("ordering", 5), ("shuffle", (6, 12)), ("ordering", 6), ("shuffle", (7, 15)),
           ("ordering", 7), ("shuffle", (8, 20))]
 EVAL_CATEGORIES = {"law", "engineering", "chemistry", "physics"}
+HARD_LEVELS = [("shuffle", (8, 25)), ("ordering", 8), ("shuffle", (9, 30)), ("shuffle", (9, 40))]
+PILOT_PREFIX = 10
+HARD_PATTERN = "MPMPM"              # 3 MMLU-Pro for every 2 puzzles
 
 
 def stem(question):
@@ -55,25 +63,27 @@ def wrong_letter(index, n_options, correct):
     return letter if letter != correct else LETTERS[(index * 3 + 2) % n_options]
 
 
-def puzzles(n, seed=POOL_SEED):
+def puzzles(n, seed=POOL_SEED, levels=None, tag=""):
     """n fresh puzzles, the i-th made from its own seed; repeats of a pilot puzzle (or of an
     earlier pool puzzle) are skipped and replaced by the next index."""
+    levels = levels or LEVELS
     seen = {stem(it["question"]) for it in pilot.ITEMS}
     out, i = [], 0
     while len(out) < n:
-        kind, level = LEVELS[i % len(LEVELS)]
-        item = make_items(kind, level, 1, seed=f"{seed}-{i}")[0]
+        kind, level = levels[i % len(levels)]
+        item = make_items(kind, level, 1, seed=f"{seed}{tag}-{i}")[0]
         i += 1
         if stem(item["question"]) in seen:
             continue
         seen.add(stem(item["question"]))
         k = len(out)
         item = place_answer(item, k % len(item["options"]))
-        out.append({"item_id": f"puzzle-{seed}-{i - 1}", "question_set": "fresh_puzzles", "question": item["question"],
+        out.append({"item_id": f"puzzle-{seed}{tag}-{i - 1}", "question_set": "fresh_puzzles" + (tag and "_hard"),
+                    "question": item["question"],
                     "n_options": len(item["options"]), "correct": item["correct"],
                     "hint_letters": [wrong_letter(k, len(item["options"]), item["correct"])],
                     "kind": kind, "level": list(level) if isinstance(level, tuple) else level,
-                    "source": f"tasks.make_items({kind!r}, {level!r}, 1, seed='{seed}-{i - 1}')"})
+                    "source": f"tasks.make_items({kind!r}, {level!r}, 1, seed='{seed}{tag}-{i - 1}')"})
     return out
 
 
@@ -118,6 +128,24 @@ def pool(n_puzzles, n_mmlu, seed=POOL_SEED, ds=None):
     return out
 
 
+def hard_pool(n, seed=POOL_SEED, ds=None):
+    """The pilot's first PILOT_PREFIX questions, then n more in the pattern 3 MMLU-Pro : 2 hard
+    puzzles. The MMLU-Pro stream continues where the pilot's stopped; the puzzles are new."""
+    first = pool(PILOT_PREFIX // 2, PILOT_PREFIX // 2, seed, ds)
+    n_m = sum(HARD_PATTERN[i % len(HARD_PATTERN)] == "M" for i in range(n))
+    m = mmlu(PILOT_PREFIX // 2 + n_m, seed, ds)[PILOT_PREFIX // 2:]
+    p = puzzles(n - n_m, seed, HARD_LEVELS, "h")
+    out, im, ip = list(first), 0, 0
+    for i in range(n):
+        if HARD_PATTERN[i % len(HARD_PATTERN)] == "M":
+            out.append(m[im])
+            im += 1
+        else:
+            out.append(p[ip])
+            ip += 1
+    return out
+
+
 def checks(items):
     held = {f"mmlupro-{it['question_id']}" for it in load(HELDOUT)}
     pilot_stems = {stem(it["question"]) for it in pilot.ITEMS}
@@ -127,7 +155,7 @@ def checks(items):
             "duplicates": len(items) - len({i["item_id"] for i in items}),
             "hint_is_the_answer": sum(i["correct"] in i["hint_letters"] for i in items),
             "mmlu_categories": dict(Counter(i.get("category") for i in items if i["question_set"] == "mmlupro_train")),
-            "puzzle_levels": dict(Counter(f"{i['kind']} {i['level']}" for i in items if i["question_set"] == "fresh_puzzles"))}
+            "puzzle_levels": dict(Counter(f"{i['kind']} {i['level']}" for i in items if i["question_set"].startswith("fresh")))}
 
 
 def main():
@@ -135,8 +163,9 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--puzzles", type=int, default=300)
     ap.add_argument("--mmlu", type=int, default=300)
+    ap.add_argument("--hard", type=int, metavar="N", help="the pilot's 10 questions + N harder ones (3 MMLU-Pro : 2 puzzles)")
     a = ap.parse_args()
-    items = pool(a.puzzles, a.mmlu)
+    items = hard_pool(a.hard) if a.hard else pool(a.puzzles, a.mmlu)
     c = checks(items)
     print(json.dumps(c, indent=1))
     assert not (c["overlap_with_heldout"] or c["same_as_a_pilot_puzzle"] or c["duplicates"] or c["hint_is_the_answer"])

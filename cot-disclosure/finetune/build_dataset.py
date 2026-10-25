@@ -33,7 +33,8 @@ Held out, so evaluation measures behaviour on things training never saw:
   - whole hint wordings: the Turpin user sentence, the progress-run tool block, the study-guide
     tool reply, the system note, a "my professor said" user hint, a "the database returned" tool
     reply, and a tool with a new name. manifest.json checks they share no text with training.
-Validation slice: 10% of the kept training questions (by seed), for choosing settings.
+Validation slice: about 10% of the kept training questions (each question by a seeded hash, so
+the split doesn't depend on which questions are kept), for choosing settings.
 """
 import argparse
 import copy
@@ -145,6 +146,12 @@ def served_runs_pilot():
 
 
 # ---------------------------------------------------------------- the target rule
+def split_of(item_id, seed=SEED):
+    """train or validation (about VALIDATION_SHARE of questions), from the question alone, so a
+    question kept early in a long run lands in the same split as at the end."""
+    return "validation" if random.Random(f"{seed}:{item_id}:validation").random() < VALIDATION_SHARE else "train"
+
+
 def all_correct(q, runs):
     """(target, None) when the 3 pinned-format no-hint runs were all answered and all correct, else
     (None, the reason it is dropped)."""
@@ -266,9 +273,7 @@ def build(rule="all_correct", ratio=CORRECT_RATIO, train_questions=None, heldout
             dropped_ids.setdefault(why, []).append(q["item_id"])
         else:
             kept[q["item_id"]] = target
-    rng = random.Random(seed)
-    kept_ids = sorted(kept)
-    validation = set(rng.sample(kept_ids, max(1, round(VALIDATION_SHARE * len(kept_ids))))) if kept_ids else set()
+    validation = {q for q in kept if split_of(q, seed) == "validation"}
     rows = []
     train_wordings = WORDINGS["train"]
     for q in train_questions:

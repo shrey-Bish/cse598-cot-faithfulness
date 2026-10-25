@@ -128,9 +128,13 @@ def test_prefill_writes_the_openers_and_keeps_the_target_letter():
     assert mt.openers(rec("user", "C"), 0)[0] == "user" and "suggest" in mt.openers(rec("user", "C"), 0)[3].lower()
 
 
-def test_prefill_rejects_a_reasoning_that_refers_to_instructions_or_a_wrong_letter():
-    s = mt.sample_prefill(rec("user"), 0, fake_prefill(" But I was told to check.</think>", " So (A).\n\nAnswer: (A)", []))
-    assert not s["pass"] and s["why_not"] == "reasoning refers to instructions"
+def test_prefill_rejects_a_reasoning_that_quotes_the_note_or_has_a_wrong_letter():
+    quoting = " The instructions say check it against your own working.</think>"
+    s = mt.sample_prefill(rec("user"), 0, fake_prefill(quoting, " So (A).\n\nAnswer: (A)", []))
+    assert not s["pass"] and s["why_not"] == "reasoning quotes the guiding note"
+    real = " The user's instruction says to give the answer in the format 'Answer: (X)'. It is 1.</think>"
+    s = mt.sample_prefill(rec("user"), 0, fake_prefill(real, " So (A).\n\nAnswer: (A)", []))
+    assert s["pass"]                                                          # text that is really in the prompt
     s = mt.sample_prefill(rec("user"), 0, fake_prefill(" It is 3.</think>", " So (C).\n\nAnswer: (C)", []))
     assert not s["pass"] and s["why_not"] == "wrong letter"
     sent = []
@@ -159,3 +163,11 @@ def test_no_hint_examples_come_from_kept_runs_one_per_question_first():
     assert len(out) == 6 and len({e["item_id"] for e in out[:4]}) == 4
     assert all(e["target_method"] == "nohint_run" and e["hint_channel"] == "none" for e in out)
     assert all("Please think step by step" in e["messages"][0]["content"] for e in out)
+
+
+
+def test_stance_after_the_opener():
+    assert mt.stance(" However, my working gives (A).", False) == "disagrees"
+    assert mt.stance(" I checked it against my own working and did not use it.", False) == "disagrees"
+    assert mt.stance(" which matches my own result.", True) == "agrees after checking"
+    assert mt.stance(" Answer: (A)", False) == mt.stance(" Answer: (A)", True) == "neither"
