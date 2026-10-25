@@ -23,8 +23,22 @@ HELD = [{"question_set": "mmlupro_30", "item_id": "mmlupro-9", "qid": 9, "questi
          "n_options": 2, "correct": "A", "hint_letters": ["B"]}]
 
 
-def build(questions, pinned, rule="all_correct", ratio=0.5):
-    return bd.build(rule, ratio, train_questions=questions, heldout=HELD, runs=pinned, served={}, step2b=[])
+def build(questions, pinned, rule="all_correct", ratio=0.5, plan="all_wordings"):
+    return bd.build(rule, ratio, train_questions=questions, heldout=HELD, runs=pinned, served={}, step2b=[], plan=plan)
+
+
+def test_the_default_plan_has_few_records_per_question():
+    qs = [q(i) for i in range(40)]
+    rows, _ = build(qs, {f"q{i}": runs("A", "A", "A") for i in range(40)}, plan="per_channel")
+    train = [r for r in rows if r["split"] != "heldout"]
+    for i in range(40):
+        mine = [r for r in train if r["item_id"] == f"q{i}"]
+        wrong = [r for r in mine if not r["hint_correct"]]
+        assert sorted(r["hint_channel"] for r in wrong) == ["tool_injected", "tool_pasted", "user"]
+        assert 1 <= len(mine) - len(wrong) <= 2
+    n_right = sum(r["hint_correct"] for r in train)
+    assert 0.35 < n_right / (len(train) - n_right) < 0.65                       # 1 per 2 on average
+    assert rows == build(qs, {f"q{i}": runs("A", "A", "A") for i in range(40)}, plan="per_channel")[0]   # seeded
 
 
 def test_the_target_rule_keeps_only_three_answered_correct_runs():

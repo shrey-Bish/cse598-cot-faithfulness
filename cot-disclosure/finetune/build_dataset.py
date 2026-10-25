@@ -16,6 +16,10 @@ Target rule (training questions):
                          manifest.json counts the kept questions and the dropped ones per reason.
   majority               the old rule: the majority of the saved no-hint runs (served format for
                          the pilot puzzles), else the correct answer.
+Records per question (--plan): per_channel (default; more questions, fewer records each): one
+wrong-hint record per training channel, its wording and wrong letter chosen by seed, plus 1 or 2
+correct-hint records (1 per 2 wrong on average); all_wordings: every training wording x every
+wrong letter (the earlier plan).
 Correct-hint records: for kept questions, records whose hint names the right letter, with the same
 target; --correct-ratio (default 0.5: 1 per 2 wrong-hint records).
 Channels: training uses user hints, pasted tool blocks and inserted tool turns, with paraphrased
@@ -220,8 +224,25 @@ def record(split, q, wording, letter, target, target_source, extra):
 
 
 # ---------------------------------------------------------------- the dataset
+def per_channel(split, q, target, source, extra, ratio, seed):
+    """One wrong-hint record per training channel (wording and wrong letter by seed), and as many
+    correct-hint records as ratio asks for on average (1 or 2 for 0.5), on channels chosen by seed."""
+    rng = random.Random(f"{seed}:{q['item_id']}")
+    by_channel = {c: [w for w in WORDINGS["train"] if w[1] == c] for c in TRAIN_CHANNELS}
+    letter = rng.choice(q["hint_letters"])
+    wrong = [record(split, q, rng.choice(by_channel[c]), letter, target, source, extra) for c in TRAIN_CHANNELS]
+    want = len(wrong) * ratio
+    n_right = int(want) + (rng.random() < want - int(want))
+    channels = rng.sample(TRAIN_CHANNELS, min(n_right, len(TRAIN_CHANNELS)))
+    channels += rng.choices(TRAIN_CHANNELS, k=n_right - len(channels))
+    right = [record(split, q, rng.choice(by_channel[c]), q["correct"], target, source, extra) for c in channels]
+    for i, r in enumerate(right):
+        r["id"] += f"|correct{i}"
+    return wrong + right
+
+
 def build(rule="all_correct", ratio=CORRECT_RATIO, train_questions=None, heldout=None, runs=None, served=None,
-          step2b=None, seed=SEED):
+          step2b=None, seed=SEED, plan="per_channel"):
     """(records, manifest facts). Inputs default to the saved files; tests pass their own."""
     train_questions = list(pilot_questions()) + pool_questions() if train_questions is None else train_questions
     heldout = list(heldout_questions()) if heldout is None else heldout
@@ -253,7 +274,10 @@ def build(rule="all_correct", ratio=CORRECT_RATIO, train_questions=None, heldout
         target = kept[q["item_id"]]
         source = "pinned-format no-hint runs, all correct" if rule == "all_correct" else "no-hint majority, else correct"
         extra = {"no_hint_runs": [r.get("parsed_letter") for r in runs.get(q["item_id"], [])] or
-                 served.get(q["item_id"], []), "target_rule": rule}
+                 served.get(q["item_id"], []), "target_rule": rule, "record_plan": plan}
+        if plan == "per_channel":
+            rows += per_channel(split, q, target, source, extra, ratio, seed)
+            continue
         wrong = [record(split, q, w, letter, target, source, extra) for letter in q["hint_letters"] for w in train_wordings]
         n_right = round(len(wrong) * ratio)
         pick = random.Random(f"{seed}:{q['item_id']}").sample(train_wordings * math.ceil(n_right / len(train_wordings) or 1),
@@ -295,11 +319,13 @@ def heldout_overlap(rows):
     return leaks
 
 
-def manifest(rows, facts, rule, ratio):
+def manifest(rows, facts, rule, ratio, plan="per_channel"):
     splits = ("train", "validation", "heldout")
     leaks = heldout_overlap(rows)
     return {
-        "target_model": TARGET, "target_rule": rule, "correct_hint_ratio": ratio,
+        "target_model": TARGET, "target_rule": rule, "record_plan": plan, "correct_hint_ratio": ratio,
+        "records_per_question": round(sum(r["split"] != "heldout" for r in rows) /
+                                      max(1, len({r["item_id"] for r in rows if r["split"] != "heldout"})), 2),
         "records": {s: sum(r["split"] == s for r in rows) for s in splits},
         "questions": {s: len({r["item_id"] for r in rows if r["split"] == s}) for s in splits},
         "training_questions": {"total": facts["training_questions"], "kept": facts["kept"],
@@ -319,11 +345,13 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="counts only; writes nothing")
     ap.add_argument("--target-rule", choices=("all_correct", "majority"), default="all_correct")
+    ap.add_argument("--plan", choices=("per_channel", "all_wordings"), default="per_channel",
+                    help="records per question: one wrong hint per channel (default), or every wording")
     ap.add_argument("--correct-ratio", type=float, default=CORRECT_RATIO,
                     help="correct-hint records per wrong-hint record (default 0.5: 1 per 2)")
     a = ap.parse_args()
-    rows, facts = build(a.target_rule, a.correct_ratio)
-    m = manifest(rows, facts, a.target_rule, a.correct_ratio)
+    rows, facts = build(a.target_rule, a.correct_ratio, plan=a.plan)
+    m = manifest(rows, facts, a.target_rule, a.correct_ratio, a.plan)
     assert not m["leaks"], m["leaks"]
     print(json.dumps({k: v for k, v in m.items() if k != "wordings"}, indent=1))
     if a.dry_run:
