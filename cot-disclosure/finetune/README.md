@@ -101,9 +101,12 @@ Pinned format (Step 2b), prompt + reply of the answered runs: median 11,988 toke
   (it would be about 13 GB in fp32).
 - **Loss:** only on the model's tokens (reasoning + answer). Prompt, hint, and tool
   tokens are masked.
-- **GPU estimate** (`gpu_estimate.py`, A100 80GB): training 3 versions × 2 epochs on 3,000
-  examples, 27–40 h; evaluation 34–90 h on the GPU (the tag versions use their own
-  decoding loop, not vLLM) plus 52 Voyager-hours for base and prompt-only in full.
+- **Data size:** about 1,200 training examples (4.5 records per question), about 10% of
+  them no-hint examples from Step 6's kept runs.
+- **Where:** ASU Sol, one A100-class GPU per SLURM job, Hugging Face cache on scratch;
+  every long job checkpoints and resumes (see `docs/PLAN.md`, Track A, Compute and limits).
+- **Sol GPU hours** (`gpu_estimate.py`): see the latest run; the inputs are the Step 7
+  pilot's target lengths and the trimmed evaluation.
 - **Ablations (same data):**
   1. LoRA only
   2. source tags only, base frozen

@@ -6,10 +6,10 @@
   python finetune/run_nohint.py --limit 900            # run (resumable)
 
 Questions: finetune/data/pool.jsonl (make_pool.py) in pool order; --pilot takes the first 10
-(5 puzzles, 5 MMLU-Pro). Each run is Step 2b's no-hint generation: the question and the usual
+(5 puzzles, 5 MMLU-Pro). Each run is a no-hint generation: the question and the usual
 instruction rendered with the pinned Think template, /v1/completions, temperature 0.6, seed =
-the run's number, continued past 16,000 tokens up to the 65,536-token context; still cut off
-there is no answer. Every record carries no_hint_source "voyager" and the time the run held a
+the run's number, at most 32,768 tokens in all, prompt included (from 2026-10-25; the pilot ran
+up to the 65,536-token context); past that is no answer. Every record carries no_hint_source "voyager" and the time the run held a
 request slot (gen_seconds), which sizes the full run.
 Output (appended): results/trackA/nohint_train.jsonl.gz, one row per run in
 results/trackA/nohint_train_runs.jsonl. A run that never got a whole reply is not_run and is
@@ -26,10 +26,11 @@ CODE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "progress"))
 
-from client import CanaryFailed, ModelUnavailable, preflight  # noqa: E402
+from client import CanaryFailed, ModelUnavailable, complete, preflight  # noqa: E402
 from common import append, latest, load, make_record, run_id  # noqa: E402
 from finetune import base_format as bf  # noqa: E402
 from finetune import olmo_format  # noqa: E402
+from finetune.continuation import continue_to_answer  # noqa: E402
 from tools.answer_key import build  # noqa: E402
 
 EXPERIMENT = "trackA_nohint_train"
@@ -51,21 +52,29 @@ def job_id(q, rep):
     return run_id(EXPERIMENT, q["item_id"], bf.MODEL, "none", None, rep)
 
 
+def generate(msgs, rep):
+    """One no-hint reply, within 32,768 tokens in all (one request; hitting the cap is no answer)."""
+    prompt = olmo_format.render(msgs)
+    reply, _, _, _ = continue_to_answer(msgs, prompt, "", cap=olmo_format.CAP_TOTAL - olmo_format.n_tokens(prompt),
+                                        condition="none", question_id=None, letter=None, seed=rep, complete_fn=complete)
+    return reply
+
+
 def one(q, rep):
     msgs, _ = build(q["question"], q.get("qid", q["item_id"]), "none")
     extensions, start = [], time.monotonic()
-    out = bf.generate_round(msgs, "none", rep, None, extensions)
+    out = generate(msgs, rep)
     seconds = round(time.monotonic() - start, 1)
     rec = make_record(out, experiment=EXPERIMENT, item_id=q["item_id"], model=bf.MODEL, condition="none", repeat=rep,
                       messages=msgs, n_options=q["n_options"], correct_letter=q["correct"],
-                      temperature=bf.TEMPERATURE, max_tokens=bf.MAX_TOKENS, seed=rep, run_id_=job_id(q, rep))
+                      temperature=bf.TEMPERATURE, max_tokens=olmo_format.CAP_TOTAL, seed=rep, run_id_=job_id(q, rep))
     if rec["finish_reason"] == "length":                       # cut off at the context: no answer
         rec["parsed_letter_if_not_cut"], rec["parsed_letter"] = rec["parsed_letter"], None
     rec.update({"question_set": q["question_set"], "category": q.get("category") or q.get("kind"),
                 "no_hint_source": "voyager", "format": "olmo3_think_tools", "template_sha256": olmo_format.PINNED_SHA256,
                 "endpoint": "completions", "rendered_prompt": out.get("prompt"), "raw_text": out.get("raw"),
                 "extensions": extensions or None, "gen_seconds": seconds,
-                "token_limit": {"first_segment": bf.MAX_TOKENS, "continued_up_to_context": olmo_format.CONTEXT}})
+                "token_limit": {"total_with_prompt": olmo_format.CAP_TOTAL}})
     return rec
 
 

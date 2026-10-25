@@ -126,3 +126,12 @@ def test_length_summary_counts_finished_runs_and_prompt_plus_reply():
     assert (s["runs"], s["cut_off"], s["finished"], s["median_reply"]) == (4, 1, 3, 9000)
     assert (s["over_8192"], s["over_16384"], s["total_over_8192"], s["total_over_16384"]) == (2, 0, 2, 1)
     assert s["with_prompt"] == 2 and s["counted_with_tokenizer"] == 1
+
+
+
+def test_a_no_hint_run_over_32768_tokens_in_all_counts_as_cut_off():
+    long = runs("A", "A", "A")
+    long[1]["usage"] = {"prompt_tokens": 400, "completion_tokens": 32500}
+    assert bd.all_correct(q(0), long) == (None, "a no-hint run was cut off")
+    long[1]["usage"] = {"prompt_tokens": 400, "completion_tokens": 32000}
+    assert bd.all_correct(q(0), long) == ("A", None)

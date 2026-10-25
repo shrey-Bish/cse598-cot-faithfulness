@@ -1,19 +1,23 @@
-"""Track A: GPU hours (A100 80GB) and cost for training and evaluation, from the measured lengths.
-No calls; arithmetic on Step 2b's lengths and Olmo 3 7B's shape. Replace the assumptions with
-Step 11's 20-step timing run and Step 12's decoding timing when they exist.
+"""Track A: Sol GPU hours (one A100-class GPU) for Steps 8-13, from the measured lengths. No calls.
 
-  python finetune/gpu_estimate.py --dry-run           # the inputs
-  python finetune/gpu_estimate.py --examples 3000     # the table
+  python finetune/gpu_estimate.py --dry-run                 # the inputs
+  python finetune/gpu_estimate.py --examples 1200           # the table
 
-Training: 3 versions (LoRA only, tags only, LoRA + tags), at most 2 epochs, max length 32,768
-(longer examples dropped), bf16, gradient checkpointing, loss in chunks. Every version runs a
-full backward pass through the frozen base (tags only too), so each costs about the same:
-6 x parameters per token (forward, recomputed forward, backward to the activations) plus
-attention (4 x the forward). Throughput = model FLOPs utilisation x 312 TFLOP/s.
-Evaluation (Phase 6): the held-out set per system = 30 questions x (7 held-out wordings x wrong
-and correct hint + no hint) x 3 runs. Base and prompt-only run in full on Voyager, with 10% of
-their held-out set also on the GPU as a cross-check; the three trained versions run in full on
-the GPU (LoRA only with vLLM, the tag versions with the Step 12 decoding loop).
+Assumptions (replace them with Step 11's 20-step timing run and a Step 12 decoding timing):
+  - training: 3 versions (LoRA only, tags only, LoRA + tags), at most 2 epochs, every token
+    capped at 32,768 per example (longer ones dropped), bf16, gradient checkpointing, loss in
+    chunks. Every version runs a full backward pass through the frozen base (tags only too):
+    6 x parameters per token plus attention (4 x its forward). Speed = model FLOPs utilisation
+    (30-45%) x 312 TFLOP/s. Example lengths: the Step 7 pilot's targets (prompt + reply).
+  - evaluation (Phase 6), per system and question: 3 runs for wrong hints on the user (2
+    held-out wordings), pasted (1) and declared inserted (3) channels; 1 run for correct hints
+    on those 6 wordings and for the undeclared inserted and system channels (wrong and correct);
+    3 no-hint runs. Replies as long as Step 2b's on these questions, capped at 32,768 tokens with
+    the prompt. Base and prompt-only run in full on Voyager, 10% of them again on Sol as a
+    cross-check; the three trained versions run in full on Sol.
+  - decoding speed on one A100 80GB, Olmo 3 7B at 10-30k tokens of context: vLLM 250-700
+    tokens/s in all (Olmo 3 runs through vLLM's Transformers backend); the tag versions' own loop
+    150-400 tokens/s, or vLLM if Sol confirms prompt embeddings + LoRA (finetune/tags_vllm.py).
 """
 import argparse
 import json
@@ -31,83 +35,91 @@ CONFIG = next(Path.home().glob(".cache/huggingface/hub/models--allenai--Olmo-3-7
 PARAMS = 7.3e9
 PEAK = 312e12                       # A100 bf16 dense
 MFU = (0.30, 0.45)
-MAX_LEN = 32768
+CAP = 32768
 EPOCHS, VERSIONS = 2, 3
-EVAL_QUESTIONS, EVAL_WORDINGS, EVAL_RUNS = 30, 7, 3
-VLLM_TOK_S = (300, 800)            # aggregate decode tokens/s, 7B at 10-30k context on one A100 80GB
-LOOP_TOK_S = (150, 400)            # the tag versions' own decoding loop (batched, with a KV cache)
-VOYAGER_TOK_S = 4 * 50              # 4 in flight x Step 2b's measured ~50-53 tokens/s per stream
-PRICES = (1.2, 2.5, 4.5)            # $/h for an A100 80GB: marketplace, specialist cloud, hyperscaler on demand
+QUESTIONS = 30
+PER_QUESTION = {"wrong hints, 3 runs (user x2, pasted, declared inserted x3)": 6 * 3,
+                "correct hints, 1 run (the same 6 wordings)": 6,
+                "undeclared inserted, 1 run (wrong, correct)": 2, "system note, 1 run (wrong, correct)": 2,
+                "no hint, 3 runs": 3}
+VLLM_TOK_S = (250, 700)
+LOOP_TOK_S = (150, 400)
+VOYAGER_TOK_S = 4 * 50              # 4 in flight x Step 2b's ~50 tokens/s per stream
+LOOK_INSIDE = {"Step 8, checkpoint check (5 forward passes)": (0.1, 0.3),
+               "Step 9, attention to the hint (~100 saved runs, one forward pass each, hooks)": (1, 3),
+               "Step 10, patching (26 cases x 32 layers, forward passes)": (2, 5),
+               "Step 13, look inside again on the best version (Steps 3, 9, 10)": (4, 10)}
 
 
 def shape():
     c = json.loads(CONFIG.read_text()) if CONFIG else {"hidden_size": 4096, "num_hidden_layers": 32,
                                                         "sliding_window": 4096, "layer_types": ["full_attention"] * 32}
     kinds = c.get("layer_types") or ["full_attention"] * c["num_hidden_layers"]
-    return c["hidden_size"], sum(k == "full_attention" for k in kinds), sum(k != "full_attention" for k in kinds), \
-        c.get("sliding_window") or 4096
+    return (c["hidden_size"], sum(k == "full_attention" for k in kinds), sum(k != "full_attention" for k in kinds),
+            c.get("sliding_window") or 4096)
 
 
-def lengths():
-    """(prompt + reply of Step 2b's answered runs, reply of every run, reply capped at 16,000)."""
+def train_lengths():
+    """Prompt + target tokens of the Step 7 pilot's examples (prefill if it has run), and Step 6's
+    kept no-hint runs (the no-hint examples)."""
+    for name in ("targets_prefill.jsonl.gz", "targets.jsonl.gz"):
+        ex = list({e["record_id"]: e for e in load(CODE / "results" / "trackA" / name)}.values())
+        if ex:
+            return [e["tokens"] for e in ex if not e["dropped_for_length"]], name
+    return [], None
+
+
+def eval_replies():
+    """Step 2b's replies on the held-out questions, capped at 32,768 tokens with the prompt."""
     from finetune import base_format as bf
     rows = [r for r in bf.current(load(bf.OUT)) if r["status"] == "ok"]
-    answered = [r["usage"]["prompt_tokens"] + r["usage"]["completion_tokens"] for r in rows if r["finish_reason"] != "length"]
-    replies = [r["usage"]["completion_tokens"] for r in rows]
-    return answered, replies, [min(x, 16000) for x in replies]
+    return [min(r["usage"]["completion_tokens"], CAP - r["usage"]["prompt_tokens"]) for r in rows]
 
 
-def train_flops_per_token(length):
+def flops_per_token(length):
     d, n_full, n_swa, window = shape()
-    ctx_full, ctx_swa = length / 2, min(length / 2, window)        # causal: on average half the sequence
-    attn_fwd = 4 * d * (n_full * ctx_full + n_swa * ctx_swa)
+    attn_fwd = 4 * d * (n_full * length / 2 + n_swa * min(length / 2, window))
     return 6 * PARAMS + 4 * attn_fwd
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--examples", type=int, default=3000)
+    ap.add_argument("--examples", type=int, default=1200)
     a = ap.parse_args()
-    answered, replies, capped = lengths()
-    kept = [x for x in answered if x <= MAX_LEN]
-    print(f"inputs: Step 2b, {len(answered)} answered runs: prompt + reply median {statistics.median(answered):,.0f}, "
-          f"mean {statistics.mean(kept):,.0f} for the {len(kept)} at or under {MAX_LEN:,} ({len(answered) - len(kept)} "
-          f"dropped); reply per run mean {statistics.mean(replies):,.0f} (continued to the context) or "
-          f"{statistics.mean(capped):,.0f} (capped at 16,000); model shape from {CONFIG.name if CONFIG else 'defaults'}: "
-          f"{shape()}")
+    lengths, source = train_lengths()
+    replies = eval_replies()
+    gens = QUESTIONS * sum(PER_QUESTION.values())
+    print(f"inputs: training examples from {source}: {len(lengths)} pilot targets, prompt + reply mean "
+          f"{statistics.mean(lengths):,.0f} (median {statistics.median(lengths):,.0f}); evaluation replies (Step 2b, "
+          f"capped at {CAP:,} with the prompt): mean {statistics.mean(replies):,.0f}; {gens} generations per system "
+          f"({PER_QUESTION}); model shape {shape()}")
     if a.dry_run:
         return
-    flops = sum(train_flops_per_token(x) * x for x in kept) / len(kept)          # per example
-    per_epoch = a.examples * flops
-    train_h = [VERSIONS * EPOCHS * per_epoch / (m * PEAK) / 3600 for m in MFU]
-    gens = EVAL_QUESTIONS * (EVAL_WORDINGS * 2 + 1) * EVAL_RUNS
-    rows = []
-    for label, mean_reply in (("continued to the context", statistics.mean(replies)),
-                              ("capped at 16,000 (the brief)", statistics.mean(capped))):
-        tokens = gens * mean_reply
-        lora = [tokens / t / 3600 for t in VLLM_TOK_S[::-1]]
-        tags = [2 * tokens / t / 3600 for t in LOOP_TOK_S[::-1]]
-        cross = [0.2 * tokens / t / 3600 for t in VLLM_TOK_S[::-1]]
-        voy = 2 * tokens / VOYAGER_TOK_S / 3600
-        rows.append((label, tokens, lora, tags, cross, voy))
-    print(f"\nTraining, {a.examples:,} examples x {EPOCHS} epochs x {VERSIONS} versions: "
-          f"{train_h[1]:.0f}-{train_h[0]:.0f} GPU-hours (model FLOPs utilisation {MFU[1]:.0%}-{MFU[0]:.0%}); "
-          f"1 epoch: {train_h[1] / 2:.0f}-{train_h[0] / 2:.0f}")
-    print(f"Evaluation: {gens:,} generations per system ({EVAL_QUESTIONS} questions x ({EVAL_WORDINGS} wordings x 2 + "
-          f"no hint) x {EVAL_RUNS} runs)")
-    print("| replies | GPU: LoRA only (vLLM) | GPU: tags only + LoRA + tags (own loop) | GPU: 10% cross-check of base and "
-          "prompt-only | GPU total, eval | Voyager: base + prompt-only, full |")
-    print("|---|---|---|---|---|---|")
-    for label, tokens, lora, tags, cross, voy in rows:
-        tot = [lora[i] + tags[i] + cross[i] for i in (0, 1)]
-        print(f"| {label} ({tokens / 1e6:.1f}M tokens per system) | {lora[0]:.0f}-{lora[1]:.0f} h | {tags[0]:.0f}-{tags[1]:.0f} h "
-              f"| {cross[0]:.1f}-{cross[1]:.1f} h | {tot[0]:.0f}-{tot[1]:.0f} h | {voy:.0f} h |")
-    for label, tokens, lora, tags, cross, voy in rows:
-        lo = train_h[1] + lora[0] + tags[0] + cross[0]
-        hi = train_h[0] + lora[1] + tags[1] + cross[1]
-        print(f"All GPU work, replies {label}: {lo:.0f}-{hi:.0f} A100-hours; cost "
-              + ", ".join(f"${p}/h: ${lo * p:,.0f}-${hi * p:,.0f}" for p in PRICES))
+    per_example = statistics.mean(flops_per_token(x) * x for x in lengths)
+    train = [VERSIONS * EPOCHS * a.examples * per_example / (m * PEAK) / 3600 for m in MFU[::-1]]
+    tokens = gens * statistics.mean(replies)
+    lora = [tokens / t / 3600 for t in VLLM_TOK_S[::-1]]
+    tags_loop = [2 * tokens / t / 3600 for t in LOOP_TOK_S[::-1]]
+    tags_vllm = [2 * tokens / t / 3600 for t in VLLM_TOK_S[::-1]]
+    cross = [0.2 * tokens / t / 3600 for t in VLLM_TOK_S[::-1]]
+    look = [sum(v[0] for v in LOOK_INSIDE.values()), sum(v[1] for v in LOOK_INSIDE.values())]
+    print(f"\n| job | Sol GPU hours (one A100) |")
+    print("|---|---|")
+    print(f"| Step 11, training: {a.examples:,} examples x {EPOCHS} epochs x {VERSIONS} versions | "
+          f"{train[0]:.0f}-{train[1]:.0f} (1 epoch: {train[0] / 2:.0f}-{train[1] / 2:.0f}) |")
+    print(f"| Step 13, evaluation, LoRA only (vLLM), {gens} generations, {tokens / 1e6:.1f}M tokens | "
+          f"{lora[0]:.0f}-{lora[1]:.0f} |")
+    print(f"| Step 13, evaluation, the two tag versions: own loop / vLLM with prompt embeddings | "
+          f"{tags_loop[0]:.0f}-{tags_loop[1]:.0f} / {tags_vllm[0]:.0f}-{tags_vllm[1]:.0f} |")
+    print(f"| Step 13, 10% cross-check of base and prompt-only | {cross[0]:.1f}-{cross[1]:.1f} |")
+    for name, (lo, hi) in LOOK_INSIDE.items():
+        print(f"| {name} | {lo:g}-{hi:g} |")
+    for label, tags in (("tag versions in their own loop", tags_loop), ("tag versions in vLLM", tags_vllm)):
+        lo = train[0] + lora[0] + tags[0] + cross[0] + look[0]
+        hi = train[1] + lora[1] + tags[1] + cross[1] + look[1]
+        print(f"Total, {label}: {lo:.0f}-{hi:.0f} Sol GPU hours")
+    print(f"Voyager (not Sol): base and prompt-only in full, {2 * tokens / VOYAGER_TOK_S / 3600:.0f} hours at 4 in flight.")
 
 
 if __name__ == "__main__":

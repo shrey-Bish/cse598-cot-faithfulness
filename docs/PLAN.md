@@ -75,6 +75,27 @@ pass. Two-part rule (set Oct 21):
   re-measured on the GPU.
 - The echo calls need `logprobs: 2` to get the top two tokens.
 
+**Compute and limits (decided Oct 25).**
+- **GPU = ASU Sol**, one A100-class GPU per job, through SLURM job scripts (Steps 8–13).
+  The Hugging Face cache lives on scratch space, not home. Account, partition and QOS are
+  `TODO(ritik)` in the scripts until known.
+- **Every long job resumes:** training and generation save checkpoints and pick up where
+  they stopped after a time limit or preemption.
+- **Small forward-pass jobs** (checkpoint check, attention, patching) also run on the Mac
+  with PyTorch on MPS when it has the memory; a memory check refuses to start otherwise.
+- **Token cap: 32,768 in all (prompt + reply)** for Steps 6 and 7 and for every system at
+  evaluation, base and prompt-only on Voyager included. A run that hits it has no answer.
+  It is also the training length; longer examples are dropped and counted.
+- **Estimates are Sol GPU hours** (`cot-disclosure/finetune/gpu_estimate.py`).
+- **Tag versions in vLLM:** Olmo 3 7B does not tie its input and output embeddings, so
+  adding the model tag to the input embedding table tags every generated token, and the
+  prompt goes in as precomputed embeddings with its own tags. On a tiny Olmo 3 model (CPU,
+  with and without LoRA) this equals the tagged model's logits and greedy output
+  (`finetune/tags_vllm.py`). vLLM's docs mark prompt embeddings + LoRA as compatible, but
+  Olmo 3 runs only through vLLM's Transformers backend and there are open bugs on
+  prompt embeddings + LoRA, so Step 12 checks it on Sol before relying on it; the own
+  decoding loop stays as the fallback.
+
 **Method.**
 1. **Look inside** (weeks 13–14), on saved steered and unsteered runs of the same
    question:
@@ -103,7 +124,9 @@ pass. Two-part rule (set Oct 21):
 4. **Train.** LoRA rank 8–32 + tags, loss on the model's tokens only. Three ablations:
    LoRA only, tags only, both. Settings are in
    [`finetune/README.md`](../cot-disclosure/finetune/README.md).
-5. **Evaluate on behavior:**
+5. **Evaluate on behavior** (per held-out question: 3 runs for wrong hints on the user,
+   pasted and declared inserted channels; 1 run for correct hints, the undeclared inserted
+   channel and the system note; 3 no-hint runs; 930 generations per system):
    - hint following on held-out questions and wordings (primary)
    - no-hint accuracy
    - mention and acknowledgment

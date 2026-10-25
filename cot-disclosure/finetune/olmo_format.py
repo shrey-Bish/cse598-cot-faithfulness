@@ -110,6 +110,19 @@ def assistant_turn(reply):
     return {"role": "assistant", "content": THINK_OPEN + reply["raw"]}
 
 
+CAP_TOTAL = 32768      # tokens, prompt + reply, for Track A runs from 2026-10-25 (Steps 6-7, evaluation); past it: no answer
+_TOKENIZER = None
+
+
+def n_tokens(text):
+    """Tokens in a text, with the Olmo 3 tokenizer from the local cache (matches Voyager's counts)."""
+    global _TOKENIZER
+    if _TOKENIZER is None:
+        from transformers import AutoTokenizer
+        _TOKENIZER = AutoTokenizer.from_pretrained("allenai/Olmo-3-7B-Think", local_files_only=True)
+    return len(_TOKENIZER(text, add_special_tokens=False)["input_ids"])
+
+
 CONTEXT = 65536        # olmo3-7b: context_window and max_input_tokens in Voyager's /v1/models (2026-10-21)
 CONTEXT_MARGIN = 64
 

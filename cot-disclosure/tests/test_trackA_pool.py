@@ -47,13 +47,17 @@ def test_a_no_hint_run_record_and_a_resumable_run(monkeypatch, tmp_path):
          "correct": "B", "kind": "shuffle"}
     calls = []
 
-    def gen(msgs, cond, rep, tools, extensions):
-        calls.append((msgs, cond, rep))
-        return out_of("B") if rep < 2 else out_of("B", finish="length")
-    monkeypatch.setattr(rn.bf, "generate_round", gen)
+    def complete(model, prompt, **kw):
+        calls.append((prompt, kw))
+        rep = kw["seed"]
+        return {"error": None, "content": "r</think>Answer: (B)", "finish": "stop" if rep < 2 else "length",
+                "reasoning": "", "usage": {"prompt_tokens": 100, "completion_tokens": 900}, "served_model": "olmo3-7b-think"}
+    monkeypatch.setattr(rn, "complete", complete)
+    monkeypatch.setattr(rn.olmo_format, "n_tokens", lambda text: len(text) // 4)
     paths = dict(out=tmp_path / "n.jsonl.gz", runs_out=tmp_path / "n_runs.jsonl")
     recs = rn.run([q], workers=1, **paths)
-    assert len(recs) == 3 and {c[1] for c in calls} == {"none"} and "Please think step by step" in calls[0][0][0]["content"]
+    assert len(recs) == 3 and "Please think step by step" in calls[0][0] and calls[0][0].endswith("<think>")
+    assert calls[0][1]["max_tokens"] == 32768 - len(calls[0][0]) // 4 and calls[0][1]["extra"] is None   # one capped request
     by_rep = {r["repeat"]: r for r in recs}
     assert by_rep[0]["parsed_letter"] == "B" and by_rep[0]["no_hint_source"] == "voyager" and by_rep[0]["gen_seconds"] >= 0
     assert by_rep[2]["parsed_letter"] is None and by_rep[2]["parsed_letter_if_not_cut"] == "B"     # cut off: no answer

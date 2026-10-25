@@ -59,6 +59,7 @@ POOL = CODE / "finetune" / "data" / "pool.jsonl"                         # Step 
 STEP2B = CODE / "results" / "trackA" / "base_format.jsonl.gz"
 LETTERS = "ABCDEFGHIJ"
 RUNS_NEEDED = 3
+CAP_TOTAL = 32768          # tokens, prompt + reply; a run past it has no answer (decided 2026-10-25)
 CORRECT_RATIO = 0.5
 VALIDATION_SHARE = 0.10
 SEED = 0
@@ -154,7 +155,10 @@ def all_correct(q, runs):
         return None, f"fewer than {RUNS_NEEDED} no-hint runs"
     if any(r.get("status") != "ok" for r in runs):
         return None, "a no-hint run did not complete"
-    if any(r.get("finish_reason") == "length" for r in runs):
+    def total(r):
+        u = r.get("usage") or {}
+        return (u.get("prompt_tokens") or 0) + (u.get("completion_tokens") or 0)
+    if any(r.get("finish_reason") == "length" or total(r) > CAP_TOTAL for r in runs):
         return None, "a no-hint run was cut off"
     letters = [r.get("parsed_letter") for r in runs]
     if any(x is None for x in letters):

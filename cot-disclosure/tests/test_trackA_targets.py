@@ -101,3 +101,61 @@ def test_the_fallback_sentence_goes_before_the_reasonings_own_final_answer_line(
     reasoning = raw.split("</think>")[0]
     assert reasoning.rstrip().endswith("**Final Answer: (A)")
     assert "So it is A.\n\nThe user suggested (A), which agrees with the answer I worked out, (A).\n\n**Final" in reasoning
+
+
+def fake_prefill(reasoning, final, sent, finish=("stop", "stop")):
+    """Two requests per sample: the reasoning (stopped at </think>), then the final answer."""
+    replies = iter([(reasoning, finish[0]), (final, finish[1])])
+
+    def complete(model, prompt, **kw):
+        text, fin = next(replies)
+        sent.append({"prompt": prompt, **kw})
+        return {"error": None, "content": text, "finish": fin, "reasoning": "",
+                "usage": {"prompt_tokens": 100, "completion_tokens": 50}, "served_model": "olmo3-7b-think"}
+    return complete
+
+
+def test_prefill_writes_the_openers_and_keeps_the_target_letter():
+    sent = []
+    r = rec("tool_injected", "C")
+    s = mt.sample_prefill(r, 0, fake_prefill(" Swap by swap, it is 1.</think>", " My own working gives (A).\n\nAnswer: (A)", sent))
+    side, i, j, r_open, f_open = mt.openers(r, 0)
+    assert side == "tool" and sent[0]["prompt"].endswith("<think>" + r_open) and sent[0]["extra"]["stop"] == ["</think>"]
+    assert sent[1]["prompt"].endswith("</think>\n\n" + f_open) and "(C)" in f_open
+    assert sent[1]["extra"]["stop"] == ["</function_calls>"] and mt.NOTE not in sent[0]["prompt"]
+    assert s["pass"] and s["parsed_letter"] == "A" and s["reasoning_opener"] == ["tool", i] and s["method"] == "prefill"
+    assert s["raw_text"] == r_open + " Swap by swap, it is 1.</think>\n\n" + f_open + " My own working gives (A).\n\nAnswer: (A)"
+    assert mt.openers(rec("user", "C"), 0)[0] == "user" and "suggest" in mt.openers(rec("user", "C"), 0)[3].lower()
+
+
+def test_prefill_rejects_a_reasoning_that_refers_to_instructions_or_a_wrong_letter():
+    s = mt.sample_prefill(rec("user"), 0, fake_prefill(" But I was told to check.</think>", " So (A).\n\nAnswer: (A)", []))
+    assert not s["pass"] and s["why_not"] == "reasoning refers to instructions"
+    s = mt.sample_prefill(rec("user"), 0, fake_prefill(" It is 3.</think>", " So (C).\n\nAnswer: (C)", []))
+    assert not s["pass"] and s["why_not"] == "wrong letter"
+    sent = []
+    s = mt.sample_prefill(rec("user"), 0, fake_prefill(" still going", "", sent, finish=("length", "stop")))
+    assert s["why_not"] == "hit the token cap" and len(sent) == 1               # no second request
+
+
+def test_prefill_records_flow_into_examples(tmp_path):
+    def complete_seq():
+        texts = iter([(" It is 1.</think>", "stop"), (" which is not mine, (A).\n\nAnswer: (A)", "stop")])
+
+        def complete(model, prompt, **kw):
+            text, fin = next(texts)
+            return {"error": None, "content": text, "finish": fin, "reasoning": "",
+                    "usage": {"prompt_tokens": 100, "completion_tokens": 50}}
+        return complete
+    samples, ex = mt.do_record(rec("tool_pasted"), NOHINT, complete_seq(), tmp_path / "s.jsonl.gz", tmp_path / "s.jsonl",
+                               method=mt.PREFILL)
+    assert len(samples) == 1 and ex["target_method"] == "prefill" and ex["openers"]["reasoning"][0] == "tool"
+
+
+def test_no_hint_examples_come_from_kept_runs_one_per_question_first():
+    kept = [(dict(Q, item_id=f"q{i}"), "A", [{"repeat": k, "run_id": f"r{i}{k}", "raw_text": "x</think>Answer: (A)"}
+                                             for k in range(3)]) for i in range(4)]
+    out = mt.nohint_examples(kept, 6)
+    assert len(out) == 6 and len({e["item_id"] for e in out[:4]}) == 4
+    assert all(e["target_method"] == "nohint_run" and e["hint_channel"] == "none" for e in out)
+    assert all("Please think step by step" in e["messages"][0]["content"] for e in out)
