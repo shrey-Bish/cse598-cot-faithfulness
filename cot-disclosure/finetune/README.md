@@ -90,10 +90,20 @@ Pinned format (Step 2b), prompt + reply of the answered runs: median 11,988 toke
   - alpha = 2 × rank
   - dropout 0.05
   - learning rate 1e-4 / 2e-4 for LoRA, 1e-3 for the tag table
-  - 1–3 epochs
-  - bf16, gradient checkpointing, sequence length ~8k (thinking traces are long)
+  - at most 2 epochs
+- **Sequence length 32,768** (decided Oct 25, from `length_audit.py`: 99% of answered
+  pinned-format runs fit, 61% fit 16,384). Examples longer than 32,768 tokens (prompt +
+  target) are dropped, never cut mid-reply, and the number dropped is reported (in Step 2b:
+  2 of 238).
+- **Memory at 32k:** bf16, gradient checkpointing on, batch 1 with gradient accumulation.
+  The loss is computed in chunks of positions (or with a fused linear + cross-entropy
+  kernel), so the full 32,768 × 100,278 table of output scores is never held at once
+  (it would be about 13 GB in fp32).
 - **Loss:** only on the model's tokens (reasoning + answer). Prompt, hint, and tool
   tokens are masked.
+- **GPU estimate** (`gpu_estimate.py`, A100 80GB): training 3 versions × 2 epochs on 3,000
+  examples, 27–40 h; evaluation 34–90 h on the GPU (the tag versions use their own
+  decoding loop, not vLLM) plus 52 Voyager-hours for base and prompt-only in full.
 - **Ablations (same data):**
   1. LoRA only
   2. source tags only, base frozen

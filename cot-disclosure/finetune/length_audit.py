@@ -8,7 +8,10 @@ that finished, the median reply length and how many exceed 8,192 and 16,384 toke
 length = the saved completion tokens (usage, or Test 1's out_tokens); a run without a saved
 count is counted with the Olmo 3 tokenizer (local files only). For the pinned format (Step 2b,
 continued up to the 65,536-token context) it also gives prompt + reply, the length a training
-example needs, and the share of answered runs that fit 8,192 / 16,384 / 32,768 tokens.
+example needs, and the share of answered runs that fit 8,192 / 16,384 / 32,768 tokens, split by
+channel and by number of tool rounds. A run's length is its full final sequence counted once:
+the last round's prompt (which already holds every earlier round) + its reply, checked against
+the local tokenizer. Continuing a cut-off reply is not a tool round (the record logs both).
 """
 import argparse
 import functools
@@ -61,6 +64,17 @@ def rows_test2():
                    "counted": counted}
 
 
+def tool_rounds(r):
+    """Real tool rounds: the log also has an entry for each continuation of a cut-off reply."""
+    return len([x for x in r.get("tool_rounds") or [] if not x.get("extended")])
+
+
+def channel(r):
+    if r["condition"] == "tool_injected":
+        return "tool, inserted" + (" + declared" if r.get("arm") else "")
+    return {"none": "no hint", "user": "user", "tool_pasted": "tool, pasted"}[r["condition"]]
+
+
 def rows_step2b():
     from finetune import base_format as bf
     for r in bf.current(load(bf.OUT)):
@@ -73,7 +87,14 @@ def rows_step2b():
         prompt = usage.get("prompt_tokens") if usage.get("prompt_tokens") else count(r.get("rendered_prompt"))
         yield {"source": "Step 2b (pinned format, continued to the 65,536 context)", "model": r["model"],
                "set": "MMLU-Pro 20 (Olmo's hinted Test 2 items)", "cut": r.get("finish_reason") == "length",
-               "reply": reply, "prompt": prompt, "counted": counted}
+               "reply": reply, "prompt": prompt, "counted": counted, "channel": channel(r), "rounds": tool_rounds(r),
+               "record": r}
+
+
+def single_count_check(rows):
+    """Saved prompt + reply minus the local count of the final sequence (rendered prompt + reply text)."""
+    return [r["record"]["usage"]["prompt_tokens"] + r["record"]["usage"]["completion_tokens"]
+            - count(r["record"]["rendered_prompt"] + (r["record"]["raw_text"] or "")) for r in rows]
 
 
 def summarize(rows):
@@ -122,6 +143,27 @@ def main():
               f"and 1 over 16,384): {t2['cut_off']} of {t2['runs']} cut off; of the {t2['finished']} finished, counting "
               f"prompt + reply: {t2['total_over_8192']} over 8,192 and {t2['total_over_16384']} over 16,384 (reply alone: "
               f"{t2['over_8192']} and {t2['over_16384']}). The brief counted prompt + reply.")
+    step2b = [r for r in rows if r["source"].startswith("Step 2b")]
+    print("\nPinned format (Step 2b) by channel and tool rounds; prompt + reply of the answered runs:")
+    print("| channel | tool rounds | runs | cut off | median | over 16,384 | over 32,768 |")
+    print("|---|---|---|---|---|---|---|")
+    for key in sorted({(r["channel"], r["rounds"]) for r in step2b}):
+        rs = [r for r in step2b if (r["channel"], r["rounds"]) == key]
+        tot = [r["reply"] + r["prompt"] for r in rs if not r["cut"]]
+        print(f"| {key[0]} | {key[1]} | {len(rs)} | {sum(r['cut'] for r in rs)} | {statistics.median(tot):,.0f} | "
+              f"{sum(x > 16384 for x in tot)} of {len(tot)} | {sum(x > 32768 for x in tot)} of {len(tot)} |")
+    diffs = single_count_check([r for r in step2b if not r["counted"]])
+    print(f"Counted once: saved prompt + reply minus the local count of the final sequence: min {min(diffs)}, max "
+          f"{max(diffs)} (Voyager also counts the end-of-text token); no run counts earlier text twice.")
+    answered = [r for r in step2b if not r["cut"]]
+    top = max(answered, key=lambda r: r["reply"] + r["prompt"])
+    loop = max(step2b, key=lambda r: r["reply"] + r["prompt"])
+    for label, r in (("longest answered", top), ("longest overall", loop)):
+        rec = r["record"]
+        print(f"{label}: question {rec['item_id']} ({rec.get('category')}), {r['channel']}, run {rec['repeat']}: "
+              f"{r['prompt']:,} + {r['reply']:,} = {r['prompt'] + r['reply']:,} tokens, "
+              f"{'cut off at the context (no answer)' if r['cut'] else 'answered ' + str(rec['parsed_letter'])} "
+              f"(hint {rec.get('cue_letter')}, key {rec.get('correct_letter')})")
     pinned = [r for r in rows if r["source"].startswith("Step 2b") and not r["cut"] and r["reply"] is not None]
     total = sorted(r["reply"] + (r["prompt"] or 0) for r in pinned)
     fits = {n: sum(x <= n for x in total) for n in FITS}
