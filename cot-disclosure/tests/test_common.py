@@ -107,3 +107,16 @@ def test_move_to_gz_copies_every_record_checks_it_then_removes_the_original(tmp_
     with pytest.raises(FileExistsError):                              # never over an existing copy
         move_to_gz(src, tmp_path / "r.jsonl.gz")
     assert src.exists()
+
+
+def test_rescore_compares_the_newest_record_per_run_and_keeps_track_a_gating():
+    import rescore
+    n = {1: 4}
+    rows = [{"run_id": "a", "item_id": 1, "final_text": "**Answer**: B", "parsed_letter": None, "parse_rule": "none"},
+            {"run_id": "b", "item_id": 1, "final_text": "Answer: (C)", "parsed_letter": "C", "parse_rule": "answer_colon"}]
+    assert [(r["run_id"], new) for r, old, new in rescore.rescore(rows, rescore.general, n)] == [("a", ("B", "answer_colon"))]
+    rows.append({**rows[0], "parsed_letter": "B"})                       # a re-scored copy supersedes it
+    assert rescore.rescore(rows, rescore.general, n) == []
+    cut = {"run_id": "c", "item_id": 1, "final_text": "**Answer**: B", "parsed_letter": None, "finish_reason": "length"}
+    called = {**cut, "run_id": "d", "finish_reason": "stop", "no_answer_reason": "called the tool again"}
+    assert rescore.rescore([cut, called], rescore.track_a, n) == []        # still no answer
