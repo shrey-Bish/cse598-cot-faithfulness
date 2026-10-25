@@ -7,16 +7,18 @@ closest approach? On the saved Step 3 curves and Step 2b texts (no calls).
 
 1. Concentration: the followed runs on "sure" questions (both Step 2b no-hint runs answered and
    correct), per question.
-2. The points compared:
-   - late takeover: a followed run's takeover point k (at or after half the reasoning)
-   - closest approach: a resisted run's probe after the first fifth where the hint letter peaks
-   At each point, the point and the 3 sentences before it (sentences k - 3 .. k):
-   (a) the probability of the model's own no-hint answer just before the point (the probe after
-       sentence k - 1; outside the top 10 counts as the 10th probability, an upper bound)
-   (b) whether the reasoning says its own result doesn't fit the options (keyword count, MISFIT;
-       5 example sentences, one per keyword family, to check the list)
+2. (a) Matched comparison: in every hinted run with a dense curve, each onset after the first
+       fifth (a probe where the hint letter becomes the leading letter), labelled permanent (the
+       takeover: the hint keeps the lead to the end) or temporary (the lead is lost again). Just
+       before each onset (the probe after sentence k - 1): does the model's own no-hint answer
+       lead, and its probability (outside the top 10 counts as the 10th, an upper bound). Also
+       described: the own answer just before a late takeover.
+   (b) Late takeovers (followed runs, at or after half the reasoning) against resisted runs'
+       closest approaches (the probe after the first fifth where the hint letter peaks): is there a
+       sentence saying its own result doesn't fit the options, in the point's sentence or the 3
+       before (keyword count, MISFIT; 5 example sentences, one per keyword family)?
    Means and rates come with 95% bootstrap intervals clustered by question; differences are
-   paired by question (the questions with both kinds of point).
+   paired by question (the questions with both kinds).
 """
 import argparse
 import random
@@ -69,6 +71,73 @@ def own_before(r, k):
         return None
     p = probe["probs"].get(own)
     return (p if p is not None else (probe["floor"] or 0.0)), tk.top_letter(probe["probs"]) == own
+
+
+def onsets(r):
+    """[(k, permanent)] for each probe after the first fifth where the hint letter becomes the
+    leading letter (the probe before it led with another letter, or none)."""
+    n, hint, tops = r["n_sentences"], r["hint_letter"], r["top_letters"]
+    ks = [p["k"] for p in r["curve"]]
+    return [(ks[i], all(t == hint for t in tops[i:])) for i in range(1, len(ks))
+            if tops[i] == hint and tops[i - 1] != hint and ks[i] > tk.FIFTH * n]
+
+
+def onset_rows(rows):
+    """One row per onset in the hinted runs with a dense curve and an own answer."""
+    out, skipped = [], Counter()
+    for r in rows:
+        if r["kind"] == "no hint":
+            continue
+        if not tk.dense(r):
+            skipped["not dense"] += 1
+            continue
+        for k, permanent in onsets(r):
+            ob = own_before(r, k)
+            if ob is None:
+                skipped["no own answer"] += 1
+                continue
+            out.append({"item_id": r["item_id"], "source_run_id": r["source_run_id"], "kind": r["kind"], "k": k,
+                        "permanent": permanent, "own_prob_before": ob[0], "own_leads_before": ob[1]})
+    return out, skipped
+
+
+def per_run(rows, key):
+    """{question: [the run's mean of key]}: each run weighs the same, however many onsets it has."""
+    runs = {}
+    for o in rows:
+        runs.setdefault((o["item_id"], o["source_run_id"]), []).append(float(o[key]))
+    out = {}
+    for (q, _), vals in runs.items():
+        out.setdefault(q, []).append(sum(vals) / len(vals))
+    return out
+
+
+def onset_comparison(rows, sure, label):
+    os_, skipped = onset_rows(rows)
+    if sure is not None:
+        os_ = [o for o in os_ if sure.get(o["item_id"])]
+    groups = [("permanent (the takeover)", [o for o in os_ if o["permanent"]]),
+              ("temporary", [o for o in os_ if not o["permanent"]]),
+              ("temporary, in followed runs", [o for o in os_ if not o["permanent"] and o["kind"] == "followed"]),
+              ("temporary, in resisted runs", [o for o in os_ if not o["permanent"] and o["kind"] == "resisted"])]
+    print(f"| {label}: onset | onsets | runs | questions | own answer leads just before | own answer's probability "
+          f"just before (mean) | the same, each run weighted once |")
+    print("|---|---|---|---|---|---|---|")
+    for name, g in groups:
+        print(f"| {name} | {len(g)} | {len({o['source_run_id'] for o in g})} | {len({o['item_id'] for o in g})} | "
+              f"{sum(o['own_leads_before'] for o in g)} of {len(g)}: {ci(by_q(g, 'own_leads_before'))} | "
+              f"{ci(by_q(g, 'own_prob_before'), pct=False)} | leads {ci(per_run(g, 'own_leads_before'))}, "
+              f"probability {ci(per_run(g, 'own_prob_before'), pct=False)} |")
+    perm, temp = groups[0][1], groups[1][1]
+    print(f"| permanent minus temporary | | | | {diff(by_q(perm, 'own_leads_before'), by_q(temp, 'own_leads_before'))} | "
+          f"{diff(by_q(perm, 'own_prob_before'), by_q(temp, 'own_prob_before'))} | leads "
+          f"{diff(per_run(perm, 'own_leads_before'), per_run(temp, 'own_leads_before'))} |")
+    per = Counter(o["source_run_id"] for o in temp)
+    print(f"Temporary onsets per run: median {sorted(per.values())[len(per) // 2] if per else 0}, max "
+          f"{max(per.values(), default=0)} ({len(per)} runs). Left out: {dict(skipped) or 'none'}.\n")
+    return {"permanent": len(perm), "temporary": len(temp),
+            "leads_diff": boot_diff(by_q(perm, "own_leads_before"), by_q(temp, "own_leads_before"))
+            if set(by_q(perm, "own_leads_before")) & set(by_q(temp, "own_leads_before")) else None}
 
 
 def points(rows, texts):
@@ -142,6 +211,14 @@ def concentration(rows, steps, sure):
             "per_question": {str(q): per_q[q] for q in order}, "top3": top3}
 
 
+def describe_late(ms, label):
+    late = [m for m in ms if m["point"] == "late takeover" and m["own_leads_before"] is not None]
+    print(f"Description ({label}): just before a late takeover the model's own no-hint answer leads in "
+          f"{sum(m['own_leads_before'] for m in late)} of {len(late)} runs with an own answer "
+          f"({ci(by_q(late, 'own_leads_before'))}); its mean probability there is "
+          f"{ci(by_q(late, 'own_prob_before'), pct=False)}.")
+
+
 def compare(ms, label):
     late = [m for m in ms if m["point"] == "late takeover"]
     close = [m for m in ms if m["point"] == "closest approach"]
@@ -149,12 +226,6 @@ def compare(ms, label):
     print("|---|---|---|---|")
     print(f"| points | {len(late)} ({len({m['item_id'] for m in late})} questions) | {len(close)} "
           f"({len({m['item_id'] for m in close})} questions) | |")
-    print(f"| (a) own answer's probability just before the point (mean) | "
-          f"{ci(by_q(late, 'own_prob_before'), pct=False)} (n = {sum(m['own_prob_before'] is not None for m in late)}) | "
-          f"{ci(by_q(close, 'own_prob_before'), pct=False)} (n = {sum(m['own_prob_before'] is not None for m in close)}) "
-          f"| {diff(by_q(late, 'own_prob_before'), by_q(close, 'own_prob_before'))} |")
-    print(f"| (a) the own answer leads just before the point | {ci(by_q(late, 'own_leads_before'))} | "
-          f"{ci(by_q(close, 'own_leads_before'))} | {diff(by_q(late, 'own_leads_before'), by_q(close, 'own_leads_before'))} |")
     print(f"| (b) a \"doesn't fit the options\" sentence in the point's window | "
           f"{sum(m['misfit'] for m in late)} of {len(late)}: {ci(by_q(late, 'misfit'))} | "
           f"{sum(m['misfit'] for m in close)} of {len(close)}: {ci(by_q(close, 'misfit'))} | "
@@ -201,7 +272,14 @@ def main():
     print()
     conc = concentration(rows, steps, sure)
     ms = [measure(name, r, k, texts[r["source_run_id"]]) for name, r, k in pts]
-    print("2. What separates a late takeover from a resisted run's closest approach? The point (sentence k) and the "
+    print("2(a). Matched comparison: just before the hint letter takes the lead after the first fifth, does the "
+          "model's own no-hint answer lead? Permanent onsets (the takeover) against temporary ones (the lead is lost "
+          "again). 95% bootstrap intervals clustered by question.\n")
+    onset_all = onset_comparison(rows, None, "all hinted runs")
+    onset_sure = onset_comparison(rows, sure, "sure questions only")
+    describe_late(ms, "all hinted runs")
+    describe_late([m for m in ms if sure.get(m["item_id"])], "sure questions only")
+    print("\n2(b). Late takeovers against resisted runs' closest approaches: the point (sentence k) and the "
           f"{BEFORE} sentences before it. Keyword counts; 95% bootstrap intervals clustered by question.\n")
     all_hinted = compare(ms, "all hinted runs")
     on_sure = compare([m for m in ms if sure.get(m["item_id"])], "sure questions only")
@@ -216,6 +294,7 @@ def main():
               f"\"{' '.join(s.split())[:300]}\"")
     append(OUT, {"timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                  "concentration": conc, "all_hinted": all_hinted, "sure_only": on_sure,
+                 "onsets_all": onset_all, "onsets_sure": onset_sure,
                  "keyword_families": MISFIT_FAMILIES, "family_counts": dict(fams),
                  "points": [{k: v for k, v in m.items() if k != "misfit_hits"} | {
                      "misfit_sentences": [i for i, _, _ in m["misfit_hits"]]} for m in ms]})

@@ -44,3 +44,12 @@ def test_own_answer_just_before_the_point():
     assert bt.own_before(r, 4) == (0.6, True)
     assert bt.own_before(r, 5) == (0.002, False)                       # outside the top 10: its floor
     assert bt.own_before(r, 9) is None and bt.own_before({**r, "own_letter": None}, 4) is None
+
+
+def test_onsets_after_the_first_fifth_are_permanent_or_temporary():
+    tops = list("AAAABBAAABBBAABBBB")                                     # n = 17 sentences, k = 0..17
+    r = {"n_sentences": 17, "hint_letter": "B", "top_letters": tops,
+         "curve": [{"k": k, "probs": {}, "floor": 0.0} for k in range(18)]}
+    assert bt.onsets(r) == [(4, False), (9, False), (14, True)]           # k = 4 > 0.2 * 17
+    r["n_sentences"] = 30                                                 # the first fifth now covers k <= 6
+    assert bt.onsets(r) == [(9, False), (14, True)]
