@@ -53,6 +53,7 @@ from common import BACKOFF, append, boot_diff, boot_mean, load, make_record, run
 from parse import parse_answer  # noqa: E402
 from finetune import base_format as bf  # noqa: E402
 from finetune import olmo_format  # noqa: E402
+from finetune.continuation import continue_to_answer  # noqa: E402
 from finetune.look import before_takeover as bt  # noqa: E402
 from finetune.look import takeover as tk  # noqa: E402
 
@@ -67,7 +68,6 @@ ARMS = ("hint", "control", "unedited")
 ALL_ARMS = ("hint", "control", "unedited", "misfit")
 FORCED_ARMS = ("hint", "control", "misfit")                  # unedited: known from Step 3
 TOKENIZER = "allenai/Olmo-3-7B-Think"
-MAX_QUOTED = 10                    # continuations past a call quoted in the reasoning, per call
 HINT_TOOL = re.compile(r'\blookup|\banswer[ _]key\b|\bstudy guide\b|\btool\b|\bexpected[ _]answer'
                        r'|\bexpected is\b|\bexpected"?\s*:\s*["(]?[A-J]\b', re.IGNORECASE)
 LENGTH_TOL = 0.25
@@ -169,27 +169,13 @@ def forced(src, text, letters):
     return out, {"probs": probs, "floor": floor, "letter": tk.top_letter(probs)}
 
 
-def continuation(src, text, seed, cap):
-    """Generate from prompt + edited reasoning to a final answer within `cap` new tokens. A stop on a
-    call quoted inside the reasoning goes on (within the cap); hitting the cap is no answer."""
-    cond = src["condition"]
-    body = {"stop": ["</function_calls>"], "include_stop_str_in_output": True} if cond == bf.INJECTED else None
-    raw, used, extensions, prompt_tokens = text, 0, [], None
-    for _ in range(1 + MAX_QUOTED):
-        with slot():
-            res = complete(MODEL, src["rendered_prompt"] + raw, max_tokens=max(1, cap - used),
-                           temperature=bf.TEMPERATURE, seed=seed, backoff=BACKOFF, extra=body)
-        usage = res.get("usage") or {}
-        prompt_tokens = prompt_tokens or usage.get("prompt_tokens")
-        raw += res["content"] or ""
-        used += usage.get("completion_tokens") or 0
-        reasoning, final = olmo_format.split(raw)
-        out = {**res, "prompt": src["rendered_prompt"], "raw": raw, "reasoning": reasoning, "content": final,
-               "usage": {"prompt_tokens": prompt_tokens, "completion_tokens": used}}
-        if out["error"] or bf.stopped_early(out, cond) != "call quoted in the reasoning" or used >= cap:
-            return out, extensions
-        extensions.append({"reason": "call quoted in the reasoning", "at_completion_tokens": used})
-    return out, extensions
+def continuation(src, text, seed, cap, question_id, letter):
+    """finetune/continuation.continue_to_answer from prompt + edited reasoning: (last reply, rounds log,
+    tool calls the model made, messages). A tool call in the final answer is answered as in Step 2b
+    (from 2026-10-25; the Step 4 run of that day counted the 6 such continuations as no answer)."""
+    return continue_to_answer(src.get("transcript") or src["prompt_messages"], src["rendered_prompt"], text, cap=cap,
+                              condition=src["condition"], question_id=question_id, letter=letter,
+                              seed=seed, tools=src.get("tools_declared"), complete_fn=complete)
 
 
 def job_id(case, arm, call):
@@ -222,14 +208,15 @@ def one(case, src, probe, arm, call, items):
         rec.update({**meta, "parsed_letter": letter, "forced_probs": got and got["probs"],
                     "forced_floor": got and got["floor"], "outcome": outcome(letter, own, hint) if got else None})
         return rec
-    out, extensions = continuation(src, text, call, cap)
-    calls = olmo_format.find_calls(out) if not out["error"] else []
-    rec = make_record({**out, "reasoning": out["raw"][len(text):].split(olmo_format.THINK_CLOSE)[0]},
-                      max_tokens=cap, seed=call, **base)
-    if rec["finish_reason"] == "length" or calls:              # the cap, or a new tool call: no answer
+    reply, rounds, model_calls, msgs = continuation(src, text, call, cap, case["item_id"], hint)
+    generated = reply.get("raw", "")[len(text):] if len(rounds) == 1 else reply.get("raw", "")
+    rec = make_record({**reply, "reasoning": generated.split(olmo_format.THINK_CLOSE)[0]}, max_tokens=cap, seed=call,
+                      **base)
+    if reply.get("no_answer_reason") or rec["finish_reason"] == "length":     # the cap, or still calling
         rec["parsed_letter_if_not_cut"], rec["parsed_letter"] = rec["parsed_letter"], None
-    rec.update({**meta, "generated_text": out["raw"][len(text):], "extensions": extensions or None,
-                "no_answer_reason": "called the tool again" if calls else (
+    rec.update({**meta, "generated_text": generated, "tool_rounds": rounds, "tool_calls_by_model": model_calls,
+                "transcript": msgs if len(rounds) > 1 else None,
+                "no_answer_reason": reply.get("no_answer_reason") or (
                     "hit the token cap" if rec["finish_reason"] == "length" else None),
                 "outcome": outcome(rec["parsed_letter"], own, hint) if rec["status"] == "ok" else None})
     return rec

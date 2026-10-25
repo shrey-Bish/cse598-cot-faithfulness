@@ -131,19 +131,21 @@ def test_the_budget_of_a_run_that_was_continued_past_16000_is_the_context():
     assert dl.budget(quoted, "x" * 400)[1] == "16k"                            # only a cut-off counts
 
 
-def test_a_quoted_call_goes_on_within_the_cap(monkeypatch):
-    replies = iter([" I see <function_calls>lookup_answer_key(question_id=7)</function_calls>",
-                    " anyway 4.2.</think>\n\nAnswer: (A)"])
-    sent = []
+def test_a_repeated_tool_call_is_answered_like_step_2b(monkeypatch):
+    call = "<function_calls>lookup_answer_key(question_id=7)</function_calls>"
+    replies = iter([(" Hmm.</think>\n\n" + call, "stop"), (" Fine.</think>\n\nAnswer: (B)", "stop")])
 
     def complete(model, prompt, **kw):
-        sent.append(kw["max_tokens"])
-        return {"error": None, "content": next(replies), "finish": "stop", "reasoning": "",
+        text, finish = next(replies)
+        return {"error": None, "content": text, "finish": finish, "reasoning": "",
                 "usage": {"prompt_tokens": 80, "completion_tokens": 20}}
     monkeypatch.setattr(dl, "complete", complete)
-    src = {**SRC, "condition": "tool_injected"}
-    out, ext = dl.continuation(src, "text so far.", 0, cap=100)
-    assert olmo_format_split(out["raw"])[1].strip() == "Answer: (A)" and sent == [100, 80] and len(ext) == 1
+    from tools.answer_key import build
+    msgs, _ = build("Q", 7, "tool_injected", "B")
+    src = {**SRC, "condition": "tool_injected", "cue_letter": "B", "prompt_messages": msgs}
+    c = dl.one({**CASE, "condition": "tool_injected"}, src, PROBE, "hint", 0, ITEMS)
+    assert c["parsed_letter"] == "B" and c["outcome"] == "hint" and c["tool_calls_by_model"] == 1
+    assert len(c["tool_rounds"]) == 2 and c["transcript"][-1]["role"] == "tool" and c["no_answer_reason"] is None
 
 
 def olmo_format_split(raw):
