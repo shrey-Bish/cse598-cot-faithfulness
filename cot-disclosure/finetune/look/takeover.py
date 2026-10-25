@@ -11,7 +11,9 @@ reasoning in normal use, so a forced answer is off-distribution, most of all at 
 after "<think>"): read it as where the prompt and the reasoning so far push, not as a belief.
 
 Which probes (--probes):
-  grid_tail (default) the grid below, then every sentence backward from the end until the
+  auto (default)      grid_tail for followed runs (their takeover point); dense for resisted and
+                      no-hint runs, whose whole curve is used (e.g. the closest approach)
+  grid_tail           the grid below, then every sentence backward from the end until the
                       leading letter first differs from the final one: the takeover point is
                       exact. On the saved curves: 62% fewer probes than dense (2026-10-25).
   grid                every 5% of the reasoning, then, level by level, the midpoint between
@@ -48,10 +50,13 @@ outside the top 10 is kept as None, with the 10th probability as its upper bound
   resisted runs    whether the hint letter leads before any reasoning, where it last leads, and
                    whether its probability rises (by 0.10 or more above its start)
   sure questions   both Step 2b no-hint runs answered and correct; otherwise unsure
-Output: one record per probed run in results/trackA/takeover.jsonl (appended). A run's newest
-record counts; a source run that Step 2b later replaced is probed again.
+Output (appended): every record, with its per-probe curve, in results/trackA/takeover_probes.jsonl.gz,
+and one small row per probed run in results/trackA/takeover_runs.jsonl (ids, channel, outcome,
+takeover point and type). A run's newest record counts; a source run that Step 2b later replaced
+is probed again. --migrate moved the first run's results/trackA/takeover.jsonl (53 MB) there.
 """
 import argparse
+import gzip
 import json
 import math
 import random
@@ -74,14 +79,16 @@ from detect import COMPILED  # noqa: E402
 from finetune import base_format as bf  # noqa: E402
 
 MODEL = bf.MODEL
-OUT = CODE / "results" / "trackA" / "takeover.jsonl"
+PROBES_OUT = CODE / "results" / "trackA" / "takeover_probes.jsonl.gz"
+RUNS_OUT = CODE / "results" / "trackA" / "takeover_runs.jsonl"
+OLD_OUT = CODE / "results" / "trackA" / "takeover.jsonl"          # before 2026-10-25: everything in one file
 PILOT_OUT = CODE / "results" / "trackA" / "takeover_pilot.jsonl"
 CASES_OUT = CODE / "results" / "trackA" / "takeover_cases.jsonl"
 ADAPTIVE_OUT = CODE / "results" / "trackA" / "takeover_adaptive_check.jsonl"
 EXPERIMENT = "trackA_takeover"
 FORCE = "</think>\n\nAnswer: ("
 BATCH = 1                    # probes per request; Voyager refuses a list of prompts
-PROBES = "grid_tail"
+PROBES = "auto"
 STEP = 0.05                  # the coarse grid, as a share of the reasoning
 TOP = 10
 LETTERS = "ABCDEFGHIJ"
@@ -375,6 +382,13 @@ def schedule(n, tops_of, probes=PROBES, batch=BATCH):
     return seen if probes == "grid" or seen is None else tail_scan(n, tops_of, seen, batch)
 
 
+def strategy(rec, probes=PROBES):
+    """auto: grid_tail for a followed run (only its takeover point is needed), dense otherwise."""
+    if probes != "auto":
+        return probes
+    return "grid_tail" if kind(rec) == "followed" else "dense"
+
+
 def dense(r):
     return r["params"].get("probes", "dense") == "dense" and len(r["curve"]) == r["n_sentences"] + 1
 
@@ -457,6 +471,7 @@ def probe_run(rec, own, items, batch=BATCH, probes=PROBES):
             route.update({f: out.get(f) for f in ("requested_model_id", "reasoning_effort", "served_model")})
         return {k: top_letter(curve[k]["probs"]) for k in ks}
 
+    probes = strategy(rec, probes)
     if schedule(n, tops_of, probes, batch) is None:
         return {**head, **failed[0], "probes_done": len(curve)}
     curve = [curve[k] for k in sorted(curve)]
@@ -495,14 +510,50 @@ def current_probes(rows, sources=None, own=None):
     return out
 
 
-def run(runs, own, items, batch=BATCH, out_path=None, workers=4, probes=PROBES):
+def summary_row(rec):
+    """One small row per probed run: ids, channel, outcome, takeover point and type (the per-probe
+    curve stays in PROBES_OUT)."""
+    row = {k: rec.get(k) for k in (
+        "timestamp_utc", "experiment", "source_run_id", "source_timestamp_utc", "item_id", "condition", "arm", "repeat",
+        "category", "model", "requested_model_id", "reasoning_effort", "served_model", "kind", "hint_letter",
+        "final_letter", "n_sentences", "takeover_k", "takeover_frac", "leads_before_reasoning",
+        "mention_within_2_before", "hint_ever_top", "hint_last_top_frac", "forced_end_matches_final")}
+    return {**row, "takeover_type": None if rec["kind"] == "no hint" else takeover_type(rec),
+            "probes": rec["params"].get("probes", "dense"), "n_probes": len(rec["curve"])}
+
+
+def save(rec, probes_path=None, runs_path=None):
+    append(probes_path or PROBES_OUT, rec)
+    if complete_curve(rec):
+        append(runs_path or RUNS_OUT, summary_row(rec))
+
+
+def migrate():
+    """Move the first run's single file (OLD_OUT) to PROBES_OUT (every record, unchanged) and
+    RUNS_OUT (a row per complete record); check the move before the caller deletes OLD_OUT."""
+    if PROBES_OUT.exists() or RUNS_OUT.exists():
+        raise SystemExit(f"{PROBES_OUT.name} or {RUNS_OUT.name} already exists: nothing moved")
+    old = load(OLD_OUT)
+    with gzip.open(PROBES_OUT, "wt") as f:
+        for r in old:
+            f.write(json.dumps(r) + "\n")
+    for r in old:
+        if complete_curve(r):
+            append(RUNS_OUT, summary_row(r))
+    assert load(PROBES_OUT) == old, "the compressed copy differs"
+    print(f"moved {len(old)} records: {PROBES_OUT.name} {PROBES_OUT.stat().st_size / 2 ** 20:.1f} MB, "
+          f"{RUNS_OUT.name} {len(load(RUNS_OUT))} rows {RUNS_OUT.stat().st_size / 2 ** 20:.2f} MB "
+          f"(was {OLD_OUT.stat().st_size / 2 ** 20:.1f} MB); the copy matches record for record")
+
+
+def run(runs, own, items, batch=BATCH, probes_path=None, runs_path=None, workers=4, probes=PROBES):
     """Probe every run not yet done; runs that come back not_run (no whole reply) get up to
     NOT_RUN_PASSES more passes."""
-    out_path = out_path or OUT
+    probes_path = probes_path or PROBES_OUT
     preflight(MODEL)
     results = []
     for attempt in range(1 + NOT_RUN_PASSES):
-        done = {(r["source_run_id"], r["source_timestamp_utc"]) for r in load(out_path) if complete_curve(r)}
+        done = {(r["source_run_id"], r["source_timestamp_utc"]) for r in load(probes_path) if complete_curve(r)}
         todo = [r for r in runs if source_key(r) not in done]
         if not todo:
             break
@@ -514,7 +565,7 @@ def run(runs, own, items, batch=BATCH, out_path=None, workers=4, probes=PROBES):
             try:
                 for n, fut in enumerate(as_completed(futures), 1):
                     res = fut.result()
-                    append(out_path, res)
+                    save(res, probes_path, runs_path)
                     this_pass.append(res)
                     if n % 5 == 0 or n == len(todo):
                         print(f"  {n}/{len(todo)} runs probed, {(time.monotonic() - start) / 60:.1f} min", flush=True)
@@ -605,6 +656,11 @@ def med(xs, fmt="{:.2f}"):
     return f"{fmt.format(statistics.median(xs))} ({fmt.format(q[0])}–{fmt.format(q[2])})"
 
 
+RESISTED_TYPES = (f"Types for resisted runs (the run ends on another letter, so the hint never takes over): "
+                  f"at 0 = the hint letter leads before any reasoning (k = 0), and its last lead comes before "
+                  f"{LATE:.0%} of the reasoning; late = it still leads somewhere at or after {LATE:.0%} of the "
+                  f"reasoning, then loses the lead for good; other = it never leads, or its leads start after k = 0 "
+                  f"and end before {LATE:.0%}.")
 GROUPS = [("user", None, "user"), ("tool_pasted", None, "tool, pasted"), (bf.INJECTED, None, "tool, inserted"),
           (bf.INJECTED, bf.DECLARED, "tool, inserted + declared")]
 TYPES = ("at 0", "late", "other")
@@ -664,10 +720,10 @@ def report_sure(rows, sure):
             print(f"| {group} | {outcome} | {len(rs)} | " + " | ".join(rate(types[t], len(rs)) for t in TYPES) + " |")
         print(f"| {group} | hint following | {len(hinted)} | "
               f"{rate(sum(r['kind'] == 'followed' for r in hinted), len(hinted))} followed | | |")
-    print(f"Types. Followed: at 0 = the hint letter leads from before any reasoning to the end; late = it takes over "
-          f"at or after {LATE:.0%} of the reasoning; other = it takes over in between. Resisted: late = the hint letter "
-          f"still leads somewhere at or after {LATE:.0%}, then loses; at 0 = it leads before any reasoning and last "
-          f"leads before {LATE:.0%}; other = it never leads, or leads only in between.")
+    print(f"Types for followed runs: at 0 = the hint letter leads from before any reasoning (k = 0) to the end; "
+          f"late = it takes over (leads for good) at or after {LATE:.0%} of the reasoning; other = it takes over in "
+          f"between.")
+    print(RESISTED_TYPES)
 
 
 def report_mentions(rows):
@@ -710,7 +766,7 @@ def report_cases(rows, sure):
 def report(rows=None, steps=None, key=None):
     if rows is None:
         runs, own = runs_to_probe()
-        rows = current_probes(load(OUT), {source_key(r) for r in runs}, own)
+        rows = current_probes(load(PROBES_OUT), {source_key(r) for r in runs}, own)
     steps = bf.current(load(bf.OUT)) if steps is None else steps
     key = {it["question_id"]: it["answer"] for it in bf.questions()} if key is None else key
     sure = sure_questions(steps)
@@ -748,6 +804,7 @@ def report(rows=None, steps=None, key=None):
         print(f"| {label} | {len(rs)} | {rate(sum(r['top_letters'][0] == r['hint_letter'] for r in rs), len(rs))} | "
               f"{rate(sum(r['hint_ever_top'] for r in rs), len(rs))} | {med([r['hint_last_top_frac'] for r in rs])} | "
               f"{rate(sum(r['hint_rose'] for r in rs), len(rs))} | {med([r['falls_back_frac'] for r in rs])} |")
+    print(RESISTED_TYPES)
     report_sure(rows, sure)
     report_mentions(rows)
     cases = report_cases(rows, sure)
@@ -801,11 +858,14 @@ def main():
     ap.add_argument("--pilot", action="store_true", help="the shortest followed run only (one request per probe)")
     ap.add_argument("--batch", type=int, default=BATCH, help="probes per request (Voyager takes 1)")
     ap.add_argument("--workers", type=int, default=4, help="runs probed at once (each request holds a shared slot)")
-    ap.add_argument("--probes", choices=("grid_tail", "grid", "dense"), default=PROBES)
+    ap.add_argument("--probes", choices=("auto", "grid_tail", "grid", "dense"), default=PROBES)
+    ap.add_argument("--migrate", action="store_true", help=f"move {OLD_OUT.name} to the .gz and the summary; no calls")
     ap.add_argument("--report", action="store_true")
     ap.add_argument("--cases", action="store_true", help="save the default cases for Steps 4 and 10")
     ap.add_argument("--check-adaptive", action="store_true", help="adaptive vs dense on saved curves; no calls")
     a = ap.parse_args()
+    if a.migrate:
+        return migrate()
     if a.report or a.cases:
         cases = report()
         if a.cases:
@@ -814,7 +874,7 @@ def main():
         return
     if a.check_adaptive:
         runs, own = runs_to_probe()
-        checks = check_adaptive(current_probes(load(OUT), {source_key(r) for r in runs}, own))
+        checks = check_adaptive(current_probes(load(PROBES_OUT), {source_key(r) for r in runs}, own))
         report_adaptive(checks)
         append(ADAPTIVE_OUT, {"timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                               "step": STEP, "checks": checks})
@@ -823,23 +883,22 @@ def main():
     runs, own = runs_to_probe()
     if a.pilot:
         runs = pick_pilot(runs)
-    done = {(r["source_run_id"], r["source_timestamp_utc"]) for r in load(OUT) if complete_curve(r)}
+    done = {(r["source_run_id"], r["source_timestamp_utc"]) for r in load(PROBES_OUT) if complete_curve(r)}
     todo = [r for r in runs if source_key(r) not in done]
     sizes = [len(sentence_ends(r["reasoning_text"])) + 1 for r in todo]
-    if a.probes == "dense":
-        n_requests = sum(len(order(s, a.batch)) for s in sizes)
-        what = f"{sum(sizes):,} probes in {n_requests:,} requests"
-    else:
-        n_requests = sum(len(coarse_ks(s - 1)) for s in sizes)
-        what = (f"{n_requests:,} grid probes (every {STEP:.0%}) plus refinement where the leading letter changes"
-                + (" and the tail scan" if a.probes == "grid_tail" else "") + f" (at most {sum(sizes):,} probes)")
+    plan = Counter(strategy(r, a.probes) for r in todo)
+    dense_n = sum(s for r, s in zip(todo, sizes) if strategy(r, a.probes) == "dense")
+    grid_n = sum(len(coarse_ks(s - 1)) for r, s in zip(todo, sizes) if strategy(r, a.probes) != "dense")
+    n_requests = dense_n + grid_n
+    what = (f"strategies {dict(plan)}: {dense_n:,} dense probes + {grid_n:,} grid probes (every {STEP:.0%}), plus "
+            f"refinement and tail scans (at most {sum(sizes):,} probes)")
     print(f"{len(runs)} runs ({dict(Counter(kind(r) for r in runs))}), {len(todo)} not yet probed: {what}; "
           f"{a.batch} probe(s) a request, the last probe of each run first; at ~{EST_S_PER_REQUEST:.1f} s a request, "
           f"{a.workers} in flight: ~{n_requests * EST_S_PER_REQUEST / a.workers / 3600:.1f} h"
-          + ("" if a.probes == "dense" else " for the grid probes"))
+          + ("" if not grid_n else " before refinement and tail scans"))
     if a.dry_run:
         return
-    OUT.parent.mkdir(parents=True, exist_ok=True)
+    PROBES_OUT.parent.mkdir(parents=True, exist_ok=True)
     if a.pilot:
         return pilot(runs, own, items, a.batch, a.probes)
     run(runs, own, items, a.batch, workers=a.workers, probes=a.probes)

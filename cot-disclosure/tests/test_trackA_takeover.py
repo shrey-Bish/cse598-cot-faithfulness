@@ -150,17 +150,42 @@ def test_which_runs_are_probed_and_the_own_answer():
 
 def test_records_of_replaced_source_runs_drop_out(monkeypatch, tmp_path):
     monkeypatch.setattr(tk, "complete", fake_complete([]))
-    monkeypatch.setattr(tk, "OUT", tmp_path / "takeover.jsonl")
+    probes, runs = tmp_path / "takeover_probes.jsonl.gz", tmp_path / "takeover_runs.jsonl"
     src = rec()
-    tk.run([src], {7: "A"}, ITEMS, out_path=tk.OUT)
-    tk.run([src], {7: "A"}, ITEMS, out_path=tk.OUT)                           # resumable: nothing new
-    rows = tk.load(tk.OUT)
+    tk.run([src], {7: "A"}, ITEMS, probes_path=probes, runs_path=runs)
+    tk.run([src], {7: "A"}, ITEMS, probes_path=probes, runs_path=runs)       # resumable: nothing new
+    rows = tk.load(probes)
     assert len(rows) == 1
     assert len(tk.current_probes(rows, {tk.source_key(src)})) == 1
     newer = {**src, "timestamp_utc": "2026-10-23T00:00:00+00:00"}             # Step 2b replaced the source run
     assert tk.current_probes(rows, {tk.source_key(newer)}) == []
-    tk.run([newer], {7: "A"}, ITEMS, out_path=tk.OUT)
-    assert len(tk.load(tk.OUT)) == 2
+    tk.run([newer], {7: "A"}, ITEMS, probes_path=probes, runs_path=runs)
+    assert len(tk.load(probes)) == 2
+
+
+def test_the_summary_keeps_one_small_row_per_probed_run(monkeypatch, tmp_path):
+    monkeypatch.setattr(tk, "complete", fake_complete([]))
+    probes, runs = tmp_path / "p.jsonl.gz", tmp_path / "r.jsonl"
+    tk.run([rec(), rec(parsed="A")], {7: "A"}, ITEMS, probes_path=probes, runs_path=runs)
+    rows = tk.load(runs)
+    assert len(rows) == 2 and all("curve" not in r and "mentions" not in r for r in rows)
+    by = {r["kind"]: r for r in rows}
+    assert by["followed"]["takeover_k"] == 3 and by["followed"]["takeover_type"] == "late"
+    assert by["followed"]["probes"] == "grid_tail" and by["resisted"]["probes"] == "dense"   # auto
+    assert by["resisted"]["n_probes"] == 6 and by["resisted"]["condition"] == "tool_pasted"
+
+
+def test_migrate_moves_every_record_and_checks_the_copy(monkeypatch, tmp_path):
+    monkeypatch.setattr(tk, "complete", fake_complete([]))
+    old = tmp_path / "takeover.jsonl"
+    for r in (tk.probe_run(rec(), {}, ITEMS), {"status": "api_error", "source_run_id": "x"}):
+        tk.append(old, r)
+    for name, path in (("OLD_OUT", old), ("PROBES_OUT", tmp_path / "p.jsonl.gz"), ("RUNS_OUT", tmp_path / "r.jsonl")):
+        monkeypatch.setattr(tk, name, path)
+    tk.migrate()
+    assert tk.load(tk.PROBES_OUT) == tk.load(old) and len(tk.load(tk.RUNS_OUT)) == 1
+    with pytest.raises(SystemExit):                                           # never twice
+        tk.migrate()
 
 
 def steps_for(rows):
@@ -310,7 +335,7 @@ def test_runs_that_are_not_run_get_another_pass(monkeypatch, tmp_path):
         state["n"] += 1
         return {"error": "URLError"} if state["n"] == 1 else good(model, prompt, **kw)
     monkeypatch.setattr(tk, "complete", flaky)
-    out = tk.run([rec()], {7: "A"}, ITEMS, out_path=tmp_path / "t.jsonl")
+    out = tk.run([rec()], {7: "A"}, ITEMS, probes_path=tmp_path / "t.jsonl.gz", runs_path=tmp_path / "r.jsonl")
     assert [r["status"] for r in out] == ["not_run", "ok"]
 
 

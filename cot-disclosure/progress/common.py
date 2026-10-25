@@ -7,6 +7,7 @@ four requests in flight across every process on this machine, deterministic
 run ids, the JSONL record schema, and Wilson intervals.
 """
 import fcntl
+import gzip
 import hashlib
 import json
 import logging
@@ -176,14 +177,23 @@ def call(log, *, experiment, item_id, model, condition, repeat, messages, n_opti
 _write_lock = threading.Lock()
 
 
+def _open(path, mode):
+    """A results file, gzip-compressed when its name ends in .gz (each append adds a gzip member;
+    readers see one stream of lines)."""
+    return gzip.open(path, mode + "t") if str(path).endswith(".gz") else open(path, mode)
+
+
 def append(path, rec):
-    with _write_lock, open(path, "a") as f:
+    with _write_lock, _open(path, "a") as f:
         f.write(json.dumps(rec) + "\n")
 
 
 def load(path):
     path = Path(path)
-    return [json.loads(line) for line in open(path)] if path.exists() else []
+    if not path.exists():
+        return []
+    with _open(path, "r") as f:
+        return [json.loads(line) for line in f]
 
 
 def latest(rows):

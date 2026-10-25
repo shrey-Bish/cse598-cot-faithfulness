@@ -1,4 +1,4 @@
-"""Track A, step 3: figures from results/trackA/takeover.jsonl (no calls).
+"""Track A, step 3: figures from results/trackA/takeover_probes.jsonl.gz (no calls).
 
   python finetune/look/plot_takeover.py --dry-run     # which figures, from how many runs
   python finetune/look/plot_takeover.py               # -> results/trackA/figures/takeover_*.png and .svg
@@ -60,7 +60,7 @@ def finish(fig, path, title, n_runs):
     fig.suptitle(title, fontsize=15, x=0.02, ha="left", y=0.985)
     fig.text(0.02, 0.008, f"Olmo 3 7B Think on Voyager, Step 2b runs ({n_runs} probed). Mentions are keyword counts "
              f"(detect.py). A letter outside the top 10 is drawn at the 10th probability. Source: "
-             f"results/trackA/takeover.jsonl · script: {SCRIPT}", fontsize=8, color=C["muted"], ha="left")
+             f"results/trackA/takeover_probes.jsonl.gz · script: {SCRIPT}", fontsize=8, color=C["muted"], ha="left")
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path.with_suffix(".png"), dpi=160, metadata={"Software": None})
     fig.savefig(path.with_suffix(".svg"), metadata={"Date": None, "Creator": None})
@@ -202,7 +202,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
-    rows = tk.current_probes(load(tk.OUT))
+    rows = tk.current_probes(load(tk.PROBES_OUT))
     pages = curve_pages(rows)
     n_curve = sum(math.ceil(len(rs) / PER_PAGE) for rs in pages.values())
     print(f"{len(rows)} probed runs -> {n_curve} pages of curves, takeover_points, takeover_mean_curves "

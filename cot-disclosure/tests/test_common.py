@@ -78,3 +78,16 @@ def test_boot_mean_resamples_questions_together():
     assert (m, lo, hi) == (pytest.approx(0.2), pytest.approx(0.2), pytest.approx(0.2))
     m, lo, hi = boot_mean({0: [1.0, 1.0, 1.0], 1: [0.0]})                    # pooled over values, not questions
     assert m == 0.75 and lo == 0.0 and hi == 1.0
+
+
+def test_load_and_append_read_and_write_gzip(tmp_path):
+    import gzip
+    from common import append, load
+    plain, packed = tmp_path / "r.jsonl", tmp_path / "r.jsonl.gz"
+    for i in range(3):
+        append(plain, {"i": i})
+        append(packed, {"i": i})                                    # one gzip member per append
+    assert load(packed) == load(plain) == [{"i": 0}, {"i": 1}, {"i": 2}]
+    with gzip.open(packed, "rt") as f:                              # a plain gzip reader sees the same lines
+        assert [line for line in f] == plain.read_text().splitlines(keepends=True)
+    assert load(tmp_path / "missing.jsonl.gz") == []
