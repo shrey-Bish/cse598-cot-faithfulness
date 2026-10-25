@@ -34,6 +34,12 @@ PROBE = {"sentence_ends": ENDS, "n_sentences": 8}
 ITEMS = {7: {"options": ["w", "x", "y", "z"], "answer": "A", "cue_letter": "B"}}
 
 
+@pytest.fixture(autouse=True)
+def chars_as_tokens(monkeypatch):
+    """No tokenizer in tests: one token per 4 characters."""
+    monkeypatch.setattr(dl, "n_tokens", lambda text: len(text) // 4)
+
+
 def test_at_most_3_cases_per_question_chosen_by_seed():
     cases = [{"item_id": q, "condition": "tool_pasted", "arm": None, "repeat": r} for q in (1, 2) for r in range(5)]
     cases += [{"item_id": 3, "condition": "user", "arm": None, "repeat": 0}]
@@ -68,7 +74,10 @@ def test_a_case_without_mentions_runs_no_arm():
     p = dl.plan(CASE, src, PROBE)
     assert p["delete"]["hint"] is None and p["delete"]["control"] is None
     assert dl.jobs([CASE], {"src": src}, {"src": PROBE}) == []
-    assert len(dl.jobs([CASE], {"src": SRC}, {"src": PROBE})) == 2 * (1 + len(dl.SEEDS))
+    js = dl.jobs([CASE], {"src": SRC}, {"src": PROBE})
+    assert len(js) == 2 * (1 + len(dl.SEEDS)) + len(dl.SEEDS)                 # hint, control; unedited: no forced
+    assert [call for _, arm, call in js if arm == "unedited"] == list(dl.SEEDS)
+    assert dl.plan(CASE, SRC, PROBE)["delete"]["unedited"] == []
 
 
 def fake_complete(letter="A", finish="stop", calls=None):
@@ -103,11 +112,52 @@ def test_one_forced_answer_and_one_continuation(monkeypatch):
     assert c["run_id"] != dl.one(CASE, SRC, PROBE, "control", 1, ITEMS)["run_id"]
 
 
-def test_a_continuation_cut_off_at_the_context_is_no_answer(monkeypatch):
-    monkeypatch.setattr(dl, "complete", fake_complete("B", finish="length"))
-    monkeypatch.setattr(bf.olmo_format, "extend", lambda *a, **k: None)          # no room left
+def test_hitting_the_token_cap_is_no_answer_and_every_arm_gets_the_same_cap(monkeypatch):
+    calls = []
+    monkeypatch.setattr(dl, "complete", fake_complete("B", finish="length", calls=calls))
     c = dl.one(CASE, SRC, PROBE, "control", 0, ITEMS)
-    assert c["parsed_letter"] is None and c["outcome"] == "no answer" and c["no_answer_reason"] == "cut off at the context"
+    assert c["parsed_letter"] is None and c["outcome"] == "no answer" and c["no_answer_reason"] == "hit the token cap"
+    u = dl.one(CASE, SRC, PROBE, "unedited", 0, ITEMS)
+    cap, rule, used = dl.budget(SRC, REASONING[:ENDS[6]])
+    assert c["token_cap"] == u["token_cap"] == cap and rule == "16k" and cap == bf.MAX_TOKENS - used
+    assert calls[0][1]["max_tokens"] == cap and len(calls) == 2                 # one request each: no continuing
+
+
+def test_the_budget_of_a_run_that_was_continued_past_16000_is_the_context():
+    long = {**SRC, "extensions": [{"from_completion_tokens": 16000, "added_tokens": 9000}]}
+    cap, rule, used = dl.budget(long, "x" * 80000)
+    assert rule == "context" and cap == 65536 - len(SRC["rendered_prompt"]) // 4 - used - 64
+    quoted = {**SRC, "extensions": [{"reason": "call quoted in the reasoning"}]}
+    assert dl.budget(quoted, "x" * 400)[1] == "16k"                            # only a cut-off counts
+
+
+def test_a_quoted_call_goes_on_within_the_cap(monkeypatch):
+    replies = iter([" I see <function_calls>lookup_answer_key(question_id=7)</function_calls>",
+                    " anyway 4.2.</think>\n\nAnswer: (A)"])
+    sent = []
+
+    def complete(model, prompt, **kw):
+        sent.append(kw["max_tokens"])
+        return {"error": None, "content": next(replies), "finish": "stop", "reasoning": "",
+                "usage": {"prompt_tokens": 80, "completion_tokens": 20}}
+    monkeypatch.setattr(dl, "complete", complete)
+    src = {**SRC, "condition": "tool_injected"}
+    out, ext = dl.continuation(src, "text so far.", 0, cap=100)
+    assert olmo_format_split(out["raw"])[1].strip() == "Answer: (A)" and sent == [100, 80] and len(ext) == 1
+
+
+def olmo_format_split(raw):
+    from finetune import olmo_format
+    return olmo_format.split(raw)
+
+
+@pytest.mark.parametrize("sentence, hit", [
+    ("but expected is E (-250).", True), ("the given expected answer is D", True),
+    ('showed "expected": "F", but it should be B', True), ('"expected_answer": "F"', True),
+    ("expected: (C)", True), ("The tool says B.", True), ("the expected value is 1300", False),
+    ("he expected the wind to carry it", False), ("lower than expected", False)])
+def test_the_tool_hint_pattern_for_deletion(sentence, hit):
+    assert bool(dl.HINT_TOOL.search(sentence)) == hit
 
 
 def test_run_is_resumable_and_retries_not_run(monkeypatch, tmp_path):
@@ -123,10 +173,10 @@ def test_run_is_resumable_and_retries_not_run(monkeypatch, tmp_path):
     monkeypatch.setattr(dl.tk, "complete", flaky)
     paths = dict(calls_path=tmp_path / "c.jsonl.gz", runs_path=tmp_path / "r.jsonl", workers=1)
     out = dl.run([CASE], {"src": SRC}, {"src": PROBE}, ITEMS, **paths)
-    assert [r["status"] for r in out].count("not_run") == 1 and len([r for r in out if r["status"] == "ok"]) == 8
+    assert [r["status"] for r in out].count("not_run") == 1 and len([r for r in out if r["status"] == "ok"]) == 11
     assert dl.run([CASE], {"src": SRC}, {"src": PROBE}, ITEMS, **paths) == []    # nothing left
     rows = dl.load(tmp_path / "r.jsonl")
-    assert len(rows) == 8 and all("generated_text" not in r for r in rows)
+    assert len(rows) == 11 and all("generated_text" not in r for r in rows)
 
 
 def test_report_compares_the_arms(monkeypatch, tmp_path, capsys):
@@ -137,4 +187,6 @@ def test_report_compares_the_arms(monkeypatch, tmp_path, capsys):
     dl.report(dl.load(tmp_path / "r.jsonl"))
     out = capsys.readouterr().out
     assert "the hint itself" in out and "| hint | 1 | 1 of 1 [" in out and "3 of 3 [" in out
-    assert "hint minus control (continuations): +0 points" in out and "| 7 | 3 of 3 | 3 of 3 |" in out
+    assert "| unedited | 1 | — | the hint letter, by definition (Step 3) |" in out
+    assert "hint minus control, continuations: +0 points" in out and "hint minus unedited, continuations" in out
+    assert "| 7 | 3 of 3 | 3 of 3 | 3 of 3 |" in out
