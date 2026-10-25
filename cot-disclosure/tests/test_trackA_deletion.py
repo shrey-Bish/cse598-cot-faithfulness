@@ -190,3 +190,14 @@ def test_report_compares_the_arms(monkeypatch, tmp_path, capsys):
     assert "| unedited | 1 | — | the hint letter, by definition (Step 3) |" in out
     assert "hint minus control, continuations: +0 points" in out and "hint minus unedited, continuations" in out
     assert "| 7 | 3 of 3 | 3 of 3 | 3 of 3 |" in out
+
+
+
+def test_remention_counts_hint_mentions_after_the_cut_in_continuations_that_end_on_the_hint():
+    base = {"call": "continuation", "status": "ok", "item_id": 7, "condition": "tool_pasted", "outcome": "hint"}
+    calls = [{**base, "run_id": "a", "deletion_arm": "hint",
+              "generated_text": " Let me recheck the tool output once more. It says B.</think>\n\nAnswer: (B)"},
+             {**base, "run_id": "b", "deletion_arm": "hint", "generated_text": " Fine, B it is.</think>\n\nAnswer: (B)"},
+             {**base, "run_id": "c", "deletion_arm": "control", "outcome": "own", "generated_text": "x</think>A"}]
+    rows = dl.remention(calls)
+    assert [(r["arm"], r["mentions"]) for r in rows] == [("hint", True), ("hint", False)]

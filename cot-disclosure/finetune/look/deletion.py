@@ -420,6 +420,44 @@ def report(rows=None):
         for a, g in pooled.items() if g))
 
 
+def remention(calls):
+    """Continuations that ended on the hint letter: does the text generated after the cut mention the
+    hint again before the final answer (before </think>)? Same words as the deletions."""
+    newest = {}
+    for r in calls:
+        if r.get("call") == "continuation" and r["status"] == "ok":
+            newest[r["run_id"]] = r
+    out = []
+    for r in newest.values():
+        if r["outcome"] != "hint":
+            continue
+        reasoning = (r.get("generated_text") or "").split(olmo_format.THINK_CLOSE)[0]
+        out.append({"item_id": r["item_id"], "arm": r["deletion_arm"],
+                    "mentions": bool(hint_pattern(r["condition"]).search(reasoning)),
+                    "n_mentions": sum(bool(hint_pattern(r["condition"]).search(s))
+                                      for s in bt.sentences(reasoning, tk.sentence_ends(reasoning)))})
+    return out
+
+
+def report_remention(calls=None):
+    rows = remention(load(CALLS_OUT) if calls is None else calls)
+    print("\nContinuations that ended on the hint letter: does the reasoning after the cut mention the hint again "
+          "before the final answer? (keyword count, the deletion's words; clustered by question)")
+    print("| arm | ended on the hint | mention the hint again | sentences with a mention (median) |")
+    print("|---|---|---|---|")
+    for a in ALL_ARMS:
+        rs = [r for r in rows if r["arm"] == a]
+        if not rs:
+            continue
+        g = {}
+        for r in rs:
+            g.setdefault(r["item_id"], []).append(int(r["mentions"]))
+        m, lo, hi = boot_mean(g)
+        print(f"| {a} | {len(rs)} | {sum(r['mentions'] for r in rs)} of {len(rs)}: {100 * m:.0f}% [{100 * lo:.0f}, "
+              f"{100 * hi:.0f}%] | {statistics.median(r['n_mentions'] for r in rs):.0f} |")
+    return rows
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true")
@@ -431,7 +469,8 @@ def main():
     if set(arms) - set(ALL_ARMS):
         raise SystemExit(f"unknown arm(s): {set(arms) - set(ALL_ARMS)}")
     if a.report:
-        return report()
+        report()
+        return report_remention()
     cases, steps, probes, items = inputs()
     if a.dry_run:
         return dry_run(cases, steps, probes, len(load(tk.CASES_OUT)[-1]["cases"]), arms)
