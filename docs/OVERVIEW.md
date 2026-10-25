@@ -147,7 +147,7 @@ in three instruct / thinking pairs.
     mean 0.32, max 20.7.
   - **The likely cause, not confirmed,** is that the server processes long prompts in
     2,048-token chunks (chunked prefill), so numerics shift after the first chunk.
-  - Data: `results/trackA/voyager_ids_check.jsonl` on the Track A branch.
+  - Data: `results/trackA/voyager_ids_check.jsonl.gz` on the Track A branch.
 
 **Settings used in every experiment:**
 - temperature 0.6 and `max_tokens` 16,000

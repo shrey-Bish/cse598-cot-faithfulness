@@ -7,7 +7,8 @@ with Test 2's wrong letter and wordings (the Turpin sentence; the progress-run t
 the same JSON as the tool's reply). One more arm: inserted tool turn x 3 with
 lookup_answer_key declared as an available function in the system prompt (the Instruct
 template's words, replacing only "You do not currently have access to any functions").
-Every run records its system prompt. Runs go to results/trackA/base_format.jsonl.
+Every run records its system prompt. Records (full replies) go to results/trackA/base_format.jsonl.gz,
+with one small row per record in results/trackA/base_format_runs.jsonl.
 
   python finetune/base_format.py --dry-run       # jobs, calls, estimated time; no calls
   python finetune/base_format.py                 # run (resumable)
@@ -51,7 +52,8 @@ from tools.answer_key import INJECTED, MAX_EXTRA_ROUNDS, TOOL_SPEC, build, run_i
 
 MODEL = "olmo3-7b-think"
 EXPERIMENT = "trackA_base_format"
-OUT = CODE / "results" / "trackA" / "base_format.jsonl"
+OUT = CODE / "results" / "trackA" / "base_format.jsonl.gz"            # full replies (moved from .jsonl, 2026-10-25)
+RUNS_OUT = CODE / "results" / "trackA" / "base_format_runs.jsonl"
 TEST2_CUED = CODE / "results" / "progress" / "expB_cued.jsonl"
 TEST2_NOCUE = CODE / "results" / "progress" / "expB_nocue.jsonl"
 REPEATS = {"none": 2, "user": 1, "tool_pasted": 3, INJECTED: 3}
@@ -145,6 +147,23 @@ def record(out, it, cond, rep, arm, messages, tools, rounds, model_calls, transc
                 "token_limit": {"first_segment": MAX_TOKENS, "continued_up_to_context": olmo_format.CONTEXT},
                 "extensions": extensions or None})
     return rec
+
+
+def summary_row(rec):
+    """One small row per record (the replies stay in OUT)."""
+    keys = ("run_id", "timestamp_utc", "experiment", "item_id", "condition", "arm", "repeat", "category", "system_prompt",
+            "cue_letter", "correct_letter", "parsed_letter", "status", "finish_reason", "no_answer_reason", "error_type",
+            "tool_calls_by_model", "requested_model_id", "reasoning_effort", "served_model")
+    usage = rec.get("usage") or {}
+    return {**{k: rec.get(k) for k in keys}, "prompt_tokens": usage.get("prompt_tokens"),
+            "completion_tokens": usage.get("completion_tokens"),
+            "continued": [e.get("reason", "length") for e in rec.get("extensions") or []] or None,
+            "supersedes": bool(rec.get("supersedes")), "repaired": "extended_saved_run" in rec or "rerun_of" in rec}
+
+
+def save(rec):
+    append(OUT, rec)
+    append(RUNS_OUT, summary_row(rec))
 
 
 def one(it, cond, rep, arm=None, experiment=EXPERIMENT):
@@ -253,7 +272,7 @@ def extend_pass(items):
             for n, fut in enumerate(as_completed(futures), 1):
                 rec = fut.result()
                 if rec:
-                    append(OUT, rec)
+                    save(rec)
                 if n % 5 == 0 or n == len(todo):
                     print(f"  {n}/{len(todo)} continued, {(time.monotonic() - start) / 60:.1f} min", flush=True)
         except (ModelUnavailable, CanaryFailed):
@@ -296,7 +315,7 @@ def run(items):
                     rec = fut.result()
                     if rec["run_id"] in old:
                         rec["supersedes"] = supersedes(old[rec["run_id"]])
-                    append(OUT, rec)
+                    save(rec)
                     if n % 10 == 0 or n == len(todo):
                         print(f"  {n}/{len(todo)} done, {(time.monotonic() - start) / 60:.1f} min", flush=True)
             except (ModelUnavailable, CanaryFailed):

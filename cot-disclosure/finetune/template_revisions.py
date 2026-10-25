@@ -1,6 +1,6 @@
 """Which chat template does Voyager apply to olmo3-7b-think? Compare every revision of the
 Olmo 3 7B Think and Instruct repos' templates with the server's prompt-token counts from
-Step 1 (results/trackA/voyager_capabilities.jsonl). No model calls: only Hugging Face file
+Step 1 (results/trackA/voyager_capabilities.jsonl.gz). No model calls: only Hugging Face file
 downloads and local rendering.
 
   python finetune/template_revisions.py
@@ -21,7 +21,7 @@ from common import load  # noqa: E402
 from finetune.olmo_format import _dict_args, render  # noqa: E402
 
 REPOS = ["allenai/Olmo-3-7B-Think", "allenai/Olmo-3-7B-Instruct"]
-CAPS = CODE / "results" / "trackA" / "voyager_capabilities.jsonl"
+CAPS = CODE / "results" / "trackA" / "voyager_capabilities.jsonl.gz"
 
 
 def templates_at(api, repo, rev):

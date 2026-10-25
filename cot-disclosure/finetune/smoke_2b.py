@@ -8,7 +8,7 @@
     rendered right after it
 
   python finetune/smoke_2b.py --dry-run      # what it will send; no calls
-  python finetune/smoke_2b.py                # run; records -> results/trackA/base_format_smoke.jsonl
+  python finetune/smoke_2b.py                # run; records -> results/trackA/base_format_smoke.jsonl.gz
 
 Checks 1 and 2 are the same requests as the full run's first jobs, so the full run reuses
 their replies from the cache. Check 2 can take up to 3 calls if the model keeps calling.
@@ -29,7 +29,7 @@ from finetune import olmo_format  # noqa: E402
 from mmlu_pro_probe import question_block  # noqa: E402
 from tools.answer_key import INJECTED, TOOL_NAME, build, tool_reply  # noqa: E402
 
-OUT = CODE / "results" / "trackA" / "base_format_smoke.jsonl"
+OUT = CODE / "results" / "trackA" / "base_format_smoke.jsonl.gz"
 EXPERIMENT = "trackA_base_format_smoke"
 PREFIX = "Let me look this up once more to check the answer key.</think>\n\n<function_calls>" + TOOL_NAME + "("
 

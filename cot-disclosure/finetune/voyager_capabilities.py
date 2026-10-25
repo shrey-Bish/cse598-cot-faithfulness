@@ -2,7 +2,7 @@
 olmo3-7b-think, one short generated puzzle.
 
   python finetune/voyager_capabilities.py --dry-run   # planned calls and an estimated time; no calls
-  python finetune/voyager_capabilities.py             # run; every call -> results/trackA/voyager_capabilities.jsonl
+  python finetune/voyager_capabilities.py             # run; every call -> results/trackA/voyager_capabilities.jsonl.gz
 
 Call 0 asks the puzzle with no hint, to get the model's own reasoning. The tests build on it:
   1 continue from a reasoning prefix (the reasoning cut mid-sentence):
@@ -56,7 +56,7 @@ MODEL = "olmo3-7b-think"
 TOKENIZER = "allenai/Olmo-3-7B-Think"      # the candidate checkpoint behind Voyager's olmo3-7b-think
 SERVED_TEMPLATE = ("allenai/Olmo-3-7B-Instruct", "chat_template.jinja")   # what Voyager's chat endpoint applies
 EXPERIMENT = "trackA_voyager_capabilities"
-OUT = CODE / "results" / "trackA" / "voyager_capabilities.jsonl"
+OUT = CODE / "results" / "trackA" / "voyager_capabilities.jsonl.gz"
 SEED = 20261021
 TEMPERATURE, FULL_TOKENS = 0.6, 16000
 CONTINUE_TOKENS = 256                      # enough to see whether it continues or starts over
@@ -331,7 +331,7 @@ def main():
         rec8 = do_call(spec8, p, saved)
         rows.append((spec8, rec8, check(spec8, rec8, p, tok)))
     report([(base_spec, base, check(base_spec, base, p, tok))] + rows)
-    summary = OUT.with_name("voyager_capabilities_summary.json")
+    summary = OUT.parent / "voyager_capabilities_summary.json"
     summary.write_text(json.dumps({"puzzle": {k: p[k] for k in ("id", "correct", "wrong", "level")},
                                    "prompt_token_gap_server_minus_hf_template": gap0,
                                    "calls": [{"n": s["n"], "test": s["test"], "arm": s["arm"], "run_id": r["run_id"],

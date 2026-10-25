@@ -196,6 +196,26 @@ def load(path):
         return [json.loads(line) for line in f]
 
 
+def move_to_gz(src, dst, summary=None, summary_path=None):
+    """Move a results file to gzip: every record unchanged, plus (optionally) one summary row per
+    record in summary_path. The copy is checked record by record before the original is removed.
+    Returns the number of records."""
+    src, dst = Path(src), Path(dst)
+    if dst.exists() or (summary_path and Path(summary_path).exists()):
+        raise FileExistsError(f"{dst.name} or its summary already exists: nothing moved")
+    rows = load(src)
+    with gzip.open(dst, "wt") as f:
+        for r in rows:
+            f.write(json.dumps(r) + "\n")
+    if load(dst) != rows:
+        dst.unlink()
+        raise ValueError(f"the compressed copy of {src.name} differs: original kept")
+    for r in rows if summary else []:
+        append(summary_path, summary(r))
+    src.unlink()
+    return len(rows)
+
+
 def latest(rows):
     """Last record per run_id (a resumed job may append a retry of an api_error)."""
     out = {}

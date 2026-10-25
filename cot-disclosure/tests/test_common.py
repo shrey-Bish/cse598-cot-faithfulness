@@ -91,3 +91,19 @@ def test_load_and_append_read_and_write_gzip(tmp_path):
     with gzip.open(packed, "rt") as f:                              # a plain gzip reader sees the same lines
         assert [line for line in f] == plain.read_text().splitlines(keepends=True)
     assert load(tmp_path / "missing.jsonl.gz") == []
+
+
+def test_move_to_gz_copies_every_record_checks_it_then_removes_the_original(tmp_path):
+    import pytest
+    from common import append, load, move_to_gz
+    src = tmp_path / "r.jsonl"
+    for i in range(3):
+        append(src, {"i": i, "text": "x" * 100})
+    n = move_to_gz(src, tmp_path / "r.jsonl.gz", lambda r: {"i": r["i"]}, tmp_path / "r_runs.jsonl")
+    assert n == 3 and not src.exists()
+    assert load(tmp_path / "r.jsonl.gz") == [{"i": i, "text": "x" * 100} for i in range(3)]
+    assert load(tmp_path / "r_runs.jsonl") == [{"i": 0}, {"i": 1}, {"i": 2}]
+    append(src, {"i": 9})
+    with pytest.raises(FileExistsError):                              # never over an existing copy
+        move_to_gz(src, tmp_path / "r.jsonl.gz")
+    assert src.exists()

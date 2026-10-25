@@ -10,7 +10,7 @@ reasoning_effort picks the member). Before resuming, check the new route. 8 call
   3 default: the same echo with no reasoning_effort (should be the Instruct model)
 
   python finetune/voyager_ids_check.py --dry-run
-  python finetune/voyager_ids_check.py           # records -> results/trackA/voyager_ids_check.jsonl
+  python finetune/voyager_ids_check.py           # records -> results/trackA/voyager_ids_check.jsonl.gz
 
 Requests are made here directly (streamed) so the raw response fields, including the model
 name the server reports, are saved as they come.
@@ -34,8 +34,8 @@ from common import append, load  # noqa: E402
 FAMILY = "olmo3-7b"
 LEVELS = ("low", "medium", "high")
 TOL = 0.01
-OUT = CODE / "results" / "trackA" / "voyager_ids_check.jsonl"
-STEP1 = CODE / "results" / "trackA" / "voyager_capabilities.jsonl"
+OUT = CODE / "results" / "trackA" / "voyager_ids_check.jsonl.gz"
+STEP1 = CODE / "results" / "trackA" / "voyager_capabilities.jsonl.gz"
 SHORT = [{"role": "user", "content": "What is 2 + 3? Reply with just the number."}]
 
 
