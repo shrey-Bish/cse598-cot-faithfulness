@@ -47,10 +47,14 @@ def test_replay_runs_on_saved_experiment_a(tmp_path):
 
 
 def test_dataset_holds_out_wordings_and_question_sets():
+    """The written dataset (Step 5): training may be empty until Step 6's no-hint runs exist, and it
+    has correct-hint records on purpose; the held-out set and wordings never reach it."""
     data = CODE / "finetune" / "data"
-    train = [json.loads(l) for l in open(data / "train.jsonl")]
+    train = [json.loads(l) for f in ("train.jsonl", "validation.jsonl") for l in open(data / f)]
     held = [json.loads(l) for l in open(data / "heldout.jsonl")]
-    assert {r["question_set"] for r in train} == {"pilot_puzzles"} and {r["question_set"] for r in held} == {"mmlupro_30"}
+    assert {r["question_set"] for r in held} == {"mmlupro_30"} and "mmlupro_30" not in {r["question_set"] for r in train}
     assert not {r["hint_text"] for r in held} & {r["hint_text"] for r in train}
     assert not {r["hint_wording"] for r in held} & {r["hint_wording"] for r in train}
-    assert all(r["hint_letter"] != r["correct"] for r in train + held)
+    assert all(r["hint_letter"] != r["correct"] for r in held)
+    assert all((r["hint_letter"] == r["correct"]) == r["hint_correct"] for r in train + held)
+    assert json.loads((data / "manifest.json").read_text())["heldout_wordings_seen_in_training"] == 0
