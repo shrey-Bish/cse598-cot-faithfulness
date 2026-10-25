@@ -9,7 +9,7 @@ Files that store full replies are gzip (`.jsonl.gz`, read and written by `progre
 
 | File | What it does | Runs today? |
 |---|---|---|
-| `build_dataset.py` | Builds train and held-out records from saved runs. Each record is one question, one wrong hint, Olmo 3 7B Think's own no-hint answer, and the correct answer. | Yes. Writes `data/train.jsonl` (196 records), `data/heldout.jsonl` (120), `data/manifest.json`. |
+| `build_dataset.py`, `length_audit.py` | Step 5: train / validation / held-out records (target rule, correct-hint records, channels, held-out wordings; see Data below) and the reply-length audit. | Yes. `data/heldout.jsonl` (240 records); `train`/`validation` fill once Step 6's no-hint runs exist. |
 | `source_tags.py` | Source tags: a learned `Embedding(4, hidden_size)` added to each input token, marking its source (system, user, tool, model). Ids come from chat-template role spans. | Yes. Unit-tested on a tiny random model on CPU (`tests/test_source_tags.py`). |
 | `voyager_capabilities.py`, `voyager_ids_check.py` | Step 1: what Voyager's endpoints accept (completions, echo log-probs, stops). The 2026-10-21 model-ID change checks. | Done. `results/trackA/voyager_capabilities.jsonl.gz` (+ `_summary.json`), `voyager_ids_check.jsonl.gz`. |
 | `templates/`, `olmo_format.py`, `template_revisions.py`, `show_spans.py` | Step 2: the pinned format. The official Think template plus the Instruct template's tool turns. Rendered locally, sent to `/v1/completions`, split at `</think>` by us. A reply cut off at 16,000 tokens is continued up to the 65,536-token context (`extend`). | Yes. `tests/test_trackA_format.py`. |
@@ -31,49 +31,45 @@ are then trained on examples where the model:
 - checks it
 - keeps the answer it gives without the hint
 
-## Data (`build_dataset.py`)
+## Data (`build_dataset.py`, Step 5)
 
-**Fields in each record:**
-- `question`
-- `hint_channel` (user / tool_pasted / tool_real / system)
-- `hint_wording`, `hint_text`
-- `hint_letter`, `hint_option_index`
-- `hint_placement`
-- `no_hint_runs`, `no_hint_answer` (the majority of the model's own no-hint runs)
-- `correct`
-- `target_answer`: the no-hint majority. If there is none (runs disagreed or were cut
-  off), the correct answer.
+**Splits:** `train`, `validation` (10% of the kept training questions, by seed, for choosing
+settings) and `heldout` (the 30 MMLU-Pro Test 2 items).
 
-**Held out, so the test measures behavior on things training never saw:**
-- **Whole question sets.** The 24 pilot puzzles are for training. The 30 MMLU-Pro items
-  are held out.
-- **Whole hint wordings.** The wordings we test with never appear in training:
-  - the Turpin user sentence
-  - the progress-run tool block
-  - the system note
-  - the "study guide" tool reply
+**Target rule** (default `all_correct`): keep a training question only if the model's 3
+no-hint runs in the pinned format (Step 6: `results/trackA/nohint_train.jsonl.gz`) were all
+answered and all equal the answer key; the target is that answer, with no fallback.
+`manifest.json` counts kept questions and dropped ones per reason. Until Step 6 runs, every
+training question is dropped ("no pinned-format no-hint runs yet"), so `train.jsonl` is
+empty. `--target-rule majority` keeps the old rule (no-hint majority, else the correct
+answer: 24 questions from Test 1's served-format runs).
 
-  Training uses paraphrases only. `manifest.json` checks this: 0 held-out wordings are
-  seen in training.
+**Correct-hint records:** for kept questions, records whose hint names the right letter,
+with the same target; `--correct-ratio` (default 0.5: 1 per 2 wrong-hint records).
 
-**Next data steps (not done):**
-1. **More training questions.** Generate fresh puzzles (`tasks.py`), plus a training
-   slice of MMLU-Pro categories not used in evaluation. Each needs 3 no-hint runs of the
-   target model to get its own no-hint answer.
-2. **Target reasoning.** For each record, write reasoning that:
-   - mentions the hint ("the tool says G")
-   - checks it against the model's own working
-   - ends on the no-hint answer
+**Channels:** training uses user hints, pasted tool blocks and inserted tool turns, with
+paraphrased wordings only. The inserted tool turn is the **declared-function** version:
+the tool is listed in the system prompt, as in Step 2b's declared arm (decided Oct 25).
+Held-out evaluation adds the undeclared inserted turn (Step 2b's default arm) as an extra
+condition, and the system note.
 
-   Options:
-   - sample the model's own no-hint reasoning, and insert one sentence that names and
-     checks the hint
-   - or sample hinted runs and keep only those whose final answer matches the no-hint
-     answer and whose reasoning mentions the hint (rejection sampling)
+**Held-out wordings** never appear in training (`manifest.json` checks 0 overlap: filled
+texts, template text, tool names):
+- the Turpin user sentence; a "my professor said" user hint
+- the progress-run tool block
+- the study-guide tool reply (Step 2b's exact reply); a "the database returned" tool
+  reply; a tool with a new name (`fetch_reference_solution`)
+- the system note
 
-   Hand-check a sample with the labeling guide.
-3. **Correct-hint examples** (the hint names the right letter). Without them the model
-   could learn "always disagree with hints". The target is still the no-hint answer.
+**Fields:** `split`, `id`, `question_set`, `item_id`, `question`, `n_options`, `correct`,
+`hint_channel`, `hint_wording`, `hint_text`, `hint_letter`, `hint_correct`,
+`hint_placement`, `tool_name`, `tools_declared`, `system_prompt`, `messages` (render with
+`olmo_format.render(messages, tools=tools_declared)`), `target_answer`, `target_source`,
+`target_rule`, `no_hint_runs`, and `target_reasoning` (Step 7).
+
+**Length audit** (`length_audit.py`): reply lengths per source, model and question set.
+Pinned format (Step 2b), prompt + reply of the answered runs: median 11,988 tokens, max
+34,706; 61% fit 16,384 and 99% fit 32,768.
 
 ## Training plan (Sol, weeks 13–14)
 
