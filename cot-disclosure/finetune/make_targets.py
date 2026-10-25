@@ -156,6 +156,10 @@ def fallback(rec, nohint, tool=None):
             f"{src}; I checked it against my own working and did not use it.")
     i = final.rfind("Answer:")
     final2 = (final[:i] + used + "\n\n" + final[i:]) if i >= 0 else (final.rstrip() + "\n\n" + used)
+    tail = re.search(r"(?:\*\*)?final answer\b[^\n]*$", reasoning.rstrip(), re.IGNORECASE)   # the reasoning's own last line
+    if tail:
+        head = reasoning.rstrip()[:tail.start()].rstrip()
+        return head + "\n\n" + check + "\n\n" + tail.group(0) + "\n" + olmo_format.THINK_CLOSE + final2
     return reasoning.rstrip() + "\n\n" + check + "\n" + olmo_format.THINK_CLOSE + final2
 
 
@@ -318,6 +322,18 @@ def plan(target=3000, per_question=None):
     print(f"| 6: 3 no-hint runs per question | {pool_needed:,} | {calls6:,} | {h6:.0f} |")
     print(f"| 7: up to 4 guided samples per record | {kept_needed:,} kept x {rpq:.1f} records | {calls7:,} | {h7:.0f} |")
     print(f"| both | | {calls6 + calls7:,} | {h6 + h7:.0f} |")
+    lo, hi = wilson(kept, len(qs))
+    print(f"\nThe keep rate is from {len(qs)} questions ({kept} kept, 95% interval {lo:.0%}-{hi:.0%}). Alternatives, "
+          f"same {target:,} examples (records per question / keep rate -> pool, calls, Voyager hours):")
+    print("| records per question | keep rate | pool | kept | calls | hours |")
+    print("|---|---|---|---|---|---|")
+    for r in (3, rpq, 6):
+        for k in (lo, keep, hi):
+            kq = math.ceil(target / r / (1 - drop))
+            pq = math.ceil(kq / k)
+            c6, c7 = 3 * pq, round(kq * r * s_per_record)
+            print(f"| {r:.1f} | {k:.0%} | {pq:,} | {kq:,} | {c6 + c7:,} | "
+                  f"{(c6 * t6 + c7 * t7) / bf.IN_FLIGHT / 3600:.0f} |")
     return {"pool": pool_needed, "kept": kept_needed, "calls": calls6 + calls7, "hours": h6 + h7}
 
 

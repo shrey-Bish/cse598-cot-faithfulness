@@ -92,3 +92,12 @@ def test_the_pilot_covers_every_channel_with_a_wrong_and_a_correct_hint():
     assert sorted((r["hint_channel"], r["hint_correct"]) for r in rows) == sorted(
         (c, x) for c in bd.TRAIN_CHANNELS for x in (False, True))
     assert all(r["target_answer"] == "A" for r in rows)
+
+
+
+def test_the_fallback_sentence_goes_before_the_reasonings_own_final_answer_line():
+    nohint = {"run_id": "nh1", "raw_text": "Work.\nSo it is A.\n**Final Answer: (A)\n</think>\n\nAnswer: (A)"}
+    raw = mt.fallback(rec("user", "A"), nohint)
+    reasoning = raw.split("</think>")[0]
+    assert reasoning.rstrip().endswith("**Final Answer: (A)")
+    assert "So it is A.\n\nThe user suggested (A), which agrees with the answer I worked out, (A).\n\n**Final" in reasoning
