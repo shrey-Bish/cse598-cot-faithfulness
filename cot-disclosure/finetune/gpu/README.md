@@ -110,16 +110,26 @@ cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure && mkdir -p r
 S=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA
 rsync -av $S/smoke/smoke.json $S/step8/step8_checkpoint.json $S/step9/step9_attention.json \
     $S/step10/step10_patching.json results/trackA/gpu/
+rsync -av $S/step9/step9_followup.json $S/step9/step9_aligned.png $S/step9/step9_aligned.svg \
+    results/trackA/gpu/                                    # after the Step 9 follow-up (section 3)
 ```
 
 Then, on the Mac:
-- `python finetune/gpu/step8_verdict.py` applies the Oct 26 Step 8 rule and writes the numbers to
+- `python finetune/gpu/step8_verdict.py --sha256sum results/trackA/gpu/weights_sha256.txt`
+  applies the Oct 26 Step 8 rule. It lists every position outside near-ties with both sides'
+  gaps, compares the weights' `sha256sum` from Sol with d97e442's, and writes the numbers to
   `results/summaries/trackA/step8_verdict.json`.
+- `python finetune/look/patching.py --handoff results/trackA/gpu/step10_patching.json` gives the
+  readout: per layer, the drop in hint-token restoration and the rise at the answer, with their
+  shares at the full-attention layers and at 15, 19 and 23, split by the hint's distance. It also
+  puts the direct and written paths side by side at cut (ii), per case. Outputs:
+  `results/summaries/trackA/step10_handoff.json` and the handoff figure,
+  `results/trackA/figures/step10_handoff.png`.
 - `python finetune/look/patching.py --by-layer-type results/trackA/gpu/step10_patching.json`
-  gives restoration in the 8 full-attention vs 24 sliding-window layers
-  (`results/summaries/trackA/step10_by_layer_type.json`).
-- `python tools/export_summaries.py` copies the numbers-only Step 9 and 10 summaries into
-  `results/summaries/trackA/`.
+  gives the first, superseded reading: mean restoration over the full vs sliding layers
+  (docs/FINDINGS.md, T7).
+- `python tools/export_summaries.py` copies the numbers-only Step 9 and 10 summaries and the
+  figures into `results/summaries/trackA/`.
 
 `smoke.json` and `step8_checkpoint.json` hold prompt text and token strings, so they stay
 gitignored.
@@ -191,9 +201,21 @@ for Voyager's. `python finetune/gpu/checkpoint_check.py --dry-run` checks the re
 alignment (all 5 Think references align token for token; the control has 5 positions tokenized
 differently, so it is compared on the rest).
 
-**Look for:** the table, then `verdict: PASS (bf16)`. If it fails, the strict part's `worst` and
-`mismatches` and the beyond part's `outside_examples` in the JSON show where. Per-position
-differences are in `step8_positions.npz`.
+**Look for:** the table, then the decision under the Oct 26 rule (`step8_verdict.py`). If it
+fails, the strict part's `worst` and `mismatches` and the beyond part's `outside_examples` in the
+JSON show where. Per-position differences are in `step8_positions.npz`.
+
+**Result (Oct 26).** (a) fails at 4 positions with gaps of 0.113–0.140; (b) and (c) hold; the
+weights on Sol are d97e442's by sha256 (docs/FINDINGS.md, F9). Since then, the snapshot check
+hashes regular files: Sol's snapshot holds copies, not cache links, and the first run reported
+`weights_same: false` without hashing. Each file is hashed once, and the result is kept in
+`/scratch/ragarw68/trackA/file_hashes.json`. The first run after this change reads the 15 GB of
+weights, about a minute. To check by hand:
+
+```bash
+cd /scratch/ragarw68/hf/hub/models--allenai--Olmo-3-7B-Think/snapshots/d97e442d7cc678210054dbcc9b440894d62c89a4
+sha256sum model-0000*-of-00003.safetensors     # paste into results/trackA/gpu/weights_sha256.txt on the Mac
+```
 
 **Back to the Mac:** `/scratch/ragarw68/trackA/step8/step8_checkpoint.json` (tens of KB).
 
@@ -259,6 +281,26 @@ Step 2b runs. `python finetune/look/attn_to_hint.py --dry-run` gives the runs, t
 **Back to the Mac:** `step9_attention.json` (group means, layer profiles, top heads, comparisons,
 curves; tens of KB).
 
+**Follow-up (Oct 26), no GPU, from the saved runs.** It reads `runs/*.npz`, `step9_runs.jsonl` and
+the tracked `results/summaries/trackA/takeover_per_run.jsonl` (Step 3's closest approaches), so
+first re-send the code (section 0, the `git ls-files` rsync). It covers:
+- every comparison on the 8 full-attention layers only
+- the 25 runs whose answer is within reach of the hint in the sliding layers, apart: all, full and
+  sliding layers
+- hint − control and per-token mass instead of raw mass
+- the top heads re-ranked: by hint − control, and within those 25 runs over all 32 layers
+- the heads in layers 15, 19 and 23 (Step 10's readout layers), followed vs resisted, with
+  intervals
+- attention to the hint from each reasoning sentence, aligned on the takeover (followed) or the
+  closest approach (resisted): full layers, and sliding layers where the sentence is within reach
+
+```bash
+cot-disclosure/finetune/gpu/sol/run.sh step9 --followup     # ~1 min, CPU only
+```
+
+It writes `step9_followup.json` (numbers only) and `step9_aligned.png` / `.svg`; copy them back as
+in "Results back". The CPU test is `tests/test_trackA_attn.py::test_followup_on_saved_runs`.
+
 ## 4. Step 10: activation patching
 
 `finetune/look/patching.py`: the causal test. Swap one layer's activations at a time and see which
@@ -319,10 +361,15 @@ report on the 2 shortest real cuts with a tiny random Olmo 3.
 
 **Back to the Mac:** `step10_patching.json`. It holds every cut's LDs, so the figure can be
 redrawn on the Mac (`python finetune/look/patching.py --plot results/trackA/gpu/step10_patching.json`)
-and split by layer type (`--by-layer-type`, see "Results back").
+and the readout computed there (`--handoff`, see "Results back"; the hint's distance to the answer
+is rebuilt with the tokenizer alone).
 
 ## Later steps on the trained versions (Phase 6)
 
 Steps 9 and 10 take `--model DIR` (a merged or wrapped trained version), `--runs-from` (that
 version's own runs, in the Step 2b format) and, for Step 10, `--cases-from` (its own Step 3 cases).
 Outputs then go to their own `--out` directory.
+
+**Mechanism check (Step 13).** Rerun Step 10 on the best version and run `--handoff` on its
+summary. Report whether the drops in hint-token restoration at layers 15, 19 and 23 shrink: they
+are 0.90 [0.85, 0.96] of the total drop at cut (ii) in the base model.

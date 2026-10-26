@@ -123,3 +123,52 @@ def test_restoration_by_layer_type():
     assert c["full - sliding"]["low"] > 0.9 and c["best full layer"]["layer"] in full and c["cuts"] == 6
     assert res["ii"]["left_out_small_gap"] == 1 and res["i"]["reasoning"]["cuts"] == 5
     pt.show_by_layer_type(res)
+
+
+def handoff_summary():
+    """Planted: hint-token restoration falls by 0.3 at layer 15, 0.2 at 19, 0.4 at 23 and 0.1 at 5
+    (a sliding layer), and reaches 0 at the last layer; the answer rises at the same layers."""
+    full = list(range(3, 32, 4))
+    hint_drop = {5: 0.1, 15: 0.3, 19: 0.2, 23: 0.4}
+    cuts = []
+    for q in range(6):
+        for cut in ("i", "ii"):
+            h, a, hint, answer = 1.0, 0.0, [], []
+            for layer in range(32):
+                h -= hint_drop.get(layer, 0.0)
+                a += hint_drop.get(layer, 0.0)
+                hint.append(0.0 if layer == 31 else h)
+                answer.append(1.0 if layer == 31 else a)
+            gap = -5.0
+            lds = {"hint": [3.0 + gap * v for v in hint], "answer": [3.0 + gap * v for v in answer],
+                   "reasoning": [3.0 + gap * 0.1] * 32}
+            cuts.append({"job": f"r{q}_{cut}", "cut": cut, "item_id": q, "condition": "tool_pasted", "arm": None,
+                         "tokens": 100, "ld_hinted": 3.0, "ld_clean": 3.0 + gap, "ld_patched": lds,
+                         "hint_letter": "B", "own_letter": "C", "top_hinted": "B",
+                         "top_clean": "C" if q < 4 else "B",
+                         "step4_forced_after_deleting_mentions": None if q == 5 else ("own" if q < 2 else "hint")})
+    by_layer = {cut: {"cuts": 6, "usable": 6, "left_out_small_gap": 0, "reasoning": [[0.1, 0.05, 0.15]] * 32,
+                      "hint": [[v, v, v] for v in hint], "answer": [[v, v, v] for v in answer]} for cut in ("i", "ii")}
+    return {"cuts": cuts, "full_attention_layers": full, "restoration_by_layer": by_layer, "snapshot_commits": ["x"]}
+
+
+def test_handoff_shares_and_paths(tmp_path):
+    s = handoff_summary()
+    dist = {c["job"]: {"tokens": 100, "letter": 1000 if c["item_id"] < 2 else 9000, "hint_end": 0} for c in s["cuts"]}
+    h = pt.handoff(s, dist)
+    a = h["by_cut_type"]["ii"]["all"]
+    assert a["drop_share_full"]["mean"] == pytest.approx(0.9) and a["drop_share_readout"]["mean"] == pytest.approx(0.9)
+    assert a["drop_by_layer"][15]["mean"] == pytest.approx(0.3) and a["drop_by_layer"][5]["mean"] == pytest.approx(0.1)
+    assert a["rise_share_readout"]["mean"] == pytest.approx(0.9)
+    assert h["by_cut_type"]["i"]["hint within the window"]["cuts"] == 2
+    assert h["by_cut_type"]["i"]["hint beyond the window"]["cuts"] == 4
+    dist["r0_i"]["tokens"] = 99
+    with pytest.raises(SystemExit, match="tokens here"):
+        pt.handoff(s, dist)
+    p = pt.paths_at_cut_ii(s)
+    assert p["swap_only_the_prompt_letter"]["off_W"] == 4 and p["swap_only_the_prompt_letter"]["of"] == 6
+    assert p["step4_delete_the_mentions"]["back_to_own"] == 2 and p["step4_delete_the_mentions"]["of"] == 5
+    assert p["cross_table"] == {"step 4 hint, clean O": 2, "step 4 hint, clean W": 1, "step 4 own, clean O": 2}
+    pt.show_handoff(pt.handoff(s), p)
+    pt.plot_handoff(s, tmp_path / "handoff.png")
+    assert (tmp_path / "handoff.png").exists() and (tmp_path / "handoff.svg").exists()

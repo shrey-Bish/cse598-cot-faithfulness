@@ -148,8 +148,9 @@ at the takeover point. The hint stays in the prompt.
   - forced answer, deleted − control: **+32 points [+11, +56]**
   - continuations, deleted − control: +2 [−5, +11]
   - continuations, deleted − unedited: +7 [+0, +19]
-- **Reading.** At the cut, the reasoning's repetition carries the hint. Given room to go on, the
-  model goes back to the hint in the prompt, and mostly names it again.
+- **Reading.** At the cut, the reasoning's repetition carries the hint in 7 of 19 cases (F13: the
+  prompt's letter, read directly, does more). Given room to go on, the model goes back to the hint
+  in the prompt, and mostly names it again.
 - **Source.** `cot-disclosure/results/summaries/trackA/deletion_runs.jsonl` and
   `deletion_remention.jsonl`; `python finetune/look/deletion.py --report`.
 - **Status.** *confirmed* for the forced answer. For continuations, no effect beyond the control.
@@ -173,16 +174,192 @@ distance cutoff (bands of 512 tokens).
 - **Source.** `cot-disclosure/results/summaries/trackA/window_reach.json` (+ `.png`);
   `python finetune/look/window_reach.py`.
 - **Status.** *tentative*. 149 runs on 15 questions, and information also passes forward through
-  intermediate tokens. Steps 9 and 10 test the layers directly.
+  intermediate tokens. Step 10 (F11) shows the full-attention layers read the prompt's hint at any
+  distance, so a window effect would concern the reasoning's mentions, not the prompt's hint.
 
-## F9. Inside the weights (Sol): the checkpoint, attention to the hint, activation patching
+## F9. Step 8: a rule set in advance failed on 4 positions; the weights still match
 
-- **Step 8,** checkpoint check, under the rule fixed Oct 26 (PLAN, Track A): *waiting*.
-  `finetune/gpu/step8_verdict.py` → `results/summaries/trackA/step8_verdict.json`.
-- **Step 9,** attention to the hint, by layer and head; followed vs resisted, tool vs user,
-  pasted vs inserted: *waiting*.
-- **Step 10,** activation patching on F4's 21 cases, with restoration in the 8 full-attention vs
-  24 sliding-window layers: *waiting*.
+**Step 8 asks whether Voyager serves the checkpoint we load on Sol.** It compares a local
+forward pass with Voyager's echo log-probs on the Step 1 text (5,185 tokens, echoed 4 ways)
+and the canary (530 tokens). The Instruct checkpoint is the negative control. The rule was fixed
+on Oct 26, before the result (PLAN, Track A).
+
+| condition | result |
+|---|---|
+| (a) no top-token mismatch outside near-ties (top two within 0.1) in the first 2,047 tokens, bf16 and fp32 | **fails**: 4 positions, gaps 0.113–0.140 |
+| (b) mean difference at least 10× below the Instruct control's | holds: 26–27× (Step 1 text), 10.4× (canary, narrow) in bf16; 32× and 12× in fp32 |
+| (c) the control clearly fails (a) | holds: 277 / 280 first-part mismatches, at least 17 / 16 outside near-ties |
+
+- **The 4 positions.**
+  - Step 1 text, position 1,130: 1 of its 19 (bf16) and 15 (fp32) first-part mismatches. The
+    two tokens tie locally (gap 0.000 bf16, 0.011 fp32); Voyager's gap is 0.124.
+  - Canary: 3 of 8 (bf16) and 2 of 9 (fp32), local gaps 0.113–0.140.
+  - Every other first-part mismatch is a near-tie.
+  - Beyond 2,047 tokens (the Step 1 text), there are 30–48 mismatches, all near-ties. The control
+    has 332–337 outside near-ties there.
+- **Supporting evidence, not pass/fail.** The fp32 first-part maximum is 0.27 on the Step 1 text
+  and 0.59 on the canary, against the old 0.01 limit.
+- **By the rule:** Voyager isn't serving this checkpoint. The rule is not changed after the fact.
+- **The weights on Sol are d97e442's.** All three `.safetensors` files have the sha256 of
+  `olmo3_7b_think_d97e442.json` (`sha256sum` on Sol, Oct 26).
+- **Why we still conclude Voyager serves the same weights.** This is a judgment, not the rule's
+  verdict. The failures look like different serving arithmetic (Voyager's kernels against
+  Hugging Face sdpa):
+  - The local fp32 pass is as far from Voyager as the bf16 pass (mean 0.0100 vs 0.0118).
+  - The Instruct checkpoint is 27× further away.
+  - All 4 gaps are within 0.04 of the line.
+  - Local forced answers match Voyager's results: 21 of 21 at Step 10's takeover cuts (Step 3's
+    letter) and 199 of 199 at the end of the reasoning (Step 9: the run's final letter).
+- **Consequence.** Gate 3 runs every system on the same Sol stack, base and prompt-only included.
+  Voyager's base numbers stay as the Steps 2b–4 results and a cross-check (PLAN, Track A).
+- **Source.** `cot-disclosure/results/summaries/trackA/step8_verdict.json`, via `python
+  finetune/gpu/step8_verdict.py --sha256sum results/trackA/gpu/weights_sha256.txt`.
+- **Status.** *confirmed*: the rule fails (a) and holds (b) and (c), and the Sol weights are
+  d97e442. "Voyager serves the same weights" is *tentative*, and nothing depends on it.
+
+## F10. Step 9: the tool hint's stronger pull doesn't come with more attention to it
+
+One forward pass per hinted Step 2b run (199 runs, 20 questions). Measured: the attention mass
+from the answer position ("(" of "Answer: (") to the hint, per layer and head.
+
+- **Tool − user, at the answer, over all layers and heads:**
+  - hint mass **−0.0010 [−0.0027, +0.0010]**
+  - hint − control (a question-stem span of the same length): −0.0014 [−0.0025, −0.0001]
+  - per hint token: −0.00020 [−0.00029, −0.00013] (the user hint is shorter)
+
+  Tool hints move the answer more (F1) but don't draw more attention at the answer.
+- **Followed − resisted** (all channels, all layers, 105 vs 94 runs):
+  - hint − control +0.0020 [+0.0007, +0.0039]
+  - per token +0.00005 [−0.00002, +0.00013]
+- **On the 8 full-attention layers** (group means only, from the layer profiles; no intervals
+  yet): hint − control is higher in followed than resisted runs in every channel.
+  - pasted 0.024 vs 0.017
+  - inserted 0.017 vs 0.011
+  - inserted + declared 0.013 vs 0.008
+  - user 0.027 vs 0.021
+- **The top heads sit in full-attention layers. That mostly follows from the window and is not a
+  finding.** In 174 of 199 runs the hint is more than 4,096 tokens before the answer, so the 24
+  sliding-window layers give it exactly 0 there. All 10 top heads are in full-attention layers,
+  8 of them in layers 15, 19 and 23 (F12).
+- **Waiting** (`attn_to_hint.py --followup` on Sol, over the saved per-run files):
+  - every comparison on the full-attention layers only, with intervals
+  - the 25 runs whose answer is within reach of the hint in the sliding layers, by layer type
+  - hint − control and per token throughout
+  - the takeover-aligned curve: attention to the hint from each reasoning sentence, aligned on
+    the takeover (followed) or the closest approach (resisted)
+- **Source.** `cot-disclosure/results/summaries/trackA/step9_attention.json`; later
+  `step9_followup.json`.
+- **Status.** Tool vs user *confirmed* (no more attention for tool hints, on every measure).
+  Followed vs resisted *tentative* (per token, the interval includes 0). The full-layer and
+  aligned results are *waiting*.
+
+## F11. Step 10: the hint's effect leaves its tokens at full-attention layers 15, 19 and 23
+
+**Setup.** F4's 21 cases, all tool hints, cut (i) before the first hint mention (19 cases) and
+cut (ii) at the takeover (21). The clean prompt is the same prompt with the hint letter W
+replaced by the own answer O: same length, one token different.
+- **The patch:** copy the clean run's output of one layer into the hinted run, at the hint's
+  tokens, the reasoning, or the answer position.
+- **Restoration:** 1 = the clean answer's logit difference. 19 of 19 cuts at (i) and 19 of 21 at
+  (ii) are usable; 2 have a gap under 0.5. Sanity checks pass on 40 of 40.
+
+**Restoring at the hint's tokens stays near 1 up to layer 14.** Patching there still gives the
+clean answer, so the information hasn't left those tokens yet. It then falls in steps.
+
+- **The drop at a layer** is restoration before it minus after it: what that layer reads out of
+  the hint's tokens. The drops add up to 1.
+
+  | cut | cuts (questions) | share of the drop at the 8 full-attention layers | share at 15, 19, 23 |
+  |---|---|---|---|
+  | (ii) all | 19 (9) | 0.95 [0.84, 1.05] | **0.90 [0.85, 0.96]** |
+  | (ii) hint beyond the window | 17 (9) | 1.00 [0.92, 1.07] | 0.92 [0.88, 0.97] |
+  | (ii) hint within the window | 2 (2) | 0.56 [0.33, 0.79] | 0.71 [0.67, 0.75] |
+  | (i) all | 19 (9) | 0.68 [0.55, 0.84] | 0.59 [0.48, 0.72] |
+  | (i) hint beyond the window | 9 (6) | 0.93 [0.85, 0.99] | **0.81 [0.71, 0.89]** |
+  | (i) hint within the window | 10 (5) | 0.46 [0.38, 0.50] | **0.39 [0.33, 0.43]** |
+
+- **Per layer at cut (ii):** 15: 0.34 [0.27, 0.42], 19: 0.17 [0.14, 0.21], 23: 0.39 [0.34, 0.43].
+  Every other layer drops less than 0.05.
+- **The answer position gains it at the same layers:** 0.62 [0.57, 0.68] of its rise is at 15,
+  19 and 23 at cut (ii), and 0.45 [0.32, 0.59] at cut (i). The rest comes at the last layers.
+- **Reading.**
+  - That the readout sits in full-attention layers mostly follows from the window. When the
+    hint letter is within 4,096 tokens of the answer (10 cuts at (i)), the sliding layers take
+    over half of it.
+  - What the window doesn't explain is which of the 8 full layers do it: the middle three, 15,
+    19 and 23. Layers 3, 7, 11, 27 and 31 read almost nothing.
+  - The readout is direct: by layer 23 the answer position holds 0.80 of the effect (cut (ii)).
+- **Source.** `cot-disclosure/results/summaries/trackA/step10_handoff.json` and
+  `step10_patching.json`; figure `figures/step10_handoff.png`; `python finetune/look/patching.py
+  --handoff results/trackA/gpu/step10_patching.json`.
+- **Status.** *confirmed* on these 19 + 19 cuts (9 questions, one model). The cut (ii) split by
+  distance rests on 2 near cuts.
+
+## F12. Attention and patching point at the same three layers
+
+- **Attention (Step 9):** 8 of the 10 top answer → hint heads, pooled over all runs, are in
+  layers 15, 19 and 23. They are L15H31, L15H1, L15H19, L15H0, L19H31, L19H2, L23H20 and L23H17.
+- **Patching (Step 10):** layers 15, 19 and 23 are where the hint's effect leaves its tokens
+  (F11).
+- **Followed vs resisted:** each of the 8 heads attends more to the hint in followed runs (means;
+  no intervals yet):
+  - L19H31 0.193 vs 0.070
+  - L23H17 0.138 vs 0.051
+  - L23H20 0.185 vs 0.135
+  - L15H31 0.166 vs 0.095
+  - L15H19 0.122 vs 0.088
+  - L15H0 0.106 vs 0.089
+  - L19H2 0.104 vs 0.097
+  - L15H1 0.114 vs 0.113
+- **Source.** `step9_attention.json` (`top_heads`); `step10_handoff.json`. The clustered
+  intervals per head come from `step9_followup.json` (`readout_heads_followed_vs_resisted`).
+- **Status.** The layer agreement is *confirmed*, and the two methods are independent. Followed
+  vs resisted for these heads is *tentative* until the follow-up's intervals are in.
+
+## F13. Direct vs written: at the takeover, the prompt's letter does more than the repetition
+
+At cut (ii) the hint can reach the answer in two ways:
+- **Direct path:** the prompt's hint letter, read at the answer through layers 15, 19 and 23.
+- **Written path:** the reasoning's own repetition of the hint.
+
+Two experiments each take one path away. They use different case sets (21 vs 19: Step 4 has
+nothing to delete in the 2 cases with no mention before the takeover) and different stacks
+(Step 4 on Voyager, Step 10 local; F9).
+
+| | what is removed | what stays | forced answer |
+|---|---|---|---|
+| Step 10, clean run | the prompt's W (the hint now names O) | the reasoning names W | **off W in 13 of 21 [41, 79%]** (10 to O, 3 to another letter); W in 8 |
+| Step 4, deletion | the reasoning's mentions | the prompt's W | **back to the own answer in 7 of 19 [19, 59%]** (8 W, 4 another letter) |
+
+- **Per case** (the 19 in both):
+
+  | reading | what happens | cases |
+  |---|---|---|
+  | both paths needed | either removal moves the answer | 5 |
+  | the prompt carries it | only the swap moves it | 4 |
+  | the writing carries it | only the deletion moves it | 2 |
+  | either path suffices | neither moves it | 4 |
+  | another letter | Step 4 ends on a third letter | 4 |
+
+  Different cases respond to the two manipulations; no single path carries the hint everywhere.
+- **The written repetition alone holds W in 8 of 21,** even against a prompt whose hint now names
+  O.
+- **The reasoning positions' activations** restore up to 0.26 [0.14, 0.43] at layer 17 at cut
+  (ii), and 0.08 [0.01, 0.17] at cut (i).
+  - The reasoning text is the same in the clean and hinted runs, so this is the relay of the
+    prompt's letter through those positions: they read it at layer 15 and pass it on.
+  - It does not measure the effect of the written repetition.
+- **Reading.** Restoration comes mostly through the hint's tokens, read directly by
+  full-attention layers (F11). The relay through the reasoning positions is at most 0.26. This
+  weakens the idea that "the reasoning carries the hint": at the takeover, the prompt's letter
+  read directly does more. The repetition is decisive in a minority of cases (2 of 19 alone; 5
+  more where both are needed).
+- **Revises F7's reading.** F7 said "at the cut, the reasoning's repetition carries the hint." It
+  does in some cases, not in most.
+- **Source.** `step10_handoff.json` (`paths_at_cut_ii`: per case, totals, cross table);
+  `deletion_runs.jsonl`.
+- **Status.** *confirmed* as measured. The per-case typology is *tentative*: 19 cases, two
+  stacks.
 
 ---
 
@@ -241,6 +418,23 @@ Each one would have changed a reported number.
 - *Since then:* 47 of 47 checks with a reply passed (Oct 22–26).
 - *Source.* `results/summaries/voyager_canary.jsonl`; commit `58dcf97`.
 
+**T7. Averaging a cumulative curve by layer type.**
+- *What.* Restoration at the hint's tokens stays near 1 until the information leaves them, then
+  falls in steps. Averaged over the 8 full vs the 24 sliding layers, it gave 0.53 vs 0.65 at cut
+  (ii), which reads as "sliding layers matter more". Those averages describe the step's position,
+  not which layers do the reading.
+- *Fix.* The per-layer drop and its share of the total (F11): 0.95 at the full layers.
+- *Source.* `step10_by_layer_type.json` (the first reading, kept) vs `step10_handoff.json`.
+
+**T8. A weights check that didn't check.**
+- *What.* Step 8's snapshot check read the hash from the cache's link names. On Sol the weight
+  files are regular files, so it reported `weights_same: false` without hashing anything. Its
+  summary line, "FAIL on 0 of 5", also counted passes.
+- *Fix.* Regular files are now hashed (sha256 for the weights, the git blob id for the rest) and
+  the result is cached. The line counts failures. The Sol weights were checked by `sha256sum`
+  (F9).
+- *Source.* `finetune/gpu/kit.py` (`files_vs_template_rev`), `checkpoint_check.py` (`verdict`).
+
 **Also:**
 - Cut-off replies leak when not streamed (the reasoning landed in the answer in 8 of 8).
 - A tool call quoted inside the reasoning tripped the tool-call stop (7 runs, continued).
@@ -256,8 +450,9 @@ Each one would have changed a reported number.
 | 2 | It's hidden: the reasoning names the hint, the final answer doesn't | `presentation/progress/figures/F2_pilot_mentions_by_channel.png` (F3) | **exists** |
 | 3 | Where it takes over: the hint starts ahead, swings, and wins late on known answers | `results/summaries/trackA/figures/takeover_mean_curves.png` and `takeover_points.png` (F4–F6) | **exists** |
 | 4 | Is the repetition causal? Deletion vs control vs unedited: the answer at the cut, continuations, re-mentions | new, from `deletion_runs.jsonl` + `deletion_remention.jsonl` (F7) | **pending** (no calls needed) |
-| 5 | Inside the model: attention to the hint by layer (followed vs resisted), and restoration by layer (hint / reasoning / answer positions, full vs sliding layers) | Step 9 maps + `step10_restoration.png` (F9) | **pending** (Sol, running) |
+| 5 | Inside the model: the handoff. Per cut, hint-token and answer restoration by layer, with the full-attention layers drawn and 15, 19, 23 marked (F11, F12); beside it, attention to the hint from each reasoning sentence aligned on the takeover (F10) | `results/summaries/trackA/figures/step10_handoff.png`; `step9_aligned.png` | handoff **exists**; aligned curve **pending** (`--followup` on Sol) |
 | 6 | The window: the hint's pull vs distance to its last mention | `results/summaries/trackA/window_reach.png` (F8) | **exists** (tentative finding) |
 
-After Phase 6, a seventh figure goes in: the Gate 3 comparison (hint following, accuracy and the
-hiding check for base, prompt-only and the three trained versions).
+After Phase 6, a seventh figure goes in: the Gate 3 comparison. It shows hint following,
+accuracy and the hiding check for base, prompt-only and the trained versions, all on Sol (F9). The
+handoff figure is redrawn for the best version, to show whether the drops at 15, 19 and 23 shrink.

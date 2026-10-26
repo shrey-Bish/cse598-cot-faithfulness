@@ -24,6 +24,9 @@ inserted tool. The top heads are chosen on all runs pooled (so they favour no gr
   python finetune/look/attn_to_hint.py               # all runs -> $TRACKA_OUT/step9/ (resumable: one .npz per run)
   python finetune/look/attn_to_hint.py --limit 3     # a quick check on the 3 shortest runs
   python finetune/look/attn_to_hint.py --report      # step9_attention.json (copy back) + step9_maps.npz; no model
+  python finetune/look/attn_to_hint.py --followup    # step9_followup.json (copy back) + step9_aligned.png; no model:
+                                                     # full-attention layers only, the runs within the window apart,
+                                                     # hint - control and per token, readout heads, aligned curve
 On Sol: finetune/gpu/sol/run.sh step9 [args] (session) or finetune/gpu/sol/submit.sh step9 (batch).
 --model and --runs-from let the same code run on a trained version and its own runs (Phase 6).
 """
@@ -39,7 +42,7 @@ CODE = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "progress"))
 
-from common import append, boot_diff, load  # noqa: E402
+from common import append, boot_diff, boot_mean, load  # noqa: E402
 from finetune.gpu import kit  # noqa: E402
 from finetune.look import hint_spans as hs  # noqa: E402
 
@@ -314,6 +317,22 @@ def diff(a, b, f):
             "mean_b": statistics.mean(f(r) for r in b), "difference": dd[0], "ci95": [dd[1], dd[2]]}
 
 
+def comparison_groups(rs):
+    """{name: (runs a, runs b)} for every comparison (a - b)."""
+    tool = [r for r in rs if r["condition"] != "user"]
+    return {
+        "followed - resisted (all channels)": ([r for r in rs if r["kind"] == "followed"], [r for r in rs if r["kind"] == "resisted"]),
+        **{f"followed - resisted ({c})": ([r for r in rs if r["channel"] == c and r["kind"] == "followed"],
+                                          [r for r in rs if r["channel"] == c and r["kind"] == "resisted"])
+           for c in sorted({r["channel"] for r in rs})},
+        "tool - user": (tool, [r for r in rs if r["condition"] == "user"]),
+        "pasted - inserted (both inserted arms)": ([r for r in rs if r["condition"] == "tool_pasted"],
+                                                   [r for r in rs if r["condition"] == "tool_injected"]),
+        "inserted - inserted + declared": ([r for r in rs if r["condition"] == "tool_injected" and not r["arm"]],
+                                           [r for r in rs if r["condition"] == "tool_injected" and r["arm"]]),
+    }
+
+
 def report(out=None, d=None):
     import numpy as np
     d = Path(d) if d else kit.out_dir("step9", out)
@@ -332,18 +351,7 @@ def report(out=None, d=None):
         "hint per token, all heads": lambda r: float(r["answer"][0].mean() / r["spans"]["hint"][2]),
     }
     groups = sorted({(r["channel"], r["kind"]) for r in rs})
-    tool = [r for r in rs if r["condition"] != "user"]
-    comparisons = {
-        "followed - resisted (all channels)": ([r for r in rs if r["kind"] == "followed"], [r for r in rs if r["kind"] == "resisted"]),
-        **{f"followed - resisted ({c})": ([r for r in rs if r["channel"] == c and r["kind"] == "followed"],
-                                          [r for r in rs if r["channel"] == c and r["kind"] == "resisted"])
-           for c in sorted({r["channel"] for r in rs})},
-        "tool - user": (tool, [r for r in rs if r["condition"] == "user"]),
-        "pasted - inserted (both inserted arms)": ([r for r in rs if r["condition"] == "tool_pasted"],
-                                                   [r for r in rs if r["condition"] == "tool_injected"]),
-        "inserted - inserted + declared": ([r for r in rs if r["condition"] == "tool_injected" and not r["arm"]],
-                                           [r for r in rs if r["condition"] == "tool_injected" and r["arm"]]),
-    }
+    comparisons = comparison_groups(rs)
 
     def curve(group, s, layers=None):
         """[BINS] mean mass over the reasoning, by relative position (sentence end / reasoning length)."""
@@ -407,10 +415,298 @@ def report(out=None, d=None):
     return summary
 
 
+# ---------------------------------------------------------------- the follow-up (Oct 26)
+READOUT_LAYERS = (15, 19, 23)     # Step 10: the layers where the hint's information leaves the hint tokens
+ALIGN = 15                        # sentences either side of the takeover / closest approach
+RISE_WINDOW, RISE_BASE = (-2, 0), (-ALIGN, -6)
+CURVE_BOOT = 4000
+TAKEOVER_ROWS = CODE / "results" / "summaries" / "trackA" / "takeover_per_run.jsonl"   # tracked: Step 3 per run
+
+
+def reduced(d, full):
+    """The saved runs, reduced as they load: the answer-position masses [set, layer, head], and per
+    reasoning sentence the mean over the full-attention layers and heads [set, sentence], the same
+    over the sliding-window layers, and whether every token of the sentence reaches the hint there
+    (the next sentence still reaches it; the last sentence: the answer does)."""
+    import numpy as np
+    meta = {m["run_id"]: m for m in load(d / "step9_runs.jsonl")}
+    out = []
+    for rid, m in sorted(meta.items()):
+        f = d / "runs" / f"{rid}.npz"
+        if not f.exists():
+            continue
+        z = np.load(f)
+        sent = z["sentences"].astype("float32")
+        sliding = [i for i in range(sent.shape[2]) if i not in full]
+        reach = (sent[0][:, sliding] > 0).any(axis=(1, 2)) if sliding else np.ones(sent.shape[1], bool)
+        whole = np.append(reach[1:], m["answer_sees_hint_in_sliding_layers"]) if len(reach) else reach
+        keep = ("run_id", "item_id", "condition", "arm", "channel", "kind", "n_sentences", "tokens",
+                "answer_sees_hint_in_sliding_layers", "step3_takeover_k", "snapshot_commit")
+        out.append({**{k: m.get(k) for k in keep}, "answer": z["answer"], "n_hint": m["spans"]["hint"][2],
+                    "sent_full": sent[:, :, full].mean(axis=(2, 3)),
+                    "sent_sliding": sent[:, :, sliding].mean(axis=(2, 3)) if sliding else None,
+                    "sentence_reaches_hint_in_sliding": whole})
+    return out
+
+
+def answer_measures(layers):
+    """Per run at the answer position, over `layers` and every head: hint - control (spans of equal
+    length), the hint's mass per token, and the letter's (one token)."""
+    return {"hint - control": lambda r: float((r["answer"][0, layers] - r["answer"][2, layers]).mean()),
+            "hint per token": lambda r: float(r["answer"][0, layers].mean() / r["n_hint"]),
+            "letter": lambda r: float(r["answer"][1, layers].mean())}
+
+
+def top_heads(rs, layers, by="hint", k=TOP_HEADS):
+    """The k (layer, head) pairs among `layers` with the highest pooled answer -> hint mass
+    (by="hint") or hint - control (by="hint - control")."""
+    import numpy as np
+    pooled = np.mean([r["answer"][0] - (r["answer"][2] if by == "hint - control" else 0) for r in rs], axis=0)
+    masked = np.full_like(pooled, -np.inf)
+    masked[layers] = pooled[layers]
+    idx = np.argsort(-masked, axis=None)[:k]
+    return [(int(l), int(h), float(pooled[l, h])) for l, h in zip(*np.unravel_index(idx, pooled.shape))]
+
+
+def anchors(rs, rows):
+    """{run_id: (anchor sentence index, 0-based)}: the takeover sentence of a followed run (Step 3's
+    takeover_k: the hint leads from that probe on, so sentence k is where it takes over), the closest
+    approach of a resisted run (the probe after the first fifth where the hint letter peaks), and
+    why the others have none."""
+    per = {r["source_run_id"]: r for r in rows}
+    out, skipped = {}, Counter()
+    for r in rs:
+        s3 = per.get(r["run_id"])
+        if s3 is None:
+            skipped["not in Step 3's rows"] += 1
+            continue
+        if s3["n_sentences"] != r["n_sentences"]:
+            skipped["sentence counts differ from Step 3's"] += 1
+            continue
+        k = s3["takeover_k"] if r["kind"] == "followed" else s3["closest_approach_k"]
+        if r["kind"] == "followed" and r.get("step3_takeover_k") not in (None, k):
+            skipped["takeover differs from the Step 9 record"] += 1
+            continue
+        if not k:
+            skipped[f"{r['kind']}: " + ("takes over before any reasoning (k = 0)" if k == 0 else "no anchor")] += 1
+            continue
+        out[r["run_id"]] = k - 1
+    return out, dict(skipped)
+
+
+def aligned(rs, at):
+    """Per kind and measure, per offset from the anchor (-ALIGN..ALIGN): the mean over runs with a 95%
+    bootstrap clustered by question, and the runs present. Full-attention layers, which always reach
+    the hint: hint - control and hint per token; sliding-window layers: hint per token, only for the
+    sentences whose every token reaches the hint."""
+    offs = list(range(-ALIGN, ALIGN + 1))
+    vals = {}
+    for r in rs:
+        if r["run_id"] not in at:
+            continue
+        a, sf, ss = at[r["run_id"]], r["sent_full"], r["sent_sliding"]
+        for o in offs:
+            j = a + o
+            if not 0 <= j < sf.shape[1]:
+                continue
+            got = {"full layers: hint - control": sf[0, j] - sf[2, j], "full layers: hint per token": sf[0, j] / r["n_hint"]}
+            if ss is not None and r["sentence_reaches_hint_in_sliding"][j]:
+                got["sliding layers, within reach: hint per token"] = ss[0, j] / r["n_hint"]
+            for m, v in got.items():
+                vals.setdefault((r["kind"], m, o), {}).setdefault(r["item_id"], []).append(float(v))
+    out = {}
+    for kind in ("followed", "resisted"):
+        for m in ("full layers: hint - control", "full layers: hint per token", "sliding layers, within reach: hint per token"):
+            pts = []
+            for o in offs:
+                g = vals.get((kind, m, o))
+                mean = boot_mean(g, n=CURVE_BOOT) if g else (None, None, None)
+                pts.append({"offset": o, "runs": sum(len(v) for v in (g or {}).values()), "mean": mean[0],
+                            "ci95": [mean[1], mean[2]]})
+            out.setdefault(kind, {})[m] = pts
+    return out
+
+
+def rise(rs, at):
+    """Per run, full layers, hint - control: the anchor window (the anchor sentence and the 2 before)
+    minus the same run's sentences 6-15 before it."""
+    out = {}
+    for r in rs:
+        if r["run_id"] not in at:
+            continue
+        a, sf = at[r["run_id"]], r["sent_full"]
+        x = sf[0] - sf[2]
+        win = [x[a + o] for o in range(RISE_WINDOW[0], RISE_WINDOW[1] + 1) if 0 <= a + o < len(x)]
+        base = [x[a + o] for o in range(RISE_BASE[0], RISE_BASE[1] + 1) if 0 <= a + o < len(x)]
+        if win and base:
+            out[r["run_id"]] = float(statistics.mean(win) - statistics.mean(base))
+    return out
+
+
+def followup(out=None, d=None, model=None, takeover_rows=None):
+    """Step 9 read again (Oct 26), from the saved runs: every comparison on the full-attention layers
+    only; the runs whose answer sees the hint in the sliding-window layers too, on their own;
+    hint - control and per-token mass instead of raw mass; the top heads of the readout layers
+    (Step 10: 15, 19, 23) for followed vs resisted runs; attention to the hint from each reasoning
+    sentence, aligned on the takeover (followed) or the closest approach (resisted). Numbers only
+    -> step9_followup.json (copy back) + step9_aligned.png."""
+    import numpy as np
+    d = Path(d) if d else kit.out_dir("step9", out)
+    full = kit.full_attention_layers(model)
+    rs = reduced(d, full)
+    if not rs:
+        raise SystemExit(f"no saved runs in {d}")
+    n_layers = rs[0]["answer"].shape[1]
+    every = list(range(n_layers))
+    sliding = [i for i in every if i not in full]
+    readout = [layer for layer in READOUT_LAYERS if layer in full]
+    near = [r for r in rs if r["answer_sees_hint_in_sliding_layers"]]
+    run_sets = {"all runs, full-attention layers": (rs, full),
+                "answer within reach of the hint in the sliding layers: all layers": (near, every),
+                "answer within reach of the hint in the sliding layers: full-attention layers": (near, full),
+                "answer within reach of the hint in the sliding layers: sliding-window layers": (near, sliding)}
+    sets = {}
+    for name, (runs, layers) in run_sets.items():
+        if not runs or not layers:
+            continue
+        ms = answer_measures(layers)
+        groups = sorted({(r["channel"], r["kind"]) for r in runs})
+        sets[name] = {"runs": len(runs), "questions": len({r["item_id"] for r in runs}), "layers": layers,
+                      "group_means": {f"{c} | {k}": {"runs": len(g), **{m: statistics.mean(f(r) for r in g) for m, f in ms.items()}}
+                                      for c, k in groups for g in [[r for r in runs if r["channel"] == c and r["kind"] == k]]},
+                      "comparisons": {cname: {m: diff(a, b, f) for m, f in ms.items()}
+                                      for cname, (a, b) in comparison_groups(runs).items()}}
+    by_mass = top_heads(rs, every)
+    heads = {"pooled, all runs, ranked by hint mass (as in step9_attention.json)": by_mass,
+             "pooled, all runs, ranked by hint - control": top_heads(rs, every, "hint - control")}
+    if near:
+        heads["runs within reach in the sliding layers, all layers, ranked by hint - control"] = top_heads(near, every, "hint - control")
+    head_counts = {name: {"in full-attention layers": sum(l in full for l, _, _ in hs_),
+                          "in layers " + ", ".join(map(str, READOUT_LAYERS)): sum(l in readout for l, _, _ in hs_),
+                          "of": len(hs_)} for name, hs_ in heads.items()}
+    fol, res = [r for r in rs if r["kind"] == "followed"], [r for r in rs if r["kind"] == "resisted"]
+    ro = [(l, h) for l, h, _ in by_mass if l in readout]
+    readout_heads = {"heads": [[l, h] for l, h in ro], "per head": {}, "mean over these heads": {}}
+    for l, h in ro:
+        readout_heads["per head"][f"L{l}H{h}"] = {
+            "hint": diff(fol, res, lambda r, l=l, h=h: float(r["answer"][0, l, h])),
+            "hint - control": diff(fol, res, lambda r, l=l, h=h: float(r["answer"][0, l, h] - r["answer"][2, l, h]))}
+    if ro:
+        mean_hint = lambda r: float(np.mean([r["answer"][0, l, h] for l, h in ro]))  # noqa: E731
+        mean_hc = lambda r: float(np.mean([r["answer"][0, l, h] - r["answer"][2, l, h] for l, h in ro]))  # noqa: E731
+        for cname, (a, b) in comparison_groups(rs).items():
+            readout_heads["mean over these heads"][cname] = {"hint": diff(a, b, mean_hint), "hint - control": diff(a, b, mean_hc)}
+    at, skipped = anchors(rs, list(load(Path(takeover_rows or TAKEOVER_ROWS))))
+    rises = rise(rs, at)
+    by_q = lambda kind: {r["item_id"]: [] for r in rs if r["kind"] == kind and r["run_id"] in rises}  # noqa: E731
+    rise_out = {}
+    for kind in ("followed", "resisted"):
+        g = by_q(kind)
+        for r in rs:
+            if r["kind"] == kind and r["run_id"] in rises:
+                g[r["item_id"]].append(rises[r["run_id"]])
+        m = boot_mean(g) if g else (None, None, None)
+        rise_out[kind] = {"runs": sum(map(len, g.values())), "mean": m[0], "ci95": [m[1], m[2]]}
+    rise_out["followed - resisted"] = diff([r for r in fol if r["run_id"] in rises], [r for r in res if r["run_id"] in rises],
+                                          lambda r: rises[r["run_id"]])
+    summary = {
+        "step": "step9_followup", "snapshot_commits": sorted({r["snapshot_commit"] for r in rs}), "runs": len(rs),
+        "full_attention_layers": full, "readout_layers": readout,
+        "definitions": {
+            "hint - control": "mass on the hint minus mass on a question-stem span of the same number of tokens",
+            "hint per token": "mass on the hint divided by its number of tokens",
+            "within reach": "a sliding-window layer sees only the last 4,096 tokens; the answer is within reach when "
+                            "it sees the hint's last token there",
+            "anchor": "followed: the takeover sentence (Step 3: the hint letter leads from there to the end); resisted: "
+                      "the closest approach (the probe after the first fifth where the hint letter peaks)",
+            "rise": f"per run, full layers, hint - control: mean over offsets {RISE_WINDOW[0]}..{RISE_WINDOW[1]} minus mean "
+                    f"over offsets {RISE_BASE[0]}..{RISE_BASE[1]}",
+            "intervals": "95% bootstrap clustered by question; a difference uses the questions both groups have"},
+        "runs_within_reach_in_sliding_layers": len(near),
+        "run_sets": sets,
+        "top_heads": {name: [{"layer": l, "head": h, "value": v} for l, h, v in hs_] for name, hs_ in heads.items()},
+        "top_head_counts": head_counts,
+        "readout_heads_followed_vs_resisted": readout_heads,
+        "aligned": {"offsets": [-ALIGN, ALIGN], "runs_with_an_anchor": {k: sum(r["kind"] == k and r["run_id"] in at for r in rs)
+                                                                       for k in ("followed", "resisted")},
+                    "skipped": skipped, "curves": aligned(rs, at), "rise_at_anchor": rise_out},
+    }
+    p = kit.write_json(d / "step9_followup.json", summary)
+    show_followup(summary)
+    plot_followup(summary, d)
+    print(f"saved {p} (copy back) and {d / 'step9_aligned.png'}")
+    return summary
+
+
+def show_followup(s):
+    fmt = lambda x: "—" if not x or x.get("difference") is None else (  # noqa: E731
+        f"{x['difference']:+.2e} [{x['ci95'][0]:+.2e}, {x['ci95'][1]:+.2e}]")
+    for name, st in s["run_sets"].items():
+        print(f"\n{name}: {st['runs']} runs, {st['questions']} questions, layers {st['layers']}")
+        print("| comparison | n | hint - control | hint per token | letter |")
+        print("|---|---|---|---|---|")
+        for cname, c in st["comparisons"].items():
+            n = c["hint - control"]["n"] if c["hint - control"] else ["—", "—"]
+            print(f"| {cname} | {n[0]} vs {n[1]} | {fmt(c['hint - control'])} | {fmt(c['hint per token'])} | {fmt(c['letter'])} |")
+    print("\nTop heads:")
+    for name, hs_ in s["top_heads"].items():
+        c = s["top_head_counts"][name]
+        print(f"- {name}: " + ", ".join(f"L{h['layer']}H{h['head']}" for h in hs_) + f"  ({'; '.join(f'{v} {k}' for k, v in c.items() if k != 'of')}, of {c['of']})")
+    ro = s["readout_heads_followed_vs_resisted"]
+    print(f"\nReadout-layer heads among the top 10 ({len(ro['heads'])}), followed - resisted:")
+    for name, c in ro["per head"].items():
+        print(f"  {name}: hint {fmt(c['hint'])}; hint - control {fmt(c['hint - control'])}")
+    for cname, c in ro["mean over these heads"].items():
+        print(f"  mean over them, {cname}: hint {fmt(c['hint'])}; hint - control {fmt(c['hint - control'])}")
+    a = s["aligned"]
+    print(f"\nAligned on the anchor: {a['runs_with_an_anchor']}; skipped {a['skipped']}")
+    for kind in ("followed", "resisted"):
+        x = a["rise_at_anchor"][kind]
+        if x["mean"] is not None:
+            print(f"  rise at the anchor, {kind}: {x['mean']:+.2e} [{x['ci95'][0]:+.2e}, {x['ci95'][1]:+.2e}] ({x['runs']} runs)")
+    print(f"  followed - resisted: {fmt(a['rise_at_anchor']['followed - resisted'])}")
+
+
+def plot_followup(s, d):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    colors = {"followed": "#2a78d6", "resisted": "#eb6834"}
+    panels = ["full layers: hint - control", "full layers: hint per token", "sliding layers, within reach: hint per token"]
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+    for ax, m in zip(axes, panels):
+        for kind in ("followed", "resisted"):
+            pts = [p for p in s["aligned"]["curves"][kind][m] if p["mean"] is not None]
+            if not pts:
+                continue
+            x = [p["offset"] for p in pts]
+            ax.plot(x, [p["mean"] for p in pts], color=colors[kind], lw=2,
+                    label=f"{kind} ({s['aligned']['runs_with_an_anchor'][kind]} runs)")
+            ax.fill_between(x, [p["ci95"][0] for p in pts], [p["ci95"][1] for p in pts], color=colors[kind], alpha=0.15, lw=0)
+        ax.axvline(0, color="#52514e", lw=0.8)
+        ax.axhline(0, color="#b5b4ad", lw=0.6)
+        ax.set_title(m, fontsize=10)
+        ax.set_xlabel("sentences from the anchor (0 = takeover / closest approach)")
+        ax.grid(axis="y", color="#e5e4df", lw=0.5)
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+    axes[0].set_ylabel("attention mass from the sentence")
+    if axes[0].lines[2:]:
+        axes[0].legend(frameon=False)
+    fig.suptitle("Attention to the hint from each reasoning sentence, aligned on the takeover (followed) or the "
+                 "closest approach (resisted); 95% intervals clustered by question", fontsize=10)
+    fig.tight_layout()
+    for ext in ("png", "svg"):
+        fig.savefig(Path(d) / f"step9_aligned.{ext}", dpi=150)
+    plt.close(fig)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--report", action="store_true", help="summary from the saved runs; no model")
+    ap.add_argument("--followup", action="store_true", help="the Oct 26 follow-up from the saved runs; no model, no GPU")
+    ap.add_argument("--plot-followup", metavar="SUMMARY", help="redraw the aligned-curve figure from a step9_followup.json")
     ap.add_argument("--limit", type=int, help="only the N shortest runs")
     ap.add_argument("--model", help="a local model directory (a trained version, or a test's tiny model)")
     ap.add_argument("--runs-from", help="a base_format-style .jsonl.gz of runs (default: Step 2b's)")
@@ -419,6 +715,10 @@ def main(argv=None):
     ap.add_argument("--k-chunk", type=int, default=K_CHUNK)
     ap.add_argument("--out", help="output base directory (default $TRACKA_OUT)")
     a = ap.parse_args(argv)
+    if a.plot_followup:
+        return plot_followup(json.loads(Path(a.plot_followup).read_text()), Path(a.plot_followup).parent)
+    if a.followup:
+        return followup(a.out, model=a.model)
     if a.report:
         return report(a.out)
     d = run(a.model, a.device, a.out, a.dry_run, a.limit, a.runs_from, a.q_chunk, a.k_chunk)

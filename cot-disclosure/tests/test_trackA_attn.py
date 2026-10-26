@@ -135,3 +135,34 @@ def test_run_and_report_on_saved_step2b_runs(tmp_path):
     s = ah.report(out=str(tmp_path / "out"))
     assert s["runs"] == 2 and len(s["top_heads"]) == ah.TOP_HEADS and (step / "step9_maps.npz").exists()
     assert json.loads((step / "step9_attention.json").read_text())["runs"] == 2
+
+
+def test_followup_on_saved_runs(tmp_path):
+    """The Oct 26 follow-up (no model): full-attention layers only, the runs within reach in the
+    sliding layers apart, hint - control and per token, top heads, the aligned curve."""
+    import numpy as np
+    d = tiny_model_dir(tmp_path, kv_heads=2, window=64)
+    ah.run(model=str(d), device="cpu", out=str(tmp_path / "out"), limit=4)
+    step = tmp_path / "out" / "step9"
+    meta = [json.loads(line) for line in (step / "step9_runs.jsonl").read_text().splitlines()]
+    rows = tmp_path / "per_run.jsonl"
+    rows.write_text("".join(json.dumps({"source_run_id": m["run_id"], "n_sentences": m["n_sentences"],
+                                        "takeover_k": m["step3_takeover_k"] if m["kind"] == "followed" else None,
+                                        "closest_approach_k": 2 if m["kind"] == "resisted" else None}) + "\n" for m in meta))
+    s = ah.followup(d=step, model=str(d), takeover_rows=rows)
+    assert s["full_attention_layers"] == [3] and s["runs"] == 4
+    all_full = s["run_sets"]["all runs, full-attention layers"]
+    assert all_full["layers"] == [3] and set(all_full["comparisons"]) >= {"followed - resisted (all channels)", "tool - user"}
+    near = [m for m in meta if m["answer_sees_hint_in_sliding_layers"]]
+    assert s["runs_within_reach_in_sliding_layers"] == len(near)
+    z = {m["run_id"]: np.load(step / "runs" / f"{m['run_id']}.npz") for m in meta}
+    m0 = meta[0]
+    hc = ah.answer_measures([3])["hint - control"]({"answer": z[m0["run_id"]]["answer"], "n_hint": m0["spans"]["hint"][2]})
+    assert hc == pytest.approx(float((z[m0["run_id"]]["answer"][0, 3] - z[m0["run_id"]]["answer"][2, 3]).mean()))
+    want = sum(bool(m["step3_takeover_k"]) if m["kind"] == "followed" else True for m in meta)
+    assert sum(s["aligned"]["runs_with_an_anchor"].values()) == want
+    curve = s["aligned"]["curves"]["followed"]["full layers: hint - control"]
+    assert [p["offset"] for p in curve] == list(range(-ah.ALIGN, ah.ALIGN + 1))
+    out = json.loads((step / "step9_followup.json").read_text())
+    assert out["step"] == "step9_followup" and (step / "step9_aligned.png").exists()
+    assert "control_text" not in json.dumps(out)

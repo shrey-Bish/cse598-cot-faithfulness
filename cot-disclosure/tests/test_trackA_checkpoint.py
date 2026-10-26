@@ -204,3 +204,43 @@ def test_rule_needs_both_dtypes(tmp_path):
     f = tmp_path / "step8_checkpoint.json"
     f.write_text(json.dumps(summary()))
     assert sv.main([str(f), "--no-save"])["decision"] == "same checkpoint"
+
+
+def test_rule_lists_the_positions_outside_near_ties_and_counts_failures(tmp_path):
+    """The Sol run's shape: the Step 1 text echoed 4 ways fails at one position (Voyager's gap over
+    0.1), the canary at others (the local gap over 0.1); positions are counted once per text."""
+    one = lambda pos, gl, gv: {"pos": pos, "near_tie": False, "gap_local": gl, "gap_voyager": gv, "diff": 0.1}  # noqa: E731
+    over = {}
+    for dtype in ("bf16", "fp32"):
+        for name in ("step1_old_route", "oct21_medium"):
+            r = ref(name, outside=1, near=18, listed=[{"near_tie": True}] * 18 + [one(1130, 0.0, 0.124)])
+            over[(dtype, name)] = {**r, "pass": False, "pass_logprobs": False}
+        r = ref("canary", outside=2, near=6, listed=[{"near_tie": True}] * 6 + [one(199, 0.14, None), one(290, 0.113, 0.0)])
+        r["tokens"] = 530
+        over[(dtype, "canary")] = {**r, "pass": False, "pass_logprobs": False}
+    s = summary(over)
+    for dtype in ("bf16", "fp32"):
+        s["results"][dtype]["oct21_default"].update({"pass": False, "pass_logprobs": False})
+    d = sv.decide(s)
+    assert d["decision"] == "different checkpoint"                                   # the rule is not relaxed
+    o = d["outside_near_ties"]
+    assert len(o["distinct"]) == 3 and o["gap_range"] == [0.113, 0.14]
+    assert {r["pos"]: r["over_0.1_on"] for r in o["rows"]} == {1130: ["voyager"], 199: ["local"], 290: ["local"]}
+    assert d["oct21_two_part_rule"][0].startswith("bf16: FAIL, 3 of 3 Think references fail")
+    sums = tmp_path / "sha.txt"
+    ref_files = json.loads(sv.REV_FILES.read_text())["files"]
+    sums.write_text("".join(f"{h}  {n}\n" for n, h in ref_files.items() if n.endswith(".safetensors")))
+    f = tmp_path / "step8_checkpoint.json"
+    f.write_text(json.dumps(s))
+    out = sv.main([str(f), "--no-save", "--sha256sum", str(sums)])
+    assert out["weights_sha256"]["all_match"] and len(out["weights_sha256"]["files"]) == 3
+    sums.write_text(sums.read_text().replace(sums.read_text()[:4], "0000", 1))
+    assert not sv.main([str(f), "--no-save", "--sha256sum", str(sums)])["weights_sha256"]["all_match"]
+
+
+def test_oct21_line_counts_the_failures():
+    ok = {"pass": True, "pass_logprobs": True, "control": False}
+    bad = {"pass": False, "pass_logprobs": False, "control": False}
+    ctrl = {"pass": False, "pass_logprobs": False, "control": True}
+    v = cc.verdict({"bf16": {"a": bad, "b": bad, "c": ok, "x": ctrl}})
+    assert v["lines"][0].startswith("bf16: FAIL, 2 of 3 Think references fail")

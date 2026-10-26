@@ -215,8 +215,8 @@ def verdict(results):
         ctrl = [r for r in res.values() if r["control"]]
         ok[dtype] = all(r["pass"] for r in think)
         ctrl_failed = all(not r["pass_logprobs"] for r in ctrl)          # on its log-probs, not on tokenization
-        lines.append(f"{dtype}: {'PASS' if ok[dtype] else 'FAIL'} on {sum(r['pass'] for r in think)} of {len(think)} "
-                     f"Think references; the Instruct control {'fails, as it must' if ctrl_failed else 'PASSES: the check cannot tell checkpoints apart'}")
+        lines.append(f"{dtype}: {'PASS' if ok[dtype] else 'FAIL'}, {sum(not r['pass'] for r in think)} of {len(think)} "
+                     f"Think references fail; the Instruct control {'fails, as it must' if ctrl_failed else 'PASSES: the check cannot tell checkpoints apart'}")
     main = "bf16" if "bf16" in results else next(iter(results))
     return {"pass": ok[main], "decided_by": main, "by_dtype": ok, "lines": lines,
             "meaning": ("Voyager serves this checkpoint: base numbers from Voyager stand" if ok[main] else

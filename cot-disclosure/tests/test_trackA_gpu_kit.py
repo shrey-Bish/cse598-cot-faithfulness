@@ -87,6 +87,30 @@ def test_snapshot_different_weights(tmp_path):
     assert not r["weights_same"] and r["differ"] == ["model-00002-of-00003.safetensors"]
 
 
+def test_regular_files_are_hashed_once(tmp_path, monkeypatch):
+    """Sol's snapshot holds regular files, not cache links: they are hashed (sha256 for the weights,
+    the git blob id for the rest) and the result is kept, keyed by path, size and mtime."""
+    snap = tmp_path / "snapshots" / kit.TEMPLATE_REV
+    snap.mkdir(parents=True)
+    (snap / "config.json").write_text('{"x": 1}\n')
+    (snap / "model-00001-of-00001.safetensors").write_bytes(b"\x00weights" * 1000)
+    blob = subprocess.run(["git", "hash-object", str(snap / "config.json")], capture_output=True, text=True).stdout.strip()
+    assert kit.git_blob_id(snap / "config.json") == blob
+    ref = {"revision": kit.TEMPLATE_REV, "revisions_with_these_weights": [kit.TEMPLATE_REV],
+           "files": {"config.json": blob, "model-00001-of-00001.safetensors": kit.sha256(snap / "model-00001-of-00001.safetensors")}}
+    cache = tmp_path / "file_hashes.json"
+    r = kit.files_vs_template_rev(snap, ref, cache)
+    assert r["same"] and r["weights_same"] and sorted(r["hashed_regular_files"]) == sorted(ref["files"])
+    monkeypatch.setattr(kit, "sha256", lambda p: pytest.fail("hashed again"))
+    assert kit.files_vs_template_rev(snap, ref, cache)["weights_same"]                     # from the cache
+    monkeypatch.undo()
+    (snap / "model-00001-of-00001.safetensors").write_bytes(b"\x01other" * 1000)
+    r = kit.files_vs_template_rev(snap, ref, cache)
+    assert not r["weights_same"] and r["differ"] == ["model-00001-of-00001.safetensors"]
+    assert "weights DIFFER" in kit.snapshot_line({"snapshot_commit": kit.TEMPLATE_REV, "snapshot_is_d97e442": True,
+                                                  "files_vs_d97e442": r})
+
+
 def test_reference_lists_the_weights():
     ref = json.loads(kit.REV_FILES.read_text())
     assert ref["revision"] == kit.TEMPLATE_REV

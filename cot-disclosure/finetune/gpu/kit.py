@@ -6,8 +6,10 @@
 - The model: allenai/Olmo-3-7B-Think from the local Hugging Face cache, never downloaded at run
   time. Every output records the snapshot's commit hash and whether its files equal d97e442, the
   revision our pinned template came from. olmo3_7b_think_d97e442.json holds the hash of every
-  file at d97e442; the cache names each file's blob by that same hash, so the check needs no
-  network and no re-hashing. (The weights are the same in 24 of the repo's 25 revisions.)
+  file at d97e442; the cache names each file's blob by that same hash, so a cache link needs no
+  network and no re-hashing. A regular file (Sol's snapshot holds copies, not links) is hashed,
+  once: $TRACKA_OUT/file_hashes.json keeps the result. (The weights are the same in 24 of the
+  repo's 25 revisions.)
 - A memory check that refuses to start when the device can't hold the job.
 - The inputs each step reads, with their sha256 (inputs_manifest.json), checked before a run.
 
@@ -84,26 +86,59 @@ def snapshot(model=None):
     return p, p.name
 
 
-def files_vs_template_rev(path):
-    """Each file of the local snapshot against d97e442's: the cache keeps a file as a link to
-    blobs/<hash>, the hash olmo3_7b_think_d97e442.json lists. same = every listed file present
-    and equal; weights_same = the .safetensors files alone."""
-    ref = json.loads(REV_FILES.read_text())
-    differ, missing, unknown = [], [], []
+def git_blob_id(path):
+    """The git blob id of a file (sha1 of "blob <size>\\0" + its bytes): how the Hub names a non-LFS file."""
+    h = hashlib.sha1(b"blob %d\0" % Path(path).stat().st_size)
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+def hash_like(path, ref_hash, cache=None):
+    """The file's hash of the same kind as ref_hash (64 hex: sha256, an LFS file such as the weights;
+    40 hex: the git blob id). cache: a JSON file of earlier results keyed by path, size and
+    modification time, so the 15 GB of weights are read once."""
+    st = Path(path).stat()
+    key = f"{os.path.realpath(path)}|{st.st_size}|{st.st_mtime_ns}|{len(ref_hash)}"
+    seen = json.loads(Path(cache).read_text()) if cache and Path(cache).exists() else {}
+    if key not in seen:
+        seen[key] = sha256(path) if len(ref_hash) == 64 else git_blob_id(path)
+        if cache:
+            write_json(cache, seen)
+    return seen[key]
+
+
+def hash_cache():
+    base = os.environ.get("TRACKA_OUT")
+    return Path(base) / "file_hashes.json" if base and Path(base).is_dir() else None
+
+
+def files_vs_template_rev(path, ref=None, cache="auto"):
+    """Each file of the local snapshot against d97e442's (olmo3_7b_think_d97e442.json). A cache link
+    names its blob by the file's hash (blobs/<hash>); a regular file (a copied snapshot, as on Sol)
+    is hashed: sha256 for the weight files, the git blob id for the others. same = every listed file
+    present and equal; weights_same = the .safetensors files alone."""
+    ref = ref or json.loads(REV_FILES.read_text())
+    cache = hash_cache() if cache == "auto" else cache
+    differ, missing, hashed = [], [], []
     for name, h in ref["files"].items():
         f = Path(path) / name
         if not f.exists():
             missing.append(name)
             continue
         target = Path(os.path.realpath(f))
-        if target.parent.name != "blobs":
-            unknown.append(name)                               # not a cache link: would need hashing
-        elif target.name != h:
+        if target.parent.name == "blobs" and len(target.name) == len(h):
+            got = target.name
+        else:
+            got = hash_like(target, h, cache)
+            hashed.append(name)
+        if got != h:
             differ.append(name)
     weights = [n for n in ref["files"] if n.endswith(".safetensors")]
-    bad = set(differ) | set(missing) | set(unknown)
+    bad = set(differ) | set(missing)
     return {"same": not bad, "weights_same": not (set(weights) & bad), "differ": differ, "missing": missing,
-            "not_a_cache_link": unknown, "checked": len(ref["files"]), "reference_revision": ref["revision"],
+            "hashed_regular_files": hashed, "checked": len(ref["files"]), "reference_revision": ref["revision"],
             "revisions_with_the_same_weights": len(ref["revisions_with_these_weights"])}
 
 
@@ -116,13 +151,12 @@ def describe_snapshot(path, commit):
 def snapshot_line(s):
     """One line for the console: the hash, and whether it (or at least its weights) is d97e442's."""
     r = s["files_vs_d97e442"]
-    if s["snapshot_is_d97e442"]:
-        verdict = "matches d97e442 (the template's revision)"
-    else:
-        verdict = (f"is NOT d97e442; its files {'all equal' if r['same'] else 'differ from'} d97e442's"
-                   + ("" if r["same"] else f" (weights {'equal' if r['weights_same'] else 'DIFFER'}; differ: "
-                      f"{r['differ']}, missing: {r['missing']}, unverified: {r['not_a_cache_link']})"))
-    return f"snapshot {s['snapshot_commit']} {verdict}"
+    files = (f"its files {'all equal' if r['same'] else 'differ from'} d97e442's"
+             + ("" if r["same"] else f" (weights {'equal' if r['weights_same'] else 'DIFFER'}; differ: "
+                f"{r['differ']}, missing: {r['missing']})")
+             + (f"; {len(r['hashed_regular_files'])} regular files hashed" if r.get("hashed_regular_files") else ""))
+    name = "matches d97e442 (the template's revision)" if s["snapshot_is_d97e442"] else "is NOT d97e442"
+    return f"snapshot {s['snapshot_commit']} {name}; {files}"
 
 
 def config_fields(cfg):
@@ -140,6 +174,18 @@ def config_fields(cfg):
             "rope_theta": getattr(cfg, "rope_theta", None),
             "tie_word_embeddings": getattr(cfg, "tie_word_embeddings", None),
             "dtype": str(getattr(cfg, "dtype", None) or getattr(cfg, "torch_dtype", None))}
+
+
+OLMO3_FULL_LAYERS = list(range(3, 32, 4))     # Olmo 3 7B: every 4th layer attends to everything; the other 24 slide (4,096)
+
+
+def full_attention_layers(model=None):
+    """The full-attention layers of the model in the local cache (Olmo 3 7B's when its config isn't there)."""
+    try:
+        from transformers import AutoConfig
+        return config_fields(AutoConfig.from_pretrained(snapshot(model)[0], local_files_only=True))["full_attention_layers"]
+    except Exception:                                          # noqa: BLE001
+        return OLMO3_FULL_LAYERS
 
 
 def n_params(path):

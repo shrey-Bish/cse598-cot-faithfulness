@@ -45,6 +45,9 @@ TRACK_A_FILES = {
 GPU = {                  # copied back from Sol to results/trackA/gpu/ (numbers only; Step 8's goes through step8_verdict.py)
     "gpu/step9_attention.json": "Step 9: attention to the hint (group means, layer profiles, top heads, comparisons)",
     "gpu/step10_patching.json": "Step 10: activation patching (every cut's logit differences, restoration by layer)",
+    "gpu/step9_followup.json": "Step 9 follow-up: full-attention layers, runs within the window, readout heads, aligned curve",
+    "gpu/step9_aligned.png": "Step 9 follow-up: the takeover-aligned curve",
+    "gpu/step9_aligned.svg": "Step 9 follow-up: the takeover-aligned curve",
 }
 LATER = ["nohint_train_runs.jsonl", "targets_runs.jsonl", "target_samples_runs.jsonl", "targets_prefill_runs.jsonl",
          "target_samples_prefill_runs.jsonl"]                    # Steps 6-7: after the run finishes

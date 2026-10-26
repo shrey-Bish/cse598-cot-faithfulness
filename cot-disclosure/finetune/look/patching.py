@@ -33,6 +33,11 @@ by side per case.
   python finetune/look/patching.py --by-layer-type results/trackA/gpu/step10_patching.json
                                                  # restoration in the 8 full-attention vs 24 sliding-window
                                                  # layers -> results/summaries/trackA/step10_by_layer_type.json
+  python finetune/look/patching.py --handoff results/trackA/gpu/step10_patching.json
+                                                 # the readout: per layer, the drop in hint-token restoration
+                                                 # and the rise at the answer; shares at the full-attention
+                                                 # layers and at 15, 19, 23; direct vs written at cut (ii)
+                                                 # -> results/summaries/trackA/step10_handoff.json + figure
 On Sol: finetune/gpu/sol/run.sh step10 [args] (session) or finetune/gpu/sol/submit.sh step10 (batch).
 --model, --runs-from and --cases-from let the same code run on a trained version (Phase 6).
 """
@@ -51,8 +56,10 @@ from finetune.gpu import kit  # noqa: E402
 from finetune.look import hint_spans as hs  # noqa: E402
 
 GROUPS = ("hint", "reasoning", "answer")
-OLMO3_FULL_LAYERS = list(range(3, 32, 4))   # Olmo 3 7B: every 4th layer is full attention; the rest slide (4,096)
+OLMO3_FULL_LAYERS = kit.OLMO3_FULL_LAYERS
 BY_TYPE_OUT = CODE / "results" / "summaries" / "trackA" / "step10_by_layer_type.json"
+HANDOFF_OUT = CODE / "results" / "summaries" / "trackA" / "step10_handoff.json"
+HANDOFF_FIG = CODE / "results" / "trackA" / "figures" / "step10_handoff.png"
 FILLERS = ("X", "?", "_", "-")
 MIN_GAP = 0.5
 LETTERS = "ABCDEFGHIJ"
@@ -347,11 +354,7 @@ def report(out=None, d=None):
 
 def full_layers():
     """The full-attention layers of the model in the cache (Olmo 3 7B's when its config isn't there)."""
-    try:
-        from transformers import AutoConfig
-        return kit.config_fields(AutoConfig.from_pretrained(kit.snapshot()[0], local_files_only=True))["full_attention_layers"]
-    except Exception:                                        # noqa: BLE001
-        return OLMO3_FULL_LAYERS
+    return kit.full_attention_layers()
 
 
 def by_layer_type(summary, full=None):
@@ -408,6 +411,214 @@ def show_by_layer_type(res):
         print(f"| ({cut}) | left out (gap < {res['min_gap']}) | {res[cut]['left_out_small_gap']} | | | | | |")
 
 
+def hint_distances():
+    """{job id: tokens from the hint (its last token; its letter) to the answer position, and the
+    cut's length}, rebuilt with the tokenizer alone (no model), as the GPU run built the inputs."""
+    tok = kit.load_tokenizer(kit.snapshot()[0])
+    cases, steps, items, _ = inputs()
+    out = {}
+    for j in jobs(tok, cases, steps, items):
+        lay = hs.layout(tok, steps[j["case"]["source_run_id"]], j["reasoning"])
+        out[job_id(j)] = {"tokens": len(lay["ids"]), "hint_end": lay["answer"] - lay["hint"][-1],
+                          "letter": lay["answer"] - lay["letter"][0]}
+    return out
+
+
+def steps_of(rest, start):
+    """Per layer, the change from the layer before; the layer before layer 0 is the unpatched input
+    (start: 1 for the hint's tokens, where it is the clean input itself; 0 for the answer position,
+    whose input is the same in both runs)."""
+    prev, out = start, []
+    for v in rest:
+        out.append(None if v is None else v - prev)
+        prev = prev if v is None else v
+    return out
+
+
+def handoff(summary, distances=None, full=None, readout=(15, 19, 23), window=4096):
+    """Where the hint's information leaves the hint tokens and reaches the answer, per cut:
+    - drop at layer l = restoration(hint tokens, l - 1) - restoration(hint tokens, l): what layer l
+      read out of the hint tokens (patching them after it no longer matters). The drops add up to
+      1 - restoration at the last layer = 1.
+    - rise at layer l = restoration(answer, l) - restoration(answer, l - 1); they add up to 1.
+    Shares of the total at the full-attention layers and at the readout layers, per cut, then the
+    mean over cuts with a 95% bootstrap clustered by question; per cut type, all cuts and split by
+    whether the hint letter is within `window` tokens of the answer (the sliding layers reach it).
+    Cuts with |LD_clean - LD_hinted| < MIN_GAP are left out, as everywhere."""
+    full = sorted(full or summary.get("full_attention_layers") or OLMO3_FULL_LAYERS)
+    readout = [layer for layer in readout if layer in full]
+    out = {"full_attention_layers": full, "readout_layers": list(readout), "window": window, "min_gap": MIN_GAP,
+           "per_cut": [], "by_cut_type": {}}
+    for r in summary["cuts"]:
+        if abs(r["ld_clean"] - r["ld_hinted"]) < MIN_GAP:
+            continue
+        drop = steps_of(restoration(r, "hint"), 1.0)
+        drop = [None if v is None else -v for v in drop]
+        rise = steps_of(restoration(r, "answer"), 0.0)
+        row = {"job": r["job"], "item_id": r["item_id"], "cut": r["cut"]}
+        if distances:
+            dist = distances[r["job"]]
+            if dist["tokens"] != r["tokens"]:
+                raise SystemExit(f"{r['job']}: {dist['tokens']} tokens here, {r['tokens']} on the GPU")
+            row.update({"letter_to_answer": dist["letter"], "hint_within_window": dist["letter"] < window})
+        for name, xs in (("drop", drop), ("rise", rise)):
+            tot = sum(v for v in xs if v is not None)
+            row[f"{name}_by_layer"] = xs
+            row[f"{name}_total"] = tot
+            row[f"{name}_share_full"] = sum(xs[i] for i in full if xs[i] is not None) / tot if tot else None
+            row[f"{name}_share_readout"] = sum(xs[i] for i in readout if xs[i] is not None) / tot if tot else None
+        out["per_cut"].append(row)
+
+    def agg(rows):
+        res = {"cuts": len(rows), "questions": len({r["item_id"] for r in rows})}
+        if not rows:
+            return res
+        for key in ("drop_share_full", "drop_share_readout", "rise_share_full", "rise_share_readout"):
+            g = {}
+            for r in rows:
+                if r[key] is not None:
+                    g.setdefault(r["item_id"], []).append(r[key])
+            res[key] = dict(zip(("mean", "low", "high"), boot_mean(g))) if g else None
+        for name in ("drop", "rise"):
+            per_layer = []
+            for i in range(len(rows[0][f"{name}_by_layer"])):
+                g = {}
+                for r in rows:
+                    if r[f"{name}_by_layer"][i] is not None:
+                        g.setdefault(r["item_id"], []).append(r[f"{name}_by_layer"][i])
+                per_layer.append(dict(zip(("mean", "low", "high"), boot_mean(g, n=5000))) if g else None)
+            res[f"{name}_by_layer"] = per_layer
+        return res
+
+    for cut in ("i", "ii"):
+        rows = [r for r in out["per_cut"] if r["cut"] == cut]
+        cell = {"all": agg(rows)}
+        if distances:
+            cell["hint within the window"] = agg([r for r in rows if r["hint_within_window"]])
+            cell["hint beyond the window"] = agg([r for r in rows if not r["hint_within_window"]])
+        b = summary["restoration_by_layer"][cut]["reasoning"]
+        peak = max((i for i, v in enumerate(b) if v), key=lambda i: b[i][0], default=None)
+        cell["reasoning_peak"] = None if peak is None else {"layer": peak, "mean": b[peak][0], "ci95": b[peak][1:]}
+        out["by_cut_type"][cut] = cell
+    return out
+
+
+def paths_at_cut_ii(summary, distances=None):
+    """Direct vs written: per case at cut (ii), the clean run's forced answer (only the prompt's letter
+    swapped, W -> O; the reasoning still names W) beside Step 4's (the mentions deleted, the prompt still
+    W), with the totals and Wilson intervals. The case sets differ: Step 4 has no deletion for the
+    cases with no mention before the takeover."""
+    from common import wilson
+    rows = []
+    for r in summary["cuts"]:
+        if r["cut"] != "ii":
+            continue
+        clean = "W" if r["top_clean"] == r["hint_letter"] else ("O" if r["top_clean"] == r["own_letter"] else "other")
+        rows.append({"job": r["job"], "item_id": r["item_id"], "condition": r["condition"], "arm": r["arm"],
+                     "hinted_answers_W": r["top_hinted"] == r["hint_letter"], "clean_answers": clean,
+                     "ld_hinted": r["ld_hinted"], "ld_clean": r["ld_clean"],
+                     "step4_after_deleting_mentions": r["step4_forced_after_deleting_mentions"],
+                     "letter_to_answer": (distances or {}).get(r["job"], {}).get("letter")})
+    n = len(rows)
+    off = sum(r["clean_answers"] != "W" for r in rows)
+    s4 = [r for r in rows if r["step4_after_deleting_mentions"]]
+    own4 = sum(r["step4_after_deleting_mentions"] == "own" for r in s4)
+    both = {}
+    for r in s4:
+        k = f"step 4 {r['step4_after_deleting_mentions']}, clean {r['clean_answers']}"
+        both[k] = both.get(k, 0) + 1
+    return {"cases": rows,
+            "hinted_run_answers_W": f"{sum(r['hinted_answers_W'] for r in rows)} of {n}",
+            "swap_only_the_prompt_letter": {"off_W": off, "to_O": sum(r["clean_answers"] == "O" for r in rows),
+                                            "to_another_letter": sum(r["clean_answers"] == "other" for r in rows),
+                                            "still_W": n - off, "of": n, "off_W_ci95": wilson(off, n)},
+            "step4_delete_the_mentions": {"back_to_own": own4, "of": len(s4), "ci95": wilson(own4, len(s4)),
+                                          "outcomes": {k: sum(r["step4_after_deleting_mentions"] == k for r in s4)
+                                                       for k in ("own", "hint", "other")}},
+            "cases_in_both": len(s4), "cross_table": dict(sorted(both.items()))}
+
+
+def show_handoff(h, paths):
+    pct = lambda c: "—" if not c else f"{c['mean']:.2f} [{c['low']:.2f}, {c['high']:.2f}]"  # noqa: E731
+    ro = ", ".join(map(str, h["readout_layers"]))
+    print(f"Readout: the drop in hint-token restoration per layer, as a share of its total (= 1), and the rise at the "
+          f"answer; full-attention layers {h['full_attention_layers']}; 95% bootstrap by question")
+    print(f"| cut | cuts | questions | drop: share at full layers | drop: share at {ro} | rise: share at full layers | "
+          f"rise: share at {ro} |")
+    print("|---|---|---|---|---|---|---|")
+    for cut, cell in h["by_cut_type"].items():
+        for part, a in cell.items():
+            if part == "reasoning_peak" or not a.get("cuts"):
+                continue
+            print(f"| ({cut}) {part} | {a['cuts']} | {a['questions']} | {pct(a['drop_share_full'])} | "
+                  f"{pct(a['drop_share_readout'])} | {pct(a['rise_share_full'])} | {pct(a['rise_share_readout'])} |")
+    for cut, cell in h["by_cut_type"].items():
+        a = cell["all"]
+        big = [(i, d) for i, d in enumerate(a["drop_by_layer"]) if d and d["mean"] >= 0.03]
+        print(f"({cut}) drops of 0.03 or more: " + ", ".join(f"layer {i} {pct(d)}" for i, d in big))
+        p = cell["reasoning_peak"]
+        if p:
+            print(f"({cut}) reasoning positions: peak restoration {p['mean']:+.2f} [{p['ci95'][0]:+.2f}, "
+                  f"{p['ci95'][1]:+.2f}] at layer {p['layer']}")
+    s, d4 = paths["swap_only_the_prompt_letter"], paths["step4_delete_the_mentions"]
+    print(f"\nCut (ii), the hinted run answers W in {paths['hinted_run_answers_W']}.")
+    print(f"Swap only the prompt's letter (W -> O; the reasoning still names W): off W in {s['off_W']} of {s['of']} "
+          f"[{s['off_W_ci95'][0]:.2f}, {s['off_W_ci95'][1]:.2f}] ({s['to_O']} to O, {s['to_another_letter']} to another "
+          f"letter); still W in {s['still_W']}.")
+    print(f"Step 4, delete the mentions (prompt still W): back to the own answer in {d4['back_to_own']} of {d4['of']} "
+          f"[{d4['ci95'][0]:.2f}, {d4['ci95'][1]:.2f}] ({d4['outcomes']}).")
+    print(f"Both, {paths['cases_in_both']} cases: {paths['cross_table']}")
+    print("| case | channel | tokens, letter to answer | LD hinted | LD clean | clean answers | Step 4 |")
+    print("|---|---|---|---|---|---|---|")
+    for r in paths["cases"]:
+        print(f"| {r['job'][:8]} (q {r['item_id']}) | {r['condition']}{' + declared' if r['arm'] else ''} | "
+              f"{r['letter_to_answer'] if r['letter_to_answer'] is not None else '—'} | {r['ld_hinted']:+.2f} | "
+              f"{r['ld_clean']:+.2f} | {r['clean_answers']} | {r['step4_after_deleting_mentions'] or '— (no mention)'} |")
+
+
+def plot_handoff(summary, path, readout=(15, 19, 23)):
+    """The handoff figure: per cut, hint-token and answer restoration by layer, 95% bands clustered by
+    question; light lines at the full-attention layers, the readout layers marked."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    full = summary.get("full_attention_layers") or OLMO3_FULL_LAYERS
+    colors = {"hint": "#2a78d6", "answer": "#eb6834"}
+    labels = {"hint": "patch the hint's tokens", "answer": "patch the answer position"}
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.2), sharey=True)
+    for ax, cut in zip(axes, ("i", "ii")):
+        b = summary["restoration_by_layer"][cut]
+        for layer in full:
+            ax.axvline(layer, color="#52514e" if layer in readout else "#d6d5cf", lw=1.0 if layer in readout else 0.6,
+                       ls="--" if layer in readout else "-", zorder=0)
+        for g in ("hint", "answer"):
+            pts = [(i, v) for i, v in enumerate(b[g]) if v]
+            x = [i for i, _ in pts]
+            ax.plot(x, [v[0] for _, v in pts], color=colors[g], lw=2, label=labels[g])
+            ax.fill_between(x, [v[1] for _, v in pts], [v[2] for _, v in pts], color=colors[g], alpha=0.15, lw=0)
+        for layer in readout:
+            ax.text(layer, 1.13, str(layer), ha="center", va="center", fontsize=9, color="#0b0b0b",
+                    bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
+        ax.axhline(0, color="#b5b4ad", lw=0.6)
+        ax.axhline(1, color="#b5b4ad", lw=0.6, ls=":")
+        ax.set_ylim(-0.1, 1.2)
+        ax.set_xlim(-0.5, len(b["hint"]) - 0.5)
+        ax.set_title(f"cut ({cut}): {'before the first hint mention' if cut == 'i' else 'at the takeover'} "
+                     f"({b['usable']} of {b['cuts']} cuts)", fontsize=10)
+        ax.set_xlabel("layer patched (lines: the 8 full-attention layers; dashed: 15, 19, 23)")
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+    axes[0].set_ylabel("restoration (1 = the clean answer)")
+    axes[0].legend(frameon=False, loc="center left")
+    fig.suptitle("The handoff: where the hint's effect leaves its tokens and reaches the answer (restoration by layer, "
+                 "95% bands clustered by question)", fontsize=11)
+    fig.tight_layout()
+    path = Path(path)
+    for ext in ("png", "svg"):
+        fig.savefig(path.with_suffix(f".{ext}"), dpi=150)
+    plt.close(fig)
+
+
 def plot(summary, d):
     import matplotlib
     matplotlib.use("Agg")
@@ -443,6 +654,10 @@ def main(argv=None):
     ap.add_argument("--plot", metavar="SUMMARY", help="redraw the figure from a step10_patching.json (next to it)")
     ap.add_argument("--by-layer-type", metavar="SUMMARY", help="restoration in full vs sliding-window layers, from "
                     "a step10_patching.json; numbers to results/summaries/trackA/step10_by_layer_type.json")
+    ap.add_argument("--handoff", metavar="SUMMARY", help="where the hint's information leaves the hint tokens (drops by "
+                    "layer, shares at the full-attention and readout layers, split by distance) and the direct vs written "
+                    "paths at cut (ii), from a step10_patching.json -> results/summaries/trackA/step10_handoff.json + figure")
+    ap.add_argument("--no-distances", action="store_true", help="with --handoff: skip the split by distance (no tokenizer)")
     ap.add_argument("--limit", type=int, help="only the N shortest cuts")
     ap.add_argument("--model", help="a local model directory (a trained version, or a test's tiny model)")
     ap.add_argument("--runs-from", help="a base_format-style .jsonl.gz of runs (default: Step 2b's)")
@@ -452,6 +667,18 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.plot:
         return plot(json.loads(Path(a.plot).read_text()), Path(a.plot).parent)
+    if a.handoff:
+        summary = json.loads(Path(a.handoff).read_text())
+        dist = None if a.no_distances else hint_distances()
+        h = handoff(summary, dist)
+        paths = paths_at_cut_ii(summary, dist)
+        show_handoff(h, paths)
+        HANDOFF_FIG.parent.mkdir(parents=True, exist_ok=True)
+        plot_handoff(summary, HANDOFF_FIG)
+        HANDOFF_OUT.write_text(json.dumps({"handoff": h, "paths_at_cut_ii": paths,
+                                           "snapshot_commits": summary["snapshot_commits"]}, indent=1) + "\n")
+        print(f"saved {HANDOFF_OUT.relative_to(CODE)} and {HANDOFF_FIG.relative_to(CODE)} (+ .svg)")
+        return h, paths
     if a.by_layer_type:
         res = by_layer_type(json.loads(Path(a.by_layer_type).read_text()))
         show_by_layer_type(res)

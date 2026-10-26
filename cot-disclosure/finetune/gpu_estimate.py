@@ -13,8 +13,14 @@ Assumptions (replace them with Step 11's 20-step timing run and a Step 12 decodi
     held-out wordings), pasted (1) and declared inserted (3) channels; 1 run for correct hints
     on those 6 wordings and for the undeclared inserted and system channels (wrong and correct);
     3 no-hint runs. Replies as long as Step 2b's on these questions, capped at 32,768 tokens with
-    the prompt. Base and prompt-only run in full on Voyager, 10% of them again on Sol as a
-    cross-check; the three trained versions run in full on Sol.
+    the prompt. Every system runs in full on the same Sol stack, base and prompt-only included
+    (decided Oct 26, after Step 8: Voyager's arithmetic differs from a local pass, so the Gate 3
+    comparison must not mix the two); Voyager's base numbers stay as the Steps 2b-4 results and a
+    cross-check, with no new Voyager runs.
+  - an optional fourth version (decided at Gate 3 planning): LoRA on the attention of layers 15,
+    19 and 23 only, Step 10's readout layers. The backward pass stops at layer 15, so its
+    training costs about (2 + 4 x 17/32) / 6 of a full version's; evaluated like LoRA only, with
+    the adapter merged into the weights.
   - decoding speed on one A100 80GB, Olmo 3 7B at 10-30k tokens of context: vLLM 250-700
     tokens/s in all (Olmo 3 runs through vLLM's Transformers backend); the tag versions' own loop
     150-400 tokens/s, or vLLM if Sol confirms prompt embeddings + LoRA (finetune/tags_vllm.py).
@@ -45,10 +51,9 @@ PER_QUESTION = {"wrong hints, 3 runs (user x2, pasted, declared inserted x3)": 6
 VLLM_TOK_S = (250, 700)
 LOOP_TOK_S = (150, 400)
 VOYAGER_TOK_S = 4 * 50              # 4 in flight x Step 2b's ~50 tokens/s per stream
-LOOK_INSIDE = {"Step 8, checkpoint check (5 forward passes)": (0.1, 0.3),
-               "Step 9, attention to the hint (~100 saved runs, one forward pass each, hooks)": (1, 3),
-               "Step 10, patching (26 cases x 32 layers, forward passes)": (2, 5),
-               "Step 13, look inside again on the best version (Steps 3, 9, 10)": (4, 10)}
+LOOK_INSIDE = {"Step 13, look inside again on the best version (Steps 3, 9, 10; Step 10's drops at 15, 19, 23)": (4, 10)}
+DONE = "Steps 8-10 ran on Sol on Oct 26, in the interactive session"
+READOUT = (15, 19, 23)
 
 
 def shape():
@@ -102,7 +107,10 @@ def main():
     lora = [tokens / t / 3600 for t in VLLM_TOK_S[::-1]]
     tags_loop = [2 * tokens / t / 3600 for t in LOOP_TOK_S[::-1]]
     tags_vllm = [2 * tokens / t / 3600 for t in VLLM_TOK_S[::-1]]
-    cross = [0.2 * tokens / t / 3600 for t in VLLM_TOK_S[::-1]]
+    base = [2 * tokens / t / 3600 for t in VLLM_TOK_S[::-1]]               # base and prompt-only, in full
+    layers = shape()[1] + shape()[2]
+    share = (2 + 4 * (layers - min(READOUT)) / layers) / 6
+    fourth = [train[0] / VERSIONS * share, train[1] / VERSIONS * share]
     look = [sum(v[0] for v in LOOK_INSIDE.values()), sum(v[1] for v in LOOK_INSIDE.values())]
     print(f"\n| job | Sol GPU hours (one A100) |")
     print("|---|---|")
@@ -112,14 +120,18 @@ def main():
           f"{lora[0]:.0f}-{lora[1]:.0f} |")
     print(f"| Step 13, evaluation, the two tag versions: own loop / vLLM with prompt embeddings | "
           f"{tags_loop[0]:.0f}-{tags_loop[1]:.0f} / {tags_vllm[0]:.0f}-{tags_vllm[1]:.0f} |")
-    print(f"| Step 13, 10% cross-check of base and prompt-only | {cross[0]:.1f}-{cross[1]:.1f} |")
+    print(f"| Step 13, evaluation, base and prompt-only in full (vLLM, no adapter) | {base[0]:.0f}-{base[1]:.0f} |")
     for name, (lo, hi) in LOOK_INSIDE.items():
         print(f"| {name} | {lo:g}-{hi:g} |")
+    print(f"| optional: a fourth version, LoRA on the attention of layers {', '.join(map(str, READOUT))} only: training "
+          f"({share:.2f} of a version) + evaluation (merged, vLLM) | {fourth[0] + lora[0]:.0f}-{fourth[1] + lora[1]:.0f} |")
     for label, tags in (("tag versions in their own loop", tags_loop), ("tag versions in vLLM", tags_vllm)):
-        lo = train[0] + lora[0] + tags[0] + cross[0] + look[0]
-        hi = train[1] + lora[1] + tags[1] + cross[1] + look[1]
-        print(f"Total, {label}: {lo:.0f}-{hi:.0f} Sol GPU hours")
-    print(f"Voyager (not Sol): base and prompt-only in full, {2 * tokens / VOYAGER_TOK_S / 3600:.0f} hours at 4 in flight.")
+        lo = train[0] + lora[0] + tags[0] + base[0] + look[0]
+        hi = train[1] + lora[1] + tags[1] + base[1] + look[1]
+        print(f"Total, {label}: {lo:.0f}-{hi:.0f} Sol GPU hours (+{fourth[0] + lora[0]:.0f}-{fourth[1] + lora[1]:.0f} with "
+              "the optional fourth version)")
+    print(f"Done: {DONE}. Voyager: no new runs (base and prompt-only would have taken "
+          f"{2 * tokens / VOYAGER_TOK_S / 3600:.0f} hours there at 4 in flight).")
 
 
 if __name__ == "__main__":
