@@ -132,7 +132,75 @@ def test_end_to_end_on_a_tiny_model(tmp_path):
     s = cc.run(str(d), "cpu", ("fp32",), str(tmp_path / "out"), strict_n=40, refs=refs)
     same = s["results"]["fp32"]["same"]
     assert same["pass"] and same["strict"]["max_abs_diff"] < 1e-4 and same["beyond"]["positions"] > 0
-    assert not s["results"]["fp32"]["other"]["pass_logprobs"] and s["verdict"]["pass"]
+    assert not s["results"]["fp32"]["other"]["pass_logprobs"] and s["two_part_rule_oct21"]["pass"]
+    assert same["strict"]["mismatches_outside_near_ties"] == 0 and same["all"]["positions"] > same["strict"]["positions"]
+    assert s["decision"]["decision"] == "incomplete"                     # the Oct 26 rule needs bf16 and fp32
     saved = json.loads((tmp_path / "out" / "step8" / "step8_checkpoint.json").read_text())
     assert saved["snapshot_commit"] == "local:tiny-olmo3" and saved["rule"]["strict_first_tokens"] == 40
     assert (tmp_path / "out" / "step8" / "step8_positions.npz").exists()
+
+
+# ---------------------------------------------------------------- the Oct 26 rule (step8_verdict.py)
+from finetune.gpu import step8_verdict as sv  # noqa: E402
+
+
+def ref(name, outside=0, near=0, mean=0.004, mean_first=0.001, max_first=0.004, control=False, listed=None):
+    strict = {"positions": 2046, "top_token_mismatches": outside + near, "mean_abs_diff": mean_first,
+              "max_abs_diff": max_first, "mismatches_outside_near_ties": outside}
+    if listed is not None:                                   # a file from before Oct 26: only the listed mismatches
+        del strict["mismatches_outside_near_ties"]
+        strict["mismatches"] = listed
+    return {"name": name, "control": control, "tokens": 5185, "strict": strict,
+            "beyond": {"positions": 3138, "mean_abs_diff": (mean * 5184 - mean_first * 2046) / 3138, "max_abs_diff": 0.2},
+            "all": {"positions": 5184, "mean_abs_diff": mean}}
+
+
+def summary(over=None):
+    out = {}
+    for dtype in ("bf16", "fp32"):
+        refs = {n: ref(n) for n in ("step1_old_route", "oct21_medium", "canary")}
+        refs["oct21_default"] = ref("oct21_default", outside=240, near=10, mean=0.32, mean_first=0.3, control=True)
+        for (dt, name), r in (over or {}).items():
+            if dt == dtype:
+                refs[name] = r
+        out[dtype] = refs
+    return {"results": out, "snapshot_commit": "d97e442"}
+
+
+def test_rule_same_checkpoint():
+    d = sv.decide(summary())
+    assert d["decision"] == "same checkpoint" and d["conditions"] == {"a": True, "b": True, "c": True}
+    assert all(r["fp32_under_0.01_first_2047"] for r in d["rows"] if r["dtype"] == "fp32" and not r["control"])
+
+
+def test_rule_near_ties_are_allowed_but_not_other_mismatches():
+    assert sv.decide(summary({("bf16", "canary"): ref("canary", near=3)}))["decision"] == "same checkpoint"
+    d = sv.decide(summary({("fp32", "canary"): ref("canary", outside=1)}))
+    assert d["decision"] == "different checkpoint" and "isn't serving" in d["text"] and not d["conditions"]["a"]
+
+
+def test_rule_needs_a_tenfold_gap_and_a_failing_control():
+    d = sv.decide(summary({("bf16", "step1_old_route"): ref("step1_old_route", mean=0.05)}))
+    assert d["decision"] == "inconclusive" and not d["conditions"]["b"]          # 0.32 / 0.05 < 10
+    weak = ref("oct21_default", outside=4, near=2, mean=0.32, control=True)
+    d = sv.decide(summary({("bf16", "oct21_default"): weak}))
+    assert d["decision"] == "inconclusive" and not d["conditions"]["c"]
+
+
+def test_rule_on_files_from_before_oct26():
+    listed = [{"near_tie": True}] * 3
+    d = sv.decide(summary({("bf16", "canary"): ref("canary", near=3, listed=listed)}))
+    assert d["decision"] == "same checkpoint"                                    # 3 listed of 3: exact
+    many = ref("canary", near=25, listed=[{"near_tie": True}] * 20)
+    assert sv.decide(summary({("bf16", "canary"): many}))["decision"] == "undetermined"
+    one_out = ref("canary", near=24, outside=1, listed=[{"near_tie": True}] * 19 + [{"near_tie": False}])
+    assert sv.decide(summary({("bf16", "canary"): one_out}))["decision"] == "different checkpoint"
+
+
+def test_rule_needs_both_dtypes(tmp_path):
+    s = summary()
+    del s["results"]["fp32"]
+    assert sv.decide(s)["decision"] == "incomplete"
+    f = tmp_path / "step8_checkpoint.json"
+    f.write_text(json.dumps(summary()))
+    assert sv.main([str(f), "--no-save"])["decision"] == "same checkpoint"

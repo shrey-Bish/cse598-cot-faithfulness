@@ -156,12 +156,16 @@ def compare(strings, entries, local, dec, strict_n=STRICT_N, tol=TOL, near=NEAR_
     s["pass"] = s["top_token_mismatches"] == 0 and (s["max_abs_diff"] or 0.0) < tol
     s["worst"] = sorted(strict, key=lambda r: -r["diff"])[:5]
     s["mismatches"] = [r for r in strict if r["mismatch"]][:20]
+    s["mismatches_outside_near_ties"] = sum(r["mismatch"] and not r["near_tie"] for r in strict)   # the Oct 26 rule (a)
+    s["near_ties"] = s["top_token_mismatches"] - s["mismatches_outside_near_ties"]
     b = stats(beyond)
     outside = [r for r in beyond if r["mismatch"] and not r["near_tie"]]
     b.update({"near_ties": b["top_token_mismatches"] - len(outside), "mismatches_outside_near_ties": len(outside),
               "pass": not outside, "outside_examples": outside[:20], "worst": sorted(beyond, key=lambda r: -r["diff"])[:5]})
     unaligned = sum(1 for i in range(1, len(strings)) if entries[i] is None)
-    return {"strict": s, "beyond": b, "unaligned_positions": unaligned, "pass_logprobs": s["pass"] and b["pass"],
+    every = stats(rows)
+    return {"strict": s, "beyond": b, "all": {"positions": every["positions"], "mean_abs_diff": every["mean_abs_diff"]},
+            "unaligned_positions": unaligned, "pass_logprobs": s["pass"] and b["pass"],
             "pass": s["pass"] and b["pass"] and not unaligned,
             "diffs": [r["diff"] for r in rows], "positions": [r["pos"] for r in rows],
             "mismatch": [r["mismatch"] for r in rows]}
@@ -203,7 +207,8 @@ def check(model, tok, refs, dtype, strict_n=STRICT_N):
 
 
 def verdict(results):
-    """bf16 decides; fp32 is shown beside it."""
+    """The Oct 21 two-part rule (kept for reference; the decision is step8_verdict.decide, the Oct 26
+    rule). bf16 decides; fp32 is shown beside it."""
     lines, ok = [], {}
     for dtype, res in results.items():
         think = [r for r in res.values() if not r["control"]]
@@ -270,20 +275,23 @@ def run(model=None, device="auto", dtypes=("bf16", "fp32"), out=None, dry_run=Fa
         print(f"{dtype}: {t():.0f} s")
     v = verdict(results)
     table(results)
-    print("\n".join(v["lines"]) + f"\nverdict: {'PASS' if v['pass'] else 'FAIL'} ({v['decided_by']}): {v['meaning']}")
+    print("Oct 21 two-part rule (reference only): " + "; ".join(v["lines"]))
     d = kit.out_dir("step8", out)
     np.savez_compressed(d / "step8_positions.npz", **{f"{dt}__{name}__{k}": np.asarray(r[k]) for dt, res in results.items()
                                                        for name, r in res.items() for k in ("positions", "diffs", "mismatch")})
     summary = {**kit.header("step8", snap), "rule": {"strict_first_tokens": strict_n, "max_abs_diff": TOL,
                                                      "near_tie_probability_gap": NEAR_TIE,
                                                      "applied_to": "bf16; fp32 shown beside it"},
-               "device": str(dev), "load_s": load_s, "verdict": v,
+               "device": str(dev), "load_s": load_s, "two_part_rule_oct21": v,
                "results": {dt: {name: {k: x for k, x in r.items() if k not in ("diffs", "positions", "mismatch")}
                                 for name, r in res.items()} for dt, res in results.items()},
                "for_scale": "Oct 21, Voyager old vs new route on the Step 1 text: strict part max 0.0003; beyond: mean "
                             "0.006, max 0.19, 24 mismatches, all near-ties. Instruct vs Think: 654 mismatches, mean 0.32, "
                             "max 20.7 (docs/OVERVIEW.md §5)",
                "peak_gib": round(torch.cuda.max_memory_allocated() / kit.GiB, 2) if dev.type == "cuda" else None}
+    from finetune.gpu import step8_verdict
+    summary["decision"] = step8_verdict.decide(summary)
+    step8_verdict.show(summary["decision"])
     p = kit.write_json(d / "step8_checkpoint.json", summary)
     print(f"saved {p} (copy back) and {d / 'step8_positions.npz'}")
     return summary

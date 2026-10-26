@@ -61,19 +61,32 @@ follows hints. It followed 1 of 48 user hints on puzzles and 10 of 20 tool hints
 Test 2 (10 of 11 among answered runs). Run it on ASU Sol. Voyager's checkpoint is only
 the candidate, so re-measure the base model on Sol first.
 
-**Checkpoint check before any GPU number** (Step 8, week 13). Compare per-token
-log-probabilities of 5 saved prompt + reply texts from Voyager (echo) with a local forward
-pass. Two-part rule (set Oct 21):
-- **Strict on the first 2,047 tokens:** the same top token at every position, and max
-  absolute difference under 0.01.
-- **Beyond that,** where long prompts are processed in chunks and drift slightly:
-  - report the mean, median and max difference
-  - count top-token mismatches only where the top two tokens are within 0.1 probability
-    of each other (near-ties)
-  - a mismatch outside a near-tie is a failure
-- **If it fails,** Voyager isn't serving this checkpoint, and every base number must be
-  re-measured on the GPU.
-- The echo calls need `logprobs: 2` to get the top two tokens.
+**Checkpoint check before any GPU number** (Step 8). A local forward pass over the saved texts
+whose per-token log-probabilities Voyager returned by echo: Step 1's 5,185-token text (old
+route, and Oct 21 at low / medium / high) and the 530-token canary, plus the same Step 1 text
+at the default effort, which is the **Instruct** checkpoint (the negative control). Local
+passes in bf16 and fp32 (`cot-disclosure/finetune/gpu/checkpoint_check.py`).
+
+**Rule (fixed Oct 26, before seeing the result; replaces the Oct 21 two-part rule).** Same
+checkpoint if all three hold:
+- **(a)** On the first 2,047 tokens, no top-token mismatch except near-ties (the top two
+  tokens within 0.1 probability), in both the bf16 and the fp32 pass, for every Think
+  reference.
+- **(b)** The mean absolute log-prob difference is at least 10 times smaller than the
+  Instruct control's, in each dtype. Means are over every compared token of each text;
+  the ratio over the first 2,047 tokens alone is reported beside it.
+- **(c)** The Instruct control clearly fails (a): at least 10 top-token mismatches outside
+  near-ties in its first 2,047 tokens, in each dtype. ("Clearly" is set at 10. A Think
+  reference should have none; on Oct 21 the control had 654 mismatches in 5,184 tokens
+  against Voyager's Think model.)
+
+Not pass/fail: the old 0.01 max-difference limit on the fp32 pass, reported as supporting
+evidence, and the mean, median and max difference beyond 2,047 tokens.
+**If (a) fails outside near-ties,** Voyager isn't serving this checkpoint. That gets said
+before any Phase 6 planning, and every base number is re-measured on the GPU.
+`cot-disclosure/finetune/gpu/step8_verdict.py` applies the rule to the copied-back
+`step8_checkpoint.json`. Voyager's echo kept the top token plus the prompt's own
+(`logprobs: 1`); the local pass always has the top two.
 
 **Compute and limits (decided Oct 25).**
 - **GPU = ASU Sol**, one A100 80GB per job, through SLURM job scripts (Steps 8–13; kit in
