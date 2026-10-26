@@ -1,14 +1,21 @@
 # Track A GPU kit: ASU Sol
 
 The look-inside steps that need the weights (Steps 8–10), and the Sol plumbing every later GPU
-step (11–13) reuses. Everything runs from the repo's `cot-disclosure/` folder in the project
-environment `/scratch/ragarw68/envs/olmo` (Python 3.11). Never use the system `python3` (3.6.8).
+step (11–13) reuses. The Sol commands below run from the clone's root
+(`/scratch/ragarw68/cse598-cot-faithfulness`); the scripts move into `cot-disclosure/` and the
+project environment `/scratch/ragarw68/envs/olmo` (Python 3.11) themselves. Never use the system
+`python3` (3.6.8). The Mac commands run from `cot-disclosure/` with the repo's `.venv`.
 
 | Item | Script | Reads | Output on Sol | One A100 80GB |
 |---|---|---|---|---|
 | 1. environment + smoke | `sol/setup_env.sh`, `smoke.py` | the cached model | `/scratch/ragarw68/trackA/smoke/smoke.json` | setup 5–15 min (downloads); smoke 2–5 min |
 | 2. Step 8: checkpoint check | `checkpoint_check.py` | Step 1, Oct 21 and canary echoes | `/scratch/ragarw68/trackA/step8/step8_checkpoint.json` | 5–10 min |
 | 3. Step 9: attention to the hint | `../look/attn_to_hint.py` | the 199 hinted, answered Step 2b runs | `/scratch/ragarw68/trackA/step9/step9_attention.json` | 15–40 min |
+| 4. Step 10: activation patching | `../look/patching.py` | Step 4's 21 cases (Steps 3–4) | `/scratch/ragarw68/trackA/step10/step10_patching.json` | 1–2 h |
+
+In all, about 2–3 GPU hours: everything fits in today's session (until 6:30 pm) if it runs in
+order (smoke, 8, 9, 10). Each step resumes where it stopped, so a later batch job picks up what the
+session didn't finish.
 
 ## Rules every script follows
 
@@ -195,7 +202,7 @@ differences are in `step8_positions.npz`.
 | tool, inserted | 24 | 36 |
 | tool, inserted + declared | 34 | 26 |
 
-Lengths run from 2k to 34,089 tokens (median 11,842).
+Lengths run from 1,944 to 34,089 tokens (median 11,842).
 
 - **How.** There is no `output_attentions`. An attention implementation registered by the script
   receives each layer's queries and keys after the rotary embedding, computes the masses in fp32,
@@ -244,3 +251,77 @@ Step 2b runs. `python finetune/look/attn_to_hint.py --dry-run` gives the runs, t
 
 **Back to the Mac:** `step9_attention.json` (group means, layer profiles, top heads, comparisons,
 curves; tens of KB).
+
+## 4. Step 10: activation patching
+
+`finetune/look/patching.py`: the causal test. Swap one layer's activations at a time and see which
+layer brings the answer back.
+
+- **Cases.** Step 4's: the late-takeover runs on sure questions from Step 3, at most 3 per
+  question (`deletion.choose`, seed 0). That gives 21 runs, all tool hints: 11 pasted, 3 inserted,
+  7 inserted + declared.
+- **Cuts**, each followed by `</think>\n\nAnswer: (`:
+  - (i) the reasoning just before its first hint mention (Step 4's mention words)
+  - (ii) the reasoning up to the takeover point
+
+  Cases with no hint mention before the cut get only cut (ii). That is 2 cases (9837
+  inserted + declared run 1, 11392 pasted run 1), so there are 40 cuts in all (19 + 21). They run
+  from 348 to 32,674 tokens (median 6,677). Step 3's sentence split was rechecked for all 21 runs,
+  so the 15.7 MB probes file isn't needed on Sol.
+- **Pairs.** The hinted prompt has the wrong letter W. The clean prompt replaces W with the own
+  no-hint letter O inside the hint only. The token counts must match and the prompts may differ
+  only inside the hint; otherwise an equal-length neutral filler is used. All 21 cases differ in
+  exactly one token (the letter) with equal length, so no filler is needed. Both keep the same
+  reasoning.
+- **Measure.** LD = logit(W) − logit(O) at the answer position. Restoration = (patched − hinted)
+  / (clean − hinted). A cut whose |clean − hinted| is under 0.5 is left out of the means and
+  counted, since there the ratio is noise.
+- **Patch.** One decoder layer at a time, the clean run's layer output is copied into the hinted
+  run at the hint's tokens, the reasoning, or the answer position: 32 × 3 patched passes per cut.
+  Restoration by layer for each group goes into `step10_restoration.png`, with a panel per cut and
+  bootstrap intervals clustered by question.
+- **Sanity checks**, per cut: patching every position at the last layer gives the clean LD, and
+  patching nothing gives the hinted LD.
+- **Cut (ii) note**, in the output. Here the reasoning itself names W. If the clean run still
+  answers W, the reasoning's repetition carries the hint. The report lists, per case, the clean
+  run's answer next to Step 4's forced answer after deleting the mentions.
+
+**In your session:**
+
+```bash
+cot-disclosure/finetune/gpu/sol/run.sh step10 --limit 3     # quick check on the 3 shortest cuts, ~3 min
+cot-disclosure/finetune/gpu/sol/run.sh step10               # the remaining cuts, then the report
+```
+
+**Batch:** `cot-disclosure/finetune/gpu/sol/submit.sh step10` (class QoS, 4 h; resumes from the
+saved cuts). `run.sh step10 --report` rebuilds the summary and the figure.
+**CPU test (Mac):** `python -m pytest tests/test_trackA_patching.py`. It checks the equal-length
+pairs (user, pasted, inserted) and the filler fallback, and the identities that must hold exactly:
+- patching the answer position at the last layer gives the clean LD
+- patching the reasoning at the last layer leaves the hinted LD
+- a full copy at any layer gives the clean LD
+
+It also checks the cuts on the real cases (21 cases, 19 with cut (i)), and runs the script and its
+report on the 2 shortest real cuts with a tiny random Olmo 3.
+`python finetune/look/patching.py --dry-run` lists every cut with its tokens.
+
+**Outputs** in `/scratch/ragarw68/trackA/step10/`:
+- `cuts/<run>_<cut>.json`: per cut, the LDs per group and layer, both baselines, letter
+  probabilities, the sanity checks and the snapshot hash
+- `step10_restoration.png` and `.svg`
+
+**Back to the Mac:** `step10_patching.json`. It holds every cut's LDs, so the figure can be
+redrawn on the Mac with `python finetune/look/patching.py --plot results/trackA/gpu/step10_patching.json`.
+
+```bash
+cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure
+S=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA
+scp $S/smoke/smoke.json $S/step8/step8_checkpoint.json $S/step9/step9_attention.json \
+    $S/step10/step10_patching.json results/trackA/gpu/
+```
+
+## Later steps on the trained versions (Phase 6)
+
+Steps 9 and 10 take `--model DIR` (a merged or wrapped trained version), `--runs-from` (that
+version's own runs, in the Step 2b format) and, for Step 10, `--cases-from` (its own Step 3 cases).
+Outputs then go to their own `--out` directory.

@@ -76,13 +76,17 @@ pass. Two-part rule (set Oct 21):
 - The echo calls need `logprobs: 2` to get the top two tokens.
 
 **Compute and limits (decided Oct 25).**
-- **GPU = ASU Sol**, one A100-class GPU per job, through SLURM job scripts (Steps 8–13).
-  The Hugging Face cache lives on scratch space, not home. Account, partition and QOS are
-  `TODO(ritik)` in the scripts until known.
+- **GPU = ASU Sol**, one A100 80GB per job, through SLURM job scripts (Steps 8–13; kit in
+  `cot-disclosure/finetune/gpu/`, set up Oct 26). The Hugging Face cache lives on scratch
+  (`/scratch/ragarw68/hf`), the environment is `/scratch/ragarw68/envs/olmo` (Python 3.11).
+  Every job uses the course account `class_cse59888883fall2026`, on `-p public -q class`
+  (`-q debug` for 15-minute tests); `sol/submit.sh` refuses any other account.
 - **Every long job resumes:** training and generation save checkpoints and pick up where
   they stopped after a time limit or preemption.
 - **Small forward-pass jobs** (checkpoint check, attention, patching) also run on the Mac
   with PyTorch on MPS when it has the memory; a memory check refuses to start otherwise.
+  This Mac (18 GB) doesn't have it: the 7B model in bf16 alone needs ~15.6 GiB, so Steps 8–10
+  run on Sol and the Mac runs their CPU tests on tiny models.
 - **Token cap: 32,768 in all (prompt + reply)** for Steps 6 and 7 and for every system at
   evaluation, base and prompt-only on Voyager included. A run that hits it has no answer.
   It is also the training length; longer examples are dropped and counted.
