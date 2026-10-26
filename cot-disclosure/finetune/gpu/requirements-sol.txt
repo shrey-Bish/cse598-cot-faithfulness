@@ -1,0 +1,19 @@
+# Track A GPU kit on ASU Sol: Python 3.11 in /scratch/ragarw68/envs/olmo. Installed by
+# sol/setup_env.sh, which first installs torch from PyTorch's CUDA 13.0 index (torch==2.14.1+cu130);
+# the plain torch pin below is then already satisfied. Also used as constraints for the repo's
+# requirements.txt. Versions are the Mac's (Python 3.14), except numpy (2.5 needs Python 3.12).
+torch==2.14.1
+transformers==5.18.0
+tokenizers==0.23.2
+huggingface_hub==1.33.0
+safetensors==0.8.0
+accelerate==1.15.0
+peft==0.21.2
+numpy==2.4.6
+# cot-disclosure/requirements.txt
+pytest==9.1.1
+PyYAML==6.0.3
+matplotlib==3.11.2
+datasets==5.0.1
+python-pptx==1.0.2
+playwright==1.63.0

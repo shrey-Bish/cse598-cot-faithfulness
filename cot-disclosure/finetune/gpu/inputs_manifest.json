@@ -1,0 +1,68 @@
+{
+ "step8": [
+  {
+   "path": "results/trackA/voyager_capabilities.jsonl.gz",
+   "bytes": 101357,
+   "sha256": "e7779ec98db3af468105bfbd6b391db00a6b9043ed592be2bea7071b63d8b3d3"
+  },
+  {
+   "path": "results/trackA/voyager_ids_check.jsonl.gz",
+   "bytes": 316001,
+   "sha256": "a0b34104e4b68bafc41268a5fab98b763c34b7bd7997938ce912e7da8f6dc35c"
+  },
+  {
+   "path": "configs/canary/olmo3-7b-think.json",
+   "bytes": 71758,
+   "sha256": "91bf6b03d7be61a7ccc15aeacdaba51ef14ec3a5782324ebd523d08d51841017"
+  }
+ ],
+ "step9": [
+  {
+   "path": "results/trackA/base_format.jsonl.gz",
+   "bytes": 7601007,
+   "sha256": "a006e864967b550950a39ed73d53abde6578e73aaca1ce42eb7e1b6f65c44ad4"
+  },
+  {
+   "path": "results/trackA/takeover_runs.jsonl",
+   "bytes": 162041,
+   "sha256": "d175c4e11d31b35845847e463c8453a6583dfecae11b8c0625cac07ddb3e7533"
+  },
+  {
+   "path": "results/progress/expB_cued.jsonl",
+   "bytes": 2826668,
+   "sha256": "58cd21f6aef177c8cb4ff82d59cd18e653343e87b32ce28515e0f14561fe866c"
+  },
+  {
+   "path": "data/progress/mmlupro_30.jsonl",
+   "bytes": 35105,
+   "sha256": "0abd5efb1e450d5411455dd3a78ef81fb5665ab7c7824acd84429747723f65c0"
+  }
+ ],
+ "step10": [
+  {
+   "path": "results/trackA/base_format.jsonl.gz",
+   "bytes": 7601007,
+   "sha256": "a006e864967b550950a39ed73d53abde6578e73aaca1ce42eb7e1b6f65c44ad4"
+  },
+  {
+   "path": "results/trackA/takeover_cases.jsonl",
+   "bytes": 7959,
+   "sha256": "767e2c0541b0ced1bd6baae5cf67cfa460d1f9564b1cae8283851732bc0e8160"
+  },
+  {
+   "path": "results/trackA/deletion_runs.jsonl",
+   "bytes": 155381,
+   "sha256": "640010f9cce6cce2687375ae5ca4116e3bf51f8ca2ae548dc209713cf5c6d7e0"
+  },
+  {
+   "path": "results/progress/expB_cued.jsonl",
+   "bytes": 2826668,
+   "sha256": "58cd21f6aef177c8cb4ff82d59cd18e653343e87b32ce28515e0f14561fe866c"
+  },
+  {
+   "path": "data/progress/mmlupro_30.jsonl",
+   "bytes": 35105,
+   "sha256": "0abd5efb1e450d5411455dd3a78ef81fb5665ab7c7824acd84429747723f65c0"
+  }
+ ]
+}
