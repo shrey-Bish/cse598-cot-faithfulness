@@ -8,6 +8,7 @@ environment `/scratch/ragarw68/envs/olmo` (Python 3.11). Never use the system `p
 |---|---|---|---|---|
 | 1. environment + smoke | `sol/setup_env.sh`, `smoke.py` | the cached model | `/scratch/ragarw68/trackA/smoke/smoke.json` | setup 5–15 min (downloads); smoke 2–5 min |
 | 2. Step 8: checkpoint check | `checkpoint_check.py` | Step 1, Oct 21 and canary echoes | `/scratch/ragarw68/trackA/step8/step8_checkpoint.json` | 5–10 min |
+| 3. Step 9: attention to the hint | `../look/attn_to_hint.py` | the 199 hinted, answered Step 2b runs | `/scratch/ragarw68/trackA/step9/step9_attention.json` | 15–40 min |
 
 ## Rules every script follows
 
@@ -181,3 +182,65 @@ differently, so it is compared on the rest).
 differences are in `step8_positions.npz`.
 
 **Back to the Mac:** `/scratch/ragarw68/trackA/step8/step8_checkpoint.json` (tens of KB).
+
+## 3. Step 9: attention to the hint
+
+`finetune/look/attn_to_hint.py`: one forward pass per run, no gradients, over prompt + reasoning +
+`</think>\n\nAnswer: (`, for the 199 hinted Step 2b runs that ended with an answer:
+
+| Channel | Followed | Resisted |
+|---|---|---|
+| user | 7 | 13 |
+| tool, pasted | 40 | 19 |
+| tool, inserted | 24 | 36 |
+| tool, inserted + declared | 34 | 26 |
+
+Lengths run from 2k to 34,089 tokens (median 11,842).
+
+- **How.** There is no `output_attentions`. An attention implementation registered by the script
+  receives each layer's queries and keys after the rotary embedding, computes the masses in fp32,
+  then runs the model's own sdpa attention unchanged (a test checks the logits are identical).
+  The mass on a span is `exp(logsumexp(scores to the span) − logsumexp(scores to every key the row
+  may see))`, in chunks of 512 query rows and 4,096 keys. Grouped key/value heads are handled
+  (Olmo 3 7B has none: 32 and 32).
+- **Sliding window.** 24 of the 32 layers are sliding-window (4,096). A token more than 4,096
+  tokens past the hint gets exactly 0 from them, so at the answer position, usually only the 8
+  full-attention layers (3, 7, …, 31) can see the hint. The summary counts the runs where the
+  answer is within the window.
+- **Spans** (`finetune/look/hint_spans.py`, checked on all 199 runs). The hint is its whole text:
+  16 tokens (user), 31 (pasted) or 23 (inserted). Also its letter (1 token), and a control span of
+  the question stem with as many tokens as the hint. In 187 of 199 runs the control lies inside the
+  stem; in the other 12 the stem is shorter, so it runs on into the options.
+- **From where.** The answer position (the last `(`), per layer × head; and each reasoning
+  sentence (Step 3's sentence split), the mean over its tokens, as a curve.
+- **Comparisons**, as bootstrap differences clustered by question: followed − resisted (pooled and
+  per channel), tool − user, pasted − inserted, and inserted − inserted + declared. Each on: all
+  heads, the 10 top heads, hint − control, the letter, and the hint per token. The top heads are
+  chosen on all runs pooled.
+
+**In your session:** start with a quick check on the 3 shortest runs, then run the rest (it
+resumes; the report runs at the end):
+
+```bash
+cot-disclosure/finetune/gpu/sol/run.sh step9 --limit 3      # ~3 min with the load
+cot-disclosure/finetune/gpu/sol/run.sh step9                # the rest, then the report
+```
+
+**Batch:** `cot-disclosure/finetune/gpu/sol/submit.sh step9` (class QoS, 2 h; resumes from the
+runs already saved). `run.sh step9 --report` rebuilds the summary from the saved runs.
+**CPU test (Mac):** `python -m pytest tests/test_trackA_attn.py`. On sequences under 512 tokens
+with tiny random Olmo 3 models, the masses match eager `output_attentions` within 1e-3. This is
+checked with sliding-window layers and 1, 2 and 4 key/value heads, with chunks crossing rows and
+keys, for user, pasted and inserted prompts built the Step 2b way. The test also checks that the
+capture leaves the logits unchanged, and runs the script plus its report on the 2 shortest real
+Step 2b runs. `python finetune/look/attn_to_hint.py --dry-run` gives the runs, tokens and estimate.
+
+**Outputs** in `/scratch/ragarw68/trackA/step9/`:
+- `runs/<run_id>.npz`: answer [3 spans × 32 layers × 32 heads]; sentences [3 × sentences × 32 ×
+  32] (fp16)
+- `step9_runs.jsonl`: per run, the spans, channel, outcome, Step 3's takeover point, the forced
+  answer's letter probabilities, and the snapshot hash
+- `step9_maps.npz`: group mean maps and binned curves, plus the top heads
+
+**Back to the Mac:** `step9_attention.json` (group means, layer profiles, top heads, comparisons,
+curves; tens of KB).
