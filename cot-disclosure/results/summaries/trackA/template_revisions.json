@@ -1,0 +1,70 @@
+{
+ "server_prompt_tokens": {
+  "plain": 178,
+  "tool_turn": 399
+ },
+ "templates": {
+  "6d549883b5ed": {
+   "revisions": [
+    "Olmo-3-7B-Think@361b459:chat_template.jinja",
+    "Olmo-3-7B-Think@923f0a3:chat_template.jinja",
+    "Olmo-3-7B-Think@a155986:chat_template.jinja",
+    "Olmo-3-7B-Think@d4fc39b:chat_template.jinja",
+    "Olmo-3-7B-Think@74b0721:chat_template.jinja",
+    "Olmo-3-7B-Think@f6a52c1:chat_template.jinja",
+    "Olmo-3-7B-Think@1bb3407:chat_template.jinja",
+    "Olmo-3-7B-Think@e0f48d4:chat_template.jinja",
+    "Olmo-3-7B-Think@5608d10:chat_template.jinja",
+    "Olmo-3-7B-Think@fd68d46:chat_template.jinja",
+    "Olmo-3-7B-Think@a39e3f8:chat_template.jinja",
+    "Olmo-3-7B-Think@032a160:chat_template.jinja",
+    "Olmo-3-7B-Think@27ffc20:chat_template.jinja",
+    "Olmo-3-7B-Think@b9cbb32:chat_template.jinja",
+    "Olmo-3-7B-Think@53d899c:chat_template.jinja",
+    "Olmo-3-7B-Think@2d9c0ad:chat_template.jinja",
+    "Olmo-3-7B-Think@aa94ba7:chat_template.jinja",
+    "Olmo-3-7B-Think@520872c:chat_template.jinja",
+    "Olmo-3-7B-Think@b3744c9:chat_template.jinja",
+    "Olmo-3-7B-Think@5d89684:chat_template.jinja",
+    "Olmo-3-7B-Think@61748f8:chat_template.jinja",
+    "Olmo-3-7B-Think@c4d93a2:chat_template.jinja",
+    "Olmo-3-7B-Think@7c991fd:chat_template.jinja",
+    "Olmo-3-7B-Think@d97e442:chat_template.jinja"
+   ],
+   "counts": {
+    "plain": 215,
+    "tool_turn": 220
+   },
+   "first_date": "2025-10-31"
+  },
+  "f5186d42d99c": {
+   "revisions": [
+    "Olmo-3-7B-Instruct@d42dc9d:chat_template.jinja",
+    "Olmo-3-7B-Instruct@d93ec82:chat_template.jinja",
+    "Olmo-3-7B-Instruct@1280663:chat_template.jinja",
+    "Olmo-3-7B-Instruct@ca644da:chat_template.jinja",
+    "Olmo-3-7B-Instruct@d5287fe:chat_template.jinja",
+    "Olmo-3-7B-Instruct@e00f0d2:chat_template.jinja",
+    "Olmo-3-7B-Instruct@5498984:chat_template.jinja",
+    "Olmo-3-7B-Instruct@14a937e:chat_template.jinja",
+    "Olmo-3-7B-Instruct@8b6b19f:chat_template.jinja",
+    "Olmo-3-7B-Instruct@48683df:chat_template.jinja",
+    "Olmo-3-7B-Instruct@7d4fa93:chat_template.jinja",
+    "Olmo-3-7B-Instruct@14975fe:chat_template.jinja",
+    "Olmo-3-7B-Instruct@3497a82:chat_template.jinja",
+    "Olmo-3-7B-Instruct@cdf1ec0:chat_template.jinja",
+    "Olmo-3-7B-Instruct@37b7955:chat_template.jinja",
+    "Olmo-3-7B-Instruct@84e56fc:chat_template.jinja",
+    "Olmo-3-7B-Instruct@51c1f0b:chat_template.jinja",
+    "Olmo-3-7B-Instruct@c34eee9:chat_template.jinja",
+    "Olmo-3-7B-Instruct@096bb54:chat_template.jinja",
+    "Olmo-3-7B-Instruct@6e5971d:chat_template.jinja"
+   ],
+   "counts": {
+    "plain": 178,
+    "tool_turn": 367
+   },
+   "first_date": "2025-11-20"
+  }
+ }
+}

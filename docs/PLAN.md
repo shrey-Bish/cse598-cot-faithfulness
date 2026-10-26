@@ -1,7 +1,8 @@
 # Plan: weeks 9–16 (CSE 598, Group 10)
 
 What's left to do, by track, with the timeline, decision gates and budget. What is
-already done is in [`OVERVIEW.md`](OVERVIEW.md). Updated 2026-10-20 (week 10).
+already done is in [`OVERVIEW.md`](OVERVIEW.md); each result, with its numbers, source and
+status, is in [`FINDINGS.md`](FINDINGS.md). Updated 2026-10-20 (week 10).
 
 ## The failure, the suspected cause, the fix
 
@@ -87,6 +88,20 @@ before any Phase 6 planning, and every base number is re-measured on the GPU.
 `cot-disclosure/finetune/gpu/step8_verdict.py` applies the rule to the copied-back
 `step8_checkpoint.json`. Voyager's echo kept the top token plus the prompt's own
 (`logprobs: 1`); the local pass always has the top two.
+
+**Data on GitHub (decided Oct 26).** The repo is public and stays public; produced files never
+go to GitHub.
+- **Gitignored:** runs, probes, replies, caches, checkpoints, Sol outputs and GPQA files, in
+  `results/trackA/`, `results/trackB/`, `results/trackC/`, `finetune/data/` and the Sol output
+  folder.
+- **Tracked:** numbers-only summaries and figures, in `results/summaries/`
+  (`tools/export_summaries.py` checks they hold no question or reply text), so every reported
+  number can be traced. The progress-round files already on main stay as they are.
+- **Pre-push hook:** `tools/prepush_check.py` refuses a push that adds produced data, a GPQA file
+  or a file over 50 MB.
+- **History rewrite:** `tools/untrack_produced.py` untracks the Track A data on the never-pushed
+  branches and rewrites their history, after the Steps 6–7 run, without moving any file on disk.
+- **Data to Sol** goes by rsync.
 
 **Compute and limits (decided Oct 25).**
 - **GPU = ASU Sol**, one A100 80GB per job, through SLURM job scripts (Steps 8–13; kit in

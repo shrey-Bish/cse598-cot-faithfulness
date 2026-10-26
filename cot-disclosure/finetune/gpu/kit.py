@@ -11,7 +11,7 @@
 - A memory check that refuses to start when the device can't hold the job.
 - The inputs each step reads, with their sha256 (inputs_manifest.json), checked before a run.
 
-  python finetune/gpu/kit.py --manifest        # on the Mac: write inputs_manifest.json from the committed files
+  python finetune/gpu/kit.py --manifest        # on the Mac: write inputs_manifest.json (+ sol/inputs.txt for rsync)
   python finetune/gpu/kit.py --check-inputs    # on Sol: are the inputs the same bytes as on the Mac?
 """
 import argparse
@@ -33,6 +33,7 @@ MODEL_ID = "allenai/Olmo-3-7B-Think"
 TEMPLATE_REV = "d97e442d7cc678210054dbcc9b440894d62c89a4"      # finetune/templates/olmo3_think_tools.jinja's Think part
 REV_FILES = Path(__file__).with_name("olmo3_7b_think_d97e442.json")
 INPUTS = Path(__file__).with_name("inputs_manifest.json")
+INPUTS_LIST = Path(__file__).parent / "sol" / "inputs.txt"     # the same paths, one per line, for rsync --files-from
 SUMMARIES = CODE / "results" / "trackA" / "gpu"                # the copied-back summaries, committed
 GiB = 2 ** 30
 DTYPES = {"bf16": "bfloat16", "fp16": "float16", "fp32": "float32"}
@@ -291,7 +292,8 @@ def sha256(path):
 
 
 def write_manifest():
-    """inputs_manifest.json from the files as committed (refuses a file with uncommitted changes)."""
+    """inputs_manifest.json from the files on the Mac (refuses a tracked file with uncommitted changes;
+    produced data is gitignored from Oct 26, so most inputs go to Sol by rsync, not git)."""
     out = {}
     for step, files in NEEDED.items():
         dirty = subprocess.run(["git", "status", "--porcelain", "--", *files], cwd=CODE, capture_output=True,
@@ -300,6 +302,7 @@ def write_manifest():
             raise SystemExit(f"uncommitted changes in inputs of {step}:\n{dirty}")
         out[step] = [{"path": f, "bytes": (CODE / f).stat().st_size, "sha256": sha256(CODE / f)} for f in files]
     write_json(INPUTS, out)
+    INPUTS_LIST.write_text("".join(f"{f}\n" for f in sorted({r["path"] for rows in out.values() for r in rows})))
     for step, rows in out.items():
         print(f"{step}: " + ", ".join(f"{r['path']} ({r['bytes'] / 2 ** 20:.2f} MB)" for r in rows))
     print(f"wrote {INPUTS.relative_to(CODE)}")

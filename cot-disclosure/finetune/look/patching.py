@@ -30,6 +30,9 @@ by side per case.
   python finetune/look/patching.py --limit 2     # a quick check on the 2 shortest cuts
   python finetune/look/patching.py --report      # step10_patching.json (copy back) + the figure; no model
   python finetune/look/patching.py --plot results/trackA/gpu/step10_patching.json   # redraw the figure (Mac)
+  python finetune/look/patching.py --by-layer-type results/trackA/gpu/step10_patching.json
+                                                 # restoration in the 8 full-attention vs 24 sliding-window
+                                                 # layers -> results/summaries/trackA/step10_by_layer_type.json
 On Sol: finetune/gpu/sol/run.sh step10 [args] (session) or finetune/gpu/sol/submit.sh step10 (batch).
 --model, --runs-from and --cases-from let the same code run on a trained version (Phase 6).
 """
@@ -48,6 +51,8 @@ from finetune.gpu import kit  # noqa: E402
 from finetune.look import hint_spans as hs  # noqa: E402
 
 GROUPS = ("hint", "reasoning", "answer")
+OLMO3_FULL_LAYERS = list(range(3, 32, 4))   # Olmo 3 7B: every 4th layer is full attention; the rest slide (4,096)
+BY_TYPE_OUT = CODE / "results" / "summaries" / "trackA" / "step10_by_layer_type.json"
 FILLERS = ("X", "?", "_", "-")
 MIN_GAP = 0.5
 LETTERS = "ABCDEFGHIJ"
@@ -311,6 +316,7 @@ def report(out=None, d=None):
              | {"ld_patched": r["ld_patched"], "sanity": r["sanity"]} for r in rows]
     ii = [r for r in rows if r["cut"] == "ii"]
     summary = {"step": "step10", "snapshot_commits": sorted({r["snapshot_commit"] for r in rows}),
+               "full_attention_layers": full_layers(),
                "definitions": {"LD": "logit(W) - logit(O) at the answer position; W = the hint letter, O = the own answer",
                                "restoration": "(LD_patched - LD_hinted) / (LD_clean - LD_hinted)",
                                "left out": f"cuts with |LD_clean - LD_hinted| < {MIN_GAP}",
@@ -337,6 +343,69 @@ def report(out=None, d=None):
     plot(summary, d)
     print(f"saved {p} (copy back) and {d / 'step10_restoration.png'}")
     return summary
+
+
+def full_layers():
+    """The full-attention layers of the model in the cache (Olmo 3 7B's when its config isn't there)."""
+    try:
+        from transformers import AutoConfig
+        return kit.config_fields(AutoConfig.from_pretrained(kit.snapshot()[0], local_files_only=True))["full_attention_layers"]
+    except Exception:                                        # noqa: BLE001
+        return OLMO3_FULL_LAYERS
+
+
+def by_layer_type(summary, full=None):
+    """Restoration in the full-attention vs sliding-window layers, per cut and position group.
+    Per cut: the mean restoration over the layers of each type; then the mean over cuts with a 95%
+    bootstrap clustered by question, the paired difference full - sliding, and each type's best
+    single layer (its mean over cuts). Cuts with |LD_clean - LD_hinted| < MIN_GAP are left out."""
+    full = set(full or summary.get("full_attention_layers") or OLMO3_FULL_LAYERS)
+    out = {"full_attention_layers": sorted(full), "min_gap": MIN_GAP}
+    for cut in ("i", "ii"):
+        rows = [r for r in summary["cuts"] if r["cut"] == cut and abs(r["ld_clean"] - r["ld_hinted"]) >= MIN_GAP]
+        out[cut] = {"usable_cuts": len(rows), "left_out_small_gap": sum(r["cut"] == cut for r in summary["cuts"]) - len(rows)}
+        for g in GROUPS:
+            per = {"full": {}, "sliding": {}, "full - sliding": {}}
+            layer_means = {"full": {}, "sliding": {}}
+            for r in rows:
+                rest = restoration(r, g)
+                vals = {t: [v for i, v in enumerate(rest) if v is not None and ((i in full) == (t == "full"))]
+                        for t in ("full", "sliding")}
+                if not vals["full"] or not vals["sliding"]:
+                    continue
+                m = {t: statistics.mean(v) for t, v in vals.items()}
+                for t in ("full", "sliding"):
+                    per[t].setdefault(r["item_id"], []).append(m[t])
+                per["full - sliding"].setdefault(r["item_id"], []).append(m["full"] - m["sliding"])
+                for i, v in enumerate(rest):
+                    if v is not None:
+                        layer_means["full" if i in full else "sliding"].setdefault(i, []).append(v)
+            cell = {}
+            for t, groups in per.items():
+                cell[t] = dict(zip(("mean", "low", "high"), boot_mean(groups))) if groups else None
+            for t in ("full", "sliding"):
+                if layer_means[t]:
+                    best = max(layer_means[t], key=lambda i: statistics.mean(layer_means[t][i]))
+                    cell[f"best {t} layer"] = {"layer": best, "mean": statistics.mean(layer_means[t][best])}
+            cell["cuts"] = sum(len(v) for v in per["full"].values())
+            out[cut][g] = cell
+    return out
+
+
+def show_by_layer_type(res):
+    fmt = lambda c: "—" if not c else f"{c['mean']:+.2f} [{c['low']:+.2f}, {c['high']:+.2f}]"  # noqa: E731
+    print(f"Restoration by layer type (full attention: layers {res['full_attention_layers']}; the other "
+          f"{32 - len(res['full_attention_layers'])} slide over 4,096 tokens); mean over each type's layers, "
+          f"then over cuts, 95% bootstrap by question")
+    print("| cut | positions patched | cuts | full | sliding | full - sliding | best full layer | best sliding layer |")
+    print("|---|---|---|---|---|---|---|---|")
+    for cut in ("i", "ii"):
+        for g in GROUPS:
+            c = res[cut][g]
+            best = lambda t: (f"{c[t]['layer']} ({c[t]['mean']:+.2f})" if t in c else "—")  # noqa: E731
+            print(f"| ({cut}) | {g} | {c['cuts']} | {fmt(c['full'])} | {fmt(c['sliding'])} | {fmt(c['full - sliding'])} | "
+                  f"{best('best full layer')} | {best('best sliding layer')} |")
+        print(f"| ({cut}) | left out (gap < {res['min_gap']}) | {res[cut]['left_out_small_gap']} | | | | | |")
 
 
 def plot(summary, d):
@@ -372,6 +441,8 @@ def main(argv=None):
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--report", action="store_true", help="summary and figure from the saved cuts; no model")
     ap.add_argument("--plot", metavar="SUMMARY", help="redraw the figure from a step10_patching.json (next to it)")
+    ap.add_argument("--by-layer-type", metavar="SUMMARY", help="restoration in full vs sliding-window layers, from "
+                    "a step10_patching.json; numbers to results/summaries/trackA/step10_by_layer_type.json")
     ap.add_argument("--limit", type=int, help="only the N shortest cuts")
     ap.add_argument("--model", help="a local model directory (a trained version, or a test's tiny model)")
     ap.add_argument("--runs-from", help="a base_format-style .jsonl.gz of runs (default: Step 2b's)")
@@ -381,6 +452,13 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.plot:
         return plot(json.loads(Path(a.plot).read_text()), Path(a.plot).parent)
+    if a.by_layer_type:
+        res = by_layer_type(json.loads(Path(a.by_layer_type).read_text()))
+        show_by_layer_type(res)
+        BY_TYPE_OUT.parent.mkdir(parents=True, exist_ok=True)
+        BY_TYPE_OUT.write_text(json.dumps(res, indent=1) + "\n")
+        print(f"saved {BY_TYPE_OUT.relative_to(CODE)}")
+        return res
     if a.report:
         return report(a.out)
     d = run(a.model, a.device, a.out, a.dry_run, a.limit, a.runs_from, a.cases_from)

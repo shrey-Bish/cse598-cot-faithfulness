@@ -3,3 +3,18 @@ cache/
 __pycache__/
 *.pyc
 logs/
+
+# Produced data never goes to GitHub (decided Oct 26): Tracks A, B and C write their runs, probes,
+# replies, caches and checkpoints into these folders; Sol outputs are copied back to
+# results/trackA/gpu/. Numbers-only summaries and figures go in results/summaries/ (tracked; see
+# tools/export_summaries.py). tools/prepush_check.py refuses a push that would add any of these.
+results/trackA/
+results/trackB/
+results/trackC/
+results/voyager_canary.jsonl
+finetune/data/
+# GPQA is gated: no GPQA data file is ever tracked
+*[Gg][Pp][Qq][Aa]*.json
+*[Gg][Pp][Qq][Aa]*.jsonl
+*[Gg][Pp][Qq][Aa]*.csv
+*[Gg][Pp][Qq][Aa]*.parquet

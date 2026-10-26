@@ -105,3 +105,21 @@ def test_run_and_report_on_the_shortest_real_cuts(tmp_path):
     assert s["sanity_ok"] == "2 of 2 cuts" and (step / "step10_restoration.png").exists()
     saved = json.loads((step / "step10_patching.json").read_text())
     assert saved["snapshot_commits"] == ["local:tiny-olmo3"] and len(saved["cuts"]) == 2
+
+
+def test_restoration_by_layer_type():
+    """Planted: patching a full-attention layer restores the clean answer, a sliding layer does nothing."""
+    full = list(range(3, 32, 4))
+    cuts = []
+    for q in range(6):
+        for cut in ("i", "ii"):
+            lds = {g: [(-2.0 if layer in full else 3.0) + 0.01 * q for layer in range(32)] for g in pt.GROUPS}
+            lds["reasoning"] = [None] * 32 if (q == 0 and cut == "i") else lds["reasoning"]
+            cuts.append({"cut": cut, "item_id": q, "ld_hinted": 3.0, "ld_clean": -2.0, "ld_patched": lds})
+    cuts.append({"cut": "ii", "item_id": 9, "ld_hinted": 1.0, "ld_clean": 1.2, "ld_patched": lds})   # gap too small
+    res = pt.by_layer_type({"cuts": cuts, "full_attention_layers": full})
+    c = res["ii"]["answer"]
+    assert c["full"]["mean"] == pytest.approx(1.0, abs=0.01) and c["sliding"]["mean"] == pytest.approx(0.0, abs=0.01)
+    assert c["full - sliding"]["low"] > 0.9 and c["best full layer"]["layer"] in full and c["cuts"] == 6
+    assert res["ii"]["left_out_small_gap"] == 1 and res["i"]["reasoning"]["cuts"] == 5
+    pt.show_by_layer_type(res)

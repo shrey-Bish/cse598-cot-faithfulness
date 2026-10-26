@@ -43,79 +43,86 @@ session didn't finish.
 
 ## 0. Code and data onto Sol
 
-### Code
+**The repo is public and stays public. Produced files never go to GitHub** (decided Oct 26).
+- Runs, probes, replies, caches, checkpoints and Sol outputs live in gitignored folders:
+  `results/trackA/`, `results/trackB/`, `results/trackC/`, `finetune/data/`, and
+  `/scratch/ragarw68/trackA/` on Sol.
+- Numbers-only summaries and figures go in `results/summaries/` (tracked;
+  `tools/export_summaries.py` checks that they hold no question or reply text).
+- A pre-push hook (`tools/prepush_check.py`, installed in `.git/hooks/pre-push` on the Mac)
+  refuses a push that would add produced data, a GPQA file, or a file over 50 MB.
 
-Checked on the Mac, Oct 26:
+### Code: GitHub
 
-| Check | Result |
-|---|---|
-| repo private? | **No.** `shrey-Bish/cse598-cot-faithfulness` is **public** (`gh repo view`). Don't push Track A to it until the owner makes it private. |
-| a tracked file over 50 MB? | No. Largest: `results/trackA/takeover_probes.jsonl.gz`, 15.7 MB (`tests/test_repo_size.py` passes) |
-| a GPQA file tracked? | No. No tracked file name contains "gpqa", and no `.gz` result contains a GPQA record; 7 code, config and doc files mention it by name only |
+`trackA-nosol` can be pushed once its history no longer carries the Track A data. That is done by
+`tools/untrack_produced.py --run`, after the Steps 6–7 run has finished: it rewrites the unpushed
+commits without moving any file on disk, and the hook checks it. Then:
 
-**Today, without GitHub: a git bundle** (the committed branch only; the Steps 6–7 files the Mac
-is still writing stay out). On the Mac:
+```bash
+git push origin trackA-nosol                                         # Mac; the hook checks it
+git clone -b trackA-nosol https://github.com/shrey-Bish/cse598-cot-faithfulness.git \
+    /scratch/ragarw68/cse598-cot-faithfulness                        # Sol, once
+cd /scratch/ragarw68/cse598-cot-faithfulness && git pull              # Sol, after each push
+```
+
+Until then, the code also goes by rsync (tracked files only):
 
 ```bash
 cd ~/Documents/Projects/ODL/cse598-cot-faithfulness
-git bundle create ~/trackA.bundle trackA-nosol
-scp ~/trackA.bundle ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/
+git ls-files | rsync -av --files-from=- ./ ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/
 ```
 
-On Sol, the first time:
+(An earlier clone made from the Oct 26 bundle works too; replace it with the GitHub clone once
+the push is done.)
 
-```bash
-git clone -b trackA-nosol /scratch/ragarw68/trackA.bundle /scratch/ragarw68/cse598-cot-faithfulness
-```
+### Data: rsync (VPN on)
 
-After each update: make a new bundle, `scp` it the same way, then on Sol
-`cd /scratch/ragarw68/cse598-cot-faithfulness && git pull /scratch/ragarw68/trackA.bundle trackA-nosol`.
-
-**Once the repo is private:** `git push origin trackA-nosol` on the Mac, then on Sol
-`git clone -b trackA-nosol https://github.com/shrey-Bish/cse598-cot-faithfulness.git /scratch/ragarw68/cse598-cot-faithfulness`
-(a private clone needs a GitHub token or SSH key on Sol).
-
-The commands below assume the clone is at `/scratch/ragarw68/cse598-cot-faithfulness`; `cd` there first.
-
-### Data
-
-Steps 8–10 read these result files. They are committed, so the clone (or bundle) already carries
-them. `finetune/gpu/inputs_manifest.json` holds their sizes and sha256, and every step checks them
-before it runs (`python finetune/gpu/kit.py --check-inputs` checks all of them).
+Steps 8–10 read the files below; `finetune/gpu/sol/inputs.txt` lists them. Each step checks
+their sha256 against `finetune/gpu/inputs_manifest.json` before it runs, and
+`python finetune/gpu/kit.py --check-inputs` checks them all. The `results/trackA/` files are
+gitignored, so only rsync brings them; the other three are tracked.
 
 | File (under `cot-disclosure/`) | Size | Used by |
 |---|---|---|
 | `results/trackA/voyager_capabilities.jsonl.gz` | 0.10 MB | Step 8: Step 1's echo log-probs (old route) |
 | `results/trackA/voyager_ids_check.jsonl.gz` | 0.30 MB | Step 8: the Oct 21 echoes (low / medium / high; default = Instruct, the negative control) |
-| `configs/canary/olmo3-7b-think.json` | 0.07 MB | Step 8: the canary text and its reference log-probs |
+| `configs/canary/olmo3-7b-think.json` | 0.07 MB | Step 8: the canary text and its reference log-probs (tracked) |
 | `results/trackA/base_format.jsonl.gz` | 7.25 MB | Steps 9, 10: the Step 2b runs (prompts, reasoning) |
 | `results/trackA/takeover_runs.jsonl` | 0.15 MB | Step 9: Step 3's outcome and takeover point per run |
 | `results/trackA/takeover_cases.jsonl` | 0.01 MB | Step 10: Step 3's default cases |
 | `results/trackA/deletion_runs.jsonl` | 0.15 MB | Step 10: Step 4's results, for the cut (ii) cross-check |
-| `results/progress/expB_cued.jsonl` | 2.70 MB | Steps 9, 10: which questions and hint letters Step 2b used |
-| `data/progress/mmlupro_30.jsonl` | 0.03 MB | Steps 9, 10: the questions and answer keys |
-
-If a check fails (or you clone without the results), copy them from the Mac:
+| `results/progress/expB_cued.jsonl` | 2.70 MB | Steps 9, 10: which questions and hint letters Step 2b used (tracked) |
+| `data/progress/mmlupro_30.jsonl` | 0.03 MB | Steps 9, 10: the questions and answer keys (tracked) |
 
 ```bash
 cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure
-rsync -av --relative \
-  results/trackA/voyager_capabilities.jsonl.gz results/trackA/voyager_ids_check.jsonl.gz \
-  configs/canary/olmo3-7b-think.json results/trackA/base_format.jsonl.gz \
-  results/trackA/takeover_runs.jsonl results/trackA/takeover_cases.jsonl \
-  results/trackA/deletion_runs.jsonl results/progress/expB_cued.jsonl data/progress/mmlupro_30.jsonl \
-  ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/
+rsync -av --files-from=finetune/gpu/sol/inputs.txt ./ \
+    ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/
 ```
 
 ### Results back
 
-Summary files only, from the Mac (each step below names its file):
+Sol outputs stay in `/scratch/ragarw68/trackA/`. Only each step's summary comes back, into the
+gitignored `results/trackA/gpu/` on the Mac:
 
 ```bash
-cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure
-mkdir -p results/trackA/gpu
-scp ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA/smoke/smoke.json results/trackA/gpu/
+cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure && mkdir -p results/trackA/gpu
+S=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA
+rsync -av $S/smoke/smoke.json $S/step8/step8_checkpoint.json $S/step9/step9_attention.json \
+    $S/step10/step10_patching.json results/trackA/gpu/
 ```
+
+Then, on the Mac:
+- `python finetune/gpu/step8_verdict.py` applies the Oct 26 Step 8 rule and writes the numbers to
+  `results/summaries/trackA/step8_verdict.json`.
+- `python finetune/look/patching.py --by-layer-type results/trackA/gpu/step10_patching.json`
+  gives restoration in the 8 full-attention vs 24 sliding-window layers
+  (`results/summaries/trackA/step10_by_layer_type.json`).
+- `python tools/export_summaries.py` copies the numbers-only Step 9 and 10 summaries into
+  `results/summaries/trackA/`.
+
+`smoke.json` and `step8_checkpoint.json` hold prompt text and token strings, so they stay
+gitignored.
 
 ## 1. Environment and smoke test
 
@@ -147,7 +154,7 @@ the model needs ~15.6 GiB).
 **Look for:** `snapshot d97e442… matches d97e442`, `renders our prompt exactly`, the A100 and
 CUDA 13.0 in the versions, and a sensible start of reasoning in `generated:`.
 
-**Back to the Mac:** `/scratch/ragarw68/trackA/smoke/smoke.json` (a few KB).
+**Back to the Mac:** `/scratch/ragarw68/trackA/smoke/smoke.json` (a few KB; see "Results back").
 
 ## 2. Step 8: checkpoint check
 
@@ -311,14 +318,8 @@ report on the 2 shortest real cuts with a tiny random Olmo 3.
 - `step10_restoration.png` and `.svg`
 
 **Back to the Mac:** `step10_patching.json`. It holds every cut's LDs, so the figure can be
-redrawn on the Mac with `python finetune/look/patching.py --plot results/trackA/gpu/step10_patching.json`.
-
-```bash
-cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure
-S=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA
-scp $S/smoke/smoke.json $S/step8/step8_checkpoint.json $S/step9/step9_attention.json \
-    $S/step10/step10_patching.json results/trackA/gpu/
-```
+redrawn on the Mac (`python finetune/look/patching.py --plot results/trackA/gpu/step10_patching.json`)
+and split by layer type (`--by-layer-type`, see "Results back").
 
 ## Later steps on the trained versions (Phase 6)
 
