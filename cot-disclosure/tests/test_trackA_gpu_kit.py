@@ -16,38 +16,8 @@ SOL = CODE / "finetune" / "gpu" / "sol"
 ACCOUNT = "class_cse59888883fall2026"
 
 from finetune.gpu import kit  # noqa: E402
+from _tiny_olmo import tiny_model_dir  # noqa: E402
 
-
-# ---------------------------------------------------------------- a tiny model with the real tokenizer
-def olmo_tokenizer_dir():
-    try:
-        p, _ = kit.snapshot()
-    except Exception:                                    # noqa: BLE001
-        pytest.skip("the Olmo 3 tokenizer is not in the local Hugging Face cache")
-    if not (p / "tokenizer.json").exists():
-        pytest.skip("the Olmo 3 tokenizer is not in the local Hugging Face cache")
-    return p
-
-
-def tiny_model_dir(tmp_path, layers=4, window=8, seed=0):
-    """A random Olmo 3 model with the real vocabulary (so real prompts tokenize), saved with the
-    tokenizer and chat template of the cached snapshot."""
-    torch = pytest.importorskip("torch")
-    transformers = pytest.importorskip("transformers")
-    src = olmo_tokenizer_dir()
-    torch.manual_seed(seed)
-    kinds = ["sliding_attention", "sliding_attention", "sliding_attention", "full_attention"] * (layers // 4)
-    cfg = transformers.Olmo3Config(vocab_size=100278, hidden_size=32, intermediate_size=64, num_hidden_layers=layers,
-                                   num_attention_heads=4, num_key_value_heads=4, max_position_embeddings=4096,
-                                   sliding_window=window, layer_types=kinds, tie_word_embeddings=False,
-                                   pad_token_id=100277, eos_token_id=100257)
-    model = transformers.Olmo3ForCausalLM(cfg).eval()
-    d = tmp_path / "tiny-olmo3"
-    model.save_pretrained(d)
-    for f in ("tokenizer.json", "tokenizer_config.json", "special_tokens_map.json", "chat_template.jinja"):
-        if (src / f).exists():
-            shutil.copy(src / f, d / f)
-    return d
 
 
 def test_smoke_on_a_tiny_model(tmp_path):

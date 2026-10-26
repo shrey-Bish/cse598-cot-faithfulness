@@ -7,6 +7,7 @@ environment `/scratch/ragarw68/envs/olmo` (Python 3.11). Never use the system `p
 | Item | Script | Reads | Output on Sol | One A100 80GB |
 |---|---|---|---|---|
 | 1. environment + smoke | `sol/setup_env.sh`, `smoke.py` | the cached model | `/scratch/ragarw68/trackA/smoke/smoke.json` | setup 5–15 min (downloads); smoke 2–5 min |
+| 2. Step 8: checkpoint check | `checkpoint_check.py` | Step 1, Oct 21 and canary echoes | `/scratch/ragarw68/trackA/step8/step8_checkpoint.json` | 5–10 min |
 
 ## Rules every script follows
 
@@ -139,3 +140,44 @@ the model needs ~15.6 GiB).
 CUDA 13.0 in the versions, and a sensible start of reasoning in `generated:`.
 
 **Back to the Mac:** `/scratch/ragarw68/trackA/smoke/smoke.json` (a few KB).
+
+## 2. Step 8: checkpoint check
+
+Is Voyager's `olmo3-7b-think` the checkpoint we load? A local forward pass over the saved texts
+whose per-token log-probabilities Voyager returned by echo, compared token by token with the
+two-part rule (`docs/PLAN.md`, Track A):
+
+- **Strict on the first 2,047 tokens:** the same top token at every position, and max absolute
+  log-prob difference under 0.01.
+- **Beyond that** (Voyager seems to process long prompts in 2,048-token chunks): the mean, median
+  and max difference, and top-token mismatches counted only where they are not near-ties. A
+  near-tie means the two tokens are within 0.1 probability of each other: under the local model,
+  and under Voyager too when its saved top tokens include both. A mismatch outside a near-tie fails.
+
+| Reference | Tokens | Saved |
+|---|---|---|
+| `step1_old_route` | 5,185 | Step 1 call 8, `olmo3-7b-think` before the Oct 21 ID change |
+| `oct21_low`, `oct21_medium`, `oct21_high` | 5,185 each | the same text through `olmo3-7b` at each effort |
+| `canary` | 530 | the identity canary's reference (all of it falls in the strict part) |
+| `oct21_default` (negative control) | 5,185 | the same text at the default effort = the **Instruct** checkpoint; it must fail |
+
+The rule is applied to the bf16 pass, the dtype every GPU step uses. An fp32 pass with the same
+weights (loaded once in fp32, then cast to bf16, which is exact) is reported beside it, to tell
+numerics from a different checkpoint. For scale: Voyager against itself (old vs new route) was
+max 0.0003 in the strict part, mean 0.006 / max 0.19 beyond, with 24 mismatches, all near-ties.
+The Instruct model against Think gave 654 mismatches, mean 0.32 and max 20.7.
+
+**In your session:** `cot-disclosure/finetune/gpu/sol/run.sh step8` (5–10 min, peak ~32 GiB).
+**Batch:** `cot-disclosure/finetune/gpu/sol/submit.sh step8` (class QoS, 30 min).
+**CPU test (Mac):** `python -m pytest tests/test_trackA_checkpoint.py`. This covers the rule on
+synthetic log-probs (a strict-part difference, near-ties, a mismatch outside one, Voyager-side
+gaps), echo alignment, and an end-to-end run on a tiny random Olmo 3 whose own log-probs stand in
+for Voyager's. `python finetune/gpu/checkpoint_check.py --dry-run` checks the references and
+alignment (all 5 Think references align token for token; the control has 5 positions tokenized
+differently, so it is compared on the rest).
+
+**Look for:** the table, then `verdict: PASS (bf16)`. If it fails, the strict part's `worst` and
+`mismatches` and the beyond part's `outside_examples` in the JSON show where. Per-position
+differences are in `step8_positions.npz`.
+
+**Back to the Mac:** `/scratch/ragarw68/trackA/step8/step8_checkpoint.json` (tens of KB).
