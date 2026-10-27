@@ -11,15 +11,15 @@ set -euo pipefail
 KIT=$TRACKA_CODE/finetune/gpu
 export HF_HUB_OFFLINE=0                     # pip only; nothing here touches the model
 
-python -m pip install --no-input "torch==2.14.1" --index-url https://download.pytorch.org/whl/cu130
-python -m pip install --no-input -r "$KIT/requirements-sol.txt"
-python -m pip install --no-input -r "$TRACKA_CODE/requirements.txt" -c "$KIT/requirements-sol.txt"
-python -m pip check
-python - <<'EOF'
+"$TRACKA_PY" -m pip install --no-input "torch==2.14.1" --index-url https://download.pytorch.org/whl/cu130
+"$TRACKA_PY" -m pip install --no-input -r "$KIT/requirements-sol.txt"
+"$TRACKA_PY" -m pip install --no-input -r "$TRACKA_CODE/requirements.txt" -c "$KIT/requirements-sol.txt"
+"$TRACKA_PY" -m pip check
+"$TRACKA_PY" - <<'EOF'
 import torch
 assert torch.__version__.startswith("2.14.1") and torch.version.cuda, f"wrong torch: {torch.__version__} (CUDA {torch.version.cuda})"
 if torch.cuda.is_available():                # a quick bf16 matmul on the GPU, when there is one
     x = torch.randn(1024, 1024, device="cuda", dtype=torch.bfloat16)
     torch.cuda.synchronize(); print("GPU matmul ok:", float((x @ x).float().abs().mean()) > 0)
 EOF
-python "$KIT/smoke.py" --versions
+"$TRACKA_PY" "$KIT/smoke.py" --versions

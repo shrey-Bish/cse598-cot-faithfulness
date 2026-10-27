@@ -220,3 +220,16 @@ def test_runs_only_inside_a_job_under_the_course_account(env_vars, ok):
 def test_shell_scripts_parse():
     for f in list(SOL.glob("*.sh")) + list(SOL.glob("*.sbatch")):
         assert subprocess.run(["bash", "-n", str(f)], capture_output=True).returncode == 0, f.name
+
+
+def test_sol_scripts_call_the_env_python_by_full_path():
+    """No bare python or python3 in a Sol script (after an rsync or a changed PATH it can be the
+    system 3.6.8): Python is always "$TRACKA_PY", the project environment's own."""
+    import re
+    assert "TRACKA_PY=$TRACKA_ENV/bin/python\n" in (SOL / "env.sh").read_text()
+    assert "TRACKA_ENV=/scratch/ragarw68/envs/olmo " in (SOL / "env.sh").read_text()
+    bare = re.compile(r'(?<![\w/$"{.-])python3?(?![\w.-])')
+    for f in list(SOL.glob("*.sh")) + list(SOL.glob("*.sbatch")):
+        for i, line in enumerate(f.read_text().splitlines(), 1):
+            code = line.split("#", 1)[0] if not line.lstrip().startswith("#") else ""
+            assert not bare.search(code), f"{f.name}:{i}: {line.strip()}"
