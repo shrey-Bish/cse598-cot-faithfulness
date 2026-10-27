@@ -283,8 +283,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   cot-disclosure/finetune/gpu/sol/submit.sh timing --estimate 0.5       # S1: limit 1:00
   cot-disclosure/finetune/gpu/sol/submit.sh vllm_check --estimate 1     # S2: limit 1:30
   cot-disclosure/finetune/gpu/sol/submit.sh train --estimate 3 -- lora  # S3 (tags, lora_tags: S4, S5)
-  # after each version: export its chosen epoch (an interactive GPU session or a short job)
-  cot-disclosure/finetune/gpu/sol/run.sh train lora --export
+  # each version exports its chosen epoch to train/<version>/final/ when its last epoch ends
   cot-disclosure/finetune/gpu/sol/submit.sh eval --estimate 6 -- base 1/2   # E1, first half; then 2/2
   ```
   `submit.sh` sets each limit to the estimate × 1.3 (rounded up to 30 min), refuses a job over 960

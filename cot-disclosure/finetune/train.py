@@ -444,6 +444,12 @@ def main():
     meta = {"version": versions[0], "model": model_path, "train": a.train, "train_examples": len(train_set)}
     pos = train(lm, train_set, val_set, a.out, a.device, max_steps=a.max_steps, meta=meta)
     print(json.dumps({"stopped_at": pos, "chosen": choose(a.out)}))
+    if pos["epoch"] >= EPOCHS:                       # done: the chosen epoch, ready for evaluation (out/final/)
+        import torch
+        del lm
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print(export(versions[0], model_path, a.out, a.device))
 
 
 if __name__ == "__main__":
