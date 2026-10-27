@@ -13,6 +13,7 @@ from .base import Reply, post_json
 from .responses_api import json_args
 
 NAME = "ollama"
+TIMEOUT_S = 3600         # one local reply of up to 16,000 tokens can take longer than the 600 s default
 
 
 def url():
@@ -64,7 +65,7 @@ def generate(model, messages, *, tools=None, thinking=None, max_tokens=16000, te
                         temperature=temperature, seed=seed)
     start = time.monotonic()
     try:
-        status, body = post_json(url(), {}, req)
+        status, body = post_json(url(), {}, req, timeout=TIMEOUT_S)
     except Exception as err:
         return Reply(provider=NAME, model=model, error=f"{type(err).__name__} (is `ollama serve` running?)",
                      finish_reason="error")

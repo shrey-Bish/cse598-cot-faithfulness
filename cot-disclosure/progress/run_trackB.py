@@ -2,6 +2,7 @@
 
   python progress/run_trackB.py --dry-run [--model M]           # jobs, calls, hours and cost per model
   python progress/run_trackB.py --run --model M --limit 5       # smoke test: one question, every condition
+  python progress/run_trackB.py --run --model qwen3:8b --thinking on --limit 5   # Ollama: one setting
   python progress/run_trackB.py --run --model M                 # resumable; results/trackB/<provider>.jsonl.gz
   python progress/run_trackB.py --steered --model M             # results/trackB/steered_cases.jsonl (Track C)
 
@@ -81,13 +82,15 @@ def model_tag(m):
     return f"{m['model']}|think={m.get('thinking')}"
 
 
-def jobs(cfg, only_provider=None, only_models=None):
+def jobs(cfg, only_provider=None, only_models=None, thinking=None):
     """Every job, repeat by repeat: each question's first run (in every condition) comes before any
-    second run."""
+    second run. thinking: True / False keeps only that setting (models with both, e.g. Ollama)."""
     sets = {n: load_questions(n, s) for n, s in cfg["question_sets"].items()}
     out = []
     for mi, m in enumerate(cfg["models"]):
         if (only_provider and m["provider"] != only_provider) or (only_models and m["model"] not in only_models):
+            continue
+        if thinking is not None and m.get("thinking") is not thinking:
             continue
         items = [it for s in m.get("question_sets", list(sets)) for it in sets[s]]
         conds = m.get("conditions", cfg["conditions"])
@@ -342,6 +345,7 @@ def main():
     mode.add_argument("--steered", action="store_true", help="export steered_cases.jsonl for --model")
     ap.add_argument("--only-provider")
     ap.add_argument("--model", action="append", help="only this model (repeatable; both thinking settings)")
+    ap.add_argument("--thinking", choices=["on", "off"], help="only this thinking setting (Ollama has both)")
     ap.add_argument("--limit", type=int, help="run at most N jobs (smoke tests)")
     a = ap.parse_args()
     cfg = yaml.safe_load(open(CONFIG))
@@ -350,7 +354,7 @@ def main():
         if not a.model or len(a.model) != 1:
             sys.exit("--steered needs exactly one --model")
         return export_steered(cfg, a.model[0])
-    all_jobs = jobs(cfg, a.only_provider, a.model)
+    all_jobs = jobs(cfg, a.only_provider, a.model, None if a.thinking is None else a.thinking == "on")
     if a.dry_run:
         finished = set().union(*(done(p) for p in {j["model"]["provider"] for j in all_jobs}))
         dry_run(cfg, [j for j in all_jobs if j["run_id"] not in finished])
