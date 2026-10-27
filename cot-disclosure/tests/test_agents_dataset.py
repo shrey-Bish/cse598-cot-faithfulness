@@ -42,7 +42,7 @@ def test_tool_oracle_is_deterministic_and_mixed():
 def test_replay_runs_on_saved_experiment_a(tmp_path):
     rows = replay(tmp_path / "team.jsonl")
     s = summarize(rows)
-    assert s["answer_only"]["reviews"] == 33 and s["plus_private"]["reviews"] == 6   # 11 cases x 3; Think case x2 sets
+    assert s["tool | None | answer_only"]["reviews"] == 33 and s["tool | None | plus_private"]["reviews"] == 6   # 11 cases x 3; Think case x2 sets
     assert sum(1 for _ in open(tmp_path / "team.jsonl")) == len(rows)
 
 
