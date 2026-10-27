@@ -41,6 +41,7 @@ TRACK_A_FILES = {
     "before_takeover.jsonl": "before Step 4: concentration, matched onsets, closest approaches",
     "deletion_runs.jsonl": "Step 4: one row per call (arm, outcome)",
     "length_audit.jsonl": "Step 5: reply lengths",
+    "takeover_pilot.jsonl": "Step 3: the probe pilot's timing (Oct 22)",
 }
 GPU = {                  # copied back from Sol to results/trackA/gpu/ (numbers only; Step 8's goes through step8_verdict.py)
     "gpu/step9_attention.json": "Step 9: attention to the hint (group means, layer profiles, top heads, comparisons)",
@@ -53,6 +54,19 @@ GPU = {                  # copied back from Sol to results/trackA/gpu/ (numbers 
 }
 LATER = ["nohint_train_runs.jsonl", "targets_runs.jsonl", "target_samples_runs.jsonl", "targets_prefill_runs.jsonl",
          "target_samples_prefill_runs.jsonl"]                    # Steps 6-7: after the run finishes
+RUNNING = "finetune/run_steps67.py"
+DATA = CODE / "finetune" / "data"
+DATA_FILES = {           # source (under finetune/data/) -> what it holds; copied to results/summaries/trackA/data/
+    "manifest.json": "Step 5: records, wordings, held-out overlap (counts and ids only)",
+    "examples_manifest.json": "Steps 6-7 assembly: example counts by split, channel and stance",
+}
+
+
+def still_running():
+    """True while the Steps 6-7 run is going (its files are still being written)."""
+    import subprocess
+    out = subprocess.run(["pgrep", "-f", RUNNING], capture_output=True, text=True).stdout
+    return bool(out.strip())
 
 
 def strings(x, skip=AUTHORED):
@@ -143,6 +157,9 @@ def plan():
     """[(source or None, destination, writer)]: copies, plus derived numbers-only files."""
     out = [(TRACK_A / name, SUMMARIES / "trackA" / name, None) for name in TRACK_A_FILES if (TRACK_A / name).exists()]
     out += [(TRACK_A / name, SUMMARIES / "trackA" / Path(name).name, None) for name in GPU if (TRACK_A / name).exists()]
+    out += [(DATA / name, SUMMARIES / "trackA" / "data" / name, None) for name in DATA_FILES if (DATA / name).exists()]
+    if not still_running():
+        out += [(TRACK_A / name, SUMMARIES / "trackA" / name, None) for name in LATER if (TRACK_A / name).exists()]
     if (TRACK_A / "takeover_probes.jsonl.gz").exists():
         out.append((None, SUMMARIES / "trackA" / "takeover_per_run.jsonl", takeover_rows))
         out.append((None, SUMMARIES / "trackA" / "hint_onsets.jsonl", onset_rows))
@@ -189,7 +206,8 @@ def main(argv=None):
         failed += [dst] if why else []
         print(f"{'REFUSED' if why else ('would copy' if a.dry_run else 'copied')}: {label} -> {dst.relative_to(CODE)}"
               + (f"  ({'; '.join(why)})" if why else ""))
-    print(f"later, after the Steps 6-7 run: {', '.join(LATER)}")
+    if still_running():
+        print(f"later, after the Steps 6-7 run: {', '.join(LATER)}")
     return not failed
 
 

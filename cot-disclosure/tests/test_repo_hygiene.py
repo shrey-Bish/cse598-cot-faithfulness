@@ -124,7 +124,7 @@ def test_untrack_rewrites_history_without_touching_files(repo, monkeypatch, caps
     monkeypatch.chdir(repo)
     assert untrack_produced.main(["--running", ""]) == 0                       # dry run: nothing moves
     assert {b: git(repo, "rev-parse", b).strip() for b in before} == before
-    assert untrack_produced.main(["--run", "--running", ""]) == 0
+    assert untrack_produced.main(["--run", "--running", "", "--backup", str(Path(repo).parent / "b.bundle")]) == 0
     out = capsys.readouterr().out
     assert "moved trackA-nosol" in out and "moved main" in out and "pre-push check: nothing produced" in out
     assert git(repo, "rev-parse", "side").strip() != before["side"]         # merged into the branch: rewritten too
@@ -139,6 +139,29 @@ def test_untrack_rewrites_history_without_touching_files(repo, monkeypatch, caps
     assert git(repo, "rev-parse", "origin/main").strip() == git(repo, "rev-list", "--max-parents=0", "trackA-nosol").strip()
     backups = git(repo, "for-each-ref", "--format=%(refname) %(objectname)", "refs/backup").splitlines()
     assert {line.split()[1] for line in backups} == set(before.values())
+
+
+def test_untrack_only_the_branch_backs_up_first_and_leaves_main(repo, monkeypatch, capsys):
+    build_branch(repo)
+    main_tip = git(repo, "rev-parse", "main").strip()
+    bundle = Path(repo).parent / "backup-before-rewrite.bundle"
+    monkeypatch.chdir(repo)
+    with pytest.raises(SystemExit, match="--backup"):
+        untrack_produced.main(["--run", "--running", "", "--not-in", "main"])
+    assert untrack_produced.main(["--run", "--running", "", "--not-in", "main", "--backup", str(bundle)]) == 1
+    out = capsys.readouterr().out
+    assert "moved trackA-nosol" in out and "moved main" not in out and "left alone: main" in out
+    assert "sha256 list identical" in out
+    assert "trackA-nosol: pre-push check: refusing" in out           # the canary log still comes from main
+    assert git(repo, "rev-parse", "main").strip() == main_tip
+    for c in git(repo, "rev-list", "trackA-nosol", "--not", "--remotes=origin", "main").split():
+        assert not untrack_produced.touched(c, untrack_produced.PATHS, cwd=repo)
+    listing = bundle.with_name(bundle.name + ".sha256").read_text()
+    assert "cot-disclosure/results/trackA/probes.jsonl.gz" in listing and "cot-disclosure/results/summaries" in listing
+    assert "is okay" in subprocess.run(["git", "bundle", "verify", str(bundle)], cwd=repo, capture_output=True,
+                                       text=True).stderr
+    with pytest.raises(SystemExit, match="already exists"):
+        untrack_produced.main(["--run", "--running", "", "--not-in", "main", "--backup", str(bundle)])
 
 
 def test_untrack_refuses_while_the_run_is_going(repo, monkeypatch):

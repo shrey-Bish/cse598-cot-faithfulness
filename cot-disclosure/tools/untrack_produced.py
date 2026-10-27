@@ -3,8 +3,10 @@ reaches GitHub (decided Oct 26). No file on disk is moved, changed or deleted.
 
 What it does (with --run; the default is a dry run that changes nothing):
   1. refuses while the Steps 6-7 run is still going, or if HEAD isn't the branch to clean
-  2. records the sha256 of every file on disk under the produced paths
-  3. rewrites every commit of the branch that is on no remote, oldest first, with git plumbing
+  2. backs up first (--backup, required with --run): a git bundle of every ref, and beside it
+     (<bundle>.sha256) the sha256 of every file under results/, finetune/data/ and configs/
+  3. rewrites every commit of the branch that is on no remote (and, with --not-in, on none of the
+     named local branches: decided Oct 27, only the commits unique to trackA-nosol), oldest first, with git plumbing
      on a temporary index: the same commit with the produced paths left out of its tree (same
      message, author, committer and dates; parents mapped; merges kept; commits left empty keep
      their message). The working tree and the real index are not touched.
@@ -14,13 +16,13 @@ What it does (with --run; the default is a dry run that changes nothing):
   5. removes the produced paths from the real index only (git rm --cached): the files stay on
      disk and are now ignored (cot-disclosure/.gitignore)
   6. checks: every rewritten commit equals the old one outside the produced paths; no produced
-     path in any rewritten commit; every recorded file on disk has the same sha256; the
-     pre-push check passes
+     path in any rewritten commit; every file in the backup's sha256 list is unchanged; the
+     pre-push check on the branch and on every --not-in branch
 Produced paths (under cot-disclosure/): results/trackA/, results/trackB/, results/trackC/,
 results/voyager_canary.jsonl, finetune/data/.
 
-  python3 cot-disclosure/tools/untrack_produced.py              # dry run: commits, paths, refs, checks
-  python3 cot-disclosure/tools/untrack_produced.py --run        # do it (after the Steps 6-7 run)
+  python3 cot-disclosure/tools/untrack_produced.py --not-in main      # dry run: commits, paths, refs, checks
+  python3 cot-disclosure/tools/untrack_produced.py --not-in main --run --backup ~/backup-before-rewrite.bundle
 """
 import argparse
 import hashlib
@@ -34,6 +36,7 @@ from pathlib import Path
 PATHS = ["cot-disclosure/results/trackA", "cot-disclosure/results/trackB", "cot-disclosure/results/trackC",
          "cot-disclosure/results/voyager_canary.jsonl", "cot-disclosure/finetune/data"]
 RUNNING = "finetune/run_steps67.py"
+SNAPSHOT = ["cot-disclosure/results", "cot-disclosure/finetune/data", "cot-disclosure/configs"]   # sha256-listed around the rewrite
 
 
 def git(*args, env=None, input=None, cwd=None):
@@ -48,8 +51,22 @@ def still_running(pattern):
     return [line for line in out.splitlines() if "untrack_produced" not in line]
 
 
-def unpushed(branch, remote, cwd=None):
-    return git("rev-list", "--reverse", "--topo-order", branch, "--not", f"--remotes={remote}", cwd=cwd).split()
+def unpushed(branch, remote, cwd=None, not_in=()):
+    return git("rev-list", "--reverse", "--topo-order", branch, "--not", f"--remotes={remote}", *not_in, cwd=cwd).split()
+
+
+def backup(bundle, root):
+    """A bundle of every ref and the sha256 list of SNAPSHOT's files beside it; {path: sha256}."""
+    bundle = Path(bundle).expanduser()
+    listing = bundle.with_name(bundle.name + ".sha256")
+    if bundle.exists() or listing.exists():
+        sys.exit(f"refusing: {bundle} or {listing} already exists (never overwritten)")
+    git("bundle", "create", str(bundle), "--all", cwd=root)
+    git("bundle", "verify", str(bundle), cwd=root)
+    hashes = disk_hashes(root, SNAPSHOT)
+    listing.write_text("".join(f"{h}  {p}\n" for p, h in sorted(hashes.items())))
+    print(f"backup: {bundle} ({bundle.stat().st_size / 2 ** 20:.1f} MB, verified); {len(hashes)} files listed in {listing}")
+    return hashes
 
 
 def touched(commit, paths, cwd=None):
@@ -121,10 +138,13 @@ def main(argv=None):
     ap.add_argument("--branch", default="trackA-nosol")
     ap.add_argument("--remote", default="origin")
     ap.add_argument("--running", default=RUNNING, help="refuse while a process matching this runs ('' = don't check)")
+    ap.add_argument("--not-in", action="append", default=[], metavar="BRANCH",
+                    help="leave the commits of this local branch alone (repeatable)")
+    ap.add_argument("--backup", metavar="BUNDLE", help="with --run (required): the git bundle to write first")
     a = ap.parse_args(argv)
     root = git("rev-parse", "--show-toplevel").strip()
     os.chdir(root)
-    commits = unpushed(a.branch, a.remote)
+    commits = unpushed(a.branch, a.remote, not_in=a.not_in)
     hits = {c: touched(c, PATHS) for c in commits}
     heads = dict(line.split() for line in git("for-each-ref", "--format=%(refname:short) %(objectname)",
                                               "refs/heads").splitlines())
@@ -138,7 +158,8 @@ def main(argv=None):
         n = len({x for v in hits.values() for x in v if x == p or x.startswith(p + '/')})
         print(f"  {p}: {n} paths in the history; {sum(1 for f in disk if f == p or f.startswith(p + '/'))} files on disk "
               f"(stay where they are)")
-    print(f"branches that move to their rewritten commits: {', '.join(moving)}")
+    print(f"branches that move to their rewritten commits: {', '.join(moving)}"
+          + (f"; left alone: {', '.join(a.not_in)}" if a.not_in else ""))
     print(f"HEAD: {current}; the Steps 6-7 run: {'STILL RUNNING' if busy else 'not running'}")
     if not a.run:
         print("dry run: nothing changed. --run does it once the run has finished.")
@@ -147,6 +168,9 @@ def main(argv=None):
         sys.exit("refusing: the Steps 6-7 run is still going:\n  " + "\n  ".join(busy))
     if current != a.branch:
         sys.exit(f"refusing: HEAD is {current}, not {a.branch}")
+    if not a.backup:
+        sys.exit("refusing: --run needs --backup BUNDLE (a bundle of every ref and a sha256 list, written first)")
+    listed = backup(a.backup, root)
     mapping = rewrite(commits, PATHS)
     problems = verify(mapping, PATHS)
     if problems:
@@ -158,15 +182,18 @@ def main(argv=None):
         print(f"moved {b}: {heads[b][:9]} -> {mapping[heads[b]][:9]} (old tip kept as refs/backup/untrack-{stamp}/{b})")
     if current in moving:
         git("rm", "-r", "-q", "-f", "--cached", "--ignore-unmatch", "--", *PATHS)     # --cached: the index only
-    after = disk_hashes(root, PATHS)
-    if after != disk:
-        sys.exit(f"FILES ON DISK CHANGED: {sorted(set(disk.items()) ^ set(after.items()))[:10]}")
-    print(f"{len(disk)} files on disk unchanged; tracked under the produced paths now: "
-          f"{len(git('ls-files', '--', *PATHS).split())}")
-    check = subprocess.run([sys.executable, str(Path(root) / "cot-disclosure/tools/prepush_check.py"), a.remote,
-                            "--rev", a.branch], capture_output=True, text=True)
-    print((check.stdout + check.stderr).strip())
-    return check.returncode
+    after = disk_hashes(root, SNAPSHOT)
+    if after != listed:
+        sys.exit(f"FILES ON DISK CHANGED: {sorted(set(listed.items()) ^ set(after.items()))[:10]}")
+    print(f"{len(listed)} files under {', '.join(SNAPSHOT)}: sha256 list identical; tracked under the produced "
+          f"paths now: {len(git('ls-files', '--', *PATHS).split())}")
+    worst = 0
+    for b in [a.branch, *a.not_in]:
+        check = subprocess.run([sys.executable, str(Path(root) / "cot-disclosure/tools/prepush_check.py"), a.remote,
+                                "--rev", b], capture_output=True, text=True)
+        print(f"{b}: " + (check.stdout + check.stderr).strip())
+        worst = max(worst, check.returncode)
+    return worst
 
 
 if __name__ == "__main__":
