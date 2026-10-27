@@ -12,6 +12,8 @@ results/trackA/
 results/trackB/
 results/trackC/
 results/voyager_canary.jsonl
+results/labels/
+results/handoff/
 finetune/data/
 # GPQA is gated: no GPQA data file is ever tracked
 *[Gg][Pp][Qq][Aa]*.json

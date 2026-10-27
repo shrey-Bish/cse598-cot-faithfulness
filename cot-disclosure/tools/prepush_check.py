@@ -2,8 +2,8 @@
 
 Every commit being pushed (each one not already on the remote) is checked. A file in it fails the
 push when the same file with the same content isn't already on the remote and it is:
-  - under a produced-data folder: results/trackA/, results/trackB/, results/trackC/,
-    results/voyager_canary.jsonl, finetune/data/ (under cot-disclosure/)
+  - under a produced-data folder: results/trackA/, results/trackB/, results/trackC/, results/labels/,
+    results/handoff/, results/voyager_canary.jsonl, finetune/data/ (under cot-disclosure/)
   - a GPQA file: "gpqa" in its name, any case (code and docs, .py/.md, are allowed)
   - over 50 MB
 Files already on the remote with the same content (the progress-round files on main) upload
@@ -21,7 +21,7 @@ import re
 import subprocess
 import sys
 
-PRODUCED = re.compile(r"^cot-disclosure/(results/track[ABC]/|results/voyager_canary\.jsonl$|finetune/data/)")
+PRODUCED = re.compile(r"^cot-disclosure/(results/track[ABC]/|results/labels/|results/handoff/|results/voyager_canary\.jsonl$|finetune/data/)")
 GPQA = re.compile(r"gpqa", re.IGNORECASE)
 ALLOWED_GPQA = (".py", ".md")
 LIMIT = int(os.environ.get("PREPUSH_SIZE_LIMIT", 50 * 2 ** 20))
