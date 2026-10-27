@@ -1,12 +1,14 @@
-# Track B sweep plan. `python progress/run_trackB.py --dry-run` prints the call count and
-# estimated cost per provider; nothing runs without --run. Prices: configs/prices.yaml.
+# Track B sweep plan. `python progress/run_trackB.py --dry-run` prints the jobs, calls, hours and
+# estimated cost per model; nothing runs without --run. Prices: configs/prices.yaml.
 runs_per_question: 3
 max_tokens: 16000            # open models (pilot setting; always streamed on Voyager)
 closed_max_tokens: 8000      # closed models: caps spend per call
 temperature: 0.6             # sent only where the provider allows it
-estimate:                    # for the dry-run cost estimate only (an assumption, not a measurement)
+in_flight: 4                 # Voyager requests at once (the slot files cap every process together at 4)
+estimate:                    # for the dry run only (assumptions, not measurements)
   input_tokens: 500
   output_tokens: 4000
+  seconds: 60                # per call, where a model has no est_seconds
 
 question_sets:
   pilot_puzzles: {source: pilot, n: 24}                              # generated, uncontaminated
@@ -17,10 +19,14 @@ conditions: [none, user, tool_pasted, tool_real, system]
 
 models:
   # open, free
-  - {provider: voyager, model: olmo3-7b-think}
-  - {provider: voyager, model: qwen3-30b-a3b-thinking-2507}
-  - {provider: voyager, model: qwen3-30b-a3b-instruct-2507}
-  - {provider: ollama,  model: "qwen3:8b", thinking: true}
+  # est_seconds: mean seconds per call with 4 in flight (progress round, Oct 4; Olmo: Step 6's pinned-format runs)
+  - {provider: voyager, model: qwen3-30b-a3b-thinking-2507, est_seconds: 63}     # Track C's solver: run first
+  - {provider: voyager, model: qwen3-30b-a3b-instruct-2507, est_seconds: 15}     # one progress-round call: a guess
+  # Olmo 3 7B Think as in Track A: the pinned Think format on /v1/completions; it never calls a tool by
+  # itself, so its tool channel is tool_injected, with lookup_answer_key declared (run_trackB.py docstring)
+  - {provider: voyager, model: olmo3-7b-think, format: pinned, est_seconds: 145,
+     conditions: [none, user, tool_pasted, tool_injected, system]}
+  - {provider: ollama,  model: "qwen3:8b", thinking: true}                       # est_seconds: set by the pilot
   - {provider: ollama,  model: "qwen3:8b", thinking: false}
   # closed, capped at $5 per provider; smallest reasoning model with thinking on and off
   - {provider: openai,    model: gpt-6-luna, thinking: true, question_sets: [pilot_puzzles, mmlupro_30]}

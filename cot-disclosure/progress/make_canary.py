@@ -17,6 +17,7 @@ from pathlib import Path
 
 CODE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CODE))
+sys.path.insert(0, str(CODE / "progress"))
 
 import client  # noqa: E402
 
@@ -37,8 +38,10 @@ def main():
           f"{out_path.relative_to(CODE.parent)}")
     if a.dry_run:
         return
-    client.check_catalog(name)                                  # guard b first
-    out = client.canary_request(name, {"text": spec["text"], "params": PARAMS})
+    from common import slot
+    with slot():                                                # one of the 4 requests in flight, like every run
+        client.check_catalog(name)                              # guard b first
+        out = client.canary_request(name, {"text": spec["text"], "params": PARAMS})
     if out["error"]:
         sys.exit(f"echo call failed: {out['error']}")
     n = (out.get("usage") or {}).get("prompt_tokens")
