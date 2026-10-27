@@ -1,6 +1,6 @@
 # Plan: weeks 11–16 (CSE 598, Group 10)
 
-Last updated: 2026-10-27 12:30 MST (week 11; the plan for Oct 27–Nov 3 moved everything as early
+Last updated: 2026-10-27 14:55 MST (week 11; the plan for Oct 27–Nov 3 moved everything as early
 as it can go). What's left, by track: the timeline, the gates, the Sol hours and the risks. What
 is done is in [`OVERVIEW.md`](OVERVIEW.md); each result, with its numbers, source and status, is in
 [`FINDINGS.md`](FINDINGS.md). Every open item, with its owner and status, is in
@@ -215,9 +215,12 @@ submits every job; nothing runs without "go".
 models, thinking on vs off in the same model, real tool calls, harder questions, 3 runs per
 question.
 
-**State (Oct 27, from the repo).** The code is done (providers, budget guard, `run_trackB.py`
-with dry run, `configs/trackB.yaml`); only Voyager has been called; no keys; `results/trackB/` is
-empty; no GPQA export; Olmo 3 Think's `tool_injected` channel isn't wired in (TODO B1–B9).
+**State (Oct 27, 14:55 MST).** Code done: `run_trackB.py` (`--model`, `--thinking`, Olmo 3 7B Think
+in the pinned format with the declared `tool_injected` channel, retries, `--steered`) and
+`trackB_report.py` (the table and the Gate 2 gap). Served templates match ours (Qwen3 differs only in
+the tool spec's key order); canaries exist for every Voyager model B and C use; smoke tests 15 of 15.
+Running: Qwen3 30B Thinking (805 jobs) and the Ollama qwen3:8b grid (on AC power). No keys; no GPQA.
+Early, 7 questions: Qwen3 30B Thinking called the tool in 0 of 7 tool_real runs.
 
 **This week (decided Oct 27).** Gate 1's fallback: Voyager and Ollama only; paid calls wait for
 keys and "go"; GPQA waits until Ritik has accepted its terms on Hugging Face.
@@ -268,10 +271,10 @@ work); 3 runs per question for the main models; every rate as "X of Y" with a 95
 output? What changes when the reviewer sees more, and how often does the checker catch it or raise
 a false alarm?
 
-**State (Oct 27, from the repo).** Solver, reviewer, checker and `run_team.py` (`--replay`,
-`--live --n N`); live on 2 items (Oct 4). No no-tool team, one reviewer model, no input from Track
-B (TODO C1–C6). `run_team.py` rewrites its own log and writes to tracked `results/scope/`; it
-should append and write to gitignored `results/trackC/` before any run on new data.
+**State (Oct 27, 14:55 MST).** `run_team.py` appends to gitignored `results/trackC/` and resumes by
+case; the no-tool team, two reviewer models (Qwen3 30B Instruct, Olmo 3 7B Instruct) and Track B's
+cases as input are in; `--summary` splits bad and good lookups and gives the checker's flag rate per
+team. Running: C1, the live team on 5 pilot items (Gate 1's item). Next: C4 on Track B's cases.
 
 **This week (decided Oct 27), in order:** the append-only log in `results/trackC/` (C6); the
 no-tool team (C2); a second reviewer model (C3); an input-file option; the live team on 5 items

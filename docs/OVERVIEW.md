@@ -1,7 +1,7 @@
 # Project overview: everything done so far
 
 CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal.
-Last updated: 2026-10-27 12:30 MST (week 11). What's left is in [`PLAN.md`](PLAN.md) and
+Last updated: 2026-10-27 14:55 MST (week 11). What's left is in [`PLAN.md`](PLAN.md) and
 [`TODO.md`](TODO.md); every result with its numbers, source and status is in
 [`FINDINGS.md`](FINDINGS.md); how to run each step is in [`RUNBOOK.md`](RUNBOOK.md).
 
@@ -37,11 +37,11 @@ Claude 1.0 toward (B), and their explanations rarely mentioned it.
 | Area | Done | Not done yet |
 |---|---|---|
 | Progress round (Oct 1–6) | Test 1, Test 2, reviewer demo, truncation sweep; deck, figures, demo app | — |
-| Track A (Ritik) | Steps 1–5 and 8–10, the window analysis, Step 9's follow-up and matched onsets; FINDINGS F1–F14 | Steps 6–7 finishing today (237 of 240 kept at 12:00); assemble; Steps 11–13 (train, generate, evaluate) on Sol from Oct 29 |
-| Track B (Ritik until Nov 3, then Arsha) | Provider adapters, budget guard, runner with dry run, real tool calls checked on Voyager (Oct 4) | Keys, smoke tests, Ollama, `tool_injected` wiring, GPQA export, main runs |
-| Track C (Ritik until Nov 3, then Shrey) | Solver, reviewer, checker, `run_team.py` (replay; live on 2 items, Oct 4) | 5 items, no-tool team, second reviewer, Track B's cases |
-| Labels | Guide and queue (101 rows) | Labeling kit, labeling, Cohen's kappa |
-| Repo | Data off GitHub (gitignore, numbers-only summaries, pre-push hook); 283 tests | History rewrite of this branch, then push |
+| Track A (Ritik) | Steps 1–10, the window analysis, Step 9's follow-up and matched onsets (FINDINGS F1–F14); Steps 6–7 done Oct 27 (251 kept of 530; 1,196 examples assembled); Steps 11–13 code, Sol jobs and QoS checks; figures #1 and #4 | Steps 11–13 on Sol (first jobs on "go") |
+| Track B (Ritik until Nov 3, then Arsha) | Runner with `--model`, Olmo in the pinned format with `tool_injected`, the steered-cases export, the table and Gate 2 script; served templates and canaries checked; smoke 15 of 15; Ollama pilot | Voyager runs (Qwen3 Thinking running, then Instruct, Olmo), the Ollama grid, keys, GPQA |
+| Track C (Ritik until Nov 3, then Shrey) | Solver, reviewer, checker; append-only resumable `run_team.py` with the no-tool team, two reviewer models, Track B's cases as input (Oct 27) | 5 items (running), Track B's steered cases, the table |
+| Labels | Guide, queue (101 rows; 10 replaced Oct 27), the kit with blank sheets and kappa | Labeling (two raters), Cohen's kappa |
+| Repo | Data off GitHub (gitignore, numbers-only summaries, pre-push hook); history of `trackA-nosol` rewritten Oct 27; local `main` fast-forwarded; 340 tests | The plan for `main`'s 2 unpushed commits, then the push |
 
 **Gate 1 (Oct 25) was missed** (recorded Oct 27; PLAN, gates): real tool calls work on Voyager
 only, there are no closed-provider keys, and the agents ran on 2 items. The fallback applies:
@@ -252,20 +252,20 @@ complete (3 runs, rerun); the Mac sleeping on battery stalls Voyager runs (Oct 2
 ## 10. Code and data map
 
 All code is in `cot-disclosure/` ([its README](../cot-disclosure/README.md): setup and commands).
-283 tests pass, no network (`cd cot-disclosure && ../.venv/bin/python -m pytest -q`).
+340 tests pass, no network (`cd cot-disclosure && ../.venv/bin/python -m pytest -q`).
 
 | Path | What it is |
 |---|---|
 | `client.py`, `parse.py`, `detect.py` | Voyager client (streaming, guards, canary, cache); answer-letter parser; keyword pre-sort |
 | `tasks.py`, `experiments.py`, `analyze.py`, `run.py` | Puzzles; Test 1; its numbers; the Oct 1–2 runner |
-| `progress/` | The progress round (Test 2, Experiment A, truncation, `analyze_progress.py`), `common.py` (records, limiter, Wilson, clustered bootstrap, the 5-question rule), `run_trackB.py` |
+| `progress/` | The progress round (Test 2, Experiment A, truncation, `analyze_progress.py`), `common.py` (records, limiter, Wilson, clustered bootstrap, the 5-question rule); Track B: `run_trackB.py`, `trackB_report.py`, `voyager_template_check.py`, `make_canary.py` |
 | `providers/` | One interface over Voyager, Ollama, OpenAI, Anthropic, xAI; `budget.py` caps and logs spend |
 | `tools/answer_key.py` | The hint conditions (`none`, `user`, `tool_pasted`, `tool_real`, `tool_injected`, `system`) |
-| `tools/export_summaries.py`, `prepush_check.py`, `untrack_produced.py` | Numbers-only summaries with a no-text check; the pre-push check; the history rewrite |
+| `tools/export_summaries.py`, `prepush_check.py`, `untrack_produced.py`, `label_kit.py`, `make_handoff_bundle.py` | Numbers-only summaries with a no-text check; the pre-push check; the history rewrite (scoped, backed up); the labeling kit and kappa; per-track data bundles |
 | `agents/` | Track C: solver, reviewer, checker, `run_team.py` |
-| `finetune/` | Track A Steps 1–7 and the dataset ([README](../cot-disclosure/finetune/README.md)) |
+| `finetune/` | Track A Steps 1–7, the dataset, and Steps 11–13: `train.py`, `generate.py`, `eval.py` ([README](../cot-disclosure/finetune/README.md)) |
 | `finetune/look/` | Steps 3, 4, 9, 10, the window analysis and their figures |
-| `finetune/gpu/` | The Sol kit and Step 8 ([README](../cot-disclosure/finetune/gpu/README.md)) |
+| `finetune/gpu/` | The Sol kit, Step 8, `eval_job.py` (Steps 12–13 on Sol), `sol/` job scripts with `accounts.conf` ([README](../cot-disclosure/finetune/gpu/README.md)) |
 | `configs/` | `models.yaml` (IDs, routing), `canary/`, `prices.yaml`, `trackB.yaml` |
 | `ui/` | The demo app (`python3 cot-disclosure/ui/app.py`, http://127.0.0.1:8765) |
 
@@ -285,9 +285,10 @@ evidence viewer, the demo screenshots.
   can't start). Spend: $0. Claude Haiku 4.5 may be retired; check before running.
 - **GPQA Diamond** is gated: access, then export to `cot-disclosure/data/gpqa_diamond.jsonl`
   (gitignored).
-- **Labeling hasn't started.** 10 of the 101 queue rows have no text. Every mention number stays a
-  keyword count until two raters label.
-- **GitHub is behind.** `main` there lacks the Oct 21 Voyager ID fix and the data gitignore; this
-  branch (`trackA-nosol`, 50+ commits) is unpushed until its history drops the Track A data.
+- **Labeling hasn't started.** The kit is ready (Oct 27). Every mention number stays a keyword
+  count until two raters label.
+- **GitHub is behind.** `main` there lacks the Oct 21 Voyager ID fix and the data gitignore. The
+  history of `trackA-nosol` was rewritten on Oct 27 (no produced file tracked); the push waits on the
+  plan for local `main`'s 2 unpushed commits (one carries a numbers-only canary row).
 - **The look-inside findings rest on few questions:** 9 for the late takeovers and the patching
   cases, 20 for Step 9. Olmo 3 32B's exact identity on Voyager is unconfirmed.

@@ -91,7 +91,7 @@ Until Nov 3 Ritik runs all three tracks; then Track B goes to Arsha and Track C 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r cot-disclosure/requirements.txt
 cp cot-disclosure/.env.example cot-disclosure/.env       # add your Voyager key
-cd cot-disclosure && ../.venv/bin/python -m pytest -q     # 283 tests, no network
+cd cot-disclosure && ../.venv/bin/python -m pytest -q     # 340 tests, no network
 cd .. && python3 cot-disclosure/ui/app.py                 # demo at http://127.0.0.1:8765
 ```
 
