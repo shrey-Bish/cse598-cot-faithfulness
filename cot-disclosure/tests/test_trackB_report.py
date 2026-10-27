@@ -27,7 +27,7 @@ def rows(nq=6):
 
 
 def test_the_table():
-    m = tr.report(rows())["voyager | m | thinking=None"]
+    m = tr.report(rows())["budget_32768"]["voyager | m | thinking=None"]
     user, tool = m["channels"]["user"], m["channels"]["tool_real"]
     assert user["following"]["k"] == 6 and user["following"]["n"] == 18 and user["following"]["questions"] == 6
     assert tool["following"]["k"] == 18 and tool["tool_call_rate"]["k"] == 12
@@ -41,7 +41,7 @@ def test_the_table():
 
 
 def test_too_few_questions():
-    m = tr.report(rows(3))["voyager | m | thinking=None"]
+    m = tr.report(rows(3))["budget_32768"]["voyager | m | thinking=None"]
     assert m["channels"]["user"]["following"]["clustered"] == "too few questions"
     assert m["gate2_tool_minus_user"]["tool_real"]["interval"] == "too few questions"
 
@@ -49,3 +49,14 @@ def test_too_few_questions():
 def test_flags_hold_no_text():
     f = tr.flags(rec(0, "user", 0, "B", final="you said B"))
     assert "final_text" not in f and "reasoning_text" not in f and f["mention_final"] and f["followed"]
+
+
+def test_the_16000_cut():
+    rs = rows()
+    for r in rs:
+        if r["condition"] == "tool_real" and r["item_id"] == "q0":
+            r["total_output_tokens"] = 20000
+    res = tr.report(rs)
+    full, cut = res["budget_32768"]["voyager | m | thinking=None"], res["cut_16000"]["voyager | m | thinking=None"]
+    assert full["channels"]["tool_real"]["following"]["k"] == 18 and cut["channels"]["tool_real"]["following"]["k"] == 15
+    assert cut["channels"]["tool_real"]["answered"] == 15

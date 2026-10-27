@@ -35,6 +35,7 @@ import argparse
 import json
 import sys
 import time
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
@@ -48,6 +49,7 @@ from parse import parse_answer  # noqa: E402
 from providers import budget, generate  # noqa: E402
 from client import preflight  # noqa: E402
 from providers.base import MissingKey, route_fields, status_of  # noqa: E402
+from providers.ollama import NUM_CTX as OLLAMA_NUM_CTX  # noqa: E402
 from tools.answer_key import INJECTED, TOOL_SPEC, build, run_tool_loop  # noqa: E402
 
 CONFIG = CODE / "configs" / "trackB.yaml"
@@ -55,6 +57,10 @@ OUT = CODE / "results" / "trackB"
 STEERED = OUT / "steered_cases.jsonl"
 LETTERS = "ABCDEFGHIJ"
 NOT_RUN_PASSES = 2                                           # extra passes for runs with no whole reply
+CORE_SET, CORE_CONDITIONS = "mmlupro_30", ("none", "user", "tool_real")   # --order core-first (Oct 27)
+TOKENIZERS = {"qwen3-30b-a3b-thinking-2507": "Qwen/Qwen3-30B-A3B-Thinking-2507",   # prompt tokens for the budget
+              "qwen3-30b-a3b-instruct-2507": "Qwen/Qwen3-30B-A3B-Instruct-2507", "qwen3:8b": "Qwen/Qwen3-8B"}
+_TOK = {}
 TOOL_CHANNELS = ("tool_real", INJECTED, "tool_pasted")      # what makes a case "steered" for Track C
 log = get_logger("trackB")
 
@@ -82,7 +88,17 @@ def model_tag(m):
     return f"{m['model']}|think={m.get('thinking')}"
 
 
-def jobs(cfg, only_provider=None, only_models=None, thinking=None):
+def phase(j, order):
+    """--order core-first: the 30 MMLU-Pro items x none / user / tool_real first, then the puzzles in those
+    conditions, then the remaining conditions (decided Oct 27 for the Ollama grid)."""
+    if order != "core-first":
+        return 0
+    if j["condition"] not in CORE_CONDITIONS:
+        return 2
+    return 0 if j["item"]["set"] == CORE_SET else 1
+
+
+def jobs(cfg, only_provider=None, only_models=None, thinking=None, order=None):
     """Every job, repeat by repeat: each question's first run (in every condition, for every model in
     the call, e.g. Ollama's thinking on and off) comes before any second run, so a partial run is
     balanced. thinking: True / False keeps only that setting."""
@@ -100,7 +116,7 @@ def jobs(cfg, only_provider=None, only_models=None, thinking=None):
                 for cond in conds:
                     out.append({"run_id": run_id("trackB", item["item_id"], model_tag(m), cond, None, rep), "model": m,
                                 "item": item, "condition": cond, "repeat": rep, "order": (rep, mi)})
-    return sorted(out, key=lambda j: j["order"])
+    return sorted(out, key=lambda j: (phase(j, order), *j["order"]))
 
 
 def calls_per_job(m, cond):
@@ -162,6 +178,16 @@ def no_answer_if_cut(rec):
     return rec
 
 
+def prompt_tokens(model, msgs, tools):
+    """The first call's prompt tokens, counted with the model's own chat template (the tool spec's keys
+    sorted, as Voyager serializes it; voyager_template_check.py): what the 32,768-token budget starts from."""
+    from voyager_template_check import count_chat, sorted_keys
+    if model not in _TOK:
+        from transformers import AutoTokenizer
+        _TOK[model] = AutoTokenizer.from_pretrained(TOKENIZERS[model])
+    return count_chat(_TOK[model], msgs, sorted_keys(tools) if tools else None)
+
+
 def run_one(cfg, j):
     m, item = j["model"], j["item"]
     if m.get("format") == "pinned":
@@ -169,10 +195,20 @@ def run_one(cfg, j):
     msgs, tools = build(item["question"], item["item_id"], j["condition"],
                         None if j["condition"] == "none" else item["hint_letter"])
     paid = m["provider"] in budget.PAID
-    max_tokens = cfg["closed_max_tokens"] if paid else cfg["max_tokens"]
-    kw = {"thinking": m.get("thinking"), "max_tokens": max_tokens,
-          "temperature": cfg["temperature"], "seed": j["repeat"], "label": f"trackB:{j['run_id']}"}
-    gen = lambda **k: generate(m["provider"], m["model"], **{**kw, **k})  # noqa: E731
+    if paid:                                       # closed models: a per-call cap that bounds spend
+        cap_new, prompt_n = cfg["closed_max_tokens"], None
+    else:                                          # open models: one budget, prompt + every reply (Oct 27)
+        prompt_n = prompt_tokens(m["model"], msgs, tools)
+        cap_new = cfg["token_budget"] - prompt_n
+    used = {"out": 0}
+    kw = {"thinking": m.get("thinking"), "temperature": cfg["temperature"], "seed": j["repeat"],
+          "label": f"trackB:{j['run_id']}"}
+
+    def gen(**k):
+        left = cap_new if paid else cap_new - used["out"]
+        r = generate(m["provider"], m["model"], **{**kw, "max_tokens": max(1, left), **k})
+        used["out"] += (r.usage or {}).get("output_tokens") or 0
+        return r
     steps = []
     if tools:
         reply, transcript, steps = run_tool_loop(gen, msgs, tools, question_id=item["item_id"],
@@ -187,7 +223,9 @@ def run_one(cfg, j):
         "reasoning_text": reply.reasoning_text, "reasoning_visibility": reply.reasoning_visibility,
         "tool_steps": steps, "called_tool": bool(steps and steps[0]["tool_calls"]),
         "tool_calls_by_model": sum(len(s["tool_calls"] or []) for s in steps), "usage": reply.usage,
-        "latency_s": reply.latency_s, "cost_usd": reply.cost_usd, "max_tokens": max_tokens,
+        "latency_s": reply.latency_s, "cost_usd": reply.cost_usd, "total_output_tokens": used["out"],
+        "max_tokens": cap_new if paid else {"total_with_prompt": cfg["token_budget"], "prompt_tokens_local": prompt_n},
+        "budget_total": None if paid else cfg["token_budget"], "num_ctx": (reply.raw or {}).get("num_ctx"),
         "prompt_messages": msgs, "transcript": transcript})
 
 
@@ -218,6 +256,7 @@ def run_one_pinned(cfg, j):
                   "reasoning_tokens": None, "raw": usage},
         "latency_s": round(time.monotonic() - start, 1), "cost_usd": 0.0,
         "max_tokens": {"total_with_prompt": olmo_format.CAP_TOTAL},
+        "total_output_tokens": usage.get("completion_tokens"), "budget_total": olmo_format.CAP_TOTAL,
         "template_sha256": olmo_format.PINNED_SHA256, "endpoint": "completions",
         "system_prompt": olmo_format.SYSTEM_PROMPTS[1] if tools else olmo_format.SYSTEM_PROMPTS[0],
         "tools_declared": tools, "rendered_prompt": prompt, "raw_text": reply.get("raw"),
@@ -229,7 +268,7 @@ def summary_row(rec):
     keys = ("run_id", "timestamp_utc", "provider", "model", "thinking", "format", "set", "item_id", "condition", "repeat",
             "hint_letter", "correct_letter", "parsed_letter", "status", "finish_reason", "no_answer_reason", "error_type",
             "called_tool", "tool_calls_by_model", "latency_s", "cost_usd", "requested_model_id", "reasoning_effort",
-            "served_model", "reasoning_visibility")
+            "served_model", "reasoning_visibility", "total_output_tokens", "budget_total", "num_ctx")
     usage = rec.get("usage") or {}
     return {**{k: rec.get(k) for k in keys}, "input_tokens": usage.get("input_tokens"),
             "output_tokens": usage.get("output_tokens")}
@@ -244,12 +283,24 @@ def save(rec):
     append(OUT / f"{rec['provider']}_runs.jsonl", summary_row(rec))
 
 
+def current(r):
+    """A finished row that counts: Ollama rows only with the current context (Oct 27: the default 4,096
+    shifted the prompt out; those rows are rerun), and no row cut off at an older, smaller cap."""
+    if r["status"] != "ok":
+        return False
+    if r["provider"] == "ollama" and r.get("num_ctx") != OLLAMA_NUM_CTX:
+        return False
+    return not (r.get("finish_reason") == "length" and not r.get("budget_total"))
+
+
 def done(provider):
-    return {r["run_id"] for r in latest(load(OUT / f"{provider}_runs.jsonl")) if r["status"] == "ok"}
+    return {r["run_id"] for r in latest(load(OUT / f"{provider}_runs.jsonl")) if current(r)}
 
 
-def run(cfg, all_jobs, limit=None):
-    """Run what isn't done; runs with no whole reply get up to NOT_RUN_PASSES more passes."""
+def run(cfg, all_jobs, limit=None, stop_file=None):
+    """Run what isn't done; runs with no whole reply get up to NOT_RUN_PASSES more passes. With stop_file:
+    once that file exists, no new job starts (the ones in flight finish). Returns 0 when every chosen job
+    is done, 2 when stopped by the file, 1 when some are left (a supervisor restarts it)."""
     providers = {j["model"]["provider"] for j in all_jobs}
     workers = cfg["in_flight"] if providers == {"voyager"} else 1   # paid and local providers: one at a time
     for name in sorted({j["model"]["model"] for j in all_jobs if j["model"]["provider"] == "voyager"}):
@@ -257,6 +308,8 @@ def run(cfg, all_jobs, limit=None):
             preflight(name)      # /v1/models + identity canary before any job; raises (stops) on failure
 
     def safe(j):
+        if stop_file and Path(stop_file).exists():
+            return None
         try:
             return run_one(cfg, j)
         except (budget.BudgetExceeded, MissingKey) as err:
@@ -280,8 +333,13 @@ def run(cfg, all_jobs, limit=None):
                 if i % 20 == 0 or i == len(todo):
                     log.info(f"  {i}/{len(todo)} jobs; not_run so far {statuses.count('not_run')}, "
                              f"api_error {statuses.count('api_error')}")
+        if stop_file and Path(stop_file).exists():
+            log.info(f"stopped by {stop_file}")
+            return 2
         if "not_run" not in statuses:
             break
+    finished = set().union(*(done(p) for p in providers))
+    return 0 if all(j["run_id"] in finished for j in chosen) else 1
 
 
 def case_rows(cfg, model, records):
@@ -348,6 +406,8 @@ def main():
     ap.add_argument("--model", action="append", help="only this model (repeatable; both thinking settings)")
     ap.add_argument("--thinking", choices=["on", "off"], help="only this thinking setting (Ollama has both)")
     ap.add_argument("--limit", type=int, help="run at most N jobs (smoke tests)")
+    ap.add_argument("--order", choices=["repeat", "core-first"], default="repeat")
+    ap.add_argument("--stop-file", help="stop starting new jobs once this file exists (guard.py pauses this way)")
     a = ap.parse_args()
     cfg = yaml.safe_load(open(CONFIG))
     OUT.mkdir(parents=True, exist_ok=True)
@@ -355,13 +415,13 @@ def main():
         if not a.model or len(a.model) != 1:
             sys.exit("--steered needs exactly one --model")
         return export_steered(cfg, a.model[0])
-    all_jobs = jobs(cfg, a.only_provider, a.model, None if a.thinking is None else a.thinking == "on")
+    all_jobs = jobs(cfg, a.only_provider, a.model, None if a.thinking is None else a.thinking == "on", a.order)
     if a.dry_run:
         finished = set().union(*(done(p) for p in {j["model"]["provider"] for j in all_jobs}))
         dry_run(cfg, [j for j in all_jobs if j["run_id"] not in finished])
         return
-    run(cfg, all_jobs, a.limit)
+    return run(cfg, all_jobs, a.limit, a.stop_file)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)

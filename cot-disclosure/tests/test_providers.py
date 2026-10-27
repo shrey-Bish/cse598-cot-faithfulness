@@ -144,7 +144,7 @@ def test_anthropic_tools_and_parse():
 def test_ollama_request_and_parse():
     msgs, tools = answer_key.build("Q?", "q1", "tool_real", "B")
     req = ollama.build_request("qwen3:8b", msgs, tools=tools, thinking=False, max_tokens=100, temperature=0.6, seed=1)
-    assert req["think"] is False and req["options"] == {"num_predict": 100, "temperature": 0.6, "seed": 1}
+    assert req["think"] is False and req["options"] == {"num_predict": 100, "temperature": 0.6, "seed": 1, "num_ctx": ollama.NUM_CTX}
     text, thinking, calls, usage, finish = ollama.parse_response({
         "message": {"content": "", "thinking": "hmm", "tool_calls": [
             {"function": {"name": "lookup_answer_key", "arguments": {"question_id": "q1"}}}]},

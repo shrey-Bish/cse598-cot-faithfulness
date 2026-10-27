@@ -14,12 +14,13 @@ pytest.importorskip("transformers")
 
 import run_trackB as tb  # noqa: E402
 from common import load  # noqa: E402
+from providers.base import Reply  # noqa: E402
 
 CONDS = ["none", "user", "tool_pasted", "tool_real", "system"]
 
 
 def cfg(**extra):
-    return {"runs_per_question": 3, "max_tokens": 16000, "closed_max_tokens": 8000, "temperature": 0.6, "in_flight": 4,
+    return {"runs_per_question": 3, "token_budget": 32768, "closed_max_tokens": 8000, "temperature": 0.6, "in_flight": 4,
             "estimate": {"input_tokens": 500, "output_tokens": 4000, "seconds": 60},
             "question_sets": {"pilot_puzzles": {"source": "pilot", "n": 2}}, "conditions": CONDS,
             "models": [{"provider": "voyager", "model": "qwen3-30b-a3b-thinking-2507", "est_seconds": 40},
@@ -46,6 +47,58 @@ def test_jobs_go_repeat_by_repeat_and_the_model_flag_filters():
     assert {j["model"]["thinking"] for j in tb.jobs(both, thinking=False)} == {False}
     js = tb.jobs(both, only_models=["qwen3:8b"])
     assert len(js) == 60 and [j["model"]["thinking"] for j in js[:20]] == [True] * 10 + [False] * 10   # rep 0 of both
+
+
+def test_core_first_puts_mmlupro_core_cells_first():
+    c = cfg(question_sets={"pilot_puzzles": {"source": "pilot", "n": 2},
+                           "mmlupro_30": {"source": "mmlupro", "path": "data/progress/mmlupro_30.jsonl"}},
+            models=[{"provider": "ollama", "model": "qwen3:8b", "thinking": t} for t in (True, False)])
+    js = tb.jobs(c, order="core-first")
+    first = js[:30 * 3 * 2 * 3]
+    assert {j["item"]["set"] for j in first} == {"mmlupro_30"} and {j["condition"] for j in first} == {"none", "user", "tool_real"}
+    assert {j["model"]["thinking"] for j in first[:180]} == {True, False}                 # rep 0, both settings first
+    nxt = js[len(first):len(first) + 2 * 3 * 2 * 3]
+    assert {j["item"]["set"] for j in nxt} == {"pilot_puzzles"} and {j["condition"] for j in nxt} <= {"none", "user", "tool_real"}
+    assert {j["condition"] for j in js[-10:]} <= {"tool_pasted", "system"}
+
+
+def test_one_budget_over_every_call(monkeypatch):
+    sent = []
+
+    def fake_generate(provider, model, messages, tools=None, tool_choice=None, max_tokens=None, **kw):
+        sent.append(max_tokens)
+        if tools and len(sent) == 1:
+            return Reply(provider=provider, model=model, tool_calls=[{"id": "c", "name": "lookup_answer_key", "arguments": "{}"}],
+                         finish_reason="tool_calls", usage={"output_tokens": 1000}, raw={"num_ctx": 33792})
+        return Reply(provider=provider, model=model, final_text="Answer: (B)", finish_reason="stop",
+                     usage={"output_tokens": 700}, raw={"num_ctx": 33792})
+    monkeypatch.setattr(tb, "generate", fake_generate)
+    monkeypatch.setattr(tb, "prompt_tokens", lambda model, msgs, tools: 500)
+    c = cfg(models=[{"provider": "ollama", "model": "qwen3:8b", "thinking": True}])
+    j = next(j for j in tb.jobs(c) if j["condition"] == "tool_real")
+    rec = tb.run_one(c, j)
+    assert sent == [32768 - 500, 32768 - 500 - 1000] and rec["total_output_tokens"] == 1700
+    assert rec["budget_total"] == 32768 and rec["num_ctx"] == 33792 and rec["called_tool"]
+
+
+def test_old_ollama_rows_and_rows_cut_at_an_old_cap_are_not_done(out):
+    from common import append
+    rows = [{"run_id": "a", "provider": "ollama", "status": "ok", "finish_reason": "stop", "num_ctx": None},
+            {"run_id": "b", "provider": "ollama", "status": "ok", "finish_reason": "stop", "num_ctx": tb.OLLAMA_NUM_CTX,
+             "budget_total": 32768},
+            {"run_id": "c", "provider": "ollama", "status": "ok", "finish_reason": "length", "num_ctx": tb.OLLAMA_NUM_CTX}]
+    for r in rows:
+        append(out / "ollama_runs.jsonl", r)
+    assert tb.done("ollama") == {"b"}
+
+
+def test_a_stop_file_stops_new_jobs(out, monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(tb, "run_one", lambda c, j: calls.append(1))
+    monkeypatch.setattr(tb, "preflight", lambda name: None)
+    stop = tmp_path / "stop"
+    stop.write_text("")
+    assert tb.run(cfg(), tb.jobs(cfg(), only_models=["olmo3-7b-think"]), limit=3, stop_file=stop) == 2 and calls == []
 
 
 def test_the_plan_counts_calls_and_hours():

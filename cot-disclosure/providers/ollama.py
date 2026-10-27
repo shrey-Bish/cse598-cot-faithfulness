@@ -14,6 +14,8 @@ from .responses_api import json_args
 
 NAME = "ollama"
 TIMEOUT_S = 3600         # one local reply of up to 16,000 tokens can take longer than the 600 s default
+NUM_CTX = 33792          # the 32,768-token budget + room. Oct 27: Ollama's default context here was 4,096 with
+                         # "context shift": past it, the start of the conversation (question and hint) was dropped
 
 
 def url():
@@ -37,7 +39,7 @@ def to_messages(messages):
 
 def build_request(model, messages, *, tools=None, thinking=None, max_tokens=16000, temperature=0.6, seed=None):
     req = {"model": model, "messages": to_messages(messages), "stream": False,
-           "options": {"num_predict": max_tokens, "temperature": temperature}}
+           "options": {"num_predict": max_tokens, "temperature": temperature, "num_ctx": NUM_CTX}}
     if seed is not None:
         req["options"]["seed"] = seed
     if thinking is not None:
@@ -77,4 +79,4 @@ def generate(model, messages, *, tools=None, thinking=None, max_tokens=16000, te
     return Reply(provider=NAME, model=model, final_text=text, reasoning_text=thinking_text,
                  reasoning_visibility="full" if thinking_text else "none", tool_calls=calls, finish_reason=finish,
                  usage=usage, latency_s=latency, cost_usd=0.0,
-                 raw={"think": req.get("think"), "tool_choice_ignored": tool_choice is not None})
+                 raw={"think": req.get("think"), "tool_choice_ignored": tool_choice is not None, "num_ctx": NUM_CTX})

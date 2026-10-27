@@ -1,7 +1,9 @@
 # Track B sweep plan. `python progress/run_trackB.py --dry-run` prints the jobs, calls, hours and
 # estimated cost per model; nothing runs without --run. Prices: configs/prices.yaml.
 runs_per_question: 3
-max_tokens: 16000            # open models (pilot setting; always streamed on Voyager)
+token_budget: 32768          # open models (decided Oct 27): prompt + every reply of a run, one budget for all
+                             # (it was 16,000 reply tokens until Oct 27 15:20; no run had reached it). Each table
+                             # also reports a 16,000 cut: a run whose replies total over 16,000 tokens = no answer
 closed_max_tokens: 8000      # closed models: caps spend per call
 temperature: 0.6             # sent only where the provider allows it
 in_flight: 4                 # Voyager requests at once (the slot files cap every process together at 4)
