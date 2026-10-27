@@ -58,8 +58,11 @@ Mentions are keyword counts until the hand labels are done.
 - The mechanism as a whole (FINDINGS, mechanism paragraph): the extra trust in tools lies in what
   layers 15, 19 and 23 read at the hint, not in how much they attend to it.
 
-**Next:** Steps 6–7 (training data) finish Oct 27; train LoRA, tag and combined versions on ASU Sol
-(week 11); evaluate all systems on held-out questions (weeks 12–13); Gate 3 on Nov 22.
+**Next** (moved earlier on Oct 27; [`docs/PLAN.md`](docs/PLAN.md)): Steps 6–7 (training data)
+finish Oct 27; Track B's Voyager runs start Oct 27 and Track C's on its steered cases follow;
+the first Sol jobs (timing, then training the LoRA, tag and combined versions) from Oct 29;
+evaluation of all systems on held-out questions from Oct 30; Gate 2 on Nov 8, Gate 3 on Nov 22.
+Until Nov 3 Ritik runs all three tracks; then Track B goes to Arsha and Track C to Shrey.
 
 ## Where things are
 

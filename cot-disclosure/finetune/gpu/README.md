@@ -24,12 +24,29 @@ Smoke and Steps 8–10 ran in the Oct 26 interactive session; Step 9's follow-up
   refuses a job script that names another account, or any account option you add. Inside a job,
   `sol/run.sh` checks `$SLURM_JOB_ACCOUNT` and stops under any other account, and also stops
   outside a Slurm job (login nodes). Don't call `sbatch` directly.
-- **Where.** `-p public -q class -G a100:1` (class QoS: at most 24 h, 4 GPUs, 32 cores, 320 GB
-  per job; 2 running and 10 queued jobs, and 960 GPU running minutes in all). Your open session
-  counts against the 960, so while it's open, run in the session. Read as Slurm counts it (time
-  limit × GPUs of the running jobs), two jobs at once can each ask for at most 8 h, one job alone
-  16 h. Batch jobs resume from their own checkpoints. Quick script tests: `-q debug` (15 min).
-  Setup without a GPU: `-p lightwork -q public`.
+- **Where.** `-p public -q class -G a100:1`. Quick script tests: `-q debug` (15 min). Setup
+  without a GPU: `-p lightwork -q public`. Batch jobs resume from their own checkpoints.
+- **The class QoS** (`sacctmgr -P show qos class`, confirmed Oct 27):
+
+  | Field | Value |
+  |---|---|
+  | MaxTRES (per job) | cpu=32, gres/gpu=4, mem=320G |
+  | MaxWall | 24 h |
+  | MaxJobsPU (running) | 2 |
+  | MaxSubmitPU (running + pending) | 10 |
+  | MaxTRESRunMinsPU | gres/gpu=960 |
+  | Flags | DenyOnLimit |
+
+  Slurm counts each running job's *remaining* time × GPUs against the 960 GPU-minutes, and the
+  *requested* time is what counts. So one 1-GPU job can run alone with a limit up to 16 h; two run
+  at once only if their remaining times add up to 16 h or less (a second job can start partway
+  through the first). Interactive sessions count too: while one is open, run in it. DenyOnLimit
+  rejects at submission any job whose own request is over 960 GPU-minutes. Each job's limit is
+  its estimate × 1.3, rounded up to the next 30 minutes; resume makes short limits safe. The
+  checks `submit.sh` will make before submitting (TODO A12, not written yet): refuse a job over 960
+  GPU-minutes; add its GPU-minutes to the remaining GPU-minutes of your running and pending jobs
+  (`squeue`), warn if the total is over 960, and say when the second slot frees up; accounts,
+  partitions and QoS come from one config file, and only the accounts listed there are allowed.
 - **Python.** Always the project environment's, by full path: `sol/env.sh` sets
   `TRACKA_PY=/scratch/ragarw68/envs/olmo/bin/python`, checks it is Python 3.11 in that prefix, and
   every script calls `"$TRACKA_PY"`, never a bare `python` (after an rsync or a changed PATH that

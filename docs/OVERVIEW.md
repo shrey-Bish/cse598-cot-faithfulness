@@ -1,7 +1,7 @@
 # Project overview: everything done so far
 
 CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal.
-Last updated: 2026-10-27 (week 11). What's left is in [`PLAN.md`](PLAN.md) and
+Last updated: 2026-10-27 12:30 MST (week 11). What's left is in [`PLAN.md`](PLAN.md) and
 [`TODO.md`](TODO.md); every result with its numbers, source and status is in
 [`FINDINGS.md`](FINDINGS.md); how to run each step is in [`RUNBOOK.md`](RUNBOOK.md).
 
@@ -37,14 +37,15 @@ Claude 1.0 toward (B), and their explanations rarely mentioned it.
 | Area | Done | Not done yet |
 |---|---|---|
 | Progress round (Oct 1–6) | Test 1, Test 2, reviewer demo, truncation sweep; deck, figures, demo app | — |
-| Track A (Ritik) | Steps 1–5 and 8–10, the window analysis, Step 9's follow-up and matched onsets; FINDINGS F1–F14 | Steps 6–7 finishing today (225 of 240 kept); assemble; Steps 11–13 (train, generate, evaluate) on Sol |
-| Track B (Arsha) | Provider adapters, budget guard, runner with dry run, real tool calls checked on Voyager (Oct 4) | Keys, smoke tests, Ollama, `tool_injected` wiring, GPQA export, main runs |
-| Track C (Shrey) | Solver, reviewer, checker, `run_team.py` (replay; live on 2 items, Oct 4) | 5 items, no-tool team, second reviewer, Track B's cases |
+| Track A (Ritik) | Steps 1–5 and 8–10, the window analysis, Step 9's follow-up and matched onsets; FINDINGS F1–F14 | Steps 6–7 finishing today (237 of 240 kept at 12:00); assemble; Steps 11–13 (train, generate, evaluate) on Sol from Oct 29 |
+| Track B (Ritik until Nov 3, then Arsha) | Provider adapters, budget guard, runner with dry run, real tool calls checked on Voyager (Oct 4) | Keys, smoke tests, Ollama, `tool_injected` wiring, GPQA export, main runs |
+| Track C (Ritik until Nov 3, then Shrey) | Solver, reviewer, checker, `run_team.py` (replay; live on 2 items, Oct 4) | 5 items, no-tool team, second reviewer, Track B's cases |
 | Labels | Guide and queue (101 rows) | Labeling kit, labeling, Cohen's kappa |
 | Repo | Data off GitHub (gitignore, numbers-only summaries, pre-push hook); 283 tests | History rewrite of this branch, then push |
 
-**Gate 1 (Oct 25) was not met** as far as the repo shows (PLAN, gates): real tool calls work on
-Voyager only, there are no closed-provider keys, and the agents ran on 2 items.
+**Gate 1 (Oct 25) was missed** (recorded Oct 27; PLAN, gates): real tool calls work on Voyager
+only, there are no closed-provider keys, and the agents ran on 2 items. The fallback applies:
+Voyager and Ollama for Track B, Voyager for Track C.
 
 ## 3. What was done, in order
 

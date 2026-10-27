@@ -1,8 +1,9 @@
 # Track A: explain and fix Olmo 3 7B Think's hint following
 
-Owner: Ritik. Last updated: 2026-10-27. Steps 1–5 and 8–10 are done; Steps 6–7 (training data)
-finish Oct 27; Steps 11–13 (train, generate, evaluate) run on ASU Sol: training in week 11,
-evaluation in weeks 12–13, Gate 3 on Nov 22. Findings: `docs/FINDINGS.md` (F1–F14). Commands for
+Owner: Ritik. Last updated: 2026-10-27 12:30 MST. Steps 1–5 and 8–10 are done; Steps 6–7
+(training data) finish Oct 27; Steps 11–13 (train, generate, evaluate) run on ASU Sol as soon as
+their code is ready: the first jobs from Oct 29, evaluation from Oct 30, all done by Nov 20, Gate 3
+on Nov 22. Findings: `docs/FINDINGS.md` (F1–F14). Commands for
 every step: `docs/RUNBOOK.md`. The Sol kit: [`gpu/README.md`](gpu/README.md).
 
 ## The pipeline
@@ -94,13 +95,13 @@ hinted ones. Output: `finetune/data/train_examples.jsonl.gz`, `validation_exampl
 
 - **Base:** `allenai/Olmo-3-7B-Think` at d97e442 (the Sol weights match by sha256, F9).
 - **Versions (same data):** LoRA only; source tags only, base frozen; LoRA + tags. This separates
-  "the tags help" from "fine-tuning on this data helps". Optional fourth: LoRA only on the
-  attention of layers 15, 19 and 23 (decided at Gate 3 planning).
+  "the tags help" from "fine-tuning on this data helps". A fourth, scheduled last: LoRA only on
+  the attention of layers 15, 19 and 23 (dropped if the main evaluations aren't done by Nov 9).
 - **Wrapper:** `peft` LoRA on `q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj`,
   then `SourceTaggedLM`; the trainable parameters are the LoRA weights plus the tag table.
-- **Settings:** alpha = 2 × rank, dropout 0.05, 1e-3 for the tag table, at most 2 epochs. The grid
-  (rank 8 / 16 / 32, learning rate 1e-4 / 2e-4, picked on validation) costs 3–6× the training
-  hours; one setting (rank 16, 2e-4) is the proposal until the timing run says otherwise.
+- **Settings (decided Oct 27, one setting, no grid):** rank 16, alpha 32, dropout 0.05, LoRA
+  learning rate 2e-4, tag table 1e-3, 2 epochs. A checkpoint after each epoch; the one with the
+  lower loss on the validation slice is used, never one chosen by held-out results.
 - **Memory at 32k:** bf16, gradient checkpointing, batch 1 with accumulation; the loss in chunks of
   positions (never the full 32,768 × 100,278 score table, ~13 GB in fp32), only on the model's
   tokens (prompt, hint and tool tokens masked).
