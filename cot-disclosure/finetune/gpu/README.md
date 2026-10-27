@@ -1,7 +1,8 @@
 # Track A GPU kit: ASU Sol
 
-The look-inside steps that need the weights (Steps 8–10), and the Sol plumbing every later GPU
-step (11–13) reuses. The Sol commands below run from the clone's root
+Last updated: 2026-10-27. The look-inside steps that need the weights (Steps 8–10, done Oct 26–27),
+and the Sol plumbing every later GPU step (11–13) reuses. Steps 11–13 aren't written yet; their job
+plan is in `docs/PLAN.md` (Track A) and their status in `docs/TODO.md`. The Sol commands below run from the clone's root
 (`/scratch/ragarw68/cse598-cot-faithfulness`); the scripts move into `cot-disclosure/` and the
 project environment `/scratch/ragarw68/envs/olmo` (Python 3.11) themselves. Never use the system
 `python3` (3.6.8). The Mac commands run from `cot-disclosure/` with the repo's `.venv`.
@@ -13,9 +14,8 @@ project environment `/scratch/ragarw68/envs/olmo` (Python 3.11) themselves. Neve
 | 3. Step 9: attention to the hint | `../look/attn_to_hint.py` | the 199 hinted, answered Step 2b runs | `/scratch/ragarw68/trackA/step9/step9_attention.json` | 15–40 min |
 | 4. Step 10: activation patching | `../look/patching.py` | Step 4's 21 cases (Steps 3–4) | `/scratch/ragarw68/trackA/step10/step10_patching.json` | 1–2 h |
 
-In all, about 2–3 GPU hours: everything fits in today's session (until 6:30 pm) if it runs in
-order (smoke, 8, 9, 10). Each step resumes where it stopped, so a later batch job picks up what the
-session didn't finish.
+Smoke and Steps 8–10 ran in the Oct 26 interactive session; Step 9's follow-up (CPU only) on Oct
+26–27. Each step resumes where it stopped, so a batch job picks up what a session didn't finish.
 
 ## Rules every script follows
 
@@ -26,9 +26,14 @@ session didn't finish.
   outside a Slurm job (login nodes). Don't call `sbatch` directly.
 - **Where.** `-p public -q class -G a100:1` (class QoS: at most 24 h, 4 GPUs, 32 cores, 320 GB
   per job; 2 running and 10 queued jobs, and 960 GPU running minutes in all). Your open session
-  counts against the 960, so while it's open, run in the session. Batch jobs ask for at most
-  16 h and resume from their own checkpoints. Quick script tests: `-q debug` (15 min). Setup
-  without a GPU: `-p lightwork -q public`.
+  counts against the 960, so while it's open, run in the session. Read as Slurm counts it (time
+  limit × GPUs of the running jobs), two jobs at once can each ask for at most 8 h, one job alone
+  16 h. Batch jobs resume from their own checkpoints. Quick script tests: `-q debug` (15 min).
+  Setup without a GPU: `-p lightwork -q public`.
+- **Python.** Always the project environment's, by full path: `sol/env.sh` sets
+  `TRACKA_PY=/scratch/ragarw68/envs/olmo/bin/python`, checks it is Python 3.11 in that prefix, and
+  every script calls `"$TRACKA_PY"`, never a bare `python` (after an rsync or a changed PATH that
+  can be the system 3.6.8; a test refuses a bare call).
 - **Model.** `allenai/Olmo-3-7B-Think` from `HF_HOME=/scratch/ragarw68/hf`, offline
   (`HF_HUB_OFFLINE=1`). Every output records the snapshot's commit hash and whether it is
   `d97e442`, the revision our template came from. If it isn't, the kit says whether its files,
@@ -36,8 +41,9 @@ session didn't finish.
   its hash, and `olmo3_7b_think_d97e442.json` lists d97e442's hashes. On Oct 26, `main` was
   d97e442, and the weights were the same in 24 of the repo's 25 revisions (all but the first).
 - **Outputs.** `$TRACKA_OUT/<step>/` = `/scratch/ragarw68/trackA/<step>/`, plus a console log
-  there. Only the small summary file of each step comes back to the Mac
-  (`cot-disclosure/results/trackA/gpu/`, committed).
+  there. Only the small summary file of each step comes back to the Mac, into the gitignored
+  `cot-disclosure/results/trackA/gpu/`; `tools/export_summaries.py` copies the numbers-only ones
+  into the tracked `results/summaries/trackA/`.
 - **No API keys on Sol.** Anything compared with Voyager uses values already saved on the Mac
   (the result files below).
 
@@ -297,8 +303,9 @@ the `git ls-files` rsync). It covers:
   closest approach (resisted): full layers, and sliding layers where the sentence is within reach.
   This is biased, because the closest approach is picked where the hint is strongest.
 - the matched version: the attention rise at every lead onset after the first fifth, permanent
-  (the takeover) vs temporary, picked the same way in every run (`onsets_matched`,
-  `step9_onsets.png`)
+  (the takeover) vs temporary, picked the same way in every run, against a placebo (every other
+  sentence after the first fifth, not within 2 of an onset) (`onsets_matched`, `step9_onsets.png`;
+  docs/FINDINGS.md, F14)
 
 Every interval resting on fewer than 5 questions is replaced by "too few questions", and every
 group shows its questions as well as its runs.
@@ -381,6 +388,14 @@ redrawn on the Mac (`python finetune/look/patching.py --plot results/trackA/gpu/
 and the readout computed there (`--handoff`, see "Results back"; the hint's distance to the answer
 is rebuilt with the tokenizer alone).
 
+## Steps 11–13 (not written yet)
+
+Training, tagged generation and evaluation will use the same plumbing: a `.sbatch` per job under the
+course account, `sol/submit.sh <job>`, `sol/run.sh` inside the job, outputs in
+`/scratch/ragarw68/trackA/<step>/`, checkpoints so a job resumes, summaries back by rsync. The order
+(timing run and vLLM tag check first, then training, then evaluation two jobs at a time), the GPU
+hours (35–89, `finetune/gpu_estimate.py`) and the dates are in `docs/PLAN.md` (Track A).
+
 ## Later steps on the trained versions (Phase 6)
 
 Steps 9 and 10 take `--model DIR` (a merged or wrapped trained version), `--runs-from` (that
@@ -390,3 +405,6 @@ Outputs then go to their own `--out` directory.
 **Mechanism check (Step 13).** Rerun Step 10 on the best version and run `--handoff` on its
 summary. Report whether the drops in hint-token restoration at layers 15, 19 and 23 shrink: they
 are 0.90 [0.85, 0.96] of the total drop at cut (ii) in the base model.
+Rerun Step 9 on its own runs (`--model`, `--runs-from`, then `--followup`) and report whether attention
+in heads L19H31, L23H17 and L15H31 drops, or stays while the answer stops following (docs/FINDINGS.md,
+mechanism paragraph).

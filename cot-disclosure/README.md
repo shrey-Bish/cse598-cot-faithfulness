@@ -1,8 +1,10 @@
 # cot-disclosure: the code
 
-Everything that calls the models, saves the runs, computes the numbers and runs the
-demo. What the project found so far is in [`../docs/OVERVIEW.md`](../docs/OVERVIEW.md);
-what comes next is in [`../docs/PLAN.md`](../docs/PLAN.md).
+Last updated: 2026-10-27. Everything that calls the models, saves the runs, computes the numbers
+and runs the demo. What the project did is in [`../docs/OVERVIEW.md`](../docs/OVERVIEW.md), what it
+found in [`../docs/FINDINGS.md`](../docs/FINDINGS.md), what comes next in
+[`../docs/PLAN.md`](../docs/PLAN.md), and how to run each step in
+[`../docs/RUNBOOK.md`](../docs/RUNBOOK.md).
 
 ## Setup
 
@@ -33,13 +35,15 @@ Only public benchmark questions go to outside providers.
 ## Commands
 
 Run from the repo root unless noted. Everything that calls a model is resumable and
-appends to `results/`. Nothing overwrites a saved run.
+appends to `results/`. Nothing overwrites a saved run. Produced data stays off GitHub:
+`results/trackA/`, `results/trackB/`, `results/trackC/` and `finetune/data/` are gitignored, and
+numbers-only summaries go in `results/summaries/` (`tools/export_summaries.py`).
 
 **Recompute numbers (no API calls):**
 
 ```bash
 .venv/bin/python cot-disclosure/progress/analyze_progress.py      # docs/progress/RESULTS_SUMMARY.json, figures F1-F9, LABEL_QUEUE.csv
-cd cot-disclosure && ../.venv/bin/python -m pytest -q tests        # 61 tests, no network
+cd cot-disclosure && ../.venv/bin/python -m pytest -q              # 283 tests, no network
 ```
 
 **The demo app:**
@@ -97,13 +101,14 @@ rerun with the same seed reuses them. Delete `cache/` for fresh calls.
 | `progress/run_trackB.py` | Track B runner with dry run and budget guard (`configs/trackB.yaml`) |
 | `progress/build_evidence_viewer.py`, `take_screenshots.py`, `extract_slides.py`, `make_bundle.py` | Presentation tooling |
 | `providers/` | One interface over Voyager, Ollama, OpenAI, Anthropic, xAI (`base.py`); `budget.py` caps and logs spend |
-| `tools/answer_key.py` | Hint conditions (`none`, `user`, `tool_pasted`, `tool_real`, `system`) and the `lookup_answer_key` tool |
+| `tools/answer_key.py` | Hint conditions (`none`, `user`, `tool_pasted`, `tool_real`, `tool_injected`, `system`) and the `lookup_answer_key` tool |
+| `tools/export_summaries.py`, `prepush_check.py`, `untrack_produced.py` | Numbers-only summaries (no question or reply text); the pre-push check; the history rewrite |
 | `agents/` | Track C: `solver.py`, `reviewer.py`, `checker.py`, `run_team.py` |
-| `finetune/` | Track A: `build_dataset.py`, `source_tags.py` ([README](finetune/README.md)) |
+| `finetune/` | Track A: Steps 1–10, the dataset, source tags, the Sol kit ([README](finetune/README.md), [GPU kit](finetune/gpu/README.md)) |
 | `configs/` | `models.yaml` (provider facts), `prices.yaml`, `trackB.yaml` |
 | `ui/` | The demo app ([README](ui/README.md)) |
 | `data/progress/mmlupro_30.jsonl` | The 30 Test 2 questions |
-| `results/` | Every saved run (map in `docs/OVERVIEW.md` §8) |
+| `results/` | Every saved run (map in `docs/OVERVIEW.md` §10); `results/summaries/` is the tracked, numbers-only part |
 
 ## Voyager facts that matter for new code
 

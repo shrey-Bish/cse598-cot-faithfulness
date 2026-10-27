@@ -1,7 +1,8 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26. Design and plans: [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
+status. Started 2026-10-26; last updated 2026-10-27 (F14 and T9 added; F10's closest-approach
+reading refuted). Design and plans: [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand

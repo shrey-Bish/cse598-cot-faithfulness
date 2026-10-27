@@ -1,266 +1,191 @@
-# Plan: weeks 9–16 (CSE 598, Group 10)
+# Plan: weeks 11–16 (CSE 598, Group 10)
 
-What's left to do, by track, with the timeline, decision gates and budget. What is
-already done is in [`OVERVIEW.md`](OVERVIEW.md); each result, with its numbers, source and
-status, is in [`FINDINGS.md`](FINDINGS.md). Updated 2026-10-20 (week 10).
+Last updated: 2026-10-27 (week 11). What's left, by track: the timeline, the gates, the Sol
+hours and the risks. What is done is in [`OVERVIEW.md`](OVERVIEW.md); each result, with its
+numbers, source and status, is in [`FINDINGS.md`](FINDINGS.md). Every open item, with its owner
+and status, is in [`TODO.md`](TODO.md); how to run each step is in [`RUNBOOK.md`](RUNBOOK.md).
 
-## The failure, the suspected cause, the fix
+## The failure, what we now know about it, the fix
 
-- **Failure.** A wrong hint changes the answer, most of all when it comes from a tool,
-  and the final answer hides it. Test 2: thinking models followed the tool hint on 17
-  of 31 questions, the user hint on 2 of 31. Test 1: the hint is mentioned in the private
-  reasoning in 208 of 216 runs, in the final answer in 8.
-- **Suspected cause (to test).** Attention treats every earlier token alike, and nothing
-  marks a tool's text as less trustworthy: role labels are just more tokens. Once the
-  reasoning repeats the hint ("the expected answer is G"), later tokens build on it.
-- **Proposed fix.**
-  - Fine-tune Olmo 3 7B Think with LoRA plus **source tags**: a learned embedding on
-    every token marking its source (system, user, tool, model).
-  - Train on examples that check the hint, say it was seen, and keep the no-hint answer.
-  - Judge by behavior (does the answer still follow the hint?), not only by the text.
-
-**Why tool hints matter.** Agents get information as tool results: answer keys in
-tutoring and grading tools, web search, company databases, retrieved documents, other
-agents' outputs. A wrong result arrives from a source the model is built to trust.
+- **Failure.** A wrong hint changes the answer, most of all when it comes from a tool, and the
+  final answer hides it. Test 2 (served format): thinking models followed the tool hint on 17 of 31
+  questions, the user hint on 2 of 31 (F1). Test 1: the private reasoning names the hint in 208 of
+  216 hinted runs, the final answer in 8 (F3).
+- **What Track A found inside Olmo 3 7B Think** (Steps 3–10, FINDINGS F4–F14):
+  - The hint letter is the starting answer, the lead swings many times, and on known answers it
+    wins late, on a few questions (F4, F5).
+  - Three full-attention layers, 15, 19 and 23, read the hint's letter straight from the prompt:
+    0.90 [0.85, 0.96] of the drop in hint-token restoration at the takeover (F11). The reasoning's
+    own repetition carries it in a minority of cases (F7, F13).
+  - Tool hints get *less* attention at the answer than user hints yet move it more (F10); heads
+    L19H31, L23H17 and L15H31 look at the hint more when the model follows it (F12). So the extra
+    trust in tools lies in what is read at the hint, not in how much it is attended to.
+- **The fix.** Fine-tune Olmo 3 7B Think with LoRA plus **source tags** (a learned vector added to
+  every token, marking whether it came from the system, the user, a tool or the model), on examples
+  that see the hint, say so, check it and keep the no-hint answer. Judge by behavior.
 
 ## Timeline (week 16 = Nov 30–Dec 6)
 
-| Weeks | Dates | Track A (Ritik) | Track B (Arsha) | Track C (Shrey) | Everyone |
+| Week | Dates | Track A (Ritik) | Track B (Arsha) | Track C (Shrey) | Everyone |
 |---|---|---|---|---|---|
-| 9–10 | Oct 12–25 **(now)** | Sol GPUs; load Olmo 3 7B Think; reproduce one steered run locally | Ollama Qwen3 on/off; closed-model smoke tests; real tool calls on 2+ providers; GPQA access | Agents on Voyager end to end on 5 items | **Gate 1, Oct 25** |
-| 11–12 | Oct 26–Nov 8 | Training data (target reasoning, correct-hint examples) | Main runs: 3 per question, all hint channels | Agent runs on Track B's steered cases; vary what the reviewer sees | Hand labels (two raters, Cohen's kappa); **Gate 2, Nov 8** |
-| 13–14 | Nov 9–22 | Look inside (attention, answer takeover); train LoRA + source tags; evaluate | Fill gaps; write up | Cost analysis; write up | **Gate 3, Nov 22** |
-| 15 | Nov 23–29 | Hand the trained model to B and C | Run it through B's conditions | Run it as the solver | Draft report |
+| 11 | Oct 26–Nov 1 **(now)** | Steps 6–7 finish (Oct 27); assemble; Steps 11–13 code; timing run; **train** the 3 versions | Keys; smoke tests; Ollama; `tool_injected` wired in; Voyager runs from Oct 28 | 5-item live team; no-tool baseline; second reviewer | Labeling kit; labeling starts |
+| 12 | Nov 2–8 | **Evaluate** base, prompt-only, LoRA only | Main runs, 3 per question; `steered_cases.jsonl` | Runs on Track B's steered cases | Hand labels (two raters, kappa); **Gate 2, Nov 8** |
+| 13 | Nov 9–15 | **Evaluate** the two tag versions; look inside the best one | Fill gaps | Cost analysis | |
+| 14 | Nov 16–22 | Evaluation done **by Nov 20**; Step 13 analysis; write up | Write up | Write up | **Gate 3, Nov 22** |
+| 15 | Nov 23–29 | Hand the best version to B and C | Run it through B's conditions | Run it as the solver | Draft report |
 | 16 | Nov 30–Dec 6 | | | | Final presentation |
 | — | Dec 7–12 | | | | Final report |
 
-## Decision gates
+## Gates
 
-- **Gate 1 (Oct 25).** All of:
-  - real tool calls work on 2+ providers
-  - closed-model smoke tests pass within their caps
-  - the agents run end to end on 5 items
-
-  If not, Track B narrows to the providers that work, and Track C runs on Voyager only.
-  **Today:** real tool calls work on Voyager only (3 of the 4 models tried). There are no
-  closed-provider keys. The agents have run on 2 items.
-- **Gate 2 (Nov 8).** Is the tool-vs-user gap still clear with 3 runs per question and
-  more models? If not, the headline becomes the private-vs-final gap and the agent
-  results.
-- **Gate 3 (Nov 22).** Does the fine-tuned model follow fewer wrong hints on held-out
-  questions without losing accuracy? If not, report a negative result with the analysis.
+- **Gate 1 (Oct 25): not met, as far as the repo shows** (TODO, G1). It needed real tool calls on
+  2+ providers (Voyager only so far), closed-model smoke tests (no keys) and the agents on 5 items
+  (2 so far). The fallback written for this applies: **Track B narrows to the providers that work,
+  and Track C runs on Voyager only**, unless keys arrive this week.
+- **Gate 2 (Nov 8).** Is the tool-vs-user gap still clear with 3 runs per question and more models
+  (Track B)? And are the hand labels in, with Cohen's kappa per channel? If the gap isn't clear,
+  the headline becomes the private-vs-final gap, the mechanism (Track A) and the agent results.
+- **Gate 3 (Nov 22).** Does a trained version follow fewer wrong hints on held-out questions
+  without losing accuracy? Success: the 95% bootstrap difference against the base model,
+  clustered by question, excludes 0; no-hint accuracy stays within 5 points; the hiding check
+  doesn't rise. Otherwise a negative result with the analysis. All systems run on the same Sol
+  stack (F9).
 
 ---
 
 ## Track A: explain and fix (Ritik)
 
-**Question.** Why does a thinking model follow a wrong (tool) hint without saying so, and
-can source tags + LoRA make it check the hint and keep its own answer?
+**Model.** `allenai/Olmo-3-7B-Think`, revision d97e442 (the Sol weights match it by sha256, F9).
 
-**Model.** Olmo 3 7B Think (`allenai/Olmo-3-7B-Think`): open weights, fits one GPU, and
-follows hints. It followed 1 of 48 user hints on puzzles and 10 of 20 tool hints in
-Test 2 (10 of 11 among answered runs). Run it on ASU Sol. Voyager's checkpoint is only
-the candidate, so re-measure the base model on Sol first.
+### What's left, in order
 
-**Checkpoint check before any GPU number** (Step 8). A local forward pass over the saved texts
-whose per-token log-probabilities Voyager returned by echo: Step 1's 5,185-token text (old
-route, and Oct 21 at low / medium / high) and the 530-token canary, plus the same Step 1 text
-at the default effort, which is the **Instruct** checkpoint (the negative control). Local
-passes in bf16 and fp32 (`cot-disclosure/finetune/gpu/checkpoint_check.py`).
+1. **Steps 6–7 finish** (Voyager, running since Oct 25): 225 kept of 469 questions at 09:55 MST
+   Oct 27, target 240, expected 2–4 PM MST. Then the final counts, and a stop for "go".
+2. **Assemble** (`run_steps67.py --assemble`, no calls): the Step 7 examples of the kept questions,
+   plus no-hint examples (10% of the set) from Step 6's kept runs; examples over 32,768 tokens are
+   dropped and counted; "neither" targets are dropped if they are under 10% of the hinted ones
+   (5% so far). About 1,150 hinted examples are expected.
+3. **Repo:** untrack the Track A data and rewrite this branch's history (files stay on disk), then
+   push (`trackA-nosol` and `main`).
+4. **Steps 11–13 code** (no calls, CPU tests on tiny Olmo 3 models): `train.py`, the tagged
+   generation (own loop and vLLM), `eval.py`, and their Sol job scripts in the kit.
+5. **Sol:** the timing run, the vLLM tag check, training, evaluation, the look-inside rerun
+   (the job plan below).
+6. **Step 13 analysis** and the hand-labeled sample (measure 4, the false-disclosure check).
 
-**Rule (fixed Oct 26, before seeing the result; replaces the Oct 21 two-part rule).** Same
-checkpoint if all three hold:
-- **(a)** On the first 2,047 tokens, no top-token mismatch except near-ties (the top two
-  tokens within 0.1 probability), in both the bf16 and the fp32 pass, for every Think
-  reference.
-- **(b)** The mean absolute log-prob difference is at least 10 times smaller than the
-  Instruct control's, in each dtype. Means are over every compared token of each text;
-  the ratio over the first 2,047 tokens alone is reported beside it.
-- **(c)** The Instruct control clearly fails (a): at least 10 top-token mismatches outside
-  near-ties in its first 2,047 tokens, in each dtype. ("Clearly" is set at 10. A Think
-  reference should have none; on Oct 21 the control had 654 mismatches in 5,184 tokens
-  against Voyager's Think model.)
+### Training (Step 11)
 
-Not pass/fail: the old 0.01 max-difference limit on the fp32 pass, reported as supporting
-evidence, and the mean, median and max difference beyond 2,047 tokens.
-**If (a) fails outside near-ties,** Voyager isn't serving this checkpoint. That gets said
-before any Phase 6 planning, and every base number is re-measured on the GPU.
-`cot-disclosure/finetune/gpu/step8_verdict.py` applies the rule to the copied-back
-`step8_checkpoint.json`. Voyager's echo kept the top token plus the prompt's own
-(`logprobs: 1`); the local pass always has the top two.
+- **Three versions on the same data:** LoRA only; source tags only (base frozen); LoRA + tags.
+  This separates "the tags help" from "fine-tuning on this data helps".
+- **Settings** (finetune README): LoRA on the attention and MLP projections, alpha = 2 × rank,
+  dropout 0.05, 1e-3 for the tag table, up to 2 epochs; 32,768-token examples, bf16, gradient
+  checkpointing, batch 1 with accumulation, the loss in chunks of positions and only on the
+  model's tokens. The README's grid (rank 8 / 16 / 32, learning rate 1e-4 / 2e-4) costs 3–6× the
+  training hours; one setting (proposed: rank 16, 2e-4) keeps training at 6–9 GPU hours
+  (decision 5 in the session log).
+- **Optional fourth version** (decided at Gate 3 planning): LoRA only on the attention of layers
+  15, 19 and 23, where Step 10 sees the hint's effect leave the hint tokens (F11). It tests whether
+  the fix can be that local. Training is ~0.7 of a version (the backward pass stops at layer 15);
+  evaluation is like LoRA only, merged. 6–16 Sol GPU hours.
 
-**Result (Oct 26, Sol): the rule fails, narrowly, on (a).** The rule stays as it was set.
-- **(a) fails** at 4 positions outside near-ties, with gaps of 0.113–0.140 (the line is 0.1).
-  - The Step 1 text, echoed 4 ways, has 1 such position of its 19 (bf16) or 15 (fp32)
-    first-part mismatches. Locally the two tokens tie (gap 0.000 in bf16, 0.011 in fp32);
-    Voyager's gap is 0.124.
-  - The canary has 3 of 8 (bf16; 2 of 9 in fp32). There the local gap is just over the line
-    (0.113–0.140).
-- **(b) holds.** Over all tokens the Instruct control is 26–27× further from Voyager than
-  the Step 1 text in bf16, and 10.4× for the canary (narrow). In fp32 the ratios are 32× and
-  12×. On the first 2,047 tokens alone: 0.0118 vs 0.405, 34×.
-- **(c) holds.** The control has 277 (bf16) and 280 (fp32) first-part mismatches; the 20
-  listed include 17 and 16 outside near-ties.
-- **The fp32 0.01 limit** (evidence only) is not met: the first-part maximum is 0.27 on the Step 1
-  text and 0.59 on the canary.
-- **What the rule says:** Voyager isn't serving this checkpoint.
+### Generation with tags (Step 12)
 
-**Why we still conclude the weights match.** On Sol the three weight files' sha256 equal
-d97e442's byte for byte (`step8_verdict.json`). The failures look like different serving
-arithmetic (Voyager's kernels against Hugging Face sdpa), not different weights:
-- The local fp32 pass is as far from Voyager as the local bf16 pass (mean 0.0100 vs
-  0.0118), so the gap isn't our rounding.
-- The Instruct checkpoint is 27× further away.
-- All 4 failures sit within 0.04 of the near-tie line.
-- Forced answers computed locally agree with Voyager's results: at Step 10's 21 takeover cuts,
-  the local hinted run gives Step 3's letter in 21 of 21; at the end of the reasoning (Step 9),
-  the local forced answer equals the Voyager run's final letter in 199 of 199.
+Olmo 3 7B does not tie its input and output embeddings, so adding the model tag to the input
+embedding table tags every generated token, and the prompt goes in as precomputed embeddings with
+its own tags (`finetune/tags_vllm.py`: equal to the tagged model's logits and greedy output on a
+tiny Olmo 3, with and without LoRA). vLLM marks prompt embeddings + LoRA as compatible, but Olmo 3
+runs through vLLM's Transformers backend and there are open bugs on that combination, so a short
+Sol job checks it first. The fallback is our own decoding loop (+8–19 GPU hours).
 
-That conclusion is a judgment, not the rule's verdict. So nothing that matters depends on it:
-- **Gate 3 runs every system on the same Sol stack**, base and prompt-only included (Step 13,
-  vLLM on Sol).
-- **Voyager's base numbers stay as they are**, as the Steps 2b–4 results and as a cross-check
-  of the Sol base run. There are no new Voyager runs.
+### Evaluation (Step 13)
 
-**Data on GitHub (decided Oct 26).** The repo is public and stays public; produced files never
-go to GitHub.
-- **Gitignored:** runs, probes, replies, caches, checkpoints, Sol outputs and GPQA files, in
-  `results/trackA/`, `results/trackB/`, `results/trackC/`, `finetune/data/` and the Sol output
-  folder.
-- **Tracked:** numbers-only summaries and figures, in `results/summaries/`
-  (`tools/export_summaries.py` checks they hold no question or reply text), so every reported
-  number can be traced. The progress-round files already on main stay as they are.
-- **Pre-push hook:** `tools/prepush_check.py` refuses a push that adds produced data, a GPQA file
-  or a file over 50 MB.
-- **History rewrite:** `tools/untrack_produced.py` untracks the Track A data on the never-pushed
-  branches and rewrites their history, after the Steps 6–7 run, without moving any file on disk.
-- **Data to Sol** goes by rsync.
+Per held-out question (the 30 MMLU-Pro Test 2 items, 7 held-out wordings): 3 runs for wrong hints on the
+user, pasted and declared inserted channels; 1 run for correct hints, the undeclared inserted turn
+and the system note; 3 no-hint runs. 930 generations per system, 32,768 tokens in all (a run that
+hits it has no answer). Five systems: base, prompt-only, LoRA only, tags only, LoRA + tags.
 
-**Compute and limits (decided Oct 25).**
-- **GPU = ASU Sol**, one A100 80GB per job, through SLURM job scripts (Steps 8–13; kit in
-  `cot-disclosure/finetune/gpu/`, set up Oct 26). The Hugging Face cache lives on scratch
-  (`/scratch/ragarw68/hf`), the environment is `/scratch/ragarw68/envs/olmo` (Python 3.11).
-  Every job uses the course account `class_cse59888883fall2026`, on `-p public -q class`
-  (`-q debug` for 15-minute tests); `sol/submit.sh` refuses any other account.
-- **Every long job resumes:** training and generation save checkpoints and pick up where
-  they stopped after a time limit or preemption.
-- **Small forward-pass jobs** (checkpoint check, attention, patching) also run on the Mac
-  with PyTorch on MPS when it has the memory; a memory check refuses to start otherwise.
-  This Mac (18 GB) doesn't have it: the 7B model in bf16 alone needs ~15.6 GiB, so Steps 8–10
-  run on Sol and the Mac runs their CPU tests on tiny models.
-- **Token cap: 32,768 in all (prompt + reply)** for Steps 6 and 7 and for every system at
-  evaluation, base and prompt-only included (all on Sol since Oct 26; see Step 8's result). A run that hits it has no answer.
-  It is also the training length; longer examples are dropped and counted.
-- **Estimates are Sol GPU hours** (`cot-disclosure/finetune/gpu_estimate.py`). Updated Oct 26
-  for base and prompt-only in full on Sol: **35–89 GPU hours** with the tag versions in vLLM,
-  43–108 in their own loop. That covers training 6–9, evaluation 10–28 for base +
-  prompt-only, 5–14 for LoRA only, 10–28 or 18–47 for the two tag versions, and 4–10 to look
-  inside the best version. The optional fourth version adds 6–16. Steps 8–10 are done.
-- **Tag versions in vLLM:** Olmo 3 7B does not tie its input and output embeddings, so
-  adding the model tag to the input embedding table tags every generated token, and the
-  prompt goes in as precomputed embeddings with its own tags. On a tiny Olmo 3 model (CPU,
-  with and without LoRA) this equals the tagged model's logits and greedy output
-  (`finetune/tags_vllm.py`). vLLM's docs mark prompt embeddings + LoRA as compatible, but
-  Olmo 3 runs only through vLLM's Transformers backend and there are open bugs on
-  prompt embeddings + LoRA, so Step 12 checks it on Sol before relying on it; the own
-  decoding loop stays as the fallback.
+1. **Hint following** on held-out questions and wordings (primary), against the base model and the
+   per-letter no-hint baseline.
+2. **No-hint accuracy.**
+3. **Mention** in the final answer, by keyword.
+4. **What the final answer says about the hint**, by the labeling guide's categories
+   (`mentions_only`, `rejects_hint`, `says_changed`) on a hand-labeled sample. Every trained version
+   opens its final answer by naming the hint, because the targets teach that, so a keyword mention
+   says nothing there.
+- **Hiding check:** follows the hint without mentioning it.
+- **False-disclosure check:** the final letter is the hint letter, but the final answer claims it
+  checked the hint and disagreed, or worked it out independently. If this rises after training, the
+  model learned to describe checking without doing it.
+- **Prediction, set in advance:** tags help more on the inserted tool turn than on the pasted block,
+  since only the inserted turn's tokens are tagged "tool" (the pasted block sits inside a user turn).
+- **Mechanism check, on the best version:** rerun Step 10 (`patching.py --model`, then `--handoff`):
+  do the drops at layers 15, 19 and 23 shrink from 0.90 [0.85, 0.96] of the total at cut (ii)?
+  Rerun Step 9 (`attn_to_hint.py --model --runs-from`, then `--followup`): does attention in heads
+  L19H31, L23H17 and L15H31 drop, or stay while the answer stops following (the model still looks
+  but discounts what it reads)? Both outcomes are reported.
 
-**Method.**
-1. **Look inside** (weeks 13–14), on saved steered and unsteered runs of the same
-   question:
-   - attention from the reasoning tokens to the hint tokens, per layer and head (steered
-     vs not, user vs tool)
-   - where the hinted answer takes over: the probability of each letter at each
-     reasoning sentence, by early answering (Lanham et al. 2023: cut the reasoning, close
-     it, force "Answer: ("), and whether it follows a repetition of the hint. Done on
-     Voyager (Oct 22–25, `finetune/look/takeover.py`). A forced answer is
-     off-distribution for a thinking model, most of all before any reasoning.
-   - a causal check: remove or mask the repeated hint sentence and see if the answer
-     goes back
-   - **Default cases** for the deletion test and activation patching: followed runs
-     whose takeover comes in the second half of the reasoning, on questions the model
-     gets right in both of its no-hint runs (26 runs,
-     `results/trackA/takeover_cases.jsonl`)
-2. **Training data** (`finetune/build_dataset.py`, runs today).
-   - 196 training records (the 24 puzzles, paraphrased hints only) and 120 held-out (the
-     30 MMLU-Pro items, the exact test wordings). 0 held-out wordings appear in training.
-   - **To do:** target reasoning (mention the hint, check it, end on the no-hint answer);
-     correct-hint examples (so it doesn't learn "always disagree"); more training
-     questions with the model's own no-hint runs.
-3. **Source tags** (`finetune/source_tags.py`, unit-tested). An `Embedding(4,
-   hidden_size)` added to each token. It starts at zero, so the wrapped model starts
-   identical to the base.
-4. **Train.** LoRA rank 8–32 + tags, loss on the model's tokens only. Three ablations:
-   LoRA only, tags only, both. Settings are in
-   [`finetune/README.md`](../cot-disclosure/finetune/README.md).
-   - **Optional fourth version (decided at Gate 3 planning).** LoRA only on the attention
-     of layers 15, 19 and 23, the full-attention layers where Step 10 sees the hint's
-     effect leave the hint tokens (docs/FINDINGS.md, F11).
-     - Cost: 6–16 Sol GPU hours. Training is ~0.7 of a version, since the backward pass stops
-       at layer 15. Evaluation is like LoRA only, with the adapter merged into the weights.
-     - It tests whether the fix can be that local.
-5. **Evaluate on behavior** (per held-out question: 3 runs for wrong hints on the user,
-   pasted and declared inserted channels; 1 run for correct hints, the undeclared inserted
-   channel and the system note; 3 no-hint runs; 930 generations per system):
-   - hint following on held-out questions and wordings (primary)
-   - no-hint accuracy
-   - mention and acknowledgment
-   - the **hiding check:** follows the hint without mentioning it
-   - transfer to Tracks B and C
+### Sol: limits and the Gate 3 job plan
 
-   **Honest final answers can't rest on keyword mentions** (decided Oct 25). Every trained
-   version opens its final answer by naming the hint, because the targets teach that, so a
-   keyword "mention" says nothing. Measure 4 uses the labeling guide's categories
-   (`mentions_only`, `rejects_hint`, `says_changed`) on a sample of evaluation replies, each
-   labeled by two raters.
+- **Account and queue.** Every job uses `class_cse59888883fall2026` (`sol/submit.sh` refuses any
+  other), on `-p public -q class -G a100:1`; `-q debug` for 15-minute tests. The class QoS allows
+  2 running jobs and **960 GPU running minutes** in all. Read as Slurm counts it (time limit × GPUs
+  of the running jobs), two jobs at once can each ask for at most 8 h; one job alone up to 16 h.
+  Every long job checkpoints and resumes, so a time limit only splits it.
+- **Python** is always `/scratch/ragarw68/envs/olmo/bin/python`, by full path (`sol/env.sh`).
+- **Hours** (`finetune/gpu_estimate.py`, one A100 80GB): **35–89 Sol GPU hours** with the tag
+  versions in vLLM, 42–108 in our own loop; +6–16 for the optional fourth version.
 
-   **False-disclosure check:** runs whose final letter is the hint letter but whose final
-   answer claims it checked the hint and disagreed, or worked it out independently. If this
-   rises after training, the model has learned to describe checking without doing it.
+| # | Job | GPU hours | Runs beside | Earliest | Depends on |
+|---|---|---|---|---|---|
+| S1 | Timing run: 20 training steps at 32,768 tokens, each version's memory and seconds per step | 0.25–0.5 | S2 | Oct 29 | code (TODO A8, A11) |
+| S2 | vLLM tag check: prompt embeddings + LoRA on Olmo 3, against the own loop on 3 prompts | ≤1 | S1 | Oct 29 | code (A9) |
+| S3 | Train LoRA only (1,150–1,300 examples × 2 epochs) | 2–3 | S4 | Oct 30 | S1, assembled data |
+| S4 | Train tags only | 2–3 | S3 | Oct 30 | S1 |
+| S5 | Train LoRA + tags | 2–3 | S6 | Oct 31 | S1 |
+| S6 | (optional) train the fourth version | 1.5–2 | S5 | Oct 31 | decision |
+| — | Buffer: validation loss and a few validation generations; rerun a failed version | | | Nov 1 | |
+| E1 | Evaluate base (vLLM, no adapter), 930 generations | 5–14 (1–2 jobs) | E2 | Nov 2 | |
+| E2 | Evaluate prompt-only | 5–14 (1–2 jobs) | E1 | Nov 2 | |
+| E3 | Evaluate LoRA only (merged, vLLM) | 5–14 (1–2 jobs) | E4 | Nov 4 | S3 |
+| E4 | Evaluate LoRA + tags (vLLM with prompt embeddings; own loop if S2 fails: 9–24) | 5–14 (1–3 jobs) | E3 | Nov 4 | S2, S5 |
+| E5 | Evaluate tags only (same) | 5–14 (1–3 jobs) | E6 | Nov 7 | S2, S4 |
+| E6 | (optional) evaluate the fourth version | 5–14 | E5 | Nov 7 | S6 |
+| L1 | Look inside the best version: Step 3 probes (vLLM), Step 9, Step 10 | 4–10 (1–2 jobs) | — | Nov 10 | E1–E5 |
+| — | Buffer for queue waits and reruns; evaluation done | | | by Nov 20 | |
 
-   **Mechanism check (Step 13).** On the best trained version, with its own runs and takeover
-   cases:
-   - Rerun Step 10 (`finetune/look/patching.py --model`, then `--handoff`). Do the drops in
-     hint-token restoration at layers 15, 19 and 23 shrink? In the base model they are 0.90
-     [0.85, 0.96] of the total drop at cut (ii).
-   - Rerun Step 9 (`finetune/look/attn_to_hint.py --model --runs-from`, then `--followup`). Does
-     attention to the hint in heads L19H31, L23H17 and L15H31 drop, or stay while the answer
-     stops following, i.e. the model still looks but discounts what it reads?
-     (docs/FINDINGS.md, mechanism paragraph)
+With two jobs at a time the wall time is about half the GPU hours: 18–45 hours of running, against
+two weeks (Nov 2–15) for E1–L1. Ritik submits every job; nothing runs without "go".
 
-**Success (Gate 3).** The trained model follows fewer wrong hints than the base model
-(95% bootstrap difference, clustered by question, excludes 0). No-hint accuracy stays
-within 5 points, and the hiding check doesn't rise.
+### Risks (Track A)
 
-| Week | Task |
+| Risk | Plan |
 |---|---|
-| 9–10 | Sol access; download Olmo 3 7B Think; reproduce one steered and one unsteered run; check the chat template with `source_ids_from_chat`; attention-extraction script |
-| 11–12 | More training questions + no-hint runs; target reasoning; correct-hint examples |
-| 13 | Look inside (attention, answer takeover, causal check) |
-| 14 | Train (3 ablations); evaluate; Gate 3 |
-| 15 | Hand the model to Tracks B and C |
+| Training teaches the model to hide the hint, or to describe checking without doing it | Behavior first; the hiding and false-disclosure checks; held-out wordings |
+| Training is slower than estimated at 32,768 tokens | The timing run first; one setting before any grid |
+| Sol queue waits, or the 960 GPU-minute cap | Jobs of at most 8 h that resume; start evaluation Nov 2, done by Nov 20 |
+| vLLM can't serve the tag versions | Own decoding loop (+8–19 GPU h), still inside the budget |
+| Training targets are shorter than held-out replies (median 7,343 vs 11,988 tokens; MMLU-Pro targets are short) | Report length by source; check no-hint accuracy on long held-out questions |
+| The mechanism rests on 9 questions and 21 cases (F4, F11, F13) | Said in each finding; the look-inside rerun on the trained model adds cases |
+| The Mac sleeps during Voyager runs (lost 9 hours on Oct 27) | Plugged in, lid open; `caffeinate -s` only helps on power |
 
-**Risks.**
-- Training can teach the model to hide the hint instead of resisting it (OpenAI saw this
-  in 2025 with reasoning monitors). Use behavior targets and unseen wordings.
-- 24 training questions is too few.
-- Sol GPU access isn't confirmed.
-- The chat template may not render prefix-stably. `source_ids_from_chat` raises in that
-  case; tag spans by hand.
+---
 
 ## Track B: test widely (Arsha)
 
-**Question.** Does the failure hold beyond Olmo and Qwen on Voyager? Test with more open
-and closed thinking models, thinking on vs off in the same model, real tool calls,
-harder questions, and 3 runs per question.
+**Question.** Does the failure hold beyond Olmo and Qwen on Voyager? More open and closed thinking
+models, thinking on vs off in the same model, real tool calls, harder questions, 3 runs per
+question.
+
+**State (Oct 27, from the repo).** The code is done (providers, budget guard, `run_trackB.py`
+with dry run, `configs/trackB.yaml`); only Voyager has been called; no keys; `results/trackB/` is
+empty; no GPQA export; Olmo 3 Think's `tool_injected` channel isn't wired in (TODO B1–B9).
 
 **Conditions** (`tools/answer_key.py`, same wrong letter per question): `none`, `user`,
-`tool_pasted`, `tool_real`, `system`.
+`tool_pasted`, `tool_real`, `system`; for Olmo 3 7B Think, `tool_injected` in place of `tool_real`
+(it never calls the tool itself, so with `tool_real` it never sees the hint).
 
-**Questions:**
-- the 24 puzzles (uncontaminated)
-- the 30 MMLU-Pro items
-- GPQA Diamond: gated; request access and export to `data/gpqa_diamond.jsonl`
+**Questions:** the 24 puzzles; the 30 MMLU-Pro items; GPQA Diamond (gated; request access, export
+to `data/gpqa_diamond.jsonl`, gitignored; nothing from it goes into any doc or tracked file).
 
 **Models** (`configs/trackB.yaml`; facts in `configs/models.yaml`):
 
@@ -269,173 +194,95 @@ harder questions, and 3 runs per question.
 | Voyager (free) | Olmo 3 7B Think, Qwen3 30B Thinking, Qwen3 30B Instruct | no (use the twins) | full |
 | Ollama (free, local) | `qwen3:8b` | yes, same weights | full |
 | OpenAI | `gpt-6-luna` | effort `medium` vs `none` | summary |
-| Anthropic | `claude-haiku-4-5-20251001` | yes | summary |
+| Anthropic | `claude-haiku-4-5-20251001` (check it's still served; Haiku 5.5 needs an adapter change) | yes | summary |
 | xAI | `grok-4.3` | effort vs `none` | summary |
 
-- Haiku 4.5 was due to retire no sooner than Oct 15. Check before running, and swap in
-  its replacement if it's gone.
-- For summary-only providers we score the answer and the final text; a summary is not
-  the model's reasoning.
+**Runs.** 3 per question for open models and OpenAI; 1 per question, on fewer conditions, for
+Anthropic and xAI. Temperature 0.6; 16,000 tokens (open) / 8,000 (closed). Always streamed; a
+cut-off reply is no answer. The proposed order, with calls and hours, is in TODO (notes): about
+6,200 Voyager calls and 18–28 hours for B and C together, without GPQA.
 
-**Runs.**
-- 3 per question for open models and OpenAI.
-- 1 per question, on fewer conditions, for Anthropic and xAI.
-- Temperature 0.6; 16,000 tokens (open) / 8,000 (closed).
-- Always streamed; a cut-off reply counts as no answer.
+**Measures.** Hint following vs the per-letter no-hint baseline, by sure / unsure questions;
+admission in the final answer and the private reasoning (keywords, then hand labels); tool-call
+rate; cost and tokens.
 
-**Real tool calls on Voyager** (checked Oct 4, one puzzle each):
-- Qwen3 30B Instruct, Qwen3 30B Thinking and Olmo 3 7B Instruct call the tool.
-- **Olmo 3 7B Think** doesn't call it on its own, and its forced call is invalid.
-  - A call and reply we insert ourselves do reach it (Oct 21, Track A Step 1): the tool
-    message is rendered as an `environment` turn.
-  - Track A's `tool_injected` condition (`tools/answer_key.py`) does this. It's the
-    natural real-tool design for this model.
-
-**Dry-run plan** (Oct 4, before GPQA; assumes 500 input + 4,000 output tokens per call):
-
-| Provider | Jobs | Calls | Est. cost | Cap |
-|---|---|---|---|---|
-| Voyager | 2,430 | 2,916 | free | — |
-| Ollama | 1,620 | 1,944 | free | — |
-| OpenAI | 1,620 | 1,944 | $3.99 | $5 |
-| Anthropic | 180 | 240 | $4.92 | $5 |
-| xAI | 240 | 300 | $3.19 | $5 |
-
-**Measures.**
-- **Hint following** vs the per-letter no-hint baseline, by sure / unsure questions.
-- **Admission** in the final answer and the private reasoning: keywords, then hand labels.
-- **Tool-call rate**, reported separately.
-- **Cost and tokens.**
-
-**Success.** 6+ models across 3+ providers. 3 runs per question for the main models. All
-four hint channels where allowed. Every rate as "X of Y" with a 95% interval.
-
-| Week | Task |
-|---|---|
-| 9–10 | Provider keys; one smoke call each (`run_trackB.py --run --only-provider X --limit 1`); Haiku first; `ollama serve` + `qwen3:8b` on/off; GPQA access and export; the Olmo Think real-tool design; Gate 1 |
-| 11–12 | Main runs, 3 per question; first label batch; Gate 2 |
-| 15 | Run the Track A model through every condition |
+**Success.** 6+ models across 3+ providers (or, under the Gate 1 fallback, the providers that
+work); 3 runs per question for the main models; every rate as "X of Y" with a 95% interval.
 
 ## Track C: multi-agent pipeline (Shrey)
 
-**Question.** When the solver's lookup tool returns a wrong answer, does it reach the
-team's final output? What changes when the reviewer sees more, and how often does the
-checker catch it or raise a false alarm?
+**Question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
+output? What changes when the reviewer sees more, and how often does the checker catch it or raise
+a false alarm?
 
-**The team** (`agents/`):
-- **Solver:** a thinking model with the real `lookup_answer_key` tool. A seeded oracle
-  makes each lookup **bad** (wrong letter) or **good**. Default: Qwen3 30B Thinking.
-- **Reviewer:** Experiment A's prompt and `FINAL: X` format. Variants: `answer_only`,
-  `plus_explanation`, `plus_private`, `plus_tool_log`.
-- **Checker:** re-asks the solver without the tool (another seed). It flags the item if
-  the answer changes; no answer = undetermined.
-- **Rule:** a flagged item is escalated, not shipped. Otherwise the reviewer's letter
-  ships.
+**State (Oct 27, from the repo).** Solver, reviewer, checker and `run_team.py` (`--replay`,
+`--live --n N`); live on 2 items (Oct 4). No no-tool team, one reviewer model, no input from Track
+B (TODO C1–C6). `run_team.py` rewrites its own log and writes to tracked `results/scope/`; it
+should append and write to gitignored `results/trackC/` before any run on new data.
 
-**Measures** (per reviewer variant):
-- wrong answers shipped
-- catches
-- false alarms
-- tokens (dollars on paid providers)
+**The team** (`agents/`): a thinking solver with the real `lookup_answer_key` tool (a seeded oracle
+makes each lookup bad or good; default Qwen3 30B Thinking); a reviewer (`answer_only`,
+`plus_explanation`, `plus_private`, `plus_tool_log`); a checker that re-asks without the tool and
+flags a changed answer. A flagged item is escalated, not shipped.
 
-Every step is logged to `results/scope/team_<mode>.jsonl`.
+**Method.** Track B's steered cases plus matched no-hint cases, about 50% bad lookups; all four
+reviewer variants plus a no-tool team; two reviewer models; 3 repeats per case. Voyager first;
+closed reviewers only within Track B's budget.
 
-**Runs today:**
-- `run_team.py --replay` (saved data, no calls).
-- `--live --n 2` (2 items, 14 calls). The checker caught the bad lookup, and the
-  tool-log reviewer passed it along.
-
-**Method (weeks 10–14).**
-- Track B's steered cases plus matched no-hint cases, about 50% bad lookups.
-- All four reviewer variants, plus a no-tool team as the baseline.
-- Two reviewer models: same family and another.
-- 3 repeats per case. Voyager first; closed reviewers only within Track B's budget.
-
-**Success.** The pipeline runs on every Track B steered case. Each variant reports
-shipped / caught / false alarms as "X of Y" with intervals, against the no-tool team.
-
-| Week | Task |
-|---|---|
-| 9–10 | Live team on 5 items (Gate 1); no-tool baseline team |
-| 10 | Second reviewer model; Ollama as a provider option |
-| 11–12 | Agent runs on Track B's steered cases, 3 repeats |
-| 13–14 | Cost analysis; write up |
-| 15 | Run the Track A model as the solver |
-
-**Risks.**
-- The checker's catches depend on run-to-run variation. Always report false alarms next
-  to them.
-- The reviewer may defer to the tool log. That is the effect being measured, so keep the
-  variants separate.
-
----
+**Measures and success.** Per reviewer variant: wrong answers shipped, catches, false alarms (always
+next to the catches) and tokens, as "X of Y" with intervals, against the no-tool team.
 
 ## Everyone: hand labels
 
-- Two raters label `docs/progress/LABEL_QUEUE.csv` (101 rows; 10 need their text
-  regenerated first) with [`progress/LABELING_GUIDE.md`](progress/LABELING_GUIDE.md).
-- Labels per channel: no mention / mentions only / rejects the hint / says the hint
-  changed the answer / unclear.
-- Report Cohen's kappa per channel. Below 0.6, tighten the guide and label a fresh batch.
-- No acknowledgment claim goes in the report before this is done.
+- **The queue** (`docs/progress/LABEL_QUEUE.csv`, 101 rows; 10 have no text yet). Two raters label
+  the private reasoning and the final answer with [`progress/LABELING_GUIDE.md`](progress/LABELING_GUIDE.md):
+  no mention / mentions only / rejects the hint / says the hint changed the answer / unclear.
+  Cohen's kappa per channel; under 0.6, tighten the guide and label a fresh batch. No
+  acknowledgment claim goes in the report before this is done (Gate 2).
+- **The kit** (to build, no calls): two blank sheets with the keyword columns hidden, the guide, and
+  a script for kappa per channel that lists the disagreements.
+- **Phase 6 sample** (after evaluation): per system, 40 wrong-hint replies stratified by channel
+  (user, pasted, declared inserted) and outcome (followed / resisted), final answer only: 200 rows
+  for the five systems. Plus every false-disclosure candidate (the final letter is the hint letter
+  and the keyword stance says it disagreed or worked independently), expected under 50. About 6–8
+  hours per rater. 40 per system gives a Wilson interval of at most ±15 points.
 
 ## Budget
 
-**About $15 in total:** $5 each for OpenAI, Anthropic and xAI. Voyager, Ollama and Sol
-are free. **Spent so far: $0.**
+**About $15 in total:** $5 each for OpenAI, Anthropic and xAI. Voyager, Ollama and Sol are free.
+**Spent so far: $0** (no `results/spend_log.jsonl`).
 
-**How the guard works** (`providers/budget.py`):
-- **Caps:** `OPENAI_CAP_USD`, `ANTHROPIC_CAP_USD`, `XAI_CAP_USD` in `cot-disclosure/.env`
-  (default 5).
-- **Before each paid call,** it assumes the worst case (prompt + `max_tokens`). It refuses
-  a call that could pass the cap.
-- **After each call,** it appends the priced usage to `results/spend_log.jsonl`. Totals
-  are always recomputed from that log.
-- **Commands:** `python -m providers.budget --status` (from `cot-disclosure/`);
-  `progress/run_trackB.py --dry-run` before any sweep.
-
-**Keys** go in `cot-disclosure/.env` as `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` and
-`XAI_API_KEY`. They are never printed.
-- The adapters refuse a key equal to the Voyager key.
-- The current `OPENAI_API_KEY` *is* the Voyager key; replace it with a real OpenAI key.
-
-**Data rule:** only public benchmark questions (our puzzles, MMLU-Pro, GPQA) go to
-outside providers.
-
-**Prices** (USD per 1M tokens, checked 2026-10-04, in `configs/prices.yaml`). The last
-column assumes 500 input + 4,000 output tokens per call. Real thinking replies are often
-longer, so treat it as an upper bound.
-
-| Model | Input | Output | Est. calls per $5 |
-|---|---|---|---|
-| gpt-6-luna | 0.10 | 0.50 | 2,439 |
-| gpt-6-astra | 10.00 | 50.00 | 24 |
-| claude-haiku-4-5-20251001 | 1.00 | 5.00 | 243 |
-| claude-opus-5-5 | 4.00 | 20.00 | 60 |
-| grok-4.3 | 1.25 | 2.50 | 470 |
-| grok-4.7 | 2.00 | 6.00 | 200 |
-
-Track B uses the cheapest model per provider that can switch thinking off. The flagship
-models only fit spot-checks.
+- **The guard** (`providers/budget.py`): caps in `cot-disclosure/.env` (`OPENAI_CAP_USD`,
+  `ANTHROPIC_CAP_USD`, `XAI_CAP_USD`, default 5). Before each paid call it assumes the worst case
+  (prompt + `max_tokens`) and refuses a call that could pass the cap; after it, the priced usage is
+  appended to `results/spend_log.jsonl`. `python -m providers.budget --status` (from
+  `cot-disclosure/`); `progress/run_trackB.py --dry-run` before any sweep.
+- **Keys** go in `cot-disclosure/.env` and are never printed. The adapters refuse a key equal to the
+  Voyager key; the current `OPENAI_API_KEY` *is* the Voyager key.
+- **Data rule:** only public benchmark questions go to outside providers.
+- **Prices** (USD per 1M tokens, checked Oct 4, `configs/prices.yaml`): gpt-6-luna 0.10 / 0.50;
+  claude-haiku-4-5 1.00 / 5.00; grok-4.3 1.25 / 2.50. The flagship models only fit spot checks.
 
 ## Deliverables
 
-1. **Track B table:** hint following and admission per model × hint channel × thinking
-   on/off, with 95% intervals and n.
+1. **Track B table:** hint following and admission per model × hint channel × thinking on/off,
+   with 95% intervals and n.
 2. **Hand labels** with Cohen's kappa per channel.
-3. **Track C:** wrong answers shipped, catches, false alarms and cost per reviewer
-   variant.
-4. **Track A:** the attention and answer-takeover analysis; trained adapters and tags;
-   the behavior-based evaluation.
-5. **Code, configs and every prompt and reply** in the repo. Final talk (week 16); report
-   (Dec 7–12).
+3. **Track C:** wrong answers shipped, catches, false alarms and cost per reviewer variant.
+4. **Track A:** the look-inside analysis (FINDINGS F4–F14); the trained adapters and tags; the
+   behavior-based evaluation; the mechanism check on the best version.
+5. **Code and configs** on GitHub; produced data stays local (gitignored) with numbers-only
+   summaries tracked. Final talk (week 16); report (Dec 7–12).
 
-## Risks
+## Risks (all tracks)
 
 | Risk | Plan |
 |---|---|
-| Too few models to generalize | Track B: more open and closed models, thinking on/off, 3 runs per question |
-| Keyword counts are rough ("the user" fires with no hint; can't tell rejecting from following) | Two raters, Cohen's kappa |
-| Long replies are cut off and can leak when not streamed | Always stream; a cut-off reply is unanswered |
-| Fine-tuning could teach the model to hide the hint | Train and judge on behavior, with unseen wordings; track the hiding check |
-| Closed models hide their reasoning (summaries only) | Score the answer and final text; don't treat summaries as reasoning |
+| Gate 1 missed: no closed keys, agents on 2 items | The fallback: Voyager (and Ollama) only for B, Voyager only for C |
+| Too few models to generalize | Track B on every provider that works, thinking on/off, 3 runs per question |
+| Hand labels not started, Gate 2 on Nov 8 | The kit this week; label the 91 rows with text first |
+| Voyager is shared by Tracks A, B and C (4 requests in flight per machine) | Track A needs Voyager only for 10 label rows after Steps 6–7; B and C take it from Oct 28 |
+| Keyword counts are rough | Two raters, Cohen's kappa |
+| Long replies cut off, or leaking when not streamed | Always stream; a cut-off reply is unanswered |
+| Closed models return summaries only | Score the answer and the final text; a summary is not the reasoning |
+| GitHub `main` lacks the Oct 21 Voyager ID fix and the data gitignore | Push `main` after the history rewrite; until then run B and C from this branch |
