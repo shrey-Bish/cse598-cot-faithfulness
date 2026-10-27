@@ -40,8 +40,8 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 | A19 | Fourth version (S6, E6): LoRA on the attention of layers 15, 19, 23 only; included, scheduled last, dropped if E1–E5 aren't done by Nov 9 | Oct 26, Oct 27 | decided; not started | A16 | Ritik submits | Sol | 6–16 GPU h |
 | A20 | Training settings | finetune README | done: one setting, decided Oct 27 (A15) | — | Ritik | — | — |
 | A21 | Hand the best version to Tracks B and C (week 15) | Oct 21 brief | not started | A16 | Ritik | Sol | — |
-| A22 | Figure #1: the pinned panel (Step 2b per channel) | Oct 26 | not started | — | Claude Code | no calls | 30 min |
-| A23 | Figure #4: deletion vs control vs unedited | Oct 26 | not started | — | Claude Code | no calls | 45 min |
+| A22 | Figure #1: the pinned panel (Step 2b per channel) | Oct 26 | done Oct 27 (`finetune/look/plot_figures.py`; counts tested against F1, F7) | — | Claude Code | no calls | 30 min |
+| A23 | Figure #4: deletion vs control vs unedited | Oct 26 | done Oct 27 (`finetune/look/plot_figures.py`; counts tested against F1, F7) | — | Claude Code | no calls | 45 min |
 | A24 | Sol scripts call `/scratch/ragarw68/envs/olmo/bin/python` by full path | Oct 27 | done (`39f8534`, with a test) | — | Claude Code | no calls | — |
 | A25 | Record Step 9's matched onsets | Oct 27 | done (`07999f7`: F14, T9) | — | Claude Code | no calls | — |
 | A26 | Copy Sol's original `step9_followup.json` to `results/trackA/gpu/original/step9_followup_sol.json` (gitignored) | Oct 27 | done (sha256 `6282a790…`, same as the scratchpad copy) | — | Claude Code | no calls | — |

@@ -558,10 +558,10 @@ Each one would have changed a reported number.
 
 | # | Story beat | Figure | Status |
 |---|---|---|---|
-| 1 | The failure: tool hints move the answer more than user hints | Test 2 by channel, served (`presentation/progress/figures/F9_expB_cue_by_channel.png`) next to Step 2b per channel, pinned (F1, F2) | served panel **exists**; pinned panel **pending** |
+| 1 | The failure: tool hints move the answer more than user hints | Test 2 by channel, served (`presentation/progress/figures/F9_expB_cue_by_channel.png`) next to Step 2b per channel, pinned (`results/summaries/trackA/figures/fig1_pinned_by_channel.png`) (F1, F2) | both **exist** (pinned panel drawn Oct 27) |
 | 2 | It's hidden: the reasoning names the hint, the final answer doesn't | `presentation/progress/figures/F2_pilot_mentions_by_channel.png` (F3) | **exists** |
 | 3 | Where it takes over: the hint starts ahead, swings, and wins late on known answers | `results/summaries/trackA/figures/takeover_mean_curves.png` and `takeover_points.png` (F4–F6) | **exists** |
-| 4 | Is the repetition causal? Deletion vs control vs unedited: the answer at the cut, continuations, re-mentions | new, from `deletion_runs.jsonl` + `deletion_remention.jsonl` (F7) | **pending** (no calls needed) |
+| 4 | Is the repetition causal? Deletion vs control vs unedited: the answer at the cut, continuations, re-mentions | `results/summaries/trackA/figures/fig4_deletion.png`, from `deletion_runs.jsonl` + `deletion_remention.jsonl` (F7) | **exists** (drawn Oct 27; `finetune/look/plot_figures.py`) |
 | 5 | Inside the model: the handoff. Per cut, hint-token and answer restoration by layer, with the full-attention layers drawn and 15, 19, 23 marked (F11, F12). Beside it: the hint wins the lead at the moments the model looks back at it (F14, hint − control panel) | `results/summaries/trackA/figures/step10_handoff.png`; `results/summaries/trackA/step9_onsets.png` (left panel) | both **exist**. The per-token panel goes in the appendix. `step9_aligned.png` is not used (closest-approach anchor, T9) |
 | 6 | The window: the hint's pull vs distance to its last mention | `results/summaries/trackA/window_reach.png` (F8) | **exists** (tentative finding) |
 
