@@ -68,17 +68,20 @@ def _round(prompt, text, budget, *, condition, seed, model, temperature, complet
 
 def continue_to_answer(messages, prompt, text, *, cap, condition, question_id, letter, seed, tools=None,
                        model=bf.MODEL, temperature=bf.TEMPERATURE, complete_fn=None, backoff=BACKOFF, use_slot=True,
-                       max_extra=MAX_EXTRA_ROUNDS):
+                       max_extra=MAX_EXTRA_ROUNDS, render=None):
     """(last reply, rounds log, tool calls the model made, the messages before the last reply).
     messages: the conversation whose rendering is `prompt` (the round being continued); text: the
-    reasoning so far, after the prompt's "<think>"; cap: new tokens allowed over all rounds."""
+    reasoning so far, after the prompt's "<think>"; cap: new tokens allowed over all rounds.
+    render(messages, tools) renders a later round (default: the pinned format; prompt-only adds its
+    note to the system turn the same way in every round)."""
     if complete_fn is None:
         from client import complete as complete_fn
+    render = render or (lambda msgs, tools: olmo_format.render(msgs, tools=tools))
     budget = _Budget(cap)
     pending = [(prompt, text)]
 
     def generate_round(msgs):
-        p, t = pending.pop() if pending else (olmo_format.render(msgs, tools=tools), "")
+        p, t = pending.pop() if pending else (render(msgs, tools), "")
         reply = _round(p, t, budget, condition=condition, seed=seed, model=model, temperature=temperature,
                        complete_fn=complete_fn, backoff=backoff, use_slot=use_slot)
         if reply.get("finish") == "length" and not reply.get("no_answer_reason"):
