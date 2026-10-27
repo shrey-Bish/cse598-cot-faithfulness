@@ -201,10 +201,65 @@ def test_submit_refuses_a_script_with_another_account(tmp_path):
     env, log = fake_sbatch(tmp_path)
     sol = tmp_path / "repo" / "cot-disclosure" / "finetune" / "gpu" / "sol"
     sol.mkdir(parents=True)
-    shutil.copy(SOL / "submit.sh", sol / "submit.sh")
+    for f in ("submit.sh", "guard.sh", "accounts.conf"):
+        shutil.copy(SOL / f, sol / f)
     (sol / "lab.sbatch").write_text((SOL / "smoke.sbatch").read_text().replace(ACCOUNT, "grp_hdavulcu"))
     r = submit(env, "lab", script=sol / "submit.sh")
     assert r.returncode == 1 and "must set exactly" in r.stderr and not log.exists()
+
+
+def fake_queue(tmp_path, env, lines):
+    """A fake squeue printing these lines (id state time-left time-limit gres end-time)."""
+    (tmp_path / "bin" / "squeue").write_text("#!/bin/bash\ncat <<'EOF'\n" + "".join(x + "\n" for x in lines) + "EOF\n")
+    (tmp_path / "bin" / "squeue").chmod(0o755)
+    return env
+
+
+def sbatch_args(log):
+    return log.read_text().split()
+
+
+def test_the_estimate_sets_the_limit_and_job_arguments_pass_through(tmp_path):
+    env, log = fake_sbatch(tmp_path)
+    r = submit(fake_queue(tmp_path, env, []), "step9", "--estimate", "3", "--", "--followup")
+    assert r.returncode == 0, r.stderr
+    args = sbatch_args(log)
+    assert args[:4] == ["-A", ACCOUNT, "-t", "4:00:00"] and args[-2].endswith("step9.sbatch") and args[-1] == "--followup"
+    assert "QoS check: this job 4:00:00 x 1 GPU = 240 GPU-minutes" in r.stdout
+    submit(env, "step9", "--estimate", "6")
+    assert sbatch_args(log)[3] == "8:00:00"                    # 6 h x 1.3 = 7.8 h -> 8:00
+    submit(env, "step9")
+    assert sbatch_args(log)[3] == "2:00:00"                    # the script's own -t
+
+
+def test_a_job_over_the_gpu_minute_limit_is_refused(tmp_path):
+    env, log = fake_sbatch(tmp_path)
+    r = submit(env, "step9", "--estimate", "13")               # 13 x 1.3 = 16.9 h -> 17:00 = 1,020 GPU-minutes
+    assert r.returncode == 1 and "DenyOnLimit" in r.stderr and "1020 GPU-minutes" in r.stderr and not log.exists()
+
+
+def test_running_and_pending_jobs_are_counted(tmp_path):
+    env, log = fake_sbatch(tmp_path)
+    fake_queue(tmp_path, env, ["101 RUNNING 5:00:00 8:00:00 gres/gpu:a100:1 2026-10-29T18:00:00"])
+    r = submit(env, "step9", "--estimate", "6")                # 300 left + 480 = 780 of 960
+    assert r.returncode == 0 and "total 780 of 960" in r.stdout and "WARNING" not in r.stdout
+    fake_queue(tmp_path, env, ["101 RUNNING 7:00:00 8:00:00 gres/gpu:a100:1 2026-10-29T18:00:00",
+                               "102 RUNNING 6:00:00 8:00:00 N/A 2026-10-29T17:00:00"])
+    r = submit(env, "step9", "--estimate", "6")                # 420 + 360 + 480 = 1,260
+    assert r.returncode == 0 and "both slots are taken" in r.stdout and "job 102 ends (2026-10-29T17:00:00)" in r.stdout
+    assert "over the 960 GPU-minute limit by 300" in r.stdout and "about 150 min" in r.stdout
+    fake_queue(tmp_path, env, [f"{i} PENDING 0:00 1:00:00 N/A N/A" for i in range(10)])
+    r = submit(env, "step9")
+    assert r.returncode == 1 and "more than 10 jobs" in r.stdout
+
+
+def test_only_listed_accounts(tmp_path):
+    env, log = fake_sbatch(tmp_path)
+    r = submit({**env, "TRACKA_SUBMIT_ACCOUNT": "grp_hdavulcu"}, "smoke")
+    assert r.returncode == 1 and "not listed" in r.stderr and not log.exists()
+    conf = (SOL / "accounts.conf").read_text()
+    rows = [line.split() for line in conf.splitlines() if line.strip() and not line.startswith("#")]
+    assert rows == [[ACCOUNT, "public", "class", "960", "2", "10", "24", "4"]]
 
 
 @pytest.mark.parametrize("env_vars,ok", [({"SLURM_JOB_ID": "5", "SLURM_JOB_ACCOUNT": ACCOUNT}, True),
