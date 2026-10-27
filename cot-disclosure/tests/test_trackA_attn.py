@@ -149,7 +149,11 @@ def test_followup_on_saved_runs(tmp_path):
     rows.write_text("".join(json.dumps({"source_run_id": m["run_id"], "n_sentences": m["n_sentences"],
                                         "takeover_k": m["step3_takeover_k"] if m["kind"] == "followed" else None,
                                         "closest_approach_k": 2 if m["kind"] == "resisted" else None}) + "\n" for m in meta))
-    s = ah.followup(d=step, model=str(d), takeover_rows=rows)
+    onsets = tmp_path / "onsets.jsonl"
+    onsets.write_text("".join(json.dumps({"source_run_id": m["run_id"], "item_id": m["item_id"], "kind": m["kind"],
+                                          "n_sentences": m["n_sentences"], "dense": True,
+                                          "onsets": [[2, m["kind"] == "followed"], [3, False]]}) + "\n" for m in meta))
+    s = ah.followup(d=step, model=str(d), takeover_rows=rows, onset_rows=onsets)
     assert s["full_attention_layers"] == [3] and s["runs"] == 4
     all_full = s["run_sets"]["all runs, full-attention layers"]
     assert all_full["layers"] == [3] and set(all_full["comparisons"]) >= {"followed - resisted (all channels)", "tool - user"}
@@ -166,3 +170,26 @@ def test_followup_on_saved_runs(tmp_path):
     out = json.loads((step / "step9_followup.json").read_text())
     assert out["step"] == "step9_followup" and (step / "step9_aligned.png").exists()
     assert "control_text" not in json.dumps(out)
+    o = s["onsets_matched"]
+    assert o["runs"] == 4 and o["groups"]["all onsets"]["temporary"]["onsets"] == 4
+    assert o["groups"]["all onsets"]["permanent (the takeover)"]["onsets"] == sum(m["kind"] == "followed" for m in meta)
+    assert o["groups"]["isolated onsets"]["temporary"]["onsets"] == 0           # each follows the onset at 2
+    few = o["comparisons"]["all onsets"]["full layers: hint - control"]["permanent - temporary"]
+    assert few is None or few["ci95"] is None                                    # fewer than 5 questions: no interval
+    assert (step / "step9_onsets.png").exists() and (step / ah.REDUCED).exists()
+    again = ah.followup(reduced_from=step / ah.REDUCED, takeover_rows=rows, onset_rows=onsets)
+    assert again["run_sets"] == s["run_sets"] and again["onsets_matched"]["groups"] == o["groups"]
+
+
+def test_too_few_questions_gives_no_interval():
+    from common import MIN_QUESTIONS, too_few
+    assert MIN_QUESTIONS == 5 and too_few({1: [1.0], 2: [2.0]}) and not too_few({q: [1.0] for q in range(5)})
+    assert too_few({q: [1.0] for q in range(6)}, {q: [0.0] for q in range(4, 10)})        # 2 shared
+    runs = [{"item_id": q, "x": float(q % 2), "k": k} for q in range(3) for k in ("a", "b")]
+    d = ah.diff([r for r in runs if r["k"] == "a"], [r for r in runs if r["k"] == "b"], lambda r: r["x"])
+    assert d["ci95"] is None and "too few questions" in d["note"] and d["questions_in_both"] == 3
+    assert "too few questions: 3" in ah.fmt_diff(d)
+    m, ci, nq = ah.interval({q: [1.0, 2.0] for q in range(4)})
+    assert m == 1.5 and ci is None and nq == 4
+    m, ci, nq = ah.interval({q: [float(q)] for q in range(8)}, n=500)
+    assert ci is not None and nq == 8

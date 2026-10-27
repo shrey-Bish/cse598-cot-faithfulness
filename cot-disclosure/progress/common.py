@@ -258,6 +258,24 @@ def boot_mean(groups, n=20000, seed=0):
     return mean(qs), vals[int(0.025 * len(vals))], vals[int(0.975 * len(vals)) - 1]
 
 
+MIN_QUESTIONS = 5      # decided Oct 26: a bootstrap clustered by question over fewer degenerates
+
+
+def questions_behind(*groups):
+    """The questions a clustered interval rests on: one group's questions, or, for a difference, the
+    questions every group has (groups: {question: values})."""
+    qs = set(groups[0]) if groups else set()
+    for g in groups[1:]:
+        qs &= set(g)
+    return len(qs)
+
+
+def too_few(*groups):
+    """True when a clustered interval would rest on fewer than MIN_QUESTIONS questions: report the
+    point and "too few questions" instead of an interval."""
+    return questions_behind(*groups) < MIN_QUESTIONS
+
+
 def wilson(k, n, z=1.959964):
     """Wilson score 95% interval for k successes out of n."""
     if not n:

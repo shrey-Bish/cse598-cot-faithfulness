@@ -49,7 +49,7 @@ sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "progress"))
 
 from client import CanaryFailed, ModelUnavailable, complete, preflight  # noqa: E402
-from common import BACKOFF, append, boot_diff, boot_mean, load, make_record, run_id, slot, wilson  # noqa: E402
+from common import BACKOFF, append, boot_diff, boot_mean, load, make_record, run_id, slot, too_few, wilson  # noqa: E402
 from parse import parse_answer  # noqa: E402
 from finetune import base_format as bf  # noqa: E402
 from finetune import olmo_format  # noqa: E402
@@ -391,7 +391,9 @@ def report(rows=None):
         for call, label in (("continuation", "continuations"), ("forced", "forced answer at the cut")):
             a, b = own_by_q("hint", call), own_by_q(other, call)
             if set(a) & set(b):
-                print(f"- hint minus {other}, {label}: {points(boot_diff(a, b))} ({len(set(a) & set(b))} questions)")
+                print(f"- hint minus {other}, {label}: "
+                      + ("too few questions" if too_few(a, b) else points(boot_diff(a, b)))
+                      + f" ({len(set(a) & set(b))} questions)")
     print("\nPer question (continuations back to the own answer):")
     print("| question | " + " | ".join(arms) + " |")
     print("|---|" + "---|" * len(arms))
@@ -403,8 +405,9 @@ def report(rows=None):
         print(f"| {q} | " + " | ".join(cells) + " |")
     pooled = {a: own_by_q(a, "continuation") for a in arms}
     print("\nPooled continuations back to the own answer, clustered by question: " + "; ".join(
-        f"{a} {100 * boot_mean(g)[0]:.0f}% [{100 * boot_mean(g)[1]:.0f}, {100 * boot_mean(g)[2]:.0f}%]"
-        for a, g in pooled.items() if g))
+        f"{a} " + ("too few questions" if too_few(g) else
+                   f"{100 * boot_mean(g)[0]:.0f}% [{100 * boot_mean(g)[1]:.0f}, {100 * boot_mean(g)[2]:.0f}%]")
+        + f" ({len(g)} questions)" for a, g in pooled.items() if g))
 
 
 def remention(calls):
@@ -439,9 +442,13 @@ def report_remention(calls=None):
         g = {}
         for r in rs:
             g.setdefault(r["item_id"], []).append(int(r["mentions"]))
-        m, lo, hi = boot_mean(g)
-        print(f"| {a} | {len(rs)} | {sum(r['mentions'] for r in rs)} of {len(rs)}: {100 * m:.0f}% [{100 * lo:.0f}, "
-              f"{100 * hi:.0f}%] | {statistics.median(r['n_mentions'] for r in rs):.0f} |")
+        if too_few(g):
+            share = f"too few questions ({len(g)})"
+        else:
+            m, lo, hi = boot_mean(g)
+            share = f"{100 * m:.0f}% [{100 * lo:.0f}, {100 * hi:.0f}%] ({len(g)} questions)"
+        print(f"| {a} | {len(rs)} | {sum(r['mentions'] for r in rs)} of {len(rs)}: {share} | "
+              f"{statistics.median(r['n_mentions'] for r in rs):.0f} |")
     return rows
 
 

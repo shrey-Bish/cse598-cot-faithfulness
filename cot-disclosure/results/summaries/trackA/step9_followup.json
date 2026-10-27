@@ -1,0 +1,3815 @@
+{
+ "step": "step9_followup",
+ "snapshot_commits": [
+  "d97e442d7cc678210054dbcc9b440894d62c89a4"
+ ],
+ "runs": 199,
+ "full_attention_layers": [
+  3,
+  7,
+  11,
+  15,
+  19,
+  23,
+  27,
+  31
+ ],
+ "readout_layers": [
+  15,
+  19,
+  23
+ ],
+ "definitions": {
+  "hint - control": "mass on the hint minus mass on a question-stem span of the same number of tokens",
+  "hint per token": "mass on the hint divided by its number of tokens",
+  "within reach": "a sliding-window layer sees only the last 4,096 tokens; the answer is within reach when it sees the hint's last token there",
+  "anchor": "followed: the takeover sentence (Step 3: the hint letter leads from there to the end); resisted: the closest approach (the probe after the first fifth where the hint letter peaks)",
+  "rise": "per run, full layers, hint - control: mean over offsets -2..0 minus mean over offsets -15..-6",
+  "intervals": "95% bootstrap clustered by question; a difference uses the questions both groups have"
+ },
+ "runs_within_reach_in_sliding_layers": 25,
+ "run_sets": {
+  "all runs, full-attention layers": {
+   "runs": 199,
+   "questions": 20,
+   "layers": [
+    3,
+    7,
+    11,
+    15,
+    19,
+    23,
+    27,
+    31
+   ],
+   "group_means": {
+    "tool, inserted | followed": {
+     "runs": 24,
+     "hint - control": 0.017418044444639236,
+     "hint per token": 0.0008578565211792011,
+     "letter": 0.008546586099934453
+    },
+    "tool, inserted | resisted": {
+     "runs": 36,
+     "hint - control": 0.010813436438588219,
+     "hint per token": 0.0006128335844550747,
+     "letter": 0.005012165897318887
+    },
+    "tool, inserted + declared | followed": {
+     "runs": 34,
+     "hint - control": 0.01305975645150551,
+     "hint per token": 0.0006501153817653711,
+     "letter": 0.0061894830946317494
+    },
+    "tool, inserted + declared | resisted": {
+     "runs": 26,
+     "hint - control": 0.00776167858678561,
+     "hint per token": 0.0004259604079729448,
+     "letter": 0.003960429547497859
+    },
+    "tool, pasted | followed": {
+     "runs": 40,
+     "hint - control": 0.024234732775948942,
+     "hint per token": 0.0009037472111231182,
+     "letter": 0.007973941462114453
+    },
+    "tool, pasted | resisted": {
+     "runs": 19,
+     "hint - control": 0.01654820908841334,
+     "hint per token": 0.0006418799549512761,
+     "letter": 0.004645228251128604
+    },
+    "user | followed": {
+     "runs": 7,
+     "hint - control": 0.027348969131708145,
+     "hint per token": 0.0017782328484047736,
+     "letter": 0.009695855168891805
+    },
+    "user | resisted": {
+     "runs": 13,
+     "hint - control": 0.021316381601186898,
+     "hint per token": 0.0014712432882963465,
+     "letter": 0.0073232721680632
+    }
+   },
+   "comparisons": {
+    "followed - resisted (all channels)": {
+     "hint - control": {
+      "n": [
+       105,
+       94
+      ],
+      "questions_in_both": 16,
+      "mean_a": 0.01926568458078518,
+      "mean_b": 0.012581024346179626,
+      "difference": 0.005612525027000976,
+      "ci95": [
+       0.0028784795082060464,
+       0.008195798737908357
+      ]
+     },
+     "hint per token": {
+      "n": [
+       105,
+       94
+      ],
+      "questions_in_both": 16,
+      "mean_a": 0.0008694285511626818,
+      "mean_b": 0.0006857325695702767,
+      "difference": 0.00010556323850873135,
+      "ci95": [
+       -2.9979975170018702e-05,
+       0.00022822821978986168
+      ]
+     },
+     "letter": {
+      "n": [
+       105,
+       94
+      ],
+      "questions_in_both": 16,
+      "mean_a": 0.007641801297930735,
+      "mean_b": 0.004966712930794567,
+      "difference": 0.00180128228222131,
+      "ci95": [
+       0.0004766478430605287,
+       0.003134114499991768
+      ]
+     }
+    },
+    "followed - resisted (tool, inserted)": {
+     "hint - control": {
+      "n": [
+       24,
+       36
+      ],
+      "questions_in_both": 9,
+      "mean_a": 0.017418044444639236,
+      "mean_b": 0.010813436438588219,
+      "difference": 0.004845314484555276,
+      "ci95": [
+       0.001411500315457075,
+       0.008079314425898093
+      ]
+     },
+     "hint per token": {
+      "n": [
+       24,
+       36
+      ],
+      "questions_in_both": 9,
+      "mean_a": 0.0008578565211792011,
+      "mean_b": 0.0006128335844550747,
+      "difference": 0.00020125380906392825,
+      "ci95": [
+       3.2502090713630084e-05,
+       0.0003483942226931493
+      ]
+     },
+     "letter": {
+      "n": [
+       24,
+       36
+      ],
+      "questions_in_both": 9,
+      "mean_a": 0.008546586099934453,
+      "mean_b": 0.005012165897318887,
+      "difference": 0.00287480029122283,
+      "ci95": [
+       0.0006077584755771297,
+       0.005150783551181411
+      ]
+     }
+    },
+    "followed - resisted (tool, inserted + declared)": {
+     "hint - control": {
+      "n": [
+       34,
+       26
+      ],
+      "questions_in_both": 10,
+      "mean_a": 0.01305975645150551,
+      "mean_b": 0.00776167858678561,
+      "difference": 0.0009680224985848841,
+      "ci95": [
+       -0.0018040334961066645,
+       0.003605027770390734
+      ]
+     },
+     "hint per token": {
+      "n": [
+       34,
+       26
+      ],
+      "questions_in_both": 10,
+      "mean_a": 0.0006501153817653711,
+      "mean_b": 0.0004259604079729448,
+      "difference": 4.9893886820687595e-05,
+      "ci95": [
+       -7.980536196456711e-05,
+       0.00017691978223925264
+      ]
+     },
+     "letter": {
+      "n": [
+       34,
+       26
+      ],
+      "questions_in_both": 10,
+      "mean_a": 0.0061894830946317494,
+      "mean_b": 0.003960429547497859,
+      "difference": -0.0003239964717067778,
+      "ci95": [
+       -0.001819140141985069,
+       0.001089770517622431
+      ]
+     }
+    },
+    "followed - resisted (tool, pasted)": {
+     "hint - control": {
+      "n": [
+       40,
+       19
+      ],
+      "questions_in_both": 9,
+      "mean_a": 0.024234732775948942,
+      "mean_b": 0.01654820908841334,
+      "difference": 0.006078313585821091,
+      "ci95": [
+       0.002392950907840835,
+       0.009816800888914328
+      ]
+     },
+     "hint per token": {
+      "n": [
+       40,
+       19
+      ],
+      "questions_in_both": 9,
+      "mean_a": 0.0009037472111231182,
+      "mean_b": 0.0006418799549512761,
+      "difference": 0.0001716932378118285,
+      "ci95": [
+       5.3474282321985746e-05,
+       0.0002923846097308508
+      ]
+     },
+     "letter": {
+      "n": [
+       40,
+       19
+      ],
+      "questions_in_both": 9,
+      "mean_a": 0.007973941462114453,
+      "mean_b": 0.004645228251128604,
+      "difference": 0.0016905342773687873,
+      "ci95": [
+       9.09121551861368e-05,
+       0.003145303312853417
+      ]
+     }
+    },
+    "followed - resisted (user)": {
+     "hint - control": {
+      "n": [
+       7,
+       13
+      ],
+      "mean_a": 0.027348969131708145,
+      "mean_b": 0.021316381601186898,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "hint per token": {
+      "n": [
+       7,
+       13
+      ],
+      "mean_a": 0.0017782328484047736,
+      "mean_b": 0.0014712432882963465,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "letter": {
+      "n": [
+       7,
+       13
+      ],
+      "mean_a": 0.009695855168891805,
+      "mean_b": 0.0073232721680632,
+      "difference": null,
+      "note": "no question in both groups"
+     }
+    },
+    "tool - user": {
+     "hint - control": {
+      "n": [
+       179,
+       20
+      ],
+      "questions_in_both": 20,
+      "mean_a": 0.015290264942938222,
+      "mean_b": 0.023427787236869335,
+      "difference": -0.008137522293931113,
+      "ci95": [
+       -0.010077024855288781,
+       -0.006070484165050214
+      ]
+     },
+     "hint per token": {
+      "n": [
+       179,
+       20
+      ],
+      "questions_in_both": 20,
+      "mean_a": 0.0006937154565642552,
+      "mean_b": 0.001578689634334296,
+      "difference": -0.0008849741777700407,
+      "ci95": [
+       -0.001005897595395153,
+       -0.0007710958176837515
+      ]
+     },
+     "letter": {
+      "n": [
+       179,
+       20
+      ],
+      "questions_in_both": 20,
+      "mean_a": 0.006179813560951688,
+      "mean_b": 0.008153676218353213,
+      "difference": -0.0019738626574015245,
+      "ci95": [
+       -0.0032014442853526117,
+       -0.000669986601690006
+      ]
+     }
+    },
+    "pasted - inserted (both inserted arms)": {
+     "hint - control": {
+      "n": [
+       59,
+       120
+      ],
+      "questions_in_both": 20,
+      "mean_a": 0.021759411588437475,
+      "mean_b": 0.012109601175567756,
+      "difference": 0.00964981041286972,
+      "ci95": [
+       0.007907718443344636,
+       0.011524460406814652
+      ]
+     },
+     "hint per token": {
+      "n": [
+       59,
+       120
+      ],
+      "questions_in_both": 20,
+      "mean_a": 0.0008194170777796436,
+      "mean_b": 0.0006319121594666892,
+      "difference": 0.00018750491831295445,
+      "ci95": [
+       0.00013994259807180236,
+       0.0002355142735111879
+      ]
+     },
+     "letter": {
+      "n": [
+       59,
+       120
+      ],
+      "questions_in_both": 20,
+      "mean_a": 0.0069019829704410444,
+      "mean_b": 0.005824746934619421,
+      "difference": 0.001077236035821623,
+      "ci95": [
+       0.0003551931306259373,
+       0.0018379048500894064
+      ]
+     }
+    },
+    "inserted - inserted + declared": {
+     "hint - control": {
+      "n": [
+       60,
+       60
+      ],
+      "questions_in_both": 20,
+      "mean_a": 0.013455279641008625,
+      "mean_b": 0.010763922710126887,
+      "difference": 0.0026913569308817387,
+      "ci95": [
+       0.0016823799543393154,
+       0.0036732154975955694
+      ]
+     },
+     "hint per token": {
+      "n": [
+       60,
+       60
+      ],
+      "questions_in_both": 20,
+      "mean_a": 0.0007108427591447253,
+      "mean_b": 0.000552981559788653,
+      "difference": 0.00015786119935607237,
+      "ci95": [
+       0.00011180127306336849,
+       0.00021113206676091065
+      ]
+     },
+     "letter": {
+      "n": [
+       60,
+       60
+      ],
+      "questions_in_both": 20,
+      "mean_a": 0.006425933978365114,
+      "mean_b": 0.00522355989087373,
+      "difference": 0.001202374087491384,
+      "ci95": [
+       0.0006894775123024981,
+       0.0017274212169771392
+      ]
+     }
+    }
+   }
+  },
+  "answer within reach of the hint in the sliding layers: all layers": {
+   "runs": 25,
+   "questions": 6,
+   "layers": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+   ],
+   "group_means": {
+    "tool, inserted | followed": {
+     "runs": 4,
+     "hint - control": 0.014985122252255678,
+     "hint per token": 0.0008860805246513337,
+     "letter": 0.009514902951195836
+    },
+    "tool, inserted | resisted": {
+     "runs": 2,
+     "hint - control": 0.01041607465595007,
+     "hint per token": 0.0008025792776606977,
+     "letter": 0.007120070513337851
+    },
+    "tool, inserted + declared | followed": {
+     "runs": 10,
+     "hint - control": 0.01036206167191267,
+     "hint per token": 0.0005685949930921197,
+     "letter": 0.005783385364338756
+    },
+    "tool, inserted + declared | resisted": {
+     "runs": 3,
+     "hint - control": 0.003211750959356626,
+     "hint per token": 0.0001957126563259711,
+     "letter": 0.0012200661197615166
+    },
+    "tool, pasted | followed": {
+     "runs": 4,
+     "hint - control": 0.022884082980453968,
+     "hint per token": 0.0010273465886712074,
+     "letter": 0.010830956045538187
+    },
+    "user | resisted": {
+     "runs": 2,
+     "hint - control": 0.008884326554834843,
+     "hint per token": 0.0007917902548797429,
+     "letter": 0.002863743808120489
+    }
+   },
+   "comparisons": {
+    "followed - resisted (all channels)": {
+     "hint - control": {
+      "n": [
+       18,
+       7
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.014172079869442515,
+      "mean_b": 0.006890865042805672,
+      "difference": -0.002180705894716084,
+      "ci95": [
+       -0.0026646703481674194,
+       -0.0017098444513976574
+      ]
+     },
+     "hint per token": {
+      "n": [
+       18,
+       7
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.0007410921324561867,
+      "mean_b": 0.000539411004865542,
+      "difference": -0.0003513903235822605,
+      "ci95": [
+       -0.00043281109537929296,
+       -0.00030798369940991205
+      ]
+     },
+     "letter": {
+      "n": [
+       18,
+       7
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.007734293868351314,
+      "mean_b": 0.0033754038574573186,
+      "difference": -0.001786119382207592,
+      "ci95": [
+       -0.004611177137121558,
+       -0.0005093827688445645
+      ]
+     }
+    },
+    "followed - resisted (tool, inserted)": {
+     "hint - control": {
+      "n": [
+       4,
+       2
+      ],
+      "mean_a": 0.014985122252255678,
+      "mean_b": 0.01041607465595007,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "hint per token": {
+      "n": [
+       4,
+       2
+      ],
+      "mean_a": 0.0008860805246513337,
+      "mean_b": 0.0008025792776606977,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "letter": {
+      "n": [
+       4,
+       2
+      ],
+      "mean_a": 0.009514902951195836,
+      "mean_b": 0.007120070513337851,
+      "difference": null,
+      "note": "no question in both groups"
+     }
+    },
+    "followed - resisted (tool, inserted + declared)": {
+     "hint - control": {
+      "n": [
+       10,
+       3
+      ],
+      "mean_a": 0.01036206167191267,
+      "mean_b": 0.003211750959356626,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "hint per token": {
+      "n": [
+       10,
+       3
+      ],
+      "mean_a": 0.0005685949930921197,
+      "mean_b": 0.0001957126563259711,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "letter": {
+      "n": [
+       10,
+       3
+      ],
+      "mean_a": 0.005783385364338756,
+      "mean_b": 0.0012200661197615166,
+      "difference": null,
+      "note": "no question in both groups"
+     }
+    },
+    "followed - resisted (tool, pasted)": {
+     "hint - control": null,
+     "hint per token": null,
+     "letter": null
+    },
+    "followed - resisted (user)": {
+     "hint - control": null,
+     "hint per token": null,
+     "letter": null
+    },
+    "tool - user": {
+     "hint - control": {
+      "n": [
+       23,
+       2
+      ],
+      "questions_in_both": 1,
+      "mean_a": 0.012415862601736317,
+      "mean_b": 0.008884326554834843,
+      "difference": -0.0010466143721714616,
+      "ci95": [
+       -0.0010466143721714616,
+       -0.0010466143721714616
+      ]
+     },
+     "hint per token": {
+      "n": [
+       23,
+       2
+      ],
+      "questions_in_both": 1,
+      "mean_a": 0.0006753023873265508,
+      "mean_b": 0.0007917902548797429,
+      "difference": -0.00014458530495176092,
+      "ci95": [
+       -0.00014458530495176092,
+       -0.00014458530495176092
+      ]
+     },
+     "letter": {
+      "n": [
+       23,
+       2
+      ],
+      "questions_in_both": 1,
+      "mean_a": 0.006831201261577561,
+      "mean_b": 0.002863743808120489,
+      "difference": 0.002559119777288288,
+      "ci95": [
+       0.002559119777288288,
+       0.002559119777288288
+      ]
+     }
+    },
+    "pasted - inserted (both inserted arms)": {
+     "hint - control": {
+      "n": [
+       4,
+       19
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.022884082980453968,
+      "mean_b": 0.010212026732532601,
+      "difference": 0.009598672902211548,
+      "ci95": [
+       0.009598672902211548,
+       0.010473036207258701
+      ]
+     },
+     "hint per token": {
+      "n": [
+       4,
+       19
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.0010273465886712074,
+      "mean_b": 0.0006011878186224127,
+      "difference": 0.0002612107520690188,
+      "ci95": [
+       0.00016558283823542297,
+       0.0002978760312544181
+      ]
+     },
+     "letter": {
+      "n": [
+       4,
+       19
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.010830956045538187,
+      "mean_b": 0.005989147622849008,
+      "difference": 0.0027035744395107024,
+      "ci95": [
+       0.0025127053959295154,
+       0.0027035744395107024
+      ]
+     }
+    },
+    "inserted - inserted + declared": {
+     "hint - control": {
+      "n": [
+       6,
+       13
+      ],
+      "questions_in_both": 4,
+      "mean_a": 0.013462106386820475,
+      "mean_b": 0.008711989969015121,
+      "difference": 0.0031000447149078045,
+      "ci95": [
+       0.002518272357216725,
+       0.00532800778746605
+      ]
+     },
+     "hint per token": {
+      "n": [
+       6,
+       13
+      ],
+      "questions_in_both": 4,
+      "mean_a": 0.0008582467756544551,
+      "mean_b": 0.00048254522306916234,
+      "difference": 0.0002896517825623354,
+      "ci95": [
+       0.00018427162722218777,
+       0.0004103508617845364
+      ]
+     },
+     "letter": {
+      "n": [
+       6,
+       13
+      ],
+      "questions_in_both": 4,
+      "mean_a": 0.008716625471909841,
+      "mean_b": 0.004730311692513239,
+      "difference": 0.002933240107571086,
+      "ci95": [
+       0.0018913798887903498,
+       0.0036448239310023682
+      ]
+     }
+    }
+   }
+  },
+  "answer within reach of the hint in the sliding layers: full-attention layers": {
+   "runs": 25,
+   "questions": 6,
+   "layers": [
+    3,
+    7,
+    11,
+    15,
+    19,
+    23,
+    27,
+    31
+   ],
+   "group_means": {
+    "tool, inserted | followed": {
+     "runs": 4,
+     "hint - control": 0.02355781802907586,
+     "hint per token": 0.0013264039589557797,
+     "letter": 0.014908720040693879
+    },
+    "tool, inserted | resisted": {
+     "runs": 2,
+     "hint - control": 0.016793415881693363,
+     "hint per token": 0.0011845093686133623,
+     "letter": 0.010427734348922968
+    },
+    "tool, inserted + declared | followed": {
+     "runs": 10,
+     "hint - control": 0.015156220784410835,
+     "hint per token": 0.0008091502008028328,
+     "letter": 0.008758389065042138
+    },
+    "tool, inserted + declared | resisted": {
+     "runs": 3,
+     "hint - control": 0.006708893304069837,
+     "hint per token": 0.00037612076266668737,
+     "letter": 0.0032080671905229488
+    },
+    "tool, pasted | followed": {
+     "runs": 4,
+     "hint - control": 0.03597529698163271,
+     "hint per token": 0.0014931590703781694,
+     "letter": 0.01661979965865612
+    },
+    "user | resisted": {
+     "runs": 2,
+     "hint - control": 0.021261781454086304,
+     "hint per token": 0.0016754252137616277,
+     "letter": 0.0076774973422288895
+    }
+   },
+   "comparisons": {
+    "followed - resisted (all channels)": {
+     "hint - control": {
+      "n": [
+       18,
+       7
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.021649703771496814,
+      "mean_b": 0.013748153511966978,
+      "difference": -0.0075402620326106735,
+      "ci95": [
+       -0.008229525604595741,
+       -0.005256305448710918
+      ]
+     },
+     "hint per token": {
+      "n": [
+       18,
+       7
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.001076097451409118,
+      "mean_b": 0.0009783187789642917,
+      "difference": -0.0006941926694707945,
+      "ci95": [
+       -0.0007294786822361251,
+       -0.0005952332285232842
+      ]
+     },
+     "letter": {
+      "n": [
+       18,
+       7
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.011872109413767854,
+      "mean_b": 0.006547809279124651,
+      "difference": -0.002818870552194616,
+      "ci95": [
+       -0.0053506530821323395,
+       -0.001651914945493142
+      ]
+     }
+    },
+    "followed - resisted (tool, inserted)": {
+     "hint - control": {
+      "n": [
+       4,
+       2
+      ],
+      "mean_a": 0.02355781802907586,
+      "mean_b": 0.016793415881693363,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "hint per token": {
+      "n": [
+       4,
+       2
+      ],
+      "mean_a": 0.0013264039589557797,
+      "mean_b": 0.0011845093686133623,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "letter": {
+      "n": [
+       4,
+       2
+      ],
+      "mean_a": 0.014908720040693879,
+      "mean_b": 0.010427734348922968,
+      "difference": null,
+      "note": "no question in both groups"
+     }
+    },
+    "followed - resisted (tool, inserted + declared)": {
+     "hint - control": {
+      "n": [
+       10,
+       3
+      ],
+      "mean_a": 0.015156220784410835,
+      "mean_b": 0.006708893304069837,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "hint per token": {
+      "n": [
+       10,
+       3
+      ],
+      "mean_a": 0.0008091502008028328,
+      "mean_b": 0.00037612076266668737,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "letter": {
+      "n": [
+       10,
+       3
+      ],
+      "mean_a": 0.008758389065042138,
+      "mean_b": 0.0032080671905229488,
+      "difference": null,
+      "note": "no question in both groups"
+     }
+    },
+    "followed - resisted (tool, pasted)": {
+     "hint - control": null,
+     "hint per token": null,
+     "letter": null
+    },
+    "followed - resisted (user)": {
+     "hint - control": null,
+     "hint per token": null,
+     "letter": null
+    },
+    "tool - user": {
+     "hint - control": {
+      "n": [
+       23,
+       2
+      ],
+      "questions_in_both": 1,
+      "mean_a": 0.01927861650271908,
+      "mean_b": 0.021261781454086304,
+      "difference": -0.008889202144928277,
+      "ci95": [
+       -0.008889202144928277,
+       -0.008889202144928277
+      ]
+     },
+     "hint per token": {
+      "n": [
+       23,
+       2
+      ],
+      "questions_in_both": 1,
+      "mean_a": 0.0009942232674169961,
+      "mean_b": 0.0016754252137616277,
+      "difference": -0.0006564633804373443,
+      "ci95": [
+       -0.0006564633804373443,
+       -0.0006564633804373443
+      ]
+     },
+     "letter": {
+      "n": [
+       23,
+       2
+      ],
+      "questions_in_both": 1,
+      "mean_a": 0.010616419118140702,
+      "mean_b": 0.0076774973422288895,
+      "difference": 0.0020242551108822227,
+      "ci95": [
+       0.0020242551108822227,
+       0.0020242551108822227
+      ]
+     }
+    },
+    "pasted - inserted (both inserted arms)": {
+     "hint - control": {
+      "n": [
+       4,
+       19
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.03597529698163271,
+      "mean_b": 0.01576352587557937,
+      "difference": 0.015488706622272731,
+      "ci95": [
+       0.015488706622272731,
+       0.017694512382149696
+      ]
+     },
+     "hint per token": {
+      "n": [
+       4,
+       19
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.0014931590703781694,
+      "mean_b": 0.0008891841510041175,
+      "difference": 0.0003684503841213881,
+      "ci95": [
+       0.00032411160646006465,
+       0.00037114526882457244
+      ]
+     },
+     "letter": {
+      "n": [
+       4,
+       19
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.01661979965865612,
+      "mean_b": 0.009352549530663773,
+      "difference": 0.004225540626794099,
+      "ci95": [
+       0.0035943614008526,
+       0.005386015400290489
+      ]
+     }
+    },
+    "inserted - inserted + declared": {
+     "hint - control": {
+      "n": [
+       6,
+       13
+      ],
+      "questions_in_both": 4,
+      "mean_a": 0.021303017313281696,
+      "mean_b": 0.013206837519716758,
+      "difference": 0.0061467965288708615,
+      "ci95": [
+       0.004707000101916492,
+       0.008141079374278585
+      ]
+     },
+     "hint per token": {
+      "n": [
+       6,
+       13
+      ],
+      "questions_in_both": 4,
+      "mean_a": 0.001279105762174974,
+      "mean_b": 0.0007092203304637223,
+      "difference": 0.00046995556137214114,
+      "ci95": [
+       0.00030636281007900834,
+       0.0006470016232924536
+      ]
+     },
+     "letter": {
+      "n": [
+       6,
+       13
+      ],
+      "questions_in_both": 4,
+      "mean_a": 0.013415058143436909,
+      "mean_b": 0.00747754555553771,
+      "difference": 0.00465666907839477,
+      "ci95": [
+       0.0037542425096034997,
+       0.005116906055870155
+      ]
+     }
+    }
+   }
+  },
+  "answer within reach of the hint in the sliding layers: sliding-window layers": {
+   "runs": 25,
+   "questions": 6,
+   "layers": [
+    0,
+    1,
+    2,
+    4,
+    5,
+    6,
+    8,
+    9,
+    10,
+    12,
+    13,
+    14,
+    16,
+    17,
+    18,
+    20,
+    21,
+    22,
+    24,
+    25,
+    26,
+    28,
+    29,
+    30
+   ],
+   "group_means": {
+    "tool, inserted | followed": {
+     "runs": 4,
+     "hint - control": 0.012127557769417763,
+     "hint per token": 0.0007393060077447444,
+     "letter": 0.00771696399897337
+    },
+    "tool, inserted | resisted": {
+     "runs": 2,
+     "hint - control": 0.008290294092148542,
+     "hint per token": 0.0006752691697329283,
+     "letter": 0.006017516367137432
+    },
+    "tool, inserted + declared | followed": {
+     "runs": 10,
+     "hint - control": 0.008764009084552526,
+     "hint per token": 0.0004884099122136832,
+     "letter": 0.004791717382613569
+    },
+    "tool, inserted + declared | resisted": {
+     "runs": 3,
+     "hint - control": 0.0020460368832573295,
+     "hint per token": 0.0001355766216875054,
+     "letter": 0.0005573991414469978
+    },
+    "tool, pasted | followed": {
+     "runs": 4,
+     "hint - control": 0.018520344980061054,
+     "hint per token": 0.0008720758050912991,
+     "letter": 0.008901341818273067
+    },
+    "user | resisted": {
+     "runs": 2,
+     "hint - control": 0.0047585079446434975,
+     "hint per token": 0.0004972452588845044,
+     "letter": 0.0012591591803357005
+    }
+   },
+   "comparisons": {
+    "followed - resisted (all channels)": {
+     "hint - control": {
+      "n": [
+       18,
+       7
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.011679538991302252,
+      "mean_b": 0.004605102103336581,
+      "difference": -0.00039418674229333827,
+      "ci95": [
+       -0.0018007908947765827,
+       0.00046338272901872823
+      ]
+     },
+     "hint per token": {
+      "n": [
+       18,
+       7
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.0006294236874156115,
+      "mean_b": 0.00039310838889962597,
+      "difference": -0.00023712283291388303,
+      "ci95": [
+       -0.00037867031642235816,
+       -0.00016748534593110281
+      ]
+     },
+     "letter": {
+      "n": [
+       18,
+       7
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.0063550220608400805,
+      "mean_b": 0.0023179355027553228,
+      "difference": -0.0014418693705617143,
+      "ci95": [
+       -0.004364685853943229,
+       -0.00012853894925986742
+      ]
+     }
+    },
+    "followed - resisted (tool, inserted)": {
+     "hint - control": {
+      "n": [
+       4,
+       2
+      ],
+      "mean_a": 0.012127557769417763,
+      "mean_b": 0.008290294092148542,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "hint per token": {
+      "n": [
+       4,
+       2
+      ],
+      "mean_a": 0.0007393060077447444,
+      "mean_b": 0.0006752691697329283,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "letter": {
+      "n": [
+       4,
+       2
+      ],
+      "mean_a": 0.00771696399897337,
+      "mean_b": 0.006017516367137432,
+      "difference": null,
+      "note": "no question in both groups"
+     }
+    },
+    "followed - resisted (tool, inserted + declared)": {
+     "hint - control": {
+      "n": [
+       10,
+       3
+      ],
+      "mean_a": 0.008764009084552526,
+      "mean_b": 0.0020460368832573295,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "hint per token": {
+      "n": [
+       10,
+       3
+      ],
+      "mean_a": 0.0004884099122136832,
+      "mean_b": 0.0001355766216875054,
+      "difference": null,
+      "note": "no question in both groups"
+     },
+     "letter": {
+      "n": [
+       10,
+       3
+      ],
+      "mean_a": 0.004791717382613569,
+      "mean_b": 0.0005573991414469978,
+      "difference": null,
+      "note": "no question in both groups"
+     }
+    },
+    "followed - resisted (tool, pasted)": {
+     "hint - control": null,
+     "hint per token": null,
+     "letter": null
+    },
+    "followed - resisted (user)": {
+     "hint - control": null,
+     "hint per token": null,
+     "letter": null
+    },
+    "tool - user": {
+     "hint - control": {
+      "n": [
+       23,
+       2
+      ],
+      "questions_in_both": 1,
+      "mean_a": 0.010128278290326505,
+      "mean_b": 0.0047585079446434975,
+      "difference": 0.001567580970004201,
+      "ci95": [
+       0.001567580970004201,
+       0.001567580970004201
+      ]
+     },
+     "hint per token": {
+      "n": [
+       23,
+       2
+      ],
+      "questions_in_both": 1,
+      "mean_a": 0.0005689954164351904,
+      "mean_b": 0.0004972452588845044,
+      "difference": 2.604070323286578e-05,
+      "ci95": [
+       2.604070323286578e-05,
+       2.604070323286578e-05
+      ]
+     },
+     "letter": {
+      "n": [
+       23,
+       2
+      ],
+      "questions_in_both": 1,
+      "mean_a": 0.005569462054510317,
+      "mean_b": 0.0012591591803357005,
+      "difference": 0.0027374081837479025,
+      "ci95": [
+       0.0027374081837479025,
+       0.0027374081837479025
+      ]
+     }
+    },
+    "pasted - inserted (both inserted arms)": {
+     "hint - control": {
+      "n": [
+       4,
+       19
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.018520344980061054,
+      "mean_b": 0.008361527408277126,
+      "difference": 0.007635327847674489,
+      "ci95": [
+       0.007635327847674489,
+       0.008386837861811122
+      ]
+     },
+     "hint per token": {
+      "n": [
+       4,
+       19
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.0008720758050912991,
+      "mean_b": 0.0005051890188233779,
+      "difference": 0.00022546427499037236,
+      "ci95": [
+       0.00011273996642557904,
+       0.0002734530280577019
+      ]
+     },
+     "letter": {
+      "n": [
+       4,
+       19
+      ],
+      "questions_in_both": 2,
+      "mean_a": 0.008901341818273067,
+      "mean_b": 0.004868013683191843,
+      "difference": 0.002196252695284784,
+      "ci95": [
+       0.0015549355885013938,
+       0.0023624248569831243
+      ]
+     }
+    },
+    "inserted - inserted + declared": {
+     "hint - control": {
+      "n": [
+       6,
+       13
+      ],
+      "questions_in_both": 4,
+      "mean_a": 0.01084846987699469,
+      "mean_b": 0.007213707807330558,
+      "difference": 0.0020844607924421638,
+      "ci95": [
+       0.0014652564423158765,
+       0.004495724756270646
+      ]
+     },
+     "hint per token": {
+      "n": [
+       6,
+       13
+      ],
+      "questions_in_both": 4,
+      "mean_a": 0.000717960395074139,
+      "mean_b": 0.0004069868451691806,
+      "difference": 0.00022955048286045585,
+      "ci95": [
+       0.00014357452164404094,
+       0.00033146720670629293
+      ]
+     },
+     "letter": {
+      "n": [
+       6,
+       13
+      ],
+      "questions_in_both": 4,
+      "mean_a": 0.007150481455028057,
+      "mean_b": 0.0038145670192674375,
+      "difference": 0.0023587640724144878,
+      "ci95": [
+       0.0012855196837335825,
+       0.0031815482458720603
+      ]
+     }
+    }
+   }
+  }
+ },
+ "top_heads": {
+  "pooled, all runs, ranked by hint mass (as in step9_attention.json)": [
+   {
+    "layer": 23,
+    "head": 20,
+    "value": 0.16111207008361816
+   },
+   {
+    "layer": 19,
+    "head": 31,
+    "value": 0.13474875688552856
+   },
+   {
+    "layer": 27,
+    "head": 5,
+    "value": 0.1346057802438736
+   },
+   {
+    "layer": 15,
+    "head": 31,
+    "value": 0.1323738545179367
+   },
+   {
+    "layer": 7,
+    "head": 3,
+    "value": 0.12252801656723022
+   },
+   {
+    "layer": 15,
+    "head": 1,
+    "value": 0.11357079446315765
+   },
+   {
+    "layer": 15,
+    "head": 19,
+    "value": 0.1059693694114685
+   },
+   {
+    "layer": 19,
+    "head": 2,
+    "value": 0.10115225613117218
+   },
+   {
+    "layer": 15,
+    "head": 0,
+    "value": 0.09791316092014313
+   },
+   {
+    "layer": 23,
+    "head": 17,
+    "value": 0.09708742052316666
+   }
+  ],
+  "pooled, all runs, ranked by hint - control": [
+   {
+    "layer": 23,
+    "head": 20,
+    "value": 0.15840311348438263
+   },
+   {
+    "layer": 19,
+    "head": 31,
+    "value": 0.13443389534950256
+   },
+   {
+    "layer": 27,
+    "head": 5,
+    "value": 0.13321855664253235
+   },
+   {
+    "layer": 15,
+    "head": 31,
+    "value": 0.13171331584453583
+   },
+   {
+    "layer": 7,
+    "head": 3,
+    "value": 0.11572188138961792
+   },
+   {
+    "layer": 15,
+    "head": 1,
+    "value": 0.11148428916931152
+   },
+   {
+    "layer": 15,
+    "head": 19,
+    "value": 0.10401319712400436
+   },
+   {
+    "layer": 15,
+    "head": 0,
+    "value": 0.09691739827394485
+   },
+   {
+    "layer": 19,
+    "head": 2,
+    "value": 0.09505883604288101
+   },
+   {
+    "layer": 19,
+    "head": 28,
+    "value": 0.09463585168123245
+   }
+  ],
+  "runs within reach in the sliding layers, all layers, ranked by hint - control": [
+   {
+    "layer": 16,
+    "head": 1,
+    "value": 0.5094300508499146
+   },
+   {
+    "layer": 22,
+    "head": 5,
+    "value": 0.3111068308353424
+   },
+   {
+    "layer": 16,
+    "head": 30,
+    "value": 0.27091649174690247
+   },
+   {
+    "layer": 19,
+    "head": 28,
+    "value": 0.2514967918395996
+   },
+   {
+    "layer": 20,
+    "head": 21,
+    "value": 0.2199012190103531
+   },
+   {
+    "layer": 20,
+    "head": 15,
+    "value": 0.20959478616714478
+   },
+   {
+    "layer": 15,
+    "head": 18,
+    "value": 0.20082682371139526
+   },
+   {
+    "layer": 22,
+    "head": 6,
+    "value": 0.20073343813419342
+   },
+   {
+    "layer": 23,
+    "head": 20,
+    "value": 0.19197750091552734
+   },
+   {
+    "layer": 16,
+    "head": 5,
+    "value": 0.183118537068367
+   }
+  ]
+ },
+ "top_head_counts": {
+  "pooled, all runs, ranked by hint mass (as in step9_attention.json)": {
+   "in full-attention layers": 10,
+   "in layers 15, 19, 23": 8,
+   "of": 10
+  },
+  "pooled, all runs, ranked by hint - control": {
+   "in full-attention layers": 10,
+   "in layers 15, 19, 23": 8,
+   "of": 10
+  },
+  "runs within reach in the sliding layers, all layers, ranked by hint - control": {
+   "in full-attention layers": 3,
+   "in layers 15, 19, 23": 3,
+   "of": 10
+  }
+ },
+ "readout_heads_followed_vs_resisted": {
+  "heads": [
+   [
+    23,
+    20
+   ],
+   [
+    19,
+    31
+   ],
+   [
+    15,
+    31
+   ],
+   [
+    15,
+    1
+   ],
+   [
+    15,
+    19
+   ],
+   [
+    19,
+    2
+   ],
+   [
+    15,
+    0
+   ],
+   [
+    23,
+    17
+   ]
+  ],
+  "per head": {
+   "L23H20": {
+    "hint": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.1848868060369222,
+     "mean_b": 0.1345552072880116,
+     "difference": 0.04087545822592176,
+     "ci95": [
+      -0.009731020039756677,
+      0.08842743583318723
+     ]
+    },
+    "hint - control": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.18264369911824663,
+     "mean_b": 0.13132586647221384,
+     "difference": 0.041728659878101426,
+     "ci95": [
+      -0.008932141556348194,
+      0.08933874126293206
+     ]
+    }
+   },
+   "L19H31": {
+    "hint": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.19312986950168298,
+     "mean_b": 0.06953586571592282,
+     "difference": 0.11506872012809996,
+     "ci95": [
+      0.07745607200195082,
+      0.15024933097123971
+     ]
+    },
+    "hint - control": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.19265404561800617,
+     "mean_b": 0.06940079625804928,
+     "difference": 0.11470478159003109,
+     "ci95": [
+      0.07702926737315292,
+      0.14991176270029405
+     ]
+    }
+   },
+   "L15H31": {
+    "hint": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.1661119880420821,
+     "mean_b": 0.09468755548066915,
+     "difference": 0.051266853930058476,
+     "ci95": [
+      0.02320880922263005,
+      0.07628450674039433
+     ]
+    },
+    "hint - control": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.16537306973976748,
+     "mean_b": 0.09411460928064078,
+     "difference": 0.051085038976492095,
+     "ci95": [
+      0.022572676738759956,
+      0.07640384021304807
+     ]
+    }
+   },
+   "L15H1": {
+    "hint": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.11421594647690654,
+     "mean_b": 0.11285015854964707,
+     "difference": -0.012918153532598592,
+     "ci95": [
+      -0.05344840677421939,
+      0.023727765549793736
+     ]
+    },
+    "hint - control": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.11202245528721029,
+     "mean_b": 0.11088309325575035,
+     "difference": -0.014424739606139533,
+     "ci95": [
+      -0.054942715769551176,
+      0.02226398563147826
+     ]
+    }
+   },
+   "L15H19": {
+    "hint": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.12165611765036981,
+     "mean_b": 0.08844693787792261,
+     "difference": 0.01552477955761912,
+     "ci95": [
+      -0.011339641615637636,
+      0.043178425498721626
+     ]
+    },
+    "hint - control": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.11944316877495675,
+     "mean_b": 0.08677764157665536,
+     "difference": 0.01573256841033034,
+     "ci95": [
+      -0.01041013556430645,
+      0.04293527486481763
+     ]
+    }
+   },
+   "L19H2": {
+    "hint": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.10446611554140137,
+     "mean_b": 0.09745059661725734,
+     "difference": 0.0087893528771988,
+     "ci95": [
+      -0.005980905934306294,
+      0.02470765651176178
+     ]
+    },
+    "hint - control": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.09943050933735711,
+     "mean_b": 0.09017565814738578,
+     "difference": 0.009655355208439367,
+     "ci95": [
+      -0.005439089333456354,
+      0.02545712813735007
+     ]
+    }
+   },
+   "L15H0": {
+    "hint": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.10559961854347161,
+     "mean_b": 0.08932724993854285,
+     "difference": 0.01328856801467583,
+     "ci95": [
+      -0.009853487801396624,
+      0.03787565216809123
+     ]
+    },
+    "hint - control": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.10475839223890078,
+     "mean_b": 0.08815879447068622,
+     "difference": 0.01374593335285261,
+     "ci95": [
+      -0.009969386702314731,
+      0.03894678745286344
+     ]
+    }
+   },
+   "L23H17": {
+    "hint": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.13800935305300213,
+     "mean_b": 0.05137665442963864,
+     "difference": 0.08419038286856087,
+     "ci95": [
+      0.060387026829467644,
+      0.10786404357050797
+     ]
+    },
+    "hint - control": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.13353662522775786,
+     "mean_b": 0.04395000980374344,
+     "difference": 0.08633954172956924,
+     "ci95": [
+      0.06179243154567418,
+      0.1106330282846264
+     ]
+    }
+   }
+  },
+  "mean over these heads": {
+   "followed - resisted (all channels)": {
+    "hint": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.14100947788073903,
+     "mean_b": 0.09227877760187109,
+     "difference": 0.03951074659812526,
+     "ci95": [
+      0.02071443364600166,
+      0.05718004324271657
+     ]
+    },
+    "hint - control": {
+     "n": [
+      105,
+      94
+     ],
+     "questions_in_both": 16,
+     "mean_a": 0.1387327458177294,
+     "mean_b": 0.08934830854389261,
+     "difference": 0.039820892405836875,
+     "ci95": [
+      0.020683405661094625,
+      0.05783153113980706
+     ]
+    }
+   },
+   "followed - resisted (tool, inserted)": {
+    "hint": {
+     "n": [
+      24,
+      36
+     ],
+     "questions_in_both": 9,
+     "mean_a": 0.15284452587366104,
+     "mean_b": 0.10313479022847281,
+     "difference": 0.048592252035935715,
+     "ci95": [
+      0.01600455353036523,
+      0.07966598237262054
+     ]
+    },
+    "hint - control": {
+     "n": [
+      24,
+      36
+     ],
+     "questions_in_both": 9,
+     "mean_a": 0.1514918307463328,
+     "mean_b": 0.0997754783473081,
+     "difference": 0.04876033589243889,
+     "ci95": [
+      0.015814383090897027,
+      0.08002803220853702
+     ]
+    }
+   },
+   "followed - resisted (tool, inserted + declared)": {
+    "hint": {
+     "n": [
+      34,
+      26
+     ],
+     "questions_in_both": 10,
+     "mean_a": 0.11220296943450675,
+     "mean_b": 0.07531763641880108,
+     "difference": 0.003985450736113963,
+     "ci95": [
+      -0.018968418746242693,
+      0.026744967688936992
+     ]
+    },
+    "hint - control": {
+     "n": [
+      34,
+      26
+     ],
+     "questions_in_both": 10,
+     "mean_a": 0.11092792319900849,
+     "mean_b": 0.07288238735726246,
+     "difference": 0.0036576268529253386,
+     "ci95": [
+      -0.018872219370678067,
+      0.02612518281158474
+     ]
+    }
+   },
+   "followed - resisted (tool, pasted)": {
+    "hint": {
+     "n": [
+      40,
+      19
+     ],
+     "questions_in_both": 9,
+     "mean_a": 0.1591702312231064,
+     "mean_b": 0.09365843059985261,
+     "difference": 0.04353132876721058,
+     "ci95": [
+      0.014596743488704766,
+      0.07288029106954733
+     ]
+    },
+    "hint - control": {
+     "n": [
+      40,
+      19
+     ],
+     "questions_in_both": 9,
+     "mean_a": 0.1553230319172144,
+     "mean_b": 0.09032913277807988,
+     "difference": 0.04379026329779362,
+     "ci95": [
+      0.014889929996250745,
+      0.07325045421550219
+     ]
+    }
+   },
+   "followed - resisted (user)": {
+    "hint": {
+     "n": [
+      7,
+      13
+     ],
+     "mean_a": 0.1365737638303212,
+     "mean_b": 0.09412183985114098,
+     "difference": null,
+     "note": "no question in both groups"
+    },
+    "hint - control": {
+     "n": [
+      7,
+      13
+     ],
+     "mean_a": 0.13523767249924795,
+     "mean_b": 0.09197139911926709,
+     "difference": null,
+     "note": "no question in both groups"
+    }
+   },
+   "tool - user": {
+    "hint": {
+     "n": [
+      179,
+      20
+     ],
+     "questions_in_both": 20,
+     "mean_a": 0.1189977654032201,
+     "mean_b": 0.10898001324385405,
+     "difference": 0.010017752159366053,
+     "ci95": [
+      -0.005102677001721331,
+      0.025684220757749343
+     ]
+    },
+    "hint - control": {
+     "n": [
+      179,
+      20
+     ],
+     "questions_in_both": 20,
+     "mean_a": 0.11633177328459378,
+     "mean_b": 0.1071145948022604,
+     "difference": 0.009217178482333374,
+     "ci95": [
+      -0.0058230423441763685,
+      0.024872138643298652
+     ]
+    }
+   },
+   "pasted - inserted (both inserted arms)": {
+    "hint": {
+     "n": [
+      59,
+      120
+     ],
+     "questions_in_both": 20,
+     "mean_a": 0.1380732106834145,
+     "mean_b": 0.10961900480712454,
+     "difference": 0.028454205876289954,
+     "ci95": [
+      0.014752800799485308,
+      0.04251323201019187
+     ]
+    },
+    "hint - control": {
+     "n": [
+      59,
+      120
+     ],
+     "questions_in_both": 20,
+     "mean_a": 0.13439279321139141,
+     "mean_b": 0.10745177182058493,
+     "difference": 0.02694102139080648,
+     "ci95": [
+      0.013234096996131386,
+      0.04109295041610796
+     ]
+    }
+   },
+   "inserted - inserted + declared": {
+    "hint": {
+     "n": [
+      60,
+      60
+     ],
+     "questions_in_both": 20,
+     "mean_a": 0.12301868448654811,
+     "mean_b": 0.09621932512770097,
+     "difference": 0.02679935935884714,
+     "ci95": [
+      0.01476828375210365,
+      0.04032492954283952
+     ]
+    },
+    "hint - control": {
+     "n": [
+      60,
+      60
+     ],
+     "questions_in_both": 20,
+     "mean_a": 0.12046201930691798,
+     "mean_b": 0.09444152433425188,
+     "difference": 0.026020494972666106,
+     "ci95": [
+      0.01402686672906081,
+      0.039553987421095366
+     ]
+    }
+   }
+  }
+ },
+ "aligned": {
+  "offsets": [
+   -15,
+   15
+  ],
+  "runs_with_an_anchor": {
+   "followed": 68,
+   "resisted": 94
+  },
+  "skipped": {
+   "followed: takes over before any reasoning (k = 0)": 37
+  },
+  "curves": {
+   "followed": {
+    "full layers: hint - control": [
+     {
+      "offset": -15,
+      "runs": 67,
+      "mean": -0.0009453998941149729,
+      "ci95": [
+       -0.003135933948215097,
+       0.001516398056410253
+      ]
+     },
+     {
+      "offset": -14,
+      "runs": 67,
+      "mean": -0.001946017924529403,
+      "ci95": [
+       -0.004047601182873432,
+       -0.0003667261993481976
+      ]
+     },
+     {
+      "offset": -13,
+      "runs": 67,
+      "mean": -0.002158901702835044,
+      "ci95": [
+       -0.0042147951991489485,
+       -0.0005449325968088074
+      ]
+     },
+     {
+      "offset": -12,
+      "runs": 68,
+      "mean": -0.0033851110698271763,
+      "ci95": [
+       -0.007055509672152685,
+       -0.0006811415439407373
+      ]
+     },
+     {
+      "offset": -11,
+      "runs": 68,
+      "mean": -0.0019076027195243275,
+      "ci95": [
+       -0.0035317071158540983,
+       -0.0006045692452144893
+      ]
+     },
+     {
+      "offset": -10,
+      "runs": 68,
+      "mean": -0.0018536585198222276,
+      "ci95": [
+       -0.004775443657611807,
+       7.517657227694027e-05
+      ]
+     },
+     {
+      "offset": -9,
+      "runs": 68,
+      "mean": -0.00191984699203578,
+      "ci95": [
+       -0.005052403671258729,
+       0.0003514349118631799
+      ]
+     },
+     {
+      "offset": -8,
+      "runs": 68,
+      "mean": -0.0009589163271491142,
+      "ci95": [
+       -0.002538235834114911,
+       0.0005843914643099362
+      ]
+     },
+     {
+      "offset": -7,
+      "runs": 68,
+      "mean": -0.0014944308444254978,
+      "ci95": [
+       -0.0032304274417193873,
+       0.00017080540513439524
+      ]
+     },
+     {
+      "offset": -6,
+      "runs": 68,
+      "mean": -0.002899664320626899,
+      "ci95": [
+       -0.006104289284943567,
+       -0.0005494129967273158
+      ]
+     },
+     {
+      "offset": -5,
+      "runs": 68,
+      "mean": -0.0031894337324261226,
+      "ci95": [
+       -0.006916571904987316,
+       -0.0006108428459041394
+      ]
+     },
+     {
+      "offset": -4,
+      "runs": 68,
+      "mean": -0.002502226459054167,
+      "ci95": [
+       -0.00551438585248296,
+       -0.00042122746890527196
+      ]
+     },
+     {
+      "offset": -3,
+      "runs": 68,
+      "mean": -0.0033571253058171887,
+      "ci95": [
+       -0.006931252327437202,
+       -0.0007674195049461764
+      ]
+     },
+     {
+      "offset": -2,
+      "runs": 68,
+      "mean": -0.0018287196597906157,
+      "ci95": [
+       -0.005126557105540996,
+       0.000828931677656678
+      ]
+     },
+     {
+      "offset": -1,
+      "runs": 68,
+      "mean": 0.00024507414919379005,
+      "ci95": [
+       -0.0015649960591242863,
+       0.0022061965633731555
+      ]
+     },
+     {
+      "offset": 0,
+      "runs": 68,
+      "mean": 0.010277012438403772,
+      "ci95": [
+       0.005240526495918888,
+       0.015970176026753304
+      ]
+     },
+     {
+      "offset": 1,
+      "runs": 68,
+      "mean": 0.007087192196837243,
+      "ci95": [
+       0.002556141988007408,
+       0.013231088759170638
+      ]
+     },
+     {
+      "offset": 2,
+      "runs": 66,
+      "mean": 0.0038998524700714784,
+      "ci95": [
+       0.0011664532923272679,
+       0.0066989470334887944
+      ]
+     },
+     {
+      "offset": 3,
+      "runs": 65,
+      "mean": 0.0015618632905758344,
+      "ci95": [
+       -0.001775607694236731,
+       0.006345615097829564
+      ]
+     },
+     {
+      "offset": 4,
+      "runs": 64,
+      "mean": 0.001198415229737293,
+      "ci95": [
+       -0.0019957505345631105,
+       0.004862512490944937
+      ]
+     },
+     {
+      "offset": 5,
+      "runs": 64,
+      "mean": -0.00015136382717173547,
+      "ci95": [
+       -0.0040415921034046304,
+       0.004002135335689499
+      ]
+     },
+     {
+      "offset": 6,
+      "runs": 64,
+      "mean": -0.002768115617072908,
+      "ci95": [
+       -0.006706765943729296,
+       -0.00015789340689497175
+      ]
+     },
+     {
+      "offset": 7,
+      "runs": 64,
+      "mean": -0.0017658744072832633,
+      "ci95": [
+       -0.003245319173721647,
+       -0.0005252505897691375
+      ]
+     },
+     {
+      "offset": 8,
+      "runs": 62,
+      "mean": -0.0019587600047910408,
+      "ci95": [
+       -0.004153513161694272,
+       7.3040635990245e-06
+      ]
+     },
+     {
+      "offset": 9,
+      "runs": 62,
+      "mean": -0.0021361572360019047,
+      "ci95": [
+       -0.0044756183322046846,
+       -0.00025498525422738225
+      ]
+     },
+     {
+      "offset": 10,
+      "runs": 62,
+      "mean": -0.003235483542084694,
+      "ci95": [
+       -0.007661110803511151,
+       -0.0003049309933715958
+      ]
+     },
+     {
+      "offset": 11,
+      "runs": 62,
+      "mean": -0.0009897009529654056,
+      "ci95": [
+       -0.0037267787382006647,
+       0.0017251804637819974
+      ]
+     },
+     {
+      "offset": 12,
+      "runs": 60,
+      "mean": -0.0021600038434068363,
+      "ci95": [
+       -0.005195952810798631,
+       0.00022766119726593532
+      ]
+     },
+     {
+      "offset": 13,
+      "runs": 58,
+      "mean": -0.0028486741538127436,
+      "ci95": [
+       -0.005711896401463133,
+       -0.0004290731604632041
+      ]
+     },
+     {
+      "offset": 14,
+      "runs": 58,
+      "mean": -0.0017674633598854315,
+      "ci95": [
+       -0.003127113564760756,
+       -0.0005399926932171938
+      ]
+     },
+     {
+      "offset": 15,
+      "runs": 57,
+      "mean": -0.0030335569345768085,
+      "ci95": [
+       -0.007381401817961517,
+       -8.891420135193545e-05
+      ]
+     }
+    ],
+    "full layers: hint per token": [
+     {
+      "offset": -15,
+      "runs": 67,
+      "mean": 8.975453262669973e-05,
+      "ci95": [
+       5.1167091454671107e-05,
+       0.00015124191542781773
+      ]
+     },
+     {
+      "offset": -14,
+      "runs": 67,
+      "mean": 6.483554212780888e-05,
+      "ci95": [
+       4.5228163250205144e-05,
+       8.726437259241011e-05
+      ]
+     },
+     {
+      "offset": -13,
+      "runs": 67,
+      "mean": 6.633153185899954e-05,
+      "ci95": [
+       4.794904862137628e-05,
+       8.59391354121423e-05
+      ]
+     },
+     {
+      "offset": -12,
+      "runs": 68,
+      "mean": 7.496956284151511e-05,
+      "ci95": [
+       4.109486663302781e-05,
+       0.00012535915608219818
+      ]
+     },
+     {
+      "offset": -11,
+      "runs": 68,
+      "mean": 7.348504042216947e-05,
+      "ci95": [
+       4.241013084538281e-05,
+       0.00011448576116566834
+      ]
+     },
+     {
+      "offset": -10,
+      "runs": 68,
+      "mean": 8.792415758976217e-05,
+      "ci95": [
+       5.718610868154697e-05,
+       0.00011971785669161225
+      ]
+     },
+     {
+      "offset": -9,
+      "runs": 68,
+      "mean": 8.946822345692722e-05,
+      "ci95": [
+       4.9140357583793603e-05,
+       0.0001368269421088068
+      ]
+     },
+     {
+      "offset": -8,
+      "runs": 68,
+      "mean": 0.0001293916489912055,
+      "ci95": [
+       5.784540401497802e-05,
+       0.00022483323934202896
+      ]
+     },
+     {
+      "offset": -7,
+      "runs": 68,
+      "mean": 9.83642155995981e-05,
+      "ci95": [
+       4.909221956950205e-05,
+       0.00015908287332422333
+      ]
+     },
+     {
+      "offset": -6,
+      "runs": 68,
+      "mean": 7.511483134775892e-05,
+      "ci95": [
+       4.190232231911946e-05,
+       0.00011714899251337941
+      ]
+     },
+     {
+      "offset": -5,
+      "runs": 68,
+      "mean": 6.960961735892531e-05,
+      "ci95": [
+       4.6362112645537295e-05,
+       9.607921684597031e-05
+      ]
+     },
+     {
+      "offset": -4,
+      "runs": 68,
+      "mean": 6.963497910018144e-05,
+      "ci95": [
+       4.6600493078585714e-05,
+       9.910185530852836e-05
+      ]
+     },
+     {
+      "offset": -3,
+      "runs": 68,
+      "mean": 6.02279466794939e-05,
+      "ci95": [
+       4.246751531497126e-05,
+       8.345141634960713e-05
+      ]
+     },
+     {
+      "offset": -2,
+      "runs": 68,
+      "mean": 9.658099239619761e-05,
+      "ci95": [
+       5.878304541986279e-05,
+       0.0001367078251860221
+      ]
+     },
+     {
+      "offset": -1,
+      "runs": 68,
+      "mean": 0.00013981821236002897,
+      "ci95": [
+       8.604258412430811e-05,
+       0.00020513720971090759
+      ]
+     },
+     {
+      "offset": 0,
+      "runs": 68,
+      "mean": 0.0005057927472829333,
+      "ci95": [
+       0.0002920274694978226,
+       0.0007619723077228768
+      ]
+     },
+     {
+      "offset": 1,
+      "runs": 68,
+      "mean": 0.00039229268129341055,
+      "ci95": [
+       0.00022364606730313684,
+       0.0006095920917769862
+      ]
+     },
+     {
+      "offset": 2,
+      "runs": 66,
+      "mean": 0.0002862882058914031,
+      "ci95": [
+       0.00016113871878159817,
+       0.00043697466694888693
+      ]
+     },
+     {
+      "offset": 3,
+      "runs": 65,
+      "mean": 0.0001997842569275795,
+      "ci95": [
+       9.030415777956615e-05,
+       0.00035105696658450014
+      ]
+     },
+     {
+      "offset": 4,
+      "runs": 64,
+      "mean": 0.00019521272224665154,
+      "ci95": [
+       9.375806277979603e-05,
+       0.0003169156768729123
+      ]
+     },
+     {
+      "offset": 5,
+      "runs": 64,
+      "mean": 0.00018186781252893525,
+      "ci95": [
+       7.84887604727134e-05,
+       0.00032856462382457516
+      ]
+     },
+     {
+      "offset": 6,
+      "runs": 64,
+      "mean": 7.941994469717883e-05,
+      "ci95": [
+       4.644348363681588e-05,
+       0.00011813216487529357
+      ]
+     },
+     {
+      "offset": 7,
+      "runs": 64,
+      "mean": 9.797614805506782e-05,
+      "ci95": [
+       4.580610703222623e-05,
+       0.0001659256096721291
+      ]
+     },
+     {
+      "offset": 8,
+      "runs": 62,
+      "mean": 7.810768006639856e-05,
+      "ci95": [
+       4.244551378178585e-05,
+       0.00011644440777864044
+      ]
+     },
+     {
+      "offset": 9,
+      "runs": 62,
+      "mean": 7.91838504395151e-05,
+      "ci95": [
+       4.6017590610885336e-05,
+       0.00011573652182772685
+      ]
+     },
+     {
+      "offset": 10,
+      "runs": 62,
+      "mean": 7.275717437169664e-05,
+      "ci95": [
+       4.94456012034036e-05,
+       0.00010077721753059079
+      ]
+     },
+     {
+      "offset": 11,
+      "runs": 62,
+      "mean": 0.00010268408431652313,
+      "ci95": [
+       6.008293031811718e-05,
+       0.0001647279124607042
+      ]
+     },
+     {
+      "offset": 12,
+      "runs": 60,
+      "mean": 8.156614164060254e-05,
+      "ci95": [
+       5.005378289783478e-05,
+       0.00011604020490241068
+      ]
+     },
+     {
+      "offset": 13,
+      "runs": 58,
+      "mean": 8.14668764460607e-05,
+      "ci95": [
+       4.3294649751788386e-05,
+       0.0001263157203752866
+      ]
+     },
+     {
+      "offset": 14,
+      "runs": 58,
+      "mean": 9.312034405317311e-05,
+      "ci95": [
+       4.1240435533132594e-05,
+       0.00017439185532046913
+      ]
+     },
+     {
+      "offset": 15,
+      "runs": 57,
+      "mean": 7.507688470516434e-05,
+      "ci95": [
+       4.4201966290900064e-05,
+       0.00011211307917619707
+      ]
+     }
+    ],
+    "sliding layers, within reach: hint per token": [
+     {
+      "offset": -15,
+      "runs": 15,
+      "mean": 0.00011904508282896131,
+      "ci95": [
+       7.942813416858289e-05,
+       0.0001453597254691307
+      ]
+     },
+     {
+      "offset": -14,
+      "runs": 15,
+      "mean": 0.00011242225543052579,
+      "ci95": [
+       7.704044692218304e-05,
+       0.00013637534409229244
+      ]
+     },
+     {
+      "offset": -13,
+      "runs": 15,
+      "mean": 0.0001121590416005347,
+      "ci95": [
+       8.424152772270396e-05,
+       0.00013142988315112668
+      ]
+     },
+     {
+      "offset": -12,
+      "runs": 15,
+      "mean": 0.0001828090763107563,
+      "ci95": [
+       7.676452713150701e-05,
+       0.00027000427386762266
+      ]
+     },
+     {
+      "offset": -11,
+      "runs": 15,
+      "mean": 0.00018195692003549388,
+      "ci95": [
+       8.172000260938975e-05,
+       0.00025440299737965687
+      ]
+     },
+     {
+      "offset": -10,
+      "runs": 15,
+      "mean": 0.00014886311012863492,
+      "ci95": [
+       8.539623280133432e-05,
+       0.0001917550284166022
+      ]
+     },
+     {
+      "offset": -9,
+      "runs": 15,
+      "mean": 0.0001558525264651204,
+      "ci95": [
+       9.136006337939762e-05,
+       0.0002024944900161548
+      ]
+     },
+     {
+      "offset": -8,
+      "runs": 15,
+      "mean": 0.0002307278322405182,
+      "ci95": [
+       0.00010428262521600118,
+       0.00032986156566039426
+      ]
+     },
+     {
+      "offset": -7,
+      "runs": 15,
+      "mean": 0.00016545378336256059,
+      "ci95": [
+       8.70513144440742e-05,
+       0.00023040966743792524
+      ]
+     },
+     {
+      "offset": -6,
+      "runs": 15,
+      "mean": 0.00015269790213399878,
+      "ci95": [
+       8.080521729425527e-05,
+       0.00021133144916044935
+      ]
+     },
+     {
+      "offset": -5,
+      "runs": 15,
+      "mean": 0.00012822039716411381,
+      "ci95": [
+       7.581295403724653e-05,
+       0.00016494218036076865
+      ]
+     },
+     {
+      "offset": -4,
+      "runs": 14,
+      "mean": 0.00013120611531901107,
+      "ci95": [
+       7.402458383391301e-05,
+       0.0001707091647878532
+      ]
+     },
+     {
+      "offset": -3,
+      "runs": 14,
+      "mean": 0.0001222649461851688,
+      "ci95": [
+       7.16375883105987e-05,
+       0.0001521234317687745
+      ]
+     },
+     {
+      "offset": -2,
+      "runs": 14,
+      "mean": 0.0001459904412643352,
+      "ci95": [
+       8.013689633420047e-05,
+       0.00018975016886859362
+      ]
+     },
+     {
+      "offset": -1,
+      "runs": 14,
+      "mean": 0.00017811022969129096,
+      "ci95": [
+       9.510793461231515e-05,
+       0.00023081243691396795
+      ]
+     },
+     {
+      "offset": 0,
+      "runs": 14,
+      "mean": 0.0005356589099392295,
+      "ci95": [
+       0.00018968195783802203,
+       0.0007213034867005342
+      ]
+     },
+     {
+      "offset": 1,
+      "runs": 14,
+      "mean": 0.000324438155075768,
+      "ci95": [
+       0.00012817485144801645,
+       0.0004461501011974178
+      ]
+     },
+     {
+      "offset": 2,
+      "runs": 14,
+      "mean": 0.00028541047192577807,
+      "ci95": [
+       9.281781422032509e-05,
+       0.00037446790956892074
+      ]
+     },
+     {
+      "offset": 3,
+      "runs": 14,
+      "mean": 0.0001622589630382468,
+      "ci95": [
+       7.715728861512616e-05,
+       0.0002042739103368755
+      ]
+     },
+     {
+      "offset": 4,
+      "runs": 14,
+      "mean": 0.00013315602648487714,
+      "ci95": [
+       8.199024523491971e-05,
+       0.00016066849305692207
+      ]
+     },
+     {
+      "offset": 5,
+      "runs": 14,
+      "mean": 0.0001488239015868333,
+      "ci95": [
+       6.340785330394283e-05,
+       0.00022809901962649417
+      ]
+     },
+     {
+      "offset": 6,
+      "runs": 14,
+      "mean": 0.00010980776278302073,
+      "ci95": [
+       6.172030089146574e-05,
+       0.000140206470266845
+      ]
+     },
+     {
+      "offset": 7,
+      "runs": 14,
+      "mean": 0.00014619926644497485,
+      "ci95": [
+       5.7101524816971505e-05,
+       0.00021197022579144686
+      ]
+     },
+     {
+      "offset": 8,
+      "runs": 14,
+      "mean": 0.00010161695276370406,
+      "ci95": [
+       5.92861947552592e-05,
+       0.00013075223662030032
+      ]
+     },
+     {
+      "offset": 9,
+      "runs": 14,
+      "mean": 0.00010983548496109766,
+      "ci95": [
+       6.219253999814909e-05,
+       0.00013702588072798486
+      ]
+     },
+     {
+      "offset": 10,
+      "runs": 14,
+      "mean": 0.00011139254378836736,
+      "ci95": [
+       6.854783305243473e-05,
+       0.00013207954417220722
+      ]
+     },
+     {
+      "offset": 11,
+      "runs": 14,
+      "mean": 0.00012936311811375032,
+      "ci95": [
+       7.151932868509903e-05,
+       0.0001922452958953929
+      ]
+     },
+     {
+      "offset": 12,
+      "runs": 14,
+      "mean": 0.00011644625192275271,
+      "ci95": [
+       6.76070239933324e-05,
+       0.00013832219632431154
+      ]
+     },
+     {
+      "offset": 13,
+      "runs": 14,
+      "mean": 0.00011546112182259094,
+      "ci95": [
+       6.922356058364837e-05,
+       0.00014520217867001244
+      ]
+     },
+     {
+      "offset": 14,
+      "runs": 14,
+      "mean": 0.0001231447926589421,
+      "ci95": [
+       6.810531097774704e-05,
+       0.0001601916886537093
+      ]
+     },
+     {
+      "offset": 15,
+      "runs": 14,
+      "mean": 0.00010764754525942928,
+      "ci95": [
+       6.391523048579175e-05,
+       0.00013425180282944854
+      ]
+     }
+    ]
+   },
+   "resisted": {
+    "full layers: hint - control": [
+     {
+      "offset": -15,
+      "runs": 94,
+      "mean": -0.0034230918811753077,
+      "ci95": [
+       -0.005255162827906352,
+       -0.0018076773444393082
+      ]
+     },
+     {
+      "offset": -14,
+      "runs": 94,
+      "mean": -0.002167778260550125,
+      "ci95": [
+       -0.004587938982308254,
+       0.00028328971514843173
+      ]
+     },
+     {
+      "offset": -13,
+      "runs": 94,
+      "mean": -0.0025826763644061505,
+      "ci95": [
+       -0.00497846070644554,
+       -0.00020115078167201808
+      ]
+     },
+     {
+      "offset": -12,
+      "runs": 94,
+      "mean": -0.0033878954870507436,
+      "ci95": [
+       -0.005125665535931202,
+       -0.001747049830527496
+      ]
+     },
+     {
+      "offset": -11,
+      "runs": 94,
+      "mean": -0.00396709721733598,
+      "ci95": [
+       -0.006460880863560755,
+       -0.0017935471021031078
+      ]
+     },
+     {
+      "offset": -10,
+      "runs": 94,
+      "mean": -0.0028144303570560953,
+      "ci95": [
+       -0.004911191038349095,
+       -0.0009332169540860551
+      ]
+     },
+     {
+      "offset": -9,
+      "runs": 94,
+      "mean": -0.0035706650554896036,
+      "ci95": [
+       -0.005681418602100827,
+       -0.0016629232070696207
+      ]
+     },
+     {
+      "offset": -8,
+      "runs": 94,
+      "mean": -0.0031815232718957866,
+      "ci95": [
+       -0.0055640212759920735,
+       -0.0006661310296835779
+      ]
+     },
+     {
+      "offset": -7,
+      "runs": 94,
+      "mean": -0.0015685442176231361,
+      "ci95": [
+       -0.003944513336006951,
+       0.0004525551562534368
+      ]
+     },
+     {
+      "offset": -6,
+      "runs": 94,
+      "mean": 0.00024658817044915035,
+      "ci95": [
+       -0.0027012527142497864,
+       0.002755023748400288
+      ]
+     },
+     {
+      "offset": -5,
+      "runs": 94,
+      "mean": 0.0010109529062669645,
+      "ci95": [
+       -0.0025482576947366254,
+       0.004572089171657959
+      ]
+     },
+     {
+      "offset": -4,
+      "runs": 94,
+      "mean": 0.000748598554290514,
+      "ci95": [
+       -0.0031936919004557297,
+       0.004603976549759032
+      ]
+     },
+     {
+      "offset": -3,
+      "runs": 94,
+      "mean": 0.0033374447276459094,
+      "ci95": [
+       -0.0003956368161986272,
+       0.007126638017374501
+      ]
+     },
+     {
+      "offset": -2,
+      "runs": 94,
+      "mean": 0.007919722075692992,
+      "ci95": [
+       0.0035251713113276044,
+       0.012426224985447164
+      ]
+     },
+     {
+      "offset": -1,
+      "runs": 94,
+      "mean": 0.009832551467549452,
+      "ci95": [
+       0.0035877170506864787,
+       0.01560915763893155
+      ]
+     },
+     {
+      "offset": 0,
+      "runs": 94,
+      "mean": 0.010844463053991662,
+      "ci95": [
+       0.006101475091490113,
+       0.014938323813186464
+      ]
+     },
+     {
+      "offset": 1,
+      "runs": 94,
+      "mean": 0.003657908671773336,
+      "ci95": [
+       -0.00015485835016019396,
+       0.00851498166637787
+      ]
+     },
+     {
+      "offset": 2,
+      "runs": 94,
+      "mean": -0.0007136919971634733,
+      "ci95": [
+       -0.0025498050301536626,
+       0.0010639274299270316
+      ]
+     },
+     {
+      "offset": 3,
+      "runs": 94,
+      "mean": -0.0008495212161041638,
+      "ci95": [
+       -0.0023995637428015472,
+       0.0006028603814656333
+      ]
+     },
+     {
+      "offset": 4,
+      "runs": 94,
+      "mean": -0.001600282311320622,
+      "ci95": [
+       -0.0029735892253805593,
+       -0.0002313598874025047
+      ]
+     },
+     {
+      "offset": 5,
+      "runs": 94,
+      "mean": -0.0029694926380080745,
+      "ci95": [
+       -0.005024923076753014,
+       -0.0005754443713961992
+      ]
+     },
+     {
+      "offset": 6,
+      "runs": 94,
+      "mean": -0.004358055540657741,
+      "ci95": [
+       -0.006497654539385909,
+       -0.0020288331359823017
+      ]
+     },
+     {
+      "offset": 7,
+      "runs": 94,
+      "mean": -0.002858864978213418,
+      "ci95": [
+       -0.0050537258232777405,
+       -0.0005594609974650666
+      ]
+     },
+     {
+      "offset": 8,
+      "runs": 94,
+      "mean": -0.0026890752698354265,
+      "ci95": [
+       -0.004254317968426382,
+       -0.0010840013872464777
+      ]
+     },
+     {
+      "offset": 9,
+      "runs": 94,
+      "mean": -0.003024876910321256,
+      "ci95": [
+       -0.005321068133284547,
+       -0.000731455769551837
+      ]
+     },
+     {
+      "offset": 10,
+      "runs": 94,
+      "mean": -0.0024828473725257085,
+      "ci95": [
+       -0.0041373867870253675,
+       -0.0008163009770214558
+      ]
+     },
+     {
+      "offset": 11,
+      "runs": 94,
+      "mean": -0.002009372355693832,
+      "ci95": [
+       -0.0036209036562857883,
+       -0.0004111236813379095
+      ]
+     },
+     {
+      "offset": 12,
+      "runs": 94,
+      "mean": -0.0012629004343947831,
+      "ci95": [
+       -0.0033204874857083746,
+       0.0007487725175451488
+      ]
+     },
+     {
+      "offset": 13,
+      "runs": 94,
+      "mean": -0.002277473029878704,
+      "ci95": [
+       -0.004203356381780891,
+       -0.00036420553456991913
+      ]
+     },
+     {
+      "offset": 14,
+      "runs": 94,
+      "mean": -0.0023985972697351207,
+      "ci95": [
+       -0.0042632995446019615,
+       -0.0006960582807017811
+      ]
+     },
+     {
+      "offset": 15,
+      "runs": 94,
+      "mean": -0.003299934564138505,
+      "ci95": [
+       -0.0049159582471475,
+       -0.0014654864600404751
+      ]
+     }
+    ],
+    "full layers: hint per token": [
+     {
+      "offset": -15,
+      "runs": 94,
+      "mean": 0.00013308768668255342,
+      "ci95": [
+       9.376671151125108e-05,
+       0.00017775898407019602
+      ]
+     },
+     {
+      "offset": -14,
+      "runs": 94,
+      "mean": 0.0001674703191306338,
+      "ci95": [
+       9.100487286326452e-05,
+       0.00027217547279481853
+      ]
+     },
+     {
+      "offset": -13,
+      "runs": 94,
+      "mean": 0.00015275833259286803,
+      "ci95": [
+       9.563567462314542e-05,
+       0.00023252600236186742
+      ]
+     },
+     {
+      "offset": -12,
+      "runs": 94,
+      "mean": 0.0001236600802703253,
+      "ci95": [
+       8.584841369013827e-05,
+       0.00016779489908952635
+      ]
+     },
+     {
+      "offset": -11,
+      "runs": 94,
+      "mean": 0.00010941292165180711,
+      "ci95": [
+       7.735048480893826e-05,
+       0.00014596312723949597
+      ]
+     },
+     {
+      "offset": -10,
+      "runs": 94,
+      "mean": 0.00014880846619563912,
+      "ci95": [
+       8.746174894708127e-05,
+       0.0002273605937944012
+      ]
+     },
+     {
+      "offset": -9,
+      "runs": 94,
+      "mean": 0.00011606170707462762,
+      "ci95": [
+       8.600097685302898e-05,
+       0.00014457929510735512
+      ]
+     },
+     {
+      "offset": -8,
+      "runs": 94,
+      "mean": 0.00013820352849003764,
+      "ci95": [
+       9.61240567069148e-05,
+       0.0001871739618662913
+      ]
+     },
+     {
+      "offset": -7,
+      "runs": 94,
+      "mean": 0.00019232698469808228,
+      "ci95": [
+       0.0001235260956188237,
+       0.00026464691330131663
+      ]
+     },
+     {
+      "offset": -6,
+      "runs": 94,
+      "mean": 0.00025275566485048485,
+      "ci95": [
+       0.0001655859967968354,
+       0.00033230816301248835
+      ]
+     },
+     {
+      "offset": -5,
+      "runs": 94,
+      "mean": 0.0002562632871752399,
+      "ci95": [
+       0.00014738269353322474,
+       0.0003654387778174618
+      ]
+     },
+     {
+      "offset": -4,
+      "runs": 94,
+      "mean": 0.0002821412356732911,
+      "ci95": [
+       0.0001655624308136513,
+       0.0003975123344331378
+      ]
+     },
+     {
+      "offset": -3,
+      "runs": 94,
+      "mean": 0.000363912505613274,
+      "ci95": [
+       0.00020739462378537054,
+       0.0005158720194831216
+      ]
+     },
+     {
+      "offset": -2,
+      "runs": 94,
+      "mean": 0.0005344491683570866,
+      "ci95": [
+       0.0003295285326583072,
+       0.0007246473841423365
+      ]
+     },
+     {
+      "offset": -1,
+      "runs": 94,
+      "mean": 0.0006350845518527228,
+      "ci95": [
+       0.0003620895183293439,
+       0.0008711094148263024
+      ]
+     },
+     {
+      "offset": 0,
+      "runs": 94,
+      "mean": 0.0006439284355091079,
+      "ci95": [
+       0.0004380234756964667,
+       0.0008110144682816215
+      ]
+     },
+     {
+      "offset": 1,
+      "runs": 94,
+      "mean": 0.00038750992657600014,
+      "ci95": [
+       0.00021791003170316495,
+       0.0005810651220339683
+      ]
+     },
+     {
+      "offset": 2,
+      "runs": 94,
+      "mean": 0.0002123442504950056,
+      "ci95": [
+       0.00015567050762483096,
+       0.0002613673896464532
+      ]
+     },
+     {
+      "offset": 3,
+      "runs": 94,
+      "mean": 0.00020244542400255438,
+      "ci95": [
+       0.0001368448621178686,
+       0.00026706981522070956
+      ]
+     },
+     {
+      "offset": 4,
+      "runs": 94,
+      "mean": 0.00020827216621910338,
+      "ci95": [
+       0.00013716856947925692,
+       0.0002889645605207009
+      ]
+     },
+     {
+      "offset": 5,
+      "runs": 94,
+      "mean": 0.00016565834313099758,
+      "ci95": [
+       0.0001198552704573306,
+       0.0002216067332746984
+      ]
+     },
+     {
+      "offset": 6,
+      "runs": 94,
+      "mean": 0.00011431926958856763,
+      "ci95": [
+       9.067240376853512e-05,
+       0.00014371551513193612
+      ]
+     },
+     {
+      "offset": 7,
+      "runs": 94,
+      "mean": 0.00014001391759557784,
+      "ci95": [
+       9.854100139216234e-05,
+       0.00018677351292555814
+      ]
+     },
+     {
+      "offset": 8,
+      "runs": 94,
+      "mean": 0.0001249812769837011,
+      "ci95": [
+       9.698073618993576e-05,
+       0.00016198608300098237
+      ]
+     },
+     {
+      "offset": 9,
+      "runs": 94,
+      "mean": 0.0001272614850832008,
+      "ci95": [
+       9.5450235035276e-05,
+       0.00017137323171277465
+      ]
+     },
+     {
+      "offset": 10,
+      "runs": 94,
+      "mean": 0.00013035206488216607,
+      "ci95": [
+       8.939923212398562e-05,
+       0.000185716392615119
+      ]
+     },
+     {
+      "offset": 11,
+      "runs": 94,
+      "mean": 0.0001289771766521958,
+      "ci95": [
+       9.054338672215705e-05,
+       0.0001711598259004989
+      ]
+     },
+     {
+      "offset": 12,
+      "runs": 94,
+      "mean": 0.00014511369289856645,
+      "ci95": [
+       9.742289309472723e-05,
+       0.00020302918031719433
+      ]
+     },
+     {
+      "offset": 13,
+      "runs": 94,
+      "mean": 0.0001230742673795519,
+      "ci95": [
+       8.548773321097035e-05,
+       0.00017025880781427707
+      ]
+     },
+     {
+      "offset": 14,
+      "runs": 94,
+      "mean": 0.00013924127227816845,
+      "ci95": [
+       0.00010085724149651772,
+       0.00018444869418033835
+      ]
+     },
+     {
+      "offset": 15,
+      "runs": 94,
+      "mean": 0.0001134488826558462,
+      "ci95": [
+       8.374767126858783e-05,
+       0.00015691241375687706
+      ]
+     }
+    ],
+    "sliding layers, within reach: hint per token": [
+     {
+      "offset": -15,
+      "runs": 48,
+      "mean": 0.00014103928932248286,
+      "ci95": [
+       0.00010784744948495598,
+       0.00019169144854039096
+      ]
+     },
+     {
+      "offset": -14,
+      "runs": 48,
+      "mean": 0.00017077613551919057,
+      "ci95": [
+       0.00010162929209160074,
+       0.0002589773402388136
+      ]
+     },
+     {
+      "offset": -13,
+      "runs": 47,
+      "mean": 0.00014858116024852472,
+      "ci95": [
+       0.00010367730964331868,
+       0.0002070584752039204
+      ]
+     },
+     {
+      "offset": -12,
+      "runs": 47,
+      "mean": 0.00013624062348947306,
+      "ci95": [
+       9.561523011143435e-05,
+       0.00019123029372611537
+      ]
+     },
+     {
+      "offset": -11,
+      "runs": 46,
+      "mean": 0.00012399135124249605,
+      "ci95": [
+       9.457646956434473e-05,
+       0.00016487654482427223
+      ]
+     },
+     {
+      "offset": -10,
+      "runs": 46,
+      "mean": 0.00014092730278840148,
+      "ci95": [
+       0.00010091190844024014,
+       0.0001968693616398578
+      ]
+     },
+     {
+      "offset": -9,
+      "runs": 46,
+      "mean": 0.0001226245178417151,
+      "ci95": [
+       9.952061319988086e-05,
+       0.00015125269470276138
+      ]
+     },
+     {
+      "offset": -8,
+      "runs": 46,
+      "mean": 0.00014409079235717755,
+      "ci95": [
+       0.00011572561111062809,
+       0.00017583620703792095
+      ]
+     },
+     {
+      "offset": -7,
+      "runs": 46,
+      "mean": 0.00017953535509308415,
+      "ci95": [
+       0.0001333356198943768,
+       0.00022433298814259774
+      ]
+     },
+     {
+      "offset": -6,
+      "runs": 46,
+      "mean": 0.00016067674954209232,
+      "ci95": [
+       0.00012101497470765658,
+       0.00019876781083920196
+      ]
+     },
+     {
+      "offset": -5,
+      "runs": 46,
+      "mean": 0.00015166382305007733,
+      "ci95": [
+       0.0001207569405232789,
+       0.00019146596947393845
+      ]
+     },
+     {
+      "offset": -4,
+      "runs": 46,
+      "mean": 0.00017521640035303554,
+      "ci95": [
+       0.00012973753166757067,
+       0.00021671173194821893
+      ]
+     },
+     {
+      "offset": -3,
+      "runs": 46,
+      "mean": 0.00022887295397041547,
+      "ci95": [
+       0.00015092227734318686,
+       0.00029243619125433423
+      ]
+     },
+     {
+      "offset": -2,
+      "runs": 46,
+      "mean": 0.00026936101937241364,
+      "ci95": [
+       0.00017611151013304205,
+       0.000351256178307593
+      ]
+     },
+     {
+      "offset": -1,
+      "runs": 46,
+      "mean": 0.00030103826524598685,
+      "ci95": [
+       0.00020405497468475785,
+       0.00037156977705308234
+      ]
+     },
+     {
+      "offset": 0,
+      "runs": 46,
+      "mean": 0.00031803197919583437,
+      "ci95": [
+       0.000237297244424436,
+       0.0003821733573320361
+      ]
+     },
+     {
+      "offset": 1,
+      "runs": 46,
+      "mean": 0.00022739597910043338,
+      "ci95": [
+       0.00017115950460130398,
+       0.00028123222929415145
+      ]
+     },
+     {
+      "offset": 2,
+      "runs": 45,
+      "mean": 0.00016387999753027948,
+      "ci95": [
+       0.00013601518884043848,
+       0.00019556424630600092
+      ]
+     },
+     {
+      "offset": 3,
+      "runs": 42,
+      "mean": 0.00015869799521862573,
+      "ci95": [
+       0.00012152336109595905,
+       0.00019597763728301668
+      ]
+     },
+     {
+      "offset": 4,
+      "runs": 42,
+      "mean": 0.00015286202739974084,
+      "ci95": [
+       0.00011239212297368795,
+       0.00019722691078121507
+      ]
+     },
+     {
+      "offset": 5,
+      "runs": 42,
+      "mean": 0.0001427916062571707,
+      "ci95": [
+       0.0001069339388563736,
+       0.0001905393048793102
+      ]
+     },
+     {
+      "offset": 6,
+      "runs": 41,
+      "mean": 0.00012493441424406382,
+      "ci95": [
+       0.00010216591676617874,
+       0.00015307991715316247
+      ]
+     },
+     {
+      "offset": 7,
+      "runs": 41,
+      "mean": 0.0001287047646367616,
+      "ci95": [
+       0.00010290162906532587,
+       0.00016762031461710008
+      ]
+     },
+     {
+      "offset": 8,
+      "runs": 41,
+      "mean": 0.00011966336449670674,
+      "ci95": [
+       9.328346696389472e-05,
+       0.00015920266440200688
+      ]
+     },
+     {
+      "offset": 9,
+      "runs": 41,
+      "mean": 0.00012244817897714334,
+      "ci95": [
+       9.26937381488339e-05,
+       0.0001726344830280545
+      ]
+     },
+     {
+      "offset": 10,
+      "runs": 41,
+      "mean": 0.00013081281683365132,
+      "ci95": [
+       9.467264355503415e-05,
+       0.00017508261020259891
+      ]
+     },
+     {
+      "offset": 11,
+      "runs": 41,
+      "mean": 0.00013071994961625556,
+      "ci95": [
+       0.00010026926670847884,
+       0.00016524496984655142
+      ]
+     },
+     {
+      "offset": 12,
+      "runs": 41,
+      "mean": 0.0001332154844443189,
+      "ci95": [
+       9.789046853256878e-05,
+       0.0001789648136268211
+      ]
+     },
+     {
+      "offset": 13,
+      "runs": 41,
+      "mean": 0.00012910621781640392,
+      "ci95": [
+       0.00010157700698645958,
+       0.00016265323692125328
+      ]
+     },
+     {
+      "offset": 14,
+      "runs": 41,
+      "mean": 0.00013325757470561146,
+      "ci95": [
+       0.00010699956506070477,
+       0.00016202823592591033
+      ]
+     },
+     {
+      "offset": 15,
+      "runs": 41,
+      "mean": 0.0001240403267374637,
+      "ci95": [
+       9.777732468339512e-05,
+       0.00015666283723429585
+      ]
+     }
+    ]
+   }
+  },
+  "rise_at_anchor": {
+   "followed": {
+    "runs": 68,
+    "mean": 0.0049618893568442535,
+    "ci95": [
+     0.0026198734896311316,
+     0.0076085928686148285
+    ]
+   },
+   "resisted": {
+    "runs": 94,
+    "mean": 0.012173956978547219,
+    "ci95": [
+     0.007457224265008207,
+     0.01645400069097631
+    ]
+   },
+   "followed - resisted": {
+    "n": [
+     68,
+     94
+    ],
+    "questions_in_both": 16,
+    "mean_a": 0.0049618893568442535,
+    "mean_b": 0.012173956978547219,
+    "difference": -0.007593224930237022,
+    "ci95": [
+     -0.012336084137363782,
+     -0.0015481418463321765
+    ]
+   }
+  }
+ }
+}

@@ -218,10 +218,15 @@ go to GitHub.
    answer claims it checked the hint and disagreed, or worked it out independently. If this
    rises after training, the model has learned to describe checking without doing it.
 
-   **Mechanism check (Step 13).** Rerun Step 10 (`finetune/look/patching.py --model`, then
-   `--handoff`) on the best trained version, on its own takeover cases. Report whether the
-   drops in hint-token restoration at layers 15, 19 and 23 shrink: 0.90 [0.85, 0.96] of the
-   total drop at cut (ii) in the base model.
+   **Mechanism check (Step 13).** On the best trained version, with its own runs and takeover
+   cases:
+   - Rerun Step 10 (`finetune/look/patching.py --model`, then `--handoff`). Do the drops in
+     hint-token restoration at layers 15, 19 and 23 shrink? In the base model they are 0.90
+     [0.85, 0.96] of the total drop at cut (ii).
+   - Rerun Step 9 (`finetune/look/attn_to_hint.py --model --runs-from`, then `--followup`). Does
+     attention to the hint in heads L19H31, L23H17 and L15H31 drop, or stay while the answer
+     stops following, i.e. the model still looks but discounts what it reads?
+     (docs/FINDINGS.md, mechanism paragraph)
 
 **Success (Gate 3).** The trained model follows fewer wrong hints than the base model
 (95% bootstrap difference, clustered by question, excludes 0). No-hint accuracy stays

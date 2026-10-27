@@ -32,7 +32,7 @@ CODE = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "progress"))
 
-from common import append, boot_diff, boot_mean, load  # noqa: E402
+from common import append, boot_diff, boot_mean, load, too_few  # noqa: E402
 from finetune import base_format as bf  # noqa: E402
 from finetune.look import takeover as tk  # noqa: E402
 
@@ -137,7 +137,7 @@ def onset_comparison(rows, sure, label):
           f"{max(per.values(), default=0)} ({len(per)} runs). Left out: {dict(skipped) or 'none'}.\n")
     return {"permanent": len(perm), "temporary": len(temp),
             "leads_diff": boot_diff(by_q(perm, "own_leads_before"), by_q(temp, "own_leads_before"))
-            if set(by_q(perm, "own_leads_before")) & set(by_q(temp, "own_leads_before")) else None}
+            if not too_few(by_q(perm, "own_leads_before"), by_q(temp, "own_leads_before")) else None}
 
 
 def points(rows, texts):
@@ -178,15 +178,19 @@ def by_q(ms, key, cast=float):
 def ci(groups, pct=True):
     if not groups:
         return "—"
-    m, lo, hi = boot_mean(groups)
     f = (lambda x: f"{100 * x:.0f}%") if pct else (lambda x: f"{x:.2f}")
-    return f"{f(m)} [{f(lo)}, {f(hi)}]"
+    if too_few(groups):
+        return f"{f(sum(v for vs in groups.values() for v in vs) / sum(map(len, groups.values())))} (too few questions: {len(groups)})"
+    m, lo, hi = boot_mean(groups)
+    return f"{f(m)} [{f(lo)}, {f(hi)}] ({len(groups)} questions)"
 
 
 def diff(a, b):
     shared = set(a) & set(b)
     if not shared:
         return "— (no shared questions)"
+    if too_few(a, b):
+        return f"(too few questions: {len(shared)} shared)"
     d, lo, hi = boot_diff(a, b)
     return f"{100 * d:+.0f} points [{100 * lo:+.0f}, {100 * hi:+.0f}] ({len(shared)} shared questions)"
 
@@ -233,8 +237,8 @@ def compare(ms, label):
     print(f"| (b) baseline: any 4-sentence window in the same runs | {ci(by_q(late, 'misfit_any_window'))} | "
           f"{ci(by_q(close, 'misfit_any_window'))} | |")
     print()
-    d, lo, hi = boot_diff(by_q(late, "misfit"), by_q(close, "misfit")) if set(by_q(late, "misfit")) & set(
-        by_q(close, "misfit")) else (None, None, None)
+    d, lo, hi = boot_diff(by_q(late, "misfit"), by_q(close, "misfit")) if not too_few(
+        by_q(late, "misfit"), by_q(close, "misfit")) else (None, None, None)
     return {"late": len(late), "closest": len(close), "misfit_diff": d, "misfit_diff_ci": [lo, hi]}
 
 

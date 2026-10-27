@@ -190,7 +190,8 @@ def test_report_compares_the_arms(monkeypatch, tmp_path, capsys):
     out = capsys.readouterr().out
     assert "the hint itself" in out and "| hint | 1 | 1 of 1 [" in out and "3 of 3 [" in out
     assert "| unedited | 1 | — | the hint letter, by definition (Step 3) |" in out
-    assert "hint minus control, continuations: +0 points" in out and "hint minus unedited, continuations" in out
+    assert "hint minus control, continuations: too few questions (1 questions)" in out      # under 5: no interval
+    assert "hint minus unedited, continuations" in out
     assert "| 7 | 3 of 3 | 3 of 3 | 3 of 3 |" in out
 
 

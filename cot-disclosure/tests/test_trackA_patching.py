@@ -169,6 +169,9 @@ def test_handoff_shares_and_paths(tmp_path):
     assert p["swap_only_the_prompt_letter"]["off_W"] == 4 and p["swap_only_the_prompt_letter"]["of"] == 6
     assert p["step4_delete_the_mentions"]["back_to_own"] == 2 and p["step4_delete_the_mentions"]["of"] == 5
     assert p["cross_table"] == {"step 4 hint, clean O": 2, "step 4 hint, clean W": 1, "step 4 own, clean O": 2}
+    small = pt.handoff({**s, "cuts": [c for c in s["cuts"] if c["item_id"] < 3]})          # 3 questions
+    c = small["by_cut_type"]["ii"]["all"]["drop_share_readout"]
+    assert c["low"] is None and c["questions"] == 3 and "too few questions: 3" in pt.show_ci(c, sign=False)
     pt.show_handoff(pt.handoff(s), p)
     pt.plot_handoff(s, tmp_path / "handoff.png")
     assert (tmp_path / "handoff.png").exists() and (tmp_path / "handoff.svg").exists()

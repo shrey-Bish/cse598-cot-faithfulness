@@ -39,7 +39,7 @@ CODE = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "progress"))
 
-from common import append, load  # noqa: E402
+from common import MIN_QUESTIONS, append, load  # noqa: E402
 from finetune.look import hint_spans as hs  # noqa: E402
 
 WINDOW = 4096
@@ -146,6 +146,10 @@ def boot(steps_by_cutoff, n=N_BOOT, seed=0):
         out[c] = {"mean": point[c], "ci95": [vals[int(0.025 * len(vals))], vals[int(0.975 * len(vals)) - 1]] if vals else None}
     for c, g in steps_by_cutoff.items():
         out[c].update({"runs": sum(len(v) for v in g.values()), "questions": len(g)})
+    out["contrast"]["questions"] = len(qs)
+    for c in out:                                                 # too few questions: no interval (Oct 26)
+        if out[c]["questions"] < MIN_QUESTIONS:
+            out[c]["ci95"] = None
     return out
 
 
@@ -193,7 +197,7 @@ def figure(rows, res, path):
         xs = [str(c) for c in CUTOFFS] + ["contrast"]
         for i, c in enumerate(xs):
             v = st[c]
-            if v["mean"] is None:
+            if v["mean"] is None or v["ci95"] is None:
                 continue
             lo, hi = v["ci95"]
             ax.errorbar([i], [v["mean"]], yerr=[[v["mean"] - lo], [hi - v["mean"]]], fmt="o",
@@ -254,9 +258,10 @@ def main(argv=None):
             cells = []
             for c in [str(x) for x in CUTOFFS] + ["contrast"]:
                 v = st[c]
+                ci = (f"[{v['ci95'][0]:+.2f}, {v['ci95'][1]:+.2f}]" if v["ci95"] else "(too few questions)")
                 cells.append(f"{c}: " + ("—" if v["mean"] is None else
-                                         f"{v['mean']:+.2f} [{v['ci95'][0]:+.2f}, {v['ci95'][1]:+.2f}]"
-                                         + (f" ({v['runs']} runs)" if "runs" in v else "")))
+                                         f"{v['mean']:+.2f} {ci}" + (f" ({v['runs']} runs, {v['questions']} questions)"
+                                                                     if "runs" in v else "")))
             print(f"{label:24} {key:9} " + "; ".join(cells))
     print(f"saved {SUMMARY.relative_to(CODE)} (+ .png/.svg) and {PROBES.relative_to(CODE)}")
     return summary

@@ -48,6 +48,8 @@ GPU = {                  # copied back from Sol to results/trackA/gpu/ (numbers 
     "gpu/step9_followup.json": "Step 9 follow-up: full-attention layers, runs within the window, readout heads, aligned curve",
     "gpu/step9_aligned.png": "Step 9 follow-up: the takeover-aligned curve",
     "gpu/step9_aligned.svg": "Step 9 follow-up: the takeover-aligned curve",
+    "gpu/step9_onsets.png": "Step 9 follow-up: attention around permanent vs temporary onsets (matched)",
+    "gpu/step9_onsets.svg": "Step 9 follow-up: attention around permanent vs temporary onsets (matched)",
 }
 LATER = ["nohint_train_runs.jsonl", "targets_runs.jsonl", "target_samples_runs.jsonl", "targets_prefill_runs.jsonl",
          "target_samples_prefill_runs.jsonl"]                    # Steps 6-7: after the run finishes
@@ -120,12 +122,30 @@ def takeover_rows():
     return out
 
 
+def onset_rows():
+    """Step 3, per hinted run: whether its curve is dense, and every onset after the first fifth (a
+    probe where the hint letter becomes the leading letter) as [k, permanent] (permanent: it keeps the
+    lead to the end, the takeover). Step 9's matched comparison anchors on these on Sol."""
+    from finetune.look import before_takeover as bt
+    from finetune.look import takeover as tk
+    out = []
+    for r in tk.current_probes(load(tk.PROBES_OUT)):
+        if r["kind"] == "no hint":
+            continue
+        dense = tk.dense(r)
+        out.append({"source_run_id": r["source_run_id"], "item_id": r["item_id"], "kind": r["kind"],
+                    "n_sentences": r["n_sentences"], "dense": dense,
+                    "onsets": [[k, perm] for k, perm in bt.onsets(r)] if dense else None})
+    return out
+
+
 def plan():
     """[(source or None, destination, writer)]: copies, plus derived numbers-only files."""
     out = [(TRACK_A / name, SUMMARIES / "trackA" / name, None) for name in TRACK_A_FILES if (TRACK_A / name).exists()]
     out += [(TRACK_A / name, SUMMARIES / "trackA" / Path(name).name, None) for name in GPU if (TRACK_A / name).exists()]
     if (TRACK_A / "takeover_probes.jsonl.gz").exists():
         out.append((None, SUMMARIES / "trackA" / "takeover_per_run.jsonl", takeover_rows))
+        out.append((None, SUMMARIES / "trackA" / "hint_onsets.jsonl", onset_rows))
     if CANARY.exists():
         out.append((CANARY, SUMMARIES / "voyager_canary.jsonl", None))
     out += [(f, SUMMARIES / "trackA" / "figures" / f.name, None) for f in sorted((TRACK_A / "figures").glob("*"))

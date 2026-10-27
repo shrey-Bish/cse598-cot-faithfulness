@@ -111,6 +111,7 @@ S=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA
 rsync -av $S/smoke/smoke.json $S/step8/step8_checkpoint.json $S/step9/step9_attention.json \
     $S/step10/step10_patching.json results/trackA/gpu/
 rsync -av $S/step9/step9_followup.json $S/step9/step9_aligned.png $S/step9/step9_aligned.svg \
+    $S/step9/step9_onsets.png $S/step9/step9_onsets.svg $S/step9/step9_reduced.npz \
     results/trackA/gpu/                                    # after the Step 9 follow-up (section 3)
 ```
 
@@ -282,8 +283,9 @@ Step 2b runs. `python finetune/look/attn_to_hint.py --dry-run` gives the runs, t
 curves; tens of KB).
 
 **Follow-up (Oct 26), no GPU, from the saved runs.** It reads `runs/*.npz`, `step9_runs.jsonl` and
-the tracked `results/summaries/trackA/takeover_per_run.jsonl` (Step 3's closest approaches), so
-first re-send the code (section 0, the `git ls-files` rsync). It covers:
+two tracked files: `results/summaries/trackA/takeover_per_run.jsonl` (Step 3's takeovers and closest
+approaches) and `hint_onsets.jsonl` (Step 3's lead onsets). So first re-send the code (section 0,
+the `git ls-files` rsync). It covers:
 - every comparison on the 8 full-attention layers only
 - the 25 runs whose answer is within reach of the hint in the sliding layers, apart: all, full and
   sliding layers
@@ -292,14 +294,29 @@ first re-send the code (section 0, the `git ls-files` rsync). It covers:
 - the heads in layers 15, 19 and 23 (Step 10's readout layers), followed vs resisted, with
   intervals
 - attention to the hint from each reasoning sentence, aligned on the takeover (followed) or the
-  closest approach (resisted): full layers, and sliding layers where the sentence is within reach
+  closest approach (resisted): full layers, and sliding layers where the sentence is within reach.
+  This is biased, because the closest approach is picked where the hint is strongest.
+- the matched version: the attention rise at every lead onset after the first fifth, permanent
+  (the takeover) vs temporary, picked the same way in every run (`onsets_matched`,
+  `step9_onsets.png`)
+
+Every interval resting on fewer than 5 questions is replaced by "too few questions", and every
+group shows its questions as well as its runs.
 
 ```bash
 cot-disclosure/finetune/gpu/sol/run.sh step9 --followup     # ~1 min, CPU only
 ```
 
-It writes `step9_followup.json` (numbers only) and `step9_aligned.png` / `.svg`; copy them back as
-in "Results back". The CPU test is `tests/test_trackA_attn.py::test_followup_on_saved_runs`.
+It writes `step9_followup.json` (numbers only), `step9_aligned.png` / `.svg` and `step9_onsets.png`
+/ `.svg`. It also writes `step9_reduced.npz` (about 3 MB, numbers and run ids only): each run's
+answer masses and per-sentence means. Copy them all back as in "Results back". With the reduced
+file on the Mac, later re-anchoring needs no Sol run:
+
+```bash
+python finetune/look/attn_to_hint.py --followup --from-reduced results/trackA/gpu/step9_reduced.npz
+```
+
+The CPU test is `tests/test_trackA_attn.py::test_followup_on_saved_runs`.
 
 ## 4. Step 10: activation patching
 

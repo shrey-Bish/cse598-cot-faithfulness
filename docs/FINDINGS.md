@@ -6,6 +6,10 @@ status. Started 2026-10-26. Design and plans: [`OVERVIEW.md`](OVERVIEW.md), [`PL
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
   labels exist.
+- **Too few questions** (decided Oct 26). A clustered interval resting on fewer than 5 questions
+  degenerates (it can have zero width), so none is reported: the point is followed by "too few
+  questions", and no direction is read from it. Group sizes are given in questions as well as
+  runs.
 - **Sources.** Every source is a tracked file: a numbers-only summary in
   `cot-disclosure/results/summaries/` (no question or reply text), or a progress-round file on
   main. The full runs stay local (gitignored); the command given recomputes the numbers from them.
@@ -217,41 +221,60 @@ on Oct 26, before the result (PLAN, Track A).
 - **Status.** *confirmed*: the rule fails (a) and holds (b) and (c), and the Sol weights are
   d97e442. "Voyager serves the same weights" is *tentative*, and nothing depends on it.
 
-## F10. Step 9: the tool hint's stronger pull doesn't come with more attention to it
+## F10. Step 9: tool hints get less attention at the answer than user hints, yet move it more
 
 One forward pass per hinted Step 2b run (199 runs, 20 questions). Measured: the attention mass
-from the answer position ("(" of "Answer: (") to the hint, per layer and head.
+from the answer position ("(" of "Answer: (") to the hint, per layer and head. Reported here on the
+8 full-attention layers, the only ones that reach the hint in 174 of 199 runs. Two measures:
+- **hint − control:** the hint's mass minus that of a question-stem span of the same length
+- **per token:** the hint's mass divided by its length
 
-- **Tool − user, at the answer, over all layers and heads:**
-  - hint mass **−0.0010 [−0.0027, +0.0010]**
-  - hint − control (a question-stem span of the same length): −0.0014 [−0.0025, −0.0001]
-  - per hint token: −0.00020 [−0.00029, −0.00013] (the user hint is shorter)
+**Tool − user** (179 vs 20 runs, 20 questions in both):
 
-  Tool hints move the answer more (F1) but don't draw more attention at the answer.
-- **Followed − resisted** (all channels, all layers, 105 vs 94 runs):
-  - hint − control +0.0020 [+0.0007, +0.0039]
-  - per token +0.00005 [−0.00002, +0.00013]
-- **On the 8 full-attention layers** (group means only, from the layer profiles; no intervals
-  yet): hint − control is higher in followed than resisted runs in every channel.
-  - pasted 0.024 vs 0.017
-  - inserted 0.017 vs 0.011
-  - inserted + declared 0.013 vs 0.008
-  - user 0.027 vs 0.021
+| measure | tool − user |
+|---|---|
+| hint − control | **−8.1e-3 [−1.0e-2, −6.1e-3]** |
+| per token | −8.9e-4 [−1.0e-3, −7.7e-4] |
+| the letter | −2.0e-3 [−3.2e-3, −6.7e-4] |
+
+- **The two orders don't match.**
+  - Attention (hint − control, channel means): user 0.023 > pasted 0.022 > inserted 0.013 >
+    inserted + declared 0.011. Per token gives the same order.
+  - Hint following (Step 2b): pasted 40 of 60 > inserted + declared 34 of 60 > inserted 24 of
+    60 > user 7 of 20.
+  - Caveat: the channels differ in more than the source. The hint sits in a user turn or a tool
+    turn, at a different distance from the answer, and with different wording and length.
+- **Followed − resisted** (105 vs 94 runs, 16 questions in both):
+  - hint − control **+5.6e-3 [+2.9e-3, +8.2e-3]**
+  - the letter +1.8e-3 [+4.8e-4, +3.1e-3]
+  - per token +1.1e-4 [−3.0e-5, +2.3e-4]
+  - by channel (hint − control):
+    - inserted +4.9e-3 [+1.4e-3, +8.1e-3] (9 questions)
+    - pasted +6.1e-3 [+2.4e-3, +9.8e-3] (9)
+    - inserted + declared +9.7e-4 [−1.8e-3, +3.6e-3] (10): no difference
+    - user: no question has both outcomes
 - **The top heads sit in full-attention layers. That mostly follows from the window and is not a
-  finding.** In 174 of 199 runs the hint is more than 4,096 tokens before the answer, so the 24
-  sliding-window layers give it exactly 0 there. All 10 top heads are in full-attention layers,
-  8 of them in layers 15, 19 and 23 (F12).
-- **Waiting** (`attn_to_hint.py --followup` on Sol, over the saved per-run files):
-  - every comparison on the full-attention layers only, with intervals
-  - the 25 runs whose answer is within reach of the hint in the sliding layers, by layer type
-  - hint − control and per token throughout
-  - the takeover-aligned curve: attention to the hint from each reasoning sentence, aligned on
-    the takeover (followed) or the closest approach (resisted)
-- **Source.** `cot-disclosure/results/summaries/trackA/step9_attention.json`; later
-  `step9_followup.json`.
-- **Status.** Tool vs user *confirmed* (no more attention for tool hints, on every measure).
-  Followed vs resisted *tentative* (per token, the interval includes 0). The full-layer and
-  aligned results are *waiting*.
+  finding.** All 10 top heads, ranked by hint mass or by hint − control, are in full-attention
+  layers, 8 of them in layers 15, 19 and 23 (F12).
+- **Where the sliding layers can reach the hint** (25 runs on 6 questions), 7 of the 10 top heads
+  are in sliding layers. This matches Step 10's cut (i) split (F11). These runs have too few
+  questions per group for any comparison: no direction is read from them.
+- **Attention from the reasoning around the takeover:** *tentative*, being redone.
+  - The first reading aligned followed runs on the takeover and resisted runs on their closest
+    approach. Attention to the hint rose more at the closest approach: +0.012 against +0.005,
+    difference −0.0076 [−0.0123, −0.0016].
+  - But the closest approach is picked where the hint is strongest, the same built-in asymmetry
+    as before Step 4's matched onsets.
+  - The matched version anchors on every point after the first fifth where the hint letter
+    takes the lead, labelled permanent (the takeover; 65) or temporary (1,653), in all 199 runs.
+    It is waiting on one more Sol run (`--followup`).
+- **Source.** `cot-disclosure/results/summaries/trackA/step9_followup.json` (`run_sets`,
+  `top_heads`, `aligned`) and `step9_attention.json`; `hint_onsets.jsonl` for the matched anchors.
+- **Status.**
+  - *confirmed*: tool − user on every measure, and followed − resisted on hint − control,
+    pooled and for the inserted and pasted channels
+  - *tentative*: per token
+  - the aligned attention rise: *tentative* until the matched version is in
 
 ## F11. Step 10: the hint's effect leaves its tokens at full-attention layers 15, 19 and 23
 
@@ -273,7 +296,7 @@ clean answer, so the information hasn't left those tokens yet. It then falls in 
   |---|---|---|---|
   | (ii) all | 19 (9) | 0.95 [0.84, 1.05] | **0.90 [0.85, 0.96]** |
   | (ii) hint beyond the window | 17 (9) | 1.00 [0.92, 1.07] | 0.92 [0.88, 0.97] |
-  | (ii) hint within the window | 2 (2) | 0.56 [0.33, 0.79] | 0.71 [0.67, 0.75] |
+  | (ii) hint within the window | 2 (2) | too few questions | too few questions |
   | (i) all | 19 (9) | 0.68 [0.55, 0.84] | 0.59 [0.48, 0.72] |
   | (i) hint beyond the window | 9 (6) | 0.93 [0.85, 0.99] | **0.81 [0.71, 0.89]** |
   | (i) hint within the window | 10 (5) | 0.46 [0.38, 0.50] | **0.39 [0.33, 0.43]** |
@@ -292,29 +315,55 @@ clean answer, so the information hasn't left those tokens yet. It then falls in 
 - **Source.** `cot-disclosure/results/summaries/trackA/step10_handoff.json` and
   `step10_patching.json`; figure `figures/step10_handoff.png`; `python finetune/look/patching.py
   --handoff results/trackA/gpu/step10_patching.json`.
-- **Status.** *confirmed* on these 19 + 19 cuts (9 questions, one model). The cut (ii) split by
-  distance rests on 2 near cuts.
+- **Status.** *confirmed* on these 19 + 19 cuts (9 questions, one model). At cut (ii) only 2 cuts
+  (2 questions) have the hint within the window: too few to read.
 
-## F12. Attention and patching point at the same three layers
+## F12. Attention and patching point at the same three layers, and the same heads separate outcomes
 
-- **Attention (Step 9):** 8 of the 10 top answer → hint heads, pooled over all runs, are in
-  layers 15, 19 and 23. They are L15H31, L15H1, L15H19, L15H0, L19H31, L19H2, L23H20 and L23H17.
+- **Attention (Step 9):** 8 of the 10 top answer → hint heads are in layers 15, 19 and 23: L15H31,
+  L15H1, L15H19, L15H0, L19H31, L19H2, L23H20 and L23H17. They were picked on all runs pooled, not
+  by outcome.
 - **Patching (Step 10):** layers 15, 19 and 23 are where the hint's effect leaves its tokens
   (F11).
-- **Followed vs resisted:** each of the 8 heads attends more to the hint in followed runs (means;
-  no intervals yet):
-  - L19H31 0.193 vs 0.070
-  - L23H17 0.138 vs 0.051
-  - L23H20 0.185 vs 0.135
-  - L15H31 0.166 vs 0.095
-  - L15H19 0.122 vs 0.088
-  - L15H0 0.106 vs 0.089
-  - L19H2 0.104 vs 0.097
-  - L15H1 0.114 vs 0.113
-- **Source.** `step9_attention.json` (`top_heads`); `step10_handoff.json`. The clustered
-  intervals per head come from `step9_followup.json` (`readout_heads_followed_vs_resisted`).
-- **Status.** The layer agreement is *confirmed*, and the two methods are independent. Followed
-  vs resisted for these heads is *tentative* until the follow-up's intervals are in.
+- **Followed − resisted, the mean over these 8 heads** (105 vs 94 runs, 16 questions in both):
+  **+0.040 [+0.021, +0.057]** (hint mass; hint − control gives the same). Three heads carry it:
+
+  | head | followed − resisted |
+  |---|---|
+  | L19H31 | **+0.115 [+0.077, +0.150]** |
+  | L23H17 | **+0.084 [+0.060, +0.108]** |
+  | L15H31 | **+0.051 [+0.023, +0.076]** |
+  | the other five (L23H20, L15H1, L15H19, L19H2, L15H0) | each interval includes 0 |
+
+- **By channel** (mean over the 8):
+  - inserted +0.049 [+0.016, +0.080]
+  - pasted +0.044 [+0.015, +0.073]
+  - inserted + declared +0.004 [−0.019, +0.027]: no difference, as in F10
+- **Tool − user in these heads:** +0.010 [−0.005, +0.026], which includes 0.
+- **Source.** `step9_followup.json` (`readout_heads_followed_vs_resisted`) and `step9_attention.json`
+  (`top_heads`); `step10_handoff.json`.
+- **Status.** *confirmed*: the layer agreement (two independent methods), and followed > resisted in
+  these heads pooled over channels and for the inserted and pasted channels. Not for inserted +
+  declared.
+
+## Mechanism, in one paragraph (Steps 8–10, tentative as a whole)
+
+Three full-attention layers, 15, 19 and 23, read the hint's letter straight from the prompt and pass
+it to the answer: they hold 0.90 [0.85, 0.96] of the drop in hint-token restoration at the takeover
+(F11). The reasoning positions relay at most 0.26 of it (F13). Within those layers, heads L19H31,
+L23H17 and L15H31 look at the hint more when the model follows it (F12). But tool hints don't get
+more of this attention than user hints; they get less (F10), while moving the answer more (F1). So
+the extra trust in tools lies in what is read at the hint, not in how much it is attended to.
+
+**Link to the fix.** Source tags add a learned vector to every token marking where it came from (at
+the hint's tokens: a tool). They change what these heads read there, not where they look. After training, the look-inside
+rerun on the best version (Step 13) checks both possibilities:
+- (a) attention in L19H31, L23H17 and L15H31 drops, or
+- (b) it stays while the answer stops following: the model still looks, but discounts what it
+  reads.
+
+The check is Step 9's readout-head comparison and Step 10's drops at 15, 19 and 23 (PLAN, Track A,
+mechanism check).
 
 ## F13. Direct vs written: at the takeover, the prompt's letter does more than the repetition
 
@@ -450,7 +499,7 @@ Each one would have changed a reported number.
 | 2 | It's hidden: the reasoning names the hint, the final answer doesn't | `presentation/progress/figures/F2_pilot_mentions_by_channel.png` (F3) | **exists** |
 | 3 | Where it takes over: the hint starts ahead, swings, and wins late on known answers | `results/summaries/trackA/figures/takeover_mean_curves.png` and `takeover_points.png` (F4–F6) | **exists** |
 | 4 | Is the repetition causal? Deletion vs control vs unedited: the answer at the cut, continuations, re-mentions | new, from `deletion_runs.jsonl` + `deletion_remention.jsonl` (F7) | **pending** (no calls needed) |
-| 5 | Inside the model: the handoff. Per cut, hint-token and answer restoration by layer, with the full-attention layers drawn and 15, 19, 23 marked (F11, F12); beside it, attention to the hint from each reasoning sentence aligned on the takeover (F10) | `results/summaries/trackA/figures/step10_handoff.png`; `step9_aligned.png` | handoff **exists**; aligned curve **pending** (`--followup` on Sol) |
+| 5 | Inside the model: the handoff. Per cut, hint-token and answer restoration by layer, with the full-attention layers drawn and 15, 19, 23 marked (F11, F12); beside it, attention to the hint around kept vs lost lead onsets (F10) | `results/summaries/trackA/figures/step10_handoff.png`; `step9_onsets.png` | handoff **exists**; matched onsets **pending** (one more `--followup` on Sol); `step9_aligned.png` exists but is biased (closest approach) |
 | 6 | The window: the hint's pull vs distance to its last mention | `results/summaries/trackA/window_reach.png` (F8) | **exists** (tentative finding) |
 
 After Phase 6, a seventh figure goes in: the Gate 3 comparison. It shows hint following,

@@ -42,7 +42,7 @@ CODE = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "progress"))
 
-from common import append, boot_diff, boot_mean, load  # noqa: E402
+from common import MIN_QUESTIONS, append, boot_diff, boot_mean, load, too_few  # noqa: E402
 from finetune.gpu import kit  # noqa: E402
 from finetune.look import hint_spans as hs  # noqa: E402
 
@@ -306,15 +306,49 @@ def group_by_q(rs, f):
 
 
 def diff(a, b, f):
+    """a - b, paired over the questions both groups have, with a 95% bootstrap clustered by question;
+    no interval when fewer than MIN_QUESTIONS questions are shared ("too few questions")."""
     if not a or not b:
         return None
-    x, y = group_by_q(a, f), group_by_q(b, f)
-    if not set(x) & set(y):
-        return {"n": [len(a), len(b)], "mean_a": statistics.mean(f(r) for r in a), "mean_b": statistics.mean(f(r) for r in b),
-                "difference": None, "note": "no question in both groups"}
+    return diff_groups(group_by_q(a, f), group_by_q(b, f))
+
+
+def diff_groups(x, y):
+    """diff() on values already grouped by question ({question: [values]})."""
+    if not x or not y:
+        return None
+    shared = set(x) & set(y)
+    flat = lambda g: [v for vs in g.values() for v in vs]  # noqa: E731
+    out = {"n": [len(flat(x)), len(flat(y))], "questions": [len(x), len(y)], "questions_in_both": len(shared),
+           "mean_a": statistics.mean(flat(x)), "mean_b": statistics.mean(flat(y))}
+    if not shared:
+        return {**out, "difference": None, "note": "no question in both groups"}
+    if too_few(x, y):
+        point = statistics.mean(v for q in shared for v in x[q]) - statistics.mean(v for q in shared for v in y[q])
+        return {**out, "difference": point, "ci95": None, "note": f"too few questions ({len(shared)} in both)"}
     dd = boot_diff(x, y)
-    return {"n": [len(a), len(b)], "questions_in_both": len(set(x) & set(y)), "mean_a": statistics.mean(f(r) for r in a),
-            "mean_b": statistics.mean(f(r) for r in b), "difference": dd[0], "ci95": [dd[1], dd[2]]}
+    return {**out, "difference": dd[0], "ci95": [dd[1], dd[2]]}
+
+
+def interval(groups, n=20000):
+    """(mean, [low, high] or None, questions): the mean of values grouped by question, with a 95%
+    bootstrap clustered by question unless fewer than MIN_QUESTIONS questions."""
+    if not groups:
+        return None, None, 0
+    if too_few(groups):
+        return statistics.mean(v for vs in groups.values() for v in vs), None, len(groups)
+    m = boot_mean(groups, n=n)
+    return m[0], [m[1], m[2]], len(groups)
+
+
+def fmt_diff(x, digits=".2e"):
+    """'+d [low, high] (questions)', or the point with 'too few questions'."""
+    if not x or x.get("difference") is None:
+        return "—" if not x else f"— ({x.get('note')})"
+    q = f"{x['questions_in_both']} questions"
+    if x.get("ci95") is None:
+        return f"{x['difference']:+{digits}} (too few questions: {x['questions_in_both']})"
+    return f"{x['difference']:+{digits}} [{x['ci95'][0]:+{digits}}, {x['ci95'][1]:+{digits}}] ({q})"
 
 
 def comparison_groups(rs):
@@ -410,7 +444,7 @@ def report(out=None, d=None):
     for name, res in summary["comparisons"].items():
         x = res["hint, all heads"]
         if x and x["difference"] is not None:
-            print(f"- {name}: {x['difference']:+.4f} [{x['ci95'][0]:+.4f}, {x['ci95'][1]:+.4f}] (n {x['n'][0]} vs {x['n'][1]})")
+            print(f"- {name}: {fmt_diff(x, '.4f')} (n {x['n'][0]} vs {x['n'][1]})")
     print(f"saved {p} (copy back) and {d / 'step9_maps.npz'}")
     return summary
 
@@ -421,6 +455,10 @@ ALIGN = 15                        # sentences either side of the takeover / clos
 RISE_WINDOW, RISE_BASE = (-2, 0), (-ALIGN, -6)
 CURVE_BOOT = 4000
 TAKEOVER_ROWS = CODE / "results" / "summaries" / "trackA" / "takeover_per_run.jsonl"   # tracked: Step 3 per run
+ONSET_ROWS = CODE / "results" / "summaries" / "trackA" / "hint_onsets.jsonl"          # tracked: Step 3's lead onsets
+REDUCED = "step9_reduced.npz"     # the per-run reductions below, numbers only (a few MB): copy back to rerun on the Mac
+KEEP = ("run_id", "item_id", "condition", "arm", "channel", "kind", "n_sentences", "tokens",
+        "answer_sees_hint_in_sliding_layers", "step3_takeover_k", "snapshot_commit")
 
 
 def reduced(d, full):
@@ -440,13 +478,37 @@ def reduced(d, full):
         sliding = [i for i in range(sent.shape[2]) if i not in full]
         reach = (sent[0][:, sliding] > 0).any(axis=(1, 2)) if sliding else np.ones(sent.shape[1], bool)
         whole = np.append(reach[1:], m["answer_sees_hint_in_sliding_layers"]) if len(reach) else reach
-        keep = ("run_id", "item_id", "condition", "arm", "channel", "kind", "n_sentences", "tokens",
-                "answer_sees_hint_in_sliding_layers", "step3_takeover_k", "snapshot_commit")
-        out.append({**{k: m.get(k) for k in keep}, "answer": z["answer"], "n_hint": m["spans"]["hint"][2],
+        out.append({**{k: m.get(k) for k in KEEP}, "answer": z["answer"], "n_hint": m["spans"]["hint"][2],
                     "sent_full": sent[:, :, full].mean(axis=(2, 3)),
                     "sent_sliding": sent[:, :, sliding].mean(axis=(2, 3)) if sliding else None,
                     "sentence_reaches_hint_in_sliding": whole})
     return out
+
+
+def save_reduced(rs, full, path):
+    """The reduced runs in one .npz (numbers and ids only): answer masses, per-sentence means, reach."""
+    import numpy as np
+    np.savez_compressed(path, full=np.asarray(full), meta=np.asarray([json.dumps({k: r[k] for k in KEEP}) for r in rs]),
+                        n_hint=np.asarray([r["n_hint"] for r in rs]), answer=np.stack([r["answer"] for r in rs]),
+                        n_sentences=np.asarray([r["sent_full"].shape[1] for r in rs]),
+                        sent_full=np.concatenate([r["sent_full"] for r in rs], axis=1),
+                        sent_sliding=np.concatenate([r["sent_sliding"] for r in rs], axis=1),
+                        reach=np.concatenate([r["sentence_reaches_hint_in_sliding"] for r in rs]))
+    return path
+
+
+def load_reduced(path):
+    """(reduced runs, full-attention layers) from save_reduced's file."""
+    import numpy as np
+    z = np.load(path)
+    out, at = [], 0
+    for i, meta in enumerate(z["meta"]):
+        n = int(z["n_sentences"][i])
+        out.append({**json.loads(str(meta)), "answer": z["answer"][i], "n_hint": int(z["n_hint"][i]),
+                    "sent_full": z["sent_full"][:, at:at + n], "sent_sliding": z["sent_sliding"][:, at:at + n],
+                    "sentence_reaches_hint_in_sliding": z["reach"][at:at + n]})
+        at += n
+    return out, [int(x) for x in z["full"]]
 
 
 def answer_measures(layers):
@@ -520,9 +582,9 @@ def aligned(rs, at):
             pts = []
             for o in offs:
                 g = vals.get((kind, m, o))
-                mean = boot_mean(g, n=CURVE_BOOT) if g else (None, None, None)
-                pts.append({"offset": o, "runs": sum(len(v) for v in (g or {}).values()), "mean": mean[0],
-                            "ci95": [mean[1], mean[2]]})
+                mean, ci, nq = interval(g, CURVE_BOOT)
+                pts.append({"offset": o, "runs": sum(len(v) for v in (g or {}).values()), "questions": nq, "mean": mean,
+                            "ci95": ci})
             out.setdefault(kind, {})[m] = pts
     return out
 
@@ -543,7 +605,105 @@ def rise(rs, at):
     return out
 
 
-def followup(out=None, d=None, model=None, takeover_rows=None):
+def onset_anchors(rs, rows):
+    """{run_id: [(sentence index, permanent)]}: Step 3's onsets after the first fifth (the hint letter
+    becomes the leading letter; permanent = it keeps the lead to the end, the takeover; temporary =
+    it loses it again), in runs with a dense curve; and why other runs have none."""
+    per = {r["source_run_id"]: r for r in rows}
+    out, skipped = {}, Counter()
+    for r in rs:
+        s3 = per.get(r["run_id"])
+        if s3 is None:
+            skipped["not in Step 3's rows"] += 1
+        elif not s3["dense"]:
+            skipped["no dense curve"] += 1
+        elif s3["n_sentences"] != r["n_sentences"]:
+            skipped["sentence counts differ from Step 3's"] += 1
+        else:
+            out[r["run_id"]] = [(k - 1, bool(perm)) for k, perm in s3["onsets"]]
+    return out, dict(skipped)
+
+
+ONSET_MEASURES = {"full layers: hint - control": lambda r, j: r["sent_full"][0, j] - r["sent_full"][2, j],
+                  "full layers: hint per token": lambda r, j: r["sent_full"][0, j] / r["n_hint"]}
+
+
+def onset_points(rs, at):
+    """One row per onset: the rise in each measure (the onset sentence and the 2 before, minus the
+    same run's sentences 6-15 before), and whether it is isolated (no other onset in the 15 before)."""
+    by_id = {r["run_id"]: r for r in rs}
+    out = []
+    for rid, ons in at.items():
+        r = by_id[rid]
+        n = r["sent_full"].shape[1]
+        for a, perm in ons:
+            row = {"run_id": rid, "item_id": r["item_id"], "kind": r["kind"], "permanent": perm, "sentence": a,
+                   "isolated": not any(a - ALIGN <= b < a for b, _ in ons)}
+            for m, f in ONSET_MEASURES.items():
+                win = [f(r, a + o) for o in range(RISE_WINDOW[0], RISE_WINDOW[1] + 1) if 0 <= a + o < n]
+                base = [f(r, a + o) for o in range(RISE_BASE[0], RISE_BASE[1] + 1) if 0 <= a + o < n]
+                row[m] = float(statistics.mean(win) - statistics.mean(base)) if win and base else None
+            out.append(row)
+    return out
+
+
+def per_run(rows, key):
+    """{question: [each run's mean of key over its rows]}: a run weighs the same however many onsets it has."""
+    runs = {}
+    for o in rows:
+        if o[key] is not None:
+            runs.setdefault((o["item_id"], o["run_id"]), []).append(o[key])
+    out = {}
+    for (q, _), vals in runs.items():
+        out.setdefault(q, []).append(statistics.mean(vals))
+    return out
+
+
+def onsets_matched(rs, at):
+    """The matched comparison: the attention rise at permanent onsets (the takeovers after the first
+    fifth) against temporary ones, both picked the same way; per run, then clustered by question."""
+    pts = onset_points(rs, at)
+    groups = {"permanent (the takeover)": [o for o in pts if o["permanent"]],
+              "temporary": [o for o in pts if not o["permanent"]],
+              "temporary, in followed runs": [o for o in pts if not o["permanent"] and o["kind"] == "followed"],
+              "temporary, in resisted runs": [o for o in pts if not o["permanent"] and o["kind"] == "resisted"]}
+    out = {"groups": {}, "comparisons": {}, "curves": {}}
+    for sub, keep in (("all onsets", lambda o: True), ("isolated onsets", lambda o: o["isolated"])):
+        g = {name: [o for o in rows if keep(o)] for name, rows in groups.items()}
+        out["groups"][sub] = {name: {"onsets": len(rows), "runs": len({o["run_id"] for o in rows}),
+                                     "questions": len({o["item_id"] for o in rows}),
+                                     **{m: dict(zip(("mean", "ci95", "questions"), interval(per_run(rows, m))))
+                                        for m in ONSET_MEASURES}} for name, rows in g.items()}
+        perm_followed = [o for o in g["permanent (the takeover)"] if o["kind"] == "followed"]
+        out["comparisons"][sub] = {
+            m: {"permanent - temporary": diff_groups(per_run(g["permanent (the takeover)"], m), per_run(g["temporary"], m)),
+                "permanent - temporary, followed runs only": diff_groups(per_run(perm_followed, m),
+                                                                         per_run(g["temporary, in followed runs"], m)),
+                "temporary: followed - resisted runs": diff_groups(per_run(g["temporary, in followed runs"], m),
+                                                                   per_run(g["temporary, in resisted runs"], m))}
+            for m in ONSET_MEASURES}
+    by_id = {r["run_id"]: r for r in rs}
+    for name in ("permanent (the takeover)", "temporary"):
+        out["curves"][name] = {}
+        for m, f in ONSET_MEASURES.items():
+            line = []
+            for o in range(-ALIGN, ALIGN + 1):
+                runs = {}
+                for p in groups[name]:
+                    r = by_id[p["run_id"]]
+                    j = p["sentence"] + o
+                    if 0 <= j < r["sent_full"].shape[1]:
+                        runs.setdefault((r["item_id"], r["run_id"]), []).append(float(f(r, j)))
+                g = {}
+                for (q, _), vals in runs.items():
+                    g.setdefault(q, []).append(statistics.mean(vals))
+                mean, ci, nq = interval(g, CURVE_BOOT)
+                line.append({"offset": o, "runs": len(runs), "questions": nq, "mean": mean, "ci95": ci})
+            out["curves"][name][m] = line
+    return out
+
+
+def followup(out=None, d=None, model=None, takeover_rows=None, onset_rows=None, reduced_from=None):
     """Step 9 read again (Oct 26), from the saved runs: every comparison on the full-attention layers
     only; the runs whose answer sees the hint in the sliding-window layers too, on their own;
     hint - control and per-token mass instead of raw mass; the top heads of the readout layers
@@ -551,9 +711,15 @@ def followup(out=None, d=None, model=None, takeover_rows=None):
     sentence, aligned on the takeover (followed) or the closest approach (resisted). Numbers only
     -> step9_followup.json (copy back) + step9_aligned.png."""
     import numpy as np
-    d = Path(d) if d else kit.out_dir("step9", out)
-    full = kit.full_attention_layers(model)
-    rs = reduced(d, full)
+    if reduced_from:                                      # on the Mac, from the copied-back reductions
+        rs, full = load_reduced(reduced_from)
+        d = Path(reduced_from).parent
+    else:
+        d = Path(d) if d else kit.out_dir("step9", out)
+        full = kit.full_attention_layers(model)
+        rs = reduced(d, full)
+        if rs:
+            save_reduced(rs, full, d / REDUCED)
     if not rs:
         raise SystemExit(f"no saved runs in {d}")
     n_layers = rs[0]["answer"].shape[1]
@@ -572,7 +738,8 @@ def followup(out=None, d=None, model=None, takeover_rows=None):
         ms = answer_measures(layers)
         groups = sorted({(r["channel"], r["kind"]) for r in runs})
         sets[name] = {"runs": len(runs), "questions": len({r["item_id"] for r in runs}), "layers": layers,
-                      "group_means": {f"{c} | {k}": {"runs": len(g), **{m: statistics.mean(f(r) for r in g) for m, f in ms.items()}}
+                      "group_means": {f"{c} | {k}": {"runs": len(g), "questions": len({r["item_id"] for r in g}),
+                                                     **{m: statistics.mean(f(r) for r in g) for m, f in ms.items()}}
                                       for c, k in groups for g in [[r for r in runs if r["channel"] == c and r["kind"] == k]]},
                       "comparisons": {cname: {m: diff(a, b, f) for m, f in ms.items()}
                                       for cname, (a, b) in comparison_groups(runs).items()}}
@@ -597,6 +764,7 @@ def followup(out=None, d=None, model=None, takeover_rows=None):
         for cname, (a, b) in comparison_groups(rs).items():
             readout_heads["mean over these heads"][cname] = {"hint": diff(a, b, mean_hint), "hint - control": diff(a, b, mean_hc)}
     at, skipped = anchors(rs, list(load(Path(takeover_rows or TAKEOVER_ROWS))))
+    onset_at, onset_skipped = onset_anchors(rs, list(load(Path(onset_rows or ONSET_ROWS))))
     rises = rise(rs, at)
     by_q = lambda kind: {r["item_id"]: [] for r in rs if r["kind"] == kind and r["run_id"] in rises}  # noqa: E731
     rise_out = {}
@@ -605,8 +773,8 @@ def followup(out=None, d=None, model=None, takeover_rows=None):
         for r in rs:
             if r["kind"] == kind and r["run_id"] in rises:
                 g[r["item_id"]].append(rises[r["run_id"]])
-        m = boot_mean(g) if g else (None, None, None)
-        rise_out[kind] = {"runs": sum(map(len, g.values())), "mean": m[0], "ci95": [m[1], m[2]]}
+        mean, ci, nq = interval(g)
+        rise_out[kind] = {"runs": sum(map(len, g.values())), "questions": nq, "mean": mean, "ci95": ci}
     rise_out["followed - resisted"] = diff([r for r in fol if r["run_id"] in rises], [r for r in res if r["run_id"] in rises],
                                           lambda r: rises[r["run_id"]])
     summary = {
@@ -621,7 +789,11 @@ def followup(out=None, d=None, model=None, takeover_rows=None):
                       "the closest approach (the probe after the first fifth where the hint letter peaks)",
             "rise": f"per run, full layers, hint - control: mean over offsets {RISE_WINDOW[0]}..{RISE_WINDOW[1]} minus mean "
                     f"over offsets {RISE_BASE[0]}..{RISE_BASE[1]}",
-            "intervals": "95% bootstrap clustered by question; a difference uses the questions both groups have"},
+            "onset": "a probe after the first fifth where the hint letter becomes the leading letter (Step 3, dense "
+                     "curves); permanent = it keeps the lead to the end (the takeover), temporary = it loses it again. "
+                     "Picked the same way in followed and resisted runs, unlike the closest approach",
+            "intervals": f"95% bootstrap clustered by question; a difference uses the questions both groups have; none "
+                         f"under {MIN_QUESTIONS} questions ('too few questions')"},
         "runs_within_reach_in_sliding_layers": len(near),
         "run_sets": sets,
         "top_heads": {name: [{"layer": l, "head": h, "value": v} for l, h, v in hs_] for name, hs_ in heads.items()},
@@ -629,25 +801,42 @@ def followup(out=None, d=None, model=None, takeover_rows=None):
         "readout_heads_followed_vs_resisted": readout_heads,
         "aligned": {"offsets": [-ALIGN, ALIGN], "runs_with_an_anchor": {k: sum(r["kind"] == k and r["run_id"] in at for r in rs)
                                                                        for k in ("followed", "resisted")},
-                    "skipped": skipped, "curves": aligned(rs, at), "rise_at_anchor": rise_out},
+                    "skipped": skipped, "curves": aligned(rs, at), "rise_at_anchor": rise_out,
+                    "note": "biased: the closest approach is picked where the hint is strongest; see onsets_matched"},
+        "onsets_matched": {"runs": len(onset_at), "skipped": onset_skipped, **onsets_matched(rs, onset_at)},
     }
     p = kit.write_json(d / "step9_followup.json", summary)
     show_followup(summary)
     plot_followup(summary, d)
-    print(f"saved {p} (copy back) and {d / 'step9_aligned.png'}")
+    plot_onsets(summary, d)
+    print(f"saved {p}, {d / 'step9_aligned.png'}, {d / 'step9_onsets.png'} and {d / REDUCED} (copy all back)")
     return summary
 
 
+def fmt_mean(x):
+    if not x or x.get("mean") is None:
+        return "—"
+    if x.get("ci95") is None:
+        return f"{x['mean']:+.2e} (too few questions: {x.get('questions')})"
+    return f"{x['mean']:+.2e} [{x['ci95'][0]:+.2e}, {x['ci95'][1]:+.2e}] ({x.get('questions')} questions)"
+
+
 def show_followup(s):
-    fmt = lambda x: "—" if not x or x.get("difference") is None else (  # noqa: E731
-        f"{x['difference']:+.2e} [{x['ci95'][0]:+.2e}, {x['ci95'][1]:+.2e}]")
+    fmt = fmt_diff
     for name, st in s["run_sets"].items():
         print(f"\n{name}: {st['runs']} runs, {st['questions']} questions, layers {st['layers']}")
-        print("| comparison | n | hint - control | hint per token | letter |")
-        print("|---|---|---|---|---|")
+        print("| group | runs | questions | hint - control | hint per token | letter |")
+        print("|---|---|---|---|---|---|")
+        for g, m in st["group_means"].items():
+            print(f"| {g} | {m['runs']} | {m.get('questions', '—')} | {m['hint - control']:.2e} | {m['hint per token']:.2e} | "
+                  f"{m['letter']:.2e} |")
+        print("| comparison | runs | questions (both) | hint - control | hint per token | letter |")
+        print("|---|---|---|---|---|---|")
         for cname, c in st["comparisons"].items():
-            n = c["hint - control"]["n"] if c["hint - control"] else ["—", "—"]
-            print(f"| {cname} | {n[0]} vs {n[1]} | {fmt(c['hint - control'])} | {fmt(c['hint per token'])} | {fmt(c['letter'])} |")
+            x = c["hint - control"]
+            n = f"{x['n'][0]} vs {x['n'][1]}" if x else "—"
+            q = f"{x['questions'][0]} vs {x['questions'][1]} ({x['questions_in_both']})" if x and "questions" in x else "—"
+            print(f"| {cname} | {n} | {q} | {fmt(c['hint - control'])} | {fmt(c['hint per token'])} | {fmt(c['letter'])} |")
     print("\nTop heads:")
     for name, hs_ in s["top_heads"].items():
         c = s["top_head_counts"][name]
@@ -663,8 +852,22 @@ def show_followup(s):
     for kind in ("followed", "resisted"):
         x = a["rise_at_anchor"][kind]
         if x["mean"] is not None:
-            print(f"  rise at the anchor, {kind}: {x['mean']:+.2e} [{x['ci95'][0]:+.2e}, {x['ci95'][1]:+.2e}] ({x['runs']} runs)")
-    print(f"  followed - resisted: {fmt(a['rise_at_anchor']['followed - resisted'])}")
+            print(f"  rise at the anchor, {kind}: {fmt_mean(x)} ({x['runs']} runs)")
+    print(f"  followed - resisted: {fmt(a['rise_at_anchor']['followed - resisted'])}  ({a.get('note', '')})")
+    o = s.get("onsets_matched")
+    if o:
+        print(f"\nMatched: the rise at every onset after the first fifth ({o['runs']} runs with a dense curve; skipped "
+              f"{o['skipped']}); per run, then clustered by question")
+        for sub, groups in o["groups"].items():
+            print(f"\n{sub}:")
+            print("| onset | onsets | runs | questions | rise, hint - control | rise, hint per token |")
+            print("|---|---|---|---|---|---|")
+            for name, g in groups.items():
+                print(f"| {name} | {g['onsets']} | {g['runs']} | {g['questions']} | "
+                      f"{fmt_mean(g['full layers: hint - control'])} | {fmt_mean(g['full layers: hint per token'])} |")
+            for m, cs in o["comparisons"][sub].items():
+                for cname, x in cs.items():
+                    print(f"  {m}, {cname}: {fmt(x)}")
 
 
 def plot_followup(s, d):
@@ -682,7 +885,9 @@ def plot_followup(s, d):
             x = [p["offset"] for p in pts]
             ax.plot(x, [p["mean"] for p in pts], color=colors[kind], lw=2,
                     label=f"{kind} ({s['aligned']['runs_with_an_anchor'][kind]} runs)")
-            ax.fill_between(x, [p["ci95"][0] for p in pts], [p["ci95"][1] for p in pts], color=colors[kind], alpha=0.15, lw=0)
+            band = [p for p in pts if p["ci95"]]
+            ax.fill_between([p["offset"] for p in band], [p["ci95"][0] for p in band], [p["ci95"][1] for p in band],
+                            color=colors[kind], alpha=0.15, lw=0)
         ax.axvline(0, color="#52514e", lw=0.8)
         ax.axhline(0, color="#b5b4ad", lw=0.6)
         ax.set_title(m, fontsize=10)
@@ -701,12 +906,51 @@ def plot_followup(s, d):
     plt.close(fig)
 
 
+def plot_onsets(s, d):
+    """The matched figure: attention to the hint around permanent vs temporary onsets."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    o = s.get("onsets_matched")
+    if not o or not o["curves"]:
+        return
+    colors = {"permanent (the takeover)": "#2a78d6", "temporary": "#eb6834"}
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+    for ax, m in zip(axes, ONSET_MEASURES):
+        for name, c in o["curves"].items():
+            pts = [p for p in c[m] if p["mean"] is not None]
+            if not pts:
+                continue
+            g = o["groups"]["all onsets"][name]
+            ax.plot([p["offset"] for p in pts], [p["mean"] for p in pts], color=colors[name], lw=2,
+                    label=f"{name}: {g['onsets']} onsets, {g['runs']} runs, {g['questions']} questions")
+            band = [p for p in pts if p["ci95"]]
+            ax.fill_between([p["offset"] for p in band], [p["ci95"][0] for p in band], [p["ci95"][1] for p in band],
+                            color=colors[name], alpha=0.15, lw=0)
+        ax.axvline(0, color="#52514e", lw=0.8)
+        ax.axhline(0, color="#b5b4ad", lw=0.6)
+        ax.set_title(m, fontsize=10)
+        ax.set_xlabel("sentences from the onset (0 = the hint letter takes the lead)")
+        ax.grid(axis="y", color="#e5e4df", lw=0.5)
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+    axes[0].set_ylabel("attention mass from the sentence")
+    axes[0].legend(frameon=False, fontsize=8)
+    fig.suptitle("Attention to the hint around every lead onset after the first fifth: kept (the takeover) vs lost "
+                 "again; per run, 95% intervals clustered by question", fontsize=10)
+    fig.tight_layout()
+    for ext in ("png", "svg"):
+        fig.savefig(Path(d) / f"step9_onsets.{ext}", dpi=150)
+    plt.close(fig)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--report", action="store_true", help="summary from the saved runs; no model")
     ap.add_argument("--followup", action="store_true", help="the Oct 26 follow-up from the saved runs; no model, no GPU")
     ap.add_argument("--plot-followup", metavar="SUMMARY", help="redraw the aligned-curve figure from a step9_followup.json")
+    ap.add_argument("--from-reduced", metavar="NPZ", help="with --followup: from a copied-back step9_reduced.npz (Mac)")
     ap.add_argument("--limit", type=int, help="only the N shortest runs")
     ap.add_argument("--model", help="a local model directory (a trained version, or a test's tiny model)")
     ap.add_argument("--runs-from", help="a base_format-style .jsonl.gz of runs (default: Step 2b's)")
@@ -716,9 +960,11 @@ def main(argv=None):
     ap.add_argument("--out", help="output base directory (default $TRACKA_OUT)")
     a = ap.parse_args(argv)
     if a.plot_followup:
-        return plot_followup(json.loads(Path(a.plot_followup).read_text()), Path(a.plot_followup).parent)
+        summary = json.loads(Path(a.plot_followup).read_text())
+        plot_onsets(summary, Path(a.plot_followup).parent)
+        return plot_followup(summary, Path(a.plot_followup).parent)
     if a.followup:
-        return followup(a.out, model=a.model)
+        return followup(a.out, model=a.model, reduced_from=a.from_reduced)
     if a.report:
         return report(a.out)
     d = run(a.model, a.device, a.out, a.dry_run, a.limit, a.runs_from, a.q_chunk, a.k_chunk)

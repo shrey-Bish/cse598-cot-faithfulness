@@ -51,7 +51,7 @@ CODE = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "progress"))
 
-from common import boot_mean, load  # noqa: E402
+from common import boot_mean, load, too_few  # noqa: E402
 from finetune.gpu import kit  # noqa: E402
 from finetune.look import hint_spans as hs  # noqa: E402
 
@@ -289,6 +289,28 @@ def run(model=None, device="auto", out=None, dry_run=False, limit=None, runs_fro
 
 
 # ---------------------------------------------------------------- report and figure
+def clustered(groups, n=20000):
+    """{mean, low, high, questions} for values grouped by question, with a 95% bootstrap clustered by
+    question; low and high are None under MIN_QUESTIONS questions ("too few questions")."""
+    if not groups:
+        return None
+    if too_few(groups):
+        return {"mean": statistics.mean(v for vs in groups.values() for v in vs), "low": None, "high": None,
+                "questions": len(groups)}
+    m, lo, hi = boot_mean(groups, n=n)
+    return {"mean": m, "low": lo, "high": hi, "questions": len(groups)}
+
+
+def show_ci(c, sign=True):
+    """'m [low, high] (q questions)', or the mean with 'too few questions'."""
+    if not c:
+        return "—"
+    f = (lambda x: f"{x:+.2f}") if sign else (lambda x: f"{x:.2f}")  # noqa: E731
+    if c["low"] is None:
+        return f"{f(c['mean'])} (too few questions: {c['questions']})"
+    return f"{f(c['mean'])} [{f(c['low'])}, {f(c['high'])}]"
+
+
 def restoration(row, group):
     gap = row["ld_clean"] - row["ld_hinted"]
     if abs(gap) < MIN_GAP:
@@ -315,7 +337,8 @@ def report(out=None, d=None):
                     v = restoration(r, g)[layer]
                     if v is not None:
                         groups.setdefault(r["item_id"], []).append(v)
-                means.append(list(boot_mean(groups)) if groups else None)
+                c = clustered(groups)
+                means.append([c["mean"], c["low"], c["high"]] if c else None)
             by_layer[cut][g] = means
     cases = [{k: r[k] for k in ("job", "item_id", "condition", "arm", "cut", "tokens", "sentences_kept", "n_sentences",
                                 "hint_letter", "own_letter", "clean", "ld_hinted", "ld_clean", "top_hinted", "top_clean",
@@ -385,7 +408,7 @@ def by_layer_type(summary, full=None):
                         layer_means["full" if i in full else "sliding"].setdefault(i, []).append(v)
             cell = {}
             for t, groups in per.items():
-                cell[t] = dict(zip(("mean", "low", "high"), boot_mean(groups))) if groups else None
+                cell[t] = clustered(groups)
             for t in ("full", "sliding"):
                 if layer_means[t]:
                     best = max(layer_means[t], key=lambda i: statistics.mean(layer_means[t][i]))
@@ -396,7 +419,7 @@ def by_layer_type(summary, full=None):
 
 
 def show_by_layer_type(res):
-    fmt = lambda c: "—" if not c else f"{c['mean']:+.2f} [{c['low']:+.2f}, {c['high']:+.2f}]"  # noqa: E731
+    fmt = show_ci
     print(f"Restoration by layer type (full attention: layers {res['full_attention_layers']}; the other "
           f"{32 - len(res['full_attention_layers'])} slide over 4,096 tokens); mean over each type's layers, "
           f"then over cuts, 95% bootstrap by question")
@@ -478,7 +501,7 @@ def handoff(summary, distances=None, full=None, readout=(15, 19, 23), window=409
             for r in rows:
                 if r[key] is not None:
                     g.setdefault(r["item_id"], []).append(r[key])
-            res[key] = dict(zip(("mean", "low", "high"), boot_mean(g))) if g else None
+            res[key] = clustered(g)
         for name in ("drop", "rise"):
             per_layer = []
             for i in range(len(rows[0][f"{name}_by_layer"])):
@@ -486,7 +509,7 @@ def handoff(summary, distances=None, full=None, readout=(15, 19, 23), window=409
                 for r in rows:
                     if r[f"{name}_by_layer"][i] is not None:
                         g.setdefault(r["item_id"], []).append(r[f"{name}_by_layer"][i])
-                per_layer.append(dict(zip(("mean", "low", "high"), boot_mean(g, n=5000))) if g else None)
+                per_layer.append(clustered(g, n=5000))
             res[f"{name}_by_layer"] = per_layer
         return res
 
@@ -498,7 +521,8 @@ def handoff(summary, distances=None, full=None, readout=(15, 19, 23), window=409
             cell["hint beyond the window"] = agg([r for r in rows if not r["hint_within_window"]])
         b = summary["restoration_by_layer"][cut]["reasoning"]
         peak = max((i for i, v in enumerate(b) if v), key=lambda i: b[i][0], default=None)
-        cell["reasoning_peak"] = None if peak is None else {"layer": peak, "mean": b[peak][0], "ci95": b[peak][1:]}
+        cell["reasoning_peak"] = None if peak is None else {"layer": peak, "mean": b[peak][0], "low": b[peak][1],
+                                                            "high": b[peak][2], "questions": len({r["item_id"] for r in rows})}
         out["by_cut_type"][cut] = cell
     return out
 
@@ -539,7 +563,7 @@ def paths_at_cut_ii(summary, distances=None):
 
 
 def show_handoff(h, paths):
-    pct = lambda c: "—" if not c else f"{c['mean']:.2f} [{c['low']:.2f}, {c['high']:.2f}]"  # noqa: E731
+    pct = lambda c: show_ci(c, sign=False)  # noqa: E731
     ro = ", ".join(map(str, h["readout_layers"]))
     print(f"Readout: the drop in hint-token restoration per layer, as a share of its total (= 1), and the rise at the "
           f"answer; full-attention layers {h['full_attention_layers']}; 95% bootstrap by question")
@@ -558,8 +582,7 @@ def show_handoff(h, paths):
         print(f"({cut}) drops of 0.03 or more: " + ", ".join(f"layer {i} {pct(d)}" for i, d in big))
         p = cell["reasoning_peak"]
         if p:
-            print(f"({cut}) reasoning positions: peak restoration {p['mean']:+.2f} [{p['ci95'][0]:+.2f}, "
-                  f"{p['ci95'][1]:+.2f}] at layer {p['layer']}")
+            print(f"({cut}) reasoning positions: peak restoration {show_ci(p)} at layer {p['layer']}")
     s, d4 = paths["swap_only_the_prompt_letter"], paths["step4_delete_the_mentions"]
     print(f"\nCut (ii), the hinted run answers W in {paths['hinted_run_answers_W']}.")
     print(f"Swap only the prompt's letter (W -> O; the reasoning still names W): off W in {s['off_W']} of {s['of']} "
@@ -595,7 +618,9 @@ def plot_handoff(summary, path, readout=(15, 19, 23)):
             pts = [(i, v) for i, v in enumerate(b[g]) if v]
             x = [i for i, _ in pts]
             ax.plot(x, [v[0] for _, v in pts], color=colors[g], lw=2, label=labels[g])
-            ax.fill_between(x, [v[1] for _, v in pts], [v[2] for _, v in pts], color=colors[g], alpha=0.15, lw=0)
+            band = [(i, v) for i, v in pts if v[1] is not None]
+            ax.fill_between([i for i, _ in band], [v[1] for _, v in band], [v[2] for _, v in band], color=colors[g],
+                            alpha=0.15, lw=0)
         for layer in readout:
             ax.text(layer, 1.13, str(layer), ha="center", va="center", fontsize=9, color="#0b0b0b",
                     bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
@@ -632,7 +657,8 @@ def plot(summary, d):
                 continue
             x = [i for i, _ in pts]
             ax.plot(x, [v[0] for _, v in pts], label=g)
-            ax.fill_between(x, [v[1] for _, v in pts], [v[2] for _, v in pts], alpha=0.2)
+            band = [(i, v) for i, v in pts if v[1] is not None]
+            ax.fill_between([i for i, _ in band], [v[1] for _, v in band], [v[2] for _, v in band], alpha=0.2)
         ax.axhline(0, color="grey", lw=0.5)
         ax.axhline(1, color="grey", lw=0.5, ls="--")
         ax.set_title(f"cut ({cut}): {'before the first hint mention' if cut == 'i' else 'at the takeover point'} "

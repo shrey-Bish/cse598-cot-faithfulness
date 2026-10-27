@@ -44,7 +44,7 @@ sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "progress"))
 
 from client import CanaryFailed, ModelUnavailable, preflight, route  # noqa: E402
-from common import BACKOFF, append, boot_diff, latest, load, make_record, run_id, slot, wilson  # noqa: E402
+from common import BACKOFF, append, boot_diff, latest, load, make_record, run_id, slot, too_few, wilson  # noqa: E402
 from finetune import olmo_format  # noqa: E402
 from mmlu_pro_probe import load_items, question_block  # noqa: E402
 from detect import detect  # noqa: E402
@@ -354,8 +354,11 @@ def followed_by_q(rs):
 
 
 def points(a, b):
+    shared = len(set(a) & set(b))
+    if too_few(a, b):
+        return f"too few questions ({shared} shared)"
     d, lo, hi = boot_diff(a, b)
-    return f"{100 * d:+.0f} points [{100 * lo:+.0f}, {100 * hi:+.0f}]"
+    return f"{100 * d:+.0f} points [{100 * lo:+.0f}, {100 * hi:+.0f}] ({shared} questions)"
 
 
 def report():

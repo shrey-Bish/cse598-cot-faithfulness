@@ -74,7 +74,7 @@ sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "progress"))
 
 from client import CanaryFailed, ModelUnavailable, complete, preflight, transport_error  # noqa: E402
-from common import BACKOFF, append, boot_mean, load, slot, wilson  # noqa: E402
+from common import BACKOFF, append, boot_mean, load, slot, too_few, wilson  # noqa: E402
 from detect import COMPILED  # noqa: E402
 from finetune import base_format as bf  # noqa: E402
 
@@ -642,10 +642,13 @@ def rate(k, n):
 
 def mean_ci(by_q):
     """'p% [low, high]' for values grouped by question (bootstrap clustered by question)."""
-    if not any(by_q.values()):
+    g = {q: v for q, v in by_q.items() if v}
+    if not g:
         return "—"
-    m, lo, hi = boot_mean({q: v for q, v in by_q.items() if v})
-    return f"{100 * m:.0f}% [{100 * lo:.0f}, {100 * hi:.0f}%]"
+    if too_few(g):
+        return f"too few questions ({len(g)})"
+    m, lo, hi = boot_mean(g)
+    return f"{100 * m:.0f}% [{100 * lo:.0f}, {100 * hi:.0f}%] ({len(g)} questions)"
 
 
 def med(xs, fmt="{:.2f}"):
