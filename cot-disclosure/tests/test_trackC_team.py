@@ -93,6 +93,9 @@ def test_summary_splits_lookups_and_gives_the_checker_floor(tmp_path, monkeypatc
     assert tool["bad_lookups"]["reviews"] == n_bad and tool["good_lookups"]["reviews"] == 12 - n_bad
     assert tool["bad_lookups"]["caught"]["k"] == n_bad                   # the checker (no tool) disagrees: escalated
     assert tool["good_lookups"]["false_alarms"]["k"] == 0
+    alone = tool["bad_lookups"]["reviewer_alone"]                      # the fake reviewer repeats the proposal
+    assert alone["corrects_wrong_solver"]["k"] == 0 and alone["corrects_wrong_solver"]["n"] == n_bad
+    assert tool["good_lookups"]["reviewer_alone"]["keeps_right_solver"]["k"] == 12 - n_bad
     rates = rt.checker_rates(checks)
     assert rates["notool"]["k"] == 0 and rates["notool"]["n"] == 12 and rates["tool, bad lookup"]["k"] == n_bad
 

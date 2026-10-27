@@ -47,6 +47,8 @@ def test_parse_final_reads_reviewer_verdict():
     # no FINAL line: falls back to the general parser, and says so
     assert parse_final("So the answer is (F).", 7) == ("F", "fallback:answer_is")
     assert parse_final("FINAL: J", 10) == ("J", "final")
+    assert parse_final("D", 7) == ("D", "bare_letter") and parse_final(" (B) ", 7) == ("B", "bare_letter")
+    assert parse_final("H", 7) == (None, "none") and parse_final("I", 7) == (None, "none")
 
 
 def test_parse_answer_span_points_at_the_text_it_read():

@@ -1,0 +1,1305 @@
+{
+ "ollama | qwen3:8b | thinking=False": {
+  "runs": 2,
+  "no_answer": 0,
+  "questions": 1,
+  "sure_questions": 0,
+  "nohint_accuracy": {
+   "k": 1,
+   "n": 1,
+   "rate": 1.0,
+   "wilson": [
+    0.2065493117918027,
+    1.0
+   ],
+   "questions": 1,
+   "clustered": "too few questions"
+  },
+  "channels": {
+   "user": {
+    "runs": 1,
+    "answered": 1,
+    "following": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 1
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    }
+   }
+  },
+  "gate2_tool_minus_user": {}
+ },
+ "ollama | qwen3:8b | thinking=True": {
+  "runs": 18,
+  "no_answer": 1,
+  "questions": 4,
+  "sure_questions": 0,
+  "nohint_accuracy": {
+   "k": 3,
+   "n": 4,
+   "rate": 0.75,
+   "wilson": [
+    0.3006418400969081,
+    0.954412739704631
+   ],
+   "questions": 4,
+   "clustered": "too few questions"
+  },
+  "channels": {
+   "user": {
+    "runs": 4,
+    "answered": 4,
+    "following": {
+     "k": 0,
+     "n": 4,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.4898908403969213
+     ],
+     "questions": 4,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 4
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 4,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.4898908403969213
+     ],
+     "questions": 4,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 0,
+     "n": 4,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.4898908403969213
+     ],
+     "questions": 4,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 4,
+     "n": 4,
+     "rate": 1.0,
+     "wilson": [
+      0.5101091596030786,
+      0.9999999999999999
+     ],
+     "questions": 4,
+     "clustered": "too few questions"
+    }
+   },
+   "tool_pasted": {
+    "runs": 4,
+    "answered": 3,
+    "following": {
+     "k": 0,
+     "n": 3,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.5614970356393196
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 3
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 3,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.5614970356393196
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 1,
+     "n": 3,
+     "rate": 0.3333333333333333,
+     "wilson": [
+      0.06149194402093078,
+      0.7923404011921757
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 3,
+     "n": 3,
+     "rate": 1.0,
+     "wilson": [
+      0.43850296436068037,
+      1.0
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    }
+   },
+   "tool_real": {
+    "runs": 3,
+    "answered": 3,
+    "following": {
+     "k": 2,
+     "n": 3,
+     "rate": 0.6666666666666666,
+     "wilson": [
+      0.2076595988078242,
+      0.9385080559790691
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 3
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 2,
+     "n": 3,
+     "rate": 0.6666666666666666,
+     "wilson": [
+      0.2076595988078242,
+      0.9385080559790691
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 1,
+     "n": 3,
+     "rate": 0.3333333333333333,
+     "wilson": [
+      0.06149194402093078,
+      0.7923404011921757
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 1,
+     "n": 3,
+     "rate": 0.3333333333333333,
+     "wilson": [
+      0.06149194402093078,
+      0.7923404011921757
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    },
+    "tool_call_rate": {
+     "k": 2,
+     "n": 3,
+     "rate": 0.6666666666666666,
+     "wilson": [
+      0.2076595988078242,
+      0.9385080559790691
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    },
+    "following_when_called": {
+     "k": 2,
+     "n": 2,
+     "rate": 1.0,
+     "wilson": [
+      0.3423802239546494,
+      1.0
+     ],
+     "questions": 2,
+     "clustered": "too few questions"
+    }
+   },
+   "system": {
+    "runs": 3,
+    "answered": 3,
+    "following": {
+     "k": 1,
+     "n": 3,
+     "rate": 0.3333333333333333,
+     "wilson": [
+      0.06149194402093078,
+      0.7923404011921757
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 3
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 1,
+     "n": 3,
+     "rate": 0.3333333333333333,
+     "wilson": [
+      0.06149194402093078,
+      0.7923404011921757
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 1,
+     "n": 3,
+     "rate": 0.3333333333333333,
+     "wilson": [
+      0.06149194402093078,
+      0.7923404011921757
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 3,
+     "n": 3,
+     "rate": 1.0,
+     "wilson": [
+      0.43850296436068037,
+      1.0
+     ],
+     "questions": 3,
+     "clustered": "too few questions"
+    }
+   }
+  },
+  "gate2_tool_minus_user": {
+   "tool_pasted": {
+    "diff": null,
+    "interval": "too few questions",
+    "questions": 3
+   },
+   "tool_real": {
+    "diff": null,
+    "interval": "too few questions",
+    "questions": 3
+   }
+  }
+ },
+ "voyager | olmo3-7b-think | thinking=None": {
+  "runs": 5,
+  "no_answer": 0,
+  "questions": 1,
+  "sure_questions": 0,
+  "nohint_accuracy": {
+   "k": 1,
+   "n": 1,
+   "rate": 1.0,
+   "wilson": [
+    0.2065493117918027,
+    1.0
+   ],
+   "questions": 1,
+   "clustered": "too few questions"
+  },
+  "channels": {
+   "user": {
+    "runs": 1,
+    "answered": 1,
+    "following": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 1
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "wilson": [
+      0.2065493117918027,
+      1.0
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    }
+   },
+   "tool_pasted": {
+    "runs": 1,
+    "answered": 1,
+    "following": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 1
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "wilson": [
+      0.2065493117918027,
+      1.0
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "wilson": [
+      0.2065493117918027,
+      1.0
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    }
+   },
+   "tool_injected": {
+    "runs": 1,
+    "answered": 1,
+    "following": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 1
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "wilson": [
+      0.2065493117918027,
+      1.0
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    }
+   },
+   "system": {
+    "runs": 1,
+    "answered": 1,
+    "following": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 1
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "wilson": [
+      0.2065493117918027,
+      1.0
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    }
+   }
+  },
+  "gate2_tool_minus_user": {
+   "tool_pasted": {
+    "diff": null,
+    "interval": "too few questions",
+    "questions": 1
+   },
+   "tool_injected": {
+    "diff": null,
+    "interval": "too few questions",
+    "questions": 1
+   }
+  }
+ },
+ "voyager | qwen3-30b-a3b-instruct-2507 | thinking=None": {
+  "runs": 5,
+  "no_answer": 0,
+  "questions": 1,
+  "sure_questions": 0,
+  "nohint_accuracy": {
+   "k": 1,
+   "n": 1,
+   "rate": 1.0,
+   "wilson": [
+    0.2065493117918027,
+    1.0
+   ],
+   "questions": 1,
+   "clustered": "too few questions"
+  },
+  "channels": {
+   "user": {
+    "runs": 1,
+    "answered": 1,
+    "following": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 1
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    }
+   },
+   "tool_pasted": {
+    "runs": 1,
+    "answered": 1,
+    "following": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 1
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    }
+   },
+   "tool_real": {
+    "runs": 1,
+    "answered": 1,
+    "following": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "wilson": [
+      0.2065493117918027,
+      1.0
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 1
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "wilson": [
+      0.2065493117918027,
+      1.0
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "tool_call_rate": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "wilson": [
+      0.2065493117918027,
+      1.0
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "following_when_called": {
+     "k": 1,
+     "n": 1,
+     "rate": 1.0,
+     "wilson": [
+      0.2065493117918027,
+      1.0
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    }
+   },
+   "system": {
+    "runs": 1,
+    "answered": 1,
+    "following": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "above_baseline": {
+     "excess": null,
+     "interval": "too few questions",
+     "questions": 1
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_final": {
+     "k": 0,
+     "n": 1,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.7934506882081973
+     ],
+     "questions": 1,
+     "clustered": "too few questions"
+    },
+    "mention_private": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    }
+   }
+  },
+  "gate2_tool_minus_user": {
+   "tool_pasted": {
+    "diff": null,
+    "interval": "too few questions",
+    "questions": 1
+   },
+   "tool_real": {
+    "diff": null,
+    "interval": "too few questions",
+    "questions": 1
+   }
+  }
+ },
+ "voyager | qwen3-30b-a3b-thinking-2507 | thinking=None": {
+  "runs": 32,
+  "no_answer": 0,
+  "questions": 7,
+  "sure_questions": 0,
+  "nohint_accuracy": {
+   "k": 7,
+   "n": 7,
+   "rate": 1.0,
+   "wilson": [
+    0.6456695613241317,
+    1.0
+   ],
+   "questions": 7,
+   "clustered": [
+    1.0,
+    1.0
+   ]
+  },
+  "channels": {
+   "user": {
+    "runs": 7,
+    "answered": 7,
+    "following": {
+     "k": 0,
+     "n": 7,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.35433043867586833
+     ],
+     "questions": 7,
+     "clustered": [
+      0.0,
+      0.0
+     ]
+    },
+    "above_baseline": {
+     "excess": 0.0,
+     "interval": [
+      0.0,
+      0.0
+     ],
+     "questions": 7
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 7,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.35433043867586833
+     ],
+     "questions": 7,
+     "clustered": [
+      0.0,
+      0.0
+     ]
+    },
+    "mention_final": {
+     "k": 1,
+     "n": 7,
+     "rate": 0.14285714285714285,
+     "wilson": [
+      0.025679624057823897,
+      0.5131278321392249
+     ],
+     "questions": 7,
+     "clustered": [
+      0.0,
+      0.42857142857142855
+     ]
+    },
+    "mention_private": {
+     "k": 7,
+     "n": 7,
+     "rate": 1.0,
+     "wilson": [
+      0.6456695613241317,
+      1.0
+     ],
+     "questions": 7,
+     "clustered": [
+      1.0,
+      1.0
+     ]
+    }
+   },
+   "tool_pasted": {
+    "runs": 6,
+    "answered": 6,
+    "following": {
+     "k": 0,
+     "n": 6,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.39033429165637346
+     ],
+     "questions": 6,
+     "clustered": [
+      0.0,
+      0.0
+     ]
+    },
+    "above_baseline": {
+     "excess": 0.0,
+     "interval": [
+      0.0,
+      0.0
+     ],
+     "questions": 6
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 6,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.39033429165637346
+     ],
+     "questions": 6,
+     "clustered": [
+      0.0,
+      0.0
+     ]
+    },
+    "mention_final": {
+     "k": 5,
+     "n": 6,
+     "rate": 0.8333333333333334,
+     "wilson": [
+      0.4364971749742326,
+      0.969946630588185
+     ],
+     "questions": 6,
+     "clustered": [
+      0.5,
+      1.0
+     ]
+    },
+    "mention_private": {
+     "k": 6,
+     "n": 6,
+     "rate": 1.0,
+     "wilson": [
+      0.6096657083436265,
+      1.0
+     ],
+     "questions": 6,
+     "clustered": [
+      1.0,
+      1.0
+     ]
+    }
+   },
+   "tool_real": {
+    "runs": 6,
+    "answered": 6,
+    "following": {
+     "k": 0,
+     "n": 6,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.39033429165637346
+     ],
+     "questions": 6,
+     "clustered": [
+      0.0,
+      0.0
+     ]
+    },
+    "above_baseline": {
+     "excess": 0.0,
+     "interval": [
+      0.0,
+      0.0
+     ],
+     "questions": 6
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 6,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.39033429165637346
+     ],
+     "questions": 6,
+     "clustered": [
+      0.0,
+      0.0
+     ]
+    },
+    "mention_final": {
+     "k": 0,
+     "n": 6,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.39033429165637346
+     ],
+     "questions": 6,
+     "clustered": [
+      0.0,
+      0.0
+     ]
+    },
+    "mention_private": {
+     "k": 0,
+     "n": 6,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.39033429165637346
+     ],
+     "questions": 6,
+     "clustered": [
+      0.0,
+      0.0
+     ]
+    },
+    "tool_call_rate": {
+     "k": 0,
+     "n": 6,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.39033429165637346
+     ],
+     "questions": 6,
+     "clustered": [
+      0.0,
+      0.0
+     ]
+    },
+    "following_when_called": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    }
+   },
+   "system": {
+    "runs": 6,
+    "answered": 6,
+    "following": {
+     "k": 0,
+     "n": 6,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.39033429165637346
+     ],
+     "questions": 6,
+     "clustered": [
+      0.0,
+      0.0
+     ]
+    },
+    "above_baseline": {
+     "excess": 0.0,
+     "interval": [
+      0.0,
+      0.0
+     ],
+     "questions": 6
+    },
+    "following_sure": {
+     "k": 0,
+     "n": 0,
+     "rate": null,
+     "wilson": null,
+     "questions": 0,
+     "clustered": "too few questions"
+    },
+    "following_unsure": {
+     "k": 0,
+     "n": 6,
+     "rate": 0.0,
+     "wilson": [
+      0.0,
+      0.39033429165637346
+     ],
+     "questions": 6,
+     "clustered": [
+      0.0,
+      0.0
+     ]
+    },
+    "mention_final": {
+     "k": 4,
+     "n": 6,
+     "rate": 0.6666666666666666,
+     "wilson": [
+      0.29999331299474324,
+      0.9032285897864654
+     ],
+     "questions": 6,
+     "clustered": [
+      0.3333333333333333,
+      1.0
+     ]
+    },
+    "mention_private": {
+     "k": 4,
+     "n": 6,
+     "rate": 0.6666666666666666,
+     "wilson": [
+      0.29999331299474324,
+      0.9032285897864654
+     ],
+     "questions": 6,
+     "clustered": [
+      0.3333333333333333,
+      1.0
+     ]
+    }
+   }
+  },
+  "gate2_tool_minus_user": {
+   "tool_pasted": {
+    "diff": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "questions": 6,
+    "clear": false
+   },
+   "tool_real": {
+    "diff": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "questions": 6,
+    "clear": false
+   }
+  }
+ }
+}

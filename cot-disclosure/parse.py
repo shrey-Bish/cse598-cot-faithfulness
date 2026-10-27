@@ -52,5 +52,8 @@ def parse_final(text, n_options):
     hits = [h for h in FINAL.findall(text or "") if h in valid]
     if hits:
         return hits[-1], "final"
+    bare = (text or "").strip().strip("*().").strip()
+    if len(bare) == 1 and bare in valid:              # the whole reply is one letter (seen Oct 27, Olmo 3 7B Instruct)
+        return bare, "bare_letter"
     letter, rule = parse_answer(text, n_options)
     return (letter, f"fallback:{rule}") if letter else (None, "none")

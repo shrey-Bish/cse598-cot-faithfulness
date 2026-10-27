@@ -18,6 +18,9 @@ plus_explanation, plus_private, plus_tool_log; the notool team skips plus_tool_l
 Pipeline rule (per reviewer model and variant): if the checker flags the item, it is escalated and no
 answer is shipped; otherwise the reviewer's letter is the final output.
 Measures per team, reviewer model and variant (summary):
+  reviewer_alone       the reviewer's own letter, as if no checker escalated: corrects a wrong solver
+                       answer / keeps a right one / gives no letter (the pipeline outcome hides it
+                       whenever the checker escalates)
   wrong_reached_final  a wrong letter was shipped
   caught               the solver was wrong and the pipeline corrected it or escalated it
   false_alarm          the solver was right and the pipeline changed it or escalated it
@@ -59,6 +62,7 @@ REVIEWER_MODELS = [("voyager", "qwen3-30b-a3b-instruct-2507"),  # Experiment A's
                    ("voyager", "olmo3-7b-instruct")]             # the second reviewer: another model family
 TEAMS = ("tool", "notool")
 IN_FLIGHT = 4
+REVIEWER_MAX_TOKENS = 8000    # Oct 27: Olmo 3 7B Instruct re-solves the puzzle and ran past Experiment A's 2,000 in 5 of 20 C1 reviews
 
 
 def outcome(correct, solver_letter, reviewer_letter, flagged):
@@ -85,11 +89,18 @@ def summarize(rows):
         def block(sub):
             wrong = [r for r in sub if r["solver_wrong"]]
             right = [r for r in sub if not r["solver_wrong"]]
+            letter = "letter" if any("letter" in r for r in sub) else "reviewer_letter"
+            for r in sub:                         # the reviewer alone, as if no checker escalated
+                r["_rev_correct"] = r.get(letter) == r["correct"]
+                r["_rev_none"] = r.get(letter) is None
             return {"reviews": len(sub), "items": len({r["item_id"] for r in sub}),
                     "wrong_reached_final": count(sub, "wrong_reached_final"), "caught": count(wrong, "caught"),
                     "false_alarms": count(right, "false_alarm"),
                     "undetermined": sum(r.get("checker_flag") is None for r in sub),
-                    "escalated": sum(r["escalated"] for r in sub), "tokens": sum(r["tokens"] for r in sub)}
+                    "escalated": sum(r["escalated"] for r in sub), "tokens": sum(r["tokens"] for r in sub),
+                    "reviewer_alone": {"corrects_wrong_solver": count(wrong, "_rev_correct"),
+                                       "keeps_right_solver": count(right, "_rev_correct"),
+                                       "no_letter": sum(r["_rev_none"] for r in sub)}}
         entry = block(rs)
         if team == "tool":
             entry["bad_lookups"] = block([r for r in rs if r.get("bad_lookup")])
@@ -149,7 +160,7 @@ def done_cases(path):
 
 
 # ---------------------------------------------------------------- live (Voyager)
-def run_case(item, team, repeat, oracle, reviewers, path, run_name):
+def run_case(item, team, repeat, oracle, reviewers, path, run_name, reviewer_max_tokens=REVIEWER_MAX_TOKENS):
     """One case: solver, checker, every reviewer model x variant; a case_done row when no call failed."""
     sp, sm = SOLVER_MODEL
     attempt = uuid.uuid4().hex[:12]
@@ -165,14 +176,15 @@ def run_case(item, team, repeat, oracle, reviewers, path, run_name):
     log_step(path, **base, agent="solver", model=sm, bad_lookup=is_bad, tool_letter=tool_letter, letter=s_letter,
              correct=item["correct"], steps=steps, reasoning_visibility=s_reply.reasoning_visibility,
              final_text=s_reply.final_text, reasoning_text=s_reply.reasoning_text, usage=s_reply.usage,
-             error=s_reply.error, **route_fields(s_reply))
+             error=s_reply.error, finish_reason=s_reply.finish_reason, **route_fields(s_reply))
     c_reply, c_letter, flag = checker.check(gen_s, item, s_letter, seed=3 + 10 * repeat)
     log_step(path, **base, agent="checker", model=sm, bad_lookup=is_bad, letter=c_letter, flag=flag,
-             final_text=c_reply.final_text, usage=c_reply.usage, error=c_reply.error, **route_fields(c_reply))
+             final_text=c_reply.final_text, usage=c_reply.usage, error=c_reply.error, finish_reason=c_reply.finish_reason,
+             **route_fields(c_reply))
     errors = [x for x in (s_reply.error, c_reply.error) if x]
     variants = [v for v in reviewer.VARIANTS if not (team == "notool" and v == "plus_tool_log")]
     for rp, rm in reviewers:
-        gen_r = lambda **kw: generate(rp, rm, max_tokens=2000, temperature=0.6, seed=repeat, **kw)  # noqa: E731
+        gen_r = lambda **kw: generate(rp, rm, max_tokens=reviewer_max_tokens, temperature=0.6, seed=repeat, **kw)  # noqa: E731
         for variant in variants:
             r_reply, r_letter, rule = reviewer.review(gen_r, variant, item["question"], s_letter, item["n_options"],
                                                       final_text=s_reply.final_text,
@@ -184,7 +196,8 @@ def run_case(item, team, repeat, oracle, reviewers, path, run_name):
                      parse_rule=rule, solver_letter=s_letter, correct=item["correct"], bad_lookup=is_bad,
                      solver_wrong=s_letter != item["correct"], checker_flag=flag, **res,
                      tokens=sum(tokens(x)["input"] + tokens(x)["output"] for x in (s_reply, c_reply, r_reply)),
-                     final_text=r_reply.final_text, error=r_reply.error, **route_fields(r_reply))
+                     final_text=r_reply.final_text, error=r_reply.error, finish_reason=r_reply.finish_reason,
+                     max_tokens=reviewer_max_tokens, **route_fields(r_reply))
     if not errors:
         log_step(path, **base, agent="case_done")
     return not errors
@@ -199,7 +212,8 @@ def calls_per_case(team, reviewers):
     return (2 if team == "tool" else 1) + 1 + variants * len(reviewers)
 
 
-def live(items, teams, repeats, reviewers, path, run_name, workers=IN_FLIGHT, check_models=True):
+def live(items, teams, repeats, reviewers, path, run_name, workers=IN_FLIGHT, check_models=True,
+         reviewer_max_tokens=REVIEWER_MAX_TOKENS):
     oracle = solver.ToolOracle(wrong_rate=0.5)
     if check_models:
         for provider, model in [SOLVER_MODEL, *reviewers]:
@@ -210,7 +224,7 @@ def live(items, teams, repeats, reviewers, path, run_name, workers=IN_FLIGHT, ch
     todo = [c for c in plan_cases(items, teams, repeats) if case_id(*c) not in finished]
     print(f"{len(todo)} cases to run ({len(finished)} done before), {workers} at a time", flush=True)
     with ThreadPoolExecutor(workers) as pool:
-        ok = list(pool.map(lambda c: run_case(*c, oracle, reviewers, path, run_name), todo))
+        ok = list(pool.map(lambda c: run_case(*c, oracle, reviewers, path, run_name, reviewer_max_tokens), todo))
     print(f"{sum(ok)} of {len(todo)} cases complete; the others are rerun next time", flush=True)
     return ok
 
@@ -273,6 +287,7 @@ def main():
     ap.add_argument("--reviewer-model", action="append", metavar="PROVIDER:MODEL",
                     help=f"repeatable (default: {', '.join(m for _, m in REVIEWER_MODELS)})")
     ap.add_argument("--run-name", default=None, help="a label stored in every row")
+    ap.add_argument("--reviewer-max-tokens", type=int, default=REVIEWER_MAX_TOKENS)
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -303,7 +318,8 @@ def main():
           f"items: {sum(oracle.is_bad(it['item_id']) for it in items)} of {len(items)}")
     if a.dry_run:
         return
-    live(items, teams, a.repeats, reviewers, path, a.run_name or f"run-{uuid.uuid4().hex[:6]}")
+    live(items, teams, a.repeats, reviewers, path, a.run_name or f"run-{uuid.uuid4().hex[:6]}",
+         reviewer_max_tokens=a.reviewer_max_tokens)
 
 
 if __name__ == "__main__":
