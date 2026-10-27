@@ -7,6 +7,9 @@
 
 TRACKA_ENV=/scratch/ragarw68/envs/olmo         # Python 3.11, made with mamba create -p
 TRACKA_PY=$TRACKA_ENV/bin/python
+TRACKA_VLLM_ENV=/scratch/ragarw68/envs/vllm    # vLLM's own environment (setup_vllm.sh): it pins its own torch
+TRACKA_VLLM_PY=$TRACKA_VLLM_ENV/bin/python
+export TRACKA_VLLM=$TRACKA_VLLM_ENV/bin/vllm   # the server command eval_job.py starts (Steps 12-13)
 export HF_HOME=/scratch/ragarw68/hf             # Olmo 3 7B Think is already downloaded here
 export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1  # never download at run time
 export TRACKA_OUT=${TRACKA_OUT:-/scratch/ragarw68/trackA}

@@ -163,7 +163,7 @@ def test_every_job_script_uses_the_course_account_within_limits(script):
         assert int(next(o.split("=")[1].rstrip("G") for o in opts if o.startswith("--mem="))) <= 320
     gpus = [o for o in opts if o.startswith("-G ")]
     assert gpus in ([], ["-G a100:1"])
-    assert "run.sh" in script.read_text() or "setup_env.sh" in script.read_text()
+    assert "run.sh" in script.read_text() or "setup_env.sh" in script.read_text() or "setup_vllm.sh" in script.read_text()
 
 
 def fake_sbatch(tmp_path):
@@ -270,6 +270,32 @@ def test_runs_only_inside_a_job_under_the_course_account(env_vars, ok):
     r = subprocess.run(["bash", "-c", f"source {SOL / 'guard.sh'} && tracka_require_job"], env={**env, **env_vars},
                        capture_output=True, text=True)
     assert (r.returncode == 0) is ok, r.stderr
+
+
+@pytest.mark.parametrize("step,args,want", [
+    ("train", ["lora"], ["finetune/train.py", "--version", "lora", "--out", "{out}/train/lora"]),
+    ("eval", ["lora_tags", "2/3"], ["finetune/gpu/eval_job.py", "--system", "lora_tags", "--out", "{out}/eval", "--part", "2/3"]),
+    ("eval", ["base"], ["finetune/gpu/eval_job.py", "--system", "base", "--out", "{out}/eval"]),
+    ("timing", [], ["finetune/train.py", "--version", "lora,tags,lora_tags,lora_attn3", "--timing", "20", "--out", "{out}/timing"]),
+    ("vllm_check", [], ["finetune/gpu/eval_job.py", "--check", "--out", "{out}/vllm_check"])])
+def test_run_sh_builds_each_new_step(tmp_path, step, args, want):
+    """run.sh with env.sh stubbed (no mamba on the Mac): which script and arguments each step gets."""
+    sol = tmp_path / "repo" / "cot-disclosure" / "finetune" / "gpu" / "sol"
+    sol.mkdir(parents=True)
+    for f in ("run.sh", "guard.sh", "accounts.conf"):
+        shutil.copy(SOL / f, sol / f)
+    out = tmp_path / "out"
+    py = tmp_path / "py"
+    py.write_text('#!/bin/bash\necho "ARGS $*"\n')
+    py.chmod(0o755)
+    (sol / "env.sh").write_text(f'TRACKA_PY={py}\nTRACKA_OUT={out}\nTRACKA_CODE={tmp_path}\n'
+                                'source "$(dirname "${BASH_SOURCE[0]}")/guard.sh"\n')
+    env = {**{k: v for k, v in os.environ.items() if not k.startswith("SLURM_")},
+           "SLURM_JOB_ID": "7", "SLURM_JOB_ACCOUNT": ACCOUNT}
+    r = subprocess.run(["bash", str(sol / "run.sh"), step, *args], env=env, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    line = next(x for x in r.stdout.splitlines() if x.startswith("ARGS "))
+    assert line.split()[1:] == [w.format(out=out) for w in want]
 
 
 def test_shell_scripts_parse():

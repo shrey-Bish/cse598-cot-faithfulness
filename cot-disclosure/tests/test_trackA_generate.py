@@ -114,3 +114,34 @@ def test_serve_command():
     cmd = gen.serve_cmd("/m", lora={"lora": "/a"}, prompt_embeds=True)
     assert cmd[:3] == ["vllm", "serve", "/m"] and "--enable-prompt-embeds" in cmd and "lora=/a" in cmd
     assert str(gen.MAX_MODEL_LEN) in cmd
+
+
+def test_eval_job_prepares_merged_and_folded_models(tagged, tmp_path):
+    """lora_tags: the chosen epoch's LoRA merged into the base, then tag[model] folded into the embeddings."""
+    from transformers import AutoModelForCausalLM
+    from finetune import train as tr
+    from finetune.gpu import eval_job as ej
+    d, tok, _, _ = tagged
+    from tools.answer_key import build as b_
+    exs = []
+    for i in range(3):
+        msgs, _ = b_(f"Q{i}?\n(A) 1\n(B) 2", f"q{i}", "user", "B")
+        exs.append(tr.encode(tok, {"record_id": str(i), "messages": msgs, "tools": None,
+                                   "target_raw": "Checked the hint.</think>\n\nAnswer: (A)"}))
+    lm = tr.build("lora_tags", d, dtype="fp32", device="cpu", attn="eager")
+    with torch.no_grad():
+        lm.tags.weight.normal_(0, 0.3)
+    tr.train(lm, exs, exs[:1], tmp_path / "train" / "lora_tags", "cpu", epochs=1, accum=2)
+    tr.export("lora_tags", d, tmp_path / "train" / "lora_tags", "cpu")
+    assert ej.prepare("base", d, tmp_path / "train", tmp_path / "models") == (Path(d), None)
+    with pytest.raises(FileNotFoundError, match="train and export"):
+        ej.prepare("tags", d, tmp_path / "train", tmp_path / "models")
+    model, tags = ej.prepare("lora_tags", d, tmp_path / "train", tmp_path / "models")
+    assert model.name == "lora_tags_folded" and tags.name == "tags.pt"
+    tag = torch.load(tags)[SOURCES["model"]]
+    folded, base = gen.load_embedding(model), gen.load_embedding(d)
+    assert torch.allclose(folded.float(), base.float() + tag.float(), atol=1e-2)       # merged in bf16
+    m = AutoModelForCausalLM.from_pretrained(model)
+    b0 = AutoModelForCausalLM.from_pretrained(d)
+    q = "model.layers.0.self_attn.q_proj.weight"
+    assert not torch.allclose(dict(m.named_parameters())[q].float(), dict(b0.named_parameters())[q].float())
