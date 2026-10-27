@@ -1,4 +1,4 @@
-"""Which chat template does Voyager apply to each Track B model? The server's prompt-token count
+"""Which chat template does Voyager apply to each Track B model (and Track C's second reviewer)? The server's prompt-token count
 for Track B's own prompts, against our rendering with the model's chat template from Hugging Face
 (the check done for Olmo on Oct 21, finetune/template_revisions.py). One call per condition and
 model, max_tokens 1; the first pilot puzzle, Track B's wordings (tools/answer_key.py).
@@ -15,6 +15,9 @@ what we render; any other gap is reported, never patched over. Downloads only to
 Oct 27: gap 0 on every condition for both Qwen3 models and Olmo, except tool_real on Qwen3: the
 server counts 1 token fewer, and our rendering matches it when the tool spec's JSON keys are sorted
 (local_tokens_sorted_tool_keys): the served template is the model's own; vLLM orders the keys.
+Olmo 3 7B Instruct (Track C's second reviewer): with a system message the counts match (318 = 318);
+without one the server's default system prompt is 30 tokens longer than the current Hugging Face
+template's. Every reviewer call sends its own system prompt, so reviewers see what we render.
 """
 import argparse
 import json
@@ -32,7 +35,8 @@ from tools.answer_key import ALL_CONDITIONS, INJECTED, TOOL_SPEC, build  # noqa:
 OUT = CODE / "results" / "trackB" / "template_check.jsonl"
 REPOS = {"qwen3-30b-a3b-thinking-2507": "Qwen/Qwen3-30B-A3B-Thinking-2507",
          "qwen3-30b-a3b-instruct-2507": "Qwen/Qwen3-30B-A3B-Instruct-2507",
-         "olmo3-7b-think": None}                                 # None: our pinned format (finetune/olmo_format.py)
+         "olmo3-7b-think": None,                                 # None: our pinned format (finetune/olmo_format.py)
+         "olmo3-7b-instruct": "allenai/Olmo-3-7B-Instruct"}      # Track C's second reviewer
 CHAT_CONDITIONS = ("none", "user", "tool_pasted", "tool_real", "system")
 PINNED_CONDITIONS = ("none", "user", "tool_pasted", INJECTED, "system")
 
