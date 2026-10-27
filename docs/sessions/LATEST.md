@@ -1,135 +1,119 @@
-# Session log: Track A Steps 6–7 final counts and the assembled training set (2026-10-27 13:55 MST)
+# Session log: history rewrite, local main, runs started (2026-10-27 14:00 MST)
 
-Project: CSE 598 Group 10, "Do thinking modes make chain-of-thought more honest?" Track A explains
-and fixes, in Olmo 3 7B Think, the way a wrong hint (from the user or a tool) changes the answer
-without the final answer saying so. The fix: fine-tune with LoRA and/or source tags on examples that
-see the hint, say so, check it and keep the model's own no-hint answer. Steps 6–7 made those examples
-on ASU Voyager: Step 6 ran each candidate question 3 times without a hint (kept if all 3 equal the
-key); Step 7 wrote a target reply per hinted record (prefill: one opening sentence in the model's
-voice, the model writes the rest; up to 4 samples, kept if it ends on the kept answer).
+Project: CSE 598 Group 10, "Do thinking modes make chain-of-thought more honest?" (wrong hints from a
+user or a tool; does the answer follow, does the model say so). The repo is public; produced data
+(runs, replies, training data) must never reach GitHub, so it lives in gitignored folders and only
+numbers-only summaries are tracked. This step removed the produced files from the unpushed history.
 
 ## 1. Header
 
-- **Time:** 2026-10-27 13:55 MST (Arizona) = 20:55 UTC.
-- **Branch:** `trackA-nosol`. **Commits:** before `f40a5a8` (the 13:05 log); after `56e2894` (`b72b747`
-  Track C code, `4f697f8` Olmo Instruct canary, `d41f77e` labeling kit, `56e2894` summaries and Sol
-  input manifest); this log on top. Nothing pushed.
-- **Tests:** 333 pass (CPU only, no network).
-- **Steps 6–7 run:** finished 13:45 MST (20:45 UTC), exit 0, after 1 day 23.5 h (started Oct 25).
+- **Time:** 2026-10-27 14:00 MST (Arizona) = 21:00 UTC.
+- **Branch:** `trackA-nosol`. **Commits:** before the rewrite `baac511` (kept as
+  `refs/backup/untrack-20261027-134916/trackA-nosol`); after the rewrite `f4ff7fc`; then `9cc503d`
+  (TODO) and this log. Local `main` fast-forwarded to `f4ff7fc` (a ref move; no checkout). Nothing pushed.
+- **Tests:** 333 of 333 pass after the rewrite.
+- **Steps 6–7:** finished 13:45 MST (log 2026-10-27 13:55, which was written at 13:47; its name is
+  8 minutes ahead).
 
 ## 2. What ran
 
-| Command | Where | Calls | Duration | Failures |
+| Command | Where | Calls | Duration | Result |
 |---|---|---|---|---|
-| `finetune/run_steps67.py --kept 240 --checkpoint 100` (started Oct 25 by the earlier session) | Mac → Voyager | Step 6: 1,597 runs; Step 7: 1,466 samples | 15.9 h + 14.1 h of Voyager time (144 s a run, 138 s a sample, 4 in flight) | 7 + 4 runs with no reply, retried; 2 "Voyager unreachable" pauses (Mac asleep), resumed |
-| `run_steps67.py --assemble` | Mac | 0 | seconds | none |
-| `tools/export_summaries.py`, then `--check` | Mac | 0 | seconds | none; all numbers-only |
-| `finetune/gpu/kit.py --manifest` (Sol input list with the training files) | Mac | 0 | seconds | none |
+| Stop the Ollama grid (SIGTERM; resumable) | Mac | — | — | 19 rows saved; nothing else writing (the other Claude session confirmed it was idle) |
+| `untrack_produced.py --not-in main --run --backup ~/backup-before-rewrite.bundle` | Mac | 0 | ~1 min | rewrite done; pre-push check refuses 1 file (below) |
+| `pytest -q` | Mac | 0 | 1:52 | 333 pass |
+| Restart the Ollama grid (`--model qwen3:8b`) | Mac (local) | ~1,939 left | ~51 h | running |
+| **Track B: Qwen3 30B Thinking** (`run_trackB.py --run --model qwen3-30b-a3b-thinking-2507`) | Mac → Voyager | 805 jobs, ~966 calls | ~4.2 h est.; started 13:51 | running, 4 in flight |
+| **Track C: C1**, live team on 5 pilot items (`run_team.py --live --n 5`; tool team; reviewers Qwen3 30B Instruct and Olmo 3 7B Instruct) | Mac → Voyager | ~55 | started 13:52 | running (shares the 4 slots) |
+| `git fetch origin` | Mac | — | seconds | no new commits on any GitHub branch since Oct 21 |
+| `git update-ref refs/heads/main` (fast-forward to `trackA-nosol`) | Mac | — | — | `main`: `280bd12` → `f4ff7fc` |
 
 ## 3. Results
 
-**Step 6, keep rate:** 251 of 530 questions [43, 52%] (pilot 5 of 10; target 240). By set: MMLU-Pro
-training items 154 of 317; hard puzzles 94 of 208; easy puzzles 3 of 5. The checkpoint at 117 kept
-(117 of 250 [41, 53%]) was within half of the pilot, so the run went on as set.
+**The rewrite (conditions of Oct 27, each met or stated):**
+- Backup first: `~/backup-before-rewrite.bundle` (83,688,587 bytes; `git bundle verify` ok; every
+  ref) and `~/backup-before-rewrite.bundle.sha256` (192 files under `cot-disclosure/results/`,
+  `finetune/data/`, `configs/`).
+- Rewritten: only the 69 commits unique to `trackA-nosol` (not in `main`). Each rewritten commit
+  equals the old one outside the produced paths, with the same message, author and dates.
+- After: the sha256 list is identical (192 of 192); 0 produced paths tracked; the files stay on disk.
+- Kept tracked: `configs/canary/*.json` (4 references), `results/summaries/` (65 files),
+  `docs/sessions/`, every numbers-only summary.
+- Pre-push check: **fails on both branches for one file only**: `results/voyager_canary.jsonl` in
+  `280bd12`, one of local `main`'s 2 unpushed commits (one numbers-only row). Decision 1.
 
-**Step 7, a prefill target within 4 samples** (records; 95% Wilson intervals):
+**My 4 scope choices, applied as recommended:**
+1. Untrack all of `cot-disclosure/results/trackA/` (61 paths in the history); its numbers-only
+   summaries stay tracked in `results/summaries/trackA/`.
+2. Untrack `cot-disclosure/finetune/data/` (5 paths); its two manifests stay tracked in
+   `results/summaries/trackA/data/`.
+3. Untrack `cot-disclosure/results/voyager_canary.jsonl`; its copy stays in `results/summaries/`.
+4. Leave the files already on GitHub since Oct 4–6 (progress-round runs, `results/scope/`, the Oct 4
+   `finetune/data/train.jsonl` and `heldout.jsonl`) in GitHub's history: removing them needs a force
+   push of `main` (not proposed). Their tips: `finetune/data/` is no longer tracked on our branches;
+   `results/scope/` and the progress-round files stay tracked (the demo and `analyze_progress.py`
+   read them).
 
-| channel | wrong hint | correct hint |
-|---|---|---|
-| user | 243 of 251 [94, 98%] | 122 of 123 [96, 100%] |
-| tool, pasted | 238 of 250 [92, 97%] | 128 of 128 [97, 100%] |
-| tool, inserted (declared) | 229 of 250 [88, 94%] | 131 of 131 [97, 100%] |
-
-First sample passed: user wrong 212 of 251, pasted wrong 203 of 250, inserted wrong 181 of 250 (the
-inserted tool turn is the hardest channel to train against, as in the pilot). Failed samples: wrong
-letter 316, token cap 29, reasoning refers to instructions 14, called the tool again 11, no answer 1.
-Records with no passing sample use the fallback (the model's own no-hint reasoning with one sentence
-naming the hint): 42 of 1,133.
-
-**Target length** (prompt + target, tokens; median / 90th percentile / max): MMLU-Pro 4,516 / 11,115 /
-31,624 (699 examples); hard puzzles 11,120 / 16,816 / 28,200 (416); easy puzzles 5,401 / 7,356 /
-9,611 (18); all 7,275 / 14,146 / 31,624 (1,133). Held-out replies (Step 2b): 11,988 / 24,856 / 34,706.
-Training targets stay shorter than held-out replies; no example passes 32,768.
-
-**Stance after the final-answer opener** (keyword count): wrong hint: disagrees 705, agrees after
-checking 26, neither 20; correct hint: agrees after checking 306, disagrees 39, neither 37. "Neither"
-57 of 1,133 (5%): under the 10% line, so dropped at assembly (decided).
-
-**Assembled** (`finetune/data/`, gitignored): 1,196 examples; train 1,040 (217 questions: MMLU-Pro
-676, hard puzzles 344, easy 20), validation 156 (34 questions: hard puzzles 82, MMLU-Pro 74). By
-channel and hint: user wrong 231 / correct 118; pasted wrong 250 / correct 112; inserted wrong 250 /
-correct 115; no hint 120 (10%). Methods: prefill 1,034, fallback 42, no-hint run 120. Median 7,238
-tokens. Training plan: 2 epochs × 130 optimizer steps of 8 examples = 260 steps (`train.py --dry-run`).
-
-Expected vs found: ~1,150 hinted examples expected, 1,076 after the "neither" drop. FINDINGS: no
-entry changes (Steps 6–7 make data; they test nothing).
+**Teammates:** nothing new from Arsha or Shrey on GitHub (every remote branch unchanged since Oct 21).
 
 ## 4. Files
 
-- Gitignored (produced): `cot-disclosure/finetune/data/train_examples.jsonl.gz` (6,420,930 bytes),
-  `validation_examples.jsonl.gz` (1,001,367), `examples_manifest.json` (539);
-  `results/trackA/nohint_train.jsonl.gz`, `target_samples_prefill.jsonl.gz`, `targets_prefill.jsonl.gz`
-  and their `_runs.jsonl`; `results/trackA/steps67_report.jsonl` (the checkpoint and final rows);
-  `cot-disclosure/logs/trackA_steps67.log`.
-- Tracked, numbers-only (`results/summaries/trackA/`): `nohint_train_runs.jsonl`, `targets_runs.jsonl`,
-  `target_samples_runs.jsonl`, `targets_prefill_runs.jsonl`, `target_samples_prefill_runs.jsonl`,
-  `takeover_pilot.jsonl`, `data/manifest.json`, `data/examples_manifest.json`; `voyager_canary.jsonl`.
-- Tracked code: `finetune/gpu/kit.py` and `inputs_manifest.json`, `sol/inputs.txt` (the training files
-  and the evaluation inputs added; `train.py` and `eval_job.py` check their bytes at the start of a Sol job).
-- Nothing copied to Sol yet (`rsync --files-from=cot-disclosure/finetune/gpu/sol/inputs.txt`, §9).
+- `~/backup-before-rewrite.bundle`, `~/backup-before-rewrite.bundle.sha256` (outside the repo).
+- `refs/backup/untrack-20261027-134916/trackA-nosol` (local ref; never pushed: do not use
+  `git push --mirror`).
+- Untracked by the rewrite (still on disk, gitignored): 74 files under `results/trackA/`, 8 under
+  `finetune/data/`, `results/voyager_canary.jsonl`.
+- New produced files (gitignored): `results/trackB/voyager.jsonl.gz` and `voyager_runs.jsonl` (growing),
+  `results/trackB/ollama*.jsonl*` (growing), `results/trackC/team_live.jsonl` (new), `results/labels/` (kit).
+- Tracked: `docs/TODO.md`, this log, `LATEST.md`, `INDEX.md`.
 
 ## 5. Problems and fixes
 
-- Two "Voyager unreachable" pauses during the run were the Mac asleep (Oct 26 3:43–7:10 PM, Oct 26–27
-  overnight on battery); the client paused and resumed. ~9 hours lost.
-- A second Claude session started this run; it reported the same final counts and is not touching git
-  or the produced folders during the rewrite (confirmed by message).
+- The log named 13:55 was written at 13:47; the name is kept (it is committed and indexed).
+- Switching branches to merge would have rewritten files under running jobs and brought back the
+  tracked canary log on `main`; `main` was moved with `git update-ref` instead (a pure fast-forward).
 
 ## 6. For review
 
-- Validation is 156 of 1,196 examples (13%; 34 of 251 questions) because the split is by question hash
-  (10% of questions expected); it holds no easy puzzles.
-- 42 fallback targets (4%) are the model's no-hint reasoning plus an added sentence, not a sample of
-  the model answering the hinted prompt; they are kept as decided Oct 25.
-- Training targets are shorter than held-out replies (median 7,275 vs 11,988 tokens); MMLU-Pro targets
-  are the shortest. Evaluation reports length by source and checks no-hint accuracy on long questions.
-- The keep rule (3 of 3 no-hint runs equal the key) selects questions the model already knows, so
-  training teaches resisting hints where the model is sure; held-out questions include unsure ones.
+- The pre-push check still fails until decision 1; nothing can be pushed before it.
+- Option (a) of decision 1 rewrites `trackA-nosol` again (every unpushed commit gets a new hash, since
+  `280bd12` sits under all of them). The running jobs must pause for about a minute for the sha256
+  comparison, as today.
+- The Oct 4–6 files already public stay public (choice 4).
 
 ## 7. Decisions needed from me
 
-Still open from the 13:05 log: (1) plan for local `main` (recommend rewriting its 2 unpushed commits),
-(2) Olmo's cap in Track B (recommend 32,768 with a 16,000 cut also reported), (3) the Ollama grid
-(recommend keep), (4) the first Sol jobs (setup_vllm, then S1 timing and S2 vLLM check: 150
-GPU-minutes; needs "go").
+1. **Plan for local `main`.** (a) Rewrite its 2 unpushed commits too: `821c583` stays identical,
+   `280bd12` loses the one numbers-only canary row; `main`, `trackA-nosol` and `voyager-ids-oct21` move;
+   nothing on GitHub changes. (b) Allow that one row in the pre-push check. **Recommend (a).**
+2. Olmo's cap in Track B (recommend 32,768 with a 16,000 cut also reported). 3. The Ollama grid
+   (recommend keep, ~51 h). 4. The first Sol jobs: setup_vllm, S1 timing, S2 vLLM check (150
+   GPU-minutes; "go").
 
 ## 8. Open work (top 10 of docs/TODO.md)
 
 | # | Item | Status |
 |---|---|---|
-| A1–A5 | Steps 6–7, report, assembly, summaries | done |
-| A6 | History rewrite with backup and sha256 list | next (now) |
-| A7 | Merge into local `main`; push commands | after A6 |
-| B7 | Track B Voyager runs | start after A6 (Qwen3 Thinking first) |
-| B4 | Ollama grid | running (paused during A6) |
-| C1 | Track C live team on 5 items | after A6, when Voyager has room |
-| A13 | S1 + S2 on Sol | code ready; needs rsync, setup_vllm, "go" |
-| L3 | Labeling (two raters) | kit ready in `results/labels/` |
-| H2–H4 | Handoff docs and bundles | not started |
-| A22, A23 | Figures #1 pinned panel, #4 | not started |
+| A7 | Push `main` and `trackA-nosol` | blocked by decision 1 |
+| H1 | `trackB-main`, `trackC-main` from `main` | after the push |
+| B7 | Track B Voyager runs | Qwen3 Thinking running; then Instruct, Olmo |
+| B4 | Ollama grid | running |
+| C1 | Track C on 5 items | running |
+| C4 | Track C on Track B's steered cases | after Qwen3 Thinking's export (`--steered`) |
+| A13 | S1 + S2 on Sol | needs "go" |
+| L3 | Labeling | kit ready (`results/labels/`) |
+| H2–H4 | Handoff docs and bundles | next |
+| B14, B9 | Track B table; the Gate 2 question | as data lands |
 
 ## 9. Next
 
-**Ritik (Sol, when you give "go" for the first jobs):**
+**Ritik, to push** (fast-forwards from `origin/main` `15e0047`; the pre-push hook checks them):
 ```bash
-# on the Mac, from the repo root: the inputs (training data included) to Sol
-rsync -av --files-from=cot-disclosure/finetune/gpu/sol/inputs.txt cot-disclosure/ \
-      ragarw68@sol.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/
-# on Sol, from /scratch/ragarw68/cse598-cot-faithfulness (after git pull of trackA-nosol)
-cot-disclosure/finetune/gpu/sol/submit.sh setup_vllm
-cot-disclosure/finetune/gpu/sol/submit.sh timing --estimate 0.5
-cot-disclosure/finetune/gpu/sol/submit.sh vllm_check --estimate 1
+# after decision 1. With (a), Claude Code first pauses the runs and runs (one minute):
+#   .venv/bin/python cot-disclosure/tools/untrack_produced.py --run --backup ~/backup-before-rewrite-2.bundle
+# then, from the repo root:
+git -C ~/Documents/Projects/ODL/cse598-cot-faithfulness push origin main trackA-nosol
 ```
-**Claude Code, now:** pause the Ollama grid; history rewrite (`git bundle` backup and sha256 list,
-`untrack_produced.py --not-in main` unless decision 1 is (a)); tests; restart the grid; start the
-Qwen3 30B Thinking Voyager run; merge into local `main`; a log with the push commands.
+**Claude Code, now:** handoff docs (`docs/handoff/TRACK_B.md`, `TRACK_C.md`) and
+`tools/make_handoff_bundle.py`; watch the runs; export Qwen3 Thinking's steered cases when it ends and
+start C4 on them; then Qwen3 Instruct and Olmo on Voyager; the daily log tonight.
