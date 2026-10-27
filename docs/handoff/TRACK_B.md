@@ -1,0 +1,107 @@
+# Track B handoff: test widely (for Arsha, from Nov 3)
+
+Last updated: 2026-10-27 14:20 MST. A working draft, kept current every day and final on Nov 3,
+when Track B goes back to you. Until then Ritik runs it (code by Claude Code).
+
+**The question.** Does the failure seen in the progress round (a wrong hint from a tool moves
+thinking models more than the same hint from the user, and the final answer rarely says so) hold on
+more models, with thinking on and off in the same model, real tool calls and 3 runs per question?
+
+## 1. What's done (as of Oct 27)
+
+- **Code** (`cot-disclosure/progress/run_trackB.py`, `configs/trackB.yaml`, `providers/`):
+  - one runner for every provider; each (model, thinking, question, condition, run) is a job with a
+    fixed `run_id`; restarts skip finished jobs; runs that got no reply are retried twice
+  - `--model` (repeatable) and `--thinking on|off`; jobs go repeat by repeat, so a partial run is
+    balanced and `--limit 5` is one question in all five conditions (the smoke test)
+  - Olmo 3 7B Think runs as in Track A: our pinned Think template on `/v1/completions`, continued
+    past calls quoted in its reasoning, a 32,768-token cap (prompt + reply); its tool channel is
+    `tool_injected` (our call and the tool's reply written in, the tool declared), because it never
+    calls a tool by itself
+  - `--steered` exports `results/trackB/steered_cases.jsonl` for Track C (one row per question:
+    the no-hint and per-channel runs; `steered` / `matched` / `other` by a fixed rule; written once
+    per model after all its runs)
+  - the budget guard for paid providers ($5 cap each; `providers/budget.py`); no key exists yet
+- **Checks before the first runs** (Oct 27; session log 13:05):
+  - served chat templates: Voyager's prompt-token counts equal our rendering with each model's own
+    Hugging Face template on all 5 conditions for Qwen3 30B Thinking and Instruct, except the tool
+    condition (−1: Voyager sorts the tool spec's JSON keys; same content). Olmo pinned: 5 of 5 equal.
+  - identity canaries (`configs/canary/`): Olmo 3 7B Think, Qwen3 30B Thinking, Qwen3 30B Instruct
+  - smoke tests: 15 of 15 answered (3 models × 5 conditions), no errors
+  - Ollama `qwen3:8b` timing pilot: thinking on 99–189 s per call, off 23–45 s (this Mac)
+- **Runs in progress** (Oct 27): Qwen3 30B Thinking on Voyager (805 jobs, ~4.2 h); the Ollama
+  `qwen3:8b` grid, thinking on and off (~1,600 jobs, ~51 h). Next: Qwen3 30B Instruct (~1 h), then
+  Olmo 3 7B Think (~8.2 h).
+- **Not done:** closed providers (no keys; Gate 1 was missed and its fallback applies: Voyager and
+  Ollama only); GPQA (waits for Ritik to accept its terms on Hugging Face); the analysis table.
+
+## 2. Results so far
+
+From the progress round ([`docs/FINDINGS.md`](../FINDINGS.md)):
+- **F1** (confirmed, served format, two thinking models): the tool hint moved the answer on 17 of 31
+  questions vs the user hint on 2 of 31, +48 points [+31, +65].
+- **F3** (confirmed as keyword counts): the private reasoning names the hint in 208 of 216 hinted
+  runs, the final answer in 8. Hand labels pending (Gate 2).
+- **F2** (tentative): Olmo 3 7B Think's hint following depends on the serving format and the token
+  budget; that is why Track B runs Olmo in the pinned format.
+
+Track B's own numbers: none yet (smoke tests are 1 question each). They go in FINDINGS as they come,
+with the 5-question rule (fewer than 5 questions: "too few questions", no interval).
+
+## 3. How to run each step
+
+[`docs/RUNBOOK.md`](../RUNBOOK.md) §18 (Track B), §17 (the pre-push check, once per clone), §16 (data
+handoff). In short, from `cot-disclosure/`:
+
+```bash
+../.venv/bin/python progress/run_trackB.py --dry-run --model M                 # jobs, calls, hours
+../.venv/bin/python progress/run_trackB.py --run --model M --limit 5           # smoke test
+nohup caffeinate -i ../.venv/bin/python -u progress/run_trackB.py --run --model M >> logs/trackB_M.log 2>&1 &
+../.venv/bin/python progress/run_trackB.py --steered --model qwen3-30b-a3b-thinking-2507   # for Track C
+```
+
+**Your data:** produced data is gitignored, so it won't come with GitHub. Ritik shares the bundle
+(`tools/make_handoff_bundle.py --track B`: `results/trackB/` and the canary log, with a sha256
+manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
+
+## 4. Open items (docs/TODO.md, Track B)
+
+| # | Item | Status (Oct 27) |
+|---|---|---|
+| B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | Thinking running |
+| B4 | Ollama qwen3:8b grid, thinking on and off | running (~51 h) |
+| B8 | `steered_cases.jsonl` per model | after each model's runs |
+| B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate | not started |
+| B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? | as soon as data allows |
+| B1–B3 | Closed providers: keys, Haiku 4.5 check, smoke tests | blocked: keys and Ritik's "go" |
+| B6 | GPQA export | blocked: Ritik accepts the terms |
+
+## 5. Decisions you inherit
+
+- Gate 1 (Oct 25) was missed; the fallback applies: Voyager and Ollama only. Paid calls only with
+  keys and Ritik's explicit "go"; the budget guard caps each provider at $5.
+- 3 runs per question; temperature 0.6; 16,000 reply tokens for chat models; always streamed; a
+  cut-off reply is no answer.
+- Olmo 3 7B Think: pinned format, `tool_injected` declared, 32,768-token cap (Ritik is asked whether
+  to keep this; a 16,000 cut can be applied in the analysis from the saved token counts).
+- Hint following is always reported against the per-letter no-hint baseline, as X of Y with a 95%
+  interval and the number of questions; fewer than 5 questions: "too few questions".
+- Mentions are keyword counts until the hand labels are in; no admission claim before Gate 2.
+- Nothing from GPQA in any doc or tracked file. Produced data never goes to GitHub.
+
+## 6. Known traps
+
+- **Wrong template** (FINDINGS T1, T2): Voyager rendered Olmo 3 7B Think with the Instruct template;
+  check every new model's served template by prompt-token counts before trusting its runs.
+- **Model-ID routing** (T3): Voyager changed its IDs on Oct 21; `client.py` maps our names to the
+  family ID and `reasoning_effort` (`configs/models.yaml`). Run from a branch with this fix.
+- **Identity** (T6): the hourly canary must pass; a missing reference only warns, so make one first
+  (`progress/make_canary.py`).
+- **"expected" false matches** (T5): the tool keyword pattern fires on ordinary words; compare with
+  the same pattern's rate in no-hint runs.
+- **4 requests in flight** across every process on the Mac (slot files in `progress/common.py`);
+  Track C shares them.
+- **The Mac must stay awake:** plugged in, lid open; `caffeinate -i` stops idle sleep only.
+- **Olmo 3 7B Think never calls the tool**; with `tool_real` it never sees the hint.
+- Olmo 3 7B Instruct (Track C's second reviewer): the served default system prompt differs from the
+  current Hugging Face template's; with a system message the counts match.

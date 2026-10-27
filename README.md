@@ -74,6 +74,7 @@ Until Nov 3 Ritik runs all three tracks; then Track B goes to Arsha and Track C 
 | [`docs/TODO.md`](docs/TODO.md) | Every open item: status, blocker, owner, calls needed, time |
 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | How to run each step: where, the exact commands, inputs, outputs, time, what to check |
 | [`docs/sessions/`](docs/sessions/INDEX.md) | Session logs, one per run or stop ([latest](docs/sessions/LATEST.md)) |
+| [`docs/handoff/`](docs/handoff/) | Track B and C handoff notes (Nov 3: Track B to Arsha, Track C to Shrey) |
 | [`docs/progress/LABELING_GUIDE.md`](docs/progress/LABELING_GUIDE.md) | How to hand-label replies (with `LABEL_QUEUE.csv`) |
 | [`cot-disclosure/README.md`](cot-disclosure/README.md) | Code setup, commands, what each file does |
 | [`cot-disclosure/finetune/README.md`](cot-disclosure/finetune/README.md) | Track A pipeline, data and training |
