@@ -26,8 +26,9 @@ models:
   # itself, so its tool channel is tool_injected, with lookup_answer_key declared (run_trackB.py docstring)
   - {provider: voyager, model: olmo3-7b-think, format: pinned, est_seconds: 145,
      conditions: [none, user, tool_pasted, tool_injected, system]}
-  - {provider: ollama,  model: "qwen3:8b", thinking: true}                       # est_seconds: set by the pilot
-  - {provider: ollama,  model: "qwen3:8b", thinking: false}
+  # Ollama est_seconds: the Oct 27 timing pilot (3 calls on: 99-189 s; 2 off: 23-45 s; this Mac, one at a time)
+  - {provider: ollama,  model: "qwen3:8b", thinking: true, est_seconds: 156}
+  - {provider: ollama,  model: "qwen3:8b", thinking: false, est_seconds: 34}
   # closed, capped at $5 per provider; smallest reasoning model with thinking on and off
   - {provider: openai,    model: gpt-6-luna, thinking: true, question_sets: [pilot_puzzles, mmlupro_30]}
   - {provider: openai,    model: gpt-6-luna, thinking: false, question_sets: [pilot_puzzles, mmlupro_30]}

@@ -83,8 +83,9 @@ def model_tag(m):
 
 
 def jobs(cfg, only_provider=None, only_models=None, thinking=None):
-    """Every job, repeat by repeat: each question's first run (in every condition) comes before any
-    second run. thinking: True / False keeps only that setting (models with both, e.g. Ollama)."""
+    """Every job, repeat by repeat: each question's first run (in every condition, for every model in
+    the call, e.g. Ollama's thinking on and off) comes before any second run, so a partial run is
+    balanced. thinking: True / False keeps only that setting."""
     sets = {n: load_questions(n, s) for n, s in cfg["question_sets"].items()}
     out = []
     for mi, m in enumerate(cfg["models"]):
@@ -98,7 +99,7 @@ def jobs(cfg, only_provider=None, only_models=None, thinking=None):
             for item in items:
                 for cond in conds:
                     out.append({"run_id": run_id("trackB", item["item_id"], model_tag(m), cond, None, rep), "model": m,
-                                "item": item, "condition": cond, "repeat": rep, "order": (mi, rep)})
+                                "item": item, "condition": cond, "repeat": rep, "order": (rep, mi)})
     return sorted(out, key=lambda j: j["order"])
 
 

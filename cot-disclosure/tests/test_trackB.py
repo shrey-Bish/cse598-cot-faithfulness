@@ -44,7 +44,8 @@ def test_jobs_go_repeat_by_repeat_and_the_model_flag_filters():
     assert len({j["run_id"] for j in tb.jobs(cfg())}) == 60
     both = cfg(models=[{"provider": "ollama", "model": "qwen3:8b", "thinking": t} for t in (True, False)])
     assert {j["model"]["thinking"] for j in tb.jobs(both, thinking=False)} == {False}
-    assert len(tb.jobs(both, only_models=["qwen3:8b"])) == 60
+    js = tb.jobs(both, only_models=["qwen3:8b"])
+    assert len(js) == 60 and [j["model"]["thinking"] for j in js[:20]] == [True] * 10 + [False] * 10   # rep 0 of both
 
 
 def test_the_plan_counts_calls_and_hours():
