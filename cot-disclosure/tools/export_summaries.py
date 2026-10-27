@@ -54,6 +54,12 @@ GPU = {                  # copied back from Sol to results/trackA/gpu/ (numbers 
 }
 LATER = ["nohint_train_runs.jsonl", "targets_runs.jsonl", "target_samples_runs.jsonl", "targets_prefill_runs.jsonl",
          "target_samples_prefill_runs.jsonl"]                    # Steps 6-7: after the run finishes
+OTHER = {                # Tracks B and C: numbers-only reports their scripts write (copied as they are)
+    "results/trackB/trackB_report.json": "trackB/trackB_report.json",            # progress/trackB_report.py
+    "results/trackB/template_check.jsonl": "trackB/template_check.jsonl",        # progress/voyager_template_check.py
+    "results/trackC/team_live_summary.json": "trackC/team_live_summary.json",    # agents/run_team.py --summary
+    "results/trackC/team_replay_summary.json": "trackC/team_replay_summary.json",
+}
 RUNNING = "finetune/run_steps67.py"
 DATA = CODE / "finetune" / "data"
 DATA_FILES = {           # source (under finetune/data/) -> what it holds; copied to results/summaries/trackA/data/
@@ -158,6 +164,7 @@ def plan():
     out = [(TRACK_A / name, SUMMARIES / "trackA" / name, None) for name in TRACK_A_FILES if (TRACK_A / name).exists()]
     out += [(TRACK_A / name, SUMMARIES / "trackA" / Path(name).name, None) for name in GPU if (TRACK_A / name).exists()]
     out += [(DATA / name, SUMMARIES / "trackA" / "data" / name, None) for name in DATA_FILES if (DATA / name).exists()]
+    out += [(CODE / src, SUMMARIES / dst, None) for src, dst in OTHER.items() if (CODE / src).exists()]
     if not still_running():
         out += [(TRACK_A / name, SUMMARIES / "trackA" / name, None) for name in LATER if (TRACK_A / name).exists()]
     if (TRACK_A / "takeover_probes.jsonl.gz").exists():
