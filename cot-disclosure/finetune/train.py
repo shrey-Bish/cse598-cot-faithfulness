@@ -17,7 +17,7 @@ full positions x 100,278 table.
 Checkpoints: out/latest/ every SAVE_EVERY optimizer steps and on SIGTERM / SIGUSR1 (at the next
 optimizer step; a job can then resubmit and resume), and out/epoch<k>/ after each epoch with its loss on
 the validation slice (validation_examples.jsonl.gz). chosen.json names the epoch with the lower
-validation loss: never chosen by held-out results. --export writes the chosen epoch as a PEFT adapter
+validation loss: never chosen by held-out results. The end of the last epoch (or --export) writes the chosen epoch as a PEFT adapter
 (LoRA versions) and tags.pt (tag versions) under out/final/. Every step of the log is appended to
 out/train_log.jsonl.
 
