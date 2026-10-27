@@ -64,5 +64,29 @@
    "bytes": 35105,
    "sha256": "0abd5efb1e450d5411455dd3a78ef81fb5665ab7c7824acd84429747723f65c0"
   }
+ ],
+ "train": [
+  {
+   "path": "finetune/data/train_examples.jsonl.gz",
+   "bytes": 6420930,
+   "sha256": "1213390dedec797a4ba801ebd666fe9117fe3484b34c2f1eb772eff94895304c"
+  },
+  {
+   "path": "finetune/data/validation_examples.jsonl.gz",
+   "bytes": 1001367,
+   "sha256": "a1d544e05beaf57363248456bfc3537fca3f8edd6602a9427ce78f5f2e23f897"
+  }
+ ],
+ "eval": [
+  {
+   "path": "data/progress/mmlupro_30.jsonl",
+   "bytes": 35105,
+   "sha256": "0abd5efb1e450d5411455dd3a78ef81fb5665ab7c7824acd84429747723f65c0"
+  },
+  {
+   "path": "finetune/prompts/guide_note.txt",
+   "bytes": 226,
+   "sha256": "d2f1233ee9c20e9a7c5f5a530112dca08f22c12e1c05c637311ee719adbd0280"
+  }
  ]
 }

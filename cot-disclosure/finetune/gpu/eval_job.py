@@ -247,6 +247,9 @@ def main():
     ap.add_argument("--check", action="store_true", help="S2: the vLLM tag check")
     a = ap.parse_args()
     signal.signal(signal.SIGUSR1, _stop_now)
+    if os.environ.get("SLURM_JOB_ID"):                       # on Sol: the Mac's bytes (kit manifest)
+        from finetune.gpu import kit
+        kit.check_inputs("eval")
     if a.check:
         check(a.out)
         return

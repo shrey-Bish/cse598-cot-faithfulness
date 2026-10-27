@@ -1,0 +1,93 @@
+{
+ "target_model": "olmo3-7b-think",
+ "target_rule": "all_correct",
+ "correct_hint_ratio": 0.5,
+ "records": {
+  "train": 0,
+  "validation": 0,
+  "heldout": 240
+ },
+ "questions": {
+  "train": 0,
+  "validation": 0,
+  "heldout": 30
+ },
+ "training_questions": {
+  "total": 24,
+  "kept": 0,
+  "dropped": {
+   "no pinned-format no-hint runs yet (Step 6)": 24
+  },
+  "dropped_ids": {
+   "no pinned-format no-hint runs yet (Step 6)": [
+    "pilot-0",
+    "pilot-1",
+    "pilot-2",
+    "pilot-3",
+    "pilot-4",
+    "pilot-5",
+    "pilot-6",
+    "pilot-7",
+    "pilot-8",
+    "pilot-9",
+    "pilot-10",
+    "pilot-11",
+    "pilot-12",
+    "pilot-13",
+    "pilot-14",
+    "pilot-15",
+    "pilot-16",
+    "pilot-17",
+    "pilot-18",
+    "pilot-19",
+    "pilot-20",
+    "pilot-21",
+    "pilot-22",
+    "pilot-23"
+   ]
+  },
+  "validation": []
+ },
+ "by_channel": {
+  "train": {},
+  "validation": {},
+  "heldout": {
+   "user": 60,
+   "tool_pasted": 30,
+   "tool_injected": 90,
+   "tool_injected_undeclared": 30,
+   "system": 30
+  }
+ },
+ "correct_hint_records": {
+  "train": 0,
+  "validation": 0,
+  "heldout": 0
+ },
+ "wordings": {
+  "train": [
+   "user_p1",
+   "user_p2",
+   "user_p3",
+   "user_p4",
+   "tool_p1",
+   "tool_p2",
+   "inserted_p1",
+   "inserted_p2"
+  ],
+  "heldout": [
+   "user_turpin",
+   "user_professor",
+   "tool_progress",
+   "inserted_study_guide",
+   "inserted_database",
+   "inserted_new_tool",
+   "inserted_study_guide_undeclared",
+   "system_note"
+  ]
+ },
+ "heldout_wordings_seen_in_training": 0,
+ "leaks": [],
+ "inserted_tool_channel": "declared (lookup_answer_key listed in the system prompt); the undeclared version is an extra held-out evaluation condition only (decided 2026-10-25)",
+ "note": "target_reasoning is empty: Step 7 (context distillation) writes it"
+}

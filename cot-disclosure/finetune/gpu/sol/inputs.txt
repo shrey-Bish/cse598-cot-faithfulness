@@ -1,5 +1,8 @@
 configs/canary/olmo3-7b-think.json
 data/progress/mmlupro_30.jsonl
+finetune/data/train_examples.jsonl.gz
+finetune/data/validation_examples.jsonl.gz
+finetune/prompts/guide_note.txt
 results/progress/expB_cued.jsonl
 results/trackA/base_format.jsonl.gz
 results/trackA/deletion_runs.jsonl

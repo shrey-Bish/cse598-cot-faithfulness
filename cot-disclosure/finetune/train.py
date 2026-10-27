@@ -30,6 +30,7 @@ import argparse
 import gzip
 import json
 import math
+import os
 import random
 import signal
 import sys
@@ -409,6 +410,9 @@ def main():
     for v in versions:
         if v not in VERSIONS:
             sys.exit(f"unknown version {v!r}; one of {VERSIONS}")
+    if os.environ.get("SLURM_JOB_ID") and a.train == str(TRAIN):         # on Sol: the Mac's bytes (kit manifest)
+        from finetune.gpu import kit
+        kit.check_inputs("train")
     raw_train, raw_val = load_examples(a.train), load_examples(a.validation)
     steps = math.ceil(len(raw_train) / ACCUM) * EPOCHS
     print(f"{len(raw_train)} training and {len(raw_val)} validation examples; {EPOCHS} epochs of "

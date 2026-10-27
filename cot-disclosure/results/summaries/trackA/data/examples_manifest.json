@@ -1,0 +1,29 @@
+{
+ "questions_run": 530,
+ "kept": 251,
+ "examples": 1196,
+ "by_split": {
+  "train": 1040,
+  "validation": 156
+ },
+ "by_method": {
+  "prefill": 1034,
+  "inserted_sentence": 42,
+  "nohint_run": 120
+ },
+ "by_channel": {
+  "tool_pasted|True": 112,
+  "user|False": 231,
+  "user|True": 118,
+  "tool_injected|True": 115,
+  "tool_pasted|False": 250,
+  "tool_injected|False": 250,
+  "none|None": 120
+ },
+ "dropped_over_32768": 0,
+ "neither": 57,
+ "neither_share": 0.05,
+ "neither_dropped": true,
+ "nohint_examples": 120,
+ "tokens_median": 7237.5
+}

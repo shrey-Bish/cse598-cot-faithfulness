@@ -47,6 +47,8 @@ NEEDED = {                                                     # result files ea
     "step10": ["results/trackA/base_format.jsonl.gz", "results/trackA/takeover_cases.jsonl",
                "results/trackA/deletion_runs.jsonl", "results/progress/expB_cued.jsonl",
                "data/progress/mmlupro_30.jsonl"],
+    "train": ["finetune/data/train_examples.jsonl.gz", "finetune/data/validation_examples.jsonl.gz"],   # S1, S3-S6
+    "eval": ["data/progress/mmlupro_30.jsonl", "finetune/prompts/guide_note.txt"],                       # S2, E1-E6
 }
 
 

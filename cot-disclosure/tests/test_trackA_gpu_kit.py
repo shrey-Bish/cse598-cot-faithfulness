@@ -125,7 +125,8 @@ def test_inputs_manifest_matches_the_committed_files():
     assert set(manifest) == set(kit.NEEDED)
     for step in kit.NEEDED:
         assert [r["path"] for r in manifest[step]] == kit.NEEDED[step]
-        kit.check_inputs(step)                               # the same bytes as committed
+        if all((CODE / f).exists() for f in kit.NEEDED[step]):   # produced inputs are gitignored: not in a fresh clone
+            kit.check_inputs(step)                           # the same bytes as on the Mac that wrote the manifest
 
 
 def test_check_inputs_catches_a_changed_file(tmp_path, monkeypatch):
