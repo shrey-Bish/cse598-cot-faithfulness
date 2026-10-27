@@ -1,6 +1,6 @@
 # Runbook: how to run every step
 
-Last updated: 2026-10-27 14:10 MST. One page per step: what it does, where it runs, the commands in order,
+Last updated: 2026-10-27 13:55 MST. One page per step: what it does, where it runs, the commands in order,
 inputs and outputs, how long it takes, and what to check. Written so anyone in the group can run a
 step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md); open work in
 [`TODO.md`](TODO.md).
