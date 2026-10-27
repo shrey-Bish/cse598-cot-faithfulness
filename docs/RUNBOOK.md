@@ -1,6 +1,6 @@
 # Runbook: how to run every step
 
-Last updated: 2026-10-27. One page per step: what it does, where it runs, the commands in order,
+Last updated: 2026-10-27 14:10 MST. One page per step: what it does, where it runs, the commands in order,
 inputs and outputs, how long it takes, and what to check. Written so anyone in the group can run a
 step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md); open work in
 [`TODO.md`](TODO.md).
@@ -159,7 +159,8 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   correct hints; a prefill target per record (one opening sentence each for the reasoning and the
   final answer, from 10 paraphrases; the model writes the rest; up to 4 samples; pass = ends on the
   kept answer and doesn't refer to instructions).
-- **Where:** Mac → Voyager. **Status:** running since Oct 25 (pid 12290), target 240 kept.
+- **Where:** Mac → Voyager. **Status:** done Oct 27 13:45 MST: 251 kept of 530; assembled 1,196
+  examples (1,040 train, 156 validation).
 - **Commands:**
   ```bash
   ../.venv/bin/python finetune/make_pool.py --help      # the pool: done Oct 25 (1,600 questions, with --hard)
@@ -167,7 +168,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   nohup ../.venv/bin/python -u finetune/run_steps67.py --kept 240 --checkpoint 100 \
       >> logs/trackA_steps67.log 2>&1 &                                           # resumable
   ../.venv/bin/python finetune/run_steps67.py --report      # the state so far (appends a report row)
-  ../.venv/bin/python finetune/run_steps67.py --assemble    # after it ends, with "go": the training set
+  ../.venv/bin/python finetune/run_steps67.py --assemble    # after it ends: the training set
   ```
 - **In → out:** `finetune/data/pool.jsonl` → `results/trackA/nohint_train.jsonl.gz`,
   `target_samples_prefill.jsonl.gz`, `targets_prefill.jsonl.gz` (+ `_runs.jsonl`),
@@ -263,15 +264,42 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
 - **Out:** `step10_patching.json`; `results/summaries/trackA/step10_handoff.json`, the handoff
   figure. **Check:** sanity ok on every cut; cuts with a gap under 0.5 are left out and counted.
 
-## 14. Track A, Steps 11–13: train, generate, evaluate (code not written yet)
+## 14. Track A, Steps 11–13: train, generate, evaluate
 
-- **Status:** not runnable yet (TODO A8–A13). The order, GPU hours and dates are in PLAN (Track A,
-  the Gate 3 job plan): S1 timing run and S2 vLLM tag check, then training (S3–S5), then evaluation
-  (E1–E5, two jobs at a time, at most 8 h each), then the look-inside rerun (L1).
-- **How they will run:** like Steps 8–10: `sol/submit.sh <job>` under the course account, outputs in
-  `/scratch/ragarw68/trackA/<step>/`, checkpoints so each job resumes, summaries back by rsync. This
-  page gets the exact commands when the code lands.
-- **The look-inside rerun** already works on a trained version: Steps 9 and 10 take `--model DIR`,
+- **What:** Step 11 trains LoRA only, tags only, LoRA + tags (and the fourth version, LoRA on the
+  attention of layers 15/19/23, last) with the decided settings (`finetune/train.py`: rank 16, LoRA
+  2e-4, tags 1e-3, 2 epochs, checkpoint per epoch, chosen by validation loss). Step 12 generates
+  through a local vLLM server (`finetune/generate.py`; LoRA merged in, the model tag folded into the
+  embeddings, tagged prompt embeddings). Step 13 evaluates 930 runs per system (`finetune/eval.py`)
+  and reports the measures. The job order, hours and limits: PLAN (Track A, the Gate 3 job plan).
+- **Where:** Sol, each job on Ritik's "go". **Status:** code done with CPU tests; nothing run on Sol.
+- **Commands** (first the inputs from the Mac, then on Sol from the clone's root):
+  ```bash
+  # Mac, repo root: the inputs (training examples included) to Sol
+  rsync -av --files-from=cot-disclosure/finetune/gpu/sol/inputs.txt cot-disclosure/ \
+        ragarw68@sol.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/
+  # Sol
+  cot-disclosure/finetune/gpu/sol/submit.sh setup_vllm                  # once: vLLM 0.31.0 in its own env (no GPU)
+  cot-disclosure/finetune/gpu/sol/submit.sh timing --estimate 0.5       # S1: limit 1:00
+  cot-disclosure/finetune/gpu/sol/submit.sh vllm_check --estimate 1     # S2: limit 1:30
+  cot-disclosure/finetune/gpu/sol/submit.sh train --estimate 3 -- lora  # S3 (tags, lora_tags: S4, S5)
+  # after each version: export its chosen epoch (an interactive GPU session or a short job)
+  cot-disclosure/finetune/gpu/sol/run.sh train lora --export
+  cot-disclosure/finetune/gpu/sol/submit.sh eval --estimate 6 -- base 1/2   # E1, first half; then 2/2
+  ```
+  `submit.sh` sets each limit to the estimate × 1.3 (rounded up to 30 min), refuses a job over 960
+  GPU-minutes, and before submitting prints the GPU-minutes of your running and pending jobs and when
+  the second slot frees up. Evaluation report (any machine with the copied-back `_runs.jsonl` files):
+  `../.venv/bin/python finetune/eval.py --report --out <dir>`; the Phase 6 rows: `--label-sample`.
+- **In → out:** `finetune/data/{train,validation}_examples.jsonl.gz` → `/scratch/ragarw68/trackA/train/
+  <version>/` (`latest/`, `epoch1/`, `epoch2/`, `chosen.json`, `final/`); `timing/timing.jsonl`;
+  `vllm_check/vllm_check.json`; `eval/eval_<system>.jsonl.gz` + `_runs.jsonl`; `models/` (merged and
+  folded copies).
+- **Time:** S1 ≤ 30 min, S2 ≤ 1 h, each version 2–3 h, each system's evaluation 5–14 h (1–3 jobs).
+  **Check:** S1's `timing.jsonl` (peak memory under 80 GB, predicted hours); S2's `vllm_check.json`
+  says `pass`; `train_log.jsonl` losses fall; `chosen.json` names an epoch; every evaluated system
+  has 930 runs in its `_runs.jsonl`.
+- **The look-inside rerun** works on a trained version: Steps 9 and 10 take `--model DIR`,
   `--runs-from` and (Step 10) `--cases-from`, with their own `--out`.
 
 ## 15. Labels
@@ -279,27 +307,37 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
 - **What:** two raters label what the text says about the hint, for the private reasoning and the
   final answer: no mention / mentions only / rejects the hint / says the hint changed the answer /
   unclear ([`progress/LABELING_GUIDE.md`](progress/LABELING_GUIDE.md)).
-- **Where:** anywhere, no calls. **Status:** not started; the kit is TODO L2.
-- **Until the kit exists:** each rater copies `docs/progress/LABEL_QUEUE.csv`, hides the
-  `keyword_private` and `keyword_final` columns, and fills only their own two columns
-  (`rater1_private`, `rater1_final` or `rater2_…`), independently. Skip the 10 rows whose
-  `text_status` is "not saved". Then Cohen's kappa per channel; under 0.6, meet, tighten the guide,
-  and label a fresh batch.
-- **Time:** about 2 minutes per row per rater (91 rows with text: 3–4 hours). **Check:** every row
-  has exactly one label per channel from the guide's five.
+- **Where:** anywhere, no calls. **Status:** the kit is built (Oct 27); labeling not started.
+- **Commands** (from `cot-disclosure/`):
+  ```bash
+  ../.venv/bin/python tools/label_kit.py build     # done Oct 27: results/labels/ (gitignored: model text)
+  # each rater fills results/labels/rater1.csv or rater2.csv alone: label_private, label_final, note
+  ../.venv/bin/python tools/label_kit.py kappa results/labels/rater1.csv results/labels/rater2.csv
+  ```
+- **In → out:** `docs/progress/LABEL_QUEUE.csv` + saved runs → `results/labels/` (101 rows: 91 + 10
+  replacements; sheets, key). `kappa` prints Cohen's kappa per text (private, final), overall and by
+  user / tool hint, and every disagreement by row. Under 0.6: meet, tighten the guide, label a fresh batch.
+- **Time:** about 2 minutes per row per rater (101 rows: 3–4 hours). **Check:** every row has exactly
+  one label per text from the guide's five ("n/a" where there is no private reasoning).
 
 ## 16. Repo hygiene: summaries, history, push
 
 - **Export summaries** (after any run): `../.venv/bin/python tools/export_summaries.py --dry-run`,
   then without `--dry-run`. It refuses a file with question or reply text. `--check` re-checks
   what's tracked.
-- **History rewrite** (once, after Steps 6–7, with Ritik's approval): untracks the Track A data on
-  the unpushed branches; files on disk don't move.
+- **History rewrite** (done Oct 27 13:49 for `trackA-nosol`): untracks produced data in the unpushed
+  commits; files on disk don't move. It refuses while a run is going, writes a verified `git bundle`
+  of every ref and a sha256 list of every file under `results/`, `finetune/data/`, `configs/` first,
+  and compares the list after. Pause every job that writes under those folders while it runs.
   ```bash
-  python3 tools/untrack_produced.py          # dry run: commits, paths, refs, checks
-  python3 tools/untrack_produced.py --run
+  python3 tools/untrack_produced.py --not-in main                        # dry run: commits, paths, refs
+  python3 tools/untrack_produced.py --not-in main --run --backup ~/backup-before-rewrite.bundle
   ```
-- **Push** (with "go"): `git push origin trackA-nosol`; the hook checks it first.
+  (`--not-in main` leaves local `main`'s commits alone.)
+- **Push** (Ritik): `git push origin main trackA-nosol`; the hook checks it first.
+- **Data handoff:** `python3 tools/make_handoff_bundle.py --track B` (or A, C): a tar.gz of the track's
+  gitignored results with a sha256 manifest, in `results/handoff/`; GPQA files never included unless
+  Ritik says so. The receiver checks it: `--verify <file>.tar.gz`.
 
 ## 17. The pre-push check (each person, once per clone)
 
@@ -314,43 +352,64 @@ It refuses a push that adds anything under a produced-data folder, any file with
 
 ## 18. Track B: test widely
 
-- **What:** hint following and admission across providers, models, thinking on/off and channels
-  (`configs/trackB.yaml`). **Where:** Mac → Voyager, Ollama (local), OpenAI, Anthropic, xAI.
-  **Status:** code done; only the Voyager tool check has run (TODO B1–B9). Run it from a branch that
-  has the Oct 21 Voyager ID fix (this one, or `main` after the push).
-- **Commands** (repo root):
+- **What:** hint following and admission across models, thinking on/off and channels
+  (`configs/trackB.yaml`): 54 questions (24 puzzles, 30 MMLU-Pro) × 5 conditions × 3 runs per model.
+  Olmo 3 7B Think runs in the pinned Think format with the declared `tool_injected` channel, as in
+  Track A. **Where:** Mac → Voyager; Ollama (local); closed providers only with keys and Ritik's "go".
+  **Status:** smoke tests passed Oct 27 (15 of 15); Qwen3 30B Thinking and the Ollama grid running.
+- **Before a model's first batch** (from `cot-disclosure/`): its served template and an identity
+  canary, then a smoke test and the dry run in a session log.
   ```bash
-  .venv/bin/python cot-disclosure/progress/run_trackB.py --dry-run                     # calls and cost per provider
-  .venv/bin/python cot-disclosure/progress/run_trackB.py --run --only-provider voyager --limit 5
-  .venv/bin/python cot-disclosure/progress/run_trackB.py --run --only-provider anthropic --limit 1   # needs a key
-  ollama serve & ollama pull qwen3:8b                                                    # before the ollama provider
-  cd cot-disclosure && ../.venv/bin/python -m providers.budget --status                  # spend so far
+  ../.venv/bin/python progress/voyager_template_check.py --model M     # 5 calls; gap 0 expected
+  ../.venv/bin/python progress/voyager_template_check.py --model M --canary-specs /tmp/specs
+  ../.venv/bin/python progress/make_canary.py --spec /tmp/specs/M.json  # configs/canary/M.json
+  ../.venv/bin/python progress/run_trackB.py --run --model M --limit 5  # one question, every condition
+  ../.venv/bin/python progress/run_trackB.py --dry-run --model M        # jobs, calls, hours
   ```
-- **Out:** `results/trackB/` (gitignored); spend in `results/spend_log.jsonl`.
-- **Time:** see TODO (notes): about 5.4 h for Qwen3 30B Thinking, 1.4 h for Qwen3 30B Instruct,
-  7.9 h for Olmo 3 7B Think on Voyager at 4 in flight. **Check:** the smoke run's rows parse to a
-  letter; the budget status stays under each $5 cap; Olmo 3 7B Think must use `tool_injected`
-  (TODO B5), since with `tool_real` it never calls the tool.
+- **Runs** (resumable; repeat by repeat; at most 4 Voyager requests in flight across all processes):
+  ```bash
+  nohup caffeinate -i ../.venv/bin/python -u progress/run_trackB.py --run --model qwen3-30b-a3b-thinking-2507 \
+        >> logs/trackB_qwen3_thinking.log 2>&1 &
+  ollama serve &                                  # once; then the local grid, thinking on and off interleaved
+  nohup caffeinate -i ../.venv/bin/python -u progress/run_trackB.py --run --model qwen3:8b >> logs/trackB_ollama_grid.log 2>&1 &
+  ../.venv/bin/python progress/run_trackB.py --steered --model qwen3-30b-a3b-thinking-2507   # Track C's input
+  ../.venv/bin/python -m providers.budget --status                    # paid spend (none yet)
+  ```
+- **Out:** `results/trackB/<provider>.jsonl.gz` (texts) and `<provider>_runs.jsonl` (numbers),
+  `steered_cases.jsonl`, `template_check.jsonl` (all gitignored).
+- **Time:** Qwen3 30B Thinking ~4.2 h, Qwen3 30B Instruct ~1 h, Olmo 3 7B Think ~8.2 h (4 in flight);
+  Ollama qwen3:8b ~42 h thinking on + ~9 h off (this Mac). **Check:** `tail` the log (`not_run` and
+  `api_error` counts); every row's `served_model` is the model asked for; the Mac stays awake.
 
 ## 19. Track C: the agent team
 
-- **What:** solver (with the lookup tool) → reviewer → checker; wrong answers shipped, catches,
-  false alarms. **Where:** Mac → Voyager. **Status:** replay done; live on 2 items (TODO C1–C6).
-- **Commands** (repo root):
+- **What:** solver (Qwen3 30B Thinking; the tool team gets the lookup tool, bad or good by a seeded
+  oracle; the no-tool team doesn't) → reviewers (Qwen3 30B Instruct, Olmo 3 7B Instruct; 4 variants)
+  → checker (re-asks without the tool). Wrong answers shipped, catches, false alarms, per team ×
+  reviewer model × variant, bad and good lookups apart. **Where:** Mac → Voyager.
+  **Status:** code done Oct 27 (append-only, resumable); C1 (5 items) running.
+- **Commands** (from `cot-disclosure/`):
   ```bash
-  .venv/bin/python cot-disclosure/agents/run_team.py --replay          # saved data, no calls
-  cp cot-disclosure/results/scope/team_live.jsonl ~/team_live_backup.jsonl     # it rewrites its log
-  .venv/bin/python cot-disclosure/agents/run_team.py --live --n 5      # 35 calls, ~15 min
+  ../.venv/bin/python agents/run_team.py --replay                       # saved data, no calls
+  ../.venv/bin/python agents/run_team.py --live --n 5 --dry-run         # 5 pilot items: ~55 calls
+  ../.venv/bin/python agents/run_team.py --live --n 5 --run-name C1
+  # C4, on Track B's cases (after run_trackB.py --steered for the solver model):
+  ../.venv/bin/python agents/run_team.py --live --cases results/trackB/steered_cases.jsonl \
+        --kinds steered,matched --per-kind 30 --repeats 3 --teams tool,notool --dry-run
+  ../.venv/bin/python agents/run_team.py --summary                      # results/trackC/team_live_summary.json
   ```
-- **Out:** `results/scope/team_<mode>.jsonl` and `_summary.json` (tracked today; TODO C6 moves it to
-  gitignored `results/trackC/`). **Check:** 5 items, each with solver, reviewer variants and the
-  checker's verdict.
+- **Out:** `results/trackC/team_live.jsonl` (every agent step, appended; a case is done at its
+  `case_done` row), `team_live_summary.json`, `team_replay.jsonl` (all gitignored; `results/scope/`
+  keeps the Oct 4 runs). **Time:** about 11 calls per tool-team case and 9 per no-tool case with two
+  reviewer models. **Check:** the dry run's call count; the summary's case counts; undetermined checks.
 
 ## 20. Session logs
 
 - **What:** after every run (a Voyager batch, a Sol job, an analysis that changes a reported number)
-  and at every stop, Claude Code writes `docs/sessions/YYYY-MM-DD_HHMM_<name>.md` (Arizona time),
-  copies it to `docs/sessions/LATEST.md` and adds a line to `docs/sessions/INDEX.md`.
-- **Content:** header (times, branch, commits, tests, the Steps 6–7 run), what ran, results,
-  files, problems, points for review, decisions needed, open work, next commands. Numbers and paths
-  only; under 250 lines; tracked in git.
+  and at every stop, Claude Code writes `docs/sessions/YYYY-MM-DD_HHMM_<A|B|C|ALL>_<name>.md` (Arizona
+  time), copies it to `docs/sessions/LATEST.md` and adds a line to `docs/sessions/INDEX.md`; and at
+  the end of each day `docs/sessions/DAILY_YYYY-MM-DD.md` (per track: what ran, what's in flight, key
+  numbers, decisions waiting, tomorrow's plan).
+- **Content:** header (times, branch, commits, tests, runs in flight), what ran, results, files,
+  problems, points for review, decisions needed, open work, next commands. Numbers and paths only;
+  under 250 lines; tracked in git.
