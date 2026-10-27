@@ -74,7 +74,7 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 | C2 | No-tool team (the solver always gets the tool today) | PLAN | done (`b72b747`) | — | Claude Code → Shrey | no calls | 1–2 h |
 | C3 | Second reviewer model (hard-coded today) | PLAN | done (`b72b747`; second reviewer olmo3-7b-instruct, canary `4f697f8`) | — | Claude Code → Shrey | no calls | 1 h |
 | C7 | Input-file option for `run_team.py` (`live` takes pilot puzzles only) | Oct 27 | done (`b72b747`) | — | Claude Code → Shrey | no calls | 1 h |
-| C1 | Live team on 5 items (`run_team.py --live --n 5`) | Gate 1 | in progress: started 13:52 MST (5 pilot items, tool team, 2 reviewer models, ~55 calls) | — | Claude Code → Shrey | Voyager (35 calls) | 15 min |
+| C1 | Live team on 5 items (`run_team.py --live --n 5`) | Gate 1 | done Oct 27 15:00 (5 items; log 15:05) | — | Claude Code → Shrey | Voyager (35 calls) | 15 min |
 | C4 | The team on Track B's steered cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams | PLAN, Oct 27 | not started | B8, C2, C3, C7 | Claude Code → Shrey | Voyager (~3,400 calls) | ~3–13 h |
 | C5 | Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | PLAN, Oct 27 | not started | C4 | Claude Code → Shrey | no calls | 3 h |
 
