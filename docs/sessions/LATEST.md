@@ -1,189 +1,194 @@
-# Session log: catch-up on the whole project (2026-10-27 10:10 MST)
+# Session log: Track B smoke tests and pilots; Track A Steps 11–13 code (2026-10-27 13:05 MST)
 
 Project: CSE 598 Group 10, "Do thinking modes make chain-of-thought more honest?" A wrong hint
 (from the user or from a tool) is added to multiple-choice questions; we measure whether the answer
-follows it and whether the model says so. Track A (Ritik) explains and fixes it in Olmo 3 7B Think;
-Track B (Arsha) tests more models and providers; Track C (Shrey) tests a solver-reviewer-checker
-agent team. Models run on ASU Voyager (an API) and ASU Sol (GPUs).
+follows it and whether the model says so. Track A explains and fixes it in Olmo 3 7B Think; Track B
+tests more models; Track C tests a solver-reviewer-checker agent team. Models run on ASU Voyager (an
+API), Ollama (local) and ASU Sol (GPUs). Until Nov 3 Ritik runs all three tracks (code by Claude
+Code); then Track B goes to Arsha and Track C to Shrey.
 
 ## 1. Header
 
-- **Time:** 2026-10-27 10:10 MST (Arizona) = 17:10 UTC. Week 11 of 16.
-- **Branch:** `trackA-nosol` (local only; never pushed beyond `main`'s commit).
-- **Commits:** before this session's work `f96f917`; after `2a8fc1c` (3 commits: `07999f7` Step 9
-  matched onsets, `39f8534` Sol Python path, `2a8fc1c` docs). This log is committed on top.
-- **Tests:** 283 of 283 pass (CPU only, no network).
-- **Steps 6–7 run** (Voyager, pid 12290, running 1 day 21.5 h): 473 questions run, 227 kept of the
-  240 target; second-to-last batch at 70 of 120 no-hint runs. Expected finish 2–4 PM MST today, if
-  the Mac stays plugged in with the lid open (it slept 11:35 PM–8:28 AM and lost ~9 h).
+- **Time:** 2026-10-27 13:05 MST (Arizona) = 20:05 UTC. Week 11 of 16.
+- **Branch:** `trackA-nosol` (unpushed past `origin/main`'s commit `15e0047`).
+- **Commits:** before `1db1fa0`; after `9256acc`, 11 commits: `5aa2742` plan for Oct 27–Nov 3 (PLAN,
+  TODO, docs); `e3e5134` scoped, backed-up history rewrite and summary exporter; `fb9b5c1`, `d2210cf`,
+  `2c818cf` Track B runner; `d5641d1` Qwen3 canaries and template check; `f52a5ef` Step 11
+  `train.py`; `f2a9c4f` Step 12 `generate.py`; `f85f100` Step 13 `eval.py`; `1608665` Sol QoS
+  checks; `9256acc` Sol jobs for Steps 11–13. This log is committed on top. Nothing pushed.
+- **Tests:** 326 of 326 pass (CPU only, no network; 283 at the start of the day).
+- **Steps 6–7 run** (Voyager, pid 12290, untouched): 237 kept after 490 questions; the last chunk of
+  40 is at 110 of 120 no-hint runs (13:01), then Step 7 targets for that chunk's kept questions.
+  Expected end about 2:30–3:30 PM MST.
 
 ## 2. What ran
 
-| Command | Where | Calls / GPU | Duration | Failures |
+| Command | Where | Calls | Duration | Failures |
 |---|---|---|---|---|
-| `finetune/look/attn_to_hint.py --followup` (matched onsets; Ritik's run) | Sol job, CPU only | 0 GPU min | ~1 min | none |
-| `attn_to_hint.py --followup --from-reduced results/trackA/gpu/step9_reduced.npz` | Mac | 0 | ~20 s | none |
-| Ad hoc checks: share of onsets with a positive rise; placebo (then added to the code) | Mac | 0 | seconds | none |
-| `tools/export_summaries.py` | Mac | 0 | seconds | none |
-| `pytest -q` (3 times) | Mac | 0 | ~1:45 each | 0 failures |
-| `run_steps67.py` state, read only (nothing appended to its report file) | Mac | 0 | seconds | none |
-| `untrack_produced.py` (dry run) | Mac | 0 | seconds | nothing changed |
-| Steps 6–7 driver (started Oct 25, untouched) | Mac → Voyager | ~1,420 no-hint runs + ~1,270 target samples so far | ongoing | 2 "Voyager unreachable" pauses (both resumed; likely the Mac asleep) |
+| `progress/make_canary.py` for `qwen3-30b-a3b-thinking-2507` and `-instruct-2507` | Mac → Voyager | 2 echo calls + 2 catalog checks | 1 min | none |
+| `progress/voyager_template_check.py` (3 models × 5 conditions, max_tokens 1) | Mac → Voyager | 15 + 5 preflight canaries | 10 min | Qwen3 local counts wrong (a bug, §5) |
+| the same, Qwen3 models only, after the fix | Mac → Voyager | 10 | 5 min | none |
+| `run_trackB.py --run --model M --limit 5`, M = Qwen3 Thinking, Qwen3 Instruct, Olmo 3 7B Think | Mac → Voyager | 15 jobs, 16 calls | 12:38–12:59 | none, no retries |
+| `ollama pull qwen3:8b` | Mac | download ~5 GB | ~10 min | none |
+| Ollama timing pilot: `--model qwen3:8b --thinking on --limit 3`, then `off --limit 2` | Mac (local) | 5 | 12:41–12:50 | none |
+| **Ollama full grid** `run_trackB.py --run --model qwen3:8b` (under `caffeinate -i`) | Mac (local) | 1,615 jobs, ~1,939 calls | started 12:51; est. ~51 h | running (6 rows at 13:01) |
+| `pytest -q` (several times) | Mac | 0 | ~2 min each | 0 at the end |
 
-No Voyager or Sol run was started in this session.
+All Voyager calls held one of the 4 request slots shared with the Steps 6–7 run (preflight and
+canary calls too, from today). No Sol job, no paid call, no GPQA.
 
 ## 3. Results
 
-**Step 9 matched lead onsets (new finding F14, confirmed).** Attention from each reasoning sentence
-to the hint (8 full-attention layers, hint minus a same-length control span), around every sentence
-after the first fifth where the hint letter becomes the leading forced answer; rise = mean of the
-onset sentence and the 2 before, minus the same run's sentences 6–15 before; per run, then a
-bootstrap clustered by question.
+**Smoke tests (1 question each: they test the plumbing; no rate can be read from them).**
 
-| Anchor | Onsets (runs, questions) | Rise above 0 | Rise, 95% interval |
+| Model | Conditions run | Answered | Seconds per call | Served as |
+|---|---|---|---|---|
+| Qwen3 30B Thinking | none, user, pasted, tool_real, system | 5 of 5 | 25–103 | qwen3-30b-a3b-thinking-2507 |
+| Qwen3 30B Instruct | the same | 5 of 5 | 0.2–18 | qwen3-30b-a3b-instruct-2507 |
+| Olmo 3 7B Think (pinned format) | none, user, pasted, tool_injected (declared), system | 5 of 5 | 184–737 (slots shared) | olmo3-7b-think |
+
+Qwen3 Thinking did not call the tool in its one tool_real run; Qwen3 Instruct called it and ended on
+the hint letter.
+
+**Served chat templates** (server prompt tokens against our rendering with the model's own Hugging
+Face template; Olmo against our pinned rendering on /v1/completions):
+
+| Model | none | user | pasted | tool | system |
+|---|---|---|---|---|---|
+| Qwen3 30B Thinking (template @144afc2) | 293 = 293 | 309 = 309 | 326 = 326 | 476 vs 477 | 320 = 320 |
+| Qwen3 30B Instruct (template @0d7cf23) | 291 = 291 | 307 = 307 | 324 = 324 | 474 vs 475 | 318 = 318 |
+| Olmo 3 7B Think (pinned) | 358 = 358 | 374 = 374 | 391 = 391 | 535 = 535 (injected) | 336 = 336 |
+
+The −1 on Qwen3's tool condition disappears when the tool spec's JSON keys are sorted (474 = 474):
+Voyager (vLLM) serializes the tool declaration with sorted keys. Same template, same content.
+
+**Identity canaries:** new references for Qwen3 Thinking (293 prompt tokens) and Instruct (291), each
+the no-hint pilot-0 prompt in the model's own template; both passed on the next call; Olmo's passed
+twice (529 positions, max diff 0.0).
+
+**Ollama pilot** (qwen3:8b on this Mac, one at a time, while other runs shared the machine): thinking
+on 99, 189, 182 s (2,308–4,153 output tokens); off 45, 23 s (524–1,023 tokens). The full grid:
+~42 h on + ~9 h off, done about Oct 29 evening; on and off are interleaved by repeat, so a partial
+run stays balanced.
+
+**Dry runs for the Voyager runs (start after the history rewrite):**
+
+| Model | Jobs | Calls | Hours at 4 in flight |
 |---|---|---|---|
-| lasting (the takeover) | 65 (65, 18) | 55 of 65 | +4.8e-3 [+2.7e-3, +7.1e-3] |
-| temporary (lost again) | 1,653 (123, 19) | 1,056 of 1,653 | +3.4e-3 [+2.0e-3, +5.3e-3] |
-| placebo: other sentences after the first fifth, not within 2 of an onset | 93,005 sentences (199, 20) | — | +0.05e-3 [−0.10e-3, +0.23e-3] |
+| Qwen3 30B Thinking (first: Track C's solver) | 810 | 972 | 4.3 |
+| Qwen3 30B Instruct | 810 | 972 | 1.0 (the per-call time is a guess) |
+| Olmo 3 7B Think | 810 | 810 | 8.2 |
 
-- Onset minus placebo: lasting +4.7e-3 [+2.7e-3, +7.0e-3] (18 questions); temporary +3.4e-3
-  [+2.0e-3, +5.3e-3] (19). Expected: a rise at both if look-backs mark the hint "in play" (F6).
-  Matches.
-- Lasting − temporary: +1.7e-3 [−0.5e-3, +4.2e-3] (17 questions in both); isolated onsets +1.3e-3
-  [−1.5e-3, +3.9e-3] (15). Both include 0: no difference shown.
-- Within followed runs: +2.2e-3 [+0.2e-3, +4.5e-3], but isolated +2.2e-3 [−0.3e-3, +4.4e-3]; per
-  token both exclude 0 (+8.8e-5 [+1.7e-5, +17.4e-5]; +9.5e-5 [+1.1e-5, +18.2e-5]). Tentative.
-- After the onset (descriptive): the takeover's spike stays above its earlier level ~5 sentences
-  (+10.3e-3 at 0, +4.8e-3 at +2, back by +6); temporary leads drop back within 2.
-- The Mac rerun reproduces Sol's numbers (max relative difference 8e-15) and adds the placebo.
-
-**Refuted:** F10's closest-approach reading ("resisted runs look at the hint more"): matched
-temporary leads, followed − resisted −0.7e-3 [−4.2e-3, +2.0e-3] (16 questions). Recorded as trap T9,
-the second anchor-selection artifact (the first, Oct 24 analysis 2(a): +50 points built in; matched
-−1 point [−16, +19]).
-
-**The Steps 6–7 checkpoint report at 100 kept** (written by the driver Oct 26 10:42 MST; never sent
-before, because that session ran out):
-- Keep rate 117 of 250 [41, 53%] (pilot 5 of 10).
-- A prefill target within 4 samples, wrong / correct hint: user 112 of 117 [90, 98%] / 60 of 61;
-  pasted tool 110 of 117 [88, 97%] / 59 of 59; inserted tool 102 of 117 [80, 92%] / 62 of 62. No
-  rate off by more than half from the pilot.
-- Target length, median (prompt + target tokens): easy puzzles 5,401; hard puzzles 11,342; MMLU-Pro
-  4,678; all 7,352; held-out replies 11,988.
-- Final-answer stance: "neither" 27 of 533 (5%), under the 10% line, so it will be dropped at
-  assembly.
-- At 216 kept (Oct 27 09:15): 979 examples, "neither" 49 of 979 (5%); targets within 4 samples:
-  wrong hint 208 of 215 (user), 205 of 215 (pasted), 196 of 214 (inserted).
-
-**Audit results (TODO.md):** Gate 1 (Oct 25) not met per the repo: Voyager is the only provider
-called, no closed-provider keys, agents on 2 items, `results/trackB/` empty, no Track B/C commits
-after Oct 4 (none ever by Arsha). Sol scripts called a bare `python`: now fixed.
-
-**FINDINGS status changes:** F14 added (confirmed; lasting > temporary tentative). F10's
-closest-approach part refuted. T9 added. No other number changed.
+54 questions (24 puzzles, 30 MMLU-Pro) × 5 conditions × 3 runs per model; GPQA not exported (waits
+for Ritik). FINDINGS: no entry changed status.
 
 ## 4. Files
 
-| Path | Size | Tracked? | Change |
-|---|---|---|---|
-| `docs/FINDINGS.md` | 36.7 KB | tracked | F14, T9, F10 retraction, figure plan #5, header date |
-| `docs/TODO.md` | 12.7 KB | tracked | new: every open item |
-| `docs/RUNBOOK.md` | 20.6 KB | tracked | new: one page per step |
-| `docs/PLAN.md`, `docs/OVERVIEW.md` | 19.8, 20.6 KB | tracked | rewritten |
-| `README.md`, `cot-disclosure/README.md` | 6.7, 9.8 KB | tracked | refreshed |
-| `cot-disclosure/finetune/README.md`, `finetune/gpu/README.md` | 10.4, 25.6 KB | tracked | refreshed |
-| `cot-disclosure/finetune/look/attn_to_hint.py` | 57.4 KB | tracked | placebo, rise-above-0 counts |
-| `cot-disclosure/finetune/gpu/sol/env.sh`, `run.sh`, `setup_env.sh` | 1.5, 1.1, 1.6 KB | tracked | Python by full path |
-| `cot-disclosure/tests/test_trackA_attn.py`, `test_trackA_gpu_kit.py` | 12.1, 11.6 KB | tracked | 2 new tests |
-| `cot-disclosure/results/summaries/trackA/step9_followup.json` | 124 KB | tracked | numbers only, with placebo |
-| `…/summaries/trackA/step9_onsets.png` / `.svg`, `step9_aligned.png` / `.svg` | 133, 87, 202, 105 KB | tracked | onsets new; aligned re-rendered |
-| `cot-disclosure/results/summaries/voyager_canary.jsonl` | 18 KB | tracked | refreshed export |
-| `cot-disclosure/results/trackA/gpu/step9_*` | 2.6 MB npz + summaries | gitignored | copied back from Sol by Ritik; the Mac rerun overwrote `step9_followup.json` and the figures (Sol originals kept in the session scratchpad) |
-| `docs/sessions/` | this log, `LATEST.md`, `INDEX.md` | tracked | new |
+Tracked (code, configs, docs; sizes in bytes):
+- Track B: `cot-disclosure/progress/run_trackB.py` (20,182), `progress/voyager_template_check.py`
+  (7,296), `progress/make_canary.py`, `providers/ollama.py`, `configs/trackB.yaml`,
+  `configs/canary/qwen3-30b-a3b-thinking-2507.json` (39,480), `configs/canary/qwen3-30b-a3b-instruct-2507.json`
+  (38,951), `tests/test_trackB.py`.
+- Track A: `finetune/train.py` (21,253), `finetune/generate.py` (12,117), `finetune/eval.py`
+  (21,714), `finetune/gpu/eval_job.py` (11,320), `finetune/continuation.py` (render hook);
+  `finetune/gpu/sol/`: `accounts.conf`, `guard.sh`, `submit.sh`, `run.sh`, `env.sh`,
+  `timing.sbatch`, `vllm_check.sbatch`, `train.sbatch`, `eval.sbatch`, `setup_vllm.sh`,
+  `setup_vllm.sbatch`; tests `test_trackA_train.py`, `test_trackA_generate.py`, `test_trackA_eval.py`,
+  `test_trackA_gpu_kit.py`.
+- Repo: `tools/untrack_produced.py`, `tools/export_summaries.py`, `tests/test_repo_hygiene.py`.
+- Docs: `docs/PLAN.md`, `docs/TODO.md`, `docs/OVERVIEW.md`, `README.md`, `cot-disclosure/finetune/README.md`,
+  `cot-disclosure/finetune/gpu/README.md`, this log, `LATEST.md`, `INDEX.md`.
 
-Copied from Sol (by Ritik, Oct 27 ~08:50 MST): `step9_followup.json`, `step9_aligned.*`,
-`step9_onsets.*`, `step9_reduced.npz`. Nothing copied to Sol.
+Gitignored (produced data):
+- `results/trackB/voyager.jsonl.gz` (105,456), `voyager_runs.jsonl` (10,181), `ollama.jsonl.gz`
+  (19,389 and growing), `ollama_runs.jsonl` (3,778), `template_check.jsonl` (10,756).
+- `results/trackA/gpu/original/step9_followup_sol.json` (121,764; Sol's original, sha256 `6282a790…`).
+- `results/voyager_canary.jsonl` (21,578; still tracked until the rewrite, then untracked).
+
+Nothing copied to or from Sol.
 
 ## 5. Problems and fixes
 
-- **"Every onset is a look-back" is too strong:** 55 of 65 lasting and 1,056 of 1,653 temporary
-  onsets have a positive rise. Recorded as an average, with those counts.
-- **Placebo added** so "the rise is onset-specific" rests on a tracked number, not only the shape of
-  the curve.
-- **Sol scripts used a bare `python`** after `source activate` (`run.sh`, `setup_env.sh`). Fixed:
-  `"$TRACKA_PY"`, with a test that refuses any bare `python` / `python3` in a Sol script.
-- **The checkpoint report was never delivered** (Oct 26 session ended a minute after it was
-  written). Now in this log and TODO.
-- **Owners:** Track B is Arsha's and Track C is Shrey's in every doc; the audit agent's brief briefly
-  had them swapped (my error), corrected.
-- **Docs were stale since Oct 20** (OVERVIEW, PLAN, README, "61 tests", "Sol unconfirmed"): rewritten.
+- **Template check counted 2 tokens** for Qwen3: under transformers 5, `apply_chat_template(...,
+  tokenize=True)` returns an encoding object and `len()` counted its 2 keys. Fixed; the 10 Qwen3
+  calls rerun; the wrong rows stay in the append-only log (the latest rows per model are the right ones).
+- **The tool condition's −1** on Qwen3 traced to vLLM's sorted JSON keys (§3); recorded in the code.
+- **Training labels:** `<think>` is not a special token, so tokenizing prompt + reply together merged
+  it with the reply's first word. `train.py` now tokenizes the prompt and the reply apart, as at
+  generation.
+- **Ollama timeout:** the adapter waited 600 s; a 16,000-token local reply can take longer. Now 3,600 s.
+- **Preflight and canary calls** ran outside the 4 request slots; they now hold one.
+- **Local `main` carries one produced file:** commit `280bd12` adds one numbers-only row to
+  `results/voyager_canary.jsonl`; the pre-push check flags it on `main` and on `trackA-nosol`. The plan
+  for `main` is decision 1 below; until then the rewrite is scoped to the 53 commits unique to
+  `trackA-nosol` (`untrack_produced.py --not-in main`; dry run clean).
+- **A test needs gitignored inputs:** `test_inputs_manifest_matches_the_committed_files` checks the
+  bytes of produced files that a fresh clone doesn't have. Not changed yet; noted for the handoff
+  docs.
 
 ## 6. For review
 
-- **Few questions:** F4, F7, F11 and F13 rest on 9 questions (19–21 cases). F14's isolated-onset
-  comparisons use 15–16 questions. The within-reach Step 9 runs (6 questions) are not read.
-- **Design that may build in the result (F14):** a lead onset is detected from a forced answer after
-  a sentence; a sentence that names the hint letter raises both that forced answer and attention to
-  the hint. So "looks back at the hint" may be partly the mention itself. Which comes first isn't
-  tested; recorded as an association.
-- **F14 lasting vs temporary within followed runs:** temporary leads there all come before the
-  takeover, so position in the run differs too.
-- **The 960 GPU-minute reading** (two jobs at once ≤ 8 h each) is my reading of the class QoS; not
-  checked on Sol (Next, command 2).
-- **Deviations from instructions:** you asked to "confirm" the Sol Python path; it wasn't true, so I
-  fixed it (code + test) rather than only reporting. The placebo and the rise-above-0 counts are
-  additions you didn't ask for. The Mac rerun overwrote Sol's copy of `step9_followup.json` in the
-  gitignored folder (identical numbers plus the placebo; original kept).
-- **Unsure:** Track B/C call and hour estimates (Haiku and Ollama speeds are assumptions); Gate 1 is
-  judged from the repo only (teammates may have unpushed work); the Phase 6 labeling size (200 + up
-  to 50) is a proposal.
+- Smoke tests are 1 question per model: no claim rests on them.
+- **Olmo's token cap in Track B differs from Qwen3's:** 32,768 for prompt + reply over all rounds
+  (Track A's rule) vs 16,000 reply tokens for the chat models. Records keep completion tokens, so the
+  analysis can also apply a common 16,000 cut. Decision 2.
+- Qwen3 Thinking skipped the tool in its one tool_real run. If that rate is low, tool_real delivers
+  few hints for that model; the tool-call rate is reported next to every tool_real number.
+- Per-call times: Qwen3 Instruct's (15 s) comes from 1 progress-round call; Ollama's from 5 calls on
+  a shared Mac. Hours are estimates.
+- The Ollama grid started right after its pilot; its dry run is first recorded here (the "dry run in
+  a log first" rule was written for Voyager models).
+- **Untested on Sol:** the `squeue` fields `submit.sh` parses, vLLM 0.31.0 (its prompt_embeds format,
+  Olmo 3 support), and the separate vLLM environment. S2 is the check. If `squeue` prints GPUs in
+  another form, `submit.sh` counts 1 GPU per job (all our jobs use 1).
+- **My choices, not in the brief:** accumulation 8, warmup 3% then linear decay, loss chunks of 1,024
+  positions, a resume checkpoint every 25 optimizer steps (`train.py`). LoRA is merged into the base
+  before serving for every LoRA version (PLAN said merged for LoRA only; now also for LoRA + tags), so
+  no system needs vLLM's prompt embeddings together with LoRA.
+- The fourth version's layers 15, 19, 23 are 0-based layer indices (full-attention layers at 3, 7,
+  …, 31), the same numbering as Steps 9–10.
+- Phase 6 sample: 40 per system over 6 strata (3 channels × followed / resisted) gives quotas
+  7, 7, 7, 7, 6, 6.
 
 ## 7. Decisions needed from me
 
-1. **Assemble right when Steps 6–7 end?** (a) yes, run `--assemble` (no calls), report the counts,
-   then stop; (b) wait for your go first. **Recommend (a).**
-2. **History rewrite scope** (`untrack_produced.py --run`, after the run ends): it rewrites the 53
-   unpushed commits, untracks `results/trackA/` (61 paths), `finetune/data/` (5) and
-   `results/voyager_canary.jsonl`, and moves local `main` and `voyager-ids-oct21` to the rewritten
-   commits; files on disk don't move. Track C's `results/scope/` is out of scope (already on GitHub).
-   (a) approve as is; (b) change the scope. **Recommend (a).**
-3. **The 10 label rows with no text:** (a) regenerate with 10 Voyager calls (the model route changed
-   Oct 21 and seeds don't reproduce, so these are new runs of the same prompts); (b) replace them
-   with 10 random saved hinted runs that neither mention nor follow the hint (no calls); (c) drop
-   them and label 91. **Recommend (b):** it keeps the queue's calibration purpose with no calls.
-4. **Optional fourth version** (LoRA on layers 15/19/23 attention, +6–16 GPU h): (a) decide after
-   the timing run; (b) yes now; (c) no. **Recommend (a).**
-5. **Training settings:** (a) one setting (rank 16, learning rate 2e-4); (b) the rank × learning-rate
-   grid (3–6× the training hours). **Recommend (a)**, grid only if the timing run leaves room.
-6. **Tracks B and C:** no owner activity in the repo since Oct 4. (a) I write their no-call code
-   fixes now (B5 `tool_injected` wiring, C2 no-tool team, C3 reviewer flag, C6 append-only log in a
-   gitignored folder, a model flag, an input-file option) and they run on Voyager from Oct 28 with
-   your go; (b) leave them to Arsha and Shrey. **Recommend (a)**, after checking with them.
-7. **F14 wording:** recorded as "on average; 55 of 65 and 1,056 of 1,653 onsets" rather than "every
-   onset". (a) keep; (b) reword. **Recommend (a).**
+1. **Plan for local `main`** (2 unpushed commits; `280bd12` adds 1 numbers-only canary row). (a)
+   Rewrite those 2 commits too: `821c583` comes out identical, `280bd12` loses only the row; `main`
+   and `voyager-ids-oct21` move; nothing on GitHub changes; the pre-push check then passes on both
+   branches. (b) Leave `main` alone and allow that one row through the pre-push check. **Recommend
+   (a).** Until you answer, only `trackA-nosol`'s 53 unique commits are rewritten; (a) later is one
+   more run of the same tool.
+2. **Olmo's cap in Track B:** (a) 32,768 total, as in Track A, with a 16,000 cut also reported; (b)
+   16,000 reply tokens, like the chat models. **Recommend (a).**
+3. **Ollama grid:** running in full (~51 h, done ~Oct 29 evening). (a) Keep; (b) cut to MMLU-Pro
+   only (~half). **Recommend (a).**
+4. **First Sol jobs** once the data is assembled and rsynced: `setup_vllm` (no GPU), then S1 timing
+   (`--estimate 0.5`, limit 1:00) and S2 vLLM check (`--estimate 1`, limit 1:30), together 150
+   GPU-minutes. Needs your "go".
 
 ## 8. Open work (top 10 of docs/TODO.md)
 
 | # | Item | Status |
 |---|---|---|
-| A1 | Steps 6–7 to 240 kept | in progress: 227 kept, finish 2–4 PM MST |
-| A4 | Assemble train / validation, counts, stop | not started (waits on A1) |
-| A6 | History rewrite, then push (A7) | not started (waits on A1 + approval) |
-| A8 | Step 11 `train.py` + CPU tests | not started |
-| A9 | Step 12 tagged generation (own loop + vLLM) | partial |
-| A10 | Step 13 `eval.py` | not started |
-| A11 | Sol job scripts for Steps 11–13 | not started |
-| L2 | Labeling kit (blank sheets, kappa script) | not started |
-| L3 | Hand labels, two raters, by Gate 2 (Nov 8) | not started |
-| B1/C1 | Track B keys and smoke tests; Track C on 5 items | blocked / not done |
+| A1 | Steps 6–7 to 240 kept | in progress: 237 kept, last chunk |
+| A4 | Assemble train / validation, final counts | runs when A1 ends (decided) |
+| A6 | History rewrite with backup and sha256 list | ready (`--not-in main`); waits on A1 |
+| A7 | Merge into local `main`; push commands | after A6 |
+| B7 | Track B Voyager runs (Qwen3 Thinking, Instruct, Olmo) | smoke passed; start after A6 |
+| B4 | Ollama qwen3:8b grid | running |
+| A13 | S1 timing + S2 vLLM check on Sol | code done; needs data, setup_vllm, "go" |
+| C6, C2, C3, C7 | Track C code: append-only log, no-tool team, second reviewer, input file | not started (next) |
+| L1, L2 | 10 replacement label rows; labeling kit | not started |
+| H2–H4 | Handoff docs and data bundles | not started |
 
 ## 9. Next
 
-**You run (nothing is required now):**
-1. Mac: keep it plugged in with the lid open until the Steps 6–7 run ends.
-2. Sol (any login node; read only): `sacctmgr -P show qos class` and paste the line, to confirm the
-   2-job / 960 GPU-minute limits behind the job plan.
+**Ritik:** nothing to run now. Answer decisions 1–4 when convenient.
 
-**After your reply, I will:** act on decisions 1–7; when Steps 6–7 finish, export the final
-summaries, run `--assemble` if decision 1 is (a), and write a log with the final counts and stop for
-your go. With your go I'll start the Steps 11–13 code and the labeling kit (no calls) in that order.
+**Claude Code, after this log:** Track C code (C6, C2, C3, C7). When Steps 6–7 end:
+1. Assemble, export the summaries, write the final-count log.
+2. Pause the Ollama grid; back up (`git bundle` to `~/backup-before-rewrite.bundle`, sha256 list
+   beside it); rewrite (`untrack_produced.py --not-in main --run --backup ~/backup-before-rewrite.bundle`,
+   or without `--not-in` if decision 1 is (a)); tests; restart the grid.
+3. Start the Qwen3 30B Thinking Voyager run in the background; merge into local `main`; give the
+   push commands.
