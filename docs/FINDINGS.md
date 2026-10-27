@@ -134,7 +134,7 @@ reasoning.
   (`mention_within_2_before_takeover`, `closest_approach_mention`); `takeover.py --report`.
 - **Status.** *confirmed* (keyword counts). The earlier claim, "a mention just before the
   takeover triggers it," was based on a 7% any-window baseline and is *refuted* by this
-  comparison and by F5's matched onsets.
+  comparison and by F5's matched onsets. F14 is the attention-level counterpart.
 
 ## F7. Deleting the reasoning's mentions moves the answer at the cut, not the final answer
 
@@ -259,22 +259,21 @@ from the answer position ("(" of "Answer: (") to the hint, per layer and head. R
 - **Where the sliding layers can reach the hint** (25 runs on 6 questions), 7 of the 10 top heads
   are in sliding layers. This matches Step 10's cut (i) split (F11). These runs have too few
   questions per group for any comparison: no direction is read from them.
-- **Attention from the reasoning around the takeover:** *tentative*, being redone.
+- **Attention from the reasoning around the takeover: the first reading is *refuted* (T9).**
   - The first reading aligned followed runs on the takeover and resisted runs on their closest
-    approach. Attention to the hint rose more at the closest approach: +0.012 against +0.005,
-    difference −0.0076 [−0.0123, −0.0016].
-  - But the closest approach is picked where the hint is strongest, the same built-in asymmetry
-    as before Step 4's matched onsets.
-  - The matched version anchors on every point after the first fifth where the hint letter
-    takes the lead, labelled permanent (the takeover; 65) or temporary (1,653), in all 199 runs.
-    It is waiting on one more Sol run (`--followup`).
+    approach. Attention to the hint rose more at the closest approach (+0.012 against +0.005,
+    difference −0.0076 [−0.0123, −0.0016]), read as "resisted runs look at the hint more".
+  - The closest approach is picked where the hint is strongest. Anchored the same way in both
+    (every lead onset after the first fifth), temporary leads in followed and resisted runs
+    don't differ: **−0.7e-3 [−4.2e-3, +2.0e-3]** (16 questions in both). The difference came from
+    how the anchor was picked. What the matched version does show is F14.
 - **Source.** `cot-disclosure/results/summaries/trackA/step9_followup.json` (`run_sets`,
-  `top_heads`, `aligned`) and `step9_attention.json`; `hint_onsets.jsonl` for the matched anchors.
+  `top_heads`, `aligned`, `onsets_matched`) and `step9_attention.json`.
 - **Status.**
   - *confirmed*: tool − user on every measure, and followed − resisted on hint − control,
     pooled and for the inserted and pasted channels
   - *tentative*: per token
-  - the aligned attention rise: *tentative* until the matched version is in
+  - *refuted*: "resisted runs look at the hint more" (closest-approach anchor, T9)
 
 ## F11. Step 10: the hint's effect leaves its tokens at full-attention layers 15, 19 and 23
 
@@ -354,6 +353,8 @@ it to the answer: they hold 0.90 [0.85, 0.96] of the drop in hint-token restorat
 L23H17 and L15H31 look at the hint more when the model follows it (F12). But tool hints don't get
 more of this attention than user hints; they get less (F10), while moving the answer more (F1). So
 the extra trust in tools lies in what is read at the hint, not in how much it is attended to.
+In the reasoning, the hint letter takes the lead at sentences that look back at the hint, whether
+or not the lead lasts (F14).
 
 **Link to the fix.** Source tags add a learned vector to every token marking where it came from (at
 the hint's tokens: a tool). They change what these heads read there, not where they look. After training, the look-inside
@@ -409,6 +410,54 @@ nothing to delete in the 2 cases with no mention before the takeover) and differ
   `deletion_runs.jsonl`.
 - **Status.** *confirmed* as measured. The per-case typology is *tentative*: 19 cases, two
   stacks.
+
+## F14. The hint takes the lead when the reasoning looks back at it, whether or not it keeps it
+
+**Setup.** Step 9's attention from each reasoning sentence to the hint (the 8 full-attention
+layers, hint − control), around every point after the first fifth where the hint letter becomes
+the leading forced answer (Step 3's dense curves: 199 runs, 20 questions).
+- **Rise:** the mean over the onset sentence and the 2 before, minus the same run's sentences 6–15
+  before. Averaged per run, then clustered by question.
+- **Onsets:** lasting (the takeover: the hint keeps the lead to the end) or temporary (lost
+  again). F5's counts (46 and 1,248) also required the run's own no-hint answer; this doesn't.
+- **Placebo:** every other sentence after the first fifth, not within 2 of an onset, in the same
+  runs.
+
+| anchor | onsets (runs, questions) | rise above 0 | rise, hint − control |
+|---|---|---|---|
+| lasting (the takeover) | 65 (65, 18) | 55 of 65 | **+4.8e-3 [+2.7e-3, +7.1e-3]** |
+| temporary | 1,653 (123, 19) | 1,056 of 1,653 | **+3.4e-3 [+2.0e-3, +5.3e-3]** |
+| placebo | 93,005 sentences (199, 20) | — | +0.05e-3 [−0.10e-3, +0.23e-3] |
+
+- **Against the placebo:** lasting +4.7e-3 [+2.7e-3, +7.0e-3] (18 questions in both); temporary
+  +3.4e-3 [+2.0e-3, +5.3e-3] (19). Per token gives the same.
+- **Reading.** The hint gains the lead when the reasoning looks back at it, whether or not it
+  keeps it. This is the attention-level counterpart of F6: looking back marks the hint being in
+  play, not the hint winning.
+  - It is an average, not every onset: 55 of 65 lasting and 1,056 of 1,653 temporary onsets have
+    a positive rise.
+  - It is an association within the same 3 sentences; which comes first isn't tested.
+- **Lasting vs temporary at the onset: no difference shown.**
+  - All onsets: +1.7e-3 [−0.5e-3, +4.2e-3] (17 questions in both). Isolated onsets (no other
+    onset in the 15 sentences before; 44 vs 605): +1.3e-3 [−1.5e-3, +3.9e-3]. Both include 0.
+  - Within followed runs only (the takeover vs the same runs' earlier temporary leads): +2.2e-3
+    [+0.2e-3, +4.5e-3], but the isolated version includes 0 (+2.2e-3 [−0.3e-3, +4.4e-3]). Per token
+    it excludes 0 in both: +8.8e-5 [+1.7e-5, +17.4e-5] and +9.5e-5 [+1.1e-5, +18.2e-5].
+  - In followed runs every temporary lead comes before the takeover, so this comparison also
+    differs in position in the run.
+- **After the onset (descriptive only).** The takeover's spike stays above the level before it for
+  about 5 sentences: +10.3e-3 at the onset, +4.8e-3 two sentences later (interval excludes 0), back
+  at the earlier level by the sixth. Temporary leads drop back within 2: +4.3e-3 at the onset,
+  +2.1e-3 one sentence later (interval includes 0), −0.1e-3 two later. After a lasting takeover
+  the reasoning goes on to use the hint by definition, so this can't explain the outcome.
+- **Source.** `cot-disclosure/results/summaries/trackA/step9_followup.json` (`onsets_matched`:
+  `groups`, `comparisons`, `placebo`, `curves`); figure `step9_onsets.png`; onsets from
+  `hint_onsets.jsonl` (Step 3). `python finetune/look/attn_to_hint.py --followup --from-reduced
+  results/trackA/gpu/step9_reduced.npz` (Mac, no GPU) reproduces Sol's numbers to 1e-14 and adds
+  the placebo.
+- **Status.** *confirmed*: the rise at lasting and at temporary onsets, against the placebo.
+  *tentative*: lasting > temporary (followed runs only, not robust to isolated onsets). The
+  spike's length: descriptive.
 
 ---
 
@@ -484,6 +533,19 @@ Each one would have changed a reported number.
   (F9).
 - *Source.* `finetune/gpu/kit.py` (`files_vs_template_rev`), `checkpoint_check.py` (`verdict`).
 
+**T9. An anchor picked where the hint is strongest (the second time).**
+- *What.* Step 9's first aligned reading compared followed runs at the takeover with resisted runs
+  at their closest approach, which is by construction where the hint letter peaks. It read
+  "resisted runs look at the hint more there": −0.0076 [−0.0123, −0.0016].
+- *The first time* was before Step 4 (analysis 2(a), Oct 25). "The own answer leads just before a
+  late takeover more often than at a closest approach" came out +50 points, partly built in: just
+  before a takeover the hint can't lead. Matched onsets gave −1 point [−16, +19] (F5).
+- *Fix.* Anchor both groups the same way: every lead onset after the first fifth, lasting or
+  temporary. Temporary leads in followed and resisted runs then don't differ: −0.7e-3 [−4.2e-3,
+  +2.0e-3] (F10, F14).
+- *Rule.* No comparison anchors one group on a point chosen by the measure being compared.
+- *Source.* `step9_followup.json` (`aligned`, kept and marked biased; `onsets_matched`).
+
 **Also:**
 - Cut-off replies leak when not streamed (the reasoning landed in the answer in 8 of 8).
 - A tool call quoted inside the reasoning tripped the tool-call stop (7 runs, continued).
@@ -499,7 +561,7 @@ Each one would have changed a reported number.
 | 2 | It's hidden: the reasoning names the hint, the final answer doesn't | `presentation/progress/figures/F2_pilot_mentions_by_channel.png` (F3) | **exists** |
 | 3 | Where it takes over: the hint starts ahead, swings, and wins late on known answers | `results/summaries/trackA/figures/takeover_mean_curves.png` and `takeover_points.png` (F4–F6) | **exists** |
 | 4 | Is the repetition causal? Deletion vs control vs unedited: the answer at the cut, continuations, re-mentions | new, from `deletion_runs.jsonl` + `deletion_remention.jsonl` (F7) | **pending** (no calls needed) |
-| 5 | Inside the model: the handoff. Per cut, hint-token and answer restoration by layer, with the full-attention layers drawn and 15, 19, 23 marked (F11, F12); beside it, attention to the hint around kept vs lost lead onsets (F10) | `results/summaries/trackA/figures/step10_handoff.png`; `step9_onsets.png` | handoff **exists**; matched onsets **pending** (one more `--followup` on Sol); `step9_aligned.png` exists but is biased (closest approach) |
+| 5 | Inside the model: the handoff. Per cut, hint-token and answer restoration by layer, with the full-attention layers drawn and 15, 19, 23 marked (F11, F12). Beside it: the hint wins the lead at the moments the model looks back at it (F14, hint − control panel) | `results/summaries/trackA/figures/step10_handoff.png`; `results/summaries/trackA/step9_onsets.png` (left panel) | both **exist**. The per-token panel goes in the appendix. `step9_aligned.png` is not used (closest-approach anchor, T9) |
 | 6 | The window: the hint's pull vs distance to its last mention | `results/summaries/trackA/window_reach.png` (F8) | **exists** (tentative finding) |
 
 After Phase 6, a seventh figure goes in: the Gate 3 comparison. It shows hint following,

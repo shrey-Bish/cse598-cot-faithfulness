@@ -177,8 +177,18 @@ def test_followup_on_saved_runs(tmp_path):
     few = o["comparisons"]["all onsets"]["full layers: hint - control"]["permanent - temporary"]
     assert few is None or few["ci95"] is None                                    # fewer than 5 questions: no interval
     assert (step / "step9_onsets.png").exists() and (step / ah.REDUCED).exists()
+    assert o["placebo"]["runs"] <= 4 and set(o["placebo"]["comparisons"]["full layers: hint - control"]) == {
+        "permanent (the takeover) - placebo", "temporary - placebo"}
     again = ah.followup(reduced_from=step / ah.REDUCED, takeover_rows=rows, onset_rows=onsets)
     assert again["run_sets"] == s["run_sets"] and again["onsets_matched"]["groups"] == o["groups"]
+
+
+def test_placebo_skips_sentences_near_an_onset():
+    np = pytest.importorskip("numpy")
+    rs = [{"run_id": "a", "sent_full": np.zeros((3, 20))}, {"run_id": "b", "sent_full": np.zeros((3, 10))}]
+    p = ah.placebo_anchors(rs, {"a": [(10, True)], "b": []})
+    assert [j for j, _ in p["a"]] == [4, 5, 6, 7] + list(range(13, 20))        # after the first fifth, not 8-12
+    assert [j for j, _ in p["b"]] == list(range(2, 10)) and not any(perm for _, perm in p["a"] + p["b"])
 
 
 def test_too_few_questions_gives_no_interval():

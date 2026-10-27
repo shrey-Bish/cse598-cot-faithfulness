@@ -647,6 +647,18 @@ def onset_points(rs, at):
     return out
 
 
+def placebo_anchors(rs, at, keep_off=2):
+    """{run_id: [(sentence, False)]}: the placebo for the onsets, every sentence after the first fifth
+    that is not within keep_off of an onset, in the same runs."""
+    by_id = {r["run_id"]: r for r in rs}
+    out = {}
+    for rid, ons in at.items():
+        n = by_id[rid]["sent_full"].shape[1]
+        near = {a + o for a, _ in ons for o in range(-keep_off, keep_off + 1)}
+        out[rid] = [(j, False) for j in range(n // 5, n) if j not in near]
+    return out
+
+
 def per_run(rows, key):
     """{question: [each run's mean of key over its rows]}: a run weighs the same however many onsets it has."""
     runs = {}
@@ -672,6 +684,8 @@ def onsets_matched(rs, at):
         g = {name: [o for o in rows if keep(o)] for name, rows in groups.items()}
         out["groups"][sub] = {name: {"onsets": len(rows), "runs": len({o["run_id"] for o in rows}),
                                      "questions": len({o["item_id"] for o in rows}),
+                                     "rise above 0, hint - control": sum((o["full layers: hint - control"] or 0) > 0
+                                                                          for o in rows),
                                      **{m: dict(zip(("mean", "ci95", "questions"), interval(per_run(rows, m))))
                                         for m in ONSET_MEASURES}} for name, rows in g.items()}
         perm_followed = [o for o in g["permanent (the takeover)"] if o["kind"] == "followed"]
@@ -682,6 +696,13 @@ def onsets_matched(rs, at):
                 "temporary: followed - resisted runs": diff_groups(per_run(g["temporary, in followed runs"], m),
                                                                    per_run(g["temporary, in resisted runs"], m))}
             for m in ONSET_MEASURES}
+    plac = onset_points(rs, placebo_anchors(rs, at))
+    out["placebo"] = {"sentences": len(plac), "runs": len({o["run_id"] for o in plac}),
+                      "questions": len({o["item_id"] for o in plac}),
+                      **{m: dict(zip(("mean", "ci95", "questions"), interval(per_run(plac, m)))) for m in ONSET_MEASURES},
+                      "comparisons": {m: {f"{name} - placebo": diff_groups(per_run(groups[name], m), per_run(plac, m))
+                                          for name in ("permanent (the takeover)", "temporary")}
+                                      for m in ONSET_MEASURES}}
     by_id = {r["run_id"]: r for r in rs}
     for name in ("permanent (the takeover)", "temporary"):
         out["curves"][name] = {}
@@ -792,6 +813,8 @@ def followup(out=None, d=None, model=None, takeover_rows=None, onset_rows=None, 
             "onset": "a probe after the first fifth where the hint letter becomes the leading letter (Step 3, dense "
                      "curves); permanent = it keeps the lead to the end (the takeover), temporary = it loses it again. "
                      "Picked the same way in followed and resisted runs, unlike the closest approach",
+            "placebo": "every sentence after the first fifth that is not within 2 of an onset, in the same runs, with "
+                       "the same rise",
             "intervals": f"95% bootstrap clustered by question; a difference uses the questions both groups have; none "
                          f"under {MIN_QUESTIONS} questions ('too few questions')"},
         "runs_within_reach_in_sliding_layers": len(near),
@@ -860,12 +883,20 @@ def show_followup(s):
               f"{o['skipped']}); per run, then clustered by question")
         for sub, groups in o["groups"].items():
             print(f"\n{sub}:")
-            print("| onset | onsets | runs | questions | rise, hint - control | rise, hint per token |")
-            print("|---|---|---|---|---|---|")
+            print("| onset | onsets | rise above 0 | runs | questions | rise, hint - control | rise, hint per token |")
+            print("|---|---|---|---|---|---|---|")
             for name, g in groups.items():
-                print(f"| {name} | {g['onsets']} | {g['runs']} | {g['questions']} | "
-                      f"{fmt_mean(g['full layers: hint - control'])} | {fmt_mean(g['full layers: hint per token'])} |")
+                print(f"| {name} | {g['onsets']} | {g.get('rise above 0, hint - control', '—')} | {g['runs']} | "
+                      f"{g['questions']} | {fmt_mean(g['full layers: hint - control'])} | "
+                      f"{fmt_mean(g['full layers: hint per token'])} |")
             for m, cs in o["comparisons"][sub].items():
+                for cname, x in cs.items():
+                    print(f"  {m}, {cname}: {fmt(x)}")
+        p = o.get("placebo")
+        if p:
+            print(f"\nplacebo (no onset within 2): {p['sentences']} sentences, {p['runs']} runs, {p['questions']} "
+                  f"questions; rise {fmt_mean(p['full layers: hint - control'])}")
+            for m, cs in p["comparisons"].items():
                 for cname, x in cs.items():
                     print(f"  {m}, {cname}: {fmt(x)}")
 

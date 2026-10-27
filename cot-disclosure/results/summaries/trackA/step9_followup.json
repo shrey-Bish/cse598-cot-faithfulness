@@ -25,7 +25,9 @@
   "within reach": "a sliding-window layer sees only the last 4,096 tokens; the answer is within reach when it sees the hint's last token there",
   "anchor": "followed: the takeover sentence (Step 3: the hint letter leads from there to the end); resisted: the closest approach (the probe after the first fifth where the hint letter peaks)",
   "rise": "per run, full layers, hint - control: mean over offsets -2..0 minus mean over offsets -15..-6",
-  "intervals": "95% bootstrap clustered by question; a difference uses the questions both groups have"
+  "onset": "a probe after the first fifth where the hint letter becomes the leading letter (Step 3, dense curves); permanent = it keeps the lead to the end (the takeover), temporary = it loses it again. Picked the same way in followed and resisted runs, unlike the closest approach",
+  "placebo": "every sentence after the first fifth that is not within 2 of an onset, in the same runs, with the same rise",
+  "intervals": "95% bootstrap clustered by question; a difference uses the questions both groups have; none under 5 questions ('too few questions')"
  },
  "runs_within_reach_in_sliding_layers": 25,
  "run_sets": {
@@ -45,48 +47,56 @@
    "group_means": {
     "tool, inserted | followed": {
      "runs": 24,
+     "questions": 12,
      "hint - control": 0.017418044444639236,
      "hint per token": 0.0008578565211792011,
      "letter": 0.008546586099934453
     },
     "tool, inserted | resisted": {
      "runs": 36,
+     "questions": 17,
      "hint - control": 0.010813436438588219,
      "hint per token": 0.0006128335844550747,
      "letter": 0.005012165897318887
     },
     "tool, inserted + declared | followed": {
      "runs": 34,
+     "questions": 16,
      "hint - control": 0.01305975645150551,
      "hint per token": 0.0006501153817653711,
      "letter": 0.0061894830946317494
     },
     "tool, inserted + declared | resisted": {
      "runs": 26,
+     "questions": 14,
      "hint - control": 0.00776167858678561,
      "hint per token": 0.0004259604079729448,
      "letter": 0.003960429547497859
     },
     "tool, pasted | followed": {
      "runs": 40,
+     "questions": 18,
      "hint - control": 0.024234732775948942,
      "hint per token": 0.0009037472111231182,
      "letter": 0.007973941462114453
     },
     "tool, pasted | resisted": {
      "runs": 19,
+     "questions": 11,
      "hint - control": 0.01654820908841334,
      "hint per token": 0.0006418799549512761,
      "letter": 0.004645228251128604
     },
     "user | followed": {
      "runs": 7,
+     "questions": 7,
      "hint - control": 0.027348969131708145,
      "hint per token": 0.0017782328484047736,
      "letter": 0.009695855168891805
     },
     "user | resisted": {
      "runs": 13,
+     "questions": 13,
      "hint - control": 0.021316381601186898,
      "hint per token": 0.0014712432882963465,
      "letter": 0.0073232721680632
@@ -98,6 +108,10 @@
       "n": [
        105,
        94
+      ],
+      "questions": [
+       18,
+       18
       ],
       "questions_in_both": 16,
       "mean_a": 0.01926568458078518,
@@ -113,6 +127,10 @@
        105,
        94
       ],
+      "questions": [
+       18,
+       18
+      ],
       "questions_in_both": 16,
       "mean_a": 0.0008694285511626818,
       "mean_b": 0.0006857325695702767,
@@ -126,6 +144,10 @@
       "n": [
        105,
        94
+      ],
+      "questions": [
+       18,
+       18
       ],
       "questions_in_both": 16,
       "mean_a": 0.007641801297930735,
@@ -143,6 +165,10 @@
        24,
        36
       ],
+      "questions": [
+       12,
+       17
+      ],
       "questions_in_both": 9,
       "mean_a": 0.017418044444639236,
       "mean_b": 0.010813436438588219,
@@ -157,6 +183,10 @@
        24,
        36
       ],
+      "questions": [
+       12,
+       17
+      ],
       "questions_in_both": 9,
       "mean_a": 0.0008578565211792011,
       "mean_b": 0.0006128335844550747,
@@ -170,6 +200,10 @@
       "n": [
        24,
        36
+      ],
+      "questions": [
+       12,
+       17
       ],
       "questions_in_both": 9,
       "mean_a": 0.008546586099934453,
@@ -187,6 +221,10 @@
        34,
        26
       ],
+      "questions": [
+       16,
+       14
+      ],
       "questions_in_both": 10,
       "mean_a": 0.01305975645150551,
       "mean_b": 0.00776167858678561,
@@ -201,6 +239,10 @@
        34,
        26
       ],
+      "questions": [
+       16,
+       14
+      ],
       "questions_in_both": 10,
       "mean_a": 0.0006501153817653711,
       "mean_b": 0.0004259604079729448,
@@ -214,6 +256,10 @@
       "n": [
        34,
        26
+      ],
+      "questions": [
+       16,
+       14
       ],
       "questions_in_both": 10,
       "mean_a": 0.0061894830946317494,
@@ -231,6 +277,10 @@
        40,
        19
       ],
+      "questions": [
+       18,
+       11
+      ],
       "questions_in_both": 9,
       "mean_a": 0.024234732775948942,
       "mean_b": 0.01654820908841334,
@@ -245,6 +295,10 @@
        40,
        19
       ],
+      "questions": [
+       18,
+       11
+      ],
       "questions_in_both": 9,
       "mean_a": 0.0009037472111231182,
       "mean_b": 0.0006418799549512761,
@@ -258,6 +312,10 @@
       "n": [
        40,
        19
+      ],
+      "questions": [
+       18,
+       11
       ],
       "questions_in_both": 9,
       "mean_a": 0.007973941462114453,
@@ -275,6 +333,11 @@
        7,
        13
       ],
+      "questions": [
+       7,
+       13
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.027348969131708145,
       "mean_b": 0.021316381601186898,
       "difference": null,
@@ -285,6 +348,11 @@
        7,
        13
       ],
+      "questions": [
+       7,
+       13
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.0017782328484047736,
       "mean_b": 0.0014712432882963465,
       "difference": null,
@@ -295,6 +363,11 @@
        7,
        13
       ],
+      "questions": [
+       7,
+       13
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.009695855168891805,
       "mean_b": 0.0073232721680632,
       "difference": null,
@@ -305,6 +378,10 @@
      "hint - control": {
       "n": [
        179,
+       20
+      ],
+      "questions": [
+       20,
        20
       ],
       "questions_in_both": 20,
@@ -321,6 +398,10 @@
        179,
        20
       ],
+      "questions": [
+       20,
+       20
+      ],
       "questions_in_both": 20,
       "mean_a": 0.0006937154565642552,
       "mean_b": 0.001578689634334296,
@@ -333,6 +414,10 @@
      "letter": {
       "n": [
        179,
+       20
+      ],
+      "questions": [
+       20,
        20
       ],
       "questions_in_both": 20,
@@ -351,6 +436,10 @@
        59,
        120
       ],
+      "questions": [
+       20,
+       20
+      ],
       "questions_in_both": 20,
       "mean_a": 0.021759411588437475,
       "mean_b": 0.012109601175567756,
@@ -365,6 +454,10 @@
        59,
        120
       ],
+      "questions": [
+       20,
+       20
+      ],
       "questions_in_both": 20,
       "mean_a": 0.0008194170777796436,
       "mean_b": 0.0006319121594666892,
@@ -378,6 +471,10 @@
       "n": [
        59,
        120
+      ],
+      "questions": [
+       20,
+       20
       ],
       "questions_in_both": 20,
       "mean_a": 0.0069019829704410444,
@@ -395,6 +492,10 @@
        60,
        60
       ],
+      "questions": [
+       20,
+       20
+      ],
       "questions_in_both": 20,
       "mean_a": 0.013455279641008625,
       "mean_b": 0.010763922710126887,
@@ -409,6 +510,10 @@
        60,
        60
       ],
+      "questions": [
+       20,
+       20
+      ],
       "questions_in_both": 20,
       "mean_a": 0.0007108427591447253,
       "mean_b": 0.000552981559788653,
@@ -422,6 +527,10 @@
       "n": [
        60,
        60
+      ],
+      "questions": [
+       20,
+       20
       ],
       "questions_in_both": 20,
       "mean_a": 0.006425933978365114,
@@ -475,36 +584,42 @@
    "group_means": {
     "tool, inserted | followed": {
      "runs": 4,
+     "questions": 2,
      "hint - control": 0.014985122252255678,
      "hint per token": 0.0008860805246513337,
      "letter": 0.009514902951195836
     },
     "tool, inserted | resisted": {
      "runs": 2,
+     "questions": 2,
      "hint - control": 0.01041607465595007,
      "hint per token": 0.0008025792776606977,
      "letter": 0.007120070513337851
     },
     "tool, inserted + declared | followed": {
      "runs": 10,
+     "questions": 4,
      "hint - control": 0.01036206167191267,
      "hint per token": 0.0005685949930921197,
      "letter": 0.005783385364338756
     },
     "tool, inserted + declared | resisted": {
      "runs": 3,
+     "questions": 1,
      "hint - control": 0.003211750959356626,
      "hint per token": 0.0001957126563259711,
      "letter": 0.0012200661197615166
     },
     "tool, pasted | followed": {
      "runs": 4,
+     "questions": 2,
      "hint - control": 0.022884082980453968,
      "hint per token": 0.0010273465886712074,
      "letter": 0.010830956045538187
     },
     "user | resisted": {
      "runs": 2,
+     "questions": 2,
      "hint - control": 0.008884326554834843,
      "hint per token": 0.0007917902548797429,
      "letter": 0.002863743808120489
@@ -517,42 +632,48 @@
        18,
        7
       ],
+      "questions": [
+       4,
+       4
+      ],
       "questions_in_both": 2,
       "mean_a": 0.014172079869442515,
       "mean_b": 0.006890865042805672,
       "difference": -0.002180705894716084,
-      "ci95": [
-       -0.0026646703481674194,
-       -0.0017098444513976574
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "hint per token": {
       "n": [
        18,
        7
       ],
+      "questions": [
+       4,
+       4
+      ],
       "questions_in_both": 2,
       "mean_a": 0.0007410921324561867,
       "mean_b": 0.000539411004865542,
       "difference": -0.0003513903235822605,
-      "ci95": [
-       -0.00043281109537929296,
-       -0.00030798369940991205
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "letter": {
       "n": [
        18,
        7
       ],
+      "questions": [
+       4,
+       4
+      ],
       "questions_in_both": 2,
       "mean_a": 0.007734293868351314,
       "mean_b": 0.0033754038574573186,
       "difference": -0.001786119382207592,
-      "ci95": [
-       -0.004611177137121558,
-       -0.0005093827688445645
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      }
     },
     "followed - resisted (tool, inserted)": {
@@ -561,6 +682,11 @@
        4,
        2
       ],
+      "questions": [
+       2,
+       2
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.014985122252255678,
       "mean_b": 0.01041607465595007,
       "difference": null,
@@ -571,6 +697,11 @@
        4,
        2
       ],
+      "questions": [
+       2,
+       2
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.0008860805246513337,
       "mean_b": 0.0008025792776606977,
       "difference": null,
@@ -581,6 +712,11 @@
        4,
        2
       ],
+      "questions": [
+       2,
+       2
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.009514902951195836,
       "mean_b": 0.007120070513337851,
       "difference": null,
@@ -593,6 +729,11 @@
        10,
        3
       ],
+      "questions": [
+       4,
+       1
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.01036206167191267,
       "mean_b": 0.003211750959356626,
       "difference": null,
@@ -603,6 +744,11 @@
        10,
        3
       ],
+      "questions": [
+       4,
+       1
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.0005685949930921197,
       "mean_b": 0.0001957126563259711,
       "difference": null,
@@ -613,6 +759,11 @@
        10,
        3
       ],
+      "questions": [
+       4,
+       1
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.005783385364338756,
       "mean_b": 0.0012200661197615166,
       "difference": null,
@@ -635,42 +786,48 @@
        23,
        2
       ],
+      "questions": [
+       5,
+       2
+      ],
       "questions_in_both": 1,
       "mean_a": 0.012415862601736317,
       "mean_b": 0.008884326554834843,
       "difference": -0.0010466143721714616,
-      "ci95": [
-       -0.0010466143721714616,
-       -0.0010466143721714616
-      ]
+      "ci95": null,
+      "note": "too few questions (1 in both)"
      },
      "hint per token": {
       "n": [
        23,
        2
       ],
+      "questions": [
+       5,
+       2
+      ],
       "questions_in_both": 1,
       "mean_a": 0.0006753023873265508,
       "mean_b": 0.0007917902548797429,
       "difference": -0.00014458530495176092,
-      "ci95": [
-       -0.00014458530495176092,
-       -0.00014458530495176092
-      ]
+      "ci95": null,
+      "note": "too few questions (1 in both)"
      },
      "letter": {
       "n": [
        23,
        2
       ],
+      "questions": [
+       5,
+       2
+      ],
       "questions_in_both": 1,
       "mean_a": 0.006831201261577561,
       "mean_b": 0.002863743808120489,
       "difference": 0.002559119777288288,
-      "ci95": [
-       0.002559119777288288,
-       0.002559119777288288
-      ]
+      "ci95": null,
+      "note": "too few questions (1 in both)"
      }
     },
     "pasted - inserted (both inserted arms)": {
@@ -679,42 +836,48 @@
        4,
        19
       ],
+      "questions": [
+       2,
+       5
+      ],
       "questions_in_both": 2,
       "mean_a": 0.022884082980453968,
       "mean_b": 0.010212026732532601,
       "difference": 0.009598672902211548,
-      "ci95": [
-       0.009598672902211548,
-       0.010473036207258701
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "hint per token": {
       "n": [
        4,
        19
       ],
+      "questions": [
+       2,
+       5
+      ],
       "questions_in_both": 2,
       "mean_a": 0.0010273465886712074,
       "mean_b": 0.0006011878186224127,
       "difference": 0.0002612107520690188,
-      "ci95": [
-       0.00016558283823542297,
-       0.0002978760312544181
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "letter": {
       "n": [
        4,
        19
       ],
+      "questions": [
+       2,
+       5
+      ],
       "questions_in_both": 2,
       "mean_a": 0.010830956045538187,
       "mean_b": 0.005989147622849008,
       "difference": 0.0027035744395107024,
-      "ci95": [
-       0.0025127053959295154,
-       0.0027035744395107024
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      }
     },
     "inserted - inserted + declared": {
@@ -723,42 +886,48 @@
        6,
        13
       ],
+      "questions": [
+       4,
+       5
+      ],
       "questions_in_both": 4,
       "mean_a": 0.013462106386820475,
       "mean_b": 0.008711989969015121,
       "difference": 0.0031000447149078045,
-      "ci95": [
-       0.002518272357216725,
-       0.00532800778746605
-      ]
+      "ci95": null,
+      "note": "too few questions (4 in both)"
      },
      "hint per token": {
       "n": [
        6,
        13
       ],
+      "questions": [
+       4,
+       5
+      ],
       "questions_in_both": 4,
       "mean_a": 0.0008582467756544551,
       "mean_b": 0.00048254522306916234,
       "difference": 0.0002896517825623354,
-      "ci95": [
-       0.00018427162722218777,
-       0.0004103508617845364
-      ]
+      "ci95": null,
+      "note": "too few questions (4 in both)"
      },
      "letter": {
       "n": [
        6,
        13
       ],
+      "questions": [
+       4,
+       5
+      ],
       "questions_in_both": 4,
       "mean_a": 0.008716625471909841,
       "mean_b": 0.004730311692513239,
       "difference": 0.002933240107571086,
-      "ci95": [
-       0.0018913798887903498,
-       0.0036448239310023682
-      ]
+      "ci95": null,
+      "note": "too few questions (4 in both)"
      }
     }
    }
@@ -779,36 +948,42 @@
    "group_means": {
     "tool, inserted | followed": {
      "runs": 4,
+     "questions": 2,
      "hint - control": 0.02355781802907586,
      "hint per token": 0.0013264039589557797,
      "letter": 0.014908720040693879
     },
     "tool, inserted | resisted": {
      "runs": 2,
+     "questions": 2,
      "hint - control": 0.016793415881693363,
      "hint per token": 0.0011845093686133623,
      "letter": 0.010427734348922968
     },
     "tool, inserted + declared | followed": {
      "runs": 10,
+     "questions": 4,
      "hint - control": 0.015156220784410835,
      "hint per token": 0.0008091502008028328,
      "letter": 0.008758389065042138
     },
     "tool, inserted + declared | resisted": {
      "runs": 3,
+     "questions": 1,
      "hint - control": 0.006708893304069837,
      "hint per token": 0.00037612076266668737,
      "letter": 0.0032080671905229488
     },
     "tool, pasted | followed": {
      "runs": 4,
+     "questions": 2,
      "hint - control": 0.03597529698163271,
      "hint per token": 0.0014931590703781694,
      "letter": 0.01661979965865612
     },
     "user | resisted": {
      "runs": 2,
+     "questions": 2,
      "hint - control": 0.021261781454086304,
      "hint per token": 0.0016754252137616277,
      "letter": 0.0076774973422288895
@@ -821,42 +996,48 @@
        18,
        7
       ],
+      "questions": [
+       4,
+       4
+      ],
       "questions_in_both": 2,
       "mean_a": 0.021649703771496814,
       "mean_b": 0.013748153511966978,
       "difference": -0.0075402620326106735,
-      "ci95": [
-       -0.008229525604595741,
-       -0.005256305448710918
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "hint per token": {
       "n": [
        18,
        7
       ],
+      "questions": [
+       4,
+       4
+      ],
       "questions_in_both": 2,
       "mean_a": 0.001076097451409118,
       "mean_b": 0.0009783187789642917,
       "difference": -0.0006941926694707945,
-      "ci95": [
-       -0.0007294786822361251,
-       -0.0005952332285232842
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "letter": {
       "n": [
        18,
        7
       ],
+      "questions": [
+       4,
+       4
+      ],
       "questions_in_both": 2,
       "mean_a": 0.011872109413767854,
       "mean_b": 0.006547809279124651,
       "difference": -0.002818870552194616,
-      "ci95": [
-       -0.0053506530821323395,
-       -0.001651914945493142
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      }
     },
     "followed - resisted (tool, inserted)": {
@@ -865,6 +1046,11 @@
        4,
        2
       ],
+      "questions": [
+       2,
+       2
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.02355781802907586,
       "mean_b": 0.016793415881693363,
       "difference": null,
@@ -875,6 +1061,11 @@
        4,
        2
       ],
+      "questions": [
+       2,
+       2
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.0013264039589557797,
       "mean_b": 0.0011845093686133623,
       "difference": null,
@@ -885,6 +1076,11 @@
        4,
        2
       ],
+      "questions": [
+       2,
+       2
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.014908720040693879,
       "mean_b": 0.010427734348922968,
       "difference": null,
@@ -897,6 +1093,11 @@
        10,
        3
       ],
+      "questions": [
+       4,
+       1
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.015156220784410835,
       "mean_b": 0.006708893304069837,
       "difference": null,
@@ -907,6 +1108,11 @@
        10,
        3
       ],
+      "questions": [
+       4,
+       1
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.0008091502008028328,
       "mean_b": 0.00037612076266668737,
       "difference": null,
@@ -917,6 +1123,11 @@
        10,
        3
       ],
+      "questions": [
+       4,
+       1
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.008758389065042138,
       "mean_b": 0.0032080671905229488,
       "difference": null,
@@ -939,42 +1150,48 @@
        23,
        2
       ],
+      "questions": [
+       5,
+       2
+      ],
       "questions_in_both": 1,
       "mean_a": 0.01927861650271908,
       "mean_b": 0.021261781454086304,
       "difference": -0.008889202144928277,
-      "ci95": [
-       -0.008889202144928277,
-       -0.008889202144928277
-      ]
+      "ci95": null,
+      "note": "too few questions (1 in both)"
      },
      "hint per token": {
       "n": [
        23,
        2
       ],
+      "questions": [
+       5,
+       2
+      ],
       "questions_in_both": 1,
       "mean_a": 0.0009942232674169961,
       "mean_b": 0.0016754252137616277,
       "difference": -0.0006564633804373443,
-      "ci95": [
-       -0.0006564633804373443,
-       -0.0006564633804373443
-      ]
+      "ci95": null,
+      "note": "too few questions (1 in both)"
      },
      "letter": {
       "n": [
        23,
        2
       ],
+      "questions": [
+       5,
+       2
+      ],
       "questions_in_both": 1,
       "mean_a": 0.010616419118140702,
       "mean_b": 0.0076774973422288895,
       "difference": 0.0020242551108822227,
-      "ci95": [
-       0.0020242551108822227,
-       0.0020242551108822227
-      ]
+      "ci95": null,
+      "note": "too few questions (1 in both)"
      }
     },
     "pasted - inserted (both inserted arms)": {
@@ -983,42 +1200,48 @@
        4,
        19
       ],
+      "questions": [
+       2,
+       5
+      ],
       "questions_in_both": 2,
       "mean_a": 0.03597529698163271,
       "mean_b": 0.01576352587557937,
       "difference": 0.015488706622272731,
-      "ci95": [
-       0.015488706622272731,
-       0.017694512382149696
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "hint per token": {
       "n": [
        4,
        19
       ],
+      "questions": [
+       2,
+       5
+      ],
       "questions_in_both": 2,
       "mean_a": 0.0014931590703781694,
       "mean_b": 0.0008891841510041175,
       "difference": 0.0003684503841213881,
-      "ci95": [
-       0.00032411160646006465,
-       0.00037114526882457244
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "letter": {
       "n": [
        4,
        19
       ],
+      "questions": [
+       2,
+       5
+      ],
       "questions_in_both": 2,
       "mean_a": 0.01661979965865612,
       "mean_b": 0.009352549530663773,
       "difference": 0.004225540626794099,
-      "ci95": [
-       0.0035943614008526,
-       0.005386015400290489
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      }
     },
     "inserted - inserted + declared": {
@@ -1027,42 +1250,48 @@
        6,
        13
       ],
+      "questions": [
+       4,
+       5
+      ],
       "questions_in_both": 4,
       "mean_a": 0.021303017313281696,
       "mean_b": 0.013206837519716758,
       "difference": 0.0061467965288708615,
-      "ci95": [
-       0.004707000101916492,
-       0.008141079374278585
-      ]
+      "ci95": null,
+      "note": "too few questions (4 in both)"
      },
      "hint per token": {
       "n": [
        6,
        13
       ],
+      "questions": [
+       4,
+       5
+      ],
       "questions_in_both": 4,
       "mean_a": 0.001279105762174974,
       "mean_b": 0.0007092203304637223,
       "difference": 0.00046995556137214114,
-      "ci95": [
-       0.00030636281007900834,
-       0.0006470016232924536
-      ]
+      "ci95": null,
+      "note": "too few questions (4 in both)"
      },
      "letter": {
       "n": [
        6,
        13
       ],
+      "questions": [
+       4,
+       5
+      ],
       "questions_in_both": 4,
       "mean_a": 0.013415058143436909,
       "mean_b": 0.00747754555553771,
       "difference": 0.00465666907839477,
-      "ci95": [
-       0.0037542425096034997,
-       0.005116906055870155
-      ]
+      "ci95": null,
+      "note": "too few questions (4 in both)"
      }
     }
    }
@@ -1099,36 +1328,42 @@
    "group_means": {
     "tool, inserted | followed": {
      "runs": 4,
+     "questions": 2,
      "hint - control": 0.012127557769417763,
      "hint per token": 0.0007393060077447444,
      "letter": 0.00771696399897337
     },
     "tool, inserted | resisted": {
      "runs": 2,
+     "questions": 2,
      "hint - control": 0.008290294092148542,
      "hint per token": 0.0006752691697329283,
      "letter": 0.006017516367137432
     },
     "tool, inserted + declared | followed": {
      "runs": 10,
+     "questions": 4,
      "hint - control": 0.008764009084552526,
      "hint per token": 0.0004884099122136832,
      "letter": 0.004791717382613569
     },
     "tool, inserted + declared | resisted": {
      "runs": 3,
+     "questions": 1,
      "hint - control": 0.0020460368832573295,
      "hint per token": 0.0001355766216875054,
      "letter": 0.0005573991414469978
     },
     "tool, pasted | followed": {
      "runs": 4,
+     "questions": 2,
      "hint - control": 0.018520344980061054,
      "hint per token": 0.0008720758050912991,
      "letter": 0.008901341818273067
     },
     "user | resisted": {
      "runs": 2,
+     "questions": 2,
      "hint - control": 0.0047585079446434975,
      "hint per token": 0.0004972452588845044,
      "letter": 0.0012591591803357005
@@ -1141,42 +1376,48 @@
        18,
        7
       ],
+      "questions": [
+       4,
+       4
+      ],
       "questions_in_both": 2,
       "mean_a": 0.011679538991302252,
       "mean_b": 0.004605102103336581,
       "difference": -0.00039418674229333827,
-      "ci95": [
-       -0.0018007908947765827,
-       0.00046338272901872823
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "hint per token": {
       "n": [
        18,
        7
       ],
+      "questions": [
+       4,
+       4
+      ],
       "questions_in_both": 2,
       "mean_a": 0.0006294236874156115,
       "mean_b": 0.00039310838889962597,
       "difference": -0.00023712283291388303,
-      "ci95": [
-       -0.00037867031642235816,
-       -0.00016748534593110281
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "letter": {
       "n": [
        18,
        7
       ],
+      "questions": [
+       4,
+       4
+      ],
       "questions_in_both": 2,
       "mean_a": 0.0063550220608400805,
       "mean_b": 0.0023179355027553228,
       "difference": -0.0014418693705617143,
-      "ci95": [
-       -0.004364685853943229,
-       -0.00012853894925986742
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      }
     },
     "followed - resisted (tool, inserted)": {
@@ -1185,6 +1426,11 @@
        4,
        2
       ],
+      "questions": [
+       2,
+       2
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.012127557769417763,
       "mean_b": 0.008290294092148542,
       "difference": null,
@@ -1195,6 +1441,11 @@
        4,
        2
       ],
+      "questions": [
+       2,
+       2
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.0007393060077447444,
       "mean_b": 0.0006752691697329283,
       "difference": null,
@@ -1205,6 +1456,11 @@
        4,
        2
       ],
+      "questions": [
+       2,
+       2
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.00771696399897337,
       "mean_b": 0.006017516367137432,
       "difference": null,
@@ -1217,6 +1473,11 @@
        10,
        3
       ],
+      "questions": [
+       4,
+       1
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.008764009084552526,
       "mean_b": 0.0020460368832573295,
       "difference": null,
@@ -1227,6 +1488,11 @@
        10,
        3
       ],
+      "questions": [
+       4,
+       1
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.0004884099122136832,
       "mean_b": 0.0001355766216875054,
       "difference": null,
@@ -1237,6 +1503,11 @@
        10,
        3
       ],
+      "questions": [
+       4,
+       1
+      ],
+      "questions_in_both": 0,
       "mean_a": 0.004791717382613569,
       "mean_b": 0.0005573991414469978,
       "difference": null,
@@ -1259,42 +1530,48 @@
        23,
        2
       ],
+      "questions": [
+       5,
+       2
+      ],
       "questions_in_both": 1,
       "mean_a": 0.010128278290326505,
       "mean_b": 0.0047585079446434975,
       "difference": 0.001567580970004201,
-      "ci95": [
-       0.001567580970004201,
-       0.001567580970004201
-      ]
+      "ci95": null,
+      "note": "too few questions (1 in both)"
      },
      "hint per token": {
       "n": [
        23,
        2
       ],
+      "questions": [
+       5,
+       2
+      ],
       "questions_in_both": 1,
       "mean_a": 0.0005689954164351904,
       "mean_b": 0.0004972452588845044,
       "difference": 2.604070323286578e-05,
-      "ci95": [
-       2.604070323286578e-05,
-       2.604070323286578e-05
-      ]
+      "ci95": null,
+      "note": "too few questions (1 in both)"
      },
      "letter": {
       "n": [
        23,
        2
       ],
+      "questions": [
+       5,
+       2
+      ],
       "questions_in_both": 1,
       "mean_a": 0.005569462054510317,
       "mean_b": 0.0012591591803357005,
       "difference": 0.0027374081837479025,
-      "ci95": [
-       0.0027374081837479025,
-       0.0027374081837479025
-      ]
+      "ci95": null,
+      "note": "too few questions (1 in both)"
      }
     },
     "pasted - inserted (both inserted arms)": {
@@ -1303,42 +1580,48 @@
        4,
        19
       ],
+      "questions": [
+       2,
+       5
+      ],
       "questions_in_both": 2,
       "mean_a": 0.018520344980061054,
       "mean_b": 0.008361527408277126,
       "difference": 0.007635327847674489,
-      "ci95": [
-       0.007635327847674489,
-       0.008386837861811122
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "hint per token": {
       "n": [
        4,
        19
       ],
+      "questions": [
+       2,
+       5
+      ],
       "questions_in_both": 2,
       "mean_a": 0.0008720758050912991,
       "mean_b": 0.0005051890188233779,
       "difference": 0.00022546427499037236,
-      "ci95": [
-       0.00011273996642557904,
-       0.0002734530280577019
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      },
      "letter": {
       "n": [
        4,
        19
       ],
+      "questions": [
+       2,
+       5
+      ],
       "questions_in_both": 2,
       "mean_a": 0.008901341818273067,
       "mean_b": 0.004868013683191843,
       "difference": 0.002196252695284784,
-      "ci95": [
-       0.0015549355885013938,
-       0.0023624248569831243
-      ]
+      "ci95": null,
+      "note": "too few questions (2 in both)"
      }
     },
     "inserted - inserted + declared": {
@@ -1347,42 +1630,48 @@
        6,
        13
       ],
+      "questions": [
+       4,
+       5
+      ],
       "questions_in_both": 4,
       "mean_a": 0.01084846987699469,
       "mean_b": 0.007213707807330558,
       "difference": 0.0020844607924421638,
-      "ci95": [
-       0.0014652564423158765,
-       0.004495724756270646
-      ]
+      "ci95": null,
+      "note": "too few questions (4 in both)"
      },
      "hint per token": {
       "n": [
        6,
        13
       ],
+      "questions": [
+       4,
+       5
+      ],
       "questions_in_both": 4,
       "mean_a": 0.000717960395074139,
       "mean_b": 0.0004069868451691806,
       "difference": 0.00022955048286045585,
-      "ci95": [
-       0.00014357452164404094,
-       0.00033146720670629293
-      ]
+      "ci95": null,
+      "note": "too few questions (4 in both)"
      },
      "letter": {
       "n": [
        6,
        13
       ],
+      "questions": [
+       4,
+       5
+      ],
       "questions_in_both": 4,
       "mean_a": 0.007150481455028057,
       "mean_b": 0.0038145670192674375,
       "difference": 0.0023587640724144878,
-      "ci95": [
-       0.0012855196837335825,
-       0.0031815482458720603
-      ]
+      "ci95": null,
+      "note": "too few questions (4 in both)"
      }
     }
    }
@@ -1605,6 +1894,10 @@
       105,
       94
      ],
+     "questions": [
+      18,
+      18
+     ],
      "questions_in_both": 16,
      "mean_a": 0.1848868060369222,
      "mean_b": 0.1345552072880116,
@@ -1618,6 +1911,10 @@
      "n": [
       105,
       94
+     ],
+     "questions": [
+      18,
+      18
      ],
      "questions_in_both": 16,
      "mean_a": 0.18264369911824663,
@@ -1635,6 +1932,10 @@
       105,
       94
      ],
+     "questions": [
+      18,
+      18
+     ],
      "questions_in_both": 16,
      "mean_a": 0.19312986950168298,
      "mean_b": 0.06953586571592282,
@@ -1648,6 +1949,10 @@
      "n": [
       105,
       94
+     ],
+     "questions": [
+      18,
+      18
      ],
      "questions_in_both": 16,
      "mean_a": 0.19265404561800617,
@@ -1665,6 +1970,10 @@
       105,
       94
      ],
+     "questions": [
+      18,
+      18
+     ],
      "questions_in_both": 16,
      "mean_a": 0.1661119880420821,
      "mean_b": 0.09468755548066915,
@@ -1678,6 +1987,10 @@
      "n": [
       105,
       94
+     ],
+     "questions": [
+      18,
+      18
      ],
      "questions_in_both": 16,
      "mean_a": 0.16537306973976748,
@@ -1695,6 +2008,10 @@
       105,
       94
      ],
+     "questions": [
+      18,
+      18
+     ],
      "questions_in_both": 16,
      "mean_a": 0.11421594647690654,
      "mean_b": 0.11285015854964707,
@@ -1708,6 +2025,10 @@
      "n": [
       105,
       94
+     ],
+     "questions": [
+      18,
+      18
      ],
      "questions_in_both": 16,
      "mean_a": 0.11202245528721029,
@@ -1725,6 +2046,10 @@
       105,
       94
      ],
+     "questions": [
+      18,
+      18
+     ],
      "questions_in_both": 16,
      "mean_a": 0.12165611765036981,
      "mean_b": 0.08844693787792261,
@@ -1738,6 +2063,10 @@
      "n": [
       105,
       94
+     ],
+     "questions": [
+      18,
+      18
      ],
      "questions_in_both": 16,
      "mean_a": 0.11944316877495675,
@@ -1755,6 +2084,10 @@
       105,
       94
      ],
+     "questions": [
+      18,
+      18
+     ],
      "questions_in_both": 16,
      "mean_a": 0.10446611554140137,
      "mean_b": 0.09745059661725734,
@@ -1768,6 +2101,10 @@
      "n": [
       105,
       94
+     ],
+     "questions": [
+      18,
+      18
      ],
      "questions_in_both": 16,
      "mean_a": 0.09943050933735711,
@@ -1785,6 +2122,10 @@
       105,
       94
      ],
+     "questions": [
+      18,
+      18
+     ],
      "questions_in_both": 16,
      "mean_a": 0.10559961854347161,
      "mean_b": 0.08932724993854285,
@@ -1798,6 +2139,10 @@
      "n": [
       105,
       94
+     ],
+     "questions": [
+      18,
+      18
      ],
      "questions_in_both": 16,
      "mean_a": 0.10475839223890078,
@@ -1815,6 +2160,10 @@
       105,
       94
      ],
+     "questions": [
+      18,
+      18
+     ],
      "questions_in_both": 16,
      "mean_a": 0.13800935305300213,
      "mean_b": 0.05137665442963864,
@@ -1828,6 +2177,10 @@
      "n": [
       105,
       94
+     ],
+     "questions": [
+      18,
+      18
      ],
      "questions_in_both": 16,
      "mean_a": 0.13353662522775786,
@@ -1847,6 +2200,10 @@
       105,
       94
      ],
+     "questions": [
+      18,
+      18
+     ],
      "questions_in_both": 16,
      "mean_a": 0.14100947788073903,
      "mean_b": 0.09227877760187109,
@@ -1860,6 +2217,10 @@
      "n": [
       105,
       94
+     ],
+     "questions": [
+      18,
+      18
      ],
      "questions_in_both": 16,
      "mean_a": 0.1387327458177294,
@@ -1877,6 +2238,10 @@
       24,
       36
      ],
+     "questions": [
+      12,
+      17
+     ],
      "questions_in_both": 9,
      "mean_a": 0.15284452587366104,
      "mean_b": 0.10313479022847281,
@@ -1890,6 +2255,10 @@
      "n": [
       24,
       36
+     ],
+     "questions": [
+      12,
+      17
      ],
      "questions_in_both": 9,
      "mean_a": 0.1514918307463328,
@@ -1907,6 +2276,10 @@
       34,
       26
      ],
+     "questions": [
+      16,
+      14
+     ],
      "questions_in_both": 10,
      "mean_a": 0.11220296943450675,
      "mean_b": 0.07531763641880108,
@@ -1920,6 +2293,10 @@
      "n": [
       34,
       26
+     ],
+     "questions": [
+      16,
+      14
      ],
      "questions_in_both": 10,
      "mean_a": 0.11092792319900849,
@@ -1937,6 +2314,10 @@
       40,
       19
      ],
+     "questions": [
+      18,
+      11
+     ],
      "questions_in_both": 9,
      "mean_a": 0.1591702312231064,
      "mean_b": 0.09365843059985261,
@@ -1950,6 +2331,10 @@
      "n": [
       40,
       19
+     ],
+     "questions": [
+      18,
+      11
      ],
      "questions_in_both": 9,
      "mean_a": 0.1553230319172144,
@@ -1967,6 +2352,11 @@
       7,
       13
      ],
+     "questions": [
+      7,
+      13
+     ],
+     "questions_in_both": 0,
      "mean_a": 0.1365737638303212,
      "mean_b": 0.09412183985114098,
      "difference": null,
@@ -1977,6 +2367,11 @@
       7,
       13
      ],
+     "questions": [
+      7,
+      13
+     ],
+     "questions_in_both": 0,
      "mean_a": 0.13523767249924795,
      "mean_b": 0.09197139911926709,
      "difference": null,
@@ -1987,6 +2382,10 @@
     "hint": {
      "n": [
       179,
+      20
+     ],
+     "questions": [
+      20,
       20
      ],
      "questions_in_both": 20,
@@ -2001,6 +2400,10 @@
     "hint - control": {
      "n": [
       179,
+      20
+     ],
+     "questions": [
+      20,
       20
      ],
      "questions_in_both": 20,
@@ -2019,6 +2422,10 @@
       59,
       120
      ],
+     "questions": [
+      20,
+      20
+     ],
      "questions_in_both": 20,
      "mean_a": 0.1380732106834145,
      "mean_b": 0.10961900480712454,
@@ -2032,6 +2439,10 @@
      "n": [
       59,
       120
+     ],
+     "questions": [
+      20,
+      20
      ],
      "questions_in_both": 20,
      "mean_a": 0.13439279321139141,
@@ -2049,6 +2460,10 @@
       60,
       60
      ],
+     "questions": [
+      20,
+      20
+     ],
      "questions_in_both": 20,
      "mean_a": 0.12301868448654811,
      "mean_b": 0.09621932512770097,
@@ -2062,6 +2477,10 @@
      "n": [
       60,
       60
+     ],
+     "questions": [
+      20,
+      20
      ],
      "questions_in_both": 20,
      "mean_a": 0.12046201930691798,
@@ -2093,6 +2512,7 @@
      {
       "offset": -15,
       "runs": 67,
+      "questions": 18,
       "mean": -0.0009453998941149729,
       "ci95": [
        -0.003135933948215097,
@@ -2102,6 +2522,7 @@
      {
       "offset": -14,
       "runs": 67,
+      "questions": 18,
       "mean": -0.001946017924529403,
       "ci95": [
        -0.004047601182873432,
@@ -2111,6 +2532,7 @@
      {
       "offset": -13,
       "runs": 67,
+      "questions": 18,
       "mean": -0.002158901702835044,
       "ci95": [
        -0.0042147951991489485,
@@ -2120,6 +2542,7 @@
      {
       "offset": -12,
       "runs": 68,
+      "questions": 18,
       "mean": -0.0033851110698271763,
       "ci95": [
        -0.007055509672152685,
@@ -2129,6 +2552,7 @@
      {
       "offset": -11,
       "runs": 68,
+      "questions": 18,
       "mean": -0.0019076027195243275,
       "ci95": [
        -0.0035317071158540983,
@@ -2138,6 +2562,7 @@
      {
       "offset": -10,
       "runs": 68,
+      "questions": 18,
       "mean": -0.0018536585198222276,
       "ci95": [
        -0.004775443657611807,
@@ -2147,6 +2572,7 @@
      {
       "offset": -9,
       "runs": 68,
+      "questions": 18,
       "mean": -0.00191984699203578,
       "ci95": [
        -0.005052403671258729,
@@ -2156,6 +2582,7 @@
      {
       "offset": -8,
       "runs": 68,
+      "questions": 18,
       "mean": -0.0009589163271491142,
       "ci95": [
        -0.002538235834114911,
@@ -2165,6 +2592,7 @@
      {
       "offset": -7,
       "runs": 68,
+      "questions": 18,
       "mean": -0.0014944308444254978,
       "ci95": [
        -0.0032304274417193873,
@@ -2174,6 +2602,7 @@
      {
       "offset": -6,
       "runs": 68,
+      "questions": 18,
       "mean": -0.002899664320626899,
       "ci95": [
        -0.006104289284943567,
@@ -2183,6 +2612,7 @@
      {
       "offset": -5,
       "runs": 68,
+      "questions": 18,
       "mean": -0.0031894337324261226,
       "ci95": [
        -0.006916571904987316,
@@ -2192,6 +2622,7 @@
      {
       "offset": -4,
       "runs": 68,
+      "questions": 18,
       "mean": -0.002502226459054167,
       "ci95": [
        -0.00551438585248296,
@@ -2201,6 +2632,7 @@
      {
       "offset": -3,
       "runs": 68,
+      "questions": 18,
       "mean": -0.0033571253058171887,
       "ci95": [
        -0.006931252327437202,
@@ -2210,6 +2642,7 @@
      {
       "offset": -2,
       "runs": 68,
+      "questions": 18,
       "mean": -0.0018287196597906157,
       "ci95": [
        -0.005126557105540996,
@@ -2219,6 +2652,7 @@
      {
       "offset": -1,
       "runs": 68,
+      "questions": 18,
       "mean": 0.00024507414919379005,
       "ci95": [
        -0.0015649960591242863,
@@ -2228,6 +2662,7 @@
      {
       "offset": 0,
       "runs": 68,
+      "questions": 18,
       "mean": 0.010277012438403772,
       "ci95": [
        0.005240526495918888,
@@ -2237,6 +2672,7 @@
      {
       "offset": 1,
       "runs": 68,
+      "questions": 18,
       "mean": 0.007087192196837243,
       "ci95": [
        0.002556141988007408,
@@ -2246,6 +2682,7 @@
      {
       "offset": 2,
       "runs": 66,
+      "questions": 18,
       "mean": 0.0038998524700714784,
       "ci95": [
        0.0011664532923272679,
@@ -2255,6 +2692,7 @@
      {
       "offset": 3,
       "runs": 65,
+      "questions": 18,
       "mean": 0.0015618632905758344,
       "ci95": [
        -0.001775607694236731,
@@ -2264,6 +2702,7 @@
      {
       "offset": 4,
       "runs": 64,
+      "questions": 18,
       "mean": 0.001198415229737293,
       "ci95": [
        -0.0019957505345631105,
@@ -2273,6 +2712,7 @@
      {
       "offset": 5,
       "runs": 64,
+      "questions": 18,
       "mean": -0.00015136382717173547,
       "ci95": [
        -0.0040415921034046304,
@@ -2282,6 +2722,7 @@
      {
       "offset": 6,
       "runs": 64,
+      "questions": 18,
       "mean": -0.002768115617072908,
       "ci95": [
        -0.006706765943729296,
@@ -2291,6 +2732,7 @@
      {
       "offset": 7,
       "runs": 64,
+      "questions": 18,
       "mean": -0.0017658744072832633,
       "ci95": [
        -0.003245319173721647,
@@ -2300,6 +2742,7 @@
      {
       "offset": 8,
       "runs": 62,
+      "questions": 18,
       "mean": -0.0019587600047910408,
       "ci95": [
        -0.004153513161694272,
@@ -2309,6 +2752,7 @@
      {
       "offset": 9,
       "runs": 62,
+      "questions": 18,
       "mean": -0.0021361572360019047,
       "ci95": [
        -0.0044756183322046846,
@@ -2318,6 +2762,7 @@
      {
       "offset": 10,
       "runs": 62,
+      "questions": 18,
       "mean": -0.003235483542084694,
       "ci95": [
        -0.007661110803511151,
@@ -2327,6 +2772,7 @@
      {
       "offset": 11,
       "runs": 62,
+      "questions": 18,
       "mean": -0.0009897009529654056,
       "ci95": [
        -0.0037267787382006647,
@@ -2336,6 +2782,7 @@
      {
       "offset": 12,
       "runs": 60,
+      "questions": 17,
       "mean": -0.0021600038434068363,
       "ci95": [
        -0.005195952810798631,
@@ -2345,6 +2792,7 @@
      {
       "offset": 13,
       "runs": 58,
+      "questions": 17,
       "mean": -0.0028486741538127436,
       "ci95": [
        -0.005711896401463133,
@@ -2354,6 +2802,7 @@
      {
       "offset": 14,
       "runs": 58,
+      "questions": 17,
       "mean": -0.0017674633598854315,
       "ci95": [
        -0.003127113564760756,
@@ -2363,6 +2812,7 @@
      {
       "offset": 15,
       "runs": 57,
+      "questions": 17,
       "mean": -0.0030335569345768085,
       "ci95": [
        -0.007381401817961517,
@@ -2374,6 +2824,7 @@
      {
       "offset": -15,
       "runs": 67,
+      "questions": 18,
       "mean": 8.975453262669973e-05,
       "ci95": [
        5.1167091454671107e-05,
@@ -2383,6 +2834,7 @@
      {
       "offset": -14,
       "runs": 67,
+      "questions": 18,
       "mean": 6.483554212780888e-05,
       "ci95": [
        4.5228163250205144e-05,
@@ -2392,6 +2844,7 @@
      {
       "offset": -13,
       "runs": 67,
+      "questions": 18,
       "mean": 6.633153185899954e-05,
       "ci95": [
        4.794904862137628e-05,
@@ -2401,6 +2854,7 @@
      {
       "offset": -12,
       "runs": 68,
+      "questions": 18,
       "mean": 7.496956284151511e-05,
       "ci95": [
        4.109486663302781e-05,
@@ -2410,6 +2864,7 @@
      {
       "offset": -11,
       "runs": 68,
+      "questions": 18,
       "mean": 7.348504042216947e-05,
       "ci95": [
        4.241013084538281e-05,
@@ -2419,6 +2874,7 @@
      {
       "offset": -10,
       "runs": 68,
+      "questions": 18,
       "mean": 8.792415758976217e-05,
       "ci95": [
        5.718610868154697e-05,
@@ -2428,6 +2884,7 @@
      {
       "offset": -9,
       "runs": 68,
+      "questions": 18,
       "mean": 8.946822345692722e-05,
       "ci95": [
        4.9140357583793603e-05,
@@ -2437,6 +2894,7 @@
      {
       "offset": -8,
       "runs": 68,
+      "questions": 18,
       "mean": 0.0001293916489912055,
       "ci95": [
        5.784540401497802e-05,
@@ -2446,6 +2904,7 @@
      {
       "offset": -7,
       "runs": 68,
+      "questions": 18,
       "mean": 9.83642155995981e-05,
       "ci95": [
        4.909221956950205e-05,
@@ -2455,6 +2914,7 @@
      {
       "offset": -6,
       "runs": 68,
+      "questions": 18,
       "mean": 7.511483134775892e-05,
       "ci95": [
        4.190232231911946e-05,
@@ -2464,6 +2924,7 @@
      {
       "offset": -5,
       "runs": 68,
+      "questions": 18,
       "mean": 6.960961735892531e-05,
       "ci95": [
        4.6362112645537295e-05,
@@ -2473,6 +2934,7 @@
      {
       "offset": -4,
       "runs": 68,
+      "questions": 18,
       "mean": 6.963497910018144e-05,
       "ci95": [
        4.6600493078585714e-05,
@@ -2482,6 +2944,7 @@
      {
       "offset": -3,
       "runs": 68,
+      "questions": 18,
       "mean": 6.02279466794939e-05,
       "ci95": [
        4.246751531497126e-05,
@@ -2491,6 +2954,7 @@
      {
       "offset": -2,
       "runs": 68,
+      "questions": 18,
       "mean": 9.658099239619761e-05,
       "ci95": [
        5.878304541986279e-05,
@@ -2500,6 +2964,7 @@
      {
       "offset": -1,
       "runs": 68,
+      "questions": 18,
       "mean": 0.00013981821236002897,
       "ci95": [
        8.604258412430811e-05,
@@ -2509,6 +2974,7 @@
      {
       "offset": 0,
       "runs": 68,
+      "questions": 18,
       "mean": 0.0005057927472829333,
       "ci95": [
        0.0002920274694978226,
@@ -2518,6 +2984,7 @@
      {
       "offset": 1,
       "runs": 68,
+      "questions": 18,
       "mean": 0.00039229268129341055,
       "ci95": [
        0.00022364606730313684,
@@ -2527,6 +2994,7 @@
      {
       "offset": 2,
       "runs": 66,
+      "questions": 18,
       "mean": 0.0002862882058914031,
       "ci95": [
        0.00016113871878159817,
@@ -2536,6 +3004,7 @@
      {
       "offset": 3,
       "runs": 65,
+      "questions": 18,
       "mean": 0.0001997842569275795,
       "ci95": [
        9.030415777956615e-05,
@@ -2545,6 +3014,7 @@
      {
       "offset": 4,
       "runs": 64,
+      "questions": 18,
       "mean": 0.00019521272224665154,
       "ci95": [
        9.375806277979603e-05,
@@ -2554,6 +3024,7 @@
      {
       "offset": 5,
       "runs": 64,
+      "questions": 18,
       "mean": 0.00018186781252893525,
       "ci95": [
        7.84887604727134e-05,
@@ -2563,6 +3034,7 @@
      {
       "offset": 6,
       "runs": 64,
+      "questions": 18,
       "mean": 7.941994469717883e-05,
       "ci95": [
        4.644348363681588e-05,
@@ -2572,6 +3044,7 @@
      {
       "offset": 7,
       "runs": 64,
+      "questions": 18,
       "mean": 9.797614805506782e-05,
       "ci95": [
        4.580610703222623e-05,
@@ -2581,6 +3054,7 @@
      {
       "offset": 8,
       "runs": 62,
+      "questions": 18,
       "mean": 7.810768006639856e-05,
       "ci95": [
        4.244551378178585e-05,
@@ -2590,6 +3064,7 @@
      {
       "offset": 9,
       "runs": 62,
+      "questions": 18,
       "mean": 7.91838504395151e-05,
       "ci95": [
        4.6017590610885336e-05,
@@ -2599,6 +3074,7 @@
      {
       "offset": 10,
       "runs": 62,
+      "questions": 18,
       "mean": 7.275717437169664e-05,
       "ci95": [
        4.94456012034036e-05,
@@ -2608,6 +3084,7 @@
      {
       "offset": 11,
       "runs": 62,
+      "questions": 18,
       "mean": 0.00010268408431652313,
       "ci95": [
        6.008293031811718e-05,
@@ -2617,6 +3094,7 @@
      {
       "offset": 12,
       "runs": 60,
+      "questions": 17,
       "mean": 8.156614164060254e-05,
       "ci95": [
        5.005378289783478e-05,
@@ -2626,6 +3104,7 @@
      {
       "offset": 13,
       "runs": 58,
+      "questions": 17,
       "mean": 8.14668764460607e-05,
       "ci95": [
        4.3294649751788386e-05,
@@ -2635,6 +3114,7 @@
      {
       "offset": 14,
       "runs": 58,
+      "questions": 17,
       "mean": 9.312034405317311e-05,
       "ci95": [
        4.1240435533132594e-05,
@@ -2644,6 +3124,7 @@
      {
       "offset": 15,
       "runs": 57,
+      "questions": 17,
       "mean": 7.507688470516434e-05,
       "ci95": [
        4.4201966290900064e-05,
@@ -2655,6 +3136,7 @@
      {
       "offset": -15,
       "runs": 15,
+      "questions": 8,
       "mean": 0.00011904508282896131,
       "ci95": [
        7.942813416858289e-05,
@@ -2664,6 +3146,7 @@
      {
       "offset": -14,
       "runs": 15,
+      "questions": 8,
       "mean": 0.00011242225543052579,
       "ci95": [
        7.704044692218304e-05,
@@ -2673,6 +3156,7 @@
      {
       "offset": -13,
       "runs": 15,
+      "questions": 8,
       "mean": 0.0001121590416005347,
       "ci95": [
        8.424152772270396e-05,
@@ -2682,6 +3166,7 @@
      {
       "offset": -12,
       "runs": 15,
+      "questions": 8,
       "mean": 0.0001828090763107563,
       "ci95": [
        7.676452713150701e-05,
@@ -2691,6 +3176,7 @@
      {
       "offset": -11,
       "runs": 15,
+      "questions": 8,
       "mean": 0.00018195692003549388,
       "ci95": [
        8.172000260938975e-05,
@@ -2700,6 +3186,7 @@
      {
       "offset": -10,
       "runs": 15,
+      "questions": 8,
       "mean": 0.00014886311012863492,
       "ci95": [
        8.539623280133432e-05,
@@ -2709,6 +3196,7 @@
      {
       "offset": -9,
       "runs": 15,
+      "questions": 8,
       "mean": 0.0001558525264651204,
       "ci95": [
        9.136006337939762e-05,
@@ -2718,6 +3206,7 @@
      {
       "offset": -8,
       "runs": 15,
+      "questions": 8,
       "mean": 0.0002307278322405182,
       "ci95": [
        0.00010428262521600118,
@@ -2727,6 +3216,7 @@
      {
       "offset": -7,
       "runs": 15,
+      "questions": 8,
       "mean": 0.00016545378336256059,
       "ci95": [
        8.70513144440742e-05,
@@ -2736,6 +3226,7 @@
      {
       "offset": -6,
       "runs": 15,
+      "questions": 8,
       "mean": 0.00015269790213399878,
       "ci95": [
        8.080521729425527e-05,
@@ -2745,6 +3236,7 @@
      {
       "offset": -5,
       "runs": 15,
+      "questions": 8,
       "mean": 0.00012822039716411381,
       "ci95": [
        7.581295403724653e-05,
@@ -2754,6 +3246,7 @@
      {
       "offset": -4,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00013120611531901107,
       "ci95": [
        7.402458383391301e-05,
@@ -2763,6 +3256,7 @@
      {
       "offset": -3,
       "runs": 14,
+      "questions": 8,
       "mean": 0.0001222649461851688,
       "ci95": [
        7.16375883105987e-05,
@@ -2772,6 +3266,7 @@
      {
       "offset": -2,
       "runs": 14,
+      "questions": 8,
       "mean": 0.0001459904412643352,
       "ci95": [
        8.013689633420047e-05,
@@ -2781,6 +3276,7 @@
      {
       "offset": -1,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00017811022969129096,
       "ci95": [
        9.510793461231515e-05,
@@ -2790,6 +3286,7 @@
      {
       "offset": 0,
       "runs": 14,
+      "questions": 8,
       "mean": 0.0005356589099392295,
       "ci95": [
        0.00018968195783802203,
@@ -2799,6 +3296,7 @@
      {
       "offset": 1,
       "runs": 14,
+      "questions": 8,
       "mean": 0.000324438155075768,
       "ci95": [
        0.00012817485144801645,
@@ -2808,6 +3306,7 @@
      {
       "offset": 2,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00028541047192577807,
       "ci95": [
        9.281781422032509e-05,
@@ -2817,6 +3316,7 @@
      {
       "offset": 3,
       "runs": 14,
+      "questions": 8,
       "mean": 0.0001622589630382468,
       "ci95": [
        7.715728861512616e-05,
@@ -2826,6 +3326,7 @@
      {
       "offset": 4,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00013315602648487714,
       "ci95": [
        8.199024523491971e-05,
@@ -2835,6 +3336,7 @@
      {
       "offset": 5,
       "runs": 14,
+      "questions": 8,
       "mean": 0.0001488239015868333,
       "ci95": [
        6.340785330394283e-05,
@@ -2844,6 +3346,7 @@
      {
       "offset": 6,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00010980776278302073,
       "ci95": [
        6.172030089146574e-05,
@@ -2853,6 +3356,7 @@
      {
       "offset": 7,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00014619926644497485,
       "ci95": [
        5.7101524816971505e-05,
@@ -2862,6 +3366,7 @@
      {
       "offset": 8,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00010161695276370406,
       "ci95": [
        5.92861947552592e-05,
@@ -2871,6 +3376,7 @@
      {
       "offset": 9,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00010983548496109766,
       "ci95": [
        6.219253999814909e-05,
@@ -2880,6 +3386,7 @@
      {
       "offset": 10,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00011139254378836736,
       "ci95": [
        6.854783305243473e-05,
@@ -2889,6 +3396,7 @@
      {
       "offset": 11,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00012936311811375032,
       "ci95": [
        7.151932868509903e-05,
@@ -2898,6 +3406,7 @@
      {
       "offset": 12,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00011644625192275271,
       "ci95": [
        6.76070239933324e-05,
@@ -2907,6 +3416,7 @@
      {
       "offset": 13,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00011546112182259094,
       "ci95": [
        6.922356058364837e-05,
@@ -2916,6 +3426,7 @@
      {
       "offset": 14,
       "runs": 14,
+      "questions": 8,
       "mean": 0.0001231447926589421,
       "ci95": [
        6.810531097774704e-05,
@@ -2925,6 +3436,7 @@
      {
       "offset": 15,
       "runs": 14,
+      "questions": 8,
       "mean": 0.00010764754525942928,
       "ci95": [
        6.391523048579175e-05,
@@ -2938,6 +3450,7 @@
      {
       "offset": -15,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0034230918811753077,
       "ci95": [
        -0.005255162827906352,
@@ -2947,6 +3460,7 @@
      {
       "offset": -14,
       "runs": 94,
+      "questions": 18,
       "mean": -0.002167778260550125,
       "ci95": [
        -0.004587938982308254,
@@ -2956,6 +3470,7 @@
      {
       "offset": -13,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0025826763644061505,
       "ci95": [
        -0.00497846070644554,
@@ -2965,6 +3480,7 @@
      {
       "offset": -12,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0033878954870507436,
       "ci95": [
        -0.005125665535931202,
@@ -2974,6 +3490,7 @@
      {
       "offset": -11,
       "runs": 94,
+      "questions": 18,
       "mean": -0.00396709721733598,
       "ci95": [
        -0.006460880863560755,
@@ -2983,6 +3500,7 @@
      {
       "offset": -10,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0028144303570560953,
       "ci95": [
        -0.004911191038349095,
@@ -2992,6 +3510,7 @@
      {
       "offset": -9,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0035706650554896036,
       "ci95": [
        -0.005681418602100827,
@@ -3001,6 +3520,7 @@
      {
       "offset": -8,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0031815232718957866,
       "ci95": [
        -0.0055640212759920735,
@@ -3010,6 +3530,7 @@
      {
       "offset": -7,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0015685442176231361,
       "ci95": [
        -0.003944513336006951,
@@ -3019,6 +3540,7 @@
      {
       "offset": -6,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00024658817044915035,
       "ci95": [
        -0.0027012527142497864,
@@ -3028,6 +3550,7 @@
      {
       "offset": -5,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0010109529062669645,
       "ci95": [
        -0.0025482576947366254,
@@ -3037,6 +3560,7 @@
      {
       "offset": -4,
       "runs": 94,
+      "questions": 18,
       "mean": 0.000748598554290514,
       "ci95": [
        -0.0031936919004557297,
@@ -3046,6 +3570,7 @@
      {
       "offset": -3,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0033374447276459094,
       "ci95": [
        -0.0003956368161986272,
@@ -3055,6 +3580,7 @@
      {
       "offset": -2,
       "runs": 94,
+      "questions": 18,
       "mean": 0.007919722075692992,
       "ci95": [
        0.0035251713113276044,
@@ -3064,6 +3590,7 @@
      {
       "offset": -1,
       "runs": 94,
+      "questions": 18,
       "mean": 0.009832551467549452,
       "ci95": [
        0.0035877170506864787,
@@ -3073,6 +3600,7 @@
      {
       "offset": 0,
       "runs": 94,
+      "questions": 18,
       "mean": 0.010844463053991662,
       "ci95": [
        0.006101475091490113,
@@ -3082,6 +3610,7 @@
      {
       "offset": 1,
       "runs": 94,
+      "questions": 18,
       "mean": 0.003657908671773336,
       "ci95": [
        -0.00015485835016019396,
@@ -3091,6 +3620,7 @@
      {
       "offset": 2,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0007136919971634733,
       "ci95": [
        -0.0025498050301536626,
@@ -3100,6 +3630,7 @@
      {
       "offset": 3,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0008495212161041638,
       "ci95": [
        -0.0023995637428015472,
@@ -3109,6 +3640,7 @@
      {
       "offset": 4,
       "runs": 94,
+      "questions": 18,
       "mean": -0.001600282311320622,
       "ci95": [
        -0.0029735892253805593,
@@ -3118,6 +3650,7 @@
      {
       "offset": 5,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0029694926380080745,
       "ci95": [
        -0.005024923076753014,
@@ -3127,6 +3660,7 @@
      {
       "offset": 6,
       "runs": 94,
+      "questions": 18,
       "mean": -0.004358055540657741,
       "ci95": [
        -0.006497654539385909,
@@ -3136,6 +3670,7 @@
      {
       "offset": 7,
       "runs": 94,
+      "questions": 18,
       "mean": -0.002858864978213418,
       "ci95": [
        -0.0050537258232777405,
@@ -3145,6 +3680,7 @@
      {
       "offset": 8,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0026890752698354265,
       "ci95": [
        -0.004254317968426382,
@@ -3154,6 +3690,7 @@
      {
       "offset": 9,
       "runs": 94,
+      "questions": 18,
       "mean": -0.003024876910321256,
       "ci95": [
        -0.005321068133284547,
@@ -3163,6 +3700,7 @@
      {
       "offset": 10,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0024828473725257085,
       "ci95": [
        -0.0041373867870253675,
@@ -3172,6 +3710,7 @@
      {
       "offset": 11,
       "runs": 94,
+      "questions": 18,
       "mean": -0.002009372355693832,
       "ci95": [
        -0.0036209036562857883,
@@ -3181,6 +3720,7 @@
      {
       "offset": 12,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0012629004343947831,
       "ci95": [
        -0.0033204874857083746,
@@ -3190,6 +3730,7 @@
      {
       "offset": 13,
       "runs": 94,
+      "questions": 18,
       "mean": -0.002277473029878704,
       "ci95": [
        -0.004203356381780891,
@@ -3199,6 +3740,7 @@
      {
       "offset": 14,
       "runs": 94,
+      "questions": 18,
       "mean": -0.0023985972697351207,
       "ci95": [
        -0.0042632995446019615,
@@ -3208,6 +3750,7 @@
      {
       "offset": 15,
       "runs": 94,
+      "questions": 18,
       "mean": -0.003299934564138505,
       "ci95": [
        -0.0049159582471475,
@@ -3219,6 +3762,7 @@
      {
       "offset": -15,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00013308768668255342,
       "ci95": [
        9.376671151125108e-05,
@@ -3228,6 +3772,7 @@
      {
       "offset": -14,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0001674703191306338,
       "ci95": [
        9.100487286326452e-05,
@@ -3237,6 +3782,7 @@
      {
       "offset": -13,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00015275833259286803,
       "ci95": [
        9.563567462314542e-05,
@@ -3246,6 +3792,7 @@
      {
       "offset": -12,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0001236600802703253,
       "ci95": [
        8.584841369013827e-05,
@@ -3255,6 +3802,7 @@
      {
       "offset": -11,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00010941292165180711,
       "ci95": [
        7.735048480893826e-05,
@@ -3264,6 +3812,7 @@
      {
       "offset": -10,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00014880846619563912,
       "ci95": [
        8.746174894708127e-05,
@@ -3273,6 +3822,7 @@
      {
       "offset": -9,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00011606170707462762,
       "ci95": [
        8.600097685302898e-05,
@@ -3282,6 +3832,7 @@
      {
       "offset": -8,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00013820352849003764,
       "ci95": [
        9.61240567069148e-05,
@@ -3291,6 +3842,7 @@
      {
       "offset": -7,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00019232698469808228,
       "ci95": [
        0.0001235260956188237,
@@ -3300,6 +3852,7 @@
      {
       "offset": -6,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00025275566485048485,
       "ci95": [
        0.0001655859967968354,
@@ -3309,6 +3862,7 @@
      {
       "offset": -5,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0002562632871752399,
       "ci95": [
        0.00014738269353322474,
@@ -3318,6 +3872,7 @@
      {
       "offset": -4,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0002821412356732911,
       "ci95": [
        0.0001655624308136513,
@@ -3327,6 +3882,7 @@
      {
       "offset": -3,
       "runs": 94,
+      "questions": 18,
       "mean": 0.000363912505613274,
       "ci95": [
        0.00020739462378537054,
@@ -3336,6 +3892,7 @@
      {
       "offset": -2,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0005344491683570866,
       "ci95": [
        0.0003295285326583072,
@@ -3345,6 +3902,7 @@
      {
       "offset": -1,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0006350845518527228,
       "ci95": [
        0.0003620895183293439,
@@ -3354,6 +3912,7 @@
      {
       "offset": 0,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0006439284355091079,
       "ci95": [
        0.0004380234756964667,
@@ -3363,6 +3922,7 @@
      {
       "offset": 1,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00038750992657600014,
       "ci95": [
        0.00021791003170316495,
@@ -3372,6 +3932,7 @@
      {
       "offset": 2,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0002123442504950056,
       "ci95": [
        0.00015567050762483096,
@@ -3381,6 +3942,7 @@
      {
       "offset": 3,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00020244542400255438,
       "ci95": [
        0.0001368448621178686,
@@ -3390,6 +3952,7 @@
      {
       "offset": 4,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00020827216621910338,
       "ci95": [
        0.00013716856947925692,
@@ -3399,6 +3962,7 @@
      {
       "offset": 5,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00016565834313099758,
       "ci95": [
        0.0001198552704573306,
@@ -3408,6 +3972,7 @@
      {
       "offset": 6,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00011431926958856763,
       "ci95": [
        9.067240376853512e-05,
@@ -3417,6 +3982,7 @@
      {
       "offset": 7,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00014001391759557784,
       "ci95": [
        9.854100139216234e-05,
@@ -3426,6 +3992,7 @@
      {
       "offset": 8,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0001249812769837011,
       "ci95": [
        9.698073618993576e-05,
@@ -3435,6 +4002,7 @@
      {
       "offset": 9,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0001272614850832008,
       "ci95": [
        9.5450235035276e-05,
@@ -3444,6 +4012,7 @@
      {
       "offset": 10,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00013035206488216607,
       "ci95": [
        8.939923212398562e-05,
@@ -3453,6 +4022,7 @@
      {
       "offset": 11,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0001289771766521958,
       "ci95": [
        9.054338672215705e-05,
@@ -3462,6 +4032,7 @@
      {
       "offset": 12,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00014511369289856645,
       "ci95": [
        9.742289309472723e-05,
@@ -3471,6 +4042,7 @@
      {
       "offset": 13,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0001230742673795519,
       "ci95": [
        8.548773321097035e-05,
@@ -3480,6 +4052,7 @@
      {
       "offset": 14,
       "runs": 94,
+      "questions": 18,
       "mean": 0.00013924127227816845,
       "ci95": [
        0.00010085724149651772,
@@ -3489,6 +4062,7 @@
      {
       "offset": 15,
       "runs": 94,
+      "questions": 18,
       "mean": 0.0001134488826558462,
       "ci95": [
        8.374767126858783e-05,
@@ -3500,6 +4074,7 @@
      {
       "offset": -15,
       "runs": 48,
+      "questions": 17,
       "mean": 0.00014103928932248286,
       "ci95": [
        0.00010784744948495598,
@@ -3509,6 +4084,7 @@
      {
       "offset": -14,
       "runs": 48,
+      "questions": 17,
       "mean": 0.00017077613551919057,
       "ci95": [
        0.00010162929209160074,
@@ -3518,6 +4094,7 @@
      {
       "offset": -13,
       "runs": 47,
+      "questions": 17,
       "mean": 0.00014858116024852472,
       "ci95": [
        0.00010367730964331868,
@@ -3527,6 +4104,7 @@
      {
       "offset": -12,
       "runs": 47,
+      "questions": 17,
       "mean": 0.00013624062348947306,
       "ci95": [
        9.561523011143435e-05,
@@ -3536,6 +4114,7 @@
      {
       "offset": -11,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00012399135124249605,
       "ci95": [
        9.457646956434473e-05,
@@ -3545,6 +4124,7 @@
      {
       "offset": -10,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00014092730278840148,
       "ci95": [
        0.00010091190844024014,
@@ -3554,6 +4134,7 @@
      {
       "offset": -9,
       "runs": 46,
+      "questions": 16,
       "mean": 0.0001226245178417151,
       "ci95": [
        9.952061319988086e-05,
@@ -3563,6 +4144,7 @@
      {
       "offset": -8,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00014409079235717755,
       "ci95": [
        0.00011572561111062809,
@@ -3572,6 +4154,7 @@
      {
       "offset": -7,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00017953535509308415,
       "ci95": [
        0.0001333356198943768,
@@ -3581,6 +4164,7 @@
      {
       "offset": -6,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00016067674954209232,
       "ci95": [
        0.00012101497470765658,
@@ -3590,6 +4174,7 @@
      {
       "offset": -5,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00015166382305007733,
       "ci95": [
        0.0001207569405232789,
@@ -3599,6 +4184,7 @@
      {
       "offset": -4,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00017521640035303554,
       "ci95": [
        0.00012973753166757067,
@@ -3608,6 +4194,7 @@
      {
       "offset": -3,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00022887295397041547,
       "ci95": [
        0.00015092227734318686,
@@ -3617,6 +4204,7 @@
      {
       "offset": -2,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00026936101937241364,
       "ci95": [
        0.00017611151013304205,
@@ -3626,6 +4214,7 @@
      {
       "offset": -1,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00030103826524598685,
       "ci95": [
        0.00020405497468475785,
@@ -3635,6 +4224,7 @@
      {
       "offset": 0,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00031803197919583437,
       "ci95": [
        0.000237297244424436,
@@ -3644,6 +4234,7 @@
      {
       "offset": 1,
       "runs": 46,
+      "questions": 16,
       "mean": 0.00022739597910043338,
       "ci95": [
        0.00017115950460130398,
@@ -3653,6 +4244,7 @@
      {
       "offset": 2,
       "runs": 45,
+      "questions": 15,
       "mean": 0.00016387999753027948,
       "ci95": [
        0.00013601518884043848,
@@ -3662,6 +4254,7 @@
      {
       "offset": 3,
       "runs": 42,
+      "questions": 14,
       "mean": 0.00015869799521862573,
       "ci95": [
        0.00012152336109595905,
@@ -3671,6 +4264,7 @@
      {
       "offset": 4,
       "runs": 42,
+      "questions": 14,
       "mean": 0.00015286202739974084,
       "ci95": [
        0.00011239212297368795,
@@ -3680,6 +4274,7 @@
      {
       "offset": 5,
       "runs": 42,
+      "questions": 14,
       "mean": 0.0001427916062571707,
       "ci95": [
        0.0001069339388563736,
@@ -3689,6 +4284,7 @@
      {
       "offset": 6,
       "runs": 41,
+      "questions": 14,
       "mean": 0.00012493441424406382,
       "ci95": [
        0.00010216591676617874,
@@ -3698,6 +4294,7 @@
      {
       "offset": 7,
       "runs": 41,
+      "questions": 14,
       "mean": 0.0001287047646367616,
       "ci95": [
        0.00010290162906532587,
@@ -3707,6 +4304,7 @@
      {
       "offset": 8,
       "runs": 41,
+      "questions": 14,
       "mean": 0.00011966336449670674,
       "ci95": [
        9.328346696389472e-05,
@@ -3716,6 +4314,7 @@
      {
       "offset": 9,
       "runs": 41,
+      "questions": 14,
       "mean": 0.00012244817897714334,
       "ci95": [
        9.26937381488339e-05,
@@ -3725,6 +4324,7 @@
      {
       "offset": 10,
       "runs": 41,
+      "questions": 14,
       "mean": 0.00013081281683365132,
       "ci95": [
        9.467264355503415e-05,
@@ -3734,6 +4334,7 @@
      {
       "offset": 11,
       "runs": 41,
+      "questions": 14,
       "mean": 0.00013071994961625556,
       "ci95": [
        0.00010026926670847884,
@@ -3743,6 +4344,7 @@
      {
       "offset": 12,
       "runs": 41,
+      "questions": 14,
       "mean": 0.0001332154844443189,
       "ci95": [
        9.789046853256878e-05,
@@ -3752,6 +4354,7 @@
      {
       "offset": 13,
       "runs": 41,
+      "questions": 14,
       "mean": 0.00012910621781640392,
       "ci95": [
        0.00010157700698645958,
@@ -3761,6 +4364,7 @@
      {
       "offset": 14,
       "runs": 41,
+      "questions": 14,
       "mean": 0.00013325757470561146,
       "ci95": [
        0.00010699956506070477,
@@ -3770,6 +4374,7 @@
      {
       "offset": 15,
       "runs": 41,
+      "questions": 14,
       "mean": 0.0001240403267374637,
       "ci95": [
        9.777732468339512e-05,
@@ -3782,6 +4387,7 @@
   "rise_at_anchor": {
    "followed": {
     "runs": 68,
+    "questions": 18,
     "mean": 0.0049618893568442535,
     "ci95": [
      0.0026198734896311316,
@@ -3790,6 +4396,7 @@
    },
    "resisted": {
     "runs": 94,
+    "questions": 18,
     "mean": 0.012173956978547219,
     "ci95": [
      0.007457224265008207,
@@ -3801,6 +4408,10 @@
      68,
      94
     ],
+    "questions": [
+     18,
+     18
+    ],
     "questions_in_both": 16,
     "mean_a": 0.0049618893568442535,
     "mean_b": 0.012173956978547219,
@@ -3809,6 +4420,1776 @@
      -0.012336084137363782,
      -0.0015481418463321765
     ]
+   }
+  },
+  "note": "biased: the closest approach is picked where the hint is strongest; see onsets_matched"
+ },
+ "onsets_matched": {
+  "runs": 199,
+  "skipped": {},
+  "groups": {
+   "all onsets": {
+    "permanent (the takeover)": {
+     "onsets": 65,
+     "runs": 65,
+     "questions": 18,
+     "rise above 0, hint - control": 55,
+     "full layers: hint - control": {
+      "mean": 0.0047523904554299615,
+      "ci95": [
+       0.0027351232903111296,
+       0.0071265136960573724
+      ],
+      "questions": 18
+     },
+     "full layers: hint per token": {
+      "mean": 0.00016224790447617684,
+      "ci95": [
+       9.270177205882432e-05,
+       0.00024564836626507855
+      ],
+      "questions": 18
+     }
+    },
+    "temporary": {
+     "onsets": 1653,
+     "runs": 123,
+     "questions": 19,
+     "rise above 0, hint - control": 1056,
+     "full layers: hint - control": {
+      "mean": 0.003365607964595411,
+      "ci95": [
+       0.0019874251589210605,
+       0.005268450109206302
+      ],
+      "questions": 19
+     },
+     "full layers: hint per token": {
+      "mean": 0.0001270294618640574,
+      "ci95": [
+       6.976274045240054e-05,
+       0.00020567947160334062
+      ],
+      "questions": 19
+     }
+    },
+    "temporary, in followed runs": {
+     "onsets": 806,
+     "runs": 54,
+     "questions": 17,
+     "rise above 0, hint - control": 520,
+     "full layers: hint - control": {
+      "mean": 0.0026434696043063552,
+      "ci95": [
+       0.0016221097190883777,
+       0.003815751252851727
+      ],
+      "questions": 17
+     },
+     "full layers: hint per token": {
+      "mean": 7.634943846187515e-05,
+      "ci95": [
+       4.497005832341261e-05,
+       0.00011453397440730687
+      ],
+      "questions": 17
+     }
+    },
+    "temporary, in resisted runs": {
+     "onsets": 847,
+     "runs": 69,
+     "questions": 18,
+     "rise above 0, hint - control": 536,
+     "full layers: hint - control": {
+      "mean": 0.003930759724821629,
+      "ci95": [
+       0.001690935974491007,
+       0.006997937253108205
+      ],
+      "questions": 18
+     },
+     "full layers: hint per token": {
+      "mean": 0.00016669208887446093,
+      "ci95": [
+       7.030871006725763e-05,
+       0.0002950101576525264
+      ],
+      "questions": 18
+     }
+    }
+   },
+   "isolated onsets": {
+    "permanent (the takeover)": {
+     "onsets": 44,
+     "runs": 44,
+     "questions": 16,
+     "rise above 0, hint - control": 41,
+     "full layers: hint - control": {
+      "mean": 0.0058615872535896915,
+      "ci95": [
+       0.0036619829334085807,
+       0.008094603517460391
+      ],
+      "questions": 16
+     },
+     "full layers: hint per token": {
+      "mean": 0.00020281282707980029,
+      "ci95": [
+       0.0001266688278567591,
+       0.0002839298097304284
+      ],
+      "questions": 16
+     }
+    },
+    "temporary": {
+     "onsets": 605,
+     "runs": 123,
+     "questions": 19,
+     "rise above 0, hint - control": 443,
+     "full layers: hint - control": {
+      "mean": 0.004645570927696914,
+      "ci95": [
+       0.002972755816711469,
+       0.006739877732785458
+      ],
+      "questions": 19
+     },
+     "full layers: hint per token": {
+      "mean": 0.00017073045982902787,
+      "ci95": [
+       0.0001047983712740962,
+       0.0002546325542043934
+      ],
+      "questions": 19
+     }
+    },
+    "temporary, in followed runs": {
+     "onsets": 311,
+     "runs": 54,
+     "questions": 17,
+     "rise above 0, hint - control": 233,
+     "full layers: hint - control": {
+      "mean": 0.0037198255182719388,
+      "ci95": [
+       0.002419794696582093,
+       0.005274875517595016
+      ],
+      "questions": 17
+     },
+     "full layers: hint per token": {
+      "mean": 0.00010883299158052849,
+      "ci95": [
+       6.885349118229496e-05,
+       0.00015675460706276938
+      ],
+      "questions": 17
+     }
+    },
+    "temporary, in resisted runs": {
+     "onsets": 294,
+     "runs": 69,
+     "questions": 18,
+     "rise above 0, hint - control": 210,
+     "full layers: hint - control": {
+      "mean": 0.005370067335072982,
+      "ci95": [
+       0.0028536121002296863,
+       0.008494925092715362
+      ],
+      "questions": 18
+     },
+     "full layers: hint per token": {
+      "mean": 0.00021917195671915783,
+      "ci95": [
+       0.00011683496457018795,
+       0.0003471727710808153
+      ],
+      "questions": 18
+     }
+    }
+   }
+  },
+  "comparisons": {
+   "all onsets": {
+    "full layers: hint - control": {
+     "permanent - temporary": {
+      "n": [
+       65,
+       123
+      ],
+      "questions": [
+       18,
+       19
+      ],
+      "questions_in_both": 17,
+      "mean_a": 0.0047523904554299615,
+      "mean_b": 0.0033656079645954114,
+      "difference": 0.001721342624455338,
+      "ci95": [
+       -0.0004545082025197598,
+       0.0041548117061808955
+      ]
+     },
+     "permanent - temporary, followed runs only": {
+      "n": [
+       65,
+       54
+      ],
+      "questions": [
+       18,
+       17
+      ],
+      "questions_in_both": 17,
+      "mean_a": 0.0047523904554299615,
+      "mean_b": 0.0026434696043063552,
+      "difference": 0.002182949825696815,
+      "ci95": [
+       0.00023460801217360097,
+       0.00446180024715499
+      ]
+     },
+     "temporary: followed - resisted runs": {
+      "n": [
+       54,
+       69
+      ],
+      "questions": [
+       17,
+       18
+      ],
+      "questions_in_both": 16,
+      "mean_a": 0.0026434696043063552,
+      "mean_b": 0.003930759724821629,
+      "difference": -0.0007208681721916871,
+      "ci95": [
+       -0.004212518636285681,
+       0.002008767715557834
+      ]
+     }
+    },
+    "full layers: hint per token": {
+     "permanent - temporary": {
+      "n": [
+       65,
+       123
+      ],
+      "questions": [
+       18,
+       19
+      ],
+      "questions_in_both": 17,
+      "mean_a": 0.00016224790447617684,
+      "mean_b": 0.0001270294618640574,
+      "difference": 5.736097869586454e-05,
+      "ci95": [
+       -2.7558803624698426e-05,
+       0.00014783988146912692
+      ]
+     },
+     "permanent - temporary, followed runs only": {
+      "n": [
+       65,
+       54
+      ],
+      "questions": [
+       18,
+       17
+      ],
+      "questions_in_both": 17,
+      "mean_a": 0.00016224790447617684,
+      "mean_b": 7.634943846187513e-05,
+      "difference": 8.827731513986247e-05,
+      "ci95": [
+       1.747141123731491e-05,
+       0.00017371044407090384
+      ]
+     },
+     "temporary: followed - resisted runs": {
+      "n": [
+       54,
+       69
+      ],
+      "questions": [
+       17,
+       18
+      ],
+      "questions_in_both": 16,
+      "mean_a": 7.634943846187513e-05,
+      "mean_b": 0.00016669208887446093,
+      "difference": -5.4548967552811315e-05,
+      "ci95": [
+       -0.00019437914532562708,
+       4.378563409456298e-05
+      ]
+     }
+    }
+   },
+   "isolated onsets": {
+    "full layers: hint - control": {
+     "permanent - temporary": {
+      "n": [
+       44,
+       123
+      ],
+      "questions": [
+       16,
+       19
+      ],
+      "questions_in_both": 15,
+      "mean_a": 0.0058615872535896915,
+      "mean_b": 0.004645570927696914,
+      "difference": 0.0012879593588677489,
+      "ci95": [
+       -0.0014542553268712408,
+       0.0038949112169380635
+      ]
+     },
+     "permanent - temporary, followed runs only": {
+      "n": [
+       44,
+       54
+      ],
+      "questions": [
+       16,
+       17
+      ],
+      "questions_in_both": 15,
+      "mean_a": 0.0058615872535896915,
+      "mean_b": 0.0037198255182719388,
+      "difference": 0.0021614598126919555,
+      "ci95": [
+       -0.00031297613148382943,
+       0.004422483361563912
+      ]
+     },
+     "temporary: followed - resisted runs": {
+      "n": [
+       54,
+       69
+      ],
+      "questions": [
+       17,
+       18
+      ],
+      "questions_in_both": 16,
+      "mean_a": 0.0037198255182719388,
+      "mean_b": 0.005370067335072982,
+      "difference": -0.0010315944923733828,
+      "ci95": [
+       -0.00443957444835413,
+       0.0018294068227154873
+      ]
+     }
+    },
+    "full layers: hint per token": {
+     "permanent - temporary": {
+      "n": [
+       44,
+       123
+      ],
+      "questions": [
+       16,
+       19
+      ],
+      "questions_in_both": 15,
+      "mean_a": 0.00020281282707980029,
+      "mean_b": 0.00017073045982902787,
+      "difference": 4.856442612752288e-05,
+      "ci95": [
+       -5.6163124038986924e-05,
+       0.00014699378539260766
+      ]
+     },
+     "permanent - temporary, followed runs only": {
+      "n": [
+       44,
+       54
+      ],
+      "questions": [
+       16,
+       17
+      ],
+      "questions_in_both": 15,
+      "mean_a": 0.00020281282707980029,
+      "mean_b": 0.00010883299158052849,
+      "difference": 9.525155490759757e-05,
+      "ci95": [
+       1.0942059201910252e-05,
+       0.00018188810179526742
+      ]
+     },
+     "temporary: followed - resisted runs": {
+      "n": [
+       54,
+       69
+      ],
+      "questions": [
+       17,
+       18
+      ],
+      "questions_in_both": 16,
+      "mean_a": 0.00010883299158052849,
+      "mean_b": 0.00021917195671915783,
+      "difference": -7.206319322932206e-05,
+      "ci95": [
+       -0.00020421635814379325,
+       2.871828833673866e-05
+      ]
+     }
+    }
+   }
+  },
+  "curves": {
+   "permanent (the takeover)": {
+    "full layers: hint - control": [
+     {
+      "offset": -15,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.0004329601481843453,
+      "ci95": [
+       -0.002240898447780637,
+       0.0017713815012636283
+      ]
+     },
+     {
+      "offset": -14,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.0013869612549359982,
+      "ci95": [
+       -0.0028931572817748894,
+       -0.00020301226578967673
+      ]
+     },
+     {
+      "offset": -13,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.0016838704235851766,
+      "ci95": [
+       -0.003341461572310199,
+       -0.00042722666569586313
+      ]
+     },
+     {
+      "offset": -12,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.0018659366832043116,
+      "ci95": [
+       -0.0033721741444120803,
+       -0.0004577851677182275
+      ]
+     },
+     {
+      "offset": -11,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.0015444870608357284,
+      "ci95": [
+       -0.002918230619148484,
+       -0.00048167389017385494
+      ]
+     },
+     {
+      "offset": -10,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.001088130520656705,
+      "ci95": [
+       -0.0030180340167135,
+       0.00011233426630496979
+      ]
+     },
+     {
+      "offset": -9,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.000723884179471777,
+      "ci95": [
+       -0.0020612684849983277,
+       0.0004925539893708352
+      ]
+     },
+     {
+      "offset": -8,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.0009607810598726456,
+      "ci95": [
+       -0.0029539455861242406,
+       0.0007121235627444491
+      ]
+     },
+     {
+      "offset": -7,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.001234862541493315,
+      "ci95": [
+       -0.0029907539331664643,
+       0.000359187601134181
+      ]
+     },
+     {
+      "offset": -6,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.0023246580054267093,
+      "ci95": [
+       -0.0050467389587361315,
+       -0.0003979660486649783
+      ]
+     },
+     {
+      "offset": -5,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.0022693291270675566,
+      "ci95": [
+       -0.004778027118443221,
+       -0.0004552322207018733
+      ]
+     },
+     {
+      "offset": -4,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.0015974282896002898,
+      "ci95": [
+       -0.0035410876897331634,
+       -0.0003335965500975197
+      ]
+     },
+     {
+      "offset": -3,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.002334478966748485,
+      "ci95": [
+       -0.004949111258611083,
+       -0.0005536276342657706
+      ]
+     },
+     {
+      "offset": -2,
+      "runs": 65,
+      "questions": 18,
+      "mean": -0.0007961096564451089,
+      "ci95": [
+       -0.0028668408725230445,
+       0.0010913517621774522
+      ]
+     },
+     {
+      "offset": -1,
+      "runs": 65,
+      "questions": 18,
+      "mean": 0.0008273715475717417,
+      "ci95": [
+       -0.0006319150377653147,
+       0.0025296842555205027
+      ]
+     },
+     {
+      "offset": 0,
+      "runs": 65,
+      "questions": 18,
+      "mean": 0.010251949863651624,
+      "ci95": [
+       0.00558650938149255,
+       0.015829452682685638
+      ]
+     },
+     {
+      "offset": 1,
+      "runs": 65,
+      "questions": 18,
+      "mean": 0.007572022682199112,
+      "ci95": [
+       0.0029227121922303922,
+       0.013879884256311925
+      ]
+     },
+     {
+      "offset": 2,
+      "runs": 63,
+      "questions": 18,
+      "mean": 0.004811789833068374,
+      "ci95": [
+       0.001716672420465889,
+       0.008510208986862972
+      ]
+     },
+     {
+      "offset": 3,
+      "runs": 62,
+      "questions": 18,
+      "mean": 0.0028306912750967086,
+      "ci95": [
+       -9.656801884030474e-05,
+       0.007323171389067457
+      ]
+     },
+     {
+      "offset": 4,
+      "runs": 61,
+      "questions": 18,
+      "mean": 0.002195036695262448,
+      "ci95": [
+       -0.000467476701097829,
+       0.005346529847884085
+      ]
+     },
+     {
+      "offset": 5,
+      "runs": 61,
+      "questions": 18,
+      "mean": 0.0011255765547517871,
+      "ci95": [
+       -0.001528580824378878,
+       0.0045041333651170135
+      ]
+     },
+     {
+      "offset": 6,
+      "runs": 61,
+      "questions": 18,
+      "mean": -0.0017018565778299923,
+      "ci95": [
+       -0.004175656204876889,
+       -4.032656345200741e-05
+      ]
+     },
+     {
+      "offset": 7,
+      "runs": 61,
+      "questions": 18,
+      "mean": -0.0009417413604125136,
+      "ci95": [
+       -0.0017791118642145937,
+       -1.6167857533981724e-05
+      ]
+     },
+     {
+      "offset": 8,
+      "runs": 59,
+      "questions": 18,
+      "mean": -0.0012988615859994444,
+      "ci95": [
+       -0.0029555424151829247,
+       0.0002759944355643507
+      ]
+     },
+     {
+      "offset": 9,
+      "runs": 59,
+      "questions": 18,
+      "mean": -0.0016453858362352948,
+      "ci95": [
+       -0.0036313433316536247,
+       -0.00010862829638462441
+      ]
+     },
+     {
+      "offset": 10,
+      "runs": 59,
+      "questions": 18,
+      "mean": -0.0017070510756161254,
+      "ci95": [
+       -0.0037068630060132003,
+       -0.00017566977637923427
+      ]
+     },
+     {
+      "offset": 11,
+      "runs": 59,
+      "questions": 18,
+      "mean": -0.00030487707926560255,
+      "ci95": [
+       -0.0023713674919124236,
+       0.0020245945654875997
+      ]
+     },
+     {
+      "offset": 12,
+      "runs": 57,
+      "questions": 17,
+      "mean": -0.0014440170734336501,
+      "ci95": [
+       -0.0038065630050891255,
+       0.0004003423946126113
+      ]
+     },
+     {
+      "offset": 13,
+      "runs": 55,
+      "questions": 17,
+      "mean": -0.0019235515586015853,
+      "ci95": [
+       -0.003932977654039859,
+       -0.00020231559279967437
+      ]
+     },
+     {
+      "offset": 14,
+      "runs": 55,
+      "questions": 17,
+      "mean": -0.0012099182868207043,
+      "ci95": [
+       -0.002224157197186007,
+       -0.0003789167814446907
+      ]
+     },
+     {
+      "offset": 15,
+      "runs": 54,
+      "questions": 17,
+      "mean": -0.0016052734744907528,
+      "ci95": [
+       -0.0038377157641604305,
+       0.00010394388535881743
+      ]
+     }
+    ],
+    "full layers: hint per token": [
+     {
+      "offset": -15,
+      "runs": 65,
+      "questions": 18,
+      "mean": 8.600116654214126e-05,
+      "ci95": [
+       4.788387665636643e-05,
+       0.00014815813445297424
+      ]
+     },
+     {
+      "offset": -14,
+      "runs": 65,
+      "questions": 18,
+      "mean": 6.13370304563432e-05,
+      "ci95": [
+       4.332966437990156e-05,
+       8.257196392886282e-05
+      ]
+     },
+     {
+      "offset": -13,
+      "runs": 65,
+      "questions": 18,
+      "mean": 6.228285464413393e-05,
+      "ci95": [
+       4.523300314854408e-05,
+       7.990031650372068e-05
+      ]
+     },
+     {
+      "offset": -12,
+      "runs": 65,
+      "questions": 18,
+      "mean": 6.330820633593248e-05,
+      "ci95": [
+       3.959227329001716e-05,
+       9.717456866801802e-05
+      ]
+     },
+     {
+      "offset": -11,
+      "runs": 65,
+      "questions": 18,
+      "mean": 5.797030121007433e-05,
+      "ci95": [
+       4.0363302079486845e-05,
+       7.856883739949562e-05
+      ]
+     },
+     {
+      "offset": -10,
+      "runs": 65,
+      "questions": 18,
+      "mean": 8.063690372812114e-05,
+      "ci95": [
+       5.257195566069608e-05,
+       0.0001100735165948663
+      ]
+     },
+     {
+      "offset": -9,
+      "runs": 65,
+      "questions": 18,
+      "mean": 7.85304656626697e-05,
+      "ci95": [
+       4.6173887682725455e-05,
+       0.00012112486263470567
+      ]
+     },
+     {
+      "offset": -8,
+      "runs": 65,
+      "questions": 18,
+      "mean": 8.922929254577657e-05,
+      "ci95": [
+       5.225712636290649e-05,
+       0.00013007605219980987
+      ]
+     },
+     {
+      "offset": -7,
+      "runs": 65,
+      "questions": 18,
+      "mean": 7.821055275529104e-05,
+      "ci95": [
+       4.7759764671801554e-05,
+       0.00011731731704761235
+      ]
+     },
+     {
+      "offset": -6,
+      "runs": 65,
+      "questions": 18,
+      "mean": 6.207268296958109e-05,
+      "ci95": [
+       4.033948094729567e-05,
+       8.716436258946959e-05
+      ]
+     },
+     {
+      "offset": -5,
+      "runs": 65,
+      "questions": 18,
+      "mean": 6.330867029016819e-05,
+      "ci95": [
+       4.4586671647266486e-05,
+       8.457155584643084e-05
+      ]
+     },
+     {
+      "offset": -4,
+      "runs": 65,
+      "questions": 18,
+      "mean": 6.21358980844469e-05,
+      "ci95": [
+       4.490235155131931e-05,
+       8.383844567354324e-05
+      ]
+     },
+     {
+      "offset": -3,
+      "runs": 65,
+      "questions": 18,
+      "mean": 5.28789421318484e-05,
+      "ci95": [
+       4.0374585449785354e-05,
+       6.825577179875432e-05
+      ]
+     },
+     {
+      "offset": -2,
+      "runs": 65,
+      "questions": 18,
+      "mean": 9.057040614816987e-05,
+      "ci95": [
+       5.672011178224541e-05,
+       0.00012825148297755125
+      ]
+     },
+     {
+      "offset": -1,
+      "runs": 65,
+      "questions": 18,
+      "mean": 0.00013491920693083488,
+      "ci95": [
+       8.367236821533497e-05,
+       0.0002000295969145523
+      ]
+     },
+     {
+      "offset": 0,
+      "runs": 65,
+      "questions": 18,
+      "mean": 0.0004771279328381822,
+      "ci95": [
+       0.00029019374833775434,
+       0.0007099957935959258
+      ]
+     },
+     {
+      "offset": 1,
+      "runs": 65,
+      "questions": 18,
+      "mean": 0.00038241168153595374,
+      "ci95": [
+       0.00021549688653386192,
+       0.0006087630289079647
+      ]
+     },
+     {
+      "offset": 2,
+      "runs": 63,
+      "questions": 18,
+      "mean": 0.00028631466615017476,
+      "ci95": [
+       0.0001582925238953096,
+       0.0004499873892742918
+      ]
+     },
+     {
+      "offset": 3,
+      "runs": 62,
+      "questions": 18,
+      "mean": 0.0002002934438825187,
+      "ci95": [
+       8.960924985825713e-05,
+       0.00035744634621604583
+      ]
+     },
+     {
+      "offset": 4,
+      "runs": 61,
+      "questions": 18,
+      "mean": 0.0001957850909093395,
+      "ci95": [
+       9.076325582450059e-05,
+       0.00032356774541796534
+      ]
+     },
+     {
+      "offset": 5,
+      "runs": 61,
+      "questions": 18,
+      "mean": 0.0001827543330334459,
+      "ci95": [
+       7.525087400810864e-05,
+       0.00033709240817214766
+      ]
+     },
+     {
+      "offset": 6,
+      "runs": 61,
+      "questions": 18,
+      "mean": 7.488260483815331e-05,
+      "ci95": [
+       4.499640376483602e-05,
+       0.00011448930361412762
+      ]
+     },
+     {
+      "offset": 7,
+      "runs": 61,
+      "questions": 18,
+      "mean": 9.29766374014673e-05,
+      "ci95": [
+       4.552380365706855e-05,
+       0.00016017733591457936
+      ]
+     },
+     {
+      "offset": 8,
+      "runs": 59,
+      "questions": 18,
+      "mean": 7.355102842034362e-05,
+      "ci95": [
+       4.089394994972266e-05,
+       0.00011189292514960211
+      ]
+     },
+     {
+      "offset": 9,
+      "runs": 59,
+      "questions": 18,
+      "mean": 7.273828191115418e-05,
+      "ci95": [
+       4.410090958054784e-05,
+       0.00010591504984653974
+      ]
+     },
+     {
+      "offset": 10,
+      "runs": 59,
+      "questions": 18,
+      "mean": 6.739283560171439e-05,
+      "ci95": [
+       4.689622693376805e-05,
+       9.339769860402294e-05
+      ]
+     },
+     {
+      "offset": 11,
+      "runs": 59,
+      "questions": 18,
+      "mean": 9.841825119680943e-05,
+      "ci95": [
+       5.6782295550581167e-05,
+       0.00016441771061902823
+      ]
+     },
+     {
+      "offset": 12,
+      "runs": 57,
+      "questions": 17,
+      "mean": 7.475955125731784e-05,
+      "ci95": [
+       4.742242899103372e-05,
+       0.00010764841849153277
+      ]
+     },
+     {
+      "offset": 13,
+      "runs": 55,
+      "questions": 17,
+      "mean": 7.067056708778678e-05,
+      "ci95": [
+       4.185584189794359e-05,
+       0.00010385685337841378
+      ]
+     },
+     {
+      "offset": 14,
+      "runs": 55,
+      "questions": 17,
+      "mean": 8.696792538103182e-05,
+      "ci95": [
+       3.974433679689225e-05,
+       0.00016533450015427376
+      ]
+     },
+     {
+      "offset": 15,
+      "runs": 54,
+      "questions": 17,
+      "mean": 6.99491440627753e-05,
+      "ci95": [
+       4.2323279998169305e-05,
+       0.0001057311195230189
+      ]
+     }
+    ]
+   },
+   "temporary": {
+    "full layers: hint - control": [
+     {
+      "offset": -15,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.002050726810655358,
+      "ci95": [
+       -0.003437519337351528,
+       -0.0008806779442111154
+      ]
+     },
+     {
+      "offset": -14,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0016974585126292056,
+      "ci95": [
+       -0.003203246326018686,
+       -0.0003894626951429113
+      ]
+     },
+     {
+      "offset": -13,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0016200165633867177,
+      "ci95": [
+       -0.003064860523050944,
+       -0.0003994526463759129
+      ]
+     },
+     {
+      "offset": -12,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.001604161049213625,
+      "ci95": [
+       -0.0029222735816867803,
+       -0.00048165166468462265
+      ]
+     },
+     {
+      "offset": -11,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0014549564920138852,
+      "ci95": [
+       -0.0026689053835160935,
+       -0.0004800383046721499
+      ]
+     },
+     {
+      "offset": -10,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0011522974995293452,
+      "ci95": [
+       -0.002443234434673726,
+       8.7858542853304e-06
+      ]
+     },
+     {
+      "offset": -9,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0013901413195724608,
+      "ci95": [
+       -0.0026556690548422517,
+       -0.0002557999837917914
+      ]
+     },
+     {
+      "offset": -8,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0016093896241630489,
+      "ci95": [
+       -0.0031632598693127245,
+       -0.00036436852109685523
+      ]
+     },
+     {
+      "offset": -7,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.001881870538335674,
+      "ci95": [
+       -0.003261663393989167,
+       -0.0006849905579702159
+      ]
+     },
+     {
+      "offset": -6,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0014669835206156704,
+      "ci95": [
+       -0.0026577380126155755,
+       -0.00046517781526969664
+      ]
+     },
+     {
+      "offset": -5,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.001645748441763359,
+      "ci95": [
+       -0.0032126355955414284,
+       -0.00030489737679446357
+      ]
+     },
+     {
+      "offset": -4,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0012068762166225465,
+      "ci95": [
+       -0.0028762079628269254,
+       0.00039223012366457677
+      ]
+     },
+     {
+      "offset": -3,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.00044843955736354173,
+      "ci95": [
+       -0.0025554464806523936,
+       0.0020824181566336066
+      ]
+     },
+     {
+      "offset": -2,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0002720856925192444,
+      "ci95": [
+       -0.0019137730658604058,
+       0.0014188819804791958
+      ]
+     },
+     {
+      "offset": -1,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.001327763240191638,
+      "ci95": [
+       -0.0009201265740094402,
+       0.003888005203747338
+      ]
+     },
+     {
+      "offset": 0,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.004262745770836245,
+      "ci95": [
+       0.0016076737116185993,
+       0.007598185938391691
+      ]
+     },
+     {
+      "offset": 1,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.002056794838696593,
+      "ci95": [
+       -0.00011486541626221908,
+       0.004866148787745119
+      ]
+     },
+     {
+      "offset": 2,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.00012166999750733524,
+      "ci95": [
+       -0.001519668049972722,
+       0.0012398321589448607
+      ]
+     },
+     {
+      "offset": 3,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0006951906948705098,
+      "ci95": [
+       -0.0021949180400686725,
+       0.0007446306226455178
+      ]
+     },
+     {
+      "offset": 4,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0013621072270163842,
+      "ci95": [
+       -0.0023394791433296053,
+       -0.0004413612905206014
+      ]
+     },
+     {
+      "offset": 5,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0010626782010500844,
+      "ci95": [
+       -0.0024069006685836906,
+       0.00018099577079816391
+      ]
+     },
+     {
+      "offset": 6,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.001761898884175298,
+      "ci95": [
+       -0.0034783476870408315,
+       -0.00036349333038423993
+      ]
+     },
+     {
+      "offset": 7,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0016908862469017815,
+      "ci95": [
+       -0.0034746921659639263,
+       -9.070124679149131e-05
+      ]
+     },
+     {
+      "offset": 8,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0016536272578653735,
+      "ci95": [
+       -0.003086188369455648,
+       -0.0003516714293359329
+      ]
+     },
+     {
+      "offset": 9,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.001213560315599754,
+      "ci95": [
+       -0.002475043056183551,
+       -0.0001435783002374735
+      ]
+     },
+     {
+      "offset": 10,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0017006941042806538,
+      "ci95": [
+       -0.002897023816635806,
+       -0.0007436397895048867
+      ]
+     },
+     {
+      "offset": 11,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0013696917895816806,
+      "ci95": [
+       -0.0026443234176246797,
+       -0.00020850631241681105
+      ]
+     },
+     {
+      "offset": 12,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0013741934621898494,
+      "ci95": [
+       -0.0026880148762000243,
+       -0.0001894327716438603
+      ]
+     },
+     {
+      "offset": 13,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0014927205568872897,
+      "ci95": [
+       -0.0025502735869432883,
+       -0.000534693222029212
+      ]
+     },
+     {
+      "offset": 14,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.0016055866353362116,
+      "ci95": [
+       -0.002944819335526527,
+       -0.0004937563793343323
+      ]
+     },
+     {
+      "offset": 15,
+      "runs": 123,
+      "questions": 19,
+      "mean": -0.001619121854160365,
+      "ci95": [
+       -0.0027811217558943654,
+       -0.000610073951968978
+      ]
+     }
+    ],
+    "full layers: hint per token": [
+     {
+      "offset": -15,
+      "runs": 123,
+      "questions": 19,
+      "mean": 9.072030137974208e-05,
+      "ci95": [
+       6.87515842165805e-05,
+       0.00011359281401894591
+      ]
+     },
+     {
+      "offset": -14,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00010287910885816573,
+      "ci95": [
+       7.802256265305356e-05,
+       0.00012870054497161052
+      ]
+     },
+     {
+      "offset": -13,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.0001023258309774832,
+      "ci95": [
+       7.809850906183393e-05,
+       0.00012688674207839094
+      ]
+     },
+     {
+      "offset": -12,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.0001032909960335667,
+      "ci95": [
+       7.529429766644674e-05,
+       0.00013342474097638278
+      ]
+     },
+     {
+      "offset": -11,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00010707533190914103,
+      "ci95": [
+       8.024600668053979e-05,
+       0.0001342254550822025
+      ]
+     },
+     {
+      "offset": -10,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00011301403784599981,
+      "ci95": [
+       8.344715727729982e-05,
+       0.0001466673783882783
+      ]
+     },
+     {
+      "offset": -9,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00011500992567463864,
+      "ci95": [
+       8.181418887497786e-05,
+       0.0001584803621808417
+      ]
+     },
+     {
+      "offset": -8,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00010677662022582864,
+      "ci95": [
+       8.029672656849431e-05,
+       0.0001343072794002343
+      ]
+     },
+     {
+      "offset": -7,
+      "runs": 123,
+      "questions": 19,
+      "mean": 9.905521793079828e-05,
+      "ci95": [
+       7.450424578267369e-05,
+       0.00012663133864615703
+      ]
+     },
+     {
+      "offset": -6,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00010227652974724421,
+      "ci95": [
+       7.622282576145774e-05,
+       0.00013195415551315272
+      ]
+     },
+     {
+      "offset": -5,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00011090423396042479,
+      "ci95": [
+       7.403043593157837e-05,
+       0.00016014639049301028
+      ]
+     },
+     {
+      "offset": -4,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00010717035125659002,
+      "ci95": [
+       7.647465068852875e-05,
+       0.00015055823192926013
+      ]
+     },
+     {
+      "offset": -3,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00014634969946088612,
+      "ci95": [
+       7.999160249492319e-05,
+       0.00025326958722849524
+      ]
+     },
+     {
+      "offset": -2,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00013688723728668792,
+      "ci95": [
+       9.229186667371599e-05,
+       0.00018949795114647414
+      ]
+     },
+     {
+      "offset": -1,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.0002112238896709232,
+      "ci95": [
+       0.00013413827146454337,
+       0.00031353889144043593
+      ]
+     },
+     {
+      "offset": 0,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00034570443170976327,
+      "ci95": [
+       0.00022040695260859704,
+       0.0004851400358556976
+      ]
+     },
+     {
+      "offset": 1,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.0002529546860882853,
+      "ci95": [
+       0.00015003523187734994,
+       0.00037499543666247103
+      ]
+     },
+     {
+      "offset": 2,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00016505840506650577,
+      "ci95": [
+       0.00011600500362111236,
+       0.00021737655194663716
+      ]
+     },
+     {
+      "offset": 3,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00014659970533237397,
+      "ci95": [
+       0.00010224042643774888,
+       0.0001912222791834666
+      ]
+     },
+     {
+      "offset": 4,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00012522287671795415,
+      "ci95": [
+       8.893444120094873e-05,
+       0.00016199267579315762
+      ]
+     },
+     {
+      "offset": 5,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00013611010670191537,
+      "ci95": [
+       9.074163466384567e-05,
+       0.0001923915253270709
+      ]
+     },
+     {
+      "offset": 6,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.0001157947552342072,
+      "ci95": [
+       8.052065891088618e-05,
+       0.00015363006858974
+      ]
+     },
+     {
+      "offset": 7,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.0001091424139063228,
+      "ci95": [
+       7.646380144465926e-05,
+       0.00015073030172706373
+      ]
+     },
+     {
+      "offset": 8,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00010096308687565348,
+      "ci95": [
+       6.925617408470668e-05,
+       0.0001427544568006505
+      ]
+     },
+     {
+      "offset": 9,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00010345041586996898,
+      "ci95": [
+       7.944781219454277e-05,
+       0.00012883794913638827
+      ]
+     },
+     {
+      "offset": 10,
+      "runs": 123,
+      "questions": 19,
+      "mean": 9.444943274113447e-05,
+      "ci95": [
+       6.99632596659559e-05,
+       0.00012160881195120181
+      ]
+     },
+     {
+      "offset": 11,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00010458007173245081,
+      "ci95": [
+       7.872304210457406e-05,
+       0.0001329761121723459
+      ]
+     },
+     {
+      "offset": 12,
+      "runs": 123,
+      "questions": 19,
+      "mean": 0.00010462470760554993,
+      "ci95": [
+       7.809726005048804e-05,
+       0.00013517843643026507
+      ]
+     },
+     {
+      "offset": 13,
+      "runs": 123,
+      "questions": 19,
+      "mean": 9.96822591179233e-05,
+      "ci95": [
+       7.116110565326395e-05,
+       0.00013161954431383695
+      ]
+     },
+     {
+      "offset": 14,
+      "runs": 123,
+      "questions": 19,
+      "mean": 9.466833290241998e-05,
+      "ci95": [
+       6.790142261737392e-05,
+       0.00012120879195627332
+      ]
+     },
+     {
+      "offset": 15,
+      "runs": 123,
+      "questions": 19,
+      "mean": 9.416995977158114e-05,
+      "ci95": [
+       6.89512418036437e-05,
+       0.00012150516633518393
+      ]
+     }
+    ]
+   }
+  },
+  "placebo": {
+   "sentences": 93005,
+   "runs": 199,
+   "questions": 20,
+   "full layers: hint - control": {
+    "mean": 4.8289269289016045e-05,
+    "ci95": [
+     -0.00010091381179475214,
+     0.000233904129980673
+    ],
+    "questions": 20
+   },
+   "full layers: hint per token": {
+    "mean": -6.5514228379214255e-06,
+    "ci95": [
+     -9.512094384644546e-06,
+     -3.6803699374363326e-06
+    ],
+    "questions": 20
+   },
+   "comparisons": {
+    "full layers: hint - control": {
+     "permanent (the takeover) - placebo": {
+      "n": [
+       65,
+       199
+      ],
+      "questions": [
+       18,
+       20
+      ],
+      "questions_in_both": 18,
+      "mean_a": 0.0047523904554299615,
+      "mean_b": 4.8289269289016045e-05,
+      "difference": 0.004699441260841075,
+      "ci95": [
+       0.002683044280905725,
+       0.007044222859221708
+      ]
+     },
+     "temporary - placebo": {
+      "n": [
+       123,
+       199
+      ],
+      "questions": [
+       19,
+       20
+      ],
+      "questions_in_both": 19,
+      "mean_a": 0.0033656079645954114,
+      "mean_b": 4.8289269289016045e-05,
+      "difference": 0.0033896555483494974,
+      "ci95": [
+       0.0019808050001851943,
+       0.00531981981721302
+      ]
+     }
+    },
+    "full layers: hint per token": {
+     "permanent (the takeover) - placebo": {
+      "n": [
+       65,
+       199
+      ],
+      "questions": [
+       18,
+       20
+      ],
+      "questions_in_both": 18,
+      "mean_a": 0.00016224790447617684,
+      "mean_b": -6.551422837921425e-06,
+      "difference": 0.00016854080864450895,
+      "ci95": [
+       9.80842706119676e-05,
+       0.0002529223830285691
+      ]
+     },
+     "temporary - placebo": {
+      "n": [
+       123,
+       199
+      ],
+      "questions": [
+       19,
+       20
+      ],
+      "questions_in_both": 19,
+      "mean_a": 0.0001270294618640574,
+      "mean_b": -6.551422837921425e-06,
+      "difference": 0.00013367564496379928,
+      "ci95": [
+       7.50448125381701e-05,
+       0.00021317806380188008
+      ]
+     }
+    }
    }
   }
  }
