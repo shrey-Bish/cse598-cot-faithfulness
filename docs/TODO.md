@@ -1,6 +1,6 @@
 # Open work, every track
 
-Last updated: 2026-10-27 12:30 MST (week 11). Rebuilt from the session transcripts (Oct 4–27),
+Last updated: 2026-10-27 14:00 MST (week 11). Rebuilt from the session transcripts (Oct 4–27),
 [`PLAN.md`](PLAN.md), [`FINDINGS.md`](FINDINGS.md), [`OVERVIEW.md`](OVERVIEW.md), the commit log
 and every local and remote branch; updated with Ritik's decisions and the Oct 27–Nov 3 plan. How
 to run each step: [`RUNBOOK.md`](RUNBOOK.md).
@@ -19,19 +19,19 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 
 | # | Item | From | Status | Blocked by | Owner | Needs | Time |
 |---|---|---|---|---|---|---|---|
-| A1 | Steps 6–7 to 240 kept questions (`run_steps67.py --kept 240 --checkpoint 100`) | Oct 25 "go" | in progress: 237 kept after 490 questions (12:00 MST Oct 27); last chunk of 40 running | — | Claude Code (pid 12290) | Voyager | done about 2–4 PM MST Oct 27 |
+| A1 | Steps 6–7 to 240 kept questions (`run_steps67.py --kept 240 --checkpoint 100`) | Oct 25 "go" | done: 251 kept of 530 [43, 52%], ended 13:45 MST Oct 27 | — | Claude Code (pid 12290) | Voyager | done about 2–4 PM MST Oct 27 |
 | A2 | The checkpoint report at 100 kept | Oct 25 | done: written Oct 26 10:42 MST, sent Oct 27 (notes below) | — | Claude Code | no calls | — |
-| A3 | Final Steps 6–7 counts and the final-count log | Oct 27 | not started | A1 | Claude Code | no calls | 30 min |
-| A4 | Assemble train / validation (`--assemble`): 10% no-hint, "neither" dropped if under 10%, counts | Oct 25; "go" Oct 27 | not started (code exists; runs as soon as A1 ends) | A1 | Claude Code | no calls | 15 min |
-| A5 | Export the final Steps 6–7 summaries | Oct 26 | not started | A1 | Claude Code | no calls | 10 min |
-| A6 | History rewrite (`untrack_produced.py --run`), approved Oct 27 with conditions: `git bundle` backup and a sha256 list of every file under `results/`, `finetune/data/`, `configs/` first; keep tracked `configs/canary/*.json`, `results/summaries/`, `docs/sessions/` and every numbers-only summary; rewrite only commits unique to `trackA-nosol` (a plan for `main` first if it carries produced files); after: tests pass, sha256 list identical, pre-push check passes on both branches | Oct 26, Oct 27 | not started (dry run clean) | A1 | Claude Code | no calls | 30 min |
-| A7 | Merge `trackA-nosol` into local `main` (shared code, docs, no produced data); tests; push commands for Ritik | Oct 27 | not started | A6 | Claude Code; Ritik pushes | no calls | 30 min |
-| A8 | Step 11 `train.py`: LoRA only, tags only, both; 32,768 tokens, chunked loss, gradient checkpointing, checkpoint after each epoch and resume; validation loss per epoch; CPU tests | Oct 21, Oct 25 | not started | — | Claude Code | no calls | 4–6 h |
-| A9 | Step 12 generation: tagged decoding loop, and the vLLM path (`tags_vllm.py`, equal on a tiny model on CPU) | Oct 21, Oct 25 | partial | — | Claude Code | no calls | 3–5 h |
-| A10 | Step 13 `eval.py`: hint following, no-hint accuracy, mention, hiding check, false-disclosure check; X of Y, clustered bootstrap | Oct 21, Oct 25 | not started | — | Claude Code | no calls | 3–4 h |
-| A11 | Sol job scripts for Steps 11–13 in the kit: account guard, checkpoint/resume; CPU tests | Oct 25–26 | not started | A8–A10 | Claude Code | no calls | 2 h |
-| A12 | Sol kit QoS checks (Oct 27): one config file of accounts, partitions, QoS and limits (only listed accounts allowed; today the course account); each job's limit = estimate × 1.3 rounded up to 30 min; `submit.sh` refuses a job over 960 GPU-minutes, adds the remaining GPU-minutes of running and pending jobs (`squeue`), warns over 960 and says when the second slot frees; QoS fields in the GPU README | Oct 27 | not started (fields recorded in PLAN) | — | Claude Code | no calls | 2 h |
-| A13 | First Sol jobs: S1 the 20-step timing run, S2 the vLLM tag check (prompt embeddings + LoRA on Olmo 3; fallback own loop) | Oct 25, Oct 27 | not started | A8, A9, A11, A12, "go" | Ritik submits | Sol | ≤2.5 h GPU |
+| A3 | Final Steps 6–7 counts and the final-count log | Oct 27 | done (log 13:55) | — | Claude Code | no calls | 30 min |
+| A4 | Assemble train / validation (`--assemble`): 10% no-hint, "neither" dropped if under 10%, counts | Oct 25; "go" Oct 27 | done: 1,196 examples (1,040 train, 156 validation; 120 no-hint; 57 "neither" dropped) | — | Claude Code | no calls | 15 min |
+| A5 | Export the final Steps 6–7 summaries | Oct 26 | done (`56e2894`) | — | Claude Code | no calls | 10 min |
+| A6 | History rewrite (`untrack_produced.py --run`), approved Oct 27 with conditions: `git bundle` backup and a sha256 list of every file under `results/`, `finetune/data/`, `configs/` first; keep tracked `configs/canary/*.json`, `results/summaries/`, `docs/sessions/` and every numbers-only summary; rewrite only commits unique to `trackA-nosol` (a plan for `main` first if it carries produced files); after: tests pass, sha256 list identical, pre-push check passes on both branches | Oct 26, Oct 27 | done for `trackA-nosol` (13:49): bundle + sha256 list (192 files identical), 0 produced paths tracked; `main`'s 2 unpushed commits wait on the plan for `main` | decision: plan for `main` | Claude Code | no calls | 30 min |
+| A7 | Merge `trackA-nosol` into local `main` (shared code, docs, no produced data); tests; push commands for Ritik | Oct 27 | local `main` fast-forwarded to `trackA-nosol`; push blocked by the canary row in `280bd12` until the plan for `main` | the plan for `main`, then Ritik pushes | Claude Code; Ritik pushes | no calls | 30 min |
+| A8 | Step 11 `train.py`: LoRA only, tags only, both; 32,768 tokens, chunked loss, gradient checkpointing, checkpoint after each epoch and resume; validation loss per epoch; CPU tests | Oct 21, Oct 25 | done (`f52a5ef`, 9 CPU tests) | — | Claude Code | no calls | 4–6 h |
+| A9 | Step 12 generation: tagged decoding loop, and the vLLM path (`tags_vllm.py`, equal on a tiny model on CPU) | Oct 21, Oct 25 | done (`f2a9c4f`: vLLM client with tagged prompt embeddings, own loop, fold) | — | Claude Code | no calls | 3–5 h |
+| A10 | Step 13 `eval.py`: hint following, no-hint accuracy, mention, hiding check, false-disclosure check; X of Y, clustered bootstrap | Oct 21, Oct 25 | done (`f85f100`, 6 tests) | — | Claude Code | no calls | 3–4 h |
+| A11 | Sol job scripts for Steps 11–13 in the kit: account guard, checkpoint/resume; CPU tests | Oct 25–26 | done (`9256acc`: timing, vllm_check, train, eval jobs; eval_job.py; setup_vllm) | — | Claude Code | no calls | 2 h |
+| A12 | Sol kit QoS checks (Oct 27): one config file of accounts, partitions, QoS and limits (only listed accounts allowed; today the course account); each job's limit = estimate × 1.3 rounded up to 30 min; `submit.sh` refuses a job over 960 GPU-minutes, adds the remaining GPU-minutes of running and pending jobs (`squeue`), warns over 960 and says when the second slot frees; QoS fields in the GPU README | Oct 27 | done (`1608665`: accounts.conf, submit.sh checks, 5 tests) | — | Claude Code | no calls | 2 h |
+| A13 | First Sol jobs: S1 the 20-step timing run, S2 the vLLM tag check (prompt embeddings + LoRA on Olmo 3; fallback own loop) | Oct 25, Oct 27 | ready: needs rsync of the inputs, setup_vllm, "go" | "go" | Ritik submits | Sol | ≤2.5 h GPU |
 | A14 | Gate 3 job plan: every job in order, 2 at a time, limits, dates | Oct 26–27 | done (PLAN; updated Oct 27 with the QoS and the accelerated dates) | — | Claude Code | no calls | — |
 | A15 | Train the 3 versions (S3–S5): rank 16, LoRA 2e-4, tag table 1e-3, 2 epochs; checkpoint per epoch, chosen by validation loss only (decided Oct 27) | PLAN | not started | A4, A13 | Ritik submits | Sol | 6–9 GPU h |
 | A16 | Evaluate base, prompt-only and the 3 versions on Sol (E1–E5), from Oct 30 | Oct 26 | not started | A13, A15 | Ritik submits | Sol | 25–70 GPU h |
@@ -51,14 +51,14 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 
 | # | Item | From | Status | Blocked by | Owner | Needs | Time |
 |---|---|---|---|---|---|---|---|
-| B5 | Olmo 3 7B Think in Track B through the pinned Think format on `/v1/completions` (`olmo_format.py`), with the declared `tool_injected` channel in place of `tool_real` | Oct 21, Oct 27 | not started (exists in `tools/answer_key.py` and Track A) | — | Claude Code → Arsha | no calls | 1–2 h |
-| B12 | A model flag for `run_trackB.py` | Oct 27 | not started | — | Claude Code → Arsha | no calls | 30 min |
-| B8 | `steered_cases.jsonl`: define the format (no code writes it today), then export from B7 | PLAN, Oct 27 | not started | format: —; export: B7 | Claude Code → Arsha | no calls | 1 h |
-| B10 | Served chat template per Voyager model (prompt-token count against a local rendering, as for Olmo on Oct 21), recorded | Oct 27 | not started | — | Claude Code → Arsha | Voyager (a few calls) | 30 min |
-| B11 | Identity-canary references for every Voyager model Tracks B and C use, before their first batch | Oct 27 | not started | — | Claude Code → Arsha | Voyager (a few calls) | 30 min |
-| B13 | Per model: smoke test (`--limit 5`) and the dry run (calls, hours) in a session log; then the run starts | Oct 27 | not started | B5, B10–B12 | Claude Code → Arsha | Voyager | 15 min each |
-| B7 | Voyager runs, 3 per question, the 24 puzzles and the 30 MMLU-Pro items, all conditions: Qwen3 30B Thinking, then Qwen3 30B Instruct, then Olmo 3 7B Think | PLAN, Oct 27 | not started (0 result rows) | B13 | Claude Code → Arsha | Voyager | ~15 h (notes) |
-| B4 | Ollama `qwen3:8b`, thinking on and off, real tool calls: a 5-call timing pilot, then the grid it allows | PLAN, Oct 27 | not started (Ollama installed, model not pulled) | — | Claude Code → Arsha | Ollama | 30 min + runs |
+| B5 | Olmo 3 7B Think in Track B through the pinned Think format on `/v1/completions` (`olmo_format.py`), with the declared `tool_injected` channel in place of `tool_real` | Oct 21, Oct 27 | done (`fb9b5c1`) | — | Claude Code → Arsha | no calls | 1–2 h |
+| B12 | A model flag for `run_trackB.py` | Oct 27 | done (`fb9b5c1`, `d2210cf`: --model, --thinking) | — | Claude Code → Arsha | no calls | 30 min |
+| B8 | `steered_cases.jsonl`: define the format (no code writes it today), then export from B7 | PLAN, Oct 27 | format and export done (`--steered`); export after each model's runs | B7 | Claude Code → Arsha | no calls | 1 h |
+| B10 | Served chat template per Voyager model (prompt-token count against a local rendering, as for Olmo on Oct 21), recorded | Oct 27 | done: gap 0 except Qwen3's tool spec (sorted keys); Olmo 3 7B Instruct differs only without a system message | — | Claude Code → Arsha | Voyager (a few calls) | 30 min |
+| B11 | Identity-canary references for every Voyager model Tracks B and C use, before their first batch | Oct 27 | done: Qwen3 Thinking, Qwen3 Instruct, Olmo 3 7B Instruct (Olmo 3 7B Think existed) | — | Claude Code → Arsha | Voyager (a few calls) | 30 min |
+| B13 | Per model: smoke test (`--limit 5`) and the dry run (calls, hours) in a session log; then the run starts | Oct 27 | done: smoke 15 of 15; dry runs in the 13:05 log | — | Claude Code → Arsha | Voyager | 15 min each |
+| B7 | Voyager runs, 3 per question, the 24 puzzles and the 30 MMLU-Pro items, all conditions: Qwen3 30B Thinking, then Qwen3 30B Instruct, then Olmo 3 7B Think | PLAN, Oct 27 | in progress: Qwen3 30B Thinking started 13:51 MST (805 jobs, ~4.2 h); then Instruct, then Olmo | — | Claude Code → Arsha | Voyager | ~15 h (notes) |
+| B4 | Ollama `qwen3:8b`, thinking on and off, real tool calls: a 5-call timing pilot, then the grid it allows | PLAN, Oct 27 | in progress: pilot done (5 calls); full grid running (~51 h; restarted 13:51 after the rewrite pause) | — | Claude Code → Arsha | Ollama | 30 min + runs |
 | B14 | Track B table: model × channel × thinking (on/off where it exists); hint following against the per-letter no-hint baseline; sure and unsure questions; mention in the private reasoning and the final answer (keywords); tool-call rate | Oct 27 | not started | B7, B4 | Claude Code → Arsha | no calls | 3 h |
 | B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? Answered as soon as the data allows | PLAN, Oct 27 | not started | B14 | Claude Code → Arsha | no calls | — |
 | B1 | Closed-provider keys: a real OpenAI key (the current one is the Voyager key), Anthropic, xAI | Oct 5 | blocked | keys | Ritik → Arsha | — | — |
@@ -70,11 +70,11 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 
 | # | Item | From | Status | Blocked by | Owner | Needs | Time |
 |---|---|---|---|---|---|---|---|
-| C6 | `run_team.py`: append-only, writing to gitignored `results/trackC/` (today it deletes its own log and writes to tracked `results/scope/`) | Oct 22, Oct 26, Oct 27 | not started | — | Claude Code → Shrey | no calls | 30 min |
-| C2 | No-tool team (the solver always gets the tool today) | PLAN | not started | — | Claude Code → Shrey | no calls | 1–2 h |
-| C3 | Second reviewer model (hard-coded today) | PLAN | not started | — | Claude Code → Shrey | no calls | 1 h |
-| C7 | Input-file option for `run_team.py` (`live` takes pilot puzzles only) | Oct 27 | not started | — | Claude Code → Shrey | no calls | 1 h |
-| C1 | Live team on 5 items (`run_team.py --live --n 5`) | Gate 1 | not done: 2 items (Oct 4) | C6; room on Voyager | Claude Code → Shrey | Voyager (35 calls) | 15 min |
+| C6 | `run_team.py`: append-only, writing to gitignored `results/trackC/` (today it deletes its own log and writes to tracked `results/scope/`) | Oct 22, Oct 26, Oct 27 | done (`b72b747`) | — | Claude Code → Shrey | no calls | 30 min |
+| C2 | No-tool team (the solver always gets the tool today) | PLAN | done (`b72b747`) | — | Claude Code → Shrey | no calls | 1–2 h |
+| C3 | Second reviewer model (hard-coded today) | PLAN | done (`b72b747`; second reviewer olmo3-7b-instruct, canary `4f697f8`) | — | Claude Code → Shrey | no calls | 1 h |
+| C7 | Input-file option for `run_team.py` (`live` takes pilot puzzles only) | Oct 27 | done (`b72b747`) | — | Claude Code → Shrey | no calls | 1 h |
+| C1 | Live team on 5 items (`run_team.py --live --n 5`) | Gate 1 | in progress: started 13:52 MST (5 pilot items, tool team, 2 reviewer models, ~55 calls) | — | Claude Code → Shrey | Voyager (35 calls) | 15 min |
 | C4 | The team on Track B's steered cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams | PLAN, Oct 27 | not started | B8, C2, C3, C7 | Claude Code → Shrey | Voyager (~3,400 calls) | ~3–13 h |
 | C5 | Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | PLAN, Oct 27 | not started | C4 | Claude Code → Shrey | no calls | 3 h |
 
@@ -82,9 +82,9 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 
 | # | Item | From | Status | Blocked by | Owner | Needs | Time |
 |---|---|---|---|---|---|---|---|
-| L1 | Replace the 10 label-queue rows with no text: no calls, the original rule (random hinted pilot runs with saved text, seed recorded), marked as replacements in the queue and in the guide | PLAN; decided Oct 27 | not started | — | Claude Code | no calls | 30 min |
-| L2 | Labeling kit: two blank rater sheets from `LABEL_QUEUE.csv` (keyword columns hidden), the guide, a kappa-per-channel script that lists disagreements (no labels filled by Claude Code) | Oct 27 | not started | — | Claude Code | no calls | 1–2 h |
-| L3 | Label the queue, two raters; Cohen's kappa per channel; under 0.6, tighten the guide and label a fresh batch | PLAN (Gate 2, Nov 8) | not started | L1, L2 | two raters | none | 3–4 h per rater |
+| L1 | Replace the 10 label-queue rows with no text: no calls, the original rule (random hinted pilot runs with saved text, seed recorded), marked as replacements in the queue and in the guide | PLAN; decided Oct 27 | done (`d41f77e`): 7 pilot replay + 3 Test 2 runs (only 7 pilot runs qualify) | — | Claude Code | no calls | 30 min |
+| L2 | Labeling kit: two blank rater sheets from `LABEL_QUEUE.csv` (keyword columns hidden), the guide, a kappa-per-channel script that lists disagreements (no labels filled by Claude Code) | Oct 27 | done (`d41f77e`): kit in gitignored results/labels/ | — | Claude Code | no calls | 1–2 h |
+| L3 | Label the queue, two raters; Cohen's kappa per channel; under 0.6, tighten the guide and label a fresh batch | PLAN (Gate 2, Nov 8) | ready to start (kit built) | raters | two raters | none | 3–4 h per rater |
 | L4 | Phase 6 labeling sample: 200 evaluation replies (240 with the fourth version) + every false-disclosure candidate | Oct 25, Oct 27 | planned | A16 | two raters | none | 6–8 h per rater |
 
 ## Handoff, repo, docs, gates
@@ -128,8 +128,10 @@ at the time because the session ran out):
   checking 13, neither 7; correct hint: agrees after checking 148, disagrees 14, neither 20.
   "Neither" 27 of 533 (5%).
 
-**A1 now** (12:00 MST Oct 27): 237 kept after 490 questions; the last chunk of 40 started 11:50
-and needs 3 more kept. The overnight slowdown was the Mac asleep on battery (11:35 PM–8:28 AM).
+**A1 final** (13:45 MST Oct 27): 251 kept of 530 [43, 52%]; Step 7 targets: user wrong 243 of 251,
+pasted wrong 238 of 250, inserted wrong 229 of 250 (correct hints 122 of 123, 128 of 128, 131 of
+131); 1,133 targets, 42 of them the fallback; "neither" 57 (5%), dropped. Assembled: 1,196 examples
+(1,040 train from 217 questions, 156 validation from 34). Session log 2026-10-27 13:55.
 
 **Order for Tracks B and C (decided Oct 27).** Track A needs no Voyager after Steps 6–7. At most 4
 requests in flight across every process on the Mac.
