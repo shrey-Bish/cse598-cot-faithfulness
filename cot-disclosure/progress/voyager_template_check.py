@@ -11,6 +11,10 @@ Chat models are checked on /v1/chat/completions (the served template; tool_real 
 spec). Olmo 3 7B Think runs in our pinned format on /v1/completions, so there the check is that the
 server counts our rendered prompt as we do. A gap of 0 on every condition means the server renders
 what we render; any other gap is reported, never patched over. Downloads only tokenizer files.
+
+Oct 27: gap 0 on every condition for both Qwen3 models and Olmo, except tool_real on Qwen3: the
+server counts 1 token fewer, and our rendering matches it when the tool spec's JSON keys are sorted
+(local_tokens_sorted_tool_keys): the served template is the model's own; vLLM orders the keys.
 """
 import argparse
 import json
@@ -62,7 +66,15 @@ def local_chat(repo):
 
 def count_chat(tok, msgs, tools):
     ids = tok.apply_chat_template(msgs, tools=tools, add_generation_prompt=True, tokenize=True)
-    return len(ids["input_ids"] if isinstance(ids, dict) else ids)
+    return len(ids["input_ids"] if hasattr(ids, "keys") else ids)      # transformers 5 returns an encoding
+
+
+def sorted_keys(x):
+    """The same JSON with every object's keys sorted: how Voyager (vLLM) serializes a tool spec
+    (Oct 27: our rendering with sorted keys matches its count; with the spec's own order, 1 token more)."""
+    if isinstance(x, dict):
+        return {k: sorted_keys(x[k]) for k in sorted(x)}
+    return [sorted_keys(v) for v in x] if isinstance(x, list) else x
 
 
 def check(name):
@@ -90,6 +102,7 @@ def check(name):
                      "template": f"{repo}@{sha}" if repo else f"pinned olmo3_think_tools.jinja ({olmo_format.PINNED_SHA256[:12]})",
                      "condition": cond, "tools_sent": bool(tools), "local_tokens": ours, "server_tokens": server,
                      "gap": None if server is None else server - ours, "error": out.get("error"),
+                     "local_tokens_sorted_tool_keys": count_chat(tok, msgs, sorted_keys(tools)) if repo and tools else None,
                      "requested_model_id": out.get("requested_model_id"), "reasoning_effort": out.get("reasoning_effort"),
                      "served_model": out.get("served_model"), "cached": out.get("cached")})
     return rows

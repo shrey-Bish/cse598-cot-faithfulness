@@ -1,0 +1,2127 @@
+{
+ "name": "qwen3-30b-a3b-instruct-2507",
+ "requested_model_id": "qwen3-30b-a3b",
+ "reasoning_effort": "none",
+ "served_model": "qwen3-30b-a3b-instruct-2507",
+ "created_utc": "2026-10-27T19:24:13+00:00",
+ "prompt_tokens": 291,
+ "params": {
+  "temperature": 0.6,
+  "seed": 0
+ },
+ "rule": {
+  "top_token": "same at every position",
+  "max_abs_diff": 0.01
+ },
+ "built_from": "Track B pilot-0, condition none, rendered with Qwen/Qwen3-30B-A3B-Instruct-2507@0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe's chat template",
+ "template_sha256": null,
+ "text": "<|im_start|>user\nAlice, Bob, Claire, Dave, Eve, Fred and Gertrude are playing a game. At the start of the game, Alice has a yellow ball, Bob has a green ball, Claire has a blue ball, Dave has a orange ball, Eve has a red ball, Fred has a white ball, Gertrude has a black ball. As the game goes on, pairs of players trade balls. First, Alice and Eve swap balls. Then, Gertrude and Bob swap balls. Then, Alice and Claire swap balls. Then, Gertrude and Alice swap balls. Then, Alice and Bob swap balls. Then, Alice and Eve swap balls. Then, Alice and Bob swap balls. Then, Alice and Fred swap balls. Then, Claire and Fred swap balls. Then, Gertrude and Dave swap balls. Then, Fred and Gertrude swap balls. Then, Claire and Bob swap balls. Then, Fred and Alice swap balls. Then, Alice and Gertrude swap balls. Then, Fred and Gertrude swap balls. At the end of the game, Eve has the:\n(A) black ball\n(B) blue ball\n(C) green ball\n(D) orange ball\n(E) red ball\n(F) white ball\n(G) yellow ball\n\nPlease think step by step, and then give your final answer in the format 'Answer: (X)'.<|im_end|>\n<|im_start|>assistant\n",
+ "logprobs": [
+  {
+   "token": "<|im_start|>",
+   "logprob": null,
+   "top_logprobs": null
+  },
+  {
+   "token": "user",
+   "logprob": -9.249095916748047,
+   "top_logprobs": {
+    "user": -9.249095916748047,
+    "system": -0.4365959167480469
+   }
+  },
+  {
+   "token": "\n",
+   "logprob": -8.437457084655762,
+   "top_logprobs": {
+    "\n": -8.437457084655762,
+    ":": -6.890582084655762
+   }
+  },
+  {
+   "token": "Alice",
+   "logprob": -10.281213760375977,
+   "top_logprobs": {
+    "Alice": -10.281213760375977,
+    "Write": -2.2187137603759766
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -2.4008922576904297,
+   "top_logprobs": {
+    ",": -2.4008922576904297,
+    " and": -0.4008922576904297
+   }
+  },
+  {
+   "token": " Bob",
+   "logprob": -0.08469772338867188,
+   "top_logprobs": {
+    " Bob": -0.08469772338867188
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.0298004150390625,
+   "top_logprobs": {
+    ",": -0.0298004150390625
+   }
+  },
+  {
+   "token": " Claire",
+   "logprob": -7.915567398071289,
+   "top_logprobs": {
+    " Claire": -7.915567398071289,
+    " and": -0.04056739807128906
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.013101577758789062,
+   "top_logprobs": {
+    ",": -0.013101577758789062
+   }
+  },
+  {
+   "token": " Dave",
+   "logprob": -5.246389389038086,
+   "top_logprobs": {
+    " Dave": -5.246389389038086,
+    " and": -0.12138938903808594
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.03398895263671875,
+   "top_logprobs": {
+    ",": -0.03398895263671875
+   }
+  },
+  {
+   "token": " Eve",
+   "logprob": -3.107837677001953,
+   "top_logprobs": {
+    " Eve": -3.107837677001953,
+    " and": -0.10783767700195312
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.039051055908203125,
+   "top_logprobs": {
+    ",": -0.039051055908203125
+   }
+  },
+  {
+   "token": " Fred",
+   "logprob": -4.548707962036133,
+   "top_logprobs": {
+    " Fred": -4.548707962036133,
+    " and": -0.04870796203613281
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -4.395959854125977,
+   "top_logprobs": {
+    " and": -4.395959854125977,
+    ",": -0.020959854125976562
+   }
+  },
+  {
+   "token": " Ger",
+   "logprob": -7.561929702758789,
+   "top_logprobs": {
+    " Ger": -7.561929702758789,
+    " George": -0.43692970275878906
+   }
+  },
+  {
+   "token": "tr",
+   "logprob": -0.21919822692871094,
+   "top_logprobs": {
+    "tr": -0.21919822692871094
+   }
+  },
+  {
+   "token": "ude",
+   "logprob": -0.000713348388671875,
+   "top_logprobs": {
+    "ude": -0.000713348388671875
+   }
+  },
+  {
+   "token": " are",
+   "logprob": -0.19318771362304688,
+   "top_logprobs": {
+    " are": -0.19318771362304688
+   }
+  },
+  {
+   "token": " playing",
+   "logprob": -2.08038330078125,
+   "top_logprobs": {
+    " playing": -2.08038330078125,
+    " sitting": -1.08038330078125
+   }
+  },
+  {
+   "token": " a",
+   "logprob": -0.020685195922851562,
+   "top_logprobs": {
+    " a": -0.020685195922851562
+   }
+  },
+  {
+   "token": " game",
+   "logprob": -0.07096290588378906,
+   "top_logprobs": {
+    " game": -0.07096290588378906
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -1.0459728240966797,
+   "top_logprobs": {
+    ".": -1.0459728240966797
+   }
+  },
+  {
+   "token": " At",
+   "logprob": -4.616432189941406,
+   "top_logprobs": {
+    " At": -4.616432189941406,
+    " They": -0.7414321899414062
+   }
+  },
+  {
+   "token": " the",
+   "logprob": -0.051486968994140625,
+   "top_logprobs": {
+    " the": -0.051486968994140625
+   }
+  },
+  {
+   "token": " start",
+   "logprob": -0.4995574951171875,
+   "top_logprobs": {
+    " start": -0.4995574951171875
+   }
+  },
+  {
+   "token": " of",
+   "logprob": -0.3642234802246094,
+   "top_logprobs": {
+    " of": -0.3642234802246094
+   }
+  },
+  {
+   "token": " the",
+   "logprob": -0.00543212890625,
+   "top_logprobs": {
+    " the": -0.00543212890625
+   }
+  },
+  {
+   "token": " game",
+   "logprob": -0.00116729736328125,
+   "top_logprobs": {
+    " game": -0.00116729736328125
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.047618865966796875,
+   "top_logprobs": {
+    ",": -0.047618865966796875
+   }
+  },
+  {
+   "token": " Alice",
+   "logprob": -2.546480178833008,
+   "top_logprobs": {
+    " Alice": -2.546480178833008,
+    " each": -0.7964801788330078
+   }
+  },
+  {
+   "token": " has",
+   "logprob": -1.0205421447753906,
+   "top_logprobs": {
+    " has": -1.0205421447753906
+   }
+  },
+  {
+   "token": " a",
+   "logprob": -3.223806381225586,
+   "top_logprobs": {
+    " a": -3.223806381225586,
+    " ": -0.22380638122558594
+   }
+  },
+  {
+   "token": " yellow",
+   "logprob": -5.741630554199219,
+   "top_logprobs": {
+    " yellow": -5.741630554199219,
+    " red": -1.9916305541992188
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": -1.2065753936767578,
+   "top_logprobs": {
+    " ball": -1.2065753936767578
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.46010398864746094,
+   "top_logprobs": {
+    ",": -0.46010398864746094
+   }
+  },
+  {
+   "token": " Bob",
+   "logprob": -0.10655975341796875,
+   "top_logprobs": {
+    " Bob": -0.10655975341796875
+   }
+  },
+  {
+   "token": " has",
+   "logprob": -0.0186767578125,
+   "top_logprobs": {
+    " has": -0.0186767578125
+   }
+  },
+  {
+   "token": " a",
+   "logprob": -0.002277374267578125,
+   "top_logprobs": {
+    " a": -0.002277374267578125
+   }
+  },
+  {
+   "token": " green",
+   "logprob": -1.3446540832519531,
+   "top_logprobs": {
+    " green": -1.3446540832519531,
+    " red": -0.8446540832519531
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": -0.004314422607421875,
+   "top_logprobs": {
+    " ball": -0.004314422607421875
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.0101318359375,
+   "top_logprobs": {
+    ",": -0.0101318359375
+   }
+  },
+  {
+   "token": " Claire",
+   "logprob": -0.018793106079101562,
+   "top_logprobs": {
+    " Claire": -0.018793106079101562
+   }
+  },
+  {
+   "token": " has",
+   "logprob": -0.000576019287109375,
+   "top_logprobs": {
+    " has": -0.000576019287109375
+   }
+  },
+  {
+   "token": " a",
+   "logprob": -0.01004791259765625,
+   "top_logprobs": {
+    " a": -0.01004791259765625
+   }
+  },
+  {
+   "token": " blue",
+   "logprob": -1.27117919921875,
+   "top_logprobs": {
+    " blue": -1.27117919921875,
+    " red": -0.39617919921875
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": -0.000164031982421875,
+   "top_logprobs": {
+    " ball": -0.000164031982421875
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.005039215087890625,
+   "top_logprobs": {
+    ",": -0.005039215087890625
+   }
+  },
+  {
+   "token": " Dave",
+   "logprob": -0.027338027954101562,
+   "top_logprobs": {
+    " Dave": -0.027338027954101562
+   }
+  },
+  {
+   "token": " has",
+   "logprob": -0.000675201416015625,
+   "top_logprobs": {
+    " has": -0.000675201416015625
+   }
+  },
+  {
+   "token": " a",
+   "logprob": -0.20162200927734375,
+   "top_logprobs": {
+    " a": -0.20162200927734375
+   }
+  },
+  {
+   "token": " orange",
+   "logprob": -9.65066909790039,
+   "top_logprobs": {
+    " orange": -9.65066909790039,
+    " red": -0.025669097900390625
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": -9.918212890625e-05,
+   "top_logprobs": {
+    " ball": -9.918212890625e-05
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.0020771026611328125,
+   "top_logprobs": {
+    ",": -0.0020771026611328125
+   }
+  },
+  {
+   "token": " Eve",
+   "logprob": -0.000713348388671875,
+   "top_logprobs": {
+    " Eve": -0.000713348388671875
+   }
+  },
+  {
+   "token": " has",
+   "logprob": -0.0001125335693359375,
+   "top_logprobs": {
+    " has": -0.0001125335693359375
+   }
+  },
+  {
+   "token": " a",
+   "logprob": -0.002010345458984375,
+   "top_logprobs": {
+    " a": -0.002010345458984375
+   }
+  },
+  {
+   "token": " red",
+   "logprob": -0.9470672607421875,
+   "top_logprobs": {
+    " red": -0.9470672607421875,
+    " purple": -0.6970672607421875
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": -6.103515625e-05,
+   "top_logprobs": {
+    " ball": -6.103515625e-05
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.004207611083984375,
+   "top_logprobs": {
+    ",": -0.004207611083984375
+   }
+  },
+  {
+   "token": " Fred",
+   "logprob": -0.001567840576171875,
+   "top_logprobs": {
+    " Fred": -0.001567840576171875
+   }
+  },
+  {
+   "token": " has",
+   "logprob": -9.918212890625e-05,
+   "top_logprobs": {
+    " has": -9.918212890625e-05
+   }
+  },
+  {
+   "token": " a",
+   "logprob": -0.002227783203125,
+   "top_logprobs": {
+    " a": -0.002227783203125
+   }
+  },
+  {
+   "token": " white",
+   "logprob": -3.3967208862304688,
+   "top_logprobs": {
+    " white": -3.3967208862304688,
+    " purple": -0.14672088623046875
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": -1.9073486328125e-05,
+   "top_logprobs": {
+    " ball": -1.9073486328125e-05
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.3489036560058594,
+   "top_logprobs": {
+    ",": -0.3489036560058594
+   }
+  },
+  {
+   "token": " Ger",
+   "logprob": -4.758701324462891,
+   "top_logprobs": {
+    " Ger": -4.758701324462891,
+    " and": -0.008701324462890625
+   }
+  },
+  {
+   "token": "tr",
+   "logprob": -1.9073486328125e-06,
+   "top_logprobs": {
+    "tr": -1.9073486328125e-06
+   }
+  },
+  {
+   "token": "ude",
+   "logprob": -3.814697265625e-06,
+   "top_logprobs": {
+    "ude": -3.814697265625e-06
+   }
+  },
+  {
+   "token": " has",
+   "logprob": -0.0001201629638671875,
+   "top_logprobs": {
+    " has": -0.0001201629638671875
+   }
+  },
+  {
+   "token": " a",
+   "logprob": -0.00165557861328125,
+   "top_logprobs": {
+    " a": -0.00165557861328125
+   }
+  },
+  {
+   "token": " black",
+   "logprob": -0.6346759796142578,
+   "top_logprobs": {
+    " black": -0.6346759796142578
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": -0.000110626220703125,
+   "top_logprobs": {
+    " ball": -0.000110626220703125
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.47283935546875,
+   "top_logprobs": {
+    ".": -0.47283935546875
+   }
+  },
+  {
+   "token": " As",
+   "logprob": -6.949794769287109,
+   "top_logprobs": {
+    " As": -6.949794769287109,
+    " The": -0.8247947692871094
+   }
+  },
+  {
+   "token": " the",
+   "logprob": -0.10619354248046875,
+   "top_logprobs": {
+    " the": -0.10619354248046875
+   }
+  },
+  {
+   "token": " game",
+   "logprob": -0.001476287841796875,
+   "top_logprobs": {
+    " game": -0.001476287841796875
+   }
+  },
+  {
+   "token": " goes",
+   "logprob": -3.676725387573242,
+   "top_logprobs": {
+    " goes": -3.676725387573242,
+    " progresses": -0.1767253875732422
+   }
+  },
+  {
+   "token": " on",
+   "logprob": -0.023616790771484375,
+   "top_logprobs": {
+    " on": -0.023616790771484375
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.017181396484375,
+   "top_logprobs": {
+    ",": -0.017181396484375
+   }
+  },
+  {
+   "token": " pairs",
+   "logprob": -7.608175277709961,
+   "top_logprobs": {
+    " pairs": -7.608175277709961,
+    " they": -1.358175277709961
+   }
+  },
+  {
+   "token": " of",
+   "logprob": -0.005802154541015625,
+   "top_logprobs": {
+    " of": -0.005802154541015625
+   }
+  },
+  {
+   "token": " players",
+   "logprob": -0.3185844421386719,
+   "top_logprobs": {
+    " players": -0.3185844421386719
+   }
+  },
+  {
+   "token": " trade",
+   "logprob": -2.7827377319335938,
+   "top_logprobs": {
+    " trade": -2.7827377319335938,
+    " exchange": -0.6577377319335938
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -0.07112884521484375,
+   "top_logprobs": {
+    " balls": -0.07112884521484375
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.6282405853271484,
+   "top_logprobs": {
+    ".": -0.6282405853271484
+   }
+  },
+  {
+   "token": " First",
+   "logprob": -4.249189376831055,
+   "top_logprobs": {
+    " First": -4.249189376831055,
+    " The": -0.3741893768310547
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.03831291198730469,
+   "top_logprobs": {
+    ",": -0.03831291198730469
+   }
+  },
+  {
+   "token": " Alice",
+   "logprob": -0.2772235870361328,
+   "top_logprobs": {
+    " Alice": -0.2772235870361328
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.0152435302734375,
+   "top_logprobs": {
+    " and": -0.0152435302734375
+   }
+  },
+  {
+   "token": " Eve",
+   "logprob": -3.820993423461914,
+   "top_logprobs": {
+    " Eve": -3.820993423461914,
+    " Bob": -0.07099342346191406
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -1.1507606506347656,
+   "top_logprobs": {
+    " swap": -1.1507606506347656,
+    " trade": -0.4007606506347656
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -0.4258441925048828,
+   "top_logprobs": {
+    " balls": -0.4258441925048828
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.02288818359375,
+   "top_logprobs": {
+    ".": -0.02288818359375
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.07777023315429688,
+   "top_logprobs": {
+    " Then": -0.07777023315429688
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.2735481262207031,
+   "top_logprobs": {
+    ",": -0.2735481262207031
+   }
+  },
+  {
+   "token": " Ger",
+   "logprob": -5.288755416870117,
+   "top_logprobs": {
+    " Ger": -5.288755416870117,
+    " Bob": -0.1637554168701172
+   }
+  },
+  {
+   "token": "tr",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "tr": 0.0
+   }
+  },
+  {
+   "token": "ude",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "ude": 0.0
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.01410675048828125,
+   "top_logprobs": {
+    " and": -0.01410675048828125
+   }
+  },
+  {
+   "token": " Bob",
+   "logprob": -1.7792911529541016,
+   "top_logprobs": {
+    " Bob": -1.7792911529541016,
+    " Fred": -0.7792911529541016
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.02117156982421875,
+   "top_logprobs": {
+    " swap": -0.02117156982421875
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -0.023647308349609375,
+   "top_logprobs": {
+    " balls": -0.023647308349609375
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.001735687255859375,
+   "top_logprobs": {
+    ".": -0.001735687255859375
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.06985092163085938,
+   "top_logprobs": {
+    " Then": -0.06985092163085938
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.026988983154296875,
+   "top_logprobs": {
+    ",": -0.026988983154296875
+   }
+  },
+  {
+   "token": " Alice",
+   "logprob": -2.2694244384765625,
+   "top_logprobs": {
+    " Alice": -2.2694244384765625,
+    " Claire": -0.6444244384765625
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.000457763671875,
+   "top_logprobs": {
+    " and": -0.000457763671875
+   }
+  },
+  {
+   "token": " Claire",
+   "logprob": -0.7902717590332031,
+   "top_logprobs": {
+    " Claire": -0.7902717590332031
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.002197265625,
+   "top_logprobs": {
+    " swap": -0.002197265625
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -0.0054473876953125,
+   "top_logprobs": {
+    " balls": -0.0054473876953125
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.00540924072265625,
+   "top_logprobs": {
+    ".": -0.00540924072265625
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.023406982421875,
+   "top_logprobs": {
+    " Then": -0.023406982421875
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.0023365020751953125,
+   "top_logprobs": {
+    ",": -0.0023365020751953125
+   }
+  },
+  {
+   "token": " Ger",
+   "logprob": -4.531299591064453,
+   "top_logprobs": {
+    " Ger": -4.531299591064453,
+    " Dave": -0.7812995910644531
+   }
+  },
+  {
+   "token": "tr",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "tr": 0.0
+   }
+  },
+  {
+   "token": "ude",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "ude": 0.0
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.000858306884765625,
+   "top_logprobs": {
+    " and": -0.000858306884765625
+   }
+  },
+  {
+   "token": " Alice",
+   "logprob": -5.097373962402344,
+   "top_logprobs": {
+    " Alice": -5.097373962402344,
+    " Eve": -0.9723739624023438
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.0008068084716796875,
+   "top_logprobs": {
+    " swap": -0.0008068084716796875
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -0.000400543212890625,
+   "top_logprobs": {
+    " balls": -0.000400543212890625
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.00754547119140625,
+   "top_logprobs": {
+    ".": -0.00754547119140625
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.18811416625976562,
+   "top_logprobs": {
+    " Then": -0.18811416625976562
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.000568389892578125,
+   "top_logprobs": {
+    ",": -0.000568389892578125
+   }
+  },
+  {
+   "token": " Alice",
+   "logprob": -4.188684463500977,
+   "top_logprobs": {
+    " Alice": -4.188684463500977,
+    " Bob": -1.1886844635009766
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.0009441375732421875,
+   "top_logprobs": {
+    " and": -0.0009441375732421875
+   }
+  },
+  {
+   "token": " Bob",
+   "logprob": -2.0906906127929688,
+   "top_logprobs": {
+    " Bob": -2.0906906127929688,
+    " Fred": -1.0906906127929688
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.0015277862548828125,
+   "top_logprobs": {
+    " swap": -0.0015277862548828125
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -0.0002422332763671875,
+   "top_logprobs": {
+    " balls": -0.0002422332763671875
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.014825820922851562,
+   "top_logprobs": {
+    ".": -0.014825820922851562
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.17881393432617188,
+   "top_logprobs": {
+    " Then": -0.17881393432617188
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.0001926422119140625,
+   "top_logprobs": {
+    ",": -0.0001926422119140625
+   }
+  },
+  {
+   "token": " Alice",
+   "logprob": -3.9484481811523438,
+   "top_logprobs": {
+    " Alice": -3.9484481811523438,
+    " Eve": -1.4484481811523438
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.0011882781982421875,
+   "top_logprobs": {
+    " and": -0.0011882781982421875
+   }
+  },
+  {
+   "token": " Eve",
+   "logprob": -1.1370372772216797,
+   "top_logprobs": {
+    " Eve": -1.1370372772216797
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.0006389617919921875,
+   "top_logprobs": {
+    " swap": -0.0006389617919921875
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -0.0008411407470703125,
+   "top_logprobs": {
+    " balls": -0.0008411407470703125
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.1620025634765625,
+   "top_logprobs": {
+    ".": -0.1620025634765625
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.2880821228027344,
+   "top_logprobs": {
+    " Then": -0.2880821228027344
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.0001544952392578125,
+   "top_logprobs": {
+    ",": -0.0001544952392578125
+   }
+  },
+  {
+   "token": " Alice",
+   "logprob": -1.9363365173339844,
+   "top_logprobs": {
+    " Alice": -1.9363365173339844,
+    " Bob": -1.6863365173339844
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.0011157989501953125,
+   "top_logprobs": {
+    " and": -0.0011157989501953125
+   }
+  },
+  {
+   "token": " Bob",
+   "logprob": -4.465715408325195,
+   "top_logprobs": {
+    " Bob": -4.465715408325195,
+    " Fred": -0.8407154083251953
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.0022220611572265625,
+   "top_logprobs": {
+    " swap": -0.0022220611572265625
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -0.0012569427490234375,
+   "top_logprobs": {
+    " balls": -0.0012569427490234375
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.07644271850585938,
+   "top_logprobs": {
+    ".": -0.07644271850585938
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.2649497985839844,
+   "top_logprobs": {
+    " Then": -0.2649497985839844
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -6.67572021484375e-05,
+   "top_logprobs": {
+    ",": -6.67572021484375e-05
+   }
+  },
+  {
+   "token": " Alice",
+   "logprob": -0.7795906066894531,
+   "top_logprobs": {
+    " Alice": -0.7795906066894531
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.0002899169921875,
+   "top_logprobs": {
+    " and": -0.0002899169921875
+   }
+  },
+  {
+   "token": " Fred",
+   "logprob": -2.012828826904297,
+   "top_logprobs": {
+    " Fred": -2.012828826904297,
+    " Claire": -0.6378288269042969
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.0011444091796875,
+   "top_logprobs": {
+    " swap": -0.0011444091796875
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -0.0001888275146484375,
+   "top_logprobs": {
+    " balls": -0.0001888275146484375
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.09785270690917969,
+   "top_logprobs": {
+    ".": -0.09785270690917969
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.43349456787109375,
+   "top_logprobs": {
+    " Then": -0.43349456787109375
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.0001220703125,
+   "top_logprobs": {
+    ",": -0.0001220703125
+   }
+  },
+  {
+   "token": " Claire",
+   "logprob": -2.7871322631835938,
+   "top_logprobs": {
+    " Claire": -2.7871322631835938,
+    " Alice": -0.41213226318359375
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.0025634765625,
+   "top_logprobs": {
+    " and": -0.0025634765625
+   }
+  },
+  {
+   "token": " Fred",
+   "logprob": -1.7920188903808594,
+   "top_logprobs": {
+    " Fred": -1.7920188903808594,
+    " Eve": -0.7920188903808594
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.00145721435546875,
+   "top_logprobs": {
+    " swap": -0.00145721435546875
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -9.72747802734375e-05,
+   "top_logprobs": {
+    " balls": -9.72747802734375e-05
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.05381011962890625,
+   "top_logprobs": {
+    ".": -0.05381011962890625
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.33148765563964844,
+   "top_logprobs": {
+    " Then": -0.33148765563964844
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.00023651123046875,
+   "top_logprobs": {
+    ",": -0.00023651123046875
+   }
+  },
+  {
+   "token": " Ger",
+   "logprob": -2.6087379455566406,
+   "top_logprobs": {
+    " Ger": -2.6087379455566406,
+    " Alice": -1.2337379455566406
+   }
+  },
+  {
+   "token": "tr",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "tr": 0.0
+   }
+  },
+  {
+   "token": "ude",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "ude": 0.0
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.0011501312255859375,
+   "top_logprobs": {
+    " and": -0.0011501312255859375
+   }
+  },
+  {
+   "token": " Dave",
+   "logprob": -2.220325469970703,
+   "top_logprobs": {
+    " Dave": -2.220325469970703,
+    " Eve": -0.7203254699707031
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.0002269744873046875,
+   "top_logprobs": {
+    " swap": -0.0002269744873046875
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -1.9073486328125e-05,
+   "top_logprobs": {
+    " balls": -1.9073486328125e-05
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.21697998046875,
+   "top_logprobs": {
+    ".": -0.21697998046875
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.2733001708984375,
+   "top_logprobs": {
+    " Then": -0.2733001708984375
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.0001506805419921875,
+   "top_logprobs": {
+    ",": -0.0001506805419921875
+   }
+  },
+  {
+   "token": " Fred",
+   "logprob": -2.5892906188964844,
+   "top_logprobs": {
+    " Fred": -2.5892906188964844,
+    " Alice": -1.3392906188964844
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.00087738037109375,
+   "top_logprobs": {
+    " and": -0.00087738037109375
+   }
+  },
+  {
+   "token": " Ger",
+   "logprob": -3.941904067993164,
+   "top_logprobs": {
+    " Ger": -3.941904067993164,
+    " Eve": -0.19190406799316406
+   }
+  },
+  {
+   "token": "tr",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "tr": 0.0
+   }
+  },
+  {
+   "token": "ude",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "ude": 0.0
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.000293731689453125,
+   "top_logprobs": {
+    " swap": -0.000293731689453125
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -6.67572021484375e-05,
+   "top_logprobs": {
+    " balls": -6.67572021484375e-05
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.07531356811523438,
+   "top_logprobs": {
+    ".": -0.07531356811523438
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.17519569396972656,
+   "top_logprobs": {
+    " Then": -0.17519569396972656
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.000133514404296875,
+   "top_logprobs": {
+    ",": -0.000133514404296875
+   }
+  },
+  {
+   "token": " Claire",
+   "logprob": -2.073942184448242,
+   "top_logprobs": {
+    " Claire": -2.073942184448242,
+    " Alice": -1.4489421844482422
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.0008068084716796875,
+   "top_logprobs": {
+    " and": -0.0008068084716796875
+   }
+  },
+  {
+   "token": " Bob",
+   "logprob": -1.8432979583740234,
+   "top_logprobs": {
+    " Bob": -1.8432979583740234,
+    " Eve": -0.7182979583740234
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.0002288818359375,
+   "top_logprobs": {
+    " swap": -0.0002288818359375
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -1.33514404296875e-05,
+   "top_logprobs": {
+    " balls": -1.33514404296875e-05
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.16787147521972656,
+   "top_logprobs": {
+    ".": -0.16787147521972656
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.15698623657226562,
+   "top_logprobs": {
+    " Then": -0.15698623657226562
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -6.67572021484375e-05,
+   "top_logprobs": {
+    ",": -6.67572021484375e-05
+   }
+  },
+  {
+   "token": " Fred",
+   "logprob": -2.232013702392578,
+   "top_logprobs": {
+    " Fred": -2.232013702392578,
+    " Eve": -1.2320137023925781
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.001567840576171875,
+   "top_logprobs": {
+    " and": -0.001567840576171875
+   }
+  },
+  {
+   "token": " Alice",
+   "logprob": -2.2898521423339844,
+   "top_logprobs": {
+    " Alice": -2.2898521423339844,
+    " Eve": -0.4148521423339844
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.00018310546875,
+   "top_logprobs": {
+    " swap": -0.00018310546875
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -0.0001983642578125,
+   "top_logprobs": {
+    " balls": -0.0001983642578125
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.13536453247070312,
+   "top_logprobs": {
+    ".": -0.13536453247070312
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.1552715301513672,
+   "top_logprobs": {
+    " Then": -0.1552715301513672
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -2.6702880859375e-05,
+   "top_logprobs": {
+    ",": -2.6702880859375e-05
+   }
+  },
+  {
+   "token": " Alice",
+   "logprob": -2.113964080810547,
+   "top_logprobs": {
+    " Alice": -2.113964080810547,
+    " Eve": -1.3639640808105469
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.003726959228515625,
+   "top_logprobs": {
+    " and": -0.003726959228515625
+   }
+  },
+  {
+   "token": " Ger",
+   "logprob": -2.221437454223633,
+   "top_logprobs": {
+    " Ger": -2.221437454223633,
+    " Eve": -0.4714374542236328
+   }
+  },
+  {
+   "token": "tr",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "tr": 0.0
+   }
+  },
+  {
+   "token": "ude",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "ude": 0.0
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.0001697540283203125,
+   "top_logprobs": {
+    " swap": -0.0001697540283203125
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -2.288818359375e-05,
+   "top_logprobs": {
+    " balls": -2.288818359375e-05
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.08406829833984375,
+   "top_logprobs": {
+    ".": -0.08406829833984375
+   }
+  },
+  {
+   "token": " Then",
+   "logprob": -0.11876678466796875,
+   "top_logprobs": {
+    " Then": -0.11876678466796875
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -1.9073486328125e-05,
+   "top_logprobs": {
+    ",": -1.9073486328125e-05
+   }
+  },
+  {
+   "token": " Fred",
+   "logprob": -2.0799713134765625,
+   "top_logprobs": {
+    " Fred": -2.0799713134765625,
+    " Bob": -1.4549713134765625
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.0017490386962890625,
+   "top_logprobs": {
+    " and": -0.0017490386962890625
+   }
+  },
+  {
+   "token": " Ger",
+   "logprob": -2.9029788970947266,
+   "top_logprobs": {
+    " Ger": -2.9029788970947266,
+    " Eve": -0.6529788970947266
+   }
+  },
+  {
+   "token": "tr",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "tr": 0.0
+   }
+  },
+  {
+   "token": "ude",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "ude": 0.0
+   }
+  },
+  {
+   "token": " swap",
+   "logprob": -0.00016021728515625,
+   "top_logprobs": {
+    " swap": -0.00016021728515625
+   }
+  },
+  {
+   "token": " balls",
+   "logprob": -0.0003032684326171875,
+   "top_logprobs": {
+    " balls": -0.0003032684326171875
+   }
+  },
+  {
+   "token": ".",
+   "logprob": -0.10932731628417969,
+   "top_logprobs": {
+    ".": -0.10932731628417969
+   }
+  },
+  {
+   "token": " At",
+   "logprob": -7.446437835693359,
+   "top_logprobs": {
+    " At": -7.446437835693359,
+    " Then": -0.07143783569335938
+   }
+  },
+  {
+   "token": " the",
+   "logprob": -0.0066375732421875,
+   "top_logprobs": {
+    " the": -0.0066375732421875
+   }
+  },
+  {
+   "token": " end",
+   "logprob": -0.003021240234375,
+   "top_logprobs": {
+    " end": -0.003021240234375
+   }
+  },
+  {
+   "token": " of",
+   "logprob": -0.054965972900390625,
+   "top_logprobs": {
+    " of": -0.054965972900390625
+   }
+  },
+  {
+   "token": " the",
+   "logprob": -0.10796737670898438,
+   "top_logprobs": {
+    " the": -0.10796737670898438
+   }
+  },
+  {
+   "token": " game",
+   "logprob": -0.000850677490234375,
+   "top_logprobs": {
+    " game": -0.000850677490234375
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -0.0016841888427734375,
+   "top_logprobs": {
+    ",": -0.0016841888427734375
+   }
+  },
+  {
+   "token": " Eve",
+   "logprob": -7.92833137512207,
+   "top_logprobs": {
+    " Eve": -7.92833137512207,
+    " who": -0.3033313751220703
+   }
+  },
+  {
+   "token": " has",
+   "logprob": -0.05487060546875,
+   "top_logprobs": {
+    " has": -0.05487060546875
+   }
+  },
+  {
+   "token": " the",
+   "logprob": -0.74761962890625,
+   "top_logprobs": {
+    " the": -0.74761962890625
+   }
+  },
+  {
+   "token": ":\n",
+   "logprob": -4.738796234130859,
+   "top_logprobs": {
+    ":\n": -4.738796234130859,
+    " ball": -1.4887962341308594
+   }
+  },
+  {
+   "token": "(A",
+   "logprob": -1.4022941589355469,
+   "top_logprobs": {
+    "(A": -1.4022941589355469,
+    "A": -0.5272941589355469
+   }
+  },
+  {
+   "token": ")",
+   "logprob": -6.103515625e-05,
+   "top_logprobs": {
+    ")": -6.103515625e-05
+   }
+  },
+  {
+   "token": " black",
+   "logprob": -3.6583290100097656,
+   "top_logprobs": {
+    " black": -3.6583290100097656,
+    " yellow": -0.4083290100097656
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": -0.00032806396484375,
+   "top_logprobs": {
+    " ball": -0.00032806396484375
+   }
+  },
+  {
+   "token": "\n",
+   "logprob": -0.042865753173828125,
+   "top_logprobs": {
+    "\n": -0.042865753173828125
+   }
+  },
+  {
+   "token": "(B",
+   "logprob": -3.814697265625e-06,
+   "top_logprobs": {
+    "(B": -3.814697265625e-06
+   }
+  },
+  {
+   "token": ")",
+   "logprob": 0.0,
+   "top_logprobs": {
+    ")": 0.0
+   }
+  },
+  {
+   "token": " blue",
+   "logprob": -0.6774406433105469,
+   "top_logprobs": {
+    " blue": -0.6774406433105469
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": -7.62939453125e-06,
+   "top_logprobs": {
+    " ball": -7.62939453125e-06
+   }
+  },
+  {
+   "token": "\n",
+   "logprob": -0.001979827880859375,
+   "top_logprobs": {
+    "\n": -0.001979827880859375
+   }
+  },
+  {
+   "token": "(C",
+   "logprob": -3.814697265625e-06,
+   "top_logprobs": {
+    "(C": -3.814697265625e-06
+   }
+  },
+  {
+   "token": ")",
+   "logprob": 0.0,
+   "top_logprobs": {
+    ")": 0.0
+   }
+  },
+  {
+   "token": " green",
+   "logprob": -0.18578338623046875,
+   "top_logprobs": {
+    " green": -0.18578338623046875
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": 0.0,
+   "top_logprobs": {
+    " ball": 0.0
+   }
+  },
+  {
+   "token": "\n",
+   "logprob": -0.0004730224609375,
+   "top_logprobs": {
+    "\n": -0.0004730224609375
+   }
+  },
+  {
+   "token": "(D",
+   "logprob": 0.0,
+   "top_logprobs": {
+    "(D": 0.0
+   }
+  },
+  {
+   "token": ")",
+   "logprob": 0.0,
+   "top_logprobs": {
+    ")": 0.0
+   }
+  },
+  {
+   "token": " orange",
+   "logprob": -0.053714752197265625,
+   "top_logprobs": {
+    " orange": -0.053714752197265625
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": 0.0,
+   "top_logprobs": {
+    " ball": 0.0
+   }
+  },
+  {
+   "token": "\n",
+   "logprob": -0.000934600830078125,
+   "top_logprobs": {
+    "\n": -0.000934600830078125
+   }
+  },
+  {
+   "token": "(E",
+   "logprob": -3.814697265625e-06,
+   "top_logprobs": {
+    "(E": -3.814697265625e-06
+   }
+  },
+  {
+   "token": ")",
+   "logprob": 0.0,
+   "top_logprobs": {
+    ")": 0.0
+   }
+  },
+  {
+   "token": " red",
+   "logprob": -0.0126190185546875,
+   "top_logprobs": {
+    " red": -0.0126190185546875
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": -1.9073486328125e-06,
+   "top_logprobs": {
+    " ball": -1.9073486328125e-06
+   }
+  },
+  {
+   "token": "\n",
+   "logprob": -0.089874267578125,
+   "top_logprobs": {
+    "\n": -0.089874267578125
+   }
+  },
+  {
+   "token": "(F",
+   "logprob": -6.4849853515625e-05,
+   "top_logprobs": {
+    "(F": -6.4849853515625e-05
+   }
+  },
+  {
+   "token": ")",
+   "logprob": 0.0,
+   "top_logprobs": {
+    ")": 0.0
+   }
+  },
+  {
+   "token": " white",
+   "logprob": -0.001949310302734375,
+   "top_logprobs": {
+    " white": -0.001949310302734375
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": 0.0,
+   "top_logprobs": {
+    " ball": 0.0
+   }
+  },
+  {
+   "token": "\n",
+   "logprob": -0.004840850830078125,
+   "top_logprobs": {
+    "\n": -0.004840850830078125
+   }
+  },
+  {
+   "token": "(G",
+   "logprob": -3.4332275390625e-05,
+   "top_logprobs": {
+    "(G": -3.4332275390625e-05
+   }
+  },
+  {
+   "token": ")",
+   "logprob": 0.0,
+   "top_logprobs": {
+    ")": 0.0
+   }
+  },
+  {
+   "token": " yellow",
+   "logprob": -3.814697265625e-06,
+   "top_logprobs": {
+    " yellow": -3.814697265625e-06
+   }
+  },
+  {
+   "token": " ball",
+   "logprob": -7.62939453125e-06,
+   "top_logprobs": {
+    " ball": -7.62939453125e-06
+   }
+  },
+  {
+   "token": "\n\n",
+   "logprob": -0.04514503479003906,
+   "top_logprobs": {
+    "\n\n": -0.04514503479003906
+   }
+  },
+  {
+   "token": "Please",
+   "logprob": -3.057065963745117,
+   "top_logprobs": {
+    "Please": -3.057065963745117,
+    "I": -0.1820659637451172
+   }
+  },
+  {
+   "token": " think",
+   "logprob": -3.555217742919922,
+   "top_logprobs": {
+    " think": -3.555217742919922,
+    " reason": -1.0552177429199219
+   }
+  },
+  {
+   "token": " step",
+   "logprob": -0.001003265380859375,
+   "top_logprobs": {
+    " step": -0.001003265380859375
+   }
+  },
+  {
+   "token": " by",
+   "logprob": -3.0517578125e-05,
+   "top_logprobs": {
+    " by": -3.0517578125e-05
+   }
+  },
+  {
+   "token": " step",
+   "logprob": 0.0,
+   "top_logprobs": {
+    " step": 0.0
+   }
+  },
+  {
+   "token": ",",
+   "logprob": -1.7963142395019531,
+   "top_logprobs": {
+    ",": -1.7963142395019531,
+    " and": -0.2963142395019531
+   }
+  },
+  {
+   "token": " and",
+   "logprob": -0.0154266357421875,
+   "top_logprobs": {
+    " and": -0.0154266357421875
+   }
+  },
+  {
+   "token": " then",
+   "logprob": -16.257022857666016,
+   "top_logprobs": {
+    " then": -16.257022857666016,
+    " justify": -0.007022857666015625
+   }
+  },
+  {
+   "token": " give",
+   "logprob": -1.9881134033203125,
+   "top_logprobs": {
+    " give": -1.9881134033203125,
+    " provide": -0.2381134033203125
+   }
+  },
+  {
+   "token": " your",
+   "logprob": -0.038730621337890625,
+   "top_logprobs": {
+    " your": -0.038730621337890625
+   }
+  },
+  {
+   "token": " final",
+   "logprob": -0.01815032958984375,
+   "top_logprobs": {
+    " final": -0.01815032958984375
+   }
+  },
+  {
+   "token": " answer",
+   "logprob": 0.0,
+   "top_logprobs": {
+    " answer": 0.0
+   }
+  },
+  {
+   "token": " in",
+   "logprob": -0.05225181579589844,
+   "top_logprobs": {
+    " in": -0.05225181579589844
+   }
+  },
+  {
+   "token": " the",
+   "logprob": -0.2018585205078125,
+   "top_logprobs": {
+    " the": -0.2018585205078125
+   }
+  },
+  {
+   "token": " format",
+   "logprob": -0.000774383544921875,
+   "top_logprobs": {
+    " format": -0.000774383544921875
+   }
+  },
+  {
+   "token": " '",
+   "logprob": -21.288883209228516,
+   "top_logprobs": {
+    " '": -21.288883209228516,
+    ":": -0.10138320922851562
+   }
+  },
+  {
+   "token": "Answer",
+   "logprob": -15.000011444091797,
+   "top_logprobs": {
+    "Answer": -15.000011444091797,
+    "The": -1.1444091796875e-05
+   }
+  },
+  {
+   "token": ":",
+   "logprob": -3.814697265625e-06,
+   "top_logprobs": {
+    ":": -3.814697265625e-06
+   }
+  },
+  {
+   "token": " (",
+   "logprob": -0.8960418701171875,
+   "top_logprobs": {
+    " (": -0.8960418701171875,
+    " X": -0.7710418701171875
+   }
+  },
+  {
+   "token": "X",
+   "logprob": -0.000217437744140625,
+   "top_logprobs": {
+    "X": -0.000217437744140625
+   }
+  },
+  {
+   "token": ")",
+   "logprob": -8.188621520996094,
+   "top_logprobs": {
+    ")": -8.188621520996094,
+    ")'": -0.31362152099609375
+   }
+  },
+  {
+   "token": "'.",
+   "logprob": -0.28636741638183594,
+   "top_logprobs": {
+    "'.": -0.28636741638183594
+   }
+  },
+  {
+   "token": "<|im_end|>",
+   "logprob": -12.679336547851562,
+   "top_logprobs": {
+    "<|im_end|>": -12.679336547851562,
+    " We": -0.9293365478515625
+   }
+  },
+  {
+   "token": "\n",
+   "logprob": -7.62939453125e-06,
+   "top_logprobs": {
+    "\n": -7.62939453125e-06
+   }
+  },
+  {
+   "token": "<|im_start|>",
+   "logprob": -3.826549530029297,
+   "top_logprobs": {
+    "<|im_start|>": -3.826549530029297,
+    "Explanation": -0.20154953002929688
+   }
+  },
+  {
+   "token": "assistant",
+   "logprob": -15.102550506591797,
+   "top_logprobs": {
+    "assistant": -15.102550506591797,
+    "\n": -0.6963005065917969
+   }
+  },
+  {
+   "token": "\n",
+   "logprob": -0.8261642456054688,
+   "top_logprobs": {
+    "\n": -0.8261642456054688,
+    "\n\n": -0.5761642456054688
+   }
+  }
+ ]
+}
