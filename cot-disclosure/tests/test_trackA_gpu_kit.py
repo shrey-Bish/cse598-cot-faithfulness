@@ -353,6 +353,116 @@ def test_vllm_gets_its_own_environment_and_outputs_name_it():
     assert rec["driver"]["prefix"] and "transformers" in rec["driver"] and "vllm_server" not in rec
 
 
+# ---------------------------------------------------------------- vLLM server options (Oct 27: 0.31.0 dropped one)
+def test_every_server_command_uses_options_vllm_lists():
+    """The exact command lines every job starts, against vLLM 0.31.0's own option list (tracked)."""
+    from finetune.eval import SYSTEMS
+    from finetune.gpu import eval_job as ej
+    from finetune.gpu import vllm_options as vo
+    version, opts = vo.load(vo.TRACKED)
+    cmds = ej.server_commands()
+    assert version == "0.31.0" and len(opts) > 300
+    assert set(cmds) == {f"eval {s}" for s in SYSTEMS} | {"vllm_check plain", "vllm_check tagged"}
+    assert vo.problems(cmds, opts) == []
+    assert "--enable-prompt-embeds" in cmds["eval lora_tags"] and "--enable-prompt-embeds" not in cmds["eval lora"]
+    assert vo.unknown(["vllm", "serve", "M", "--disable-log-requests"], opts) == ["--disable-log-requests"]
+
+
+def test_option_lines_and_choices_from_argparse_help():
+    from finetune.gpu import vllm_options as vo
+    help_text = ("usage: vllm serve [model_tag] [options]\n\noptions:\n"
+                 "  --port PORT           Port number. (default: 8000)\n"
+                 "  --dtype {auto,bfloat16,half}\n"
+                 "                        Data type; see --kv-cache-dtype for the cache.\n"
+                 "  --enable-lora, --no-enable-lora\n"
+                 "  --api-server-count API_SERVER_COUNT, -asc API_SERVER_COUNT\n"
+                 "  Use `--help=all` to show all available flags at once.\n")
+    opts = vo.options(vo.option_lines(help_text))
+    assert opts == {"--port": None, "--dtype": ["auto", "bfloat16", "half"], "--enable-lora": None,
+                    "--no-enable-lora": None, "--api-server-count": None, "-asc": None}
+    cmd = ["vllm", "serve", "M", "--port", "1", "--dtype", "bf16", "--dtype=half", "--seed", "0"]
+    assert vo.unknown(cmd, opts) == ["--dtype bf16 (choices: auto,bfloat16,half)", "--seed"]
+
+
+def run_setup_vllm(root, help_lines=None):
+    """setup_vllm.sh with env.sh stubbed: a fake vLLM environment whose `vllm serve --help=all` prints
+    these option lines (None: it fails); the real driver Python runs vllm_options.py."""
+    sol = root / "repo" / "cot-disclosure" / "finetune" / "gpu" / "sol"
+    sol.mkdir(parents=True)
+    shutil.copy(SOL / "setup_vllm.sh", sol)
+    venv, bin_dir = root / "envs" / "olmo-vllm" / "bin", root / "bin"
+    venv.mkdir(parents=True)
+    bin_dir.mkdir()
+    help_file = root / "help.txt"
+    help_file.write_text("usage: vllm serve [model_tag] [options]\n\noptions:\n" + "".join(f"  {x}\n" for x in help_lines or []))
+    serve = (f'[ "$*" = "serve --help=all" ] && cat {help_file}' if help_lines is not None
+             else 'echo "ImportError: libcuda.so.1" >&2; exit 2')
+    for p, text in {venv / "python": '#!/bin/bash\n[ "$1" = - ] && { cat > /dev/null; echo "vllm 0.31.0"; }\nexit 0\n',
+                    venv / "vllm": f"#!/bin/bash\n{serve}\n",
+                    bin_dir / "realpath": '#!/bin/bash\necho "${@: -1}"\n'}.items():       # the Mac's has no -m
+        p.write_text(text)
+        p.chmod(0o755)
+    (sol / "env.sh").write_text(f"TRACKA_ENV={root}/envs/olmo\nTRACKA_VLLM_ENV={root}/envs/olmo-vllm\n"
+                                f"TRACKA_VLLM_PY={venv}/python\nTRACKA_VLLM={venv}/vllm\nTRACKA_PY={sys.executable}\n"
+                                f"TRACKA_OUT={root}/out\nTRACKA_CODE={CODE}\n")
+    env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
+    return subprocess.run(["bash", str(sol / "setup_vllm.sh")], env=env, capture_output=True, text=True)
+
+
+def test_setup_vllm_checks_the_server_options_on_the_cpu(tmp_path):
+    from finetune.gpu import vllm_options as vo
+    lines = [x for x in vo.TRACKED.read_text().splitlines() if x and not x.startswith("#")]
+    r = run_setup_vllm(tmp_path / "ok", lines)
+    assert r.returncode == 0, r.stderr
+    assert "all 8 server commands use only options it lists" in r.stdout and "the same options as the tracked list" in r.stdout
+    assert vo.load(tmp_path / "ok" / "out" / "vllm_serve_options.txt") == vo.load(vo.TRACKED)
+    r = run_setup_vllm(tmp_path / "no_seed", [x for x in lines if not x.startswith("--seed ")])
+    assert r.returncode == 1 and "eval base: --seed" in r.stderr and "vllm_check tagged: --seed" in r.stderr
+    assert not (tmp_path / "no_seed" / "out" / "vllm_serve_options.txt").exists()
+    r = run_setup_vllm(tmp_path / "broken")
+    assert r.returncode == 1 and "vllm serve --help=all failed (exit 2)" in r.stderr and "libcuda" in r.stderr
+
+
+def test_a_job_refuses_server_options_its_vllm_lacks(tmp_path, monkeypatch):
+    from finetune.gpu import eval_job as ej
+    from finetune.gpu import vllm_options as vo
+    monkeypatch.setenv("TRACKA_OUT", str(tmp_path))
+    with pytest.raises(SystemExit, match="run setup_vllm first"):
+        ej.preflight()
+    saved = tmp_path / "vllm_serve_options.txt"
+    saved.write_text(vo.TRACKED.read_text().replace("--enable-prompt-embeds, --no-enable-prompt-embeds\n", ""))
+    with pytest.raises(SystemExit, match="eval tags: --enable-prompt-embeds"):
+        ej.preflight()
+    shutil.copy(vo.TRACKED, saved)
+    ej.preflight()
+
+
+def test_the_check_starts_the_plain_server_before_any_merge(tmp_path, monkeypatch):
+    """S2: a server that can't start fails the job before the LoRA merge, the shard writing and the
+    Hugging Face references (Oct 27: it failed after 12 minutes)."""
+    from finetune.gpu import eval_job as ej
+    events, command, plain = [], ej.Server.command, ej.server_commands()["vllm_check plain"]
+
+    class Broken:
+        def __init__(self, model_dir, prompt_embeds, log=None, **kw):
+            events.append(command(model_dir, prompt_embeds))
+
+        def __enter__(self):
+            raise RuntimeError("the server exited with code 2")
+
+        def __exit__(self, *exc):
+            return False
+    monkeypatch.setattr(ej, "Server", Broken)
+    monkeypatch.setattr(kit, "snapshot", lambda *a: ("BASE", None))
+    monkeypatch.setattr(ej, "check_prompts", lambda: ["p"])
+    for name in ("synthetic_parts", "merge_lora", "hf_greedy"):
+        monkeypatch.setattr(ej, name, lambda *a, _n=name, **k: events.append(_n))
+    monkeypatch.setattr(ej.gen, "fold_model", lambda *a, **k: events.append("fold_model"))
+    with pytest.raises(RuntimeError, match="exited with code 2"):
+        ej.check(tmp_path)
+    assert events == [plain]
+
+
 def test_shell_scripts_parse():
     for f in list(SOL.glob("*.sh")) + list(SOL.glob("*.sbatch")):
         assert subprocess.run(["bash", "-n", str(f)], capture_output=True).returncode == 0, f.name

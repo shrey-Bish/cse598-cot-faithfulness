@@ -17,7 +17,12 @@ The check (S2): a synthetic tag table and LoRA adapter (seeded), the served vers
 Hugging Face reference on 3 held-out prompts, greedy, 48 tokens: base served vs HF base (the bf16
 noise floor), merged LoRA + folded tag + tagged prompt embeddings served vs SourceTaggedLM(LoRA) in HF.
 It passes when the tagged version agrees with its reference as far as the plain base does
-(vllm_check.json, numbers only).
+(vllm_check.json, numbers only). The plain base server runs first, before the synthetic LoRA merge
+and the shard writing, so a server that can't start fails the job in minutes.
+
+Every job first checks its server commands against the installed vLLM's option list, which
+setup_vllm.sh saved on the CPU (finetune/gpu/vllm_options.py): an option the version doesn't take
+stops the job before any GPU work.
 """
 import argparse
 import json
@@ -33,6 +38,7 @@ sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "progress"))
 
 from finetune import generate as gen  # noqa: E402
+from finetune.gpu import kit  # noqa: E402
 
 TAGGED = ("tags", "lora_tags")
 LORA = ("lora", "lora_attn3", "lora_tags")
@@ -97,15 +103,25 @@ class Server:
     """vllm serve as a child process; stopped on exit (and on SIGUSR1 from Slurm, _stop_now)."""
 
     def __init__(self, model_dir, prompt_embeds, port=gen.PORT, log=None, lora=None):
-        self.cmd = gen.serve_cmd(model_dir, port, lora=lora, prompt_embeds=prompt_embeds,
-                                 vllm=os.environ.get("TRACKA_VLLM", "vllm"))
+        self.cmd = self.command(model_dir, prompt_embeds, port, lora)
         self.url, self.log = f"http://localhost:{port}", log
+
+    @staticmethod
+    def command(model_dir, prompt_embeds, port=gen.PORT, lora=None):
+        return gen.serve_cmd(model_dir, port, lora=lora, prompt_embeds=prompt_embeds,
+                             vllm=os.environ.get("TRACKA_VLLM", "vllm"))
 
     def __enter__(self):
         out = open(self.log, "a") if self.log else subprocess.DEVNULL
+        print(f"{kit.now()} starting: {' '.join(self.cmd)}", flush=True)
         self.proc = subprocess.Popen(self.cmd, stdout=out, stderr=subprocess.STDOUT)
         _SERVERS.append(self)
-        gen.wait_ready(self.url, proc=self.proc)
+        try:
+            gen.wait_ready(self.url, proc=self.proc, log=self.log)
+        except BaseException:
+            self.__exit__()
+            raise
+        print(f"{kit.now()} server ready", flush=True)
         return self
 
     def __exit__(self, *exc):
@@ -118,9 +134,31 @@ class Server:
         return False
 
 
+def server_commands():
+    """Every vllm serve command a job starts (label -> argv): each evaluated system's and the check's two."""
+    from finetune.eval import SYSTEMS
+    cmds = {f"eval {s}": Server.command(f"MODEL_{s}", prompt_embeds=s in TAGGED) for s in SYSTEMS}
+    cmds["vllm_check plain"] = Server.command("BASE", prompt_embeds=False)
+    cmds["vllm_check tagged"] = Server.command("FOLDED", prompt_embeds=True)
+    return cmds
+
+
+def preflight():
+    """Before any GPU work: every server command uses only options the installed vLLM lists (setup_vllm.sh
+    saved its list, from `vllm serve --help=all`, in $TRACKA_OUT)."""
+    from finetune.gpu import vllm_options
+    saved = out_root() / "vllm_serve_options.txt"
+    if not saved.exists():
+        sys.exit(f"no vLLM option list at {saved}: run setup_vllm first (submit.sh setup_vllm), which saves it")
+    version, opts = vllm_options.load(saved)
+    bad = vllm_options.problems(server_commands(), opts)
+    if bad:
+        sys.exit(f"refusing: vLLM {version} ({saved}) doesn't list these server options:\n  " + "\n  ".join(bad))
+    print(f"{kit.now()} server options: all in vLLM {version}'s list", flush=True)
+
+
 def evaluate(system, part, out, workers):
     from finetune import eval as ev
-    from finetune.gpu import kit
     base = kit.snapshot()[0]
     model, tags = prepare(system, base, out_root() / "train", out_root() / "models")
     tagger = gen.Tagger.load(base, tags) if tags else None
@@ -215,18 +253,17 @@ def agreement(a, b):
 
 def check(out):
     from transformers import AutoTokenizer
-    from finetune.gpu import kit
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     base = kit.snapshot()[0]
-    tok = AutoTokenizer.from_pretrained(base)
     prompts = check_prompts()
+    with Server(base, prompt_embeds=False, log=out / "vllm_base.log") as srv:   # first: a server that can't start
+        got_plain = served_tokens(srv.url, prompts)                               # fails in minutes, before any merge
+    tok = AutoTokenizer.from_pretrained(base)
     tags_pt, adapter = synthetic_parts(base, out)
     tagged_dir = gen.fold_model(merge_lora(base, adapter, out / "merged"), tags_pt, out / "folded")
     ref_plain = hf_greedy(base, prompts)
     ref_tagged = hf_greedy(base, prompts, adapter=adapter, tags_pt=tags_pt)
-    with Server(base, prompt_embeds=False, log=out / "vllm_base.log") as srv:
-        got_plain = served_tokens(srv.url, prompts)
     tagger = gen.Tagger(tok, gen.load_embedding(base), __import__("torch").load(tags_pt))
     with Server(tagged_dir, prompt_embeds=True, log=out / "vllm_tagged.log") as srv:
         got_tagged = served_tokens(srv.url, prompts, tagger)
@@ -253,9 +290,9 @@ def main():
     ap.add_argument("--check", action="store_true", help="S2: the vLLM tag check")
     a = ap.parse_args()
     signal.signal(signal.SIGUSR1, _stop_now)
-    if os.environ.get("SLURM_JOB_ID"):                       # on Sol: the Mac's bytes (kit manifest)
-        from finetune.gpu import kit
-        kit.check_inputs("eval")
+    if os.environ.get("SLURM_JOB_ID"):                       # on Sol: the Mac's bytes (kit manifest), and
+        kit.check_inputs("eval")                             # the server options before any GPU work
+        preflight()
     if a.check:
         check(a.out)
         return

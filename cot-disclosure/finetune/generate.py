@@ -131,9 +131,11 @@ def fold_model(base_dir, tags_pt, out_dir):
 
 
 def serve_cmd(model_dir, port=PORT, lora=None, prompt_embeds=False, vllm="vllm", served_name="system"):
-    """The vllm serve command for one evaluated system."""
+    """The vllm serve command for one evaluated system. Every option must be in the installed vLLM's
+    list (finetune/gpu/vllm_options.py; 0.31.0 dropped --disable-log-requests, request logging is off
+    by default)."""
     cmd = [vllm, "serve", str(model_dir), "--served-model-name", served_name, "--port", str(port),
-           "--max-model-len", str(MAX_MODEL_LEN), "--dtype", "bfloat16", "--seed", "0", "--disable-log-requests"]
+           "--max-model-len", str(MAX_MODEL_LEN), "--dtype", "bfloat16", "--seed", "0"]
     if lora:
         cmd += ["--enable-lora", "--max-lora-rank", "16", "--lora-modules", *[f"{k}={v}" for k, v in lora.items()]]
     if prompt_embeds:
@@ -141,11 +143,20 @@ def serve_cmd(model_dir, port=PORT, lora=None, prompt_embeds=False, vllm="vllm",
     return cmd
 
 
-def wait_ready(url, timeout=1800, proc=None):
+def log_tail(path, n=30):
+    """The last n lines of a server log, for an error message."""
+    if not path or not Path(path).exists():
+        return f"(no server log{f' at {path}' if path else ''})"
+    lines = Path(path).read_text(errors="replace").splitlines()[-n:]
+    return f"the last {len(lines)} lines of {path}:\n" + "\n".join(lines)
+
+
+def wait_ready(url, timeout=1800, proc=None, log=None):
+    """Wait for the server's /health; if it exits or never comes up, the error carries its log's end."""
     start = time.monotonic()
     while time.monotonic() - start < timeout:
         if proc is not None and proc.poll() is not None:
-            raise RuntimeError(f"the server exited with code {proc.returncode}")
+            raise RuntimeError(f"the server exited with code {proc.returncode}; {log_tail(log)}")
         try:
             with urllib.request.urlopen(url.rstrip("/") + "/health", timeout=5) as r:
                 if r.status == 200:
@@ -153,7 +164,7 @@ def wait_ready(url, timeout=1800, proc=None):
         except (urllib.error.URLError, OSError):
             pass
         time.sleep(5)
-    raise TimeoutError(f"no server at {url} after {timeout} s")
+    raise TimeoutError(f"no server at {url} after {timeout} s; {log_tail(log)}")
 
 
 def server_complete(url, name, tagger=None, timeout=3600):

@@ -116,6 +116,25 @@ def test_serve_command():
     assert str(gen.MAX_MODEL_LEN) in cmd
 
 
+def test_wait_ready_shows_the_end_of_the_server_log(tmp_path):
+    """Oct 27: the Slurm log said only "the server exited with code 2"; the cause was in the server log."""
+    log = tmp_path / "vllm_base.log"
+    log.write_text("".join(f"line {i}\n" for i in range(1, 41)) + "vllm: error: unrecognized arguments: --disable-log-requests\n")
+
+    class Exited:
+        returncode = 2
+
+        def poll(self):
+            return 2
+    with pytest.raises(RuntimeError) as e:
+        gen.wait_ready("http://localhost:1", proc=Exited(), log=log)
+    msg = str(e.value)
+    assert "exited with code 2" in msg and msg.endswith("unrecognized arguments: --disable-log-requests")
+    assert "\nline 12\n" in msg and "\nline 11\n" not in msg                      # the last 30 lines
+    with pytest.raises(RuntimeError, match="no server log at"):
+        gen.wait_ready("http://localhost:1", proc=Exited(), log=tmp_path / "none.log")
+
+
 def test_eval_job_prepares_merged_and_folded_models(tagged, tmp_path):
     """lora_tags: the chosen epoch's LoRA merged into the base, then tag[model] folded into the embeddings."""
     from transformers import AutoModelForCausalLM

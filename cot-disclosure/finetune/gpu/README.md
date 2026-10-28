@@ -418,11 +418,22 @@ server's version).
 
 | Job | `submit.sh` line | Limit (estimate × 1.3) | Output (`/scratch/ragarw68/trackA/`) |
 |---|---|---|---|
-| setup_vllm (no GPU, lightwork) | `submit.sh setup_vllm` | 1:00 (the script's) | `/scratch/ragarw68/envs/olmo-vllm` |
+| setup_vllm (no GPU, lightwork) | `submit.sh setup_vllm` | 1:00 (the script's) | `/scratch/ragarw68/envs/olmo-vllm`; `vllm_serve_options.txt` (the server options, checked) |
 | S1 timing | `submit.sh timing --estimate 0.5` | 1:00 | `timing/timing.jsonl`: per version, 12 examples spread over the lengths, peak memory, seconds per token, predicted hours |
 | S2 vLLM check | `submit.sh vllm_check --estimate 1 --dependency=afterok:<setup job>` | 1:30 | `vllm_check/vllm_check.json`: served vs Hugging Face, plain and tagged; `pass` |
 | S3–S6 train | `submit.sh train --estimate 3 -- lora` (tags, lora_tags, lora_attn3) | 4:00 | `train/<version>/` (resumes; `final/` at the end) |
 | E1–E6 evaluate | `submit.sh eval --estimate 6 -- base 1/2` | 8:00 | `eval/eval_<system>*.jsonl*`, `eval_jobs.jsonl` |
+
+**Server options are checked on the CPU (Oct 27).** vLLM 0.31.0 dropped `--disable-log-requests`
+(request logging is off by default), and the first S2 job (66753250) failed on a GPU after 12 minutes.
+Now `setup_vllm` runs `vllm serve --help=all` (a plain `--help` lists only the option groups),
+checks every server command the jobs start against that list (`vllm_options.py`), saves it to
+`/scratch/ragarw68/trackA/vllm_serve_options.txt` and fails there if an option is missing. Every
+vLLM job checks the saved list again before any GPU work, and a CPU test checks the same commands
+against `vllm_serve_options.txt` (0.31.0's list, tracked; `setup_vllm` says whether Sol's matches).
+If a server exits, the job's error ends with the last 30 lines of its log. S2 starts the plain base
+server first, before the synthetic LoRA merge and the shard writing, so a server that can't start
+fails in minutes.
 
 `submit.sh` always ends with sbatch's `Submitted batch job N`, or a clear error and a non-zero exit
 code (Oct 27: a job script without a GPU line used to make it exit silently). A `--dependency` must

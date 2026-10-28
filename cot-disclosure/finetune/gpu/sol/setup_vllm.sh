@@ -26,3 +26,12 @@ print("vllm", vllm.__version__, "torch", torch.__version__, "CUDA", torch.versio
 assert vllm.__version__ == "0.31.0", vllm.__version__
 PY
 [ -x "$TRACKA_VLLM" ] && echo "server command: $TRACKA_VLLM"
+# Every server option the jobs use, against this vLLM's own list, on the CPU (Oct 27: 0.31.0 dropped
+# --disable-log-requests and the check job failed on a GPU). A plain --help lists only the option groups.
+mkdir -p "$TRACKA_OUT"
+help=$TRACKA_OUT/vllm_serve_help.txt
+CUDA_VISIBLE_DEVICES="" "$TRACKA_VLLM" serve --help=all > "$help" 2> "$help.err" || {
+    rc=$?; echo "vllm serve --help=all failed (exit $rc); the end of $help.err:" >&2; tail -30 "$help.err" >&2; exit 1; }
+"$TRACKA_PY" "$TRACKA_CODE/finetune/gpu/vllm_options.py" --help-file "$help" --version "$VLLM_VERSION" \
+    --save "$TRACKA_OUT/vllm_serve_options.txt"
+echo "setup_vllm done: vLLM $VLLM_VERSION in $TRACKA_VLLM_ENV; server options checked"

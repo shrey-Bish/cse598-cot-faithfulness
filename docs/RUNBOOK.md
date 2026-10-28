@@ -279,9 +279,10 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   rsync -av --files-from=cot-disclosure/finetune/gpu/sol/inputs.txt cot-disclosure/ \
         ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/
   # Sol
-  cot-disclosure/finetune/gpu/sol/submit.sh setup_vllm                  # once: vLLM 0.31.0 in its own env (no GPU)
+  cot-disclosure/finetune/gpu/sol/submit.sh setup_vllm                  # vLLM 0.31.0 in its own env (no GPU);
+                                                                        # checks the server options; rerun after a serve_cmd change
   cot-disclosure/finetune/gpu/sol/submit.sh timing --estimate 0.5       # S1: limit 1:00
-  cot-disclosure/finetune/gpu/sol/submit.sh vllm_check --estimate 1     # S2: limit 1:30
+  cot-disclosure/finetune/gpu/sol/submit.sh vllm_check --estimate 1 --dependency=afterok:<setup_vllm job>  # S2: limit 1:30
   cot-disclosure/finetune/gpu/sol/submit.sh train --estimate 3 -- lora  # S3 (tags, lora_tags: S4, S5)
   # each version exports its chosen epoch to train/<version>/final/ when its last epoch ends
   cot-disclosure/finetune/gpu/sol/submit.sh eval --estimate 6 -- base 1/2   # E1, first half; then 2/2
