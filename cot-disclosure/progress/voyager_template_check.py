@@ -36,7 +36,9 @@ OUT = CODE / "results" / "trackB" / "template_check.jsonl"
 REPOS = {"qwen3-30b-a3b-thinking-2507": "Qwen/Qwen3-30B-A3B-Thinking-2507",
          "qwen3-30b-a3b-instruct-2507": "Qwen/Qwen3-30B-A3B-Instruct-2507",
          "olmo3-7b-think": None,                                 # None: our pinned format (finetune/olmo_format.py)
-         "olmo3-7b-instruct": "allenai/Olmo-3-7B-Instruct"}      # Track C's second reviewer
+         "olmo3-7b-instruct": "allenai/Olmo-3-7B-Instruct",      # Track C's second reviewer until Oct 27
+         "olmo3-32b-instruct": "allenai/Olmo-3.1-32B-Instruct"}  # Track C's second reviewer (decided Oct 27); the
+                                                                 # only public Olmo 3 32B Instruct is 3.1's (A27)
 CHAT_CONDITIONS = ("none", "user", "tool_pasted", "tool_real", "system")
 PINNED_CONDITIONS = ("none", "user", "tool_pasted", INJECTED, "system")
 

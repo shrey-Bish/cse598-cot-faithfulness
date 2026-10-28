@@ -168,6 +168,13 @@ hits it has no answer). Five systems: base, prompt-only, LoRA only, tags only, L
 - **Hours** (`finetune/gpu_estimate.py`, one A100 80GB): **35–89 Sol GPU hours** with the tag
   versions in vLLM, 42–108 in our own loop; +6–16 for the fourth version.
 
+**S1's refit (Oct 28, `finetune/gpu/plan_training.py`):** seconds = c1 × tokens + c2 × tokens², both ≥ 0,
+over the 1,040 + 156 examples' real lengths, 2 epochs with a validation pass each; hours (5–95% bootstrap):
+lora 3.66 (3.56–3.78), tags 2.97 (2.89–3.04), lora_tags 3.65 (3.56–3.74), lora_attn3 2.99 (2.92–3.07).
+Batch 2 runs with those limits (Ritik, Oct 28 00:20): lora 66759753 (5:00) and tags 66759769 (4:00), then
+lora_tags 66759772 (afterany lora) and lora_attn3 66759822 (afterany tags); setup_vllm 66760181 completed
+(vLLM 0.31.0, all 9 server commands fit the committed list); vllm_check 66760726 queued (afterok setup_vllm).
+
 Each job's limit is the high estimate × 1.3, rounded up to 30 minutes. Evaluation is split into
 jobs of at most 6 estimated hours (limit 8 h), so two can always run at once; the timing run (S1)
 replaces these estimates with measured ones.
@@ -176,16 +183,16 @@ replaces these estimates with measured ones.
 |---|---|---|---|---|---|---|
 | S1 | Timing run: per version, 12 examples spread over the lengths (the longest included): memory and seconds per token | 0.25–0.5 | 1:00 | S2 | Oct 27 ("go") | code done |
 | S2 | vLLM check (vLLM 0.31.0 in its own env, olmo-vllm): served vs Hugging Face greedy tokens, plain and with LoRA merged + tag folded + tagged prompt embeddings, 3 prompts | ≤1 | 1:30 | S1 | Oct 27 ("go"), after setup_vllm | code done |
-| S3 | Train LoRA only (1,040 examples × 2 epochs; batch 2, decided Oct 28) | S1 refit (`plan_training.py`) | high × 1.3, ≤ 8:00 | S4 | Oct 28 ("go") | S1, data checks (a) and (e) |
-| S4 | Train tags only (batch 2, at once with S3) | S1 refit | ≤ 8:00 | S3 | Oct 28 | S1 |
-| S5 | Train LoRA + tags (afterany S3) | S1 refit | ≤ 8:00 | S6 | after S3 | S1 |
+| S3 | Train LoRA only (1,040 examples × 2 epochs; batch 2, decided Oct 28): job 66759753, running | 3.66 (3.56–3.78), S1 refit | 5:00 | S4 | Oct 28 | S1, data checks (a) and (e) |
+| S4 | Train tags only (batch 2, at once with S3): job 66759769, running | 2.97 (2.89–3.04) | 4:00 | S3 | Oct 28 | S1 |
+| S5 | Train LoRA + tags: job 66759772, afterany S3 | 3.65 (3.56–3.74) | 5:00 | S6 | after S3 | S1 |
 | E1 | Evaluate base (vLLM, no adapter), 930 generations | 5–14 (1–3 jobs) | 8:00 | S5, E2 | Oct 30 | code (A10), S2 |
 | E2 | Evaluate prompt-only | 5–14 (1–3 jobs) | 8:00 | E1, E3 | Oct 30 | A10 |
 | E3 | Evaluate LoRA only (merged, vLLM) | 5–14 (1–3 jobs) | 8:00 | E2, E4 | Oct 31 | S3 |
 | E4 | Evaluate LoRA + tags (vLLM with prompt embeddings; own loop if S2 fails: 9–24, 2–4 jobs) | 5–14 (1–3 jobs) | 8:00 | E3, E5 | Oct 31 | S2, S5 |
 | E5 | Evaluate tags only (same) | 5–14 (1–3 jobs) | 8:00 | E4 | Nov 1 | S2, S4 |
 | L1 | Look inside the best version: Step 3 probes (vLLM), Step 9, Step 10 | 4–10 (1–2 jobs) | 8:00 | S6 | after E1–E5 | E1–E5 |
-| S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23); trained in batch 2 after S4 (afterany, decided Oct 28), evaluated last | S1 refit | ≤ 8:00 | S5 | after S4 | S1 |
+| S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23): job 66759822, afterany S4 (decided Oct 28); evaluated last | 2.99 (2.92–3.07) | 4:00 | S5 | after S4 | S1 |
 | E6 | Evaluate the fourth version | 5–14 (1–3 jobs) | 8:00 | — | after S6 | S6 |
 | B-Q8 | Track B: Qwen3-8B on vLLM (replaces Ollama), 1,620 runs, core cells first | 0.5–1.5 | 2:00 | any | on "go" | setup_vllm, the snapshot |
 | — | Buffer for queue waits and reruns; all evaluation done | | | | by Nov 20 | |

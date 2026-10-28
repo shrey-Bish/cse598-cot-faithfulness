@@ -96,7 +96,7 @@ def job_commands():
     sys.path.insert(0, str(CODE / "progress"))
     import sol_trackB
     from finetune.gpu import eval_job
-    return {**eval_job.server_commands(), "trackB qwen3-8b": sol_trackB.serve_cmd("SNAPSHOT")}
+    return {**eval_job.server_commands(), "trackB qwen3-8b": sol_trackB.serve_cmd("SNAPSHOT", template="TEMPLATE")}
 
 
 def check_commands(installed=None, committed=TRACKED):

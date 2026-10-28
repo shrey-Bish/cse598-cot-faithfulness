@@ -88,14 +88,27 @@ def prepare(system, base_dir, train_root, models_root):
 
 
 _SERVERS = []
+_JOB = {}                     # the evaluation job in progress (its eval_jobs.jsonl row, without the end)
+
+
+def _job_row(out, **extra):
+    """One row of eval_jobs.jsonl: which job ran what, when (plan_eval.py measures the decoding rate from it)."""
+    with open(Path(out) / "eval_jobs.jsonl", "a") as f:
+        f.write(json.dumps({**{k: v for k, v in _JOB.items() if k != "out"}, "ended_utc": kit.now(),
+                            "slurm": kit.slurm(), **extra}) + "\n")
 
 
 def _stop_now(*_):
     """Slurm's warning before the time limit: stop the server and exit; every finished run is already
-    saved, and the next job resumes the rest."""
+    saved, and the next job resumes the rest. An evaluation job records its start and end first."""
     for s in _SERVERS:
         if s.proc.poll() is None:
             s.proc.terminate()
+    if _JOB:
+        try:
+            _job_row(_JOB["out"], stopped="Slurm's time-limit warning")
+        except OSError:
+            pass
     os._exit(0)
 
 
@@ -158,13 +171,12 @@ def evaluate(system, part, out, workers):
     model, tags = prepare(system, base, out_root() / "train", out_root() / "models")
     tagger = gen.Tagger.load(base, tags) if tags else None
     Path(out).mkdir(parents=True, exist_ok=True)
-    started = kit.now()
+    _JOB.update({"out": str(out), "system": system, "part": part, "model_dir": str(model),
+                 "tags": str(tags) if tags else None, "started_utc": kit.now()})
     with Server(model, prompt_embeds=tags is not None, log=Path(out) / f"vllm_{system}.log") as srv:
         ev.run(system, gen.server_complete(srv.url, "system", tagger), out, part, workers)
-    with open(Path(out) / "eval_jobs.jsonl", "a") as f:       # which job ran what, in which environments
-        f.write(json.dumps({"system": system, "part": part, "model_dir": str(model), "tags": str(tags) if tags else None,
-                            "started_utc": started, "ended_utc": kit.now(), "slurm": kit.slurm(),
-                            "environments": kit.environments(server=True)}) + "\n")
+    _job_row(out, environments=kit.environments(server=True))      # which environments ran it
+    _JOB.clear()
 
 
 # ---------------------------------------------------------------- S2: the vLLM tag check

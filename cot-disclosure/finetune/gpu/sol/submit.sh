@@ -128,7 +128,7 @@ depends_on() {          # the job kinds each job may wait for (plain case: works
         vllm_check) echo "setup_vllm" ;;
         eval) echo "setup_vllm vllm_check train" ;;
         train) echo "timing train" ;;
-        trackb_qwen8b) echo "setup_vllm trackb_qwen8b" ;;
+        trackb_qwen8b) echo "setup_vllm get_qwen8b trackb_qwen8b" ;;
     esac
 }
 deps=""

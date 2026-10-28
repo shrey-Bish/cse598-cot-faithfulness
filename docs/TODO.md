@@ -34,7 +34,7 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 | A13 | First Sol jobs: setup_vllm (envs/olmo-vllm), S1 the timing run, S2 the vLLM check | Oct 25, Oct 27 | "go" given Oct 27; S1 submitted (66749357); S2 66753250 failed after 12 min (vLLM 0.31.0 has no `--disable-log-requests`): option removed. Oct 28: `vllm serve --help=all` can't run on a CPU node ("Failed to infer device type"): setup_vllm now checks the version and commands against the committed list, and each GPU job compares its node's help with the list first; 66757260 cancelled; rerun setup_vllm, then S2 | Ritik submits | Ritik | Sol | 150 GPU-min |
 | A14 | Gate 3 job plan: every job in order, 2 at a time, limits, dates | Oct 26–27 | done (PLAN; updated Oct 27 with the QoS and the accelerated dates) | — | Claude Code | no calls | — |
 | A15 | Train the versions (S3–S6) in batch 2: lora and tags at once, lora_tags after lora, lora_attn3 after tags (afterany); rank 16, LoRA 2e-4, tag table 1e-3, 2 epochs; checkpoint per epoch, chosen by validation loss only (decided Oct 27, Oct 28) | PLAN | ready: data checks (a) 0 held-out questions or wordings and (e) 0 over 32,768 pass (`check_examples.py`); limits from S1's refit (`finetune/gpu/plan_training.py`) | A4, A13 (S1) | Ritik submits | Sol | from the refit |
-| A16 | Evaluate base, prompt-only and the 3 versions on Sol (E1–E5), from Oct 30 | Oct 26 | not started | A13, A15 | Ritik submits | Sol | 25–70 GPU h |
+| A16 | Evaluate base, prompt-only and the trained versions on Sol (batch 3) | Oct 26, Oct 28 | lines ready: `finetune/gpu/plan_eval.py` (base and prompt-only after vllm_check; each version after its training job; parts under 8 h; reads the queue on Sol) | A13, A15 | Ritik submits | Sol | 2–7 GPU h per system (prior rate) |
 | A17 | Step 13 analysis: 4 measures, hiding check, false-disclosure check, measure 4 on hand-label categories, "tags help more on the inserted tool turn than the pasted block" | Oct 25, Oct 27 | not started | A16, L4 | Claude Code | no calls | 1 day |
 | A18 | Look-inside rerun on the best version (L1): Step 10 drops at 15/19/23; heads L19H31, L23H17, L15H31: drop, or stay while the answer stops following | Oct 26–27 | not started (code takes `--model`) | A16 | Ritik submits | Sol | 4–10 GPU h |
 | A19 | Fourth version (S6, E6): LoRA on the attention of layers 15, 19, 23 only; included, scheduled last, dropped if E1–E5 aren't done by Nov 9 | Oct 26, Oct 27 | decided; not started | A16 | Ritik submits | Sol | 6–16 GPU h |
@@ -45,7 +45,7 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 | A24 | Sol scripts call `/scratch/ragarw68/envs/olmo/bin/python` by full path | Oct 27 | done (`39f8534`, with a test) | — | Claude Code | no calls | — |
 | A25 | Record Step 9's matched onsets | Oct 27 | done (`07999f7`: F14, T9) | — | Claude Code | no calls | — |
 | A26 | Copy Sol's original `step9_followup.json` to `results/trackA/gpu/original/step9_followup_sol.json` (gitignored) | Oct 27 | done (sha256 `6282a790…`, same as the scratchpad copy) | — | Claude Code | no calls | — |
-| A27 | Olmo 3 32B identity (3 vs 3.1) on Voyager | Oct 4 | open | — | Ritik | no calls | 15 min |
+| A27 | Olmo 3 32B identity (3 vs 3.1) on Voyager | Oct 4 | done Oct 28: the instruct route (`olmo3-32b`, effort none) is Olmo 3.1 32B Instruct: the only public Olmo 3 32B Instruct, and Voyager's prompt-token counts match its template in 4 of 5 conditions (−1 with the tool spec) | — | Claude Code | Voyager (6 calls) | — |
 
 ## Track B (Ritik until Nov 3, then Arsha)
 
@@ -72,10 +72,10 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 |---|---|---|---|---|---|---|---|
 | C6 | `run_team.py`: append-only, writing to gitignored `results/trackC/` (today it deletes its own log and writes to tracked `results/scope/`) | Oct 22, Oct 26, Oct 27 | done (`b72b747`) | — | Claude Code → Shrey | no calls | 30 min |
 | C2 | No-tool team (the solver always gets the tool today) | PLAN | done (`b72b747`) | — | Claude Code → Shrey | no calls | 1–2 h |
-| C3 | Second reviewer model (hard-coded today) | PLAN | done (`b72b747`; second reviewer olmo3-7b-instruct, canary `4f697f8`) | — | Claude Code → Shrey | no calls | 1 h |
+| C3 | Second reviewer model (hard-coded today) | PLAN, Oct 27 | done: Olmo 3 32B Instruct since Oct 28 (decision 5; canary and template check Oct 28; smoke 5 of 5 cases, 20 of 20 letters); was olmo3-7b-instruct (`b72b747`) | — | Claude Code → Shrey | Voyager | — |
 | C7 | Input-file option for `run_team.py` (`live` takes pilot puzzles only) | Oct 27 | done (`b72b747`) | — | Claude Code → Shrey | no calls | 1 h |
 | C1 | Live team on 5 items (`run_team.py --live --n 5`) | Gate 1 | done Oct 27 15:00 (5 items; log 15:05) | — | Claude Code → Shrey | Voyager (35 calls) | 15 min |
-| C4 | The team on Track B's steered cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams | PLAN, Oct 27 | not started | B8, C2, C3, C7 | Claude Code → Shrey | Voyager (~3,400 calls) | ~3–13 h |
+| C4 | The team on Track B's steered cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | PLAN, Oct 27, Oct 28 | next: after Qwen3 Thinking's Track B runs and the steered export | B8, C2, C3, C7 | Claude Code → Shrey | Voyager (~3,400 calls) | ~3–13 h |
 | C5 | Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | PLAN, Oct 27 | not started | C4 | Claude Code → Shrey | no calls | 3 h |
 
 ## Labels

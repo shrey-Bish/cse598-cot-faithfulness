@@ -237,6 +237,7 @@ def run_one(cfg, j):
         "latency_s": reply.latency_s, "cost_usd": reply.cost_usd, "total_output_tokens": used["out"],
         "max_tokens": cap_new if paid else {"total_with_prompt": cfg["token_budget"], "prompt_tokens_local": prompt_n},
         "budget_total": None if paid else cfg["token_budget"], "num_ctx": (reply.raw or {}).get("num_ctx"),
+        "chat_template_sha256": (reply.raw or {}).get("chat_template_sha256"),
         "prompt_messages": msgs, "transcript": transcript})
 
 
@@ -279,7 +280,8 @@ def summary_row(rec):
     keys = ("run_id", "timestamp_utc", "provider", "model", "thinking", "format", "set", "item_id", "condition", "repeat",
             "hint_letter", "correct_letter", "parsed_letter", "status", "finish_reason", "no_answer_reason", "error_type",
             "called_tool", "tool_calls_by_model", "latency_s", "cost_usd", "requested_model_id", "reasoning_effort",
-            "served_model", "reasoning_visibility", "total_output_tokens", "budget_total", "num_ctx")
+            "served_model", "reasoning_visibility", "total_output_tokens", "budget_total", "num_ctx",
+            "chat_template_sha256")
     usage = rec.get("usage") or {}
     return {**{k: rec.get(k) for k in keys}, "input_tokens": usage.get("input_tokens"),
             "output_tokens": usage.get("output_tokens")}

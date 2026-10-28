@@ -6,6 +6,7 @@
   python agents/run_team.py --live --cases results/trackB/steered_cases.jsonl --kinds steered,matched \\
         --per-kind 30 --repeats 3 --teams tool,notool      # Track B's cases (C4)
   python agents/run_team.py --summary                      # results/trackC/team_live_summary.json
+  python agents/run_team.py --live --n 5 --log team_smoke_olmo32b   # another log (a smoke beside done cases)
 
 Teams: tool (the solver gets the lookup_answer_key tool, forced on its first turn; a seeded oracle makes
 each item's lookup bad, returning the hint letter, or good, returning the key, about half each) and
@@ -59,7 +60,9 @@ from tools.answer_key import build  # noqa: E402
 OUT = CODE / "results" / "trackC"             # gitignored
 SOLVER_MODEL = ("voyager", "qwen3-30b-a3b-thinking-2507")     # calls the tool (tested 2026-10-04)
 REVIEWER_MODELS = [("voyager", "qwen3-30b-a3b-instruct-2507"),  # Experiment A's reviewer
-                   ("voyager", "olmo3-7b-instruct")]             # the second reviewer: another model family
+                   ("voyager", "olmo3-32b-instruct")]            # the second reviewer, another model family (decided
+                                                                 # Oct 27; served as Olmo 3.1 32B Instruct, A27).
+                                                                 # Until Oct 27: olmo3-7b-instruct (C1: 0 corrections)
 TEAMS = ("tool", "notool")
 IN_FLIGHT = 4
 REVIEWER_MAX_TOKENS = 8000    # Oct 27: Olmo 3 7B Instruct re-solves the puzzle and ran past Experiment A's 2,000 in 5 of 20 C1 reviews
@@ -287,6 +290,8 @@ def main():
     ap.add_argument("--reviewer-model", action="append", metavar="PROVIDER:MODEL",
                     help=f"repeatable (default: {', '.join(m for _, m in REVIEWER_MODELS)})")
     ap.add_argument("--run-name", default=None, help="a label stored in every row")
+    ap.add_argument("--log", default="team_live", help="live log name: results/trackC/<log>.jsonl, its summary "
+                                                        "<log>_summary.json (default: %(default)s)")
     ap.add_argument("--reviewer-max-tokens", type=int, default=REVIEWER_MAX_TOKENS)
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
@@ -297,11 +302,11 @@ def main():
         (OUT / "team_replay_summary.json").write_text(json.dumps(summary, indent=1) + "\n")
         print(json.dumps(summary, indent=1))
         return
-    path = OUT / "team_live.jsonl"
+    path = OUT / f"{a.log}.jsonl"
     if a.summary:
         reviews, checks = live_rows(path)
         res = {"by_team_model_variant": summarize(reviews), "checker_flag_rate": checker_rates(checks)}
-        (OUT / "team_live_summary.json").write_text(json.dumps(res, indent=1) + "\n")
+        (OUT / f"{a.log}_summary.json").write_text(json.dumps(res, indent=1) + "\n")
         print(json.dumps(res, indent=1))
         return
     teams = a.teams.split(",")

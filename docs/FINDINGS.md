@@ -1,8 +1,8 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-27 (F14, T9 and T10 added; F10's closest-approach
-reading refuted). Design and plans: [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
+status. Started 2026-10-26; last updated 2026-10-28 (F14, T9 and T10 added; F10's closest-approach
+reading refuted; limitations section). Design and plans: [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
@@ -562,6 +562,20 @@ Each one would have changed a reported number.
 - Cut-off replies leak when not streamed (the reasoning landed in the answer in 8 of 8).
 - A tool call quoted inside the reasoning tripped the tool-call stop (7 runs, continued).
 - Streams that closed without a finish reason were taken as complete (3 runs, rerun).
+
+---
+
+## Limitations: how runs were made, where it matters
+
+- **Qwen3-8B's sampling** (Track B, on Sol from Oct 28): one setting for thinking on and off,
+  temperature 0.6, top_p 0.95, top_k 20 (Qwen's values for thinking mode), so that thinking is the
+  only difference between the two arms. Qwen recommends temperature 0.7 and top_p 0.8 for
+  non-thinking mode; the thinking-off numbers are at the thinking-mode setting, not that one.
+- **Qwen3-8B's serving**: vLLM in bf16 on one A100 (our own server, the snapshot's chat template,
+  its sha256 saved with every run), not Ollama's quantized `qwen3:8b`; the 2 Ollama runs made at
+  the full context are reported apart, never pooled.
+- **One budget** for every open model in Track B: 32,768 tokens, prompt and every reply of a run
+  (decided Oct 27); each table also shows a 16,000 cut, where a run past it counts as no answer.
 
 ---
 

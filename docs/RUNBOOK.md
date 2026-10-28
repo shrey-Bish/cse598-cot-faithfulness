@@ -287,7 +287,9 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   # ^ S1's refit: hours per version (a range) and the batch-2 lines with their limits (high x 1.3, <= 8 h):
   #   train lora and tags at once; lora_tags --dependency=afterany:<lora job>; lora_attn3 afterany:<tags job>
   # each version exports its chosen epoch to train/<version>/final/ when its last epoch ends
-  cot-disclosure/finetune/gpu/sol/submit.sh eval --estimate 6 -- base 1/2   # E1, first half; then 2/2
+  "$TRACKA_PY" cot-disclosure/finetune/gpu/plan_eval.py --vllm-check <S2 job> --train lora=<id>,tags=<id>,...
+  # ^ batch 3: base and prompt_only after S2, each version after its training job; parts under 8 h;
+  #   it reads the queue, finished jobs and train/<version>/final/ on Sol, and prints the submit.sh lines
   ```
   `submit.sh` sets each limit to the estimate × 1.3 (rounded up to 30 min), refuses a job over 960
   GPU-minutes, and before submitting prints the GPU-minutes of your running and pending jobs and when
@@ -390,11 +392,10 @@ It refuses a push that adds anything under a produced-data folder, any file with
   and off through `enable_thinking`, core cells first; resumable. Records with text stay on Sol;
   numbers-only flags come back.
   ```bash
-  # Sol, once, in a CPU salloc (class QoS) with the network
-  source cot-disclosure/finetune/gpu/sol/env.sh
-  HF_HUB_OFFLINE=0 "$TRACKA_PY" cot-disclosure/progress/sol_trackB.py --download
-  # Sol, the job (after setup_vllm saved the option list)
-  cot-disclosure/finetune/gpu/sol/submit.sh trackb_qwen8b --estimate 1.5   # limit 2:00
+  # Sol: the snapshot (a job without a GPU, the only one online; sha256 checked against the Hub)
+  cot-disclosure/finetune/gpu/sol/submit.sh get_qwen8b                    # -> job G
+  # Sol: the run (1 A100, offline; its first step checks the node's vLLM options)
+  cot-disclosure/finetune/gpu/sol/submit.sh trackb_qwen8b --estimate 1.5 --dependency=afterok:G   # limit 2:00
   # Mac, numbers only, then the report
   rsync -av ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/results/trackB/sol_vllm_{runs,flags}.jsonl \
         cot-disclosure/results/trackB/

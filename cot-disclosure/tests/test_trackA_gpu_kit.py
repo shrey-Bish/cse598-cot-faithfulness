@@ -353,7 +353,8 @@ def test_runs_only_inside_a_job_under_the_course_account(env_vars, ok):
     ("eval", ["base"], ["finetune/gpu/eval_job.py", "--system", "base", "--out", "{out}/eval"]),
     ("timing", [], ["finetune/train.py", "--version", "lora,tags,lora_tags,lora_attn3", "--timing", "12", "--out", "{out}/timing"]),
     ("vllm_check", [], ["finetune/gpu/eval_job.py", "--check", "--out", "{out}/vllm_check"]),
-    ("trackb_qwen8b", ["--limit", "5"], ["progress/sol_trackB.py", "--run", "--log-dir", "{out}/trackb_qwen8b", "--limit", "5"])])
+    ("trackb_qwen8b", ["--limit", "5"], ["progress/sol_trackB.py", "--run", "--log-dir", "{out}/trackb_qwen8b", "--limit", "5"]),
+    ("get_qwen8b", [], ["progress/sol_trackB.py", "--download", "--log-dir", "{out}/trackb_qwen8b"])])
 def test_run_sh_builds_each_new_step(tmp_path, step, args, want):
     """run.sh with env.sh stubbed (no mamba on the Mac): which script and arguments each step gets."""
     sol = tmp_path / "repo" / "cot-disclosure" / "finetune" / "gpu" / "sol"
@@ -362,7 +363,7 @@ def test_run_sh_builds_each_new_step(tmp_path, step, args, want):
         shutil.copy(SOL / f, sol / f)
     out = tmp_path / "out"
     py = tmp_path / "py"
-    py.write_text('#!/bin/bash\necho "ARGS $*"\n')
+    py.write_text('#!/bin/bash\necho "ARGS $*"\necho "ONLINE ${HF_HUB_OFFLINE:-unset}"\n')
     py.chmod(0o755)
     (sol / "env.sh").write_text(f'TRACKA_PY={py}\nTRACKA_OUT={out}\nTRACKA_CODE={tmp_path}\n'
                                 'source "$(dirname "${BASH_SOURCE[0]}")/guard.sh"\n')
@@ -372,6 +373,8 @@ def test_run_sh_builds_each_new_step(tmp_path, step, args, want):
     assert r.returncode == 0, r.stderr
     line = next(x for x in r.stdout.splitlines() if x.startswith("ARGS "))
     assert line.split()[1:] == [w.format(out=out) for w in want]
+    online = next(x for x in r.stdout.splitlines() if x.startswith("ONLINE "))
+    assert online == ("ONLINE 0" if step == "get_qwen8b" else "ONLINE unset")      # only the download is online
 
 
 def test_vllm_gets_its_own_environment_and_outputs_name_it():
