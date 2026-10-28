@@ -280,7 +280,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
         ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/
   # Sol
   cot-disclosure/finetune/gpu/sol/submit.sh setup_vllm                  # vLLM 0.31.0 in its own env (no GPU);
-                                                                        # checks the server options; rerun after a serve_cmd change
+                                                                        # checks the version and server commands against the committed list (no --help: no GPU)
   cot-disclosure/finetune/gpu/sol/submit.sh timing --estimate 0.5       # S1: limit 1:00
   cot-disclosure/finetune/gpu/sol/submit.sh vllm_check --estimate 1 --dependency=afterok:<setup_vllm job>  # S2: limit 1:30
   "$TRACKA_PY" cot-disclosure/finetune/gpu/plan_training.py /scratch/ragarw68/trackA/timing/timing.jsonl

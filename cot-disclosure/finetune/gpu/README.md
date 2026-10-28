@@ -419,7 +419,7 @@ server's version).
 
 | Job | `submit.sh` line | Limit (estimate × 1.3) | Output (`/scratch/ragarw68/trackA/`) |
 |---|---|---|---|
-| setup_vllm (no GPU, class QoS) | `submit.sh setup_vllm` | 1:00 (the script's) | `/scratch/ragarw68/envs/olmo-vllm`; `vllm_serve_options.txt` (the server options, checked) |
+| setup_vllm (no GPU, class QoS) | `submit.sh setup_vllm` | 1:00 (the script's) | `/scratch/ragarw68/envs/olmo-vllm`; the installed version and the server commands checked against the committed option list |
 | S1 timing | `submit.sh timing --estimate 0.5` | 1:00 | `timing/timing.jsonl`: per version, 12 examples spread over the lengths, peak memory, seconds per token, predicted hours |
 | S2 vLLM check | `submit.sh vllm_check --estimate 1 --dependency=afterok:<setup job>` | 1:30 | `vllm_check/vllm_check.json`: served vs Hugging Face, plain and tagged; `pass` |
 | S3–S6 train (batch 2, Oct 28) | `plan_training.py <S1 timing.jsonl>` prints the 4 lines: lora and tags at once, lora_tags `--dependency=afterany:<lora job>`, lora_attn3 `afterany:<tags job>` | the refit's high end × 1.3, ≤ 8:00 | `train/<version>/` (resumes; `epoch<k>/` after each epoch; `final/` at the end) |
@@ -431,13 +431,17 @@ negative fixed part: the cost per token grows with length. `plan_training.py` re
 c1 × tokens + c2 × tokens², both ≥ 0, sums it over the real lengths (`examples_lengths.json`) for 2
 epochs plus the validation passes, gives a 5–95% bootstrap range, and prints the batch-2 lines.
 
-**Server options are checked on the CPU (Oct 27).** vLLM 0.31.0 dropped `--disable-log-requests`
-(request logging is off by default), and the first S2 job (66753250) failed on a GPU after 12 minutes.
-Now `setup_vllm` runs `vllm serve --help=all` (a plain `--help` lists only the option groups),
-checks every server command the jobs start against that list (`vllm_options.py`), saves it to
-`/scratch/ragarw68/trackA/vllm_serve_options.txt` and fails there if an option is missing. Every
-vLLM job checks the saved list again before any GPU work, and a CPU test checks the same commands
-against `vllm_serve_options.txt` (0.31.0's list, tracked; `setup_vllm` says whether Sol's matches).
+**Server options: a committed list, checked three times (Oct 27–28).** vLLM 0.31.0 dropped
+`--disable-log-requests` (request logging is off by default), and the first S2 job (66753250) failed
+on a GPU after 12 minutes. The option list of `vllm serve --help=all` is committed
+(`vllm_serve_options.txt`, 0.31.0's; a plain `--help` lists only the option groups). The CUDA build
+can't print that help without a GPU ("Failed to infer device type" on a CPU node, Oct 28), so:
+`setup_vllm` (CPU) checks that the installed version is the list's and that every server command the
+jobs start fits the list, and runs no `--help`; every vLLM GPU job's first step, before any model
+load, merge or shard writing, runs `vllm serve --help=all` on its node and stops (within the help's
+run time, about a minute) if it differs from the list, saving the node's list as
+`/scratch/ragarw68/trackA/vllm_serve_options_node.txt` to copy back; and a CPU test checks the exact
+commands against the list (`vllm_options.py`).
 If a server exits, the job's error ends with the last 30 lines of its log. S2 starts the plain base
 server first, before the synthetic LoRA merge and the shard writing, so a server that can't start
 fails in minutes.

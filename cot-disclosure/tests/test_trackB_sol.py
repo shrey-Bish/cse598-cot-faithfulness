@@ -112,13 +112,21 @@ def test_a_track_b_run_through_the_sol_server(server, tmp_path, monkeypatch):
 def test_the_job_driver(tmp_path, monkeypatch):
     monkeypatch.setenv("TRACKA_OUT", str(tmp_path))
     monkeypatch.setattr(st, "STOP", tmp_path / "stop")
+    order = []
+
+    def refuse(vllm, log_dir):
+        order.append("preflight")
+        sys.exit("refusing: this node's vLLM options differ")
+    monkeypatch.setattr(st, "preflight", refuse)
+    monkeypatch.setattr(st, "snapshot", lambda local_only=True: order.append("snapshot") or tmp_path / "snap")
+    with pytest.raises(SystemExit, match="differ"):                       # the node check comes first
+        st.run([], tmp_path / "log")
+    assert order == ["preflight"]
+    monkeypatch.setattr(st, "preflight", lambda vllm, log_dir: order.append("preflight"))
     monkeypatch.setattr(st, "snapshot", lambda local_only=True: (_ for _ in ()).throw(OSError("not cached")))
     with pytest.raises(SystemExit, match="run --download first"):
         st.run([], tmp_path / "log")
     monkeypatch.setattr(st, "snapshot", lambda local_only=True: tmp_path / "snap")
-    with pytest.raises(SystemExit, match="run setup_vllm first"):
-        st.run([], tmp_path / "log")
-    shutil.copy(CODE / "finetune" / "gpu" / "vllm_serve_options.txt", tmp_path / "vllm_serve_options.txt")
     from finetune.gpu import eval_job
     seen, handlers = {}, {}
 
@@ -145,7 +153,3 @@ def test_the_job_driver(tmp_path, monkeypatch):
     assert seen["runner"][-6:] == ["--order", "core-first", "--stop-file", str(tmp_path / "stop"), "--limit", "5"]
     assert "--model" in seen["runner"] and "qwen3-8b" in seen["runner"] and seen["url"].endswith(":8012/v1")
     assert (tmp_path / "stop").read_text() == "Slurm's time-limit warning"
-    (tmp_path / "vllm_serve_options.txt").write_text(
-        (tmp_path / "vllm_serve_options.txt").read_text().replace("--enable-auto-tool-choice, --no-enable-auto-tool-choice\n", ""))
-    with pytest.raises(SystemExit, match="trackB qwen3-8b: --enable-auto-tool-choice"):
-        st.run([], tmp_path / "log")

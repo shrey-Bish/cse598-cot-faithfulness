@@ -8,7 +8,9 @@
 # Safe to run again.
 source "$(dirname "${BASH_SOURCE[0]}")/env.sh" || exit 1
 set -euo pipefail
-VLLM_VERSION=0.31.0
+# the version is the committed option list's (finetune/gpu/vllm_serve_options.txt): one source for both
+VLLM_OPTIONS=${TRACKA_VLLM_OPTIONS:-$TRACKA_CODE/finetune/gpu/vllm_serve_options.txt}
+VLLM_VERSION=$("$TRACKA_PY" "$TRACKA_CODE/finetune/gpu/vllm_options.py" --list-version --committed "$VLLM_OPTIONS")
 export HF_HUB_OFFLINE=0                     # pip only; nothing here touches the model
 # never the project environment: it stays exactly as Steps 8-10 used it (decided Oct 27)
 if [ "$(realpath -m "$TRACKA_VLLM_ENV")" = "$(realpath -m "$TRACKA_ENV")" ]; then
@@ -20,18 +22,12 @@ if [ ! -x "$TRACKA_VLLM_PY" ]; then
 fi
 "$TRACKA_VLLM_PY" -m pip install --no-input "vllm==$VLLM_VERSION"
 "$TRACKA_VLLM_PY" -m pip check || echo "pip check reported conflicts (above); vLLM's own pins win in this environment"
-"$TRACKA_VLLM_PY" - <<'PY'
-import torch, vllm
-print("vllm", vllm.__version__, "torch", torch.__version__, "CUDA", torch.version.cuda)
-assert vllm.__version__ == "0.31.0", vllm.__version__
-PY
-[ -x "$TRACKA_VLLM" ] && echo "server command: $TRACKA_VLLM"
-# Every server option the jobs use, against this vLLM's own list, on the CPU (Oct 27: 0.31.0 dropped
-# --disable-log-requests and the check job failed on a GPU). A plain --help lists only the option groups.
-mkdir -p "$TRACKA_OUT"
-help=$TRACKA_OUT/vllm_serve_help.txt
-CUDA_VISIBLE_DEVICES="" "$TRACKA_VLLM" serve --help=all > "$help" 2> "$help.err" || {
-    rc=$?; echo "vllm serve --help=all failed (exit $rc); the end of $help.err:" >&2; tail -30 "$help.err" >&2; exit 1; }
-"$TRACKA_PY" "$TRACKA_CODE/finetune/gpu/vllm_options.py" --help-file "$help" --version "$VLLM_VERSION" \
-    --save "$TRACKA_OUT/vllm_serve_options.txt"
-echo "setup_vllm done: vLLM $VLLM_VERSION in $TRACKA_VLLM_ENV; server options checked"
+"$TRACKA_VLLM_PY" -c 'import importlib.metadata as m; print("vllm", m.version("vllm"), "torch", m.version("torch"))'
+[ -x "$TRACKA_VLLM" ] || { echo "no server command at $TRACKA_VLLM after the install" >&2; exit 1; }
+# The server options, without a GPU: the CUDA build can't print `vllm serve --help=all` on a CPU node
+# (Oct 28: "Failed to infer device type"), so no --help here. The installed version must be the
+# committed list's, and every server command the jobs start must use only options that list has.
+# Each vLLM GPU job then compares the node's own --help=all with the list as its first step.
+installed=$("$TRACKA_VLLM_PY" -c 'import importlib.metadata as m; print(m.version("vllm"))')
+"$TRACKA_PY" "$TRACKA_CODE/finetune/gpu/vllm_options.py" --check-commands --installed "$installed" --committed "$VLLM_OPTIONS"
+echo "setup_vllm done: vLLM $installed in $TRACKA_VLLM_ENV; the server commands fit the committed list"

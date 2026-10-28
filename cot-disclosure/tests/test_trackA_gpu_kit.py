@@ -416,58 +416,91 @@ def test_option_lines_and_choices_from_argparse_help():
     assert vo.unknown(cmd, opts) == ["--dtype bf16 (choices: auto,bfloat16,half)", "--seed"]
 
 
-def run_setup_vllm(root, help_lines=None):
-    """setup_vllm.sh with env.sh stubbed: a fake vLLM environment whose `vllm serve --help=all` prints
-    these option lines (None: it fails); the real driver Python runs vllm_options.py."""
+def run_setup_vllm(root, installed="0.31.0", committed=None):
+    """setup_vllm.sh with env.sh stubbed: a fake vLLM environment (pip, and the installed version from
+    the package metadata) whose `vllm` fails if anything calls it (no --help on a CPU node, Oct 28);
+    the real driver Python runs vllm_options.py against the committed list (or `committed`)."""
     sol = root / "repo" / "cot-disclosure" / "finetune" / "gpu" / "sol"
     sol.mkdir(parents=True)
     shutil.copy(SOL / "setup_vllm.sh", sol)
     venv, bin_dir = root / "envs" / "olmo-vllm" / "bin", root / "bin"
     venv.mkdir(parents=True)
     bin_dir.mkdir()
-    help_file = root / "help.txt"
-    help_file.write_text("usage: vllm serve [model_tag] [options]\n\noptions:\n" + "".join(f"  {x}\n" for x in help_lines or []))
-    serve = (f'[ "$*" = "serve --help=all" ] && cat {help_file}' if help_lines is not None
-             else 'echo "ImportError: libcuda.so.1" >&2; exit 2')
-    for p, text in {venv / "python": '#!/bin/bash\n[ "$1" = - ] && { cat > /dev/null; echo "vllm 0.31.0"; }\nexit 0\n',
-                    venv / "vllm": f"#!/bin/bash\n{serve}\n",
+    calls = root / "calls"
+    py = (f'#!/bin/bash\necho "python $*" >> {calls}\n'
+          f'if [ "$1" = -c ]; then case "$2" in *torch*) echo "vllm {installed} torch 2.13.0" ;; *) echo "{installed}" ;; esac; fi\n')
+    for p, text in {venv / "python": py,
+                    venv / "vllm": f'#!/bin/bash\necho "vllm $*" >> {calls}\necho "RuntimeError: Failed to infer device type" >&2\nexit 1\n',
                     bin_dir / "realpath": '#!/bin/bash\necho "${@: -1}"\n'}.items():       # the Mac's has no -m
         p.write_text(text)
         p.chmod(0o755)
     (sol / "env.sh").write_text(f"TRACKA_ENV={root}/envs/olmo\nTRACKA_VLLM_ENV={root}/envs/olmo-vllm\n"
                                 f"TRACKA_VLLM_PY={venv}/python\nTRACKA_VLLM={venv}/vllm\nTRACKA_PY={sys.executable}\n"
-                                f"TRACKA_OUT={root}/out\nTRACKA_CODE={CODE}\n")
+                                f"TRACKA_OUT={root}/out\nTRACKA_CODE={CODE}\n"
+                                + (f"TRACKA_VLLM_OPTIONS={committed}\n" if committed else ""))
     env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
-    return subprocess.run(["bash", str(sol / "setup_vllm.sh")], env=env, capture_output=True, text=True)
+    r = subprocess.run(["bash", str(sol / "setup_vllm.sh")], env=env, capture_output=True, text=True)
+    return r, calls.read_text() if calls.exists() else ""
 
 
-def test_setup_vllm_checks_the_server_options_on_the_cpu(tmp_path):
+def test_setup_vllm_checks_version_and_commands_against_the_committed_list_without_help(tmp_path):
+    from finetune.gpu import vllm_options as vo
+    r, calls = run_setup_vllm(tmp_path / "ok")
+    assert r.returncode == 0, r.stderr
+    assert "vLLM 0.31.0 installed = the committed list's 0.31.0; all 9 server commands" in r.stdout
+    assert "python -m pip install --no-input vllm==0.31.0" in calls          # the version comes from the list
+    assert "vllm " not in calls.replace("vllm==", "")                         # vllm itself never ran (no --help)
+    r, _ = run_setup_vllm(tmp_path / "newer", installed="0.32.0")
+    assert r.returncode == 1 and "the installed vLLM is 0.32.0, but the committed option list" in r.stderr
+    no_seed = tmp_path / "no_seed.txt"
+    no_seed.write_text("".join(x + "\n" for x in vo.TRACKED.read_text().splitlines() if not x.startswith("--seed ")))
+    r, _ = run_setup_vllm(tmp_path / "list", committed=no_seed)
+    assert r.returncode == 1 and "eval base: --seed" in r.stderr and "trackB qwen3-8b: --seed" in r.stderr
+
+
+def fake_vllm(tmp_path, lines=None, fail=None):
+    """A `vllm` whose `serve --help=all` prints these option lines as argparse does (or fails)."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    help_file = tmp_path / "help.txt"
+    help_file.write_text("usage: vllm serve [model_tag] [options]\n\noptions:\n" + "".join(f"  {x}\n" for x in lines or []))
+    exe = tmp_path / "vllm"
+    body = f'echo "{fail}" >&2; exit 1' if fail else f'[ "$*" = "serve --help=all" ] && cat {help_file}'
+    exe.write_text(f"#!/bin/bash\necho ran >> {tmp_path / 'ran'}\n{body}\n")
+    exe.chmod(0o755)
+    return str(exe)
+
+
+def test_every_vllm_job_compares_the_nodes_help_with_the_committed_list_first(tmp_path):
     from finetune.gpu import vllm_options as vo
     lines = [x for x in vo.TRACKED.read_text().splitlines() if x and not x.startswith("#")]
-    r = run_setup_vllm(tmp_path / "ok", lines)
-    assert r.returncode == 0, r.stderr
-    assert "all 9 server commands use only options it lists" in r.stdout and "the same options as the tracked list" in r.stdout
-    assert vo.load(tmp_path / "ok" / "out" / "vllm_serve_options.txt") == vo.load(vo.TRACKED)
-    r = run_setup_vllm(tmp_path / "no_seed", [x for x in lines if not x.startswith("--seed ")])
-    assert r.returncode == 1 and "eval base: --seed" in r.stderr and "vllm_check tagged: --seed" in r.stderr
-    assert "trackB qwen3-8b: --seed" in r.stderr
-    assert not (tmp_path / "no_seed" / "out" / "vllm_serve_options.txt").exists()
-    r = run_setup_vllm(tmp_path / "broken")
-    assert r.returncode == 1 and "vllm serve --help=all failed (exit 2)" in r.stderr and "libcuda" in r.stderr
-
-
-def test_a_job_refuses_server_options_its_vllm_lacks(tmp_path, monkeypatch):
-    from finetune.gpu import eval_job as ej
-    from finetune.gpu import vllm_options as vo
-    monkeypatch.setenv("TRACKA_OUT", str(tmp_path))
-    with pytest.raises(SystemExit, match="run setup_vllm first"):
-        ej.preflight()
-    saved = tmp_path / "vllm_serve_options.txt"
-    saved.write_text(vo.TRACKED.read_text().replace("--enable-prompt-embeds, --no-enable-prompt-embeds\n", ""))
+    vo.gpu_preflight(fake_vllm(tmp_path / "same", lines), tmp_path / "same")             # the same list: on
+    with pytest.raises(SystemExit, match=r"differ from the committed 0.31.0 list \(removed 1: --seed\)"):
+        vo.gpu_preflight(fake_vllm(tmp_path / "diff", [x for x in lines if not x.startswith("--seed ")]), tmp_path / "diff")
+    assert vo.load(tmp_path / "diff" / "vllm_serve_options_node.txt")[1] == {k: v for k, v in vo.load()[1].items() if k != "--seed"}
+    changed = [x.replace("{auto,bfloat16,", "{auto,") if x.startswith("--dtype") else x for x in lines]
+    with pytest.raises(SystemExit, match="choices 1: --dtype"):
+        vo.gpu_preflight(fake_vllm(tmp_path / "choice", changed), tmp_path / "choice")
+    with pytest.raises(SystemExit, match="exited with code 1 on this node(.|\n)*Failed to infer device type"):
+        vo.gpu_preflight(fake_vllm(tmp_path / "cpu", fail="RuntimeError: Failed to infer device type"), tmp_path / "cpu")
+    committed = tmp_path / "committed.txt"
+    committed.write_text(vo.TRACKED.read_text().replace("--enable-prompt-embeds, --no-enable-prompt-embeds\n", ""))
+    exe = fake_vllm(tmp_path / "bad", lines)
     with pytest.raises(SystemExit, match="eval tags: --enable-prompt-embeds"):
-        ej.preflight()
-    shutil.copy(vo.TRACKED, saved)
-    ej.preflight()
+        vo.gpu_preflight(exe, tmp_path / "bad", committed=committed)
+    assert not (tmp_path / "bad" / "ran").exists()                         # a command misfit: refused before vllm
+
+
+def test_eval_job_checks_the_node_before_anything_else(tmp_path, monkeypatch):
+    from finetune.gpu import eval_job as ej
+    order = []
+    monkeypatch.setenv("SLURM_JOB_ID", "7")
+    monkeypatch.setattr(ej, "preflight", lambda: (order.append("preflight"), sys.exit("refusing: differs"))[1])
+    monkeypatch.setattr(kit, "check_inputs", lambda step: order.append("inputs"))
+    monkeypatch.setattr(ej, "check", lambda out: order.append("check"))
+    monkeypatch.setattr(sys, "argv", ["eval_job.py", "--check", "--out", str(tmp_path)])
+    with pytest.raises(SystemExit, match="differs"):
+        ej.main()
+    assert order == ["preflight"]
 
 
 def test_the_check_starts_the_plain_server_before_any_merge(tmp_path, monkeypatch):

@@ -11,8 +11,9 @@ stops it. Thinking on/off goes in each request (enable_thinking, providers/sol_v
   cot-disclosure/finetune/gpu/sol/submit.sh trackb_qwen8b --estimate 1.5
   # back to the Mac, numbers only (results/trackB/): sol_vllm_runs.jsonl and sol_vllm_flags.jsonl
 
-Before any GPU work: the snapshot is on disk at the pinned revision, and the server command uses only
-options the installed vLLM lists (setup_vllm.sh's saved list; finetune/gpu/vllm_options.py). Slurm's
+First step: `vllm serve --help=all` on the GPU node must give the committed option list and the
+server command must fit it (finetune/gpu/vllm_options.py); then the snapshot must be on disk at the
+pinned revision. Slurm's
 warning (USR1, 5 minutes before the limit) makes the runner start no new request; replies still in
 flight when the job ends are not saved and run again in the next job (never "no answer"). At the end,
 every record's numbers-only flags (progress/trackB_report.flags: answered, followed, mention flags,
@@ -70,26 +71,22 @@ def export_flags(records=OUT / "sol_vllm.jsonl.gz", out=FLAGS):
     return len(rows)
 
 
-def preflight(cmd):
-    """The server's options against the installed vLLM's saved list, before the GPU does anything."""
-    from finetune.gpu import eval_job, vllm_options
-    saved = eval_job.out_root() / "vllm_serve_options.txt"
-    if not saved.exists():
-        sys.exit(f"no vLLM option list at {saved}: run setup_vllm first, which saves it")
-    version, opts = vllm_options.load(saved)
-    bad = vllm_options.problems({"trackB qwen3-8b": cmd}, opts)
-    if bad:
-        sys.exit(f"refusing: vLLM {version} doesn't list these server options:\n  " + "\n  ".join(bad))
+def preflight(vllm, log_dir):
+    """The job's first step: `vllm serve --help=all` on this GPU node must give the committed option list,
+    and every server command (this one included) must fit it (finetune/gpu/vllm_options.py)."""
+    from finetune.gpu import vllm_options
+    vllm_options.gpu_preflight(vllm, log_dir)
 
 
 def run(extra, log_dir):
     from finetune.gpu import eval_job
+    vllm = os.environ.get("TRACKA_VLLM", "vllm")
+    preflight(vllm, log_dir)
     try:
         snap = snapshot()
     except Exception as err:
         sys.exit(f"no {REPO} snapshot at {REVISION} in $HF_HOME ({type(err).__name__}): run --download first")
-    cmd = serve_cmd(snap, vllm=os.environ.get("TRACKA_VLLM", "vllm"))
-    preflight(cmd)
+    cmd = serve_cmd(snap, vllm=vllm)
     STOP.parent.mkdir(parents=True, exist_ok=True)
     STOP.unlink(missing_ok=True)
     signal.signal(signal.SIGUSR1, lambda *_: STOP.write_text("Slurm's time-limit warning"))
