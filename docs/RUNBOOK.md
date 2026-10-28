@@ -404,10 +404,12 @@ It refuses a push that adds anything under a produced-data folder, any file with
 ## 19. Track C: the agent team
 
 - **What:** solver (Qwen3 30B Thinking; the tool team gets the lookup tool, bad or good by a seeded
-  oracle; the no-tool team doesn't) → reviewers (Qwen3 30B Instruct, Olmo 3 7B Instruct; 4 variants)
+  oracle; the no-tool team doesn't) → reviewers (Qwen3 30B Instruct, Olmo 3 32B Instruct served as
+  Olmo 3.1 32B Instruct since Oct 28; 4 variants)
   → checker (re-asks without the tool). Wrong answers shipped, catches, false alarms, per team ×
   reviewer model × variant, bad and good lookups apart. **Where:** Mac → Voyager.
-  **Status:** code done Oct 27 (append-only, resumable); C1 (5 items) running.
+  **Status:** code done Oct 27 (append-only, resumable); C1 (5 items) done Oct 27; the 32B
+  reviewer's smoke done Oct 28 00:20; C4 running since Oct 28 03:13 under a second power guard.
 - **Commands** (from `cot-disclosure/`):
   ```bash
   ../.venv/bin/python agents/run_team.py --replay                       # saved data, no calls
@@ -415,8 +417,15 @@ It refuses a push that adds anything under a produced-data folder, any file with
   ../.venv/bin/python agents/run_team.py --live --n 5 --run-name C1
   # C4, on Track B's cases (after run_trackB.py --steered for the solver model):
   ../.venv/bin/python agents/run_team.py --live --cases results/trackB/steered_cases.jsonl \
-        --kinds steered,matched --per-kind 30 --repeats 3 --teams tool,notool --dry-run
+        --kinds steered,matched --per-kind 30 --repeats 3 --teams tool,notool --log team_c4 --dry-run
+  # under the power guard (stop C4 only: touch logs/stop_c4; logs/stop_guard stops every guard;
+  # exit 3 = a Voyager guard failed, all Voyager work pauses)
+  nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
+    --job "voyager:c4=agents/run_team.py --live --cases results/trackB/steered_cases.jsonl --kinds steered,matched --per-kind 30 --repeats 3 --teams tool,notool --log team_c4 --run-name C4-oct28" >> logs/guard_c4.log 2>&1 &
+  # one Track B model per run: with several models in steered_cases.jsonl, add --case-model M and a log of its own
   ../.venv/bin/python agents/run_team.py --summary                      # results/trackC/team_live_summary.json
+  ../.venv/bin/python agents/run_team.py --summary --log team_c4 --cases results/trackB/steered_cases.jsonl --table
+                                                                        # C4, also by Track B kind and kind x set
   ```
 - **Out:** `results/trackC/team_live.jsonl` (every agent step, appended; a case is done at its
   `case_done` row), `team_live_summary.json`, `team_replay.jsonl` (all gitignored; `results/scope/`

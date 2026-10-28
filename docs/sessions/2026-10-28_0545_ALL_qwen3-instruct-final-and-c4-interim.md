@@ -1,4 +1,4 @@
-# Session log: Track B's final Qwen3 30B Instruct table (F16), thinking minus Instruct, and C4 at a third (2026-10-28 06:00 MST)
+# Session log: Track B's final Qwen3 30B Instruct table (F16), thinking minus Instruct, and C4 at a third (2026-10-28 05:45 MST)
 
 Project: CSE 598 Group 10. Track B measures, across open models, how often a wrong hint (from the
 user, a pasted tool block, a real tool call or a system note) moves the answer and whether the reply
@@ -7,7 +7,7 @@ part of the overnight list.
 
 ## 1. Header
 
-- **Time:** 2026-10-28 06:00 MST = 13:00 UTC.
+- **Time:** 2026-10-28 05:45 MST = 12:45 UTC.
 - **Branch:** `trackA-nosol`, at `7ac2dc2` before; one commit with this log. Not pushed.
 - **Running:**
   - **Track B, Olmo 3 7B Think:** on Voyager since 05:32 under the first power guard

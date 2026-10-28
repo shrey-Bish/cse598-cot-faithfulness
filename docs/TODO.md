@@ -76,7 +76,7 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 | C7 | Input-file option for `run_team.py` (`live` takes pilot puzzles only) | Oct 27 | done (`b72b747`) | — | Claude Code → Shrey | no calls | 1 h |
 | C1 | Live team on 5 items (`run_team.py --live --n 5`) | Gate 1 | done Oct 27 15:00 (5 items; log 15:05) | — | Claude Code → Shrey | Voyager (35 calls) | 15 min |
 | C4 | The team on Track B's steered cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | PLAN, Oct 27, Oct 28 | running since Oct 28 03:13 under a second power guard (53 items: 24 steered + 29 matched; 318 cases, ~3,021 calls); 102 done at 05:39, no errors | B8, C2, C3, C7 | Claude Code → Shrey | Voyager (~3,400 calls) | ~3–13 h |
-| C5 | Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | PLAN, Oct 27 | code done (`run_team --summary --cases --table`); interim numbers in the 06:00 session log; FINDINGS once C4 is done | C4 | Claude Code → Shrey | no calls | 3 h |
+| C5 | Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | PLAN, Oct 27 | code done (`run_team --summary --cases --table`); interim numbers in the 05:45 session log; FINDINGS once C4 is done | C4 | Claude Code → Shrey | no calls | 3 h |
 
 ## Labels
 
