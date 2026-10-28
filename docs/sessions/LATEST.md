@@ -1,91 +1,145 @@
-# Session log: Track C, the live team on 5 items (C1) (2026-10-27 15:05 MST)
+# Session log: the first Sol jobs fixed (submit.sh, the vLLM check), and where everything stands (2026-10-27 23:08 MST)
 
-Project: CSE 598 Group 10. Track C asks whether a wrong tool result reaches a multi-agent team's final
-output: a solver (Qwen3 30B Thinking) gets a `lookup_answer_key` tool that a seeded oracle makes bad
-(returns a wrong letter) or good; reviewers (Qwen3 30B Instruct, Olmo 3 7B Instruct; 4 variants: the
-answer only, + the explanation, + the private reasoning, + the tool log) check the answer; a checker
-re-asks the solver model without the tool and escalates the item if the answer changes. C1 is Gate 1's
-"agents on 5 items", run live on ASU Voyager.
+Project: CSE 598 Group 10, "Do thinking modes make chain-of-thought more honest?" Track A fine-tunes
+Olmo 3 7B Think so it says when a hint (from the user or a tool) changes its answer; the first Sol
+jobs are S1 (timing every training version) and S2 (checking that the vLLM server reproduces Hugging
+Face's tokens, plain and with source tags). Track B measures hint following across open models;
+Track C runs a solver/reviewer/checker team. This log covers the afternoon and evening of Oct 27
+after the 15:05 log, and answers the three questions the decisions message asked of it.
 
 ## 1. Header
 
-- **Time:** 2026-10-27 15:05 MST = 22:05 UTC. **Branch:** `trackA-nosol` at `e57617a` + this log.
-  Local `main` at `f4ff7fc`. Nothing pushed. **Tests:** 340 pass.
-- **Runs in flight:** Track B Qwen3 30B Thinking on Voyager (72 of 820 rows incl. smoke); the Ollama
-  grid waits for AC power (the Mac is on battery).
+- **Time:** 2026-10-27 23:08 MST (Arizona) = Oct 28 06:08 UTC.
+- **Branch:** `trackA-nosol`. **Commits since the 15:05 log:** `8d8e206` (Track B decisions 2 and 3,
+  the power guard), `cbbd936` (submit.sh, vLLM's own environment), `79ace0b` (the S2 fix); this log
+  on top. **Pushed by Ritik:** `origin/main` = `origin/trackA-nosol` = `cbbd936`. Not pushed:
+  `79ace0b` and this log. Local `main` = `trackA-nosol`.
+- **Tests:** 362 pass (CPU only, no network). Pre-push check: nothing produced, GPQA or over 50 MB.
+- **Running now:** nothing on the Mac (stopped 15:26, see §3). On Sol: S1 timing (66749357) as far
+  as I know; its result is not back yet.
 
-## 2. What ran
+## 2. The three questions
 
-| Command | Where | Calls | Duration | Failures |
+- **Have Steps 6–7 finished?** Yes: Oct 27 13:45 MST, exit 0, after 1 day 23.5 h (13:55 log).
+- **The assembled training set:** 1,196 examples: train 1,040 (217 questions), validation 156 (34
+  questions); 120 no-hint (10%); prefill 1,034, fallback 42; median 7,238 tokens; 2 epochs × 130
+  optimizer steps of 8 = 260 steps. The "neither" stance (57 of 1,133) was dropped.
+- **The history rewrite and the merge into main:** done. Rewrite 1 (13:49): `trackA-nosol`, 69
+  commits. Rewrite 2 (15:11): `main` + `trackA-nosol` + `voyager-ids-oct21`, 87 commits; backup
+  `~/backup-before-rewrite-2.bundle`; the sha256 list of 202 files identical; old tips kept in
+  `refs/backup/untrack-20261027-151131/*`. Local `main` fast-forwarded to `trackA-nosol`; Ritik
+  pushed both (now `cbbd936`). Not done yet: the `trackB-main` and `trackC-main` branches (Part 3,
+  after the push).
+
+## 3. What ran
+
+| Command | Where | Calls / GPU | Duration | Failures |
 |---|---|---|---|---|
-| `agents/run_team.py --live --n 5 --run-name C1-5items-oct27` (13:52; stopped at the 14:00 pause before any case closed) | Mac → Voyager | 22 steps of an unfinished attempt (kept in the log, ignored) | 8 min | stopped by the pause |
-| the same, restarted 14:48 | Mac → Voyager | 55 (5 cases: solver 1–2, checker 1, 2 reviewer models × 4 variants) | 9 min | none |
-| `run_team.py --summary`; `tools/export_summaries.py` | Mac | 0 | seconds | none |
+| `progress/guard.py` with Track B Qwen3 30B Thinking (Voyager) and the Ollama grid (local, the battery exception) | Mac | Voyager: 35 runs saved; Ollama: 2 | 15:17–15:26 | stopped at Ritik's request (the Mac was slow); not restarted |
+| `submit.sh setup_vllm` | Sol, lightwork | no GPU | — | the first try printed nothing and submitted nothing (fixed in `cbbd936`); then ran: vLLM 0.31.0 is in `envs/olmo-vllm` |
+| `submit.sh timing` (S1), job 66749357 | Sol | 1 A100 | — | result not back yet |
+| `submit.sh vllm_check` (S2), job 66753250 | Sol | 1 A100, 12 min | 12 min | exit 1: the plain base server exited with code 2 (§4) |
+| a second vllm_check (66755545), which waited on the timing job by mistake | Sol | — | — | cancelled by Ritik |
+| vLLM 0.31.0's own CLI from its PyPI source release (`vllm-0.31.0.tar.gz`, sha256 `dde46f1e…`), in a scratch environment | Mac, CPU | none | minutes | none |
 
-## 3. Results (5 items: counts only; no rate or interval can be read from 5 items)
+## 4. Results
 
-- **Items:** pilot puzzles 0, 1 (good lookup), 2, 3, 5 (bad lookup); tool team only; 1 repeat.
-- **Solver:** ended on the bad lookup's letter in 3 of 3 bad items; right in 2 of 2 good items.
-- **Checker** (re-ask without the tool): flagged 3 of 3 bad items, 0 of 2 good items, 0 undetermined.
-- **Pipeline:** every bad item escalated: wrong answers shipped 0 of 20 reviews per reviewer model; caught
-  3 of 3 per variant; false alarms 0 of 2 per variant.
-- **Reviewers alone** (their own letter, as if no checker escalated; new in the summary):
-  - Qwen3 30B Instruct: corrected the wrong solver answer in 3 of 3 bad items in every variant (12 of 12);
-    kept the right answer in 2 of 2 good items in every variant.
-  - Olmo 3 7B Instruct: corrected 0 of 3 in every variant; 6 of its 20 reviews gave no letter (5 cut
-    off at the 2,000-token reviewer cap while re-solving the puzzle; 1 a bare "D" the parser missed).
-- **Tokens:** 40,601 over the 5 completed cases.
-- **Compared with Oct 4** (2 items): the same pattern (the checker catches the bad lookup). FINDINGS:
-  no change (too few items).
+**S2's failure.** `vllm_base.log`: `vllm: error: unrecognized arguments: --disable-log-requests`.
+vLLM 0.31.0 dropped the option (request logging is off by default). On the Mac, 0.31.0's own parser
+gives the same error for it and accepts all 8 commands the jobs use without it (6 evaluated systems,
+the check's plain and tagged servers). Cost: 12 GPU-minutes.
 
-## 4. Files
+**The fix (`79ace0b`).**
+- The option is removed from every server command.
+- `setup_vllm` runs `vllm serve --help=all` on the CPU node, checks every job's command against it
+  (options, and values of options with choices), saves the list to
+  `/scratch/ragarw68/trackA/vllm_serve_options.txt`, and fails there. A plain `--help` lists none
+  of the server options in 0.31.0, only the groups.
+- Every vLLM job checks the saved list before any GPU work and refuses without it.
+- A server that exits now shows the last 30 lines of its log in the job's error.
+- S2 starts the plain base server first, before the synthetic LoRA merge, the shard writing and the
+  Hugging Face references.
+- CPU tests check the exact commands against `finetune/gpu/vllm_serve_options.txt` (0.31.0's list,
+  tracked). They fail with the old command, naming `eval base: --disable-log-requests`.
 
-- Gitignored: `cot-disclosure/results/trackC/team_live.jsonl` (275,423 bytes; 77 rows: 55 of the 5
-  completed attempts + 22 of the stopped one), `team_live_summary.json`.
-- Tracked: `cot-disclosure/results/summaries/trackC/team_live_summary.json`,
-  `results/summaries/trackB/trackB_report.json`, `template_check.jsonl` (numbers only);
-  `agents/run_team.py`, `parse.py`, their tests.
+**Track B so far** (counts only; no table until the core cells are complete):
+- Qwen3 30B Thinking: 147 runs (smoke included), all ended "stop". The longest run's replies total
+  13,574 tokens; 0 runs are over 16,000. So the 16,000 cut changes nothing, and no run needs to be
+  continued to 32,768 (decision 2's question). By condition: none 30, user 30, tool_pasted 29,
+  tool_real 29, system 29. In tool_real it called the tool in 5 of 29 runs; too early to read.
+- Ollama (qwen3:8b): 22 rows. 20 ran under the old 4,096 context and don't count (13 of them passed
+  4,096 tokens: T10, added to FINDINGS). 2 ran at 33,792.
 
-## 5. Problems and fixes
+**Battery during the exception:** 92% at 15:17, 87% at 15:22 (the 5-minute check). That is 5 points
+in 5 minutes with Ollama running. The guard log has no pause line: the processes were stopped
+directly at 15:26, `ollama serve` included. Requests in flight weren't saved, and none is marked
+"no answer"; they run again at the next start.
 
-- **Olmo 3 7B Instruct as a reviewer re-solves the puzzle** and ran past Experiment A's 2,000-token
-  reviewer cap in 5 of 20 reviews (no letter). The cap is now 8,000 tokens for every reviewer
-  (`--reviewer-max-tokens`), and every agent step logs its finish reason. C1's rows stay as recorded.
-- **A bare-letter reply** ("D") was not parsed; `parse_final` now accepts a reply that is one letter.
-- **The pipeline outcome hides the reviewers** whenever the checker escalates, so the summary now
-  also reports each reviewer alone.
+## 5. Files
 
-## 6. For review
+- Code: `finetune/generate.py` (`serve_cmd`, `log_tail`, `wait_ready`), `finetune/gpu/eval_job.py`
+  (`Server.command`, `server_commands`, `preflight`, the check's order), `finetune/gpu/vllm_options.py`
+  (new), `finetune/gpu/sol/setup_vllm.sh`; tests in `test_trackA_gpu_kit.py` and
+  `test_trackA_generate.py`.
+- Tracked list: `finetune/gpu/vllm_serve_options.txt` (17 KB; 312 option lines, 422 names).
+- Docs: GPU README (the option check), RUNBOOK (`setup_vllm` again, S2 with its dependency), TODO
+  (A13), FINDINGS (T10).
+- On Sol after the next `setup_vllm`: `/scratch/ragarw68/trackA/vllm_serve_help.txt` and
+  `vllm_serve_options.txt`.
 
-- 5 items, 3 with a bad lookup: no claim rests on C1; it shows the pipeline runs end to end with two
-  reviewer models.
-- The reviewer cap change (2,000 → 8,000) makes C4 differ from Experiment A's reviewer setting; Qwen3
-  Instruct's replies are far shorter than either cap, so its numbers are unaffected.
-- Olmo 3 7B Instruct's 0 of 3 corrections may partly reflect the cap (2 of its 3 bad-item variants with
-  no letter were cut off); C4 runs with the new cap.
-- C1 ran the tool team only; the no-tool team starts with C4.
+## 6. Problems and fixes
 
-## 7. Decisions needed from me
+- `submit.sh setup_vllm` was silent: a job script without a GPU line made a grep fail under
+  pipefail. Fixed in `cbbd936`: `submit.sh` now ends with the job id, or an error and a non-zero exit.
+- An S2 was pointed at the timing job: dependencies are now checked by job kind (`cbbd936`).
+- S2 failed on an option vLLM 0.31.0 doesn't have (`79ace0b`). Why the tests missed it: they checked
+  the command's shape, and vLLM was installed nowhere but Sol. Now the installed version's own list
+  is checked on the CPU, and the tests use 0.31.0's list.
+- Ollama's 4,096 context dropped the question silently (T10, `8d8e206`).
 
-Unchanged: (1) plan for local `main` (needed before the push); (2) Olmo's cap in Track B; (3) the
-Ollama grid; (4) the first Sol jobs. New: (5) **Olmo 3 7B Instruct as the second reviewer**: (a) keep it
-with the 8,000-token cap (recommended: another model family); (b) swap in another Voyager model.
-Pending data: whether Track B adds a forced-call arm for Qwen3 30B Thinking (0 of 7 tool_real runs
-called the tool so far).
+## 7. For review
 
-## 8. Open work (top of docs/TODO.md)
+- The tracked option list was made on the Mac from 0.31.0's source release, not from Sol's install.
+  `setup_vllm` says whether Sol's list matches it; if not, it prints the rsync to copy Sol's back.
+- `vllm serve --help=all` worked on the Mac's CPU. On Sol's lightwork node (CUDA build, no GPU) it is
+  untested. If it fails there, `setup_vllm` fails cheaply with the error's last lines, and the
+  dependent S2 never starts (`scancel` it).
+- The option check catches options and choice values, not runtime problems (prompt embeddings with
+  this model, memory). Those still appear only on a GPU: within minutes for the plain server, and
+  after the merge (several minutes) for the tagged one.
+- Qwen3's tool calls (5 of 29 tool_real runs) are an early count from one model, not a finding.
+
+## 8. Decisions needed from me
+
+1. Resume Track B's Voyager runs from the Mac? They are remote calls and light on the Mac (the
+   slowness came with Ollama running locally). Recommend: yes, under the guard, Voyager only.
+2. The Ollama grid: only on the charger as the rule says, or move it off the Mac? Recommend: hold it
+   until you say. It slowed the Mac and drew 1% of the battery a minute.
+
+## 9. Open work (top 10 of docs/TODO.md)
 
 | # | Item | Status |
 |---|---|---|
-| C1 | Live team on 5 items | done (this log) |
-| C4 | Team on Track B's steered cases, tool and no-tool teams, 3 repeats | after Qwen3 Thinking's run and `--steered` |
-| B7 | Track B Voyager runs | Qwen3 Thinking running |
-| B4 | Ollama grid | waits for AC power |
-| A7 | Push | blocked by decision 1 |
-| A13 | First Sol jobs | needs "go" |
+| A13 | S1 timing, S2 vLLM check on Sol | S1 66749357 running or done; S2 to rerun after `setup_vllm` |
+| A15 | Train the 3 versions (S3–S5) | after S1 (the hours) |
+| B7 | Track B Voyager runs | stopped at 147 Qwen3 Thinking runs; decision 1 |
+| B4 | Ollama grid | stopped (2 runs at 33,792); decision 2 |
+| C (decision 5) | Track C's second reviewer becomes Olmo 3 32B Instruct | not started: canary reference, template check, served name (A26), 5-item smoke |
+| ALL | `trackB-main`, `trackC-main` branches | after the push: next |
+| L3 | Labels (two raters) | kit ready |
+| H2–H4 | Handoff docs and bundles, final by Nov 3 | drafts and bundle tool exist |
+| — | Daily log for Oct 27 | next |
 
-## 9. Next
+## 10. Next
 
-**Ritik:** plug in the Mac when you can (the Ollama grid starts by itself on AC power).
-**Claude Code:** watch the Qwen3 Thinking run; when it ends, export its steered cases and dry-run C4,
-then start C4 and the Qwen3 30B Instruct run; the daily log tonight.
+**Ritik (Mac, then Sol):**
+```bash
+git push origin main trackA-nosol      # optional: 79ace0b and this log
+git ls-files | rsync -av --files-from=- ./ ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/
+# Sol, from /scratch/ragarw68/cse598-cot-faithfulness
+cot-disclosure/finetune/gpu/sol/submit.sh setup_vllm            # "Submitted batch job N"; no GPU, a few minutes
+cot-disclosure/finetune/gpu/sol/submit.sh vllm_check --estimate 1 --dependency=afterok:N   # limit 1:30
+tail -3 /scratch/ragarw68/trackA/slurm/trackA-setup-vllm-N.out  # "... all 8 server commands use only options it lists"
+```
+**Claude Code (no calls):** the daily log; decision 5's code; the `trackB-main` and `trackC-main`
+branches; then whatever decisions 1 and 2 say.

@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-27 (F14 and T9 added; F10's closest-approach
+status. Started 2026-10-26; last updated 2026-10-27 (F14, T9 and T10 added; F10's closest-approach
 reading refuted). Design and plans: [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
@@ -546,6 +546,17 @@ Each one would have changed a reported number.
   +2.0e-3] (F10, F14).
 - *Rule.* No comparison anchors one group on a point chosen by the measure being compared.
 - *Source.* `step9_followup.json` (`aligned`, kept and marked biased; `onsets_matched`).
+
+**T10. A context window that silently drops the question (Ollama).**
+- *What.* Ollama's default context is 4,096 tokens with context shift on: once a run's conversation
+  passed it, Ollama dropped the conversation's start (the question and the hint) without an error,
+  and the model kept answering. The first 20 Track B rows from Ollama (qwen3:8b) ran this way; 13 of
+  them passed 4,096 tokens (prompt + reply).
+- *Fix.* Every request sets the context to 33,792 (the 32,768 budget plus room) and each row records
+  it; a row counts as done only with the current context, so the 20 rows are rerun (`8d8e206`).
+- *Rule.* A local server's context is set explicitly and recorded per row; a row made under another
+  context doesn't count.
+- *Source.* `providers/ollama.py` (`NUM_CTX`), `progress/run_trackB.py` (`current()`).
 
 **Also:**
 - Cut-off replies leak when not streamed (the reasoning landed in the answer in 8 of 8).
