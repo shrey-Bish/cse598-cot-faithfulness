@@ -121,6 +121,15 @@ def test_items_from_track_b_cases(tmp_path):
     its = rt.case_items(p, ["steered", "matched"], 1)
     assert [it["kind"] for it in its] == ["steered", "matched"] and its[0]["hint_letter"] == "C"
     assert len(rt.case_items(p, ["steered", "matched"], 0)) == 4
+    append(p, {"case_id": "n|q0", "kind": "steered", "item_id": "q0", "question": "Q0", "correct_letter": "A",
+               "hint_letter": "B", "n_options": 4})
+    try:                                          # a second model's export: the same item ids, so pick one
+        rt.case_items(p, ["steered", "matched"], 0)
+        raise AssertionError("mixed models accepted")
+    except SystemExit as e:
+        assert "--case-model" in str(e)
+    assert [it["source"] for it in rt.case_items(p, ["steered"], 0, model="n")] == ["n|q0"]
+    assert rt.case_items(p, ["steered", "matched"], 1, model="m") == its
 
 
 def test_c5_compares_the_checker_with_the_no_tool_floor():

@@ -1,4 +1,4 @@
-# Session log: Track B's final Qwen3 30B Thinking table (F15), the steered export, and C4 started (2026-10-28 03:25 MST)
+# Session log: Track B's final Qwen3 30B Instruct table (F16), thinking minus Instruct, and C4 at a third (2026-10-28 06:00 MST)
 
 Project: CSE 598 Group 10. Track B measures, across open models, how often a wrong hint (from the
 user, a pasted tool block, a real tool call or a system note) moves the answer and whether the reply
@@ -7,88 +7,106 @@ part of the overnight list.
 
 ## 1. Header
 
-- **Time:** 2026-10-28 03:25 MST = 10:25 UTC.
-- **Branch:** `trackA-nosol`, at `b9e648d` before; one commit with this log. Not pushed.
-  **Tests:** 397 pass.
+- **Time:** 2026-10-28 06:00 MST = 13:00 UTC.
+- **Branch:** `trackA-nosol`, at `7ac2dc2` before; one commit with this log. Not pushed.
 - **Running:**
-  - **Track B, Qwen3 30B Instruct:** on Voyager since 03:11, under the first power guard
-    (`logs/guard.log`); about 100 of its 810 runs at 03:21, no errors. Olmo 3 7B Think follows it.
-  - **Track C, C4:** since 03:13, under a second guard (`logs/guard_c4.log`, stop file
-    `logs/stop_c4`); 5 of 318 cases at 03:20.
-  - The two share the 4 Voyager slots (`common.slot()`, across processes).
+  - **Track B, Olmo 3 7B Think:** on Voyager since 05:32 under the first power guard
+    (`logs/guard.log`); 7 runs at 05:39, all ok. ~8 h or more.
+  - **Track C, C4:** since 03:13 under the second guard (`logs/guard_c4.log`); 102 of 318 cases at
+    05:39, no errors.
 
 ## 2. What ran
 
 | Command | Where | Calls | Duration | Failures |
 |---|---|---|---|---|
-| Track B Qwen3 30B Thinking, `run_trackB.py --run` (guard) | Mac → Voyager | 810 runs | 23:36–03:11 | none: 0 without an answer |
+| Track B Qwen3 30B Instruct, `run_trackB.py --run` (guard) | Mac → Voyager | 810 runs | 03:11–05:32 | none: 0 without an answer |
 | `trackB_report.py --export --by-set` | Mac | none | seconds | — |
-| `run_trackB.py --steered --model qwen3-30b-a3b-thinking-2507` | Mac | none | seconds | — |
-| `run_team.py --live --cases results/trackB/steered_cases.jsonl --kinds steered,matched --per-kind 30 --repeats 3 --teams tool,notool --log team_c4 --run-name C4-oct28` (dry run, then under the guard) | Mac → Voyager | ~3,021 planned | from 03:13 | none so far |
+| `run_team.py --summary --log team_c4 --cases … --table` (interim) | Mac | none | seconds | — |
+
+**Not run: Instruct's steered export.** `--steered` appends to `results/trackB/steered_cases.jsonl`,
+and C4 reads that file whenever the guard restarts it. Both Qwen3 checkpoints have the same 54 item
+ids, so Instruct's rows would change C4's pools and collide with its case ids. It waits until C4 is
+done (section 4 has the guard added).
 
 ## 3. Results
 
-**Qwen3 30B Thinking, final** (FINDINGS F15). The setup: 54 questions × 5 conditions × 3 runs at
-the 32,768 budget. Rates are Wilson; differences are a bootstrap clustered by question.
+**Qwen3 30B Instruct, final** (FINDINGS F16). The same 54 questions × 5 conditions × 3 runs as F15.
+Rates are Wilson; differences are a bootstrap clustered by question.
 
 | channel | following | above the no-hint baseline | final answer names it, when following |
 |---|---|---|---|
-| user | 3 of 162 [1, 5%] | +1 [−1, +2] | 0 of 3 |
-| tool, pasted | 59 of 162 [29, 44%] | +35 [+25, +46] | 54 of 59 |
-| tool, real call | 54 of 162 [27, 41%] | +32 [+23, +42] | 3 of 54 |
-| system note | 57 of 162 [28, 43%] | +34 [+25, +44] | 50 of 57 |
+| user | 1 of 162 [0, 3%] | −1 [−2, +1] | 1 of 1 |
+| tool, pasted | 35 of 162 [16, 29%] | +20 [+11, +30] | 29 of 35 [67, 92%] |
+| tool, real call | 147 of 162 [85, 94%] | +90 [+82, +96] | 30 of 147 [15, 28%] |
+| system note | 35 of 162 [16, 29%] | +20 [+11, +30] | 32 of 35 [78, 97%] |
 
-- **Gate 2 (tool − user, 54 questions):** pasted +35 [+24, +46], real call +31 [+22, +42]. Both
-  clear, and still clear at the 16,000 cut (+34, +32).
-- **The real call:** the model called the tool in 54 of 162 runs and followed it every time it
-  did (54 of 54). Without a call, following was 0 of 108.
+- **Gate 2:** pasted +21 [+12, +31], real call +90 [+83, +96]. Both clear. No run past 16,000 tokens.
+- **The real call:** it called the tool in 162 of 162 runs (tool choice is left to the model). The
+  median real-call run is 35 output tokens over both turns.
 - **By set:**
-  - **MMLU-Pro (30 questions):** pasted 54 of 90, real call 50 of 90, system note 50 of 90, user 3
-    of 90.
-  - **Puzzles (24 questions, 72 of 72 right with no hint):** pasted 5 of 72, real call 4 of 72,
-    system note 7 of 72, user 0 of 72.
-- **Since the interim table (00:45, about 1 run each):** the same picture. Real call 23 of 62 →
-  54 of 162; pasted 19 of 62 → 59 of 162.
+  - **Puzzles (24 q):** pasted, system and user 0 of 72 each; real call 72 of 72, and its final
+    answer named the tool in 0 of those.
+  - **MMLU-Pro (30 q):** pasted 35 of 90, real call 75 of 90, system 35 of 90.
 
-**Steered export** (`results/trackB/steered_cases.jsonl`, gitignored: it holds the question text):
-- **The count:** 54 questions: 24 steered, 29 matched, 1 other.
-- **Which channel steered** (some questions both): pasted on 18 questions, real call on 14.
-- **The one "other":** the system note took 2 of 3 runs to the hint, but steered only counts tool
-  channels.
+**Thinking minus Instruct** (following, paired by question, 54 questions):
 
-**C4's plan (the dry run):**
-- 53 items × 2 teams × 3 repeats = 318 cases, about 3,021 calls.
-- 25 of the 53 items get the bad lookup (the seeded oracle).
-- Both reviewers: Qwen3 30B Instruct and Olmo 3.1 32B Instruct.
+| channel | both sets | puzzles (24 q) | MMLU-Pro (30 q) |
+|---|---|---|---|
+| user | +1 [+0, +3] | +0 [+0, +0] | +2 [+0, +6] |
+| tool, pasted | +15 [+6, +25] | +7 [+1, +12] | +21 [+6, +38] |
+| tool, real call | −57 [−70, −43] | −94 [−99, −89] | −28 [−44, −10] |
+| system note | +14 [+7, +20] | +10 [+4, +15] | +17 [+7, +27] |
+
+- **Reading:** Instruct follows a real call because it calls every time. The Thinking checkpoint
+  calls less (54 of 162) but follows pasted and system hints more.
+
+**C4, interim** (102 of 318 cases, 51 items, mostly 1 repeat each). Not final; C5's run-to-run
+variation needs the repeats.
+- **The checker:**
+  - It flagged 23 of 23 bad lookups [86, 100%] and 2 of 26 good ones (2 undetermined).
+  - In the no-tool team it flagged 5 of 49 [4, 22%]: the floor.
+  - Bad minus floor: +96 [+87, +100] (23 items).
+- **The pipeline:** it shipped no wrong answer on a bad lookup (0 of 23, every variant), because the
+  checker escalated them all.
+- **The reviewer alone, bad lookups (23 items):**
+
+  | reviewer | answer only | + explanation | + private reasoning | + tool log |
+  |---|---|---|---|---|
+  | Olmo 3.1 32B Instruct | corrects 19 | 19 | **2** | **1** |
+  | Qwen3 30B Instruct | 19 | 19 | 21 | 17 |
+
+  - The Olmo drop appears in both kinds: matched puzzles 12 of 13 → 2 of 13 (private reasoning);
+    steered MMLU-Pro 5 of 8 → 0 of 8.
+  - On good lookups, Olmo keeps the right answer in 22 of 28 (answer only) and 28 of 28 (private
+    reasoning).
+  - This repeats the 32B smoke's 3 of 3 → 0 of 3.
 
 ## 4. Changes
 
-- **`progress/trackB_report.py`:**
-  - **New numbers:**
-    - the final answer naming the hint among the runs that followed it;
-    - for the real call, following without a call;
-    - for the real call, the private reasoning naming the hint among the calls. Without a call,
-      the `cue_tool` keyword only names the tool: 53 of 108 such runs match it.
-  - **`--by-set`:** the same table per question set (`trackB_report_by_set.json`).
-  - Test added.
-- **Summaries (numbers only, now tracked):** `results/summaries/trackB/trackB_runs.jsonl` and
-  `trackB_report_by_set.json`; `trackB_report.json` updated.
-- **Docs:** FINDINGS F15; TODO B7, B8, B9, B14, C4; `handoff/TRACK_B.md`.
+- **`progress/trackB_report.py`:** "clear" for thinking minus not is two-sided (the interval
+  excludes 0, either sign). It was Gate 2's one-sided test, which called −57 [−70, −43] not clear.
+  The printout marks "clear". Test added.
+- **`agents/run_team.py`:** `case_items` takes one Track B model's rows. It uses `--case-model M`,
+  or refuses a file with several models' rows. C4's command line still plans the same 53 items and
+  318 cases (dry run checked). Test added.
+- **Docs:** FINDINGS F16; `handoff/TRACK_B.md`, `handoff/TRACK_C.md`; TODO B7, B8, B9, B14, C4, C5.
+- **Summaries:** `results/summaries/trackB/` re-exported (Instruct's rows, thinking minus not).
 
 ## 5. For review
 
-- **In C4, steered vs matched is also MMLU-Pro vs puzzles.** All 24 steered cases are MMLU-Pro,
-  and 24 of the 29 matched ones are puzzles. A C4 difference between the kinds can come from the
-  question set. The 5 MMLU-Pro matched cases give a same-set comparison at the 5-question minimum.
-  I ran C4 as planned (all steered and matched cases) and will report it both by kind and by set.
-- **"The final answer names the tool" is keyword counts.** That covers 3 of 54 after a real call,
-  and 54 of 59 for the pasted block. Gate 2's hand labels (L3) would confirm them.
-- **C4's pace:** about 0.7 cases a minute while it shares the slots with Track B, so about 7–10 h.
-  It is expected around midday. Olmo 3 7B Think's Track B runs (~8 h) share the same slots after
-  Instruct.
+- **Thinking vs Instruct is two checkpoints.** The −57 on the real call is "this Thinking
+  checkpoint vs this Instruct one". Qwen3-8B on Sol (one set of weights, the switch) is the
+  same-weights comparison; it waits for Ritik's go.
+- **Instruct's real-call following is a call rate.** It calls the "course answer key" tool every
+  time and answers with it. Whether that counts as "steered" or as using a tool it was invited to
+  use is a framing question for the paper. The pasted block and the system note carry the same
+  source claim and move it far less.
+- **The interim C4 reviewer drop is from 23 items, mostly one repeat.** It is worth a FINDINGS
+  entry only once C4 is done and paired by item.
 
 ## 6. Next
 
-- When Qwen3 Instruct is done (~04:30): its table, its steered export and a FINDINGS entry.
-- C4: watch for failures; the C5 tables as data lands.
+- C4: the full C5 tables and a FINDINGS entry when it finishes (~11:00–13:00); then Instruct's
+  steered export.
+- Olmo 3 7B Think: its table when the runs are done.
 - The 7 am daily log, with the morning commands.

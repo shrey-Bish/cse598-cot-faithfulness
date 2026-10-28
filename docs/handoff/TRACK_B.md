@@ -1,6 +1,6 @@
 # Track B handoff: test widely (for Arsha, from Nov 3)
 
-Last updated: 2026-10-28 03:25 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-28 06:00 MST. A working draft, kept current every day and final on Nov 3,
 when Track B goes back to you. Until then Ritik runs it (code by Claude Code).
 
 **The question.** Does the failure seen in the progress round (a wrong hint from a tool moves
@@ -31,10 +31,13 @@ more models, with thinking on and off in the same model, real tool calls and 3 r
   - Ollama `qwen3:8b` timing pilot: thinking on 99–189 s per call, off 23–45 s (this Mac)
 - **Runs** (Oct 28): on the Mac under the power guard, Voyager only, one model after another.
   - **Qwen3 30B Thinking: done** (810 runs, 23:36–03:11).
-  - **Qwen3 30B Instruct:** running since 03:11 (~1 h, sharing the 4 Voyager slots with Track C's
+  - **Qwen3 30B Instruct: done** (810 runs, 03:11–05:32, sharing the 4 Voyager slots with Track C's
     C4).
-  - **Olmo 3 7B Think:** after it (~8 h).
-  - Steered cases for Qwen3 Thinking are exported: 24 steered, 29 matched, 1 other. Qwen3-8B, thinking on and off, moved to Sol (decided Oct 28: Ollama never on the Mac):
+  - **Olmo 3 7B Think:** running since 05:32 (~8 h or more, with C4 beside it).
+  - Steered cases for Qwen3 Thinking are exported: 24 steered, 29 matched, 1 other. **Instruct's
+    export waits until C4 is done:** C4 reads `steered_cases.jsonl` on every restart, and every model
+    has the same item ids. `run_team.py` now refuses a file with several models' rows unless
+    `--case-model` picks one, and each model's cases need their own `--log`. Qwen3-8B, thinking on and off, moved to Sol (decided Oct 28: Ollama never on the Mac):
   `progress/sol_trackB.py`, one GPU job, runs on Ritik's "go".
 - **Not done:** closed providers (no keys; Gate 1 was missed and its fallback applies: Voyager and
   our own Sol server only); GPQA (waits for Ritik to accept its terms on Hugging Face).
@@ -67,6 +70,17 @@ questions", no interval):
   in 3 of 54.
 - **By set:** almost all the following is on MMLU-Pro (pasted 54 of 90, real call 50 of 90). On
   the puzzles: 5 of 72 and 4 of 72.
+- **Qwen3 30B Instruct** (FINDINGS F16; the same design, no private reasoning):
+  - user 1 of 162 [0, 3%]; pasted 35 of 162 [16, 29%]; real call 147 of 162 [85, 94%]; system note
+    35 of 162 [16, 29%]
+  - Gate 2: pasted +21 [+12, +31], real call +90 [+83, +96], both clear; no run past 16,000 tokens
+  - it called the tool in 162 of 162 runs (tool choice left to the model); on the puzzles it took
+    the tool's letter in 72 of 72, though pasted and system hints moved it 0 of 72 there
+  - after a real call the final answer named the tool in 30 of 147 (all on MMLU-Pro)
+- **Thinking minus Instruct** (paired by question, 54 questions): real call −57 [−70, −43],
+  pasted +15 [+6, +25], system note +14 [+7, +20], user +1 [+0, +3]. The Thinking checkpoint calls
+  the tool less but follows pasted and system hints more. These are two checkpoints, not one
+  switch; Qwen3-8B on Sol is the same-weights comparison.
 
 ## 3. How to run each step
 
@@ -88,11 +102,11 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 
 | # | Item | Status (Oct 27) |
 |---|---|---|
-| B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | Thinking done (Oct 28 03:11); Instruct running; Olmo next |
+| B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | Thinking done (Oct 28 03:11); Instruct done (05:32); Olmo running since 05:32 |
 | B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | code done; waits for "go" |
-| B8 | `steered_cases.jsonl` per model | Qwen3 Thinking exported (24 steered, 29 matched, 1 other); the others after their runs |
+| B8 | `steered_cases.jsonl` per model | Qwen3 Thinking exported (24 steered, 29 matched, 1 other); Instruct after C4 is done (C4 reads the file on restart); Olmo after its runs |
 | B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate | `trackB_report.py` (and `--by-set`); filled per model as runs finish |
-| B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? | clear for Qwen3 Thinking (F15); Instruct and Olmo next |
+| B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? | clear for Qwen3 Thinking (F15) and Qwen3 Instruct (F16); Olmo next |
 | B1–B3 | Closed providers: keys, Haiku 4.5 check, smoke tests | blocked: keys and Ritik's "go" |
 | B6 | GPQA export | blocked: Ritik accepts the terms |
 

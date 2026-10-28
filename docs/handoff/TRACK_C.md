@@ -1,6 +1,6 @@
 # Track C handoff: the agent team (for Shrey, from Nov 3)
 
-Last updated: 2026-10-28 03:30 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-28 06:00 MST. A working draft, kept current every day and final on Nov 3,
 when Track C goes back to you. Until then Ritik runs it (code by Claude Code).
 
 **The question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
@@ -26,7 +26,9 @@ log), and how often does the checker catch it or raise a false alarm?
   - `--log NAME` writes to `results/trackC/NAME.jsonl` (and `NAME_summary.json`), so a smoke or C4
     runs beside the cases another log has done
   - **Track B's cases as input** (`--cases results/trackB/steered_cases.jsonl --kinds steered,matched
-    --per-kind N --repeats 3`); cases run 4 at a time through the shared Voyager slots
+    --per-kind N --repeats 3`); cases run 4 at a time through the shared Voyager slots. One Track B
+    model at a time: with several models' rows in the file, `--case-model M` picks one (item ids
+    repeat across models, so give each model its own `--log`)
   - `--summary`: per team × reviewer model × variant, bad and good lookups apart, Wilson intervals,
     undetermined checks, tokens, and the checker's flag rate per team
   - **C5 in the summary:** the no-tool solver's run-to-run variation, the checker's flag rate there
@@ -43,7 +45,8 @@ log), and how often does the checker catch it or raise a false alarm?
 - **C4, running since Oct 28 03:13** under a second power guard (`logs/guard_c4.log`):
   - Qwen3 Thinking's 24 steered and 29 matched cases × 2 teams × 3 repeats = 318 cases, about 3,021
     calls; 25 of the 53 items get a bad lookup.
-  - It shares the 4 Voyager slots with Track B, so expect 7–10 h.
+  - It shares the 4 Voyager slots with Track B, so expect 7–10 h. 102 of 318 cases at 05:39, no
+    errors; expected around 11:00–13:00.
 
 ## 2. Results so far
 
@@ -65,6 +68,13 @@ log), and how often does the checker catch it or raise a false alarm?
   3 with the private reasoning and 0 of 3 with the tool log; it kept the right answer in 7 of 8 (one
   change with the explanation, shipped as a false alarm since the checker didn't flag it). 5 items:
   no rate can be read; C4 measures it.
+- **C4, interim** (Oct 28 05:39: 102 of 318 cases, 51 items, mostly 1 repeat each; not final): the
+  checker flagged 23 of 23 bad lookups and, in the no-tool team, 5 of 49 (the floor). On bad
+  lookups, the Olmo 32B reviewer alone corrected the wrong answer in 19 of 23 with the answer only,
+  but 2 of 23 with the private reasoning and 1 of 23 with the tool log. The Qwen3 30B Instruct
+  reviewer: 19, 21 and 17 of 23. The same drop shows in both kinds (matched puzzles 12 of 13 → 2 of
+  13; steered MMLU-Pro 5 of 8 → 0 of 8). The pipeline shipped no wrong answer on a bad lookup,
+  because the checker escalated them all.
 - Related Track B/A findings ([`docs/FINDINGS.md`](../FINDINGS.md)): F1 (tool hints move thinking
   models more than user hints), F3 (the final answer rarely names the hint), which is why a
   reviewer that only sees the final answer is expected to miss it.
@@ -93,7 +103,7 @@ log), and how often does the checker catch it or raise a false alarm?
 |---|---|---|
 | C1 | Live team on 5 items | done Oct 27 |
 | C8 | The 32B reviewer's 5-item smoke | done Oct 28 (20 of 20 letters) |
-| C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | running since Oct 28 03:13 (318 cases) |
+| C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | running since Oct 28 03:13 (318 cases; 102 done at 05:39, no errors) |
 | C5 | The Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | code done (`--summary --log team_c4 --cases … --table`); numbers as C4 lands |
 
 ## 5. Decisions you inherit

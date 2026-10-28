@@ -98,6 +98,10 @@ def test_thinking_minus_not_pairs_the_two_qwen3_30b_checkpoints():
     res = tr.report(think + inst)["thinking_minus_not"]["budget_32768"]
     (pair, chans), = res.items()
     assert pair.startswith("voyager | qwen3-30b-a3b-thinking-2507") and "instruct" in pair
-    assert chans["tool_real"]["diff"] == 1.0 and chans["user"]["diff"] == 0.0
+    assert chans["tool_real"]["diff"] == 1.0 and chans["user"]["diff"] == 0.0 and chans["tool_real"]["clear"]
+    swapped = [{**r, "followed": not r["followed"]} if r["condition"] == "tool_real" else r for r in think + inst]
+    (_, back), = tr.report(swapped)["thinking_minus_not"]["budget_32768"].items()
+    assert back["tool_real"]["diff"] == -1.0 and back["tool_real"]["clear"]      # either sign: the interval excludes 0
+    assert not chans["user"]["clear"]
     by_set = tr.report(think + inst, by_set=True)["thinking_minus_not"]["budget_32768"]
     assert list(by_set) == [pair.replace("thinking=None minus", "thinking=None | set=s minus") + " | set=s"]

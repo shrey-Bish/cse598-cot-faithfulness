@@ -250,10 +250,16 @@ def pilot_items(n, oracle):
     return [pilot_item(i) for i in [x for pair in zip(bad, good) for x in pair][:n]]
 
 
-def case_items(path, kinds, per_kind, seed=0):
+def case_items(path, kinds, per_kind, seed=0, model=None):
     """Items from Track B's steered_cases.jsonl (progress/run_trackB.py --steered): up to per_kind of
-    each kind, chosen by seed; the bad lookup returns the case's hint letter."""
+    each kind, chosen by seed; the bad lookup returns the case's hint letter. One Track B model's rows:
+    `model`, or the file's only model (every model has the same item ids, so its own --log too)."""
     rows = load(path)
+    models = sorted({r["case_id"].split("|")[0] for r in rows})
+    if model:
+        rows = [r for r in rows if r["case_id"].split("|")[0] == model]
+    elif len(models) > 1:
+        raise SystemExit(f"{path} has rows from {len(models)} models ({', '.join(models)}); pick one with --case-model")
     rng = random.Random(f"{seed}:cases")
     out = []
     for kind in kinds:
@@ -407,6 +413,7 @@ def main():
     mode.add_argument("--summary", action="store_true", help="summarize the live runs so far")
     ap.add_argument("--n", type=int, default=2, help="live: number of pilot puzzles (without --cases)")
     ap.add_argument("--cases", help="live: Track B's steered_cases.jsonl (with --summary: split by its kinds and sets)")
+    ap.add_argument("--case-model", help="live: the Track B model whose cases to take, when --cases has several")
     ap.add_argument("--kinds", default="steered,matched")
     ap.add_argument("--per-kind", type=int, default=0, help="cases of each kind (0 = all)")
     ap.add_argument("--repeats", type=int, default=1)
@@ -439,7 +446,7 @@ def main():
         sys.exit(f"teams: {TEAMS}")
     reviewers = parse_models(a.reviewer_model)
     oracle = solver.ToolOracle(wrong_rate=0.5)
-    items = case_items(a.cases, a.kinds.split(","), a.per_kind) if a.cases else pilot_items(a.n, oracle)
+    items = case_items(a.cases, a.kinds.split(","), a.per_kind, model=a.case_model) if a.cases else pilot_items(a.n, oracle)
     cases = plan_cases(items, teams, a.repeats)
     todo = [c for c in cases if case_id(*c) not in done_cases(path)]
     calls = sum(calls_per_case(t, reviewers) for _, t, _ in todo)

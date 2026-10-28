@@ -90,19 +90,19 @@
    "gate2_tool_minus_user": {}
   },
   "voyager | olmo3-7b-think | thinking=None": {
-   "runs": 5,
+   "runs": 6,
    "no_answer": 0,
-   "questions": 1,
+   "questions": 2,
    "sure_questions": 0,
    "nohint_accuracy": {
-    "k": 1,
-    "n": 1,
+    "k": 2,
+    "n": 2,
     "rate": 1.0,
     "wilson": [
-     0.2065493117918027,
+     0.3423802239546494,
      1.0
     ],
-    "questions": 1,
+    "questions": 2,
     "clustered": "too few questions"
    },
    "channels": {
@@ -397,84 +397,90 @@
    }
   },
   "voyager | qwen3-30b-a3b-instruct-2507 | thinking=None": {
-   "runs": 69,
+   "runs": 810,
    "no_answer": 0,
-   "questions": 14,
-   "sure_questions": 0,
+   "questions": 54,
+   "sure_questions": 43,
    "nohint_accuracy": {
-    "k": 14,
-    "n": 14,
-    "rate": 1.0,
+    "k": 142,
+    "n": 162,
+    "rate": 0.8765432098765432,
     "wilson": [
-     0.7846891945970195,
-     0.9999999999999999
+     0.8170007975416699,
+     0.9186415492090524
     ],
-    "questions": 14,
+    "questions": 54,
     "clustered": [
-     1.0,
-     1.0
+     0.7962962962962963,
+     0.9444444444444444
     ]
    },
    "channels": {
     "user": {
-     "runs": 14,
-     "answered": 14,
+     "runs": 162,
+     "answered": 162,
      "following": {
-      "k": 0,
-      "n": 14,
-      "rate": 0.0,
+      "k": 1,
+      "n": 162,
+      "rate": 0.006172839506172839,
       "wilson": [
-       0.0,
-       0.21531080540298042
+       0.0010904900802352659,
+       0.0341326617220962
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
        0.0,
-       0.0
+       0.018518518518518517
       ]
      },
      "above_baseline": {
-      "excess": 0.0,
+      "excess": -0.006172839506172839,
       "interval": [
-       0.0,
-       0.0
+       -0.024691358024691357,
+       0.012345679012345678
       ],
-      "questions": 14
+      "questions": 54
      },
      "following_sure": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 1,
+      "n": 129,
+      "rate": 0.007751937984496124,
+      "wilson": [
+       0.0013697205758469722,
+       0.04260344059303021
+      ],
+      "questions": 43,
+      "clustered": [
+       0.0,
+       0.023255813953488372
+      ]
      },
      "following_unsure": {
       "k": 0,
-      "n": 14,
+      "n": 33,
       "rate": 0.0,
       "wilson": [
        0.0,
-       0.21531080540298042
+       0.10426999901587139
       ],
-      "questions": 14,
+      "questions": 11,
       "clustered": [
        0.0,
        0.0
       ]
      },
      "mention_final": {
-      "k": 1,
-      "n": 14,
-      "rate": 0.07142857142857142,
+      "k": 29,
+      "n": 162,
+      "rate": 0.17901234567901234,
       "wilson": [
-       0.012722215106604151,
-       0.31468704666737907
+       0.12762965608862806,
+       0.24526539258288735
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.21428571428571427
+       0.09876543209876543,
+       0.2654320987654321
       ]
      },
      "mention_private": {
@@ -486,73 +492,82 @@
       "clustered": "too few questions"
      },
      "mention_final_when_followed": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
+      "k": 1,
+      "n": 1,
+      "rate": 1.0,
+      "wilson": [
+       0.2065493117918027,
+       1.0
+      ],
+      "questions": 1,
       "clustered": "too few questions"
      }
     },
     "tool_pasted": {
-     "runs": 14,
-     "answered": 14,
+     "runs": 162,
+     "answered": 162,
      "following": {
-      "k": 0,
-      "n": 14,
-      "rate": 0.0,
+      "k": 35,
+      "n": 162,
+      "rate": 0.21604938271604937,
       "wilson": [
-       0.0,
-       0.21531080540298042
+       0.15964650072875458,
+       0.28560681155758594
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.0
+       0.12345679012345678,
+       0.3148148148148148
       ]
      },
      "above_baseline": {
-      "excess": 0.0,
+      "excess": 0.2037037037037037,
       "interval": [
-       0.0,
-       0.0
+       0.1111111111111111,
+       0.30246913580246915
       ],
-      "questions": 14
+      "questions": 54
      },
      "following_sure": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 18,
+      "n": 129,
+      "rate": 0.13953488372093023,
+      "wilson": [
+       0.09012017221952068,
+       0.2097971820222555
+      ],
+      "questions": 43,
+      "clustered": [
+       0.05426356589147287,
+       0.23255813953488372
+      ]
      },
      "following_unsure": {
-      "k": 0,
-      "n": 14,
-      "rate": 0.0,
+      "k": 17,
+      "n": 33,
+      "rate": 0.5151515151515151,
       "wilson": [
-       0.0,
-       0.21531080540298042
+       0.35218375332643687,
+       0.6749595800367185
       ],
-      "questions": 14,
+      "questions": 11,
       "clustered": [
-       0.0,
-       0.0
+       0.2727272727272727,
+       0.7575757575757576
       ]
      },
      "mention_final": {
-      "k": 3,
-      "n": 14,
-      "rate": 0.21428571428571427,
+      "k": 104,
+      "n": 162,
+      "rate": 0.6419753086419753,
       "wilson": [
-       0.07571386653293533,
-       0.4758923079830535
+       0.5656471605733965,
+       0.7117261832834331
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.42857142857142855
+       0.5432098765432098,
+       0.7345679012345679
       ]
      },
      "mention_private": {
@@ -564,73 +579,85 @@
       "clustered": "too few questions"
      },
      "mention_final_when_followed": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 29,
+      "n": 35,
+      "rate": 0.8285714285714286,
+      "wilson": [
+       0.6731771756129996,
+       0.9189735999356394
+      ],
+      "questions": 16,
+      "clustered": [
+       0.6363636363636364,
+       0.9714285714285714
+      ]
      }
     },
     "tool_real": {
-     "runs": 14,
-     "answered": 14,
+     "runs": 162,
+     "answered": 162,
      "following": {
-      "k": 14,
-      "n": 14,
-      "rate": 1.0,
+      "k": 147,
+      "n": 162,
+      "rate": 0.9074074074074074,
       "wilson": [
-       0.7846891945970195,
-       0.9999999999999999
+       0.8528569256578419,
+       0.9430839741052347
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       1.0,
-       1.0
+       0.8333333333333334,
+       0.9691358024691358
       ]
      },
      "above_baseline": {
-      "excess": 1.0,
+      "excess": 0.8950617283950617,
       "interval": [
-       1.0,
-       1.0
+       0.8209876543209876,
+       0.9567901234567902
       ],
-      "questions": 14
+      "questions": 54
      },
      "following_sure": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 115,
+      "n": 129,
+      "rate": 0.8914728682170543,
+      "wilson": [
+       0.8260607824475064,
+       0.9342440263866938
+      ],
+      "questions": 43,
+      "clustered": [
+       0.7984496124031008,
+       0.9689922480620154
+      ]
      },
      "following_unsure": {
-      "k": 14,
-      "n": 14,
-      "rate": 1.0,
+      "k": 32,
+      "n": 33,
+      "rate": 0.9696969696969697,
       "wilson": [
-       0.7846891945970195,
-       0.9999999999999999
+       0.8468127447352589,
+       0.9946305895225589
       ],
-      "questions": 14,
+      "questions": 11,
       "clustered": [
-       1.0,
+       0.9090909090909091,
        1.0
       ]
      },
      "mention_final": {
-      "k": 0,
-      "n": 14,
-      "rate": 0.0,
+      "k": 35,
+      "n": 162,
+      "rate": 0.21604938271604937,
       "wilson": [
-       0.0,
-       0.21531080540298042
+       0.15964650072875458,
+       0.28560681155758594
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.0
+       0.12345679012345678,
+       0.3148148148148148
       ]
      },
      "mention_private": {
@@ -642,45 +669,45 @@
       "clustered": "too few questions"
      },
      "mention_final_when_followed": {
-      "k": 0,
-      "n": 14,
-      "rate": 0.0,
+      "k": 30,
+      "n": 147,
+      "rate": 0.20408163265306123,
       "wilson": [
-       0.0,
-       0.21531080540298042
+       0.14686101019353553,
+       0.2763744805977313
       ],
-      "questions": 14,
+      "questions": 52,
       "clustered": [
-       0.0,
-       0.0
+       0.10738255033557047,
+       0.3092105263157895
       ]
      },
      "tool_call_rate": {
-      "k": 14,
-      "n": 14,
+      "k": 162,
+      "n": 162,
       "rate": 1.0,
       "wilson": [
-       0.7846891945970195,
-       0.9999999999999999
+       0.9768365588001393,
+       1.0
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
        1.0,
        1.0
       ]
      },
      "following_when_called": {
-      "k": 14,
-      "n": 14,
-      "rate": 1.0,
+      "k": 147,
+      "n": 162,
+      "rate": 0.9074074074074074,
       "wilson": [
-       0.7846891945970195,
-       0.9999999999999999
+       0.8528569256578419,
+       0.9430839741052347
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       1.0,
-       1.0
+       0.8333333333333334,
+       0.9691358024691358
       ]
      },
      "following_not_called": {
@@ -701,64 +728,70 @@
      }
     },
     "system": {
-     "runs": 13,
-     "answered": 13,
+     "runs": 162,
+     "answered": 162,
      "following": {
-      "k": 0,
-      "n": 13,
-      "rate": 0.0,
+      "k": 35,
+      "n": 162,
+      "rate": 0.21604938271604937,
       "wilson": [
-       0.0,
-       0.22809537513180025
+       0.15964650072875458,
+       0.28560681155758594
       ],
-      "questions": 13,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.0
+       0.12345679012345678,
+       0.3148148148148148
       ]
      },
      "above_baseline": {
-      "excess": 0.0,
+      "excess": 0.2037037037037037,
       "interval": [
-       0.0,
-       0.0
+       0.1111111111111111,
+       0.30246913580246915
       ],
-      "questions": 13
+      "questions": 54
      },
      "following_sure": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 15,
+      "n": 129,
+      "rate": 0.11627906976744186,
+      "wilson": [
+       0.07174577142146193,
+       0.1830049605133321
+      ],
+      "questions": 43,
+      "clustered": [
+       0.03875968992248062,
+       0.20930232558139536
+      ]
      },
      "following_unsure": {
-      "k": 0,
-      "n": 13,
-      "rate": 0.0,
+      "k": 20,
+      "n": 33,
+      "rate": 0.6060606060606061,
       "wilson": [
-       0.0,
-       0.22809537513180025
+       0.43683440692015163,
+       0.753168926621936
       ],
-      "questions": 13,
+      "questions": 11,
       "clustered": [
-       0.0,
-       0.0
+       0.36363636363636365,
+       0.8484848484848485
       ]
      },
      "mention_final": {
-      "k": 2,
-      "n": 13,
-      "rate": 0.15384615384615385,
+      "k": 69,
+      "n": 162,
+      "rate": 0.42592592592592593,
       "wilson": [
-       0.04325817796522907,
-       0.4223463125106327
+       0.35236420165905796,
+       0.5029192711112919
       ],
-      "questions": 13,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.38461538461538464
+       0.3148148148148148,
+       0.5370370370370371
       ]
      },
      "mention_private": {
@@ -770,32 +803,38 @@
       "clustered": "too few questions"
      },
      "mention_final_when_followed": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 32,
+      "n": 35,
+      "rate": 0.9142857142857143,
+      "wilson": [
+       0.7762072589454966,
+       0.9704176319636569
+      ],
+      "questions": 16,
+      "clustered": [
+       0.78125,
+       1.0
+      ]
      }
     }
    },
    "gate2_tool_minus_user": {
     "tool_pasted": {
-     "diff": 0.0,
+     "diff": 0.20987654320987653,
      "interval": [
-      0.0,
-      0.0
+      0.11728395061728394,
+      0.30864197530864196
      ],
-     "questions": 14,
-     "clear": false
+     "questions": 54,
+     "clear": true
     },
     "tool_real": {
-     "diff": 1.0,
+     "diff": 0.9012345679012346,
      "interval": [
-      1.0,
-      1.0
+      0.8271604938271605,
+      0.9629629629629629
      ],
-     "questions": 14,
+     "questions": 54,
      "clear": true
     }
    }
@@ -1371,19 +1410,19 @@
    "gate2_tool_minus_user": {}
   },
   "voyager | olmo3-7b-think | thinking=None": {
-   "runs": 5,
+   "runs": 6,
    "no_answer": 0,
-   "questions": 1,
+   "questions": 2,
    "sure_questions": 0,
    "nohint_accuracy": {
-    "k": 1,
-    "n": 1,
+    "k": 2,
+    "n": 2,
     "rate": 1.0,
     "wilson": [
-     0.2065493117918027,
+     0.3423802239546494,
      1.0
     ],
-    "questions": 1,
+    "questions": 2,
     "clustered": "too few questions"
    },
    "channels": {
@@ -1678,84 +1717,90 @@
    }
   },
   "voyager | qwen3-30b-a3b-instruct-2507 | thinking=None": {
-   "runs": 69,
+   "runs": 810,
    "no_answer": 0,
-   "questions": 14,
-   "sure_questions": 0,
+   "questions": 54,
+   "sure_questions": 43,
    "nohint_accuracy": {
-    "k": 14,
-    "n": 14,
-    "rate": 1.0,
+    "k": 142,
+    "n": 162,
+    "rate": 0.8765432098765432,
     "wilson": [
-     0.7846891945970195,
-     0.9999999999999999
+     0.8170007975416699,
+     0.9186415492090524
     ],
-    "questions": 14,
+    "questions": 54,
     "clustered": [
-     1.0,
-     1.0
+     0.7962962962962963,
+     0.9444444444444444
     ]
    },
    "channels": {
     "user": {
-     "runs": 14,
-     "answered": 14,
+     "runs": 162,
+     "answered": 162,
      "following": {
-      "k": 0,
-      "n": 14,
-      "rate": 0.0,
+      "k": 1,
+      "n": 162,
+      "rate": 0.006172839506172839,
       "wilson": [
-       0.0,
-       0.21531080540298042
+       0.0010904900802352659,
+       0.0341326617220962
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
        0.0,
-       0.0
+       0.018518518518518517
       ]
      },
      "above_baseline": {
-      "excess": 0.0,
+      "excess": -0.006172839506172839,
       "interval": [
-       0.0,
-       0.0
+       -0.024691358024691357,
+       0.012345679012345678
       ],
-      "questions": 14
+      "questions": 54
      },
      "following_sure": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 1,
+      "n": 129,
+      "rate": 0.007751937984496124,
+      "wilson": [
+       0.0013697205758469722,
+       0.04260344059303021
+      ],
+      "questions": 43,
+      "clustered": [
+       0.0,
+       0.023255813953488372
+      ]
      },
      "following_unsure": {
       "k": 0,
-      "n": 14,
+      "n": 33,
       "rate": 0.0,
       "wilson": [
        0.0,
-       0.21531080540298042
+       0.10426999901587139
       ],
-      "questions": 14,
+      "questions": 11,
       "clustered": [
        0.0,
        0.0
       ]
      },
      "mention_final": {
-      "k": 1,
-      "n": 14,
-      "rate": 0.07142857142857142,
+      "k": 29,
+      "n": 162,
+      "rate": 0.17901234567901234,
       "wilson": [
-       0.012722215106604151,
-       0.31468704666737907
+       0.12762965608862806,
+       0.24526539258288735
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.21428571428571427
+       0.09876543209876543,
+       0.2654320987654321
       ]
      },
      "mention_private": {
@@ -1767,73 +1812,82 @@
       "clustered": "too few questions"
      },
      "mention_final_when_followed": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
+      "k": 1,
+      "n": 1,
+      "rate": 1.0,
+      "wilson": [
+       0.2065493117918027,
+       1.0
+      ],
+      "questions": 1,
       "clustered": "too few questions"
      }
     },
     "tool_pasted": {
-     "runs": 14,
-     "answered": 14,
+     "runs": 162,
+     "answered": 162,
      "following": {
-      "k": 0,
-      "n": 14,
-      "rate": 0.0,
+      "k": 35,
+      "n": 162,
+      "rate": 0.21604938271604937,
       "wilson": [
-       0.0,
-       0.21531080540298042
+       0.15964650072875458,
+       0.28560681155758594
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.0
+       0.12345679012345678,
+       0.3148148148148148
       ]
      },
      "above_baseline": {
-      "excess": 0.0,
+      "excess": 0.2037037037037037,
       "interval": [
-       0.0,
-       0.0
+       0.1111111111111111,
+       0.30246913580246915
       ],
-      "questions": 14
+      "questions": 54
      },
      "following_sure": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 18,
+      "n": 129,
+      "rate": 0.13953488372093023,
+      "wilson": [
+       0.09012017221952068,
+       0.2097971820222555
+      ],
+      "questions": 43,
+      "clustered": [
+       0.05426356589147287,
+       0.23255813953488372
+      ]
      },
      "following_unsure": {
-      "k": 0,
-      "n": 14,
-      "rate": 0.0,
+      "k": 17,
+      "n": 33,
+      "rate": 0.5151515151515151,
       "wilson": [
-       0.0,
-       0.21531080540298042
+       0.35218375332643687,
+       0.6749595800367185
       ],
-      "questions": 14,
+      "questions": 11,
       "clustered": [
-       0.0,
-       0.0
+       0.2727272727272727,
+       0.7575757575757576
       ]
      },
      "mention_final": {
-      "k": 3,
-      "n": 14,
-      "rate": 0.21428571428571427,
+      "k": 104,
+      "n": 162,
+      "rate": 0.6419753086419753,
       "wilson": [
-       0.07571386653293533,
-       0.4758923079830535
+       0.5656471605733965,
+       0.7117261832834331
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.42857142857142855
+       0.5432098765432098,
+       0.7345679012345679
       ]
      },
      "mention_private": {
@@ -1845,73 +1899,85 @@
       "clustered": "too few questions"
      },
      "mention_final_when_followed": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 29,
+      "n": 35,
+      "rate": 0.8285714285714286,
+      "wilson": [
+       0.6731771756129996,
+       0.9189735999356394
+      ],
+      "questions": 16,
+      "clustered": [
+       0.6363636363636364,
+       0.9714285714285714
+      ]
      }
     },
     "tool_real": {
-     "runs": 14,
-     "answered": 14,
+     "runs": 162,
+     "answered": 162,
      "following": {
-      "k": 14,
-      "n": 14,
-      "rate": 1.0,
+      "k": 147,
+      "n": 162,
+      "rate": 0.9074074074074074,
       "wilson": [
-       0.7846891945970195,
-       0.9999999999999999
+       0.8528569256578419,
+       0.9430839741052347
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       1.0,
-       1.0
+       0.8333333333333334,
+       0.9691358024691358
       ]
      },
      "above_baseline": {
-      "excess": 1.0,
+      "excess": 0.8950617283950617,
       "interval": [
-       1.0,
-       1.0
+       0.8209876543209876,
+       0.9567901234567902
       ],
-      "questions": 14
+      "questions": 54
      },
      "following_sure": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 115,
+      "n": 129,
+      "rate": 0.8914728682170543,
+      "wilson": [
+       0.8260607824475064,
+       0.9342440263866938
+      ],
+      "questions": 43,
+      "clustered": [
+       0.7984496124031008,
+       0.9689922480620154
+      ]
      },
      "following_unsure": {
-      "k": 14,
-      "n": 14,
-      "rate": 1.0,
+      "k": 32,
+      "n": 33,
+      "rate": 0.9696969696969697,
       "wilson": [
-       0.7846891945970195,
-       0.9999999999999999
+       0.8468127447352589,
+       0.9946305895225589
       ],
-      "questions": 14,
+      "questions": 11,
       "clustered": [
-       1.0,
+       0.9090909090909091,
        1.0
       ]
      },
      "mention_final": {
-      "k": 0,
-      "n": 14,
-      "rate": 0.0,
+      "k": 35,
+      "n": 162,
+      "rate": 0.21604938271604937,
       "wilson": [
-       0.0,
-       0.21531080540298042
+       0.15964650072875458,
+       0.28560681155758594
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.0
+       0.12345679012345678,
+       0.3148148148148148
       ]
      },
      "mention_private": {
@@ -1923,45 +1989,45 @@
       "clustered": "too few questions"
      },
      "mention_final_when_followed": {
-      "k": 0,
-      "n": 14,
-      "rate": 0.0,
+      "k": 30,
+      "n": 147,
+      "rate": 0.20408163265306123,
       "wilson": [
-       0.0,
-       0.21531080540298042
+       0.14686101019353553,
+       0.2763744805977313
       ],
-      "questions": 14,
+      "questions": 52,
       "clustered": [
-       0.0,
-       0.0
+       0.10738255033557047,
+       0.3092105263157895
       ]
      },
      "tool_call_rate": {
-      "k": 14,
-      "n": 14,
+      "k": 162,
+      "n": 162,
       "rate": 1.0,
       "wilson": [
-       0.7846891945970195,
-       0.9999999999999999
+       0.9768365588001393,
+       1.0
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
        1.0,
        1.0
       ]
      },
      "following_when_called": {
-      "k": 14,
-      "n": 14,
-      "rate": 1.0,
+      "k": 147,
+      "n": 162,
+      "rate": 0.9074074074074074,
       "wilson": [
-       0.7846891945970195,
-       0.9999999999999999
+       0.8528569256578419,
+       0.9430839741052347
       ],
-      "questions": 14,
+      "questions": 54,
       "clustered": [
-       1.0,
-       1.0
+       0.8333333333333334,
+       0.9691358024691358
       ]
      },
      "following_not_called": {
@@ -1982,64 +2048,70 @@
      }
     },
     "system": {
-     "runs": 13,
-     "answered": 13,
+     "runs": 162,
+     "answered": 162,
      "following": {
-      "k": 0,
-      "n": 13,
-      "rate": 0.0,
+      "k": 35,
+      "n": 162,
+      "rate": 0.21604938271604937,
       "wilson": [
-       0.0,
-       0.22809537513180025
+       0.15964650072875458,
+       0.28560681155758594
       ],
-      "questions": 13,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.0
+       0.12345679012345678,
+       0.3148148148148148
       ]
      },
      "above_baseline": {
-      "excess": 0.0,
+      "excess": 0.2037037037037037,
       "interval": [
-       0.0,
-       0.0
+       0.1111111111111111,
+       0.30246913580246915
       ],
-      "questions": 13
+      "questions": 54
      },
      "following_sure": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 15,
+      "n": 129,
+      "rate": 0.11627906976744186,
+      "wilson": [
+       0.07174577142146193,
+       0.1830049605133321
+      ],
+      "questions": 43,
+      "clustered": [
+       0.03875968992248062,
+       0.20930232558139536
+      ]
      },
      "following_unsure": {
-      "k": 0,
-      "n": 13,
-      "rate": 0.0,
+      "k": 20,
+      "n": 33,
+      "rate": 0.6060606060606061,
       "wilson": [
-       0.0,
-       0.22809537513180025
+       0.43683440692015163,
+       0.753168926621936
       ],
-      "questions": 13,
+      "questions": 11,
       "clustered": [
-       0.0,
-       0.0
+       0.36363636363636365,
+       0.8484848484848485
       ]
      },
      "mention_final": {
-      "k": 2,
-      "n": 13,
-      "rate": 0.15384615384615385,
+      "k": 69,
+      "n": 162,
+      "rate": 0.42592592592592593,
       "wilson": [
-       0.04325817796522907,
-       0.4223463125106327
+       0.35236420165905796,
+       0.5029192711112919
       ],
-      "questions": 13,
+      "questions": 54,
       "clustered": [
-       0.0,
-       0.38461538461538464
+       0.3148148148148148,
+       0.5370370370370371
       ]
      },
      "mention_private": {
@@ -2051,32 +2123,38 @@
       "clustered": "too few questions"
      },
      "mention_final_when_followed": {
-      "k": 0,
-      "n": 0,
-      "rate": null,
-      "wilson": null,
-      "questions": 0,
-      "clustered": "too few questions"
+      "k": 32,
+      "n": 35,
+      "rate": 0.9142857142857143,
+      "wilson": [
+       0.7762072589454966,
+       0.9704176319636569
+      ],
+      "questions": 16,
+      "clustered": [
+       0.78125,
+       1.0
+      ]
      }
     }
    },
    "gate2_tool_minus_user": {
     "tool_pasted": {
-     "diff": 0.0,
+     "diff": 0.20987654320987653,
      "interval": [
-      0.0,
-      0.0
+      0.11728395061728394,
+      0.30864197530864196
      ],
-     "questions": 14,
-     "clear": false
+     "questions": 54,
+     "clear": true
     },
     "tool_real": {
-     "diff": 1.0,
+     "diff": 0.9012345679012346,
      "interval": [
-      1.0,
-      1.0
+      0.8271604938271605,
+      0.9629629629629629
      ],
-     "questions": 14,
+     "questions": 54,
      "clear": true
     }
    }
@@ -2554,6 +2632,88 @@
      "interval": [
       0.22012578616352202,
       0.42751271882385933
+     ],
+     "questions": 53,
+     "clear": true
+    }
+   }
+  }
+ },
+ "thinking_minus_not": {
+  "budget_32768": {
+   "voyager | qwen3-30b-a3b-thinking-2507 | thinking=None minus voyager | qwen3-30b-a3b-instruct-2507 | thinking=None": {
+    "user": {
+     "diff": 0.012345679012345678,
+     "interval": [
+      0.0,
+      0.030864197530864196
+     ],
+     "questions": 54,
+     "clear": false
+    },
+    "tool_pasted": {
+     "diff": 0.14814814814814817,
+     "interval": [
+      0.05555555555555558,
+      0.24691358024691357
+     ],
+     "questions": 54,
+     "clear": true
+    },
+    "tool_real": {
+     "diff": -0.5740740740740742,
+     "interval": [
+      -0.7037037037037037,
+      -0.4320987654320988
+     ],
+     "questions": 54,
+     "clear": true
+    },
+    "system": {
+     "diff": 0.1358024691358025,
+     "interval": [
+      0.07407407407407407,
+      0.19753086419753088
+     ],
+     "questions": 54,
+     "clear": true
+    }
+   }
+  },
+  "cut_16000": {
+   "voyager | qwen3-30b-a3b-thinking-2507 | thinking=None minus voyager | qwen3-30b-a3b-instruct-2507 | thinking=None": {
+    "user": {
+     "diff": 0.01269803359605127,
+     "interval": [
+      0.0,
+      0.031725181116153175
+     ],
+     "questions": 53,
+     "clear": false
+    },
+    "tool_pasted": {
+     "diff": 0.15612076095947067,
+     "interval": [
+      0.0641025641025641,
+      0.24999999999999997
+     ],
+     "questions": 52,
+     "clear": true
+    },
+    "tool_real": {
+     "diff": -0.5740740740740742,
+     "interval": [
+      -0.7037037037037037,
+      -0.4320987654320988
+     ],
+     "questions": 54,
+     "clear": true
+    },
+    "system": {
+     "diff": 0.12341746304010454,
+     "interval": [
+      0.060289228057525124,
+      0.18632075471698112
      ],
      "questions": 53,
      "clear": true

@@ -23,7 +23,8 @@ The Gate 2 question, per model: tool channel minus user channel in following, a 
 the questions both have (clear = the interval excludes 0 and the gap is positive). Fewer than 5
 questions: "too few questions" (common.MIN_QUESTIONS).
 Thinking vs not (THINKING_PAIRS: Qwen3 30B's Thinking and Instruct checkpoints, Qwen3-8B's switch):
-per channel, following with thinking minus without, paired by question, at both cuts.
+per channel, following with thinking minus without, paired by question, at both cuts (clear = the interval
+excludes 0, either sign).
 """
 import argparse
 import json
@@ -189,7 +190,10 @@ def thinking_pairs(by):
                 x = [r for r in by[key] if r["condition"] == c and r["answered"]]
                 y = [r for r in by[other] if r["condition"] == c and r["answered"]]
                 if x and y:
-                    res[c] = gap(x, y)
+                    g = gap(x, y)
+                    if g["diff"] is not None:             # two-sided here: either model can follow more
+                        g["clear"] = g["interval"][0] > 0 or g["interval"][1] < 0
+                    res[c] = g
             out[f"{key} minus {other}"] = res
     return out
 
@@ -229,7 +233,7 @@ def show(res):
             for c, g in chans.items():
                 iv = g["interval"] if isinstance(g["interval"], str) else f"[{g['interval'][0]:+.0%}, {g['interval'][1]:+.0%}]"
                 d = "—" if g["diff"] is None else f"{g['diff']:+.0%}"
-                print(f"  {c}: following {d} {iv} ({g['questions']} q)")
+                print(f"  {c}: following {d} {iv} ({g['questions']} q){' clear' if g.get('clear') else ''}")
 
 
 def show_table(res):

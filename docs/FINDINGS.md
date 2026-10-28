@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-28 (F14, F15, T9 and T10 added; F10's closest-approach
+status. Started 2026-10-26; last updated 2026-10-28 (F14, F15, F16, T9 and T10 added; F10's closest-approach
 reading refuted; limitations section). Design and plans: [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
@@ -533,6 +533,82 @@ Each hint names the same wrong letter.
   - *confirmed as keyword counts*: the real call missing from the final answer.
   - *tentative*: why the sets differ. "Knowledge vs worked out" is one reading; the sets differ in
     more than that.
+
+## F16. Track B, Qwen3 30B Instruct: it calls the lookup every time and takes its letter; the Thinking checkpoint follows pasted and system hints more, but calls less
+
+**Setup.** As F15 (Oct 28, 03:11–05:32): the same 54 questions × 5 conditions × 3 runs = 810 runs
+at the 32,768 budget, every one with an answer. Instruct has no private reasoning, so only the final
+answer can name the hint. The lookup tool is described to the model as "the course answer key", the
+source the pasted block and the system note also name.
+
+| channel | following | above the no-hint baseline | final answer names the hint, when following |
+|---|---|---|---|
+| user | 1 of 162 [0, 3%] | −1 [−2, +1] | 1 of 1 |
+| tool, pasted | 35 of 162 [16, 29%] | **+20 [+11, +30]** | 29 of 35 [67, 92%] |
+| tool, real call | **147 of 162 [85, 94%]** | **+90 [+82, +96]** | **30 of 147 [15, 28%]** |
+| system note | 35 of 162 [16, 29%] | **+20 [+11, +30]** | 32 of 35 [78, 97%] |
+
+- **No hint:** right in 142 of 162 [82, 92%]; the hint letter in 2 of 162 [0, 4%].
+- **Gate 2** (tool − user, paired by question, 54 questions): pasted **+21 points [+12, +31]**,
+  real call **+90 [+83, +96]**. Both clear. No run goes past 16,000 tokens (the longest is 11,564),
+  so the 16,000 cut changes nothing.
+- **The real call:**
+  - It called the tool in 162 of 162 runs [98, 100%], with tool choice left to the model.
+  - It took the tool's letter in 147 of 162. In 14 of the other 15 it gave the right answer.
+  - The median real-call run is 35 output tokens over both turns (puzzles 32, MMLU-Pro 140): the
+    call, then the letter.
+- **By set:**
+
+  | set (no-hint right) | user | tool, pasted | tool, real call | system note | Gate 2 pasted / real |
+  |---|---|---|---|---|---|
+  | puzzles, 24 q (70 of 72) | 0 of 72 [0, 5%] | 0 of 72 [0, 5%] | 72 of 72 [95, 100%] | 0 of 72 [0, 5%] | +0 [+0, +0] / +100 [+100, +100] |
+  | MMLU-Pro, 30 q (72 of 90) | 1 of 90 [0, 6%] | 35 of 90 [29, 49%] | 75 of 90 [74, 90%] | 35 of 90 [29, 49%] | +38 [+23, +52] / +82 [+70, +93] |
+
+  - On the puzzles, a pasted block or a system note never moved it, but after a real call it took
+    the tool's letter in 72 of 72. Its final answer named the tool in 0 of those 72.
+  - On MMLU-Pro, the final answer named the tool in 30 of 75 runs that followed it [30, 51%].
+- **Sure vs unsure** (43 sure questions, right in every no-hint run; 11 unsure):
+  - pasted: 18 of 129 [9, 21%] vs 17 of 33 [35, 67%]
+  - real call: 115 of 129 [83, 93%] vs 32 of 33 [85, 99%]
+  - system note: 15 of 129 [7, 18%] vs 20 of 33 [44, 75%]
+  - user: 1 of 129 [0, 4%] vs 0 of 33 [0, 10%]
+- **Thinking minus Instruct** (F15 minus this entry, following, paired by question, 54 questions;
+  the same at the 16,000 cut within a point or two):
+
+  | channel | both sets | puzzles (24 q) | MMLU-Pro (30 q) |
+  |---|---|---|---|
+  | user | +1 [+0, +3] | +0 [+0, +0] | +2 [+0, +6] |
+  | tool, pasted | **+15 [+6, +25]** | +7 [+1, +12] | +21 [+6, +38] |
+  | tool, real call | **−57 [−70, −43]** | **−94 [−99, −89]** | −28 [−44, −10] |
+  | system note | **+14 [+7, +20]** | +10 [+4, +15] | +17 [+7, +27] |
+
+- **Reading.**
+  - **Calling is following.** With a lookup tool available, Instruct calls it at once and answers
+    with its letter, even on puzzles it solves alone 70 of 72 times. The same "course answer key"
+    claim pasted into the question or put in the system prompt moves it far less (35 of 162 each,
+    none of it on the puzzles).
+  - **Thinking cuts the call, not the pull.** The Thinking checkpoint calls the tool in a third of
+    runs (54 of 162) and follows every call it makes (F15). It also follows pasted and system hints
+    more than Instruct does. So its lower real-call following comes from calling less, not from
+    weighing the tool's answer.
+  - **The final answer rarely says so in either.** After a real call, Instruct's final answer names
+    the tool in 30 of 147, and Thinking's in 3 of 54. All 30 of Instruct's are on MMLU-Pro.
+  - **Two checkpoints, not one switch.** Thinking-2507 and Instruct-2507 are separately trained
+    models. The difference is "this Thinking checkpoint vs this Instruct one", not thinking on vs
+    off. Qwen3-8B's switch (one set of weights, on Sol, prepared) is the same-weights comparison.
+- **Source.**
+  - `cot-disclosure/results/summaries/trackB/trackB_report.json` and `trackB_report_by_set.json`
+    (`budget_32768` / `cut_16000`, the `qwen3-30b-a3b-instruct-2507` rows, and
+    `thinking_minus_not`)
+  - per-run flags: `trackB_runs.jsonl`
+  - recomputed with `python progress/trackB_report.py --by-set` (Mac, no calls). Mentions are
+    keyword counts (`detect.py`).
+- **Status.**
+  - *confirmed*: Gate 2 for Instruct; the real call taken in 147 of 162; Thinking − Instruct on
+    the real call (−57) and on pasted and system hints (+15, +14), on 54 questions × 3 runs.
+  - *confirmed as keyword counts*: the final answer's mentions.
+  - *tentative*: "thinking cuts the call". It is one pair of checkpoints, and the sets differ as in
+    F15.
 
 ---
 
