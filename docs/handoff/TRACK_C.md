@@ -1,6 +1,6 @@
 # Track C handoff: the agent team (for Shrey, from Nov 3)
 
-Last updated: 2026-10-28 00:40 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-28 03:30 MST. A working draft, kept current every day and final on Nov 3,
 when Track C goes back to you. Until then Ritik runs it (code by Claude Code).
 
 **The question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
@@ -29,9 +29,21 @@ log), and how often does the checker catch it or raise a false alarm?
     --per-kind N --repeats 3`); cases run 4 at a time through the shared Voyager slots
   - `--summary`: per team × reviewer model × variant, bad and good lookups apart, Wilson intervals,
     undetermined checks, tokens, and the checker's flag rate per team
+  - **C5 in the summary:** the no-tool solver's run-to-run variation, the checker's flag rate there
+    (the floor), and the bad and good lookup flag rates minus the floor, paired by item. `--table`
+    prints it all as markdown.
+  - **`--summary --cases`:** the same split by Track B kind (steered / matched) and by kind ×
+    question set. For Qwen3 Thinking, all 24 steered cases are MMLU-Pro and 24 of the 29 matched
+    ones are puzzles, so kind and set must be read apart.
+  - **Exit codes:** `--stop-file` and exit codes 0 / 1 / 2 / 3, so a run goes under the power guard
+    (`progress/guard.py`). Code 3: a Voyager guard failed and all Voyager work pauses.
 - **Runs:** replay of Experiment A (no calls); live on 2 pilot puzzles (Oct 4); **C1**, live on 5
   pilot puzzles (Oct 27, tool team, Qwen3 30B Instruct and Olmo 3 7B Instruct); **the 32B reviewer's
   smoke**, the same 5 puzzles (Oct 28 00:20, `--log team_smoke_olmo32b`, 35 calls).
+- **C4, running since Oct 28 03:13** under a second power guard (`logs/guard_c4.log`):
+  - Qwen3 Thinking's 24 steered and 29 matched cases × 2 teams × 3 repeats = 318 cases, about 3,021
+    calls; 25 of the 53 items get a bad lookup.
+  - It shares the 4 Voyager slots with Track B, so expect 7–10 h.
 
 ## 2. Results so far
 
@@ -67,6 +79,8 @@ log), and how often does the checker catch it or raise a false alarm?
 ../.venv/bin/python agents/run_team.py --live --cases results/trackB/steered_cases.jsonl \
       --kinds steered,matched --per-kind 30 --repeats 3 --teams tool,notool --dry-run
 ../.venv/bin/python agents/run_team.py --summary                              # the table so far
+../.venv/bin/python agents/run_team.py --summary --log team_c4 --cases results/trackB/steered_cases.jsonl --table
+                                                                             # C4, also by kind and set
 ```
 
 **Your data:** gitignored, shared by Ritik as a bundle (`tools/make_handoff_bundle.py --track C`:
@@ -79,8 +93,8 @@ log), and how often does the checker catch it or raise a false alarm?
 |---|---|---|
 | C1 | Live team on 5 items | done Oct 27 |
 | C8 | The 32B reviewer's 5-item smoke | done Oct 28 (20 of 20 letters) |
-| C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | after Track B exports Qwen3 Thinking's cases (Oct 28 night) |
-| C5 | The Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | as data lands |
+| C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | running since Oct 28 03:13 (318 cases) |
+| C5 | The Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | code done (`--summary --log team_c4 --cases … --table`); numbers as C4 lands |
 
 ## 5. Decisions you inherit
 
