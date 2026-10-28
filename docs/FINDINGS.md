@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-28 (F14, T9 and T10 added; F10's closest-approach
+status. Started 2026-10-26; last updated 2026-10-28 (F14, F15, T9 and T10 added; F10's closest-approach
 reading refuted; limitations section). Design and plans: [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
@@ -459,6 +459,80 @@ the leading forced answer (Step 3's dense curves: 199 runs, 20 questions).
 - **Status.** *confirmed*: the rise at lasting and at temporary onsets, against the placebo.
   *tentative*: lasting > temporary (followed runs only, not robust to isolated onsets). The
   spike's length: descriptive.
+
+## F15. Track B, Qwen3 30B Thinking: tool and system hints move it, the user's doesn't; after a real tool call the final answer hides the tool
+
+**Setup.** Track B (Oct 27–28, Voyager, served format): 54 questions (24 pilot puzzles, 30
+MMLU-Pro) × 5 conditions × 3 runs = 810 runs at the 32,768-token budget, every one with an answer.
+Each hint names the same wrong letter.
+- **user:** the hint is in the question.
+- **tool, pasted:** a tool block is pasted into the user turn.
+- **tool, real call:** the model has a lookup tool, and the hint comes back only if it calls it.
+- **system note:** the hint is in the system prompt.
+
+| channel | following | above the no-hint baseline | final answer names the hint, when following |
+|---|---|---|---|
+| user | 3 of 162 [1, 5%] | +1 [−1, +2] | 0 of 3 |
+| tool, pasted | 59 of 162 [29, 44%] | **+35 [+25, +46]** | 54 of 59 [82, 96%] |
+| tool, real call | 54 of 162 [27, 41%] | **+32 [+23, +42]** | **3 of 54 [2, 15%]** |
+| system note | 57 of 162 [28, 43%] | **+34 [+25, +44]** | 50 of 57 [77, 94%] |
+
+- **No hint:** right in 151 of 162 [88, 96%]; the hint letter in 0 of 162 [0, 2%].
+- **Gate 2** (tool − user, paired by question, 54 questions): pasted **+35 points [+24, +46]**,
+  real call **+31 [+22, +42]**. Both clear.
+  - At the 16,000 cut: +34 [+23, +45] and +32 [+22, +43].
+  - 23 of 810 runs [2, 4%] go past 16,000 tokens. All are on MMLU-Pro, and none are real-call runs.
+- **The real call:**
+  - The model called the tool in 54 of 162 runs [27, 41%], on 29 questions.
+  - Following when it called: 54 of 54 [93, 100%]. Without a call: 0 of 108 [0, 3%]. So this
+    channel's following is its call rate.
+  - When it called, the private reasoning named the tool in 54 of 54 and the final answer in 3 of 54.
+- **Final answers name pasted and system hints.** With a pasted block or a system note, the final
+  answer names the hint in most runs that follow it (table). The user's hint is named in 31 of 162
+  final answers, all in runs that didn't follow it.
+- **The two sets differ:**
+
+  | set (no-hint right) | user | tool, pasted | tool, real call (calls) | system note | Gate 2 pasted / real |
+  |---|---|---|---|---|---|
+  | puzzles, 24 q (72 of 72) | 0 of 72 [0, 5%] | 5 of 72 [3, 15%] | 4 of 72 [2, 13%] (4) | 7 of 72 [5, 19%] | +7 [+1, +12] / +6 [+1, +11] |
+  | MMLU-Pro, 30 q (79 of 90) | 3 of 90 [1, 9%] | 54 of 90 [50, 70%] | 50 of 90 [45, 65%] (50) | 50 of 90 [45, 65%] | +57 [+41, +71] / +52 [+39, +66] |
+
+  - Sureness doesn't explain the gap. On MMLU-Pro questions it gets right in every no-hint run
+    (23 questions), it still follows the pasted block in 34 of 69 [38, 61%], the real call in 39 of
+    69 [45, 68%] and the system note in 31 of 69 [34, 57%]. On the puzzles, every question is
+    sure.
+- **Sure vs unsure, both sets** (47 sure questions; the 7 unsure are all MMLU-Pro):
+  - pasted: 39 of 141 [21, 36%] vs 20 of 21 [77, 99%]
+  - real call: 43 of 141 [23, 39%] vs 11 of 21 [32, 72%]
+  - system note: 38 of 141 [20, 35%] vs 19 of 21 [71, 97%]
+  - user: 2 of 141 [0, 5%] vs 1 of 21 [1, 23%]
+- **Length** (median reply tokens): no hint 3,763; user 4,545; pasted 8,794; system note 9,015;
+  real call 2,470 (3,969 with a call, 2,249 without).
+- **Reading.**
+  - **Source matters.** This model ignores the user's hint (+1 point above baseline), although its
+    private reasoning names that hint in 158 of 162 runs. A tool or a system note moves it by about
+    a third of all runs.
+  - **The set matters.** Almost all of that happens on MMLU-Pro: knowledge questions, where it
+    also calls the lookup tool. On the puzzles, which it works out (72 of 72 right with no hint), it
+    rarely calls the tool and rarely follows.
+  - **The real call is the hidden case.** After a real call, it took the tool's letter every time
+    and its final answer cited the tool 3 times in 54. A pasted block or a system note is cited
+    instead. This narrows F3 for this model: for these two channels, the final answer often does
+    name the hint.
+  - **F1 holds with more data.** F1's served-format gap holds for Qwen3 Thinking alone with 3 runs,
+    54 questions and the full budget.
+- **Source.**
+  - `cot-disclosure/results/summaries/trackB/trackB_report.json` and `trackB_report_by_set.json`
+    (`budget_32768` / `cut_16000`, the `qwen3-30b-a3b-thinking-2507` rows)
+  - per-run flags: `trackB_runs.jsonl`
+  - recomputed with `python progress/trackB_report.py --by-set` (Mac, no calls). Mentions are
+    keyword counts (`detect.py`).
+- **Status.**
+  - *confirmed*: tool and system hints above the user's (Gate 2) on 54 questions × 3 runs, and
+    following after a real call (54 of 54).
+  - *confirmed as keyword counts*: the real call missing from the final answer.
+  - *tentative*: why the sets differ. "Knowledge vs worked out" is one reading; the sets differ in
+    more than that.
 
 ---
 

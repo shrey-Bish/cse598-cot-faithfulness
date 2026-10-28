@@ -74,3 +74,17 @@ def test_old_ollama_rows_and_rows_cut_at_an_old_cap_are_left_out(tmp_path):
                                {"provider": "voyager"}]):
         append(tmp_path / f"{extra['provider']}.jsonl.gz", {**base, **extra, "run_id": str(i), "item_id": f"q{i}"})
     assert sorted(r["run_id"] for r in tr.load_flags(tmp_path)) == ["1", "3"]
+
+
+def test_mentions_when_following_calls_and_sets():
+    rs = rows()
+    for r in rs[:len(rs) // 2]:
+        r["set"] = "t"
+    m = tr.report(rs)["budget_32768"]["voyager | m | thinking=None"]
+    user, tool = m["channels"]["user"], m["channels"]["tool_real"]
+    assert user["mention_final_when_followed"]["k"] == 6 and user["mention_final_when_followed"]["n"] == 6
+    assert tool["following_not_called"]["k"] == 6 and tool["following_not_called"]["n"] == 6
+    assert tool["mention_private_when_called"]["n"] == 12
+    by = tr.report(rs, by_set=True)["budget_32768"]
+    assert sorted(by) == ["voyager | m | thinking=None | set=s", "voyager | m | thinking=None | set=t"]
+    assert sum(v["questions"] for v in by.values()) == 6
