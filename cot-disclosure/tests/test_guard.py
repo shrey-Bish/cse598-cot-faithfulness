@@ -84,3 +84,20 @@ def test_a_job_with_after_starts_once_that_job_is_done(tmp_path, monkeypatch):
     first.proc.returncode = 0
     g.step([first, second], True, 100, T0, None, clock=200)
     assert first.finished and s2 == [1]
+
+
+def test_a_failed_voyager_guard_halts_every_voyager_job(tmp_path, monkeypatch):
+    """Code 3 (identity canary or model check failed): not restarted; the other Voyager jobs pause and the
+    ones waiting on it never start; the guard then has nothing left to do."""
+    a, sa = job("voyager:qwen3think=progress/run_trackB.py --run --model a", tmp_path, monkeypatch)
+    b, sb = job("voyager:c4=agents/run_team.py --live", tmp_path, monkeypatch)
+    c, sc = job("voyager:olmo:qwen3think=progress/run_trackB.py --run --model b", tmp_path, monkeypatch)
+    g.step([a, b, c], True, 100, T0, None, clock=0)
+    assert sa == [1] and sb == [1] and sc == []
+    a.proc.returncode = 3
+    g.step([a, b, c], True, 100, T0, None, clock=10)
+    assert a.halted and b.stop.read_text() == "Voyager halted"            # the other one pauses gracefully
+    b.proc.returncode = 2
+    g.step([a, b, c], True, 100, T0, None, clock=200)
+    assert sa == [1] and sb == [1] and sc == [] and b.proc is None
+    assert all(g.settled(j, [a, b, c]) for j in (a, b, c))

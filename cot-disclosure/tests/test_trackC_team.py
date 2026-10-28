@@ -48,8 +48,8 @@ def test_both_teams_two_reviewers_and_resume(tmp_path, monkeypatch):
     calls = []
     monkeypatch.setattr(rt, "generate", fake_generate(calls))
     path = tmp_path / "team_live.jsonl"
-    ok = rt.live(items(), ["tool", "notool"], 2, REVIEWERS, path, "t", workers=2, check_models=False)
-    assert all(ok) and len(ok) == 4 * 2 * 2
+    assert rt.live(items(), ["tool", "notool"], 2, REVIEWERS, path, "t", workers=2, check_models=False) == 0
+    assert len(done_case_ids(path)) == 4 * 2 * 2
     assert len(calls) == sum(rt.calls_per_case(t, REVIEWERS) for _, t, _ in rt.plan_cases(items(), ["tool", "notool"], 2))
     rows = load(path)
     nt = [r for r in rows if r["agent"] == "reviewer" and r["team"] == "notool"]
@@ -58,6 +58,19 @@ def test_both_teams_two_reviewers_and_resume(tmp_path, monkeypatch):
     n = len(calls)
     rt.live(items(), ["tool", "notool"], 2, REVIEWERS, path, "t", workers=2, check_models=False)
     assert len(calls) == n and len(load(path)) == len(rows)                       # done cases are not rerun
+
+
+def done_case_ids(path):
+    return {r["case_id"] for r in load(path) if r.get("agent") == "case_done"}
+
+
+def test_a_stop_file_starts_no_new_case(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(rt, "generate", fake_generate(calls))
+    stop = tmp_path / "stop"
+    stop.write_text("guard")
+    assert rt.live(items(), ["tool"], 1, REVIEWERS, tmp_path / "log.jsonl", "t", workers=2, check_models=False,
+                   stop_file=stop) == 2 and calls == []
 
 
 def test_a_failed_case_is_rerun_and_only_its_complete_attempt_counts(tmp_path, monkeypatch):
@@ -71,10 +84,10 @@ def test_a_failed_case_is_rerun_and_only_its_complete_attempt_counts(tmp_path, m
         return False
     monkeypatch.setattr(rt, "generate", fake_generate(calls, fail))
     path = tmp_path / "team_live.jsonl"
-    ok = rt.live(items(), ["notool"], 1, REVIEWERS, path, "t", workers=1, check_models=False)
-    assert ok.count(False) == 1
-    ok = rt.live(items(), ["notool"], 1, REVIEWERS, path, "t", workers=1, check_models=False)
-    assert ok == [True]
+    assert rt.live(items(), ["notool"], 1, REVIEWERS, path, "t", workers=1, check_models=False) == 1     # one left
+    assert len(done_case_ids(path)) == 3
+    assert rt.live(items(), ["notool"], 1, REVIEWERS, path, "t", workers=1, check_models=False) == 0
+    assert len(done_case_ids(path)) == 4
     reviews, checks = rt.live_rows(path)
     assert len(reviews) == 4 * 2 * 3 and len(checks) == 4 and len({r["attempt"] for r in reviews if r["item_id"] == "q1"}) == 1
 
@@ -108,3 +121,24 @@ def test_items_from_track_b_cases(tmp_path):
     its = rt.case_items(p, ["steered", "matched"], 1)
     assert [it["kind"] for it in its] == ["steered", "matched"] and its[0]["hint_letter"] == "C"
     assert len(rt.case_items(p, ["steered", "matched"], 0)) == 4
+
+
+def test_c5_compares_the_checker_with_the_no_tool_floor():
+    """C5: the notool solver's own run-to-run variation, the checker's flag rate there (the floor), and the
+    tool team's bad / good lookup flag rates minus the floor, paired by item."""
+    items = [f"q{i}" for i in range(6)]
+    checks, solvers = [], []
+    for i, q in enumerate(items):
+        for rep in range(3):
+            checks.append({"team": "notool", "item_id": q, "repeat": rep, "flag": rep == 0 and i == 0})     # 1 of 18
+            checks.append({"team": "tool", "bad_lookup": i < 3, "item_id": q, "repeat": rep, "flag": i < 3})
+            solvers.append({"team": "notool", "item_id": q, "repeat": rep, "letter": "B" if (i == 1 and rep == 2) else "A"})
+    c5 = rt.floor_comparison(checks, solvers)
+    assert c5["run_to_run"]["rate"] == 2 / 18 and c5["run_to_run"]["items"] == 6        # q1: 2 of its 3 pairs differ
+    assert abs(c5["floor"]["rate"] - 1 / 18) < 1e-9 and c5["floor"]["items"] == 6
+    assert c5["bad_lookup"]["interval"] == "too few questions" and c5["bad_lookup"]["items"] == 3
+    assert c5["bad_minus_floor"] == {"diff": None, "interval": "too few questions", "items": 3}
+    many = checks + [{"team": "tool", "bad_lookup": True, "item_id": q, "repeat": 9, "flag": True} for q in items[3:]]
+    d = rt.floor_comparison(many, solvers)["bad_minus_floor"]
+    assert d["items"] == 6 and d["diff"] > 0.5 and d["interval"][0] > 0
+    assert "| C5 | value |" in rt.table({"by_team_model_variant": {}, "checker_flag_rate": {}, "c5_checker_vs_floor": c5})

@@ -31,6 +31,7 @@ sys.path.insert(0, str(CODE / "progress"))
 
 from common import append, boot_diff, boot_mean, latest, load, too_few, wilson  # noqa: E402
 from detect import COMPILED  # noqa: E402
+from providers.ollama import NUM_CTX as OLLAMA_NUM_CTX  # noqa: E402
 
 OUT = CODE / "results" / "trackB"
 SUMMARY = CODE / "results" / "summaries" / "trackB"
@@ -53,13 +54,21 @@ def flags(r):
         "total_output_tokens": r.get("total_output_tokens") or (r.get("usage") or {}).get("output_tokens")}
 
 
+def counts(r):
+    """A record the table counts, as run_trackB.current() does: Ollama's only at the current context (T10:
+    the default 4,096 dropped the question), and no reply cut at an older, smaller cap."""
+    if r["provider"] == "ollama" and r.get("num_ctx") != OLLAMA_NUM_CTX:
+        return False
+    return not (r.get("finish_reason") == "length" and not r.get("budget_total"))
+
+
 def load_flags(out=OUT):
     """Flags from the records (with text); for a provider whose records stay elsewhere (Sol: the text
     never leaves it), from its numbers-only <provider>_flags.jsonl (progress/sol_trackB.py)."""
     rows, have = [], set()
     for p in sorted(Path(out).glob("*.jsonl.gz")):
         have.add(p.name[:-len(".jsonl.gz")])
-        rows += [flags(r) for r in latest(load(p)) if r.get("experiment") == "trackB" and r["status"] == "ok"]
+        rows += [flags(r) for r in latest(load(p)) if r.get("experiment") == "trackB" and r["status"] == "ok" and counts(r)]
     for p in sorted(Path(out).glob("*_flags.jsonl")):
         if p.name[:-len("_flags.jsonl")] not in have:
             rows += latest(load(p))
@@ -170,6 +179,12 @@ def fmt(x):
     return f"{x['k']} of {x['n']} {ci} ({x['questions']} q)"
 
 
+def fmt_excess(b):
+    if b.get("excess") is None:
+        return f"too few questions ({b['questions']} q)"
+    return f"{b['excess']:+.0%} [{b['interval'][0]:+.0%}, {b['interval'][1]:+.0%}] ({b['questions']} q)"
+
+
 def show(res):
     for name, table in res.items():
         print(f"\n## {name}")
@@ -180,11 +195,14 @@ def show_table(res):
     for model, m in res.items():
         print(f"\n{model}: {m['runs']} runs, {m['no_answer']} no answer; no-hint accuracy {fmt(m['nohint_accuracy'])}; "
               f"sure questions {m['sure_questions']} of {m['questions']}")
-        print("| channel | following | sure | unsure | mention final | mention private | tool calls |")
-        print("|---|---|---|---|---|---|---|")
+        print("| channel | following | above the no-hint baseline | sure | unsure | mention final | mention private | tool calls |")
+        print("|---|---|---|---|---|---|---|---|")
         for c, e in m["channels"].items():
-            print(f"| {c} | {fmt(e['following'])} | {fmt(e['following_sure'])} | {fmt(e['following_unsure'])} | "
-                  f"{fmt(e['mention_final'])} | {fmt(e['mention_private'])} | {fmt(e.get('tool_call_rate'))} |")
+            print(f"| {c} | {fmt(e['following'])} | {fmt_excess(e['above_baseline'])} | {fmt(e['following_sure'])} | "
+                  f"{fmt(e['following_unsure'])} | {fmt(e['mention_final'])} | {fmt(e['mention_private'])} | "
+                  f"{fmt(e.get('tool_call_rate'))} |")
+            if e.get("following_when_called"):
+                print(f"  {c}: following when the tool was called {fmt(e['following_when_called'])}")
         for c, g in m["gate2_tool_minus_user"].items():
             iv = g["interval"] if isinstance(g["interval"], str) else f"[{g['interval'][0]:+.0%}, {g['interval'][1]:+.0%}]"
             d = "—" if g["diff"] is None else f"{g['diff']:+.0%}"

@@ -50,6 +50,7 @@ sys.path.insert(0, str(CODE))
 import experiments as pilot  # noqa: E402
 from parse import parse_answer  # noqa: E402
 from providers import budget, generate  # noqa: E402
+import client  # noqa: E402
 from client import preflight  # noqa: E402
 from providers.base import MissingKey, route_fields, status_of  # noqa: E402
 from providers.ollama import NUM_CTX as OLLAMA_NUM_CTX  # noqa: E402
@@ -313,7 +314,8 @@ def done(provider):
 def run(cfg, all_jobs, limit=None, stop_file=None):
     """Run what isn't done; runs with no whole reply get up to NOT_RUN_PASSES more passes. With stop_file:
     once that file exists, no new job starts (the ones in flight finish). Returns 0 when every chosen job
-    is done, 2 when stopped by the file, 1 when some are left (a supervisor restarts it)."""
+    is done, 2 when stopped by the file, 1 when some are left (a supervisor restarts it); main() returns 3
+    when a Voyager guard (catalog or identity canary) failed: the guard does not restart it."""
     providers = {j["model"]["provider"] for j in all_jobs}
     workers = in_flight(cfg, next(iter(providers))) if len(providers) == 1 else 1
     for name in sorted({j["model"]["model"] for j in all_jobs if j["model"]["provider"] == "voyager"}):
@@ -433,7 +435,11 @@ def main():
         finished = set().union(*(done(p) for p in {j["model"]["provider"] for j in all_jobs}))
         dry_run(cfg, [j for j in all_jobs if j["run_id"] not in finished])
         return
-    return run(cfg, all_jobs, a.limit, a.stop_file)
+    try:
+        return run(cfg, all_jobs, a.limit, a.stop_file)
+    except (client.CanaryFailed, client.ModelUnavailable) as err:      # Voyager work pauses (client.HALT_FILE)
+        log.error(f"halted: {type(err).__name__}: {err}")
+        return 3
 
 
 if __name__ == "__main__":

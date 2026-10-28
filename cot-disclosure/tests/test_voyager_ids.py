@@ -272,3 +272,24 @@ def test_requests_that_fail_in_transit_are_not_run_and_make_the_canary_due(monke
     monkeypatch.setattr(client, "_stream", lambda payload, path: (_ for _ in ()).throw(client.urllib.error.URLError("x")))
     out = client.complete("olmo3-7b-think", "p", max_tokens=5, seed=1, backoff=[0, 0, 0])
     assert out["error"] == "URLError" and "olmo3-7b-think" not in client._canary_at   # next request checks first
+
+
+def test_a_failed_canary_pauses_voyager_work_in_every_process(monkeypatch, tmp_path):
+    """Oct 28: one process's failed canary writes client.HALT_FILE; a new process (fresh state) then
+    refuses every Voyager request without a call until the file is removed."""
+    monkeypatch.setattr(client, "GUARDS", True)
+    monkeypatch.setattr(client, "CANARY_LOG", tmp_path / "canary.jsonl")
+    monkeypatch.setattr(client, "list_models", lambda: CATALOG)
+    bad = {"error": None, "logprobs": lp(["a", "b", "z"], [None, -1.001, -0.5], [None, "b", "z"]),
+           "served_model": "olmo3-7b-instruct", "requested_model_id": "olmo3-7b", "reasoning_effort": "medium"}
+    monkeypatch.setattr(client, "canary_request", lambda name, r: bad)
+    with pytest.raises(client.CanaryFailed):
+        client.preflight("olmo3-7b-think")
+    assert "olmo3-7b-think: CanaryFailed" in client.HALT_FILE.read_text()
+    calls = []
+    monkeypatch.setattr(client, "_halted", None)                             # another process: fresh state
+    monkeypatch.setattr(client, "_canary_at", {})
+    monkeypatch.setattr(client, "canary_request", lambda name, r: calls.append(name))
+    with pytest.raises(client.CanaryFailed, match="Voyager work is paused"):
+        client.preflight("qwen3-30b-a3b-thinking-2507")
+    assert calls == []

@@ -56,6 +56,7 @@ CACHE_DIR.mkdir(exist_ok=True)
 MODELS_YAML = HERE / "configs" / "models.yaml"
 CANARY_DIR = HERE / "configs" / "canary"
 CANARY_LOG = HERE / "results" / "voyager_canary.jsonl"
+HALT_FILE = HERE / "logs" / "voyager_halted"     # one failed guard pauses Voyager work in every process (Oct 28)
 IDLE_S = 600                  # guard d: no token for 10 minutes -> abort, "not run"
 CANARY_EVERY_S = 3600         # guard c: hourly during long runs
 CANARY_TOL = 0.01
@@ -179,6 +180,9 @@ def preflight(name):
     with _lock:
         if _halted:
             raise _halted[0](_halted[1])
+        if HALT_FILE.exists():                         # another process's guard failed: no Voyager work here either
+            raise CanaryFailed(f"Voyager work is paused: {HALT_FILE} says {HALT_FILE.read_text().strip()!r}; "
+                               "delete the file once the cause is understood")
         try:
             if name not in _catalog_ok:
                 check_catalog(name)
@@ -191,6 +195,12 @@ def preflight(name):
                 _canary_at[name] = time.time()
         except (ModelUnavailable, CanaryFailed) as err:
             _halted = (type(err), str(err))
+            try:
+                HALT_FILE.parent.mkdir(parents=True, exist_ok=True)
+                with open(HALT_FILE, "a") as f:
+                    f.write(f"{datetime.now(timezone.utc).isoformat(timespec='seconds')} {name}: {type(err).__name__}: {err}\n")
+            except OSError:
+                pass
             raise
 
 

@@ -16,7 +16,9 @@ Rules (checked every 5 minutes with `pmset -g batt`, and at start):
 A job that may not run is paused gracefully: its stop file (logs/stop_<name>) makes the runner start no
 new job, the requests in flight finish, and it exits (code 2). It restarts when the rules allow again.
 A job that exits with work left (code 1: a request lost to a sleep or a dropped connection, never
-counted as "no answer") restarts after a minute; code 0 means all its jobs are done. Every start, pause,
+counted as "no answer") restarts after a minute; code 0 means all its jobs are done; code 3 means a
+Voyager guard failed (an identity canary or the model catalog; client.py writes logs/voyager_halted):
+it is not restarted, every other Voyager job pauses, and nothing waiting on them starts. Every start, pause,
 resume and end is logged with the battery level (stdout, appended to logs/guard.log).
 """
 import argparse
@@ -63,7 +65,7 @@ class Job:
             raise ValueError(f"job kind must be local or voyager: {spec}")
         self.cmd = cmd.split()
         self.stop = LOGS / f"stop_{self.name}"
-        self.proc, self.finished, self.restart_at = None, False, 0.0
+        self.proc, self.finished, self.halted, self.restart_at = None, False, False, 0.0
 
     def start(self, on_ac, pct):
         self.stop.unlink(missing_ok=True)
@@ -78,26 +80,47 @@ class Job:
             say(f"pause {self.name}: {why}; its requests in flight finish first", on_ac, pct)
 
 
+def settled(j, jobs):
+    """Nothing more will happen to this job: done, halted, or waiting on one that is (and not running)."""
+    if j.finished or j.halted:
+        return True
+    by_name = {k.name: k for k in jobs}
+    halted = any(k.halted for k in jobs if k.kind == "voyager")
+    blocked = (j.after is not None and settled(by_name[j.after], jobs) and not by_name[j.after].finished)
+    return (blocked or (j.kind == "voyager" and halted)) and (j.proc is None or j.proc.poll() is not None)
+
+
 def step(jobs, on_ac, pct, now, battery_until, clock):
     """One pass: pause what may not run, notice exits, (re)start what may run (a job with AFTER waits
     for that job to finish)."""
     by_name = {j.name: j for j in jobs}
+    for _ in range(2):                         # a halt noticed late in the first pass reaches every job in the second
+        _pass(jobs, by_name, on_ac, pct, now, battery_until, clock)
+
+
+def _pass(jobs, by_name, on_ac, pct, now, battery_until, clock):
     for j in jobs:
-        ok = allowed(j.kind, on_ac, pct, now, battery_until)
+        voyager_halted = any(k.halted for k in jobs if k.kind == "voyager")
+        ok = allowed(j.kind, on_ac, pct, now, battery_until) and not (j.kind == "voyager" and voyager_halted)
         running = j.proc is not None and j.proc.poll() is None
         if running and not ok:
-            j.pause(on_ac, pct, "battery rule" if not on_ac else "stop")
+            j.pause(on_ac, pct, "Voyager halted" if j.kind == "voyager" and voyager_halted
+                    else "battery rule" if not on_ac else "stop")
         if j.proc is not None and j.proc.poll() is not None:
             code = j.proc.returncode
             j.proc = None
             if code == 0:
                 j.finished = True
                 say(f"done {j.name}: every job finished", on_ac, pct)
+            elif code == 3:
+                j.halted = True
+                say(f"HALTED {j.name}: a Voyager guard failed (identity canary or model check; see logs/voyager_halted "
+                    f"and logs/guard_{j.name}.log); not restarted, Voyager work paused", on_ac, pct)
             else:
                 say(f"{j.name} exited with code {code} ({'paused' if code == 2 else 'work left'})", on_ac, pct)
                 j.restart_at = clock + TICK_S
         waiting = j.after is not None and not by_name[j.after].finished
-        if j.proc is None and not j.finished and ok and clock >= j.restart_at and not waiting:
+        if j.proc is None and not j.finished and not j.halted and ok and clock >= j.restart_at and not waiting:
             j.start(on_ac, pct)
 
 
@@ -117,7 +140,7 @@ def main(argv=None):
     on_ac, pct = battery()
     say(f"guard started: {', '.join(f'{j.kind}:{j.name}' for j in jobs)}; local jobs on battery until {until}", on_ac, pct)
     last_check = time.monotonic()
-    while not all(j.finished for j in jobs):
+    while not all(settled(j, jobs) for j in jobs):
         clock = time.monotonic()
         if clock - last_check >= BATTERY_EVERY_S:
             on_ac, pct = battery()

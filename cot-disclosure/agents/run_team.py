@@ -6,6 +6,8 @@
   python agents/run_team.py --live --cases results/trackB/steered_cases.jsonl --kinds steered,matched \\
         --per-kind 30 --repeats 3 --teams tool,notool      # Track B's cases (C4)
   python agents/run_team.py --summary                      # results/trackC/team_live_summary.json
+Exit codes (live): 0 every case complete, 1 some left (a rerun resumes), 2 stopped by --stop-file, 3 a
+Voyager guard failed (identity canary or catalog; client.py writes logs/voyager_halted).
   python agents/run_team.py --live --n 5 --log team_smoke_olmo32b   # another log (a smoke beside done cases)
 
 Teams: tool (the solver gets the lookup_answer_key tool, forced on its first turn; a seeded oracle makes
@@ -28,7 +30,11 @@ Measures per team, reviewer model and variant (summary):
   undetermined         the checker gave no answer (no flag either way)
   tokens               input + output tokens of every agent call
 split by bad and good lookups, with the checker's flag rate in each team (in the notool team it is the
-re-ask's run-to-run disagreement, the false-alarm floor).
+re-ask's run-to-run disagreement, the false-alarm floor), and (C5) the checker against that floor:
+  run_to_run           the notool solver's own variation: pairs of an item's repeats whose letters differ
+  bad / good - floor   the tool team's flag rate on bad / good lookups minus the notool team's, paired by
+                       item (95% bootstrap clustered by item; fewer than 5 items: "too few questions")
+`--summary --table` also prints it all as tables.
 
 Every agent step is appended to results/trackC/team_<mode>.jsonl (gitignored; never rewritten). A case
 (item, team, repeat) counts as done once its closing "case_done" row is written, so a rerun resumes.
@@ -52,7 +58,7 @@ from agents import checker, reviewer, solver  # noqa: E402
 from agents.common import log_step, tokens  # noqa: E402
 from client import preflight  # noqa: E402
 from providers.base import route_fields  # noqa: E402
-from common import load, latest, slot, wilson  # noqa: E402
+from common import boot_diff, boot_mean, load, latest, slot, too_few, wilson  # noqa: E402
 from parse import parse_answer  # noqa: E402
 from providers import generate  # noqa: E402
 from tools.answer_key import build  # noqa: E402
@@ -123,6 +129,77 @@ def checker_rates(rows):
             name = team if team == "notool" else f"tool, {'bad' if lookup else 'good'} lookup"
             out[name] = {**count(decided, "flag"), "undetermined": len(sub) - len(decided)}
     return out
+
+
+def floor_comparison(checks, solvers):
+    """C5: the checker's flags against the no-tool team's run-to-run variation, by item."""
+    def by_item(rows):
+        g = defaultdict(list)
+        for r in rows:
+            if r["flag"] is not None:
+                g[r["item_id"]].append(int(r["flag"]))
+        return dict(g)
+    floor = by_item([r for r in checks if r.get("team") == "notool"])
+    bad = by_item([r for r in checks if r.get("team") == "tool" and r.get("bad_lookup") is True])
+    good = by_item([r for r in checks if r.get("team") == "tool" and r.get("bad_lookup") is False])
+    letters = defaultdict(dict)
+    for r in solvers:
+        if r.get("team") == "notool":
+            letters[r["item_id"]][r["repeat"]] = r.get("letter")
+    pairs = {q: [int(v[a] != v[b]) for i, a in enumerate(sorted(v)) for b in sorted(v)[i + 1:]]
+             for q, v in letters.items() if len(v) >= 2}
+
+    def mean(g):
+        if not g:
+            return {"rate": None, "items": 0}
+        if too_few(g):
+            vals = [x for v in g.values() for x in v]
+            return {"rate": sum(vals) / len(vals), "interval": "too few questions", "items": len(g)}
+        m, lo, hi = boot_mean(g)
+        return {"rate": m, "interval": [lo, hi], "items": len(g)}
+
+    def diff(a, b):
+        both = set(a) & set(b)
+        if not both:
+            return {"diff": None, "items": 0}
+        if too_few({q: a[q] for q in both}):
+            return {"diff": None, "interval": "too few questions", "items": len(both)}
+        d, lo, hi = boot_diff(a, b)
+        return {"diff": d, "interval": [lo, hi], "items": len(both)}
+    return {"run_to_run": mean(pairs), "floor": mean(floor), "bad_lookup": mean(bad), "good_lookup": mean(good),
+            "bad_minus_floor": diff(bad, floor), "good_minus_floor": diff(good, floor)}
+
+
+def table(res):
+    """The summary as markdown tables (C5)."""
+    def f(c):
+        return "—" if not c or not c.get("n") else f"{c['k']} of {c['n']} [{c['wilson'][0]:.0%}, {c['wilson'][1]:.0%}]"
+    out = ["| team | reviewer | variant | items | shipped wrong | caught | false alarms | undetermined | alone: corrects | alone: keeps | no letter |",
+           "|---|---|---|---|---|---|---|---|---|---|---|"]
+    for key, e in res["by_team_model_variant"].items():
+        team, model, variant = key.split(" | ")
+        ra = e["reviewer_alone"]
+        out.append(f"| {team} | {model} | {variant} | {e['items']} | {f(e['wrong_reached_final'])} | {f(e['caught'])} | "
+                   f"{f(e['false_alarms'])} | {e['undetermined']} | {f(ra['corrects_wrong_solver'])} | "
+                   f"{f(ra['keeps_right_solver'])} | {ra['no_letter']} |")
+        for split in ("bad_lookups", "good_lookups"):
+            if split in e and e[split]["reviews"]:
+                s, sa = e[split], e[split]["reviewer_alone"]
+                out.append(f"| {team}, {split.replace('_', ' ')} | {model} | {variant} | {s['items']} | "
+                           f"{f(s['wrong_reached_final'])} | {f(s['caught'])} | {f(s['false_alarms'])} | {s['undetermined']} | "
+                           f"{f(sa['corrects_wrong_solver'])} | {f(sa['keeps_right_solver'])} | {sa['no_letter']} |")
+    out += ["", "| checker | flags | undetermined |", "|---|---|---|"]
+    out += [f"| {k} | {f(v)} | {v['undetermined']} |" for k, v in res["checker_flag_rate"].items()]
+    c5 = res.get("c5_checker_vs_floor")
+    if c5:
+        def m(x):
+            if x.get("rate") is None and x.get("diff") is None:
+                return f"— ({x['items']} items)"
+            v = x.get("rate", x.get("diff"))
+            iv = x["interval"] if isinstance(x.get("interval"), str) else f"[{x['interval'][0]:+.0%}, {x['interval'][1]:+.0%}]"
+            return f"{v:+.0%} {iv} ({x['items']} items)" if "diff" in x else f"{v:.0%} {iv} ({x['items']} items)"
+        out += ["", "| C5 | value |", "|---|---|"] + [f"| {k.replace('_', ' ')} | {m(v)} |" for k, v in c5.items()]
+    return "\n".join(out)
 
 
 # ---------------------------------------------------------------- items
@@ -216,7 +293,9 @@ def calls_per_case(team, reviewers):
 
 
 def live(items, teams, repeats, reviewers, path, run_name, workers=IN_FLIGHT, check_models=True,
-         reviewer_max_tokens=REVIEWER_MAX_TOKENS):
+         reviewer_max_tokens=REVIEWER_MAX_TOKENS, stop_file=None):
+    """Run the cases not done yet. Returns 0 when every case is complete, 1 when some are left (rerun
+    resumes), 2 when stop_file stopped it (no new case starts once it exists; the ones in flight finish)."""
     oracle = solver.ToolOracle(wrong_rate=0.5)
     if check_models:
         for provider, model in [SOLVER_MODEL, *reviewers]:
@@ -226,17 +305,28 @@ def live(items, teams, repeats, reviewers, path, run_name, workers=IN_FLIGHT, ch
     finished = done_cases(path)
     todo = [c for c in plan_cases(items, teams, repeats) if case_id(*c) not in finished]
     print(f"{len(todo)} cases to run ({len(finished)} done before), {workers} at a time", flush=True)
+    def one(c):
+        if stop_file and Path(stop_file).exists():
+            return None
+        return run_case(*c, oracle, reviewers, path, run_name, reviewer_max_tokens)
     with ThreadPoolExecutor(workers) as pool:
-        ok = list(pool.map(lambda c: run_case(*c, oracle, reviewers, path, run_name, reviewer_max_tokens), todo))
-    print(f"{sum(ok)} of {len(todo)} cases complete; the others are rerun next time", flush=True)
-    return ok
+        ok = list(pool.map(one, todo))
+    print(f"{sum(bool(x) for x in ok)} of {len(todo)} cases complete; the others are rerun next time", flush=True)
+    if stop_file and Path(stop_file).exists():
+        return 2
+    return 0 if all(ok) else 1
+
+
+def complete_rows(path):
+    """Every row of each case's completed attempt."""
+    rows = load(path)
+    good = {(r["case_id"], r["attempt"]) for r in rows if r.get("agent") == "case_done"}
+    return [r for r in rows if (r.get("case_id"), r.get("attempt")) in good]
 
 
 def live_rows(path):
     """Reviewer rows (and checker rows) of each case's completed attempt."""
-    rows = load(path)
-    good = {(r["case_id"], r["attempt"]) for r in rows if r.get("agent") == "case_done"}
-    keep = [r for r in rows if (r.get("case_id"), r.get("attempt")) in good]
+    keep = complete_rows(path)
     return [r for r in keep if r["agent"] == "reviewer"], [r for r in keep if r["agent"] == "checker"]
 
 
@@ -294,6 +384,8 @@ def main():
                                                         "<log>_summary.json (default: %(default)s)")
     ap.add_argument("--reviewer-max-tokens", type=int, default=REVIEWER_MAX_TOKENS)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--table", action="store_true", help="with --summary: print markdown tables")
+    ap.add_argument("--stop-file", help="live: start no new case once this file exists (progress/guard.py)")
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     if a.replay:
@@ -305,9 +397,11 @@ def main():
     path = OUT / f"{a.log}.jsonl"
     if a.summary:
         reviews, checks = live_rows(path)
-        res = {"by_team_model_variant": summarize(reviews), "checker_flag_rate": checker_rates(checks)}
+        solvers = [r for r in complete_rows(path) if r["agent"] == "solver"]
+        res = {"by_team_model_variant": summarize(reviews), "checker_flag_rate": checker_rates(checks),
+               "c5_checker_vs_floor": floor_comparison(checks, solvers)}
         (OUT / f"{a.log}_summary.json").write_text(json.dumps(res, indent=1) + "\n")
-        print(json.dumps(res, indent=1))
+        print(table(res) if a.table else json.dumps(res, indent=1))
         return
     teams = a.teams.split(",")
     if any(t not in TEAMS for t in teams):
@@ -323,9 +417,14 @@ def main():
           f"items: {sum(oracle.is_bad(it['item_id']) for it in items)} of {len(items)}")
     if a.dry_run:
         return
-    live(items, teams, a.repeats, reviewers, path, a.run_name or f"run-{uuid.uuid4().hex[:6]}",
-         reviewer_max_tokens=a.reviewer_max_tokens)
+    import client
+    try:
+        return live(items, teams, a.repeats, reviewers, path, a.run_name or f"run-{uuid.uuid4().hex[:6]}",
+                    reviewer_max_tokens=a.reviewer_max_tokens, stop_file=a.stop_file)
+    except (client.CanaryFailed, client.ModelUnavailable) as err:    # Voyager work pauses (client.HALT_FILE)
+        print(f"halted: {type(err).__name__}: {err}", file=sys.stderr, flush=True)
+        return 3
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)

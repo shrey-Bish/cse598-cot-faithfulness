@@ -60,3 +60,17 @@ def test_the_16000_cut():
     full, cut = res["budget_32768"]["voyager | m | thinking=None"], res["cut_16000"]["voyager | m | thinking=None"]
     assert full["channels"]["tool_real"]["following"]["k"] == 18 and cut["channels"]["tool_real"]["following"]["k"] == 15
     assert cut["channels"]["tool_real"]["answered"] == 15
+
+
+def test_old_ollama_rows_and_rows_cut_at_an_old_cap_are_left_out(tmp_path):
+    """As run_trackB.current(): Ollama rows at the old 4,096 context (T10) and replies cut at an older cap
+    don't count; the report leaves them out too (Oct 28: the 20 old Ollama rows had been in the table)."""
+    from common import append
+    base = {"experiment": "trackB", "status": "ok", "model": "qwen3:8b", "thinking": True, "set": "pilot_puzzles",
+            "condition": "none", "repeat": 0, "hint_letter": None, "correct_letter": "A", "parsed_letter": "A",
+            "finish_reason": "stop", "final_text": "Answer: (A)", "reasoning_text": "r", "budget_total": 32768}
+    for i, extra in enumerate([{"provider": "ollama", "num_ctx": None}, {"provider": "ollama", "num_ctx": tr.OLLAMA_NUM_CTX},
+                               {"provider": "voyager", "finish_reason": "length", "budget_total": None},
+                               {"provider": "voyager"}]):
+        append(tmp_path / f"{extra['provider']}.jsonl.gz", {**base, **extra, "run_id": str(i), "item_id": f"q{i}"})
+    assert sorted(r["run_id"] for r in tr.load_flags(tmp_path)) == ["1", "3"]

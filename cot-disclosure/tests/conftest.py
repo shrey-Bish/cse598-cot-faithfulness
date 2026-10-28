@@ -28,6 +28,7 @@ def _offline_and_isolated(monkeypatch, tmp_path):
     slots.mkdir()
     monkeypatch.setattr(common, "_SLOTS", slots)
     monkeypatch.setattr(client, "GUARDS", False)
+    monkeypatch.setattr(client, "HALT_FILE", tmp_path / "voyager_halted")
     monkeypatch.setattr(client, "_halted", None)
     monkeypatch.setattr(client, "_catalog_ok", set())
     monkeypatch.setattr(client, "_canary_at", {})
