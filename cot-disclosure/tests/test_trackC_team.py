@@ -142,3 +142,23 @@ def test_c5_compares_the_checker_with_the_no_tool_floor():
     d = rt.floor_comparison(many, solvers)["bad_minus_floor"]
     assert d["items"] == 6 and d["diff"] > 0.5 and d["interval"][0] > 0
     assert "| C5 | value |" in rt.table({"by_team_model_variant": {}, "checker_flag_rate": {}, "c5_checker_vs_floor": c5})
+
+
+def test_summary_split_by_track_b_kind_and_set(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(rt, "generate", fake_generate(calls))
+    cases = tmp_path / "steered_cases.jsonl"
+    for i in range(8):
+        append(cases, {"case_id": f"m|q{i}", "kind": "steered" if i < 4 else "matched", "set": "s1" if i % 2 else "s2",
+                       "item_id": f"q{i}", "question": f"Q{i}?\n(A) a\n(B) b", "correct_letter": "A",
+                       "hint_letter": "B", "n_options": 2})
+    its = rt.case_items(cases, ["steered", "matched"], 0)
+    path = tmp_path / "team_c4.jsonl"
+    rt.live(its, ["tool", "notool"], 1, REVIEWERS[:1], path, "t", workers=4, check_models=False)
+    res = rt.results(path, rt.case_groups(cases))
+    assert sorted(res["by_kind"]) == ["matched", "steered"]
+    assert sorted(res["by_kind_and_set"]) == ["matched | s1", "matched | s2", "steered | s1", "steered | s2"]
+    whole = res["by_team_model_variant"]["notool | rev-a | answer_only"]["reviews"]
+    parts = sum(v["by_team_model_variant"]["notool | rev-a | answer_only"]["reviews"] for v in res["by_kind"].values())
+    assert whole == parts == 8
+    assert "### steered | s1" in rt.table(res)

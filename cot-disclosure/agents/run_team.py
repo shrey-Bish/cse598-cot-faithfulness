@@ -6,6 +6,8 @@
   python agents/run_team.py --live --cases results/trackB/steered_cases.jsonl --kinds steered,matched \\
         --per-kind 30 --repeats 3 --teams tool,notool      # Track B's cases (C4)
   python agents/run_team.py --summary                      # results/trackC/team_live_summary.json
+  python agents/run_team.py --summary --log team_c4 --cases results/trackB/steered_cases.jsonl --table
+                                                           # + split by Track B kind, and kind x question set
 Exit codes (live): 0 every case complete, 1 some left (a rerun resumes), 2 stopped by --stop-file, 3 a
 Voyager guard failed (identity canary or catalog; client.py writes logs/voyager_halted).
   python agents/run_team.py --live --n 5 --log team_smoke_olmo32b   # another log (a smoke beside done cases)
@@ -170,8 +172,40 @@ def floor_comparison(checks, solvers):
             "bad_minus_floor": diff(bad, floor), "good_minus_floor": diff(good, floor)}
 
 
+def results(path, groups=None):
+    """The summary of a live log; with groups ({Track B case id: (kind, question set)}, from --cases) also
+    the same per kind and per kind x set (steered and matched cases can come from different sets)."""
+    keep = complete_rows(path)
+    rows = {a: [r for r in keep if r["agent"] == a] for a in ("reviewer", "checker", "solver")}
+
+    def one(sel):
+        rv, ck, sv = ([r for r in rows[a] if sel(r)] for a in ("reviewer", "checker", "solver"))
+        return {"by_team_model_variant": summarize(rv), "checker_flag_rate": checker_rates(ck),
+                "c5_checker_vs_floor": floor_comparison(ck, sv)}
+    res = one(lambda r: True)
+    if groups:
+        kinds = sorted({groups[r["source"]][0] for r in keep if r.get("source") in groups})
+        pairs = sorted({groups[r["source"]] for r in keep if r.get("source") in groups})
+        res["by_kind"] = {k: one(lambda r, k=k: groups.get(r.get("source"), (None,))[0] == k) for k in kinds}
+        res["by_kind_and_set"] = {f"{k} | {s}": one(lambda r, g=(k, s): groups.get(r.get("source")) == g) for k, s in pairs}
+    return res
+
+
+def case_groups(path):
+    """{Track B case id: (kind, question set)} from steered_cases.jsonl."""
+    return {r["case_id"]: (r["kind"], r["set"]) for r in load(path)}
+
+
 def table(res):
-    """The summary as markdown tables (C5)."""
+    """The summary as markdown tables (C5), then the same per kind and per kind x set when split."""
+    out = [table_one(res)]
+    for split in ("by_kind", "by_kind_and_set"):
+        for name, sub in res.get(split, {}).items():
+            out += ["", f"### {name}", "", table_one(sub)]
+    return "\n".join(out)
+
+
+def table_one(res):
     def f(c):
         return "—" if not c or not c.get("n") else f"{c['k']} of {c['n']} [{c['wilson'][0]:.0%}, {c['wilson'][1]:.0%}]"
     out = ["| team | reviewer | variant | items | shipped wrong | caught | false alarms | undetermined | alone: corrects | alone: keeps | no letter |",
@@ -372,7 +406,7 @@ def main():
     mode.add_argument("--live", action="store_true")
     mode.add_argument("--summary", action="store_true", help="summarize the live runs so far")
     ap.add_argument("--n", type=int, default=2, help="live: number of pilot puzzles (without --cases)")
-    ap.add_argument("--cases", help="live: Track B's steered_cases.jsonl")
+    ap.add_argument("--cases", help="live: Track B's steered_cases.jsonl (with --summary: split by its kinds and sets)")
     ap.add_argument("--kinds", default="steered,matched")
     ap.add_argument("--per-kind", type=int, default=0, help="cases of each kind (0 = all)")
     ap.add_argument("--repeats", type=int, default=1)
@@ -396,10 +430,7 @@ def main():
         return
     path = OUT / f"{a.log}.jsonl"
     if a.summary:
-        reviews, checks = live_rows(path)
-        solvers = [r for r in complete_rows(path) if r["agent"] == "solver"]
-        res = {"by_team_model_variant": summarize(reviews), "checker_flag_rate": checker_rates(checks),
-               "c5_checker_vs_floor": floor_comparison(checks, solvers)}
+        res = results(path, case_groups(a.cases) if a.cases else None)
         (OUT / f"{a.log}_summary.json").write_text(json.dumps(res, indent=1) + "\n")
         print(table(res) if a.table else json.dumps(res, indent=1))
         return
