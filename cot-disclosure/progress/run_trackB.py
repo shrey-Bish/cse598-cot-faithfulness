@@ -23,6 +23,9 @@ tokens for prompt and reply over all rounds (each record keeps its completion to
 tool by itself, so its tool channel is tool_injected: our lookup_answer_key call and the tool's
 reply are written into the conversation, with the function declared in the system prompt.
 
+Qwen3-8B (provider sol_vllm, decided Oct 28: Ollama never on the Mac) runs inside a Sol GPU job against
+our own vLLM server, thinking on and off through enable_thinking (progress/sol_trackB.py).
+
 --steered writes one row per question for a model whose runs are all done: the question, its
 letters, the no-hint runs and each hinted channel's runs, and the case kind for Track C:
   steered  a tool channel (tool_real, tool_injected or tool_pasted) ended on the hint letter in at
@@ -59,7 +62,8 @@ LETTERS = "ABCDEFGHIJ"
 NOT_RUN_PASSES = 2                                           # extra passes for runs with no whole reply
 CORE_SET, CORE_CONDITIONS = "mmlupro_30", ("none", "user", "tool_real")   # --order core-first (Oct 27)
 TOKENIZERS = {"qwen3-30b-a3b-thinking-2507": "Qwen/Qwen3-30B-A3B-Thinking-2507",   # prompt tokens for the budget
-              "qwen3-30b-a3b-instruct-2507": "Qwen/Qwen3-30B-A3B-Instruct-2507", "qwen3:8b": "Qwen/Qwen3-8B"}
+              "qwen3-30b-a3b-instruct-2507": "Qwen/Qwen3-30B-A3B-Instruct-2507", "qwen3:8b": "Qwen/Qwen3-8B",
+              "qwen3-8b": "Qwen/Qwen3-8B"}
 _TOK = {}
 TOOL_CHANNELS = ("tool_real", INJECTED, "tool_pasted")      # what makes a case "steered" for Track C
 log = get_logger("trackB")
@@ -125,6 +129,12 @@ def calls_per_job(m, cond):
     return 2 if cond == "tool_real" else 1
 
 
+def in_flight(cfg, provider):
+    """Requests at once: Voyager cfg in_flight (4, across this Mac); our own vLLM server in a Sol job
+    sol_in_flight; paid and local providers one at a time."""
+    return {"voyager": cfg["in_flight"], "sol_vllm": cfg.get("sol_in_flight", 1)}.get(provider, 1)
+
+
 def plan(cfg, todo):
     """Jobs, calls, hours and estimated cost per model."""
     est = cfg["estimate"]
@@ -137,7 +147,7 @@ def plan(cfg, todo):
         n = calls_per_job(m, j["condition"])
         row["jobs"] += 1
         row["calls"] += n
-        row["hours"] += n * m.get("est_seconds", est["seconds"]) / (cfg["in_flight"] if p == "voyager" else 1) / 3600
+        row["hours"] += n * m.get("est_seconds", est["seconds"]) / in_flight(cfg, p) / 3600
         if p in budget.PAID:
             row["est_usd"] += n * budget.cost(model, est["input_tokens"], est["output_tokens"])
     for row in out.values():
@@ -151,7 +161,8 @@ def dry_run(cfg, todo):
     est = cfg["estimate"]
     print(f"Track B plan: {len(todo)} jobs to run ({cfg['runs_per_question']} runs per question by default); cost "
           f"assumes {est['input_tokens']} input / {est['output_tokens']} output tokens per call; hours use each "
-          f"model's est_seconds per call, {cfg['in_flight']} in flight on Voyager, 1 elsewhere")
+          f"model's est_seconds per call, {cfg['in_flight']} in flight on Voyager, {in_flight(cfg, 'sol_vllm')} on the Sol "
+          f"server, 1 elsewhere")
     for tag, row in plan(cfg, todo).items():
         line = f"  {tag:45} {row['jobs']:6,} jobs {row['calls']:6,} calls {row['hours']:6.1f} h"
         if row["paid"]:
@@ -302,7 +313,7 @@ def run(cfg, all_jobs, limit=None, stop_file=None):
     once that file exists, no new job starts (the ones in flight finish). Returns 0 when every chosen job
     is done, 2 when stopped by the file, 1 when some are left (a supervisor restarts it)."""
     providers = {j["model"]["provider"] for j in all_jobs}
-    workers = cfg["in_flight"] if providers == {"voyager"} else 1   # paid and local providers: one at a time
+    workers = in_flight(cfg, next(iter(providers))) if len(providers) == 1 else 1
     for name in sorted({j["model"]["model"] for j in all_jobs if j["model"]["provider"] == "voyager"}):
         with slot():
             preflight(name)      # /v1/models + identity canary before any job; raises (stops) on failure

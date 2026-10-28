@@ -24,8 +24,9 @@ Smoke and Steps 8–10 ran in the Oct 26 interactive session; Step 9's follow-up
   refuses a job script that names another account, or any account option you add. Inside a job,
   `sol/run.sh` checks `$SLURM_JOB_ACCOUNT` and stops under any other account, and also stops
   outside a Slurm job (login nodes). Don't call `sbatch` directly.
-- **Where.** `-p public -q class -G a100:1`. Quick script tests: `-q debug` (15 min). Setup
-  without a GPU: `-p lightwork -q public`. Batch jobs resume from their own checkpoints.
+- **Where.** `-p public -q class -G a100:1`. Quick script tests and setup
+  without a GPU use the same `-p public -q class`: the course account has only the class QoS, and
+  a job without a GPU still takes one of its 2 job slots (Oct 28). Batch jobs resume from their own checkpoints.
 - **The class QoS** (`sacctmgr -P show qos class`, confirmed Oct 27):
 
   | Field | Value |
@@ -176,8 +177,8 @@ bash cot-disclosure/finetune/gpu/sol/setup_env.sh        # 5-15 min, once
 cot-disclosure/finetune/gpu/sol/run.sh smoke              # 2-5 min
 ```
 
-**Batch:** `cot-disclosure/finetune/gpu/sol/submit.sh setup_env` (lightwork, no GPU), then
-`cot-disclosure/finetune/gpu/sol/submit.sh smoke` (debug QoS, 15 min). Log:
+**Batch:** `cot-disclosure/finetune/gpu/sol/submit.sh setup_env` (no GPU), then
+`cot-disclosure/finetune/gpu/sol/submit.sh smoke` (15 min). Log:
 `/scratch/ragarw68/trackA/slurm/trackA-smoke-<job>.out`.
 
 **CPU test (Mac):** `python -m pytest tests/test_trackA_gpu_kit.py` (a tiny random Olmo 3 with the
@@ -418,11 +419,17 @@ server's version).
 
 | Job | `submit.sh` line | Limit (estimate × 1.3) | Output (`/scratch/ragarw68/trackA/`) |
 |---|---|---|---|
-| setup_vllm (no GPU, lightwork) | `submit.sh setup_vllm` | 1:00 (the script's) | `/scratch/ragarw68/envs/olmo-vllm`; `vllm_serve_options.txt` (the server options, checked) |
+| setup_vllm (no GPU, class QoS) | `submit.sh setup_vllm` | 1:00 (the script's) | `/scratch/ragarw68/envs/olmo-vllm`; `vllm_serve_options.txt` (the server options, checked) |
 | S1 timing | `submit.sh timing --estimate 0.5` | 1:00 | `timing/timing.jsonl`: per version, 12 examples spread over the lengths, peak memory, seconds per token, predicted hours |
 | S2 vLLM check | `submit.sh vllm_check --estimate 1 --dependency=afterok:<setup job>` | 1:30 | `vllm_check/vllm_check.json`: served vs Hugging Face, plain and tagged; `pass` |
-| S3–S6 train | `submit.sh train --estimate 3 -- lora` (tags, lora_tags, lora_attn3) | 4:00 | `train/<version>/` (resumes; `final/` at the end) |
+| S3–S6 train (batch 2, Oct 28) | `plan_training.py <S1 timing.jsonl>` prints the 4 lines: lora and tags at once, lora_tags `--dependency=afterany:<lora job>`, lora_attn3 `afterany:<tags job>` | the refit's high end × 1.3, ≤ 8:00 | `train/<version>/` (resumes; `epoch<k>/` after each epoch; `final/` at the end) |
+| Track B Qwen3-8B (replaces Ollama) | `submit.sh trackb_qwen8b --estimate 1.5` (after `sol_trackB.py --download` once) | 2:00 | `results/trackB/sol_vllm*` in the clone; `sol_vllm_runs.jsonl` and `sol_vllm_flags.jsonl` (numbers) come back |
 | E1–E6 evaluate | `submit.sh eval --estimate 6 -- base 1/2` | 8:00 | `eval/eval_<system>*.jsonl*`, `eval_jobs.jsonl` |
+
+**S1's refit (Oct 28).** S1's straight line (seconds = fixed + per token × tokens) came out with a
+negative fixed part: the cost per token grows with length. `plan_training.py` refits seconds =
+c1 × tokens + c2 × tokens², both ≥ 0, sums it over the real lengths (`examples_lengths.json`) for 2
+epochs plus the validation passes, gives a 5–95% bootstrap range, and prints the batch-2 lines.
 
 **Server options are checked on the CPU (Oct 27).** vLLM 0.31.0 dropped `--disable-log-requests`
 (request logging is off by default), and the first S2 job (66753250) failed on a GPU after 12 minutes.

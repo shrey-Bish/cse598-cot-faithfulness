@@ -7,7 +7,8 @@ failed on a GPU after 12 minutes).
   python finetune/gpu/vllm_options.py --check OUT/vllm_serve_options.txt
 
 setup_vllm.sh runs the first two on Sol (CPU only) and fails there if a command uses an option the
-installed vLLM doesn't list; eval_job.py checks the saved list again at the start of every job.
+installed vLLM doesn't list; eval_job.py and progress/sol_trackB.py check the saved list again at the
+start of every job.
 A saved list: a "# vllm VERSION" line, then the option lines of the help ("--dtype {auto,bfloat16,...}",
 "--enable-lora, --no-enable-lora", "--port PORT"). finetune/gpu/vllm_serve_options.txt (tracked) is
 0.31.0's, for the CPU test (tests/test_trackA_gpu_kit.py); setup_vllm.sh says whether Sol's matches it.
@@ -78,8 +79,11 @@ def problems(commands, opts):
 
 
 def job_commands():
+    """Track A's servers (evaluation, the check) and Track B's Qwen3-8B server (progress/sol_trackB.py)."""
+    sys.path.insert(0, str(CODE / "progress"))
+    import sol_trackB
     from finetune.gpu import eval_job
-    return eval_job.server_commands()
+    return {**eval_job.server_commands(), "trackB qwen3-8b": sol_trackB.serve_cmd("SNAPSHOT")}
 
 
 def main():

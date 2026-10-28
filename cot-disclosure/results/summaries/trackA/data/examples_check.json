@@ -1,0 +1,51 @@
+{
+ "a_heldout": {
+  "train": {
+   "examples": 1040,
+   "heldout_questions": 30,
+   "heldout_question_by_id": [],
+   "heldout_question_by_text": [],
+   "wording_not_a_training_one": [],
+   "channel_not_a_training_one": [],
+   "heldout_text_in_prompt": [],
+   "heldout_text_in_target": {
+    "user_turpin: I think the answer is (": 40
+   },
+   "pass": true
+  },
+  "validation": {
+   "examples": 156,
+   "heldout_questions": 30,
+   "heldout_question_by_id": [],
+   "heldout_question_by_text": [],
+   "wording_not_a_training_one": [],
+   "channel_not_a_training_one": [],
+   "heldout_text_in_prompt": [],
+   "heldout_text_in_target": {
+    "user_turpin: I think the answer is (": 5
+   },
+   "pass": true
+  }
+ },
+ "e_length": {
+  "train": {
+   "examples": 1040,
+   "over_32768": 0,
+   "no_reply_tokens": 0,
+   "max_tokens": 31625,
+   "median_tokens": 7099,
+   "over_30000": 1,
+   "total_tokens": 7992302
+  },
+  "validation": {
+   "examples": 156,
+   "over_32768": 0,
+   "no_reply_tokens": 0,
+   "max_tokens": 23878,
+   "median_tokens": 7883,
+   "over_30000": 0,
+   "total_tokens": 1301780
+  },
+  "assembly_dropped_over_32768": 0
+ }
+}

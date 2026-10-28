@@ -4,7 +4,7 @@
 # can't share the project environment, which has torch 2.14.1 and transformers 5.18.0). Only the
 # server runs there: finetune/gpu/eval_job.py (project environment) starts "$TRACKA_VLLM serve".
 #   bash cot-disclosure/finetune/gpu/sol/setup_vllm.sh            # in your session (10-20 minutes)
-#   cot-disclosure/finetune/gpu/sol/submit.sh setup_vllm          # or as a lightwork job, no GPU
+#   cot-disclosure/finetune/gpu/sol/submit.sh setup_vllm          # or as a job without a GPU (public, class QoS)
 # Safe to run again.
 source "$(dirname "${BASH_SOURCE[0]}")/env.sh" || exit 1
 set -euo pipefail

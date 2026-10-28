@@ -1,145 +1,147 @@
-# Session log: the first Sol jobs fixed (submit.sh, the vLLM check), and where everything stands (2026-10-27 23:08 MST)
+# Session log: the class QoS only, training ready (batch 2), Qwen3-8B moves to Sol, Track B resumed (2026-10-27 23:55 MST)
 
 Project: CSE 598 Group 10, "Do thinking modes make chain-of-thought more honest?" Track A fine-tunes
-Olmo 3 7B Think so it says when a hint (from the user or a tool) changes its answer; the first Sol
-jobs are S1 (timing every training version) and S2 (checking that the vLLM server reproduces Hugging
-Face's tokens, plain and with source tags). Track B measures hint following across open models;
-Track C runs a solver/reviewer/checker team. This log covers the afternoon and evening of Oct 27
-after the 15:05 log, and answers the three questions the decisions message asked of it.
+Olmo 3 7B Think on Sol so it says when a hint changes its answer; Track B measures hint following
+across open models; Track C runs a solver/reviewer/checker team. This session acts on Ritik's
+messages of 23:30: the setup jobs were refused for their QoS, Track B's Voyager runs resume, Ollama
+is replaced by Qwen3-8B on Sol, and training is to start now.
 
 ## 1. Header
 
-- **Time:** 2026-10-27 23:08 MST (Arizona) = Oct 28 06:08 UTC.
-- **Branch:** `trackA-nosol`. **Commits since the 15:05 log:** `8d8e206` (Track B decisions 2 and 3,
-  the power guard), `cbbd936` (submit.sh, vLLM's own environment), `79ace0b` (the S2 fix); this log
-  on top. **Pushed by Ritik:** `origin/main` = `origin/trackA-nosol` = `cbbd936`. Not pushed:
-  `79ace0b` and this log. Local `main` = `trackA-nosol`.
-- **Tests:** 362 pass (CPU only, no network). Pre-push check: nothing produced, GPQA or over 50 MB.
-- **Running now:** nothing on the Mac (stopped 15:26, see §3). On Sol: S1 timing (66749357) as far
-  as I know; its result is not back yet.
+- **Time:** 2026-10-27 23:55 MST = Oct 28 06:55 UTC.
+- **Branch:** `trackA-nosol` at `8125f48` before; one commit after (§5) and this log. Nothing pushed
+  since `cbbd936`. **Tests:** 381 pass (CPU only, no network).
+- **Running:** Track B on the Mac (§2). On Sol, from Ritik: `setup_vllm.sh` by hand in a CPU salloc;
+  vllm_check 66757260 queued.
 
-## 2. The three questions
+## 2. What ran
 
-- **Have Steps 6–7 finished?** Yes: Oct 27 13:45 MST, exit 0, after 1 day 23.5 h (13:55 log).
-- **The assembled training set:** 1,196 examples: train 1,040 (217 questions), validation 156 (34
-  questions); 120 no-hint (10%); prefill 1,034, fallback 42; median 7,238 tokens; 2 epochs × 130
-  optimizer steps of 8 = 260 steps. The "neither" stance (57 of 1,133) was dropped.
-- **The history rewrite and the merge into main:** done. Rewrite 1 (13:49): `trackA-nosol`, 69
-  commits. Rewrite 2 (15:11): `main` + `trackA-nosol` + `voyager-ids-oct21`, 87 commits; backup
-  `~/backup-before-rewrite-2.bundle`; the sha256 list of 202 files identical; old tips kept in
-  `refs/backup/untrack-20261027-151131/*`. Local `main` fast-forwarded to `trackA-nosol`; Ritik
-  pushed both (now `cbbd936`). Not done yet: the `trackB-main` and `trackC-main` branches (Part 3,
-  after the push).
-
-## 3. What ran
-
-| Command | Where | Calls / GPU | Duration | Failures |
+| Command | Where | Calls | Duration | Failures |
 |---|---|---|---|---|
-| `progress/guard.py` with Track B Qwen3 30B Thinking (Voyager) and the Ollama grid (local, the battery exception) | Mac | Voyager: 35 runs saved; Ollama: 2 | 15:17–15:26 | stopped at Ritik's request (the Mac was slow); not restarted |
-| `submit.sh setup_vllm` | Sol, lightwork | no GPU | — | the first try printed nothing and submitted nothing (fixed in `cbbd936`); then ran: vLLM 0.31.0 is in `envs/olmo-vllm` |
-| `submit.sh timing` (S1), job 66749357 | Sol | 1 A100 | — | result not back yet |
-| `submit.sh vllm_check` (S2), job 66753250 | Sol | 1 A100, 12 min | 12 min | exit 1: the plain base server exited with code 2 (§4) |
-| a second vllm_check (66755545), which waited on the timing job by mistake | Sol | — | — | cancelled by Ritik |
-| vLLM 0.31.0's own CLI from its PyPI source release (`vllm-0.31.0.tar.gz`, sha256 `dde46f1e…`), in a scratch environment | Mac, CPU | none | minutes | none |
+| `progress/guard.py`, Voyager only: Qwen3 30B Thinking, then Instruct, then Olmo 3 7B Think (each starts when the one before is done) | Mac (AC, 100%) → Voyager | 663 + 805 + 805 jobs; 4 in flight | started 23:36; ~3.7 h + ~1 h + ~8 h | none so far (20 of 663 at 23:44) |
+| `finetune/check_examples.py` (checks (a) and (e)) | Mac | 0 | 13 s | none |
+| vLLM 0.31.0's own parser on the 9 server commands (scratch environment from its source release) | Mac, CPU | 0 | minutes | none: all 9 accepted; `qwen3` reasoning and `hermes` tool parsers exist |
 
-## 4. Results
+Nothing local runs beside the Voyager runs for this project. One process from another project was
+running on the Mac at 23:34 (`exp_oneshot_breakages.py` under `caffeinate`); not ours, not touched.
 
-**S2's failure.** `vllm_base.log`: `vllm: error: unrecognized arguments: --disable-log-requests`.
-vLLM 0.31.0 dropped the option (request logging is off by default). On the Mac, 0.31.0's own parser
-gives the same error for it and accepts all 8 commands the jobs use without it (6 evaluated systems,
-the check's plain and tagged servers). Cost: 12 GPU-minutes.
+## 3. Results
 
-**The fix (`79ace0b`).**
-- The option is removed from every server command.
-- `setup_vllm` runs `vllm serve --help=all` on the CPU node, checks every job's command against it
-  (options, and values of options with choices), saves the list to
-  `/scratch/ragarw68/trackA/vllm_serve_options.txt`, and fails there. A plain `--help` lists none
-  of the server options in 0.31.0, only the groups.
-- Every vLLM job checks the saved list before any GPU work and refuses without it.
-- A server that exits now shows the last 30 lines of its log in the job's error.
-- S2 starts the plain base server first, before the synthetic LoRA merge, the shard writing and the
-  Hugging Face references.
-- CPU tests check the exact commands against `finetune/gpu/vllm_serve_options.txt` (0.31.0's list,
-  tracked). They fail with the old command, naming `eval base: --disable-log-requests`.
+**(a) Held out stays held out:** 0 of 1,040 training and 0 of 156 validation examples is one of the
+30 held-out MMLU-Pro questions, by id or by question text; 0 carries a held-out hint wording (every
+wording id and channel is a training one; no held-out wording's own text, the system note or the
+`fetch_reference_solution` tool name appears in any prompt or tool list).
 
-**Track B so far** (counts only; no table until the core cells are complete):
-- Qwen3 30B Thinking: 147 runs (smoke included), all ended "stop". The longest run's replies total
-  13,574 tokens; 0 runs are over 16,000. So the 16,000 cut changes nothing, and no run needs to be
-  continued to 32,768 (decision 2's question). By condition: none 30, user 30, tool_pasted 29,
-  tool_real 29, system 29. In tool_real it called the tool in 5 of 29 runs; too early to read.
-- Ollama (qwen3:8b): 22 rows. 20 ran under the old 4,096 context and don't count (13 of them passed
-  4,096 tokens: T10, added to FINDINGS). 2 ran at 33,792.
+**(e) Length:** 0 examples over 32,768 tokens, encoded exactly as training encodes them: the
+longest is 31,625 in training and 23,878 in validation. 0 have no reply tokens; the assembly also
+dropped 0. Total 7,992,302 training tokens per epoch, 1,301,780 validation.
 
-**Battery during the exception:** 92% at 15:17, 87% at 15:22 (the 5-minute check). That is 5 points
-in 5 minutes with Ollama running. The guard log has no pause line: the processes were stopped
-directly at 15:26, `ollama serve` included. Requests in flight weren't saved, and none is marked
-"no answer"; they run again at the next start.
+**Training batch 2 is ready**, but its limits wait for the refit. S1's `timing.jsonl` is on Sol, and
+the Mac can't reach Sol: ssh asks for a password. `finetune/gpu/plan_training.py` refits S1 and
+prints each version's hours as a range and the four `submit.sh` lines with their limits:
+- **The fit:** seconds = c1 × tokens + c2 × tokens², both ≥ 0. A straight line through long and
+  short examples gives the negative fixed part S1 printed.
+- **The sum:** over the real lengths, 2 epochs, plus a validation pass each epoch at 0.25–0.5 of a
+  training step's time.
+- **The range:** a bootstrap over the timed examples.
+- **The limits:** each is the high end × 1.3, at most 8 h.
+- **Where it runs:** on a login node, no GPU.
 
-## 5. Files
+**The QoS fix:** `setup_vllm`, `setup_env` and `smoke` now ask for `-p public -q class`. smoke had
+`-q debug`, which the account doesn't have either. `submit.sh` refuses a partition or QoS that
+`accounts.conf` doesn't list for the account, with the reason, before sbatch. "limits not checked"
+is gone, and `-q` or `-p` on the command line is refused. A job without a GPU still takes one of the
+class QoS's 2 job slots.
 
-- Code: `finetune/generate.py` (`serve_cmd`, `log_tail`, `wait_ready`), `finetune/gpu/eval_job.py`
-  (`Server.command`, `server_commands`, `preflight`, the check's order), `finetune/gpu/vllm_options.py`
-  (new), `finetune/gpu/sol/setup_vllm.sh`; tests in `test_trackA_gpu_kit.py` and
-  `test_trackA_generate.py`.
-- Tracked list: `finetune/gpu/vllm_serve_options.txt` (17 KB; 312 option lines, 422 names).
-- Docs: GPU README (the option check), RUNBOOK (`setup_vllm` again, S2 with its dependency), TODO
-  (A13), FINDINGS (T10).
-- On Sol after the next `setup_vllm`: `/scratch/ragarw68/trackA/vllm_serve_help.txt` and
-  `vllm_serve_options.txt`.
+**Qwen3-8B on Sol** (replaces the Ollama grid; written now, since the earlier message about it isn't
+in this session's history):
+- **The job:** one GPU job starts vLLM on `Qwen/Qwen3-8B` (revision `b968826d`) from envs/olmo-vllm
+  and runs Track B's runner against it. Thinking on/off goes through `enable_thinking` in each
+  request. 48 requests are in flight, and the order is core-first: 540 core runs, then the rest of
+  the 1,620.
+- **The server's options:** `--reasoning-parser qwen3 --enable-auto-tool-choice --tool-call-parser
+  hermes --max-model-len 33792`. They are checked like Track A's servers.
+- **What comes back:** records with text stay on Sol. The numbers-only `sol_vllm_runs.jsonl` and
+  `sol_vllm_flags.jsonl` come back, and `trackB_report.py` reads the flags.
+- **Estimate: 0.5–1.5 GPU hours** (limit 2:00):
+  - Output: ~5,000 tokens a thinking run and ~800 without (Track B's Qwen3 runs so far), about 4.7M
+    output tokens in all.
+  - Speed: 1,000–3,000 tokens/s across 48 sequences on one A100, plus about 5 minutes to start.
+  - Not measured yet.
 
-## 6. Problems and fixes
+## 4. Files
 
-- `submit.sh setup_vllm` was silent: a job script without a GPU line made a grep fail under
-  pipefail. Fixed in `cbbd936`: `submit.sh` now ends with the job id, or an error and a non-zero exit.
-- An S2 was pointed at the timing job: dependencies are now checked by job kind (`cbbd936`).
-- S2 failed on an option vLLM 0.31.0 doesn't have (`79ace0b`). Why the tests missed it: they checked
-  the command's shape, and vLLM was installed nowhere but Sol. Now the installed version's own list
-  is checked on the CPU, and the tests use 0.31.0's list.
-- Ollama's 4,096 context dropped the question silently (T10, `8d8e206`).
+- **New:**
+  - `finetune/check_examples.py`; its numbers-only outputs `results/summaries/trackA/data/examples_check.json`
+    and `examples_lengths.json`.
+  - `finetune/gpu/plan_training.py`.
+  - `providers/sol_vllm.py`, `progress/sol_trackB.py`, `finetune/gpu/sol/trackb_qwen8b.sbatch`.
+  - Tests: `test_check_examples.py`, `test_trackA_plan.py`, `test_trackB_sol.py`.
+- **Changed:**
+  - `submit.sh` (QoS and partition from `accounts.conf`; `trackb_qwen8b` may wait for `setup_vllm`).
+  - `setup_env.sbatch`, `setup_vllm.sbatch`, `smoke.sbatch`; `run.sh` (step `trackb_qwen8b`).
+  - `vllm_options.py` (9 commands); `eval_job.Server` (takes a command).
+  - `run_trackB.py` (per-provider concurrency, a pinned tokenizer revision); `trackB_report.py`
+    (reads `*_flags.jsonl`); `configs/trackB.yaml` (Ollama out, Qwen3-8B on Sol in).
+  - `guard.py` (a job can wait for another).
+  - Docs: PLAN, TODO, RUNBOOK, OVERVIEW, the GPU README, `handoff/TRACK_B.md`.
 
-## 7. For review
+## 5. Problems and fixes
 
-- The tracked option list was made on the Mac from 0.31.0's source release, not from Sol's install.
-  `setup_vllm` says whether Sol's list matches it; if not, it prints the rsync to copy Sol's back.
-- `vllm serve --help=all` worked on the Mac's CPU. On Sol's lightwork node (CUDA build, no GPU) it is
-  untested. If it fails there, `setup_vllm` fails cheaply with the error's last lines, and the
-  dependent S2 never starts (`scancel` it).
-- The option check catches options and choice values, not runtime problems (prompt embeddings with
-  this model, memory). Those still appear only on a GPU: within minutes for the plain server, and
-  after the merge (several minutes) for the tagged one.
-- Qwen3's tool calls (5 of 29 tool_real runs) are an early count from one model, not a finding.
+- **`setup_vllm` was refused** ("Invalid qos specification"): it asked for `-p lightwork -q public`,
+  and submit.sh only printed "limits not checked". Fixed as in §3; 5 new tests.
+- **The tests block the network, localhost included** (conftest). The Sol adapter's tests use a fake
+  `urlopen`, as the other tests do.
+- **build_dataset's own leak check, which gave the manifest's "0 held-out wordings seen in training",
+  splits each template at `{`.** For several held-out wordings the longest piece then still contains
+  `letter}` or `qid}`, which never appears in filled text, so that check couldn't fire for them. The
+  new check splits at the slots and confirms 0. build_dataset itself is unchanged (the data is
+  built).
 
-## 8. Decisions needed from me
+## 6. For review
 
-1. Resume Track B's Voyager runs from the Mac? They are remote calls and light on the Mac (the
-   slowness came with Ollama running locally). Recommend: yes, under the guard, Voyager only.
-2. The Ollama grid: only on the charger as the rule says, or move it off the Mac? Recommend: hold it
-   until you say. It slowed the Mac and drew 1% of the battery a minute.
+- **45 targets contain "I think the answer is (":** 40 in training, 5 in validation. It is in the
+  model's own reasoning, not in any prompt. It is also how the held-out Turpin wording begins ("I
+  think the answer is (X) but I'm curious what you think."), whose second half appears nowhere.
+  Training doesn't show the model that wording, but the model's phrase overlaps it.
+- **The refit's validation share (0.25–0.5) is an assumption:** a forward pass against forward,
+  recomputation and backward. The S1 log doesn't measure it.
+- **Qwen3-8B on Sol (vLLM, bf16) is not the same serving as Ollama's qwen3:8b,** which is quantized.
+  The 2 Ollama runs at the right context stay apart in the report (by provider) and aren't pooled.
+- **vllm_check 66757260 was queued without a dependency.** If it starts before your `setup_vllm.sh`
+  has saved the option list, it refuses within seconds (the preflight). It also competes with
+  training for the 2 slots.
 
-## 9. Open work (top 10 of docs/TODO.md)
+## 7. Decisions needed from me
+
+1. The Qwen3-8B job on Sol: "go" (`submit.sh trackb_qwen8b --estimate 1.5`, 120 GPU-minutes), and
+   the snapshot download in your CPU session first.
+2. Batch 2's limits: `plan_training.py` prints them from S1. Submit as printed, or tell me if a
+   version's range looks wrong.
+
+## 8. Open work (top 10 of docs/TODO.md)
 
 | # | Item | Status |
 |---|---|---|
-| A13 | S1 timing, S2 vLLM check on Sol | S1 66749357 running or done; S2 to rerun after `setup_vllm` |
-| A15 | Train the 3 versions (S3–S5) | after S1 (the hours) |
-| B7 | Track B Voyager runs | stopped at 147 Qwen3 Thinking runs; decision 1 |
-| B4 | Ollama grid | stopped (2 runs at 33,792); decision 2 |
-| C (decision 5) | Track C's second reviewer becomes Olmo 3 32B Instruct | not started: canary reference, template check, served name (A26), 5-item smoke |
-| ALL | `trackB-main`, `trackC-main` branches | after the push: next |
-| L3 | Labels (two raters) | kit ready |
-| H2–H4 | Handoff docs and bundles, final by Nov 3 | drafts and bundle tool exist |
-| — | Daily log for Oct 27 | next |
+| A13 | S1 timing (66749357), S2 vLLM check (66757260) | S1 done on Sol (refit on Sol); S2 queued |
+| A15 | Batch 2: lora + tags, then lora_tags, lora_attn3 | ready: (a) and (e) pass; lines from `plan_training.py` |
+| B7 | Voyager runs, one model after another | running (Qwen3 Thinking 20 of 663 at 23:44) |
+| B4 | Qwen3-8B on Sol | code done; waits for "go" |
+| C (decision 5) | Track C's second reviewer becomes Olmo 3 32B Instruct | not started |
+| ALL | `trackB-main`, `trackC-main` | after the push; next |
+| A16 | Evaluate (E1–E5) | after S2 and training |
+| L3 | Labels | kit ready |
+| H2–H4 | Handoff docs final by Nov 3 | drafts exist |
 
-## 10. Next
+## 9. Next
 
 **Ritik (Mac, then Sol):**
 ```bash
-git push origin main trackA-nosol      # optional: 79ace0b and this log
+git push origin main trackA-nosol         # optional
 git ls-files | rsync -av --files-from=- ./ ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/
 # Sol, from /scratch/ragarw68/cse598-cot-faithfulness
-cot-disclosure/finetune/gpu/sol/submit.sh setup_vllm            # "Submitted batch job N"; no GPU, a few minutes
-cot-disclosure/finetune/gpu/sol/submit.sh vllm_check --estimate 1 --dependency=afterok:N   # limit 1:30
-tail -3 /scratch/ragarw68/trackA/slurm/trackA-setup-vllm-N.out  # "... all 8 server commands use only options it lists"
+source cot-disclosure/finetune/gpu/sol/env.sh
+"$TRACKA_PY" cot-disclosure/finetune/gpu/plan_training.py /scratch/ragarw68/trackA/timing/timing.jsonl
+# -> the table and four submit.sh lines: run the first two, put their job ids into the last two
 ```
-**Claude Code (no calls):** the daily log; decision 5's code; the `trackB-main` and `trackC-main`
-branches; then whatever decisions 1 and 2 say.
+**Claude Code:** watch the Voyager runs; decision 5's code; the branches; the handoff docs.

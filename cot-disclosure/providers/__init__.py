@@ -12,7 +12,7 @@ from importlib import import_module
 from . import budget
 from .base import Reply  # noqa: F401
 
-ADAPTERS = ("voyager", "ollama", "openai", "anthropic", "xai")
+ADAPTERS = ("voyager", "ollama", "sol_vllm", "openai", "anthropic", "xai")
 
 
 def adapter(provider):

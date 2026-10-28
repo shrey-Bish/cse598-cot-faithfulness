@@ -33,7 +33,7 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 | A12 | Sol kit QoS checks (Oct 27): one config file of accounts, partitions, QoS and limits (only listed accounts allowed; today the course account); each job's limit = estimate × 1.3 rounded up to 30 min; `submit.sh` refuses a job over 960 GPU-minutes, adds the remaining GPU-minutes of running and pending jobs (`squeue`), warns over 960 and says when the second slot frees; QoS fields in the GPU README | Oct 27 | done (`1608665`: accounts.conf, submit.sh checks, 5 tests) | — | Claude Code | no calls | 2 h |
 | A13 | First Sol jobs: setup_vllm (envs/olmo-vllm), S1 the timing run, S2 the vLLM check | Oct 25, Oct 27 | "go" given Oct 27; S1 submitted (66749357); S2 66753250 failed after 12 min (vLLM 0.31.0 has no `--disable-log-requests`): option removed, options now checked on the CPU in setup_vllm; rerun setup_vllm, then S2 | Ritik submits | Ritik | Sol | 150 GPU-min |
 | A14 | Gate 3 job plan: every job in order, 2 at a time, limits, dates | Oct 26–27 | done (PLAN; updated Oct 27 with the QoS and the accelerated dates) | — | Claude Code | no calls | — |
-| A15 | Train the 3 versions (S3–S5): rank 16, LoRA 2e-4, tag table 1e-3, 2 epochs; checkpoint per epoch, chosen by validation loss only (decided Oct 27) | PLAN | not started | A4, A13 | Ritik submits | Sol | 6–9 GPU h |
+| A15 | Train the versions (S3–S6) in batch 2: lora and tags at once, lora_tags after lora, lora_attn3 after tags (afterany); rank 16, LoRA 2e-4, tag table 1e-3, 2 epochs; checkpoint per epoch, chosen by validation loss only (decided Oct 27, Oct 28) | PLAN | ready: data checks (a) 0 held-out questions or wordings and (e) 0 over 32,768 pass (`check_examples.py`); limits from S1's refit (`finetune/gpu/plan_training.py`) | A4, A13 (S1) | Ritik submits | Sol | from the refit |
 | A16 | Evaluate base, prompt-only and the 3 versions on Sol (E1–E5), from Oct 30 | Oct 26 | not started | A13, A15 | Ritik submits | Sol | 25–70 GPU h |
 | A17 | Step 13 analysis: 4 measures, hiding check, false-disclosure check, measure 4 on hand-label categories, "tags help more on the inserted tool turn than the pasted block" | Oct 25, Oct 27 | not started | A16, L4 | Claude Code | no calls | 1 day |
 | A18 | Look-inside rerun on the best version (L1): Step 10 drops at 15/19/23; heads L19H31, L23H17, L15H31: drop, or stay while the answer stops following | Oct 26–27 | not started (code takes `--model`) | A16 | Ritik submits | Sol | 4–10 GPU h |
@@ -58,7 +58,7 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 | B11 | Identity-canary references for every Voyager model Tracks B and C use, before their first batch | Oct 27 | done: Qwen3 Thinking, Qwen3 Instruct, Olmo 3 7B Instruct (Olmo 3 7B Think existed) | — | Claude Code → Arsha | Voyager (a few calls) | 30 min |
 | B13 | Per model: smoke test (`--limit 5`) and the dry run (calls, hours) in a session log; then the run starts | Oct 27 | done: smoke 15 of 15; dry runs in the 13:05 log | — | Claude Code → Arsha | Voyager | 15 min each |
 | B7 | Voyager runs, 3 per question, the 24 puzzles and the 30 MMLU-Pro items, all conditions: Qwen3 30B Thinking, then Qwen3 30B Instruct, then Olmo 3 7B Think | PLAN, Oct 27 | in progress: Qwen3 30B Thinking started 13:51 MST (805 jobs, ~4.2 h); then Instruct, then Olmo | — | Claude Code → Arsha | Voyager | ~15 h (notes) |
-| B4 | Ollama `qwen3:8b`, thinking on and off, real tool calls: a 5-call timing pilot, then the grid it allows | PLAN, Oct 27 | in progress: pilot done (5 calls); full grid running (~51 h; restarted 13:51 after the rewrite pause) | — | Claude Code → Arsha | Ollama | 30 min + runs |
+| B4 | Qwen3-8B, thinking on and off, real tool calls: on Sol (our vLLM server, `enable_thinking`), core cells first; replaces the Ollama grid (decided Oct 28: Ollama never on the Mac; 2 Ollama runs at the right context exist) | PLAN, Oct 27, Oct 28 | code and CPU tests done (`progress/sol_trackB.py`, `providers/sol_vllm.py`); waits for "go" | setup_vllm, the snapshot | Ritik submits → Arsha | Sol | 0.5–1.5 GPU h |
 | B14 | Track B table: model × channel × thinking (on/off where it exists); hint following against the per-letter no-hint baseline; sure and unsure questions; mention in the private reasoning and the final answer (keywords); tool-call rate | Oct 27 | not started | B7, B4 | Claude Code → Arsha | no calls | 3 h |
 | B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? Answered as soon as the data allows | PLAN, Oct 27 | not started | B14 | Claude Code → Arsha | no calls | — |
 | B1 | Closed-provider keys: a real OpenAI key (the current one is the Voyager key), Anthropic, xAI | Oct 5 | blocked | keys | Ritik → Arsha | — | — |
@@ -143,10 +143,11 @@ requests in flight across every process on the Mac.
 | 2 | Track B, Qwen3 30B Thinking first (Track C's solver): 54 questions × 5 conditions × 3 runs + tool rounds | ~972 | ~5.4 h (972 × 80 s / 4) |
 | 3 | Track B, Qwen3 30B Instruct | ~972 | ~1.4 h |
 | 4 | Track B, Olmo 3 7B Think with `tool_injected` | ~810 | ~7.9 h (810 × 140 s / 4) |
-| 5 | Ollama `qwen3:8b`: 5-call timing pilot, then the grid it allows (local, beside the Voyager runs) | 5, then the grid | set by the pilot |
+| 5 | Qwen3-8B on Sol (replaces Ollama, Oct 28): one GPU job, core cells first | 1,620 runs | 0.5–1.5 GPU h |
 | 6 | Track C code (C6, C2, C3, C7), then C1 when Voyager has room | 35 | 15 min |
 | 7 | Export `steered_cases.jsonl` (B8); Track C on N steered + N matched no-hint cases, 3 repeats, tool and no-tool teams (C4), Qwen3 Thinking's first | ~114 × N (N = 30: ~3,400) | ~3.3 h at 4 in flight |
 | 8 | Analysis as data lands: B14, B9 (the Gate 2 question), C5 | 0 | — |
 
 Without GPQA: about 6,200 Voyager calls, 18–28 hours. Closed models only on keys and "go". Times
-for Ollama are set by its pilot; Voyager times come from the progress round's per-call means.
+for Qwen3-8B on Sol are an estimate (~5,000 output tokens a thinking run, ~800 without, 48 in flight);
+Voyager times come from the progress round's per-call means.

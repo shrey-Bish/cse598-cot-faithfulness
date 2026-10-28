@@ -6,6 +6,7 @@
 #   cot-disclosure/finetune/gpu/sol/run.sh vllm_check                # S2: the vLLM tag check
 #   cot-disclosure/finetune/gpu/sol/run.sh train VERSION [args]      # S3-S6: lora, tags, lora_tags, lora_attn3
 #   cot-disclosure/finetune/gpu/sol/run.sh eval SYSTEM [K/N] [args]  # E1-E6: one system, the K-th of N parts
+#   cot-disclosure/finetune/gpu/sol/run.sh trackb_qwen8b [args]      # Track B: Qwen3-8B on vLLM (progress/sol_trackB.py)
 # Output: $TRACKA_OUT/<step>/ (/scratch/ragarw68/trackA/<step>/), plus a log of the console there.
 # Slurm's warning before the time limit (sbatch --signal=B:USR1@300) is passed on to Python: training
 # saves a resume checkpoint at its next optimizer step; evaluation stops and resumes in the next job.
@@ -13,7 +14,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/env.sh" || exit 1
 set -euo pipefail
 tracka_require_job
 
-step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval [args]}
+step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|trackb_qwen8b [args]}
 shift
 args=("$@")
 case "$step" in
@@ -32,7 +33,9 @@ case "$step" in
             system=${1:?usage: run.sh eval SYSTEM [K/N]}
             args=(--system "$system" --out "$TRACKA_OUT/eval")
             if [ $# -ge 2 ] && [[ "$2" == */* ]]; then args+=(--part "$2" "${@:3}"); else args+=("${@:2}"); fi ;;
-    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval)" >&2; exit 2 ;;
+    trackb_qwen8b) script=progress/sol_trackB.py
+            args=(--run --log-dir "$TRACKA_OUT/trackb_qwen8b" "$@") ;;
+    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, trackb_qwen8b)" >&2; exit 2 ;;
 esac
 mkdir -p "$TRACKA_OUT/$step"
 log="$TRACKA_OUT/$step/console_$(date +%Y%m%d_%H%M%S)_${SLURM_JOB_ID}.log"

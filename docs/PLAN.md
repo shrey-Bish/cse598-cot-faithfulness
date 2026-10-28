@@ -1,7 +1,7 @@
 # Plan: weeks 11–16 (CSE 598, Group 10)
 
-Last updated: 2026-10-27 14:55 MST (week 11; the plan for Oct 27–Nov 3 moved everything as early
-as it can go). What's left, by track: the timeline, the gates, the Sol hours and the risks. What
+Last updated: 2026-10-28 00:30 MST (week 11; the plan for Oct 27–Nov 3 moved everything as early
+as it can go; Oct 28: Ollama replaced by Qwen3-8B on Sol, training batch 2, the class QoS only). What's left, by track: the timeline, the gates, the Sol hours and the risks. What
 is done is in [`OVERVIEW.md`](OVERVIEW.md); each result, with its numbers, source and status, is in
 [`FINDINGS.md`](FINDINGS.md). Every open item, with its owner and status, is in
 [`TODO.md`](TODO.md); how to run each step is in [`RUNBOOK.md`](RUNBOOK.md).
@@ -38,7 +38,7 @@ the old week-14 schedule. A date is the earliest start; Sol queue waits move it.
 | When | Track A | Track B | Track C | Labels, repo, handoff |
 |---|---|---|---|---|
 | Tue Oct 27 **(now)** | Steps 6–7 end; assemble train / validation; final counts | `tool_injected` for Olmo 3 Think, a model flag, the `steered_cases.jsonl` format; served-template checks, canary references, smoke tests; then the Voyager runs start: Qwen3 30B Thinking | — | History rewrite with its safeguards; merge into `main`; push commands for Ritik |
-| Wed Oct 28 | Steps 11–13 code (`train.py`, tagged generation, `eval.py`, Sol scripts) and the kit's QoS checks, CPU tests | Qwen3 30B Instruct, then Olmo 3 7B Think (Voyager, in the background); Ollama `qwen3:8b`: 5-call timing pilot, then its grid | Append-only log in `results/trackC/`, no-tool team, second reviewer, input file; then the live team on 5 items | Labeling kit; the 10 replacement rows |
+| Wed Oct 28 | Steps 11–13 code (`train.py`, tagged generation, `eval.py`, Sol scripts) and the kit's QoS checks, CPU tests | Qwen3 30B Instruct, then Olmo 3 7B Think (Voyager, in the background); Qwen3-8B on Sol: code and CPU tests (runs on "go") | Append-only log in `results/trackC/`, no-tool team, second reviewer, input file; then the live team on 5 items | Labeling kit; the 10 replacement rows |
 | Thu Oct 29 | **First Sol jobs** (on "go"): timing run and vLLM tag check, then training | Olmo 3 runs finish; the first Track B table; the Gate 2 question answered as soon as the data allows | The team on Qwen3 Thinking's steered cases, 3 repeats, tool and no-tool teams | Labeling starts (two raters) |
 | Fri Oct 30–Sun Nov 1 | Training done; evaluation of base, prompt-only and the 3 versions (E1–E5) | Analysis; gaps filled | Steered cases continue; the Track C table | Labels; kappa as rows come in |
 | Mon Nov 2–Tue Nov 3 | E1–E5 continue | **Handoff to Arsha, Nov 3** | **Handoff to Shrey, Nov 3** | Handoff docs and bundles final |
@@ -54,7 +54,7 @@ the old week-14 schedule. A date is the earliest start; Sol queue waits move it.
 - **Gate 1 (Oct 25): missed** (recorded Oct 27; TODO, G1). It needed real tool calls on 2+
   providers (Voyager only so far), closed-model smoke tests (no keys) and the agents on 5 items
   (2 so far). The fallback written for this applies: **Track B narrows to the providers that work
-  (Voyager and Ollama), and Track C runs on Voyager only.** Paid calls wait for keys and Ritik's
+  (Voyager, and Qwen3-8B on Sol in place of Ollama since Oct 28), and Track C runs on Voyager only.** Paid calls wait for keys and Ritik's
   "go".
 - **Gate 2 (Nov 8).** Is the tool-vs-user gap still clear with 3 runs per question and more models
   (Track B)? Answered as soon as the data allows, not on Nov 8. And are the hand labels in, with
@@ -146,7 +146,7 @@ hits it has no answer). Five systems: base, prompt-only, LoRA only, tags only, L
 ### Sol: limits and the Gate 3 job plan
 
 - **Account and queue.** Every job today uses `class_cse59888883fall2026`, on
-  `-p public -q class -G a100:1`; `-q debug` for 15-minute tests. Accounts, partitions, QoS and
+  `-p public -q class -G a100:1`; the course account has only the class QoS (no debug or public QoS, Oct 28). Accounts, partitions, QoS and
   their limits are to live in one config file that `sol/submit.sh` reads; it allows only the
   accounts listed there (today only the course account; Ritik adds others himself if more Sol
   access comes).
@@ -176,17 +176,18 @@ replaces these estimates with measured ones.
 |---|---|---|---|---|---|---|
 | S1 | Timing run: per version, 12 examples spread over the lengths (the longest included): memory and seconds per token | 0.25–0.5 | 1:00 | S2 | Oct 27 ("go") | code done |
 | S2 | vLLM check (vLLM 0.31.0 in its own env, olmo-vllm): served vs Hugging Face greedy tokens, plain and with LoRA merged + tag folded + tagged prompt embeddings, 3 prompts | ≤1 | 1:30 | S1 | Oct 27 ("go"), after setup_vllm | code done |
-| S3 | Train LoRA only (1,150–1,300 examples × 2 epochs) | 2–3 | 4:00 | S4 | Oct 29 | S1, assembled data |
-| S4 | Train tags only | 2–3 | 4:00 | S3 | Oct 29 | S1 |
-| S5 | Train LoRA + tags | 2–3 | 4:00 | E1 | Oct 30 | S1 |
+| S3 | Train LoRA only (1,040 examples × 2 epochs; batch 2, decided Oct 28) | S1 refit (`plan_training.py`) | high × 1.3, ≤ 8:00 | S4 | Oct 28 ("go") | S1, data checks (a) and (e) |
+| S4 | Train tags only (batch 2, at once with S3) | S1 refit | ≤ 8:00 | S3 | Oct 28 | S1 |
+| S5 | Train LoRA + tags (afterany S3) | S1 refit | ≤ 8:00 | S6 | after S3 | S1 |
 | E1 | Evaluate base (vLLM, no adapter), 930 generations | 5–14 (1–3 jobs) | 8:00 | S5, E2 | Oct 30 | code (A10), S2 |
 | E2 | Evaluate prompt-only | 5–14 (1–3 jobs) | 8:00 | E1, E3 | Oct 30 | A10 |
 | E3 | Evaluate LoRA only (merged, vLLM) | 5–14 (1–3 jobs) | 8:00 | E2, E4 | Oct 31 | S3 |
 | E4 | Evaluate LoRA + tags (vLLM with prompt embeddings; own loop if S2 fails: 9–24, 2–4 jobs) | 5–14 (1–3 jobs) | 8:00 | E3, E5 | Oct 31 | S2, S5 |
 | E5 | Evaluate tags only (same) | 5–14 (1–3 jobs) | 8:00 | E4 | Nov 1 | S2, S4 |
 | L1 | Look inside the best version: Step 3 probes (vLLM), Step 9, Step 10 | 4–10 (1–2 jobs) | 8:00 | S6 | after E1–E5 | E1–E5 |
-| S6 | The fourth version, last: train (LoRA on the attention of layers 15, 19, 23) | 1.5–2 | 3:00 | L1 | after E1–E5 | E1–E5 done by Nov 9 |
+| S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23); trained in batch 2 after S4 (afterany, decided Oct 28), evaluated last | S1 refit | ≤ 8:00 | S5 | after S4 | S1 |
 | E6 | Evaluate the fourth version | 5–14 (1–3 jobs) | 8:00 | — | after S6 | S6 |
+| B-Q8 | Track B: Qwen3-8B on vLLM (replaces Ollama), 1,620 runs, core cells first | 0.5–1.5 | 2:00 | any | on "go" | setup_vllm, the snapshot |
 | — | Buffer for queue waits and reruns; all evaluation done | | | | by Nov 20 | |
 
 With two jobs at a time the running time is about half the GPU hours: 18–45 hours for S1–L1
@@ -219,10 +220,11 @@ question.
 in the pinned format with the declared `tool_injected` channel, retries, `--steered`) and
 `trackB_report.py` (the table and the Gate 2 gap). Served templates match ours (Qwen3 differs only in
 the tool spec's key order); canaries exist for every Voyager model B and C use; smoke tests 15 of 15.
-Running: Qwen3 30B Thinking (805 jobs) and the Ollama qwen3:8b grid (on AC power). No keys; no GPQA.
+Running (Oct 28, on the Mac under the power guard, Voyager only): Qwen3 30B Thinking, then Qwen3 30B
+Instruct, then Olmo 3 7B Think, one after another. No keys; no GPQA.
 Early, 7 questions: Qwen3 30B Thinking called the tool in 0 of 7 tool_real runs.
 
-**This week (decided Oct 27).** Gate 1's fallback: Voyager and Ollama only; paid calls wait for
+**This week (decided Oct 27).** Gate 1's fallback: Voyager and our own Sol server only; paid calls wait for
 keys and "go"; GPQA waits until Ritik has accepted its terms on Hugging Face.
 1. Code, no calls: Olmo 3 7B Think through our pinned Think format on `/v1/completions`
    (`olmo_format.py`) with the declared `tool_injected` channel, as in Track A; a model flag for
@@ -234,7 +236,10 @@ keys and "go"; GPQA waits until Ritik has accepted its terms on Hugging Face.
 3. Voyager runs, 3 per question, the 24 puzzles and the 30 MMLU-Pro items, all conditions: Qwen3
    30B Thinking first (Track C's solver), then Qwen3 30B Instruct, then Olmo 3 7B Think. At most 4
    requests in flight across every process on the Mac.
-4. Ollama `qwen3:8b`, thinking on and off: a 5-call timing pilot, then the grid it allows.
+4. Qwen3-8B on Sol (decided Oct 28: Ollama never runs on the Mac): our vLLM server on one A100
+   (`progress/sol_trackB.py`), thinking on and off through `enable_thinking`, the core cells first
+   (30 MMLU-Pro × none/user/tool_real × on/off × 3 runs), then the puzzles, then the rest: 1,620
+   runs, 0.5–1.5 GPU hours (one job, limit 2:00). Code and CPU tests done; runs on "go".
 
 **Conditions** (`tools/answer_key.py`, same wrong letter per question): `none`, `user`,
 `tool_pasted`, `tool_real`, `system`; for Olmo 3 7B Think, `tool_injected` in place of `tool_real`
@@ -248,7 +253,7 @@ to `data/gpqa_diamond.jsonl`, gitignored; nothing from it goes into any doc or t
 | Provider | Model | Thinking on/off | Reasoning returned |
 |---|---|---|---|
 | Voyager (free) | Olmo 3 7B Think, Qwen3 30B Thinking, Qwen3 30B Instruct | no (use the twins) | full |
-| Ollama (free, local) | `qwen3:8b` | yes, same weights | full |
+| Sol (free, our vLLM job; Ollama until Oct 28) | Qwen3-8B (`Qwen/Qwen3-8B`, revision `b968826d`) | yes, same weights (`enable_thinking`) | full |
 | OpenAI | `gpt-6-luna` | effort `medium` vs `none` | summary |
 | Anthropic | `claude-haiku-4-5-20251001` (check it's still served; Haiku 5.5 needs an adapter change) | yes | summary |
 | xAI | `grok-4.3` | effort vs `none` | summary |

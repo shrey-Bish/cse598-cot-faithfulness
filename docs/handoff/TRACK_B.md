@@ -29,11 +29,12 @@ more models, with thinking on and off in the same model, real tool calls and 3 r
   - identity canaries (`configs/canary/`): Olmo 3 7B Think, Qwen3 30B Thinking, Qwen3 30B Instruct
   - smoke tests: 15 of 15 answered (3 models × 5 conditions), no errors
   - Ollama `qwen3:8b` timing pilot: thinking on 99–189 s per call, off 23–45 s (this Mac)
-- **Runs in progress** (Oct 27): Qwen3 30B Thinking on Voyager (805 jobs, ~4.2 h); the Ollama
-  `qwen3:8b` grid, thinking on and off (~1,600 jobs, ~51 h). Next: Qwen3 30B Instruct (~1 h), then
-  Olmo 3 7B Think (~8.2 h).
+- **Runs in progress** (Oct 28): on the Mac under the power guard, Voyager only, one model after
+  another: Qwen3 30B Thinking (663 jobs left, ~3.5 h), Qwen3 30B Instruct (~1 h), Olmo 3 7B Think
+  (~8.1 h). Qwen3-8B, thinking on and off, moved to Sol (decided Oct 28: Ollama never on the Mac):
+  `progress/sol_trackB.py`, one GPU job, runs on Ritik's "go".
 - **Not done:** closed providers (no keys; Gate 1 was missed and its fallback applies: Voyager and
-  Ollama only); GPQA (waits for Ritik to accept its terms on Hugging Face); the analysis table.
+  our own Sol server only); GPQA (waits for Ritik to accept its terms on Hugging Face); the analysis table.
 
 ## 2. Results so far
 
@@ -69,7 +70,7 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 | # | Item | Status (Oct 27) |
 |---|---|---|
 | B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | Thinking running |
-| B4 | Ollama qwen3:8b grid, thinking on and off | running (~51 h) |
+| B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | code done; waits for "go" |
 | B8 | `steered_cases.jsonl` per model | after each model's runs |
 | B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate | not started |
 | B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? | as soon as data allows |
@@ -78,7 +79,7 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 
 ## 5. Decisions you inherit
 
-- Gate 1 (Oct 25) was missed; the fallback applies: Voyager and Ollama only. Paid calls only with
+- Gate 1 (Oct 25) was missed; the fallback applies: Voyager, and Qwen3-8B on Sol (Ollama dropped Oct 28). Paid calls only with
   keys and Ritik's explicit "go"; the budget guard caps each provider at $5.
 - 3 runs per question; temperature 0.6; 16,000 reply tokens for chat models; always streamed; a
   cut-off reply is no answer.

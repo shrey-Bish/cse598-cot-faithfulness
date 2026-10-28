@@ -68,3 +68,19 @@ def test_work_left_restarts_and_done_finishes(tmp_path, monkeypatch):
     assert j.finished and started == [1, 1]
     g.step([j], False, 10, T0, None, clock=300)
     assert started == [1, 1]
+
+
+def test_a_job_with_after_starts_once_that_job_is_done(tmp_path, monkeypatch):
+    """Voyager models one after another (Oct 28): never more than one runner's requests in flight."""
+    first, s1 = job("voyager:qwen3think=progress/run_trackB.py --run --model a", tmp_path, monkeypatch)
+    second, s2 = job("voyager:olmo:qwen3think=progress/run_trackB.py --run --model b", tmp_path, monkeypatch)
+    assert (second.kind, second.name, second.after) == ("voyager", "olmo", "qwen3think") and first.after is None
+    g.step([first, second], True, 100, T0, None, clock=0)
+    assert s1 == [1] and s2 == []
+    first.proc.returncode = 1                                      # work left: restarts; the second still waits
+    g.step([first, second], True, 100, T0, None, clock=10)
+    g.step([first, second], True, 100, T0, None, clock=80)
+    assert s1 == [1, 1] and s2 == []
+    first.proc.returncode = 0
+    g.step([first, second], True, 100, T0, None, clock=200)
+    assert first.finished and s2 == [1]

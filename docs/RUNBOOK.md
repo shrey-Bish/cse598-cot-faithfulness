@@ -283,7 +283,9 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
                                                                         # checks the server options; rerun after a serve_cmd change
   cot-disclosure/finetune/gpu/sol/submit.sh timing --estimate 0.5       # S1: limit 1:00
   cot-disclosure/finetune/gpu/sol/submit.sh vllm_check --estimate 1 --dependency=afterok:<setup_vllm job>  # S2: limit 1:30
-  cot-disclosure/finetune/gpu/sol/submit.sh train --estimate 3 -- lora  # S3 (tags, lora_tags: S4, S5)
+  "$TRACKA_PY" cot-disclosure/finetune/gpu/plan_training.py /scratch/ragarw68/trackA/timing/timing.jsonl
+  # ^ S1's refit: hours per version (a range) and the batch-2 lines with their limits (high x 1.3, <= 8 h):
+  #   train lora and tags at once; lora_tags --dependency=afterany:<lora job>; lora_attn3 afterany:<tags job>
   # each version exports its chosen epoch to train/<version>/final/ when its last epoch ends
   cot-disclosure/finetune/gpu/sol/submit.sh eval --estimate 6 -- base 1/2   # E1, first half; then 2/2
   ```
@@ -355,8 +357,9 @@ It refuses a push that adds anything under a produced-data folder, any file with
 - **What:** hint following and admission across models, thinking on/off and channels
   (`configs/trackB.yaml`): 54 questions (24 puzzles, 30 MMLU-Pro) × 5 conditions × 3 runs per model.
   Olmo 3 7B Think runs in the pinned Think format with the declared `tool_injected` channel, as in
-  Track A. **Where:** Mac → Voyager; Ollama (local); closed providers only with keys and Ritik's "go".
-  **Status:** smoke tests passed Oct 27 (15 of 15); Qwen3 30B Thinking and the Ollama grid running.
+  Track A. **Where:** Mac → Voyager; Qwen3-8B on Sol (a GPU job; Ollama never on the Mac, Oct 28);
+  closed providers only with keys and Ritik's "go". **Status:** smoke tests passed Oct 27 (15 of 15);
+  the Voyager models running one after another under the power guard (Oct 28).
 - **Before a model's first batch** (from `cot-disclosure/`): its served template and an identity
   canary, then a smoke test and the dry run in a session log.
   ```bash
@@ -368,18 +371,34 @@ It refuses a push that adds anything under a produced-data folder, any file with
   ```
 - **Runs** (resumable; repeat by repeat; at most 4 Voyager requests in flight across all processes):
   ```bash
-  nohup caffeinate -i ../.venv/bin/python -u progress/run_trackB.py --run --model qwen3-30b-a3b-thinking-2507 \
-        >> logs/trackB_qwen3_thinking.log 2>&1 &
-  ollama serve &                                  # once; then the local grid, thinking on and off interleaved
-  nohup caffeinate -i ../.venv/bin/python -u progress/run_trackB.py --run --model qwen3:8b >> logs/trackB_ollama_grid.log 2>&1 &
+  nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
+    --job "voyager:qwen3think=progress/run_trackB.py --run --model qwen3-30b-a3b-thinking-2507" \
+    --job "voyager:qwen3instruct:qwen3think=progress/run_trackB.py --run --model qwen3-30b-a3b-instruct-2507" \
+    --job "voyager:olmo3think:qwen3instruct=progress/run_trackB.py --run --model olmo3-7b-think" >> logs/guard.log 2>&1 &
+  touch logs/stop_guard                           # stop: requests in flight finish first
   ../.venv/bin/python progress/run_trackB.py --steered --model qwen3-30b-a3b-thinking-2507   # Track C's input
   ../.venv/bin/python -m providers.budget --status                    # paid spend (none yet)
   ```
 - **Out:** `results/trackB/<provider>.jsonl.gz` (texts) and `<provider>_runs.jsonl` (numbers),
   `steered_cases.jsonl`, `template_check.jsonl` (all gitignored).
 - **Time:** Qwen3 30B Thinking ~4.2 h, Qwen3 30B Instruct ~1 h, Olmo 3 7B Think ~8.2 h (4 in flight);
-  Ollama qwen3:8b ~42 h thinking on + ~9 h off (this Mac). **Check:** `tail` the log (`not_run` and
+  Qwen3-8B on Sol 0.5–1.5 GPU hours (below). **Check:** `tail` the log (`not_run` and
   `api_error` counts); every row's `served_model` is the model asked for; the Mac stays awake.
+
+- **Qwen3-8B on Sol** (decided Oct 28; replaces the Ollama grid): one GPU job runs our vLLM server
+  (`Qwen/Qwen3-8B` at `b968826d`, envs/olmo-vllm) and the Track B runner against it, thinking on
+  and off through `enable_thinking`, core cells first; resumable. Records with text stay on Sol;
+  numbers-only flags come back.
+  ```bash
+  # Sol, once, in a CPU salloc (class QoS) with the network
+  source cot-disclosure/finetune/gpu/sol/env.sh
+  HF_HUB_OFFLINE=0 "$TRACKA_PY" cot-disclosure/progress/sol_trackB.py --download
+  # Sol, the job (after setup_vllm saved the option list)
+  cot-disclosure/finetune/gpu/sol/submit.sh trackb_qwen8b --estimate 1.5   # limit 2:00
+  # Mac, numbers only, then the report
+  rsync -av ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/results/trackB/sol_vllm_{runs,flags}.jsonl \
+        cot-disclosure/results/trackB/
+  ```
 
 ## 19. Track C: the agent team
 

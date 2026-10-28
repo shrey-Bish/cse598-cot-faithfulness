@@ -155,13 +155,14 @@ def test_every_job_script_uses_the_course_account_within_limits(script):
     accounts = [o for o in opts if o.startswith(("-A", "--account"))]
     assert accounts == [f"-A {ACCOUNT}"]
     qos = next(o.split()[1] for o in opts if o.startswith("-q "))
+    part = next(o.split()[1] for o in opts if o.startswith("-p "))
     t = minutes(next(o.split()[1] for o in opts if o.startswith("-t ")))
-    if qos == "debug":
-        assert t <= 15
-    elif qos == "class":                                       # class QoS: <= 4 GPUs, 32 cores, 320 GB; we cap at 16 h
-        assert t <= 16 * 60
-        assert int(next(o.split()[1] for o in opts if o.startswith("-c "))) <= 32
-        assert int(next(o.split("=")[1].rstrip("G") for o in opts if o.startswith("--mem="))) <= 320
+    listed = [line.split()[1:3] for line in (SOL / "accounts.conf").read_text().splitlines()
+              if line.strip() and not line.startswith("#")]
+    assert [part, qos] in listed                               # Oct 28: the course account has only public/class
+    assert qos == "class" and t <= 16 * 60                     # class QoS: <= 4 GPUs, 32 cores, 320 GB; we cap at 16 h
+    assert int(next(o.split()[1] for o in opts if o.startswith("-c "))) <= 32
+    assert int(next(o.split("=")[1].rstrip("G") for o in opts if o.startswith("--mem="))) <= 320
     gpus = [o for o in opts if o.startswith("-G ")]
     assert gpus in ([], ["-G a100:1"])
     assert "run.sh" in script.read_text() or "setup_env.sh" in script.read_text() or "setup_vllm.sh" in script.read_text()
@@ -207,6 +208,35 @@ def test_submit_refuses_a_script_with_another_account(tmp_path):
     (sol / "lab.sbatch").write_text((SOL / "smoke.sbatch").read_text().replace(ACCOUNT, "grp_hdavulcu"))
     r = submit(env, "lab", script=sol / "submit.sh")
     assert r.returncode == 1 and "must set exactly" in r.stderr and not log.exists()
+
+
+@pytest.mark.parametrize("pair", [("lightwork", "public"), ("public", "debug"), ("public", "public")])
+def test_submit_refuses_a_qos_the_account_does_not_list(tmp_path, pair):
+    """Oct 28: setup_vllm asked for -p lightwork -q public; sbatch said "Invalid qos specification" after
+    submit.sh printed "limits not checked". Now refused before sbatch, with the reason."""
+    env, log = fake_sbatch(tmp_path)
+    sol = tmp_path / "repo" / "cot-disclosure" / "finetune" / "gpu" / "sol"
+    sol.mkdir(parents=True)
+    for f in ("submit.sh", "guard.sh", "accounts.conf"):
+        shutil.copy(SOL / f, sol / f)
+    text = (SOL / "setup_vllm.sbatch").read_text().replace("-p public\n#SBATCH -q class", f"-p {pair[0]}\n#SBATCH -q {pair[1]}")
+    (sol / "lab.sbatch").write_text(text)
+    r = submit(env, "lab", script=sol / "submit.sh")
+    assert r.returncode == 1 and not log.exists(), r.stdout + r.stderr
+    assert f"partition '{pair[0]}' and QoS '{pair[1]}'" in r.stderr and "listed: -p public -q class" in r.stderr
+    assert "limits not checked" not in r.stdout + r.stderr
+    for extra in (["-q", "public"], ["--qos=debug"], ["-p", "lightwork"], ["--partition=public"]):
+        r = submit(env, "setup_vllm", *extra)
+        assert r.returncode == 1 and "from the job script" in r.stderr and not log.exists()
+
+
+def test_a_job_without_a_gpu_runs_in_the_class_qos(tmp_path):
+    env, log = fake_sbatch(tmp_path)
+    for job in ("setup_vllm", "setup_env"):
+        r = submit(env, job)
+        assert r.returncode == 0 and "Submitted batch job 1" in r.stdout, r.stderr
+        assert "x 0 GPU = 0 GPU-minutes" in r.stdout or "squeue not found" in r.stdout
+        assert sbatch_args(log)[:2] == ["-A", ACCOUNT] and "-q" not in sbatch_args(log)
 
 
 def fake_queue(tmp_path, env, lines):
@@ -322,7 +352,8 @@ def test_runs_only_inside_a_job_under_the_course_account(env_vars, ok):
     ("eval", ["lora_tags", "2/3"], ["finetune/gpu/eval_job.py", "--system", "lora_tags", "--out", "{out}/eval", "--part", "2/3"]),
     ("eval", ["base"], ["finetune/gpu/eval_job.py", "--system", "base", "--out", "{out}/eval"]),
     ("timing", [], ["finetune/train.py", "--version", "lora,tags,lora_tags,lora_attn3", "--timing", "12", "--out", "{out}/timing"]),
-    ("vllm_check", [], ["finetune/gpu/eval_job.py", "--check", "--out", "{out}/vllm_check"])])
+    ("vllm_check", [], ["finetune/gpu/eval_job.py", "--check", "--out", "{out}/vllm_check"]),
+    ("trackb_qwen8b", ["--limit", "5"], ["progress/sol_trackB.py", "--run", "--log-dir", "{out}/trackb_qwen8b", "--limit", "5"])])
 def test_run_sh_builds_each_new_step(tmp_path, step, args, want):
     """run.sh with env.sh stubbed (no mamba on the Mac): which script and arguments each step gets."""
     sol = tmp_path / "repo" / "cot-disclosure" / "finetune" / "gpu" / "sol"
@@ -363,7 +394,8 @@ def test_every_server_command_uses_options_vllm_lists():
     cmds = ej.server_commands()
     assert version == "0.31.0" and len(opts) > 300
     assert set(cmds) == {f"eval {s}" for s in SYSTEMS} | {"vllm_check plain", "vllm_check tagged"}
-    assert vo.problems(cmds, opts) == []
+    assert vo.problems(cmds, opts) == [] and vo.problems(vo.job_commands(), opts) == []
+    assert set(vo.job_commands()) == set(cmds) | {"trackB qwen3-8b"}              # Track B's Qwen3-8B server too
     assert "--enable-prompt-embeds" in cmds["eval lora_tags"] and "--enable-prompt-embeds" not in cmds["eval lora"]
     assert vo.unknown(["vllm", "serve", "M", "--disable-log-requests"], opts) == ["--disable-log-requests"]
 
@@ -414,10 +446,11 @@ def test_setup_vllm_checks_the_server_options_on_the_cpu(tmp_path):
     lines = [x for x in vo.TRACKED.read_text().splitlines() if x and not x.startswith("#")]
     r = run_setup_vllm(tmp_path / "ok", lines)
     assert r.returncode == 0, r.stderr
-    assert "all 8 server commands use only options it lists" in r.stdout and "the same options as the tracked list" in r.stdout
+    assert "all 9 server commands use only options it lists" in r.stdout and "the same options as the tracked list" in r.stdout
     assert vo.load(tmp_path / "ok" / "out" / "vllm_serve_options.txt") == vo.load(vo.TRACKED)
     r = run_setup_vllm(tmp_path / "no_seed", [x for x in lines if not x.startswith("--seed ")])
     assert r.returncode == 1 and "eval base: --seed" in r.stderr and "vllm_check tagged: --seed" in r.stderr
+    assert "trackB qwen3-8b: --seed" in r.stderr
     assert not (tmp_path / "no_seed" / "out" / "vllm_serve_options.txt").exists()
     r = run_setup_vllm(tmp_path / "broken")
     assert r.returncode == 1 and "vllm serve --help=all failed (exit 2)" in r.stderr and "libcuda" in r.stderr

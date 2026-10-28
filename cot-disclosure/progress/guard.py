@@ -5,6 +5,9 @@
       --job "local:ollama=progress/run_trackB.py --run --model qwen3:8b --order core-first" \\
       --battery-until 2026-10-27T17:15 >> logs/guard.log 2>&1 &
   touch logs/stop_guard        # stop: every job finishes its requests in flight, then the guard exits
+A job named KIND:NAME:AFTER starts only once job AFTER has finished all its work (exit 0), so Voyager
+models run one after another (at most 4 requests in flight on this Mac):
+  --job "voyager:qwen3think=..." --job "voyager:qwen3instruct:qwen3think=..." --job "voyager:olmo:qwen3instruct=..."
 
 Rules (checked every 5 minutes with `pmset -g batt`, and at start):
   local jobs (Ollama: the model runs on this Mac)   on the charger; on battery only before --battery-until
@@ -55,7 +58,7 @@ def say(msg, on_ac=None, pct=None):
 class Job:
     def __init__(self, spec):
         kind_name, cmd = spec.split("=", 1)
-        self.kind, self.name = kind_name.split(":", 1)
+        self.kind, self.name, self.after = (kind_name.split(":", 2) + [None])[:3]
         if self.kind not in ("local", "voyager"):
             raise ValueError(f"job kind must be local or voyager: {spec}")
         self.cmd = cmd.split()
@@ -76,7 +79,9 @@ class Job:
 
 
 def step(jobs, on_ac, pct, now, battery_until, clock):
-    """One pass: pause what may not run, notice exits, (re)start what may run."""
+    """One pass: pause what may not run, notice exits, (re)start what may run (a job with AFTER waits
+    for that job to finish)."""
+    by_name = {j.name: j for j in jobs}
     for j in jobs:
         ok = allowed(j.kind, on_ac, pct, now, battery_until)
         running = j.proc is not None and j.proc.poll() is None
@@ -91,7 +96,8 @@ def step(jobs, on_ac, pct, now, battery_until, clock):
             else:
                 say(f"{j.name} exited with code {code} ({'paused' if code == 2 else 'work left'})", on_ac, pct)
                 j.restart_at = clock + TICK_S
-        if j.proc is None and not j.finished and ok and clock >= j.restart_at:
+        waiting = j.after is not None and not by_name[j.after].finished
+        if j.proc is None and not j.finished and ok and clock >= j.restart_at and not waiting:
             j.start(on_ac, pct)
 
 
@@ -103,6 +109,9 @@ def main(argv=None):
     LOGS.mkdir(exist_ok=True)
     until = datetime.fromisoformat(a.battery_until) if a.battery_until else None
     jobs = [Job(s) for s in a.job]
+    unknown = [j.after for j in jobs if j.after and j.after not in {k.name for k in jobs}]
+    if unknown:
+        ap.error(f"a job waits for an unknown job: {unknown}")
     guard_stop = LOGS / "stop_guard"
     guard_stop.unlink(missing_ok=True)
     on_ac, pct = battery()

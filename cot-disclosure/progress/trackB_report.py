@@ -54,9 +54,15 @@ def flags(r):
 
 
 def load_flags(out=OUT):
-    rows = []
+    """Flags from the records (with text); for a provider whose records stay elsewhere (Sol: the text
+    never leaves it), from its numbers-only <provider>_flags.jsonl (progress/sol_trackB.py)."""
+    rows, have = [], set()
     for p in sorted(Path(out).glob("*.jsonl.gz")):
+        have.add(p.name[:-len(".jsonl.gz")])
         rows += [flags(r) for r in latest(load(p)) if r.get("experiment") == "trackB" and r["status"] == "ok"]
+    for p in sorted(Path(out).glob("*_flags.jsonl")):
+        if p.name[:-len("_flags.jsonl")] not in have:
+            rows += latest(load(p))
     return rows
 
 

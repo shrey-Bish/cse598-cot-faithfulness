@@ -15,6 +15,10 @@
 #   requested GPU-minutes of your pending ones in that QoS (squeue); over the limit: a warning, and
 #   when the job can start; both slots taken: when the second slot frees up
 #
+# The job script's partition and QoS must be a pair accounts.conf lists for the account (Oct 28: the
+# course account has only the class QoS; "-q public" was rejected by sbatch); else refused here, before
+# sbatch. Partition and QoS are set in the job script, never on the command line.
+#
 # --dependency (afterok:N etc.): every named job must be running or pending, and of a kind this job
 # may wait for (depends_on below; e.g. vllm_check waits for setup_vllm), else the submission is refused.
 # It always ends with sbatch's "Submitted batch job N", or a clear error and a non-zero exit code.
@@ -28,8 +32,7 @@ if ! tracka_account_allowed "$ACCOUNT"; then
     echo "refusing: account '$ACCOUNT' is not listed in $TRACKA_ACCOUNTS_FILE" >&2
     exit 1
 fi
-read -r PARTITION QOS GPU_RUN_MIN MAX_JOBS MAX_SUBMIT MAX_WALL_H MAX_GPUS < <(
-    awk -v a="$ACCOUNT" '!/^[[:space:]]*#/ && $1 == a {print $2, $3, $4, $5, $6, $7, $8}' "$TRACKA_ACCOUNTS_FILE")
+rows=$(awk -v a="$ACCOUNT" '!/^[[:space:]]*#/ && $1 == a {print $2, $3, $4, $5, $6, $7, $8}' "$TRACKA_ACCOUNTS_FILE")
 
 job=${1:?usage: submit.sh JOB [--estimate HOURS] [sbatch options] [-- job arguments]}
 shift
@@ -43,6 +46,9 @@ while [ $# -gt 0 ]; do
         --estimate=*) estimate=${1#*=}; shift ;;
         --) shift; jobargs=("$@"); break ;;
         -A*|--account*) echo "refusing: the account is set here ($ACCOUNT), not on the command line" >&2; exit 1 ;;
+        -q*|--qos*|-p*|--partition*)
+            echo "refusing: the partition and QoS come from the job script, checked against accounts.conf, not the command line" >&2
+            exit 1 ;;
         *) sb+=("$1"); shift ;;
     esac
 done
@@ -55,6 +61,20 @@ fi
 
 opt() { { grep -E "^#SBATCH[[:space:]]+$1" "$2" || true; } | tail -1 | sed -E "s/^#SBATCH[[:space:]]+$1[=[:space:]]*//"; }
 script_qos=$(opt '(-q|--qos)' "$script")
+script_part=$(opt '(-p|--partition)' "$script")
+row=$(printf '%s\n' "$rows" | awk -v p="$script_part" -v q="$script_qos" '$1 == p && $2 == q' | head -1)
+override=()
+if [ -z "$row" ] && [ -n "${TRACKA_SUBMIT_ACCOUNT:-}" ]; then
+    row=$(printf '%s\n' "$rows" | head -1)                  # another listed account: its own partition and QoS
+    override=(-p "${row%% *}" -q "$(echo "$row" | awk '{print $2}')")
+fi
+if [ -z "$row" ]; then
+    echo "refusing: $job.sbatch asks for partition '${script_part:-none}' and QoS '${script_qos:-none}'," \
+         "which accounts.conf doesn't list for $ACCOUNT (listed: $(printf '%s\n' "$rows" | awk '{printf "%s-p %s -q %s", (NR > 1 ? "; " : ""), $1, $2}'))." \
+         "sbatch would reject it (Invalid qos specification); nothing was submitted." >&2
+    exit 1
+fi
+read -r PARTITION QOS GPU_RUN_MIN MAX_JOBS MAX_SUBMIT MAX_WALL_H MAX_GPUS <<< "$row"
 gpus=$(opt '(-G|--gpus)' "$script" | awk -F: '{print ($NF ~ /^[0-9]+$/) ? $NF : 1}')
 gpus=${gpus:-0}
 to_min() { awk -v t="$1" 'BEGIN { d = 0; if (index(t, "-")) { split(t, a, "-"); d = a[1]; t = a[2] }
@@ -68,7 +88,7 @@ fi
 limit=$(printf '%d:%02d:00' $((limit_min / 60)) $((limit_min % 60)))
 need=$((limit_min * gpus))
 
-if [ "$script_qos" = "$QOS" ]; then
+if true; then                                 # always a listed QoS (checked above)
     if [ "$limit_min" -gt $((MAX_WALL_H * 60)) ]; then
         echo "refusing: a $limit limit is over the $QOS QoS's MaxWall of $MAX_WALL_H h" >&2
         exit 1
@@ -100,8 +120,6 @@ if [ "$script_qos" = "$QOS" ]; then
     else
         echo "squeue not found or failed: running and pending jobs not checked"
     fi
-else
-    echo "QoS ${script_qos:-none} (not the account's $QOS): limits not checked"
 fi
 
 # --dependency: the named jobs must be running or pending, and of a kind this job may wait for
@@ -110,6 +128,7 @@ depends_on() {          # the job kinds each job may wait for (plain case: works
         vllm_check) echo "setup_vllm" ;;
         eval) echo "setup_vllm vllm_check train" ;;
         train) echo "timing train" ;;
+        trackb_qwen8b) echo "setup_vllm trackb_qwen8b" ;;
     esac
 }
 deps=""
@@ -145,10 +164,6 @@ fi
 unset SBATCH_ACCOUNT SLURM_ACCOUNT
 mkdir -p "${TRACKA_SLURM_LOGS:-/scratch/ragarw68/trackA/slurm}"   # the scripts' -o directory
 cd "$REPO"                                   # the job starts here ($SLURM_SUBMIT_DIR)
-override=()
-if [ -n "${TRACKA_SUBMIT_ACCOUNT:-}" ] && [ "$script_qos" = "class" ]; then
-    override=(-p "$PARTITION" -q "$QOS")      # another listed account: its own partition and QoS
-fi
 trap - ERR
 if ! out=$(sbatch -A "$ACCOUNT" ${override[@]+"${override[@]}"} -t "$limit" ${sb[@]+"${sb[@]}"} "$script" \
            ${jobargs[@]+"${jobargs[@]}"} 2>&1); then

@@ -38,14 +38,14 @@ Claude 1.0 toward (B), and their explanations rarely mentioned it.
 |---|---|---|
 | Progress round (Oct 1–6) | Test 1, Test 2, reviewer demo, truncation sweep; deck, figures, demo app | — |
 | Track A (Ritik) | Steps 1–10, the window analysis, Step 9's follow-up and matched onsets (FINDINGS F1–F14); Steps 6–7 done Oct 27 (251 kept of 530; 1,196 examples assembled); Steps 11–13 code, Sol jobs and QoS checks; figures #1 and #4 | Steps 11–13 on Sol (first jobs on "go") |
-| Track B (Ritik until Nov 3, then Arsha) | Runner with `--model`, Olmo in the pinned format with `tool_injected`, the steered-cases export, the table and Gate 2 script; served templates and canaries checked; smoke 15 of 15; Ollama pilot | Voyager runs (Qwen3 Thinking running, then Instruct, Olmo), the Ollama grid, keys, GPQA |
+| Track B (Ritik until Nov 3, then Arsha) | Runner with `--model`, Olmo in the pinned format with `tool_injected`, the steered-cases export, the table and Gate 2 script; served templates and canaries checked; smoke 15 of 15; Ollama pilot; Qwen3-8B on Sol (code) | Voyager runs (Qwen3 Thinking running, then Instruct, Olmo), Qwen3-8B on Sol (on "go"), keys, GPQA |
 | Track C (Ritik until Nov 3, then Shrey) | Solver, reviewer, checker; append-only resumable `run_team.py` with the no-tool team, two reviewer models, Track B's cases as input (Oct 27) | 5 items (running), Track B's steered cases, the table |
 | Labels | Guide, queue (101 rows; 10 replaced Oct 27), the kit with blank sheets and kappa | Labeling (two raters), Cohen's kappa |
 | Repo | Data off GitHub (gitignore, numbers-only summaries, pre-push hook); history of `trackA-nosol` rewritten Oct 27; local `main` fast-forwarded; 340 tests | The plan for `main`'s 2 unpushed commits, then the push |
 
 **Gate 1 (Oct 25) was missed** (recorded Oct 27; PLAN, gates): real tool calls work on Voyager
 only, there are no closed-provider keys, and the agents ran on 2 items. The fallback applies:
-Voyager and Ollama for Track B, Voyager for Track C.
+Voyager and Qwen3-8B on Sol (Ollama until Oct 28) for Track B, Voyager for Track C.
 
 ## 3. What was done, in order
 
@@ -259,7 +259,7 @@ All code is in `cot-disclosure/` ([its README](../cot-disclosure/README.md): set
 | `client.py`, `parse.py`, `detect.py` | Voyager client (streaming, guards, canary, cache); answer-letter parser; keyword pre-sort |
 | `tasks.py`, `experiments.py`, `analyze.py`, `run.py` | Puzzles; Test 1; its numbers; the Oct 1–2 runner |
 | `progress/` | The progress round (Test 2, Experiment A, truncation, `analyze_progress.py`), `common.py` (records, limiter, Wilson, clustered bootstrap, the 5-question rule); Track B: `run_trackB.py`, `trackB_report.py`, `voyager_template_check.py`, `make_canary.py` |
-| `providers/` | One interface over Voyager, Ollama, OpenAI, Anthropic, xAI; `budget.py` caps and logs spend |
+| `providers/` | One interface over Voyager, Ollama, our Sol vLLM server (`sol_vllm`), OpenAI, Anthropic, xAI; `budget.py` caps and logs spend |
 | `tools/answer_key.py` | The hint conditions (`none`, `user`, `tool_pasted`, `tool_real`, `tool_injected`, `system`) |
 | `tools/export_summaries.py`, `prepush_check.py`, `untrack_produced.py`, `label_kit.py`, `make_handoff_bundle.py` | Numbers-only summaries with a no-text check; the pre-push check; the history rewrite (scoped, backed up); the labeling kit and kappa; per-track data bundles |
 | `agents/` | Track C: solver, reviewer, checker, `run_team.py` |
