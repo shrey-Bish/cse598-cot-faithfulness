@@ -1,8 +1,8 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-28 (F14, F15, F16, T9 and T10 added; F10's closest-approach
-reading refuted; limitations section). Design and plans: [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
+status. Started 2026-10-26; last updated 2026-10-28 12:20 (F14, F15, F16, T9 and T10 added; F15/F16: the final answer after a
+real call, real call vs pasted; F10's closest-approach reading refuted; limitations section). Design and plans: [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
@@ -460,7 +460,7 @@ the leading forced answer (Step 3's dense curves: 199 runs, 20 questions).
   *tentative*: lasting > temporary (followed runs only, not robust to isolated onsets). The
   spike's length: descriptive.
 
-## F15. Track B, Qwen3 30B Thinking: tool and system hints move it, the user's doesn't; after a real tool call the final answer hides the tool
+## F15. Track B, Qwen3 30B Thinking: tool and system hints move it, the user's doesn't; after a real tool call the final answer is a bare letter
 
 **Setup.** Track B (Oct 27–28, Voyager, served format): 54 questions (24 pilot puzzles, 30
 MMLU-Pro) × 5 conditions × 3 runs = 810 runs at the 32,768-token budget, every one with an answer.
@@ -487,6 +487,16 @@ Each hint names the same wrong letter.
   - Following when it called: 54 of 54 [93, 100%]. Without a call: 0 of 108 [0, 3%]. So this
     channel's following is its call rate.
   - When it called, the private reasoning named the tool in 54 of 54 and the final answer in 3 of 54.
+- **The final answer, real call vs pasted** (the runs that followed; a headline candidate, Oct 28):
+  - It names the hint in 3 of 54 real-call runs [2, 15%] vs 54 of 59 pasted [82, 96%]: real −
+    pasted **−86 points [−95, −75]**. The interval is a bootstrap over the 37 questions with a
+    following run in either channel (real call 29, pasted 27, both 19), unpaired, because the runs
+    that follow differ by channel.
+  - **After the call, the reply is a bare `Answer: (X)`** in 51 of 54 [85, 98%] (median 11
+    characters). The prompt asks it to think step by step and then answer. The turn that makes the
+    call has no visible text in 52 of 54. The 3 replies with more text all name the tool.
+  - With the pasted block, no reply is bare (0 of 59 [0, 6%]; median 2,756 characters).
+  - The private reasoning names the hint in both: 54 of 54 and 59 of 59.
 - **Final answers name pasted and system hints.** With a pasted block or a system note, the final
   answer names the hint in most runs that follow it (table). The user's hint is named in 31 of 162
   final answers, all in runs that didn't follow it.
@@ -515,10 +525,16 @@ Each hint names the same wrong letter.
   - **The set matters.** Almost all of that happens on MMLU-Pro: knowledge questions, where it
     also calls the lookup tool. On the puzzles, which it works out (72 of 72 right with no hint), it
     rarely calls the tool and rarely follows.
-  - **The real call is the hidden case.** After a real call, it took the tool's letter every time
-    and its final answer cited the tool 3 times in 54. A pasted block or a system note is cited
-    instead. This narrows F3 for this model: for these two channels, the final answer often does
-    name the hint.
+  - **After a real call, the answer stops explaining.** It took the tool's letter every time, and
+    the visible reply was the letter alone in 51 of 54: no tool, and no reasoning either. With the
+    same hint pasted, it writes a worked answer that names the hint in 54 of 59. So the channel
+    changes how much the final answer says, not only whether it names the source. Whenever the
+    reply after a call has text, it names the tool (3 of 3).
+  - **What a reader sees.** From the final answer alone, nothing shows the tool decided it. The
+    call is in the tool log, and the private reasoning names the tool in 54 of 54 (keywords). This
+    is the case Track C's reviewer variants test.
+  - This narrows F3 for this model: with a pasted block or a system note, the final answer often
+    does name the hint.
   - **F1 holds with more data.** F1's served-format gap holds for Qwen3 Thinking alone with 3 runs,
     54 questions and the full budget.
 - **Source.**
@@ -530,7 +546,10 @@ Each hint names the same wrong letter.
 - **Status.**
   - *confirmed*: tool and system hints above the user's (Gate 2) on 54 questions × 3 runs, and
     following after a real call (54 of 54).
-  - *confirmed as keyword counts*: the real call missing from the final answer.
+  - *confirmed*: the bare-letter reply after a real call (51 of 54; a length count, no keywords).
+  - *confirmed as keyword counts*: the naming contrast (3 of 54 vs 54 of 59) and the private
+    reasoning's mentions. Hand labels: these 113 runs are the first group of the Track B labeling
+    batch (`tools/label_kit.py trackb`, decided Oct 28).
   - *tentative*: why the sets differ. "Knowledge vs worked out" is one reading; the sets differ in
     more than that.
 
@@ -557,6 +576,11 @@ source the pasted block and the system note also name.
   - It took the tool's letter in 147 of 162. In 14 of the other 15 it gave the right answer.
   - The median real-call run is 35 output tokens over both turns (puzzles 32, MMLU-Pro 140): the
     call, then the letter.
+  - **The final answer, real call vs pasted** (runs that followed): it names the hint in 30 of 147
+    [15, 28%] vs 29 of 35 [67, 92%]: real − pasted **−62 points [−83, −39]** (bootstrap over 52
+    questions: real call 52, pasted 16, both 16; unpaired).
+  - After the call, the reply is a bare `Answer: (X)` in 111 of 147 [68, 82%]: 72 of 72 on the
+    puzzles and 39 of 75 on MMLU-Pro. Of the 36 replies with more text, 30 name the tool.
 - **By set:**
 
   | set (no-hint right) | user | tool, pasted | tool, real call | system note | Gate 2 pasted / real |
@@ -591,8 +615,14 @@ source the pasted block and the system note also name.
     runs (54 of 162) and follows every call it makes (F15). It also follows pasted and system hints
     more than Instruct does. So its lower real-call following comes from calling less, not from
     weighing the tool's answer.
+  - **Following an answer key can be reasonable tool use.** The tool is described as the course
+    answer key, so taking its letter is what such a tool invites. The claim is about disclosure,
+    not about being fooled: after a call, the final answer names the tool in 30 of 147 runs and is a
+    bare letter in 111.
   - **The final answer rarely says so in either.** After a real call, Instruct's final answer names
-    the tool in 30 of 147, and Thinking's in 3 of 54. All 30 of Instruct's are on MMLU-Pro.
+    the tool in 30 of 147, and Thinking's in 3 of 54. All 30 of Instruct's are on MMLU-Pro. In both
+    models, the silence is the bare-letter reply: a reply with text names the tool in 30 of 36
+    (Instruct) and 3 of 3 (Thinking).
   - **Two checkpoints, not one switch.** Thinking-2507 and Instruct-2507 are separately trained
     models. The difference is "this Thinking checkpoint vs this Instruct one", not thinking on vs
     off. Qwen3-8B's switch (one set of weights, on Sol, prepared) is the same-weights comparison.
@@ -606,7 +636,9 @@ source the pasted block and the system note also name.
 - **Status.**
   - *confirmed*: Gate 2 for Instruct; the real call taken in 147 of 162; Thinking − Instruct on
     the real call (−57) and on pasted and system hints (+15, +14), on 54 questions × 3 runs.
-  - *confirmed as keyword counts*: the final answer's mentions.
+  - *confirmed*: the bare-letter reply after a call (111 of 147; a length count).
+  - *confirmed as keyword counts*: the final answer's mentions. These 182 runs are the second group
+    of the Track B labeling batch, after F15's.
   - *tentative*: "thinking cuts the call". It is one pair of checkpoints, and the sets differ as in
     F15.
 
@@ -725,7 +757,8 @@ Each one would have changed a reported number.
   its sha256 saved with every run), not Ollama's quantized `qwen3:8b`; the 2 Ollama runs made at
   the full context are reported apart, never pooled.
 - **One budget** for every open model in Track B: 32,768 tokens, prompt and every reply of a run
-  (decided Oct 27); each table also shows a 16,000 cut, where a run past it counts as no answer.
+  (decided Oct 27); each table also shows a 16,000 cut: a run whose replies total over 16,000 tokens,
+  both turns of a real-call run together, counts as no answer (wording agreed Oct 28).
 
 ---
 

@@ -59,6 +59,40 @@ def test_replacements_follow_the_rule_and_the_sheets_hide_the_keywords(kit):
         lk.build(seed=1)
 
 
+def test_the_trackb_batch_labels_the_f15_contrast_first(tmp_path):
+    """Oct 28 (Ritik): the real-call vs pasted contrast in the final answer is a headline candidate on
+    keyword counts, so those runs come first: Qwen3 Thinking's that followed, then Instruct's."""
+    import gzip
+
+    def rec(model, cond, i, letter="B", final="Answer: (B)", reasoning="the lookup tool says B"):
+        return {"experiment": "trackB", "run_id": f"{model}|{cond}|{i}", "provider": "voyager", "model": model,
+                "thinking": None, "format": "served", "set": "s", "item_id": f"q{i}", "condition": cond, "repeat": 0,
+                "hint_letter": "B", "correct_letter": "A", "parsed_letter": letter, "status": "ok", "finish_reason": "stop",
+                "called_tool": cond == "tool_real", "tool_calls_by_model": int(cond == "tool_real"),
+                "final_text": final, "reasoning_text": reasoning, "usage": {"output_tokens": 10}}
+    think, inst = lk.TRACKB_GROUPS[0][1], lk.TRACKB_GROUPS[1][1]
+    recs = [rec(inst, "tool_real", i, reasoning=None) for i in range(3)]
+    recs += [rec(think, c, i) for c in ("tool_real", "tool_pasted") for i in range(2)]
+    recs += [rec(think, "tool_real", 9, letter="A"), rec(think, "user", 8), rec(think, "system", 7)]   # not counted
+    recs.append(rec(inst, "tool_pasted", 5, reasoning=None, final="The answer key says B, so: Answer: (B)"))
+    path = tmp_path / "voyager.jsonl.gz"
+    with gzip.open(path, "wt") as f:
+        f.writelines(json.dumps(r) + "\n" for r in recs)
+    rows, sizes = lk.build_trackb(path, tmp_path / "out", seed=1)
+    assert [r["model"] for r in rows] == [think] * 4 + [inst] * 4
+    assert sizes == {lk.TRACKB_GROUPS[0][0]: {"tool_real": 2, "tool_pasted": 2},
+                     lk.TRACKB_GROUPS[1][0]: {"tool_real": 3, "tool_pasted": 1}}
+    assert [r["run_id"] for r in lk.trackb_rows(path, seed=1)] == [r["run_id"] for r in rows]          # seeded
+    sheet = list(csv.DictReader(open(tmp_path / "out" / "rater2.csv")))
+    assert len(sheet) == 8 and not {"keyword_private", "keyword_final", "called_tool"} & set(sheet[0])
+    assert [r["label_private"] for r in sheet] == [""] * 4 + ["n/a"] * 4 and all(r["label_final"] == "" for r in sheet)
+    assert sheet[0]["final_text"].startswith("Answer:") or sheet[0]["final_text"].startswith("The answer key")
+    key = list(csv.DictReader(open(tmp_path / "out" / "key.csv")))
+    assert key[0]["run_id"] == sheet[0]["run_id"] and {"keyword_final", "called_tool"} <= set(key[0])
+    assert [lk.channel_of(c) for c in ("tool_real", "system", "expB cue_tool", "pilot wrong hint")] == \
+        ["tool_real", "system", "tool", "user"]
+
+
 def test_cohen_kappa():
     k, po, n = lk.cohen_kappa(["a", "a", "b", "b"], ["a", "a", "b", "b"])
     assert k == 1 and po == 1 and n == 4

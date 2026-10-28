@@ -21,6 +21,9 @@
 #
 # --dependency (afterok:N etc.): every named job must be running or pending, and of a kind this job
 # may wait for (depends_on below; e.g. vllm_check waits for setup_vllm), else the submission is refused.
+#
+# train and eval need their argument after --: a version (train), a system and an optional K/N part
+# (eval). Without it they are refused here, not when the job starts hours later.
 # It always ends with sbatch's "Submitted batch job N", or a clear error and a non-zero exit code.
 set -euo pipefail
 trap 'echo "submit.sh: stopped at line $LINENO ($BASH_COMMAND): exit $?. Nothing was submitted." >&2' ERR
@@ -52,6 +55,20 @@ while [ $# -gt 0 ]; do
         *) sb+=("$1"); shift ;;
     esac
 done
+
+# Oct 28: lora_tags and lora_attn3 (afterany on lora and tags) reached run.sh with no version and
+# failed in seconds when they started, hours after they were submitted
+versions="lora tags lora_tags lora_attn3"
+case "$job" in
+    train) want=$versions ;;
+    eval)  want="base prompt_only $versions" ;;
+    *)     want="" ;;
+esac
+if [ -n "$want" ] && ! printf '%s\n' $want | grep -qx -- "${jobargs[0]:-}"; then
+    echo "refusing: $job needs one of: $want, after -- (submit.sh $job --estimate H -- ${want%% *});" \
+         "got: '${jobargs[*]:-nothing}'. Nothing was submitted." >&2
+    exit 1
+fi
 
 accounts=$(grep -E '^#SBATCH[[:space:]]+(-A|--account)' "$script" | sed -E 's/^#SBATCH[[:space:]]+(-A[[:space:]]*|--account[=[:space:]]+)//')
 if [ "$(printf '%s\n' "$accounts" | grep -c .)" -ne 1 ] || ! tracka_account_allowed "$accounts"; then

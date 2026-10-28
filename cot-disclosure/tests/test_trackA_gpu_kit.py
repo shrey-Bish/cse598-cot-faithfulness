@@ -328,6 +328,25 @@ def test_dependencies_must_be_live_jobs_of_the_right_kind(tmp_path):
     assert r.returncode == 1 and "waits for no other job" in r.stderr
 
 
+def test_train_and_eval_need_their_argument_when_submitted(tmp_path):
+    """Oct 28: lora_tags and lora_attn3 (afterany on lora and tags) reached run.sh with no version and
+    failed in seconds when they started, hours after they were submitted. Now refused at submission."""
+    env, log = fake_sbatch(tmp_path)
+    fake_squeue_jobs(tmp_path, {100: "RUNNING trackA-train"})
+    for args, got in ((["train", "--estimate", "3.74", "--dependency=afterany:100"], "got: 'nothing'"),
+                      (["train", "--estimate", "3.74", "--dependency=afterany:100", "lora_tags"], "got: 'nothing'"),
+                      (["train", "--estimate", "3.07", "--", "lora_attn"], "got: 'lora_attn'"),
+                      (["eval", "--estimate", "4", "--", "1/2"], "got: '1/2'")):
+        r = submit(env, *args)
+        assert r.returncode == 1 and "needs one of" in r.stderr and got in r.stderr and not log.exists(), (args, r.stderr)
+    r = submit(env, "train", "--estimate", "3.74", "--dependency=afterany:100", "--", "lora_tags")
+    assert r.returncode == 0, r.stderr
+    args = sbatch_args(log)
+    assert "--dependency=afterany:100" in args and args[-2].endswith("train.sbatch") and args[-1] == "lora_tags"
+    r = submit(env, "eval", "--estimate", "4", "--", "prompt_only", "1/2")
+    assert r.returncode == 0 and sbatch_args(log)[-2:] == ["prompt_only", "1/2"], r.stderr
+
+
 def test_only_listed_accounts(tmp_path):
     env, log = fake_sbatch(tmp_path)
     r = submit({**env, "TRACKA_SUBMIT_ACCOUNT": "grp_hdavulcu"}, "smoke")
@@ -491,6 +510,20 @@ def test_every_vllm_job_compares_the_nodes_help_with_the_committed_list_first(tm
     with pytest.raises(SystemExit, match="eval tags: --enable-prompt-embeds"):
         vo.gpu_preflight(exe, tmp_path / "bad", committed=committed)
     assert not (tmp_path / "bad" / "ran").exists()                         # a command misfit: refused before vllm
+
+
+def test_a_help_past_its_time_limit_shows_where_vllm_was(tmp_path):
+    """Oct 28, sg002: `vllm serve --help=all` didn't finish in 180 s (the first vLLM import on Sol) and
+    the job said only TimeoutExpired. Now 15 minutes, and past them the refusal carries vLLM's traceback."""
+    from finetune.gpu import vllm_options as vo
+    exe = tmp_path / "vllm"
+    exe.write_text(f"#!{sys.executable}\nimport time\n\n\ndef importing_torch():\n    time.sleep(60)\n\n\nimporting_torch()\n")
+    exe.chmod(0o755)
+    with pytest.raises(SystemExit, match=r"didn't finish in 1 s on .*; where it was(.|\n)*in importing_torch"):
+        vo.gpu_preflight(str(exe), tmp_path, timeout=1)
+    assert vo.HELP_TIMEOUT_S == 900
+    with pytest.raises(SystemExit, match="didn't start"):
+        vo.gpu_preflight(str(tmp_path / "missing"), tmp_path)
 
 
 def test_eval_job_checks_the_node_before_anything_else(tmp_path, monkeypatch):

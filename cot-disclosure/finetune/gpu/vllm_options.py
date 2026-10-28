@@ -12,12 +12,15 @@ lines of `vllm serve --help=all` ("--dtype {auto,bfloat16,...}", "--enable-lora,
   every vLLM GPU job      its first step, before any model load, merge or shard writing (gpu_preflight):
                           `vllm serve --help=all` on the GPU node must give the committed list exactly
                           (options and choices); else the job stops, saving the node's list to copy
-                          back (it becomes the committed list once checked)
+                          back (it becomes the committed list once checked). Up to 15 minutes; past
+                          that, Python's traceback shows where vLLM was (a slow import or a hang)
   the CPU test            the exact commands against the committed list (tests/test_trackA_gpu_kit.py)
   python finetune/gpu/vllm_options.py --help-file HELP --version V --save FILE    # a list from a help text
 """
 import argparse
+import os
 import re
+import signal
 import socket
 import subprocess
 import sys
@@ -29,7 +32,7 @@ sys.path.insert(0, str(CODE))
 
 TRACKED = Path(__file__).resolve().parent / "vllm_serve_options.txt"
 NAME = re.compile(r"(?:^|[\s,])(--?[A-Za-z0-9][\w.-]*)")
-HELP_TIMEOUT_S = 180
+HELP_TIMEOUT_S = 900          # Oct 28: 180 s ran out on sg002, the first vLLM import on Sol (the server gets 1,800 s)
 
 
 def option_lines(help_text):
@@ -110,6 +113,26 @@ def check_commands(installed=None, committed=TRACKED):
     return out + problems(job_commands(), opts)
 
 
+def run_help(vllm, timeout):
+    """`vllm serve --help=all`. Past the timeout it gets SIGABRT with Python's faulthandler on, and the
+    refusal carries its traceback: where it was (Oct 28: the job said only TimeoutExpired)."""
+    proc = subprocess.Popen([vllm, "serve", "--help=all"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                            env={**os.environ, "PYTHONFAULTHANDLER": "1"})
+    try:
+        out, err = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        proc.send_signal(signal.SIGABRT)
+        try:
+            out, err = proc.communicate(timeout=30)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            out, err = proc.communicate()
+        stack = "\n".join((err or "").split("Current thread's C stack trace")[0].strip().splitlines()[:120])
+        sys.exit(f"refusing: `{vllm} serve --help=all` didn't finish in {timeout} s on {socket.gethostname()}; "
+                 f"where it was (its Python traceback, most recent call first):\n{stack or '(nothing on stderr)'}")
+    return subprocess.CompletedProcess(proc.args, proc.returncode, out, err)
+
+
 def gpu_preflight(vllm, out_dir, committed=TRACKED, timeout=HELP_TIMEOUT_S):
     """A vLLM GPU job's first step: every command fits the committed list, and `vllm serve --help=all` on
     this node gives exactly that list (options and choices). Exits (SystemExit) otherwise, as soon as
@@ -120,9 +143,9 @@ def gpu_preflight(vllm, out_dir, committed=TRACKED, timeout=HELP_TIMEOUT_S):
     if bad:
         sys.exit(f"refusing: the committed vLLM {version} list doesn't have these server options:\n  " + "\n  ".join(bad))
     try:
-        r = subprocess.run([vllm, "serve", "--help=all"], capture_output=True, text=True, timeout=timeout)
-    except (OSError, subprocess.TimeoutExpired) as err:
-        sys.exit(f"refusing: `{vllm} serve --help=all` didn't finish ({type(err).__name__}: {err})")
+        r = run_help(vllm, timeout)
+    except OSError as err:
+        sys.exit(f"refusing: `{vllm} serve --help=all` didn't start ({type(err).__name__}: {err})")
     if r.returncode != 0:
         tail = "\n".join((r.stderr or r.stdout).splitlines()[-30:])
         sys.exit(f"refusing: `{vllm} serve --help=all` exited with code {r.returncode} on this node; its last lines:\n{tail}")

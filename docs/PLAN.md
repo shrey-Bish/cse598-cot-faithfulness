@@ -1,6 +1,6 @@
 # Plan: weeks 11–16 (CSE 598, Group 10)
 
-Last updated: 2026-10-28 00:30 MST (week 11; the plan for Oct 27–Nov 3 moved everything as early
+Last updated: 2026-10-28 12:20 MST (week 11; the plan for Oct 27–Nov 3 moved everything as early
 as it can go; Oct 28: Ollama replaced by Qwen3-8B on Sol, training batch 2, the class QoS only). What's left, by track: the timeline, the gates, the Sol hours and the risks. What
 is done is in [`OVERVIEW.md`](OVERVIEW.md); each result, with its numbers, source and status, is in
 [`FINDINGS.md`](FINDINGS.md). Every open item, with its owner and status, is in
@@ -175,6 +175,23 @@ Batch 2 runs with those limits (Ritik, Oct 28 00:20): lora 66759753 (5:00) and t
 lora_tags 66759772 (afterany lora) and lora_attn3 66759822 (afterany tags); setup_vllm 66760181 completed
 (vLLM 0.31.0, all 9 server commands fit the committed list); vllm_check 66760726 queued (afterok setup_vllm).
 
+**Batch 2's results (sacct, Oct 28 morning):**
+- **lora** 66759753 completed in 3:24:50 (3.41 h; the refit said 3.66, 3.56–3.78). It chose epoch 2:
+  validation loss 0.18537 (epoch 1: 0.18567).
+- **tags** 66759769 completed in 2:48:24 (2.81 h; refit 2.97, 2.89–3.04). It chose epoch 2:
+  validation loss 0.21401 (epoch 1: 0.21672).
+- Both ran 5–7% under the refit and under its 5% bound: the range covers the fit, not the node.
+  The limits keep their room.
+- **lora_tags** 66759772 and **lora_attn3** 66759822 failed in 7 s and 4 s, when their parents
+  ended: run.sh got no version (`run.sh train` with nothing after it). `submit.sh` passes a version
+  given after `--` (tested with the batch-2 line), so it was most likely missing from the submitted
+  line. Now `submit.sh` refuses `train` and `eval` without their argument, at submission.
+  Resubmitted Oct 28, two at once.
+- **vllm_check** 66760726 failed after 3:04: `vllm serve --help=all` didn't finish in 180 s on sg002,
+  the first vLLM import on Sol. Now 900 s (the server itself gets 1,800 s), and past it the job
+  prints vLLM's Python traceback, so a slow import and a hang can be told apart. Resubmitted after
+  the two training jobs.
+
 Each job's limit is the high estimate × 1.3, rounded up to 30 minutes. Evaluation is split into
 jobs of at most 6 estimated hours (limit 8 h), so two can always run at once; the timing run (S1)
 replaces these estimates with measured ones.
@@ -182,25 +199,29 @@ replaces these estimates with measured ones.
 | # | Job | GPU hours | Limit per job | Pairs with | Earliest | Depends on |
 |---|---|---|---|---|---|---|
 | S1 | Timing run: per version, 12 examples spread over the lengths (the longest included): memory and seconds per token | 0.25–0.5 | 1:00 | S2 | Oct 27 ("go") | code done |
-| S2 | vLLM check (vLLM 0.31.0 in its own env, olmo-vllm): served vs Hugging Face greedy tokens, plain and with LoRA merged + tag folded + tagged prompt embeddings, 3 prompts | ≤1 | 1:30 | S1 | Oct 27 ("go"), after setup_vllm | code done |
-| S3 | Train LoRA only (1,040 examples × 2 epochs; batch 2, decided Oct 28): job 66759753, running | 3.66 (3.56–3.78), S1 refit | 5:00 | S4 | Oct 28 | S1, data checks (a) and (e) |
-| S4 | Train tags only (batch 2, at once with S3): job 66759769, running | 2.97 (2.89–3.04) | 4:00 | S3 | Oct 28 | S1 |
-| S5 | Train LoRA + tags: job 66759772, afterany S3 | 3.65 (3.56–3.74) | 5:00 | S6 | after S3 | S1 |
+| S2 | vLLM check (vLLM 0.31.0 in its own env, olmo-vllm): served vs Hugging Face greedy tokens, plain and with LoRA merged + tag folded + tagged prompt embeddings, 3 prompts. 66760726 failed Oct 28 (the help's 180 s; now 900 s); resubmitted after S5 and S6 | ≤1 | 1:30 | S1 | Oct 28, after setup_vllm | code done |
+| S3 | Train LoRA only (1,040 examples × 2 epochs; batch 2, decided Oct 28): job 66759753 done in 3.41 h; epoch 2, validation loss 0.1854 | 3.66 (3.56–3.78), S1 refit | 5:00 | S4 | Oct 28 | S1, data checks (a) and (e) |
+| S4 | Train tags only (batch 2, at once with S3): job 66759769 done in 2.81 h; epoch 2, validation loss 0.2140 | 2.97 (2.89–3.04) | 4:00 | S3 | Oct 28 | S1 |
+| S5 | Train LoRA + tags: job 66759772 failed (no version reached run.sh); resubmitted Oct 28 | 3.65 (3.56–3.74) | 5:00 | S6 | after S3 | S1 |
 | E1 | Evaluate base (vLLM, no adapter), 930 generations | 5–14 (1–3 jobs) | 8:00 | S5, E2 | Oct 30 | code (A10), S2 |
 | E2 | Evaluate prompt-only | 5–14 (1–3 jobs) | 8:00 | E1, E3 | Oct 30 | A10 |
 | E3 | Evaluate LoRA only (merged, vLLM) | 5–14 (1–3 jobs) | 8:00 | E2, E4 | Oct 31 | S3 |
 | E4 | Evaluate LoRA + tags (vLLM with prompt embeddings; own loop if S2 fails: 9–24, 2–4 jobs) | 5–14 (1–3 jobs) | 8:00 | E3, E5 | Oct 31 | S2, S5 |
 | E5 | Evaluate tags only (same) | 5–14 (1–3 jobs) | 8:00 | E4 | Nov 1 | S2, S4 |
 | L1 | Look inside the best version: Step 3 probes (vLLM), Step 9, Step 10 | 4–10 (1–2 jobs) | 8:00 | S6 | after E1–E5 | E1–E5 |
-| S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23): job 66759822, afterany S4 (decided Oct 28); evaluated last | 2.99 (2.92–3.07) | 4:00 | S5 | after S4 | S1 |
+| S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23): job 66759822 failed like S5; resubmitted Oct 28, at once with S5; evaluated last | 2.99 (2.92–3.07) | 4:00 | S5 | after S4 | S1 |
 | E6 | Evaluate the fourth version | 5–14 (1–3 jobs) | 8:00 | — | after S6 | S6 |
-| B-Q8 | Track B: Qwen3-8B on vLLM (replaces Ollama), 1,620 runs, core cells first | 0.5–1.5 | 2:00 | any | on "go" | setup_vllm, the snapshot |
+| B-Q8 | Track B: Qwen3-8B on vLLM (replaces Ollama), 1,620 runs, core cells first. "Go" Oct 28, once S2 passes (the same vLLM stack) | 0.5–1.5 | 2:00 | any | after S2 | S2, the snapshot |
 | — | Buffer for queue waits and reruns; all evaluation done | | | | by Nov 20 | |
 
 With two jobs at a time the running time is about half the GPU hours: 18–45 hours for S1–L1
 (+3–8 for the fourth version). Starting Oct 29, E1–E5 can be done between Oct 31 and Nov 4 if the
 queue waits are short; Nov 9 is the cutoff for the fourth version, Nov 20 for everything. Ritik
 submits every job; nothing runs without "go".
+
+**Batch 3 (evaluation), "go" Oct 28** once S2 passes: base and prompt-only first, then each trained
+version as its training is done. `plan_eval.py` re-plans the hours from the first job's measured
+rate.
 
 ### Risks (Track A)
 
@@ -266,8 +287,10 @@ to `data/gpqa_diamond.jsonl`, gitignored; nothing from it goes into any doc or t
 | xAI | `grok-4.3` | effort vs `none` | summary |
 
 **Runs.** 3 per question for open models and OpenAI; 1 per question, on fewer conditions, for
-Anthropic and xAI. Temperature 0.6; 16,000 tokens (open) / 8,000 (closed). Always streamed; a
-cut-off reply is no answer. The proposed order, with calls and hours, is in TODO (notes): about
+Anthropic and xAI. Temperature 0.6. Open models: one budget of 32,768 tokens, prompt and every reply
+of a run (decided Oct 27), and a 16,000 cut in the analysis: a run whose replies total over 16,000
+tokens, both turns of a real-call run together, counts as no answer (wording agreed Oct 28). Closed
+models: 8,000. Always streamed; a cut-off reply is no answer. The proposed order, with calls and hours, is in TODO (notes): about
 6,200 Voyager calls and 18–28 hours for B and C together, without GPQA.
 
 **Measures.** Hint following vs the per-letter no-hint baseline, by sure / unsure questions;

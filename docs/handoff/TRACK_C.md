@@ -1,6 +1,6 @@
 # Track C handoff: the agent team (for Shrey, from Nov 3)
 
-Last updated: 2026-10-28 07:00 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-28 12:20 MST. A working draft, kept current every day and final on Nov 3,
 when Track C goes back to you. Until then Ritik runs it (code by Claude Code).
 
 **The question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
@@ -45,9 +45,9 @@ log), and how often does the checker catch it or raise a false alarm?
 - **C4, running since Oct 28 03:13** under a second power guard (`logs/guard_c4.log`):
   - Qwen3 Thinking's 24 steered and 29 matched cases × 2 teams × 3 repeats = 318 cases, about 3,021
     calls; 25 of the 53 items get a bad lookup.
-  - It shares the 4 Voyager slots with Track B. 120 of 318 cases at 07:00, no errors. Since Olmo 3
-    7B Think started (05:32), it runs about 10 cases an hour (about 50 before): around 21:00 at this
-    pace, or about 12:00 if it runs before Olmo (`docs/sessions/DAILY_2026-10-28.md`, decision 7).
+  - It shares the 4 Voyager slots with Track B. 215 of 318 cases at 12:00, no errors, about 20 an
+    hour beside Olmo 3 7B Think. Expected around 17:00–17:30, so both stay as they are (decision 7,
+    Oct 28: switch only if C4 would end after 21:00).
 
 ## 2. Results so far
 
@@ -75,7 +75,8 @@ log), and how often does the checker catch it or raise a false alarm?
   but 2 of 23 with the private reasoning and 1 of 23 with the tool log. The Qwen3 30B Instruct
   reviewer: 19, 21 and 17 of 23. The same drop shows in both kinds (matched puzzles 12 of 13 → 2 of
   13; steered MMLU-Pro 5 of 8 → 0 of 8). The pipeline shipped no wrong answer on a bad lookup,
-  because the checker escalated them all.
+  because the checker escalated them all. This goes into FINDINGS only when C4 is done: paired by
+  item, with intervals and the kind × set split (Ritik, Oct 28).
 - Related Track B/A findings ([`docs/FINDINGS.md`](../FINDINGS.md)): F1 (tool hints move thinking
   models more than user hints), F3 (the final answer rarely names the hint), which is why a
   reviewer that only sees the final answer is expected to miss it.
@@ -104,7 +105,7 @@ log), and how often does the checker catch it or raise a false alarm?
 |---|---|---|
 | C1 | Live team on 5 items | done Oct 27 |
 | C8 | The 32B reviewer's 5-item smoke | done Oct 28 (20 of 20 letters) |
-| C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | running since Oct 28 03:13 (318 cases; 120 done at 07:00, no errors) |
+| C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | running since Oct 28 03:13 (318 cases; 215 done at 12:00, no errors) |
 | C5 | The Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | code done (`--summary --log team_c4 --cases … --table`); numbers as C4 lands |
 
 ## 5. Decisions you inherit
@@ -115,6 +116,9 @@ log), and how often does the checker catch it or raise a false alarm?
   by a seeded oracle (seed 20261005); 3 repeats per case for C4.
 - False alarms are always reported next to catches; undetermined checks are counted, never dropped.
 - Every rate as X of Y with a 95% interval and the number of items; fewer than 5: "too few".
+- C4 is reported by kind and by kind × set, saying plainly that steered vs matched is also MMLU-Pro
+  vs puzzles (Qwen3 Thinking's steered cases are all MMLU-Pro); no extra cases for now (Oct 28).
+- Your branch: `trackC-main`, made from `main` on Oct 28 and kept at `main` until Nov 3.
 - Logs are append-only and gitignored; numbers-only summaries go to `results/summaries/`.
 
 ## 6. Known traps

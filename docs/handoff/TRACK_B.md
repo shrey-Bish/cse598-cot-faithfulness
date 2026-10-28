@@ -1,6 +1,6 @@
 # Track B handoff: test widely (for Arsha, from Nov 3)
 
-Last updated: 2026-10-28 07:00 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-28 12:20 MST. A working draft, kept current every day and final on Nov 3,
 when Track B goes back to you. Until then Ritik runs it (code by Claude Code).
 
 **The question.** Does the failure seen in the progress round (a wrong hint from a tool moves
@@ -33,14 +33,15 @@ more models, with thinking on and off in the same model, real tool calls and 3 r
   - **Qwen3 30B Thinking: done** (810 runs, 23:36–03:11).
   - **Qwen3 30B Instruct: done** (810 runs, 03:11–05:32, sharing the 4 Voyager slots with Track C's
     C4).
-  - **Olmo 3 7B Think:** running since 05:32: 96 of 810 runs at 07:00, 0 errors, about 57 an hour
-    (its replies run long: median about 10,300 tokens). Around 19:30 at this pace, later if C4 goes
-    first (`docs/sessions/DAILY_2026-10-28.md`, decision 7).
+  - **Olmo 3 7B Think:** running since 05:32: 445 of 810 runs at 12:00 (440 of 805 jobs at 11:56),
+    0 errors, about 74 an hour lately (its replies run long: median about 10,300 tokens). Ends
+    around 17:00; it and C4 stay as they are (decision 7, Oct 28).
   - Steered cases for Qwen3 Thinking are exported: 24 steered, 29 matched, 1 other. **Instruct's
     export waits until C4 is done:** C4 reads `steered_cases.jsonl` on every restart, and every model
     has the same item ids. `run_team.py` now refuses a file with several models' rows unless
     `--case-model` picks one, and each model's cases need their own `--log`. Qwen3-8B, thinking on and off, moved to Sol (decided Oct 28: Ollama never on the Mac):
-  `progress/sol_trackB.py`, one GPU job, runs on Ritik's "go".
+  `progress/sol_trackB.py`, one GPU job: "go" Oct 28, after Track A's vLLM check passes on Sol
+  (the same vLLM stack).
 - **Not done:** closed providers (no keys; Gate 1 was missed and its fallback applies: Voyager and
   our own Sol server only); GPQA (waits for Ritik to accept its terms on Hugging Face).
 - **The table:** `progress/trackB_report.py` prints it from the saved runs (no calls). `--by-set`
@@ -70,6 +71,11 @@ questions", no interval):
   clear. They stay clear at the 16,000 cut.
 - **The real call:** following when it called the tool, 54 of 54; its final answer named the tool
   in 3 of 54.
+- **The final answer, real call vs pasted** (runs that followed; a headline candidate): it names
+  the hint in 3 of 54 vs 54 of 59, real − pasted −86 points [−95, −75]. After a call, the reply is
+  a bare `Answer: (X)` in 51 of 54, so it gives no reason at all; a reply with text named the tool
+  (3 of 3). The private reasoning names it in 54 of 54. Keyword counts: these runs are labeled
+  first (`tools/label_kit.py trackb`, group 1; TODO L5).
 - **By set:** almost all the following is on MMLU-Pro (pasted 54 of 90, real call 50 of 90). On
   the puzzles: 5 of 72 and 4 of 72.
 - **Qwen3 30B Instruct** (FINDINGS F16; the same design, no private reasoning):
@@ -78,7 +84,11 @@ questions", no interval):
   - Gate 2: pasted +21 [+12, +31], real call +90 [+83, +96], both clear; no run past 16,000 tokens
   - it called the tool in 162 of 162 runs (tool choice left to the model); on the puzzles it took
     the tool's letter in 72 of 72, though pasted and system hints moved it 0 of 72 there
-  - after a real call the final answer named the tool in 30 of 147 (all on MMLU-Pro)
+  - after a real call the final answer named the tool in 30 of 147 (all on MMLU-Pro) vs 29 of 35
+    pasted (−62 points [−83, −39]); the reply is a bare letter in 111 of 147, and 30 of the 36 with
+    text name the tool
+  - framing: the tool is described as the course answer key, so taking its letter can be
+    reasonable tool use. The claim is about disclosure, not about being fooled.
 - **Thinking minus Instruct** (paired by question, 54 questions): real call −57 [−70, −43],
   pasted +15 [+6, +25], system note +14 [+7, +20], user +1 [+0, +3]. The Thinking checkpoint calls
   the tool less but follows pasted and system hints more. These are two checkpoints, not one
@@ -104,7 +114,7 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 
 | # | Item | Status (Oct 27) |
 |---|---|---|
-| B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | Thinking done (Oct 28 03:11); Instruct done (05:32); Olmo running since 05:32 (96 of 810 at 07:00) |
+| B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | Thinking done (Oct 28 03:11); Instruct done (05:32); Olmo running since 05:32 (445 of 810 at 12:00) |
 | B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | code done; waits for "go" |
 | B8 | `steered_cases.jsonl` per model | Qwen3 Thinking exported (24 steered, 29 matched, 1 other); Instruct after C4 is done (C4 reads the file on restart); Olmo after its runs |
 | B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate | `trackB_report.py` (and `--by-set`); filled per model as runs finish |
@@ -116,10 +126,12 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 
 - Gate 1 (Oct 25) was missed; the fallback applies: Voyager, and Qwen3-8B on Sol (Ollama dropped Oct 28). Paid calls only with
   keys and Ritik's explicit "go"; the budget guard caps each provider at $5.
-- 3 runs per question; temperature 0.6; 16,000 reply tokens for chat models; always streamed; a
-  cut-off reply is no answer.
-- Olmo 3 7B Think: pinned format, `tool_injected` declared, 32,768-token cap (Ritik is asked whether
-  to keep this; a 16,000 cut can be applied in the analysis from the saved token counts).
+- 3 runs per question; temperature 0.6; always streamed; a cut-off reply is no answer.
+- One budget for every open model (decided Oct 27): 32,768 tokens, prompt and every reply of a run.
+  Every table also shows a 16,000 cut: a run whose replies total over 16,000 tokens, both turns of
+  a real-call run together, counts as no answer (wording agreed Oct 28).
+- Olmo 3 7B Think: pinned format, `tool_injected` declared.
+- Your branch: `trackB-main`, made from `main` on Oct 28 and kept at `main` until Nov 3.
 - Hint following is always reported against the per-letter no-hint baseline, as X of Y with a 95%
   interval and the number of questions; fewer than 5 questions: "too few questions".
 - Mentions are keyword counts until the hand labels are in; no admission claim before Gate 2.

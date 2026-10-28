@@ -18,7 +18,8 @@ Per model × thinking setting × channel (answered runs; a cut-off or unparsed r
                    and among the rest (the hint arrives only with the call), and the private reasoning
                    naming it among the calls (without a call, a "cue_tool" keyword names only the tool)
 Both cuts, for every model (decided Oct 27): the run's own budget (32,768 tokens, prompt + replies) and a
-16,000 cut, where a run whose replies total over 16,000 tokens counts as no answer.
+16,000 cut, where a run whose replies total over 16,000 tokens (both turns of a real-call run together)
+counts as no answer (wording agreed Oct 28).
 The Gate 2 question, per model: tool channel minus user channel in following, a paired bootstrap over
 the questions both have (clear = the interval excludes 0 and the gap is positive). Fewer than 5
 questions: "too few questions" (common.MIN_QUESTIONS).
@@ -168,7 +169,8 @@ CUT = 16000
 
 
 def cut(rows, limit=CUT):
-    """The same runs as if replies had a 16,000-token limit: over it, no answer."""
+    """The same runs as if replies had a 16,000-token limit: a run whose replies total over it (both turns
+    of a real-call run) is no answer."""
     out = []
     for r in rows:
         if (r.get("total_output_tokens") or 0) > limit:

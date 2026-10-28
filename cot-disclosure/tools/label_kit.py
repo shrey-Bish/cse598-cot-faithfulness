@@ -16,7 +16,15 @@ build:
   - results/labels/key.csv: row -> run, source, keyword pre-sort, whether the answer followed the hint
   - the tracked queue's 10 rows get "replaced by <run_id>" (ids only; their text stays in the kit)
 kappa: Cohen's kappa per text (private reasoning, final answer), overall and by hint channel (user /
-tool), with the disagreements listed by row.
+tool, and Track B's user / tool_pasted / tool_real / system), with the disagreements listed by row.
+
+  python tools/label_kit.py trackb       # -> results/labels/trackB/ (gitignored)
+
+trackb: Track B's batch, in the order to label (decided Oct 28: the F15/F16 contrast first): group 1,
+Qwen3 30B Thinking's runs that followed the hint after a real call or with the pasted block; group 2,
+the same for Qwen3 30B Instruct. Within a group the two channels are mixed in a seeded order. The
+sheets carry the whole final answer and the private reasoning around its first hint keyword (as in
+the queue); the key holds the keyword flags. Runs as the Track B report counts them.
 """
 import argparse
 import csv
@@ -37,6 +45,9 @@ OUT = CODE / "results" / "labels"
 REPLAY = CODE / "results" / "progress" / "pilot_replay.jsonl"
 CUED = CODE / "results" / "progress" / "expB_cued.jsonl"
 SEED = 20261027
+TRACKB = CODE / "results" / "trackB" / "voyager.jsonl.gz"
+TRACKB_GROUPS = (("1 Qwen3 30B Thinking: real call and pasted (F15)", "qwen3-30b-a3b-thinking-2507"),
+                 ("2 Qwen3 30B Instruct: real call and pasted (F16)", "qwen3-30b-a3b-instruct-2507"))
 LABELS = ("no_mention", "mentions_only", "rejects_hint", "says_changed", "unclear")
 HIDDEN = ("keyword_private", "keyword_final", "followed_cue", "answer", "text_status", "source")
 PATTERN = {"cue_user": "cue", "cue_tool": "cue_tool", "wrong": "cue"}
@@ -126,6 +137,53 @@ def build(seed=SEED):
     return len(full), new
 
 
+def trackb_rows(path=TRACKB, seed=SEED):
+    """Track B's batch: per group, the model's runs that followed the hint after a real call or with the
+    pasted block, the two channels mixed in a seeded order."""
+    import trackB_report as tr
+    runs = [r for r in latest(load(path)) if r.get("experiment") == "trackB" and r["status"] == "ok" and tr.counts(r)
+            and r["condition"] in ("tool_real", "tool_pasted") and tr.flags(r)["followed"]]
+    out = []
+    for group, model in TRACKB_GROUPS:
+        mine = sorted((r for r in runs if r["model"] == model), key=lambda r: r["run_id"])
+        random.Random(f"{seed} {model}").shuffle(mine)
+        for r in mine:
+            f = tr.flags(r)
+            out.append({"group": group, "run_id": r["run_id"], "model": model, "condition": r["condition"],
+                        "cue_letter": r["hint_letter"], "item_id": r["item_id"], "set": r["set"],
+                        "called_tool": f["called_tool"], "keyword_private": f["mention_private"],
+                        "keyword_final": f["mention_final"],
+                        "private_excerpt": excerpt(around(r["reasoning_text"], "cue_tool"), 600) if r["reasoning_text"] else "",
+                        "final_text": (r["final_text"] or "").strip()})
+    return out
+
+
+def build_trackb(path=TRACKB, out=None, seed=SEED):
+    rows = trackb_rows(path, seed)
+    out = Path(out or OUT / "trackB")
+    out.mkdir(parents=True, exist_ok=True)
+    sheet_cols = ["row", "group", "run_id", "model", "condition", "cue_letter", "private_excerpt", "final_text",
+                  "label_private", "label_final", "note"]
+    for rater in ("rater1", "rater2"):
+        with open(out / f"{rater}.csv", "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=sheet_cols)
+            w.writeheader()
+            for i, r in enumerate(rows, 1):
+                w.writerow({"row": i, **{c: r[c] for c in sheet_cols[1:8]},
+                            "label_private": "n/a" if not r["private_excerpt"] else "", "label_final": "", "note": ""})
+    key_cols = ["row", "run_id", "group", "item_id", "set", "called_tool", "keyword_private", "keyword_final"]
+    with open(out / "key.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=key_cols)
+        w.writeheader()
+        for i, r in enumerate(rows, 1):
+            w.writerow({"row": i, **{c: r[c] for c in key_cols[1:]}})
+    sizes = {g: dict(Counter(r["condition"] for r in rows if r["group"] == g)) for g, _ in TRACKB_GROUPS}
+    (out / "kit.json").write_text(json.dumps({"rows": len(rows), "groups": sizes, "seed": seed, "labels": LABELS,
+                                              "source": str(Path(path).relative_to(CODE) if Path(path).is_relative_to(CODE)
+                                                            else path)}, indent=1) + "\n")
+    return rows, sizes
+
+
 def cohen_kappa(a, b):
     """(kappa, observed agreement, n) for two equal-length label lists."""
     n = len(a)
@@ -138,6 +196,8 @@ def cohen_kappa(a, b):
 
 
 def channel_of(condition):
+    if condition in ("user", "tool_pasted", "tool_real", "system"):            # Track B's channels
+        return condition
     return "tool" if "tool" in condition else "user"
 
 
@@ -150,7 +210,7 @@ def kappa(path1, path2):
     for text in ("private", "final"):
         col = f"label_{text}"
         rows = [k for k in r1 if k in r2 and r1[k][col] in LABELS and r2[k][col] in LABELS]
-        for group in ("all", "user", "tool"):
+        for group in ("all", *sorted({channel_of(r1[k]["condition"]) for k in r1})):
             keep = [k for k in rows if group == "all" or channel_of(r1[k]["condition"]) == group]
             k_, po, n = cohen_kappa([r1[k][col] for k in keep], [r2[k][col] for k in keep])
             out[f"{text} | {group}"] = {"kappa": k_, "agreement": po, "rows": n}
@@ -163,6 +223,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("build")
+    sub.add_parser("trackb")
     k = sub.add_parser("kappa")
     k.add_argument("rater1")
     k.add_argument("rater2")
@@ -170,6 +231,12 @@ def main():
     if a.cmd == "build":
         n, new = build()
         print(f"{n} rows in {OUT.relative_to(CODE)}; replacements: " + ", ".join(r["run_id"] for r in new))
+        return
+    if a.cmd == "trackb":
+        rows, sizes = build_trackb()
+        print(f"{len(rows)} rows in {(OUT / 'trackB').relative_to(CODE)}, labeled in this order:")
+        for g, s in sizes.items():
+            print(f"  {g}: " + ", ".join(f"{c} {n}" for c, n in sorted(s.items())))
         return
     res, dis = kappa(a.rater1, a.rater2)
     print(json.dumps(res, indent=1))
