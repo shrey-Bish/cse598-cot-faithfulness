@@ -1,6 +1,6 @@
 # Open work, every track
 
-Last updated: 2026-10-27 14:00 MST (week 11). Rebuilt from the session transcripts (Oct 4–27),
+Last updated: 2026-10-28 07:00 MST (week 11). Rebuilt from the session transcripts (Oct 4–27),
 [`PLAN.md`](PLAN.md), [`FINDINGS.md`](FINDINGS.md), [`OVERVIEW.md`](OVERVIEW.md), the commit log
 and every local and remote branch; updated with Ritik's decisions and the Oct 27–Nov 3 plan. How
 to run each step: [`RUNBOOK.md`](RUNBOOK.md).
@@ -57,7 +57,7 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 | B10 | Served chat template per Voyager model (prompt-token count against a local rendering, as for Olmo on Oct 21), recorded | Oct 27 | done: gap 0 except Qwen3's tool spec (sorted keys); Olmo 3 7B Instruct differs only without a system message | — | Claude Code → Arsha | Voyager (a few calls) | 30 min |
 | B11 | Identity-canary references for every Voyager model Tracks B and C use, before their first batch | Oct 27 | done: Qwen3 Thinking, Qwen3 Instruct, Olmo 3 7B Instruct (Olmo 3 7B Think existed) | — | Claude Code → Arsha | Voyager (a few calls) | 30 min |
 | B13 | Per model: smoke test (`--limit 5`) and the dry run (calls, hours) in a session log; then the run starts | Oct 27 | done: smoke 15 of 15; dry runs in the 13:05 log | — | Claude Code → Arsha | Voyager | 15 min each |
-| B7 | Voyager runs, 3 per question, the 24 puzzles and the 30 MMLU-Pro items, all conditions: Qwen3 30B Thinking, then Qwen3 30B Instruct, then Olmo 3 7B Think | PLAN, Oct 27 | in progress: Qwen3 30B Thinking done Oct 28 03:11 (810 runs); Instruct done 05:32 (810 runs); Olmo running since 05:32 | — | Claude Code → Arsha | Voyager | ~15 h (notes) |
+| B7 | Voyager runs, 3 per question, the 24 puzzles and the 30 MMLU-Pro items, all conditions: Qwen3 30B Thinking, then Qwen3 30B Instruct, then Olmo 3 7B Think | PLAN, Oct 27 | in progress: Qwen3 30B Thinking done Oct 28 03:11 (810 runs); Instruct done 05:32 (810 runs); Olmo running since 05:32 (96 of 810 at 07:00) | — | Claude Code → Arsha | Voyager | ~15 h (notes) |
 | B4 | Qwen3-8B, thinking on and off, real tool calls: on Sol (our vLLM server, `enable_thinking`), core cells first; replaces the Ollama grid (decided Oct 28: Ollama never on the Mac; 2 Ollama runs at the right context exist) | PLAN, Oct 27, Oct 28 | code and CPU tests done (`progress/sol_trackB.py`, `providers/sol_vllm.py`); waits for "go" | setup_vllm, the snapshot | Ritik submits → Arsha | Sol | 0.5–1.5 GPU h |
 | B14 | Track B table: model × channel × thinking (on/off where it exists); hint following against the per-letter no-hint baseline; sure and unsure questions; mention in the private reasoning and the final answer (keywords); tool-call rate | Oct 27 | in progress: `trackB_report.py` (+ `--by-set`, thinking minus not); Qwen3 Thinking in FINDINGS F15, Instruct and thinking − Instruct in F16; Olmo next | B7, B4 | Claude Code → Arsha | no calls | 3 h |
 | B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? Answered as soon as the data allows | PLAN, Oct 27 | Qwen3 Thinking: clear (pasted +35 [+24, +46], real call +31 [+22, +42]; F15); Qwen3 Instruct: clear (pasted +21 [+12, +31], real call +90 [+83, +96]; F16); Olmo next | B14 | Claude Code → Arsha | no calls | — |
@@ -75,7 +75,7 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 | C3 | Second reviewer model (hard-coded today) | PLAN, Oct 27 | done: Olmo 3 32B Instruct since Oct 28 (decision 5; canary and template check Oct 28; smoke 5 of 5 cases, 20 of 20 letters); was olmo3-7b-instruct (`b72b747`) | — | Claude Code → Shrey | Voyager | — |
 | C7 | Input-file option for `run_team.py` (`live` takes pilot puzzles only) | Oct 27 | done (`b72b747`) | — | Claude Code → Shrey | no calls | 1 h |
 | C1 | Live team on 5 items (`run_team.py --live --n 5`) | Gate 1 | done Oct 27 15:00 (5 items; log 15:05) | — | Claude Code → Shrey | Voyager (35 calls) | 15 min |
-| C4 | The team on Track B's steered cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | PLAN, Oct 27, Oct 28 | running since Oct 28 03:13 under a second power guard (53 items: 24 steered + 29 matched; 318 cases, ~3,021 calls); 102 done at 05:39, no errors | B8, C2, C3, C7 | Claude Code → Shrey | Voyager (~3,400 calls) | ~3–13 h |
+| C4 | The team on Track B's steered cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | PLAN, Oct 27, Oct 28 | running since Oct 28 03:13 under a second power guard (53 items: 24 steered + 29 matched; 318 cases, ~3,021 calls); 120 done at 07:00, no errors; about 10 an hour beside Olmo (DAILY_2026-10-28, decision 7) | B8, C2, C3, C7 | Claude Code → Shrey | Voyager (~3,400 calls) | ~3–13 h |
 | C5 | Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | PLAN, Oct 27 | code done (`run_team --summary --cases --table`); interim numbers in the 05:45 session log; FINDINGS once C4 is done | C4 | Claude Code → Shrey | no calls | 3 h |
 
 ## Labels

@@ -418,8 +418,10 @@ It refuses a push that adds anything under a produced-data folder, any file with
   # C4, on Track B's cases (after run_trackB.py --steered for the solver model):
   ../.venv/bin/python agents/run_team.py --live --cases results/trackB/steered_cases.jsonl \
         --kinds steered,matched --per-kind 30 --repeats 3 --teams tool,notool --log team_c4 --dry-run
-  # under the power guard (stop C4 only: touch logs/stop_c4; logs/stop_guard stops every guard;
-  # exit 3 = a Voyager guard failed, all Voyager work pauses)
+  # under the power guard (logs/stop_guard stops every guard, cases in flight first; logs/stop_c4
+  # only pauses C4, the guard restarts it a minute later; exit 3 = a Voyager guard failed, all
+  # Voyager work pauses). To run C4 before a Track B model, put both in one guard:
+  # --job "voyager:c4=..." --job "voyager:olmo3think:c4=progress/run_trackB.py --run --model olmo3-7b-think"
   nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
     --job "voyager:c4=agents/run_team.py --live --cases results/trackB/steered_cases.jsonl --kinds steered,matched --per-kind 30 --repeats 3 --teams tool,notool --log team_c4 --run-name C4-oct28" >> logs/guard_c4.log 2>&1 &
   # one Track B model per run: with several models in steered_cases.jsonl, add --case-model M and a log of its own

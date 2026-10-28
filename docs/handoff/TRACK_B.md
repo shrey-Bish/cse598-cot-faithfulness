@@ -1,6 +1,6 @@
 # Track B handoff: test widely (for Arsha, from Nov 3)
 
-Last updated: 2026-10-28 05:45 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-28 07:00 MST. A working draft, kept current every day and final on Nov 3,
 when Track B goes back to you. Until then Ritik runs it (code by Claude Code).
 
 **The question.** Does the failure seen in the progress round (a wrong hint from a tool moves
@@ -33,7 +33,9 @@ more models, with thinking on and off in the same model, real tool calls and 3 r
   - **Qwen3 30B Thinking: done** (810 runs, 23:36–03:11).
   - **Qwen3 30B Instruct: done** (810 runs, 03:11–05:32, sharing the 4 Voyager slots with Track C's
     C4).
-  - **Olmo 3 7B Think:** running since 05:32 (~8 h or more, with C4 beside it).
+  - **Olmo 3 7B Think:** running since 05:32: 96 of 810 runs at 07:00, 0 errors, about 57 an hour
+    (its replies run long: median about 10,300 tokens). Around 19:30 at this pace, later if C4 goes
+    first (`docs/sessions/DAILY_2026-10-28.md`, decision 7).
   - Steered cases for Qwen3 Thinking are exported: 24 steered, 29 matched, 1 other. **Instruct's
     export waits until C4 is done:** C4 reads `steered_cases.jsonl` on every restart, and every model
     has the same item ids. `run_team.py` now refuses a file with several models' rows unless
@@ -102,7 +104,7 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 
 | # | Item | Status (Oct 27) |
 |---|---|---|
-| B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | Thinking done (Oct 28 03:11); Instruct done (05:32); Olmo running since 05:32 |
+| B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | Thinking done (Oct 28 03:11); Instruct done (05:32); Olmo running since 05:32 (96 of 810 at 07:00) |
 | B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | code done; waits for "go" |
 | B8 | `steered_cases.jsonl` per model | Qwen3 Thinking exported (24 steered, 29 matched, 1 other); Instruct after C4 is done (C4 reads the file on restart); Olmo after its runs |
 | B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate | `trackB_report.py` (and `--by-set`); filled per model as runs finish |
