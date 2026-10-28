@@ -174,8 +174,8 @@ replaces these estimates with measured ones.
 
 | # | Job | GPU hours | Limit per job | Pairs with | Earliest | Depends on |
 |---|---|---|---|---|---|---|
-| S1 | Timing run: 20 training steps at 32,768 tokens, each version's memory and seconds per step | 0.25–0.5 | 1:00 | S2 | Oct 29 | code (TODO A8, A11) |
-| S2 | vLLM tag check: prompt embeddings + LoRA on Olmo 3, against the own loop on 3 prompts | ≤1 | 1:30 | S1 | Oct 29 | code (A9) |
+| S1 | Timing run: per version, 12 examples spread over the lengths (the longest included): memory and seconds per token | 0.25–0.5 | 1:00 | S2 | Oct 27 ("go") | code done |
+| S2 | vLLM check (vLLM 0.31.0 in its own env, olmo-vllm): served vs Hugging Face greedy tokens, plain and with LoRA merged + tag folded + tagged prompt embeddings, 3 prompts | ≤1 | 1:30 | S1 | Oct 27 ("go"), after setup_vllm | code done |
 | S3 | Train LoRA only (1,150–1,300 examples × 2 epochs) | 2–3 | 4:00 | S4 | Oct 29 | S1, assembled data |
 | S4 | Train tags only | 2–3 | 4:00 | S3 | Oct 29 | S1 |
 | S5 | Train LoRA + tags | 2–3 | 4:00 | E1 | Oct 30 | S1 |

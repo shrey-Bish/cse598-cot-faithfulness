@@ -277,7 +277,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   ```bash
   # Mac, repo root: the inputs (training examples included) to Sol
   rsync -av --files-from=cot-disclosure/finetune/gpu/sol/inputs.txt cot-disclosure/ \
-        ragarw68@sol.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/
+        ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/
   # Sol
   cot-disclosure/finetune/gpu/sol/submit.sh setup_vllm                  # once: vLLM 0.31.0 in its own env (no GPU)
   cot-disclosure/finetune/gpu/sol/submit.sh timing --estimate 0.5       # S1: limit 1:00

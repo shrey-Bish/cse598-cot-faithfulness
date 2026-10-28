@@ -316,10 +316,24 @@ def slurm():
     return {k: os.environ[k] for k in keys if k in os.environ} or None
 
 
+def environments(server=False):
+    """Which environment ran (decided Oct 27): Hugging Face work in the project environment (olmo); a vLLM
+    server, when the job starts one, from its own (olmo-vllm), named with its version."""
+    out = {"driver": {"python": sys.executable, "prefix": sys.prefix, **versions()}}
+    if server:
+        vllm = os.environ.get("TRACKA_VLLM", "vllm")
+        try:
+            ver = subprocess.run([vllm, "--version"], capture_output=True, text=True, timeout=120).stdout.strip()
+        except (OSError, subprocess.SubprocessError) as err:
+            ver = f"unknown ({type(err).__name__})"
+        out["vllm_server"] = {"command": vllm, "prefix": str(Path(vllm).parent.parent), "version": ver}
+    return out
+
+
 def header(step, snap):
     """The fields every output of a GPU step starts with."""
     return {"step": step, "timestamp_utc": now(), **snap, "versions": versions(), "gpu": gpu_info(),
-            "code": code_commit(), "slurm": slurm(), "host": platform.node()}
+            "code": code_commit(), "slurm": slurm(), "host": platform.node(), "environments": environments()}
 
 
 class Timer:

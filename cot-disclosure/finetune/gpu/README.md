@@ -1,8 +1,8 @@
 # Track A GPU kit: ASU Sol
 
-Last updated: 2026-10-27. The look-inside steps that need the weights (Steps 8–10, done Oct 26–27),
-and the Sol plumbing every later GPU step (11–13) reuses. Steps 11–13 aren't written yet; their job
-plan is in `docs/PLAN.md` (Track A) and their status in `docs/TODO.md`. The Sol commands below run from the clone's root
+Last updated: 2026-10-27 15:35 MST. The look-inside steps that need the weights (Steps 8–10, done
+Oct 26–27), the Sol plumbing every GPU step reuses, and the jobs of Steps 11–13 (code done Oct 27,
+not run yet). The job plan is in `docs/PLAN.md` (Track A) and the status in `docs/TODO.md`. The Sol commands below run from the clone's root
 (`/scratch/ragarw68/cse598-cot-faithfulness`); the scripts move into `cot-disclosure/` and the
 project environment `/scratch/ragarw68/envs/olmo` (Python 3.11) themselves. Never use the system
 `python3` (3.6.8). The Mac commands run from `cot-disclosure/` with the repo's `.venv`.
@@ -405,13 +405,31 @@ redrawn on the Mac (`python finetune/look/patching.py --plot results/trackA/gpu/
 and the readout computed there (`--handoff`, see "Results back"; the hint's distance to the answer
 is rebuilt with the tokenizer alone).
 
-## Steps 11–13 (not written yet)
+## Steps 11–13: train, check vLLM, evaluate
 
-Training, tagged generation and evaluation will use the same plumbing: a `.sbatch` per job under the
-course account, `sol/submit.sh <job>`, `sol/run.sh` inside the job, outputs in
-`/scratch/ragarw68/trackA/<step>/`, checkpoints so a job resumes, summaries back by rsync. The order
-(timing run and vLLM tag check first, then training, then evaluation two jobs at a time), the GPU
-hours (35–89, `finetune/gpu_estimate.py`) and the dates are in `docs/PLAN.md` (Track A).
+**Two environments (decided Oct 27).** Hugging Face work (Steps 8–10, the timing run, training, the
+evaluation driver, the check's references) runs in the project environment
+`/scratch/ragarw68/envs/olmo`, which stays exactly as Steps 8–10 used it. vLLM pins its own torch
+(0.31.0: torch 2.13.0, transformers < 5.18), so its server runs from its own environment,
+`/scratch/ragarw68/envs/olmo-vllm` (`sol/setup_vllm.sh`, which refuses to install into `olmo`). A
+vLLM job (the check, evaluation) runs its driver in `olmo` and starts `$TRACKA_VLLM serve` from
+`olmo-vllm`. Every output records both (`environments`: each prefix and its versions; the vLLM
+server's version).
+
+| Job | `submit.sh` line | Limit (estimate × 1.3) | Output (`/scratch/ragarw68/trackA/`) |
+|---|---|---|---|
+| setup_vllm (no GPU, lightwork) | `submit.sh setup_vllm` | 1:00 (the script's) | `/scratch/ragarw68/envs/olmo-vllm` |
+| S1 timing | `submit.sh timing --estimate 0.5` | 1:00 | `timing/timing.jsonl`: per version, 12 examples spread over the lengths, peak memory, seconds per token, predicted hours |
+| S2 vLLM check | `submit.sh vllm_check --estimate 1 --dependency=afterok:<setup job>` | 1:30 | `vllm_check/vllm_check.json`: served vs Hugging Face, plain and tagged; `pass` |
+| S3–S6 train | `submit.sh train --estimate 3 -- lora` (tags, lora_tags, lora_attn3) | 4:00 | `train/<version>/` (resumes; `final/` at the end) |
+| E1–E6 evaluate | `submit.sh eval --estimate 6 -- base 1/2` | 8:00 | `eval/eval_<system>*.jsonl*`, `eval_jobs.jsonl` |
+
+`submit.sh` always ends with sbatch's `Submitted batch job N`, or a clear error and a non-zero exit
+code (Oct 27: a job script without a GPU line used to make it exit silently). A `--dependency` must
+name running or pending jobs of the kind the job waits for (`vllm_check` on `setup_vllm`; `eval` on
+`setup_vllm`, `vllm_check` or `train`; `train` on `timing` or `train`); anything else is refused.
+
+The order, hours and dates: `docs/PLAN.md` (Track A). Results back by rsync, summaries only.
 
 ## Later steps on the trained versions (Phase 6)
 

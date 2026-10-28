@@ -23,7 +23,7 @@ out/train_log.jsonl.
 
   python finetune/train.py --version lora --dry-run                      # examples, tokens, steps; no model
   python finetune/train.py --version lora --out OUT                      # train (resumes from OUT/latest)
-  python finetune/train.py --version lora,tags,lora_tags --timing 20 --out OUT   # S1: 20 longest examples each
+  python finetune/train.py --version lora,tags,lora_tags --timing 12 --out OUT   # S1: 12 examples each, all lengths
   python finetune/train.py --version lora --out OUT --export             # the chosen epoch -> OUT/final/
 """
 import argparse
@@ -334,13 +334,27 @@ def train(lm, train_set, val_set, out, device, epochs=EPOCHS, accum=ACCUM, max_s
     return pos
 
 
+def environments():
+    """Which environment ran this (finetune/gpu/kit.py): Hugging Face work, the project environment."""
+    from finetune.gpu import kit
+    return kit.environments()
+
+
+def timing_sample(train_set, n):
+    """n examples spread over the length range (the longest included, for the peak memory), after one
+    warm-up example that is not timed: a wide range of lengths fits seconds per token better."""
+    by_len = sorted(train_set, key=lambda e: len(e["ids"]))
+    idx = sorted({round(i * (len(by_len) - 1) / max(1, n - 1)) for i in range(n)})
+    return [by_len[0]] + [by_len[i] for i in idx]
+
+
 def timing(version, model_path, train_set, n, device, out):
-    """S1: forward + backward + optimizer step on the n longest examples; seconds against tokens, the
-    peak memory, and the training time this predicts for the whole set (both epochs + validation)."""
+    """S1: forward + backward + optimizer step on n examples spread over the lengths (timing_sample);
+    seconds against tokens, the peak memory, and the training time this predicts for the whole set."""
     import torch
     lm = build(version, model_path, device=device)
     opt = optimizer(lm)
-    longest = sorted(train_set, key=lambda e: -len(e["ids"]))[:n]
+    longest = timing_sample(train_set, n)
     rows = []
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
@@ -363,7 +377,7 @@ def timing(version, model_path, train_set, n, device, out):
     res = {"version": version, "examples": rows, "seconds_per_token": b, "seconds_fixed": a,
            "peak_memory_gb": round(torch.cuda.max_memory_allocated() / 2 ** 30, 2) if torch.cuda.is_available() else None,
            "predicted_hours_2_epochs": round(2 * per_epoch / 3600, 2),
-           "trainable_parameters": sum(p.numel() for p in trainable(lm).values())}
+           "trainable_parameters": sum(p.numel() for p in trainable(lm).values()), "environments": environments()}
     Path(out).mkdir(parents=True, exist_ok=True)
     with open(Path(out) / "timing.jsonl", "a") as f:
         f.write(json.dumps(res) + "\n")
@@ -441,7 +455,8 @@ def main():
         print(export(versions[0], model_path, a.out, a.device))
         return
     lm = build(versions[0], model_path, device=a.device)
-    meta = {"version": versions[0], "model": model_path, "train": a.train, "train_examples": len(train_set)}
+    meta = {"version": versions[0], "model": model_path, "train": a.train, "train_examples": len(train_set),
+            "environments": environments()}
     pos = train(lm, train_set, val_set, a.out, a.device, max_steps=a.max_steps, meta=meta)
     print(json.dumps({"stopped_at": pos, "chosen": choose(a.out)}))
     if pos["epoch"] >= EPOCHS:                       # done: the chosen epoch, ready for evaluation (out/final/)

@@ -122,5 +122,8 @@ def test_export_and_timing(tiny, tmp_path):
     saved = torch.load(final / "tags.pt")
     assert torch.allclose(saved, lm.tags.weight.detach().float())
     res = tr.timing("lora", d, data, 3, "cpu", tmp_path)
-    assert len(res["examples"]) == 3 and res["predicted_hours_2_epochs"] >= 0
+    assert len(res["examples"]) == 4 and res["predicted_hours_2_epochs"] >= 0       # 1 warm-up + 3
+    assert res["environments"]["driver"]["prefix"]
+    pick = tr.timing_sample(data, 3)
+    assert len(pick[-1]["ids"]) == max(len(e["ids"]) for e in data)
     assert (tmp_path / "timing.jsonl").exists()

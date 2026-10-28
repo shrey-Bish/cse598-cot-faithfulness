@@ -106,7 +106,7 @@ hinted ones. Output: `finetune/data/train_examples.jsonl.gz`, `validation_exampl
   positions (never the full 32,768 × 100,278 score table, ~13 GB in fp32), only on the model's
   tokens (prompt, hint and tool tokens masked).
 - **Hours:** 6–9 Sol GPU hours for the three versions (`gpu_estimate.py`); every job checkpoints
-  and resumes. The first Sol job is a 20-step timing run.
+  and resumes. The first Sol job is the timing run (12 examples of every length per version).
 
 ## Generation with tags (Step 12)
 

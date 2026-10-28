@@ -14,7 +14,12 @@
 #   before submitting: this job's GPU-minutes + the remaining GPU-minutes of your running jobs and the
 #   requested GPU-minutes of your pending ones in that QoS (squeue); over the limit: a warning, and
 #   when the job can start; both slots taken: when the second slot frees up
+#
+# --dependency (afterok:N etc.): every named job must be running or pending, and of a kind this job
+# may wait for (depends_on below; e.g. vllm_check waits for setup_vllm), else the submission is refused.
+# It always ends with sbatch's "Submitted batch job N", or a clear error and a non-zero exit code.
 set -euo pipefail
+trap 'echo "submit.sh: stopped at line $LINENO ($BASH_COMMAND): exit $?. Nothing was submitted." >&2' ERR
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd "$HERE/../../../.." && pwd)
 source "$HERE/guard.sh"
@@ -48,9 +53,9 @@ if [ "$(printf '%s\n' "$accounts" | grep -c .)" -ne 1 ] || ! tracka_account_allo
     exit 1
 fi
 
-opt() { grep -E "^#SBATCH[[:space:]]+$1" "$script" | tail -1 | sed -E "s/^#SBATCH[[:space:]]+$1[=[:space:]]*//"; }
-script_qos=$(opt '(-q|--qos)')
-gpus=$(opt '(-G|--gpus)' | awk -F: '{print ($NF ~ /^[0-9]+$/) ? $NF : 1}')
+opt() { { grep -E "^#SBATCH[[:space:]]+$1" "$2" || true; } | tail -1 | sed -E "s/^#SBATCH[[:space:]]+$1[=[:space:]]*//"; }
+script_qos=$(opt '(-q|--qos)' "$script")
+gpus=$(opt '(-G|--gpus)' "$script" | awk -F: '{print ($NF ~ /^[0-9]+$/) ? $NF : 1}')
 gpus=${gpus:-0}
 to_min() { awk -v t="$1" 'BEGIN { d = 0; if (index(t, "-")) { split(t, a, "-"); d = a[1]; t = a[2] }
     n = split(t, a, ":"); m = (n == 3) ? a[1] * 60 + a[2] + a[3] / 60 : (n == 2) ? a[1] + a[2] / 60 : a[1];
@@ -58,7 +63,7 @@ to_min() { awk -v t="$1" 'BEGIN { d = 0; if (index(t, "-")) { split(t, a, "-"); 
 if [ -n "$estimate" ]; then
     limit_min=$(awk -v h="$estimate" 'BEGIN { m = h * 60 * 1.3; printf "%d", 30 * int((m + 29.999) / 30) }')
 else
-    limit_min=$(to_min "$(opt '(-t|--time)')")
+    limit_min=$(to_min "$(opt '(-t|--time)' "$script")")
 fi
 limit=$(printf '%d:%02d:00' $((limit_min / 60)) $((limit_min % 60)))
 need=$((limit_min * gpus))
@@ -99,6 +104,44 @@ else
     echo "QoS ${script_qos:-none} (not the account's $QOS): limits not checked"
 fi
 
+# --dependency: the named jobs must be running or pending, and of a kind this job may wait for
+depends_on() {          # the job kinds each job may wait for (plain case: works in any bash)
+    case "$1" in
+        vllm_check) echo "setup_vllm" ;;
+        eval) echo "setup_vllm vllm_check train" ;;
+        train) echo "timing train" ;;
+    esac
+}
+deps=""
+for ((i = 0; i < ${#sb[@]}; i++)); do
+    case "${sb[$i]}" in
+        --dependency=*|-d=*) deps=${sb[$i]#*=} ;;
+        --dependency|-d) deps=${sb[$((i + 1))]:-} ;;
+        -d*) deps=${sb[$i]#-d} ;;
+    esac
+done
+if [ -n "$deps" ]; then
+    kinds=$(depends_on "$job")
+    [ -n "$kinds" ] || { echo "refusing: $job waits for no other job; drop --dependency" >&2; exit 1; }
+    names=$(for k in $kinds; do opt '(-J|--job-name)' "$HERE/$k.sbatch"; done)
+    ids=$(echo "$deps" | tr ',?' '\n\n' | sed -E 's/^[a-z]+://' | tr ':' '\n' | grep -E '^[0-9]+$' || true)
+    [ -n "$ids" ] || { echo "refusing: no job id in --dependency=$deps" >&2; exit 1; }
+    command -v squeue >/dev/null 2>&1 || { echo "refusing: squeue not found, so --dependency can't be checked" >&2; exit 1; }
+    for id in $ids; do
+        info=$(squeue -h -j "$id" -o "%T %j" 2>/dev/null || true)
+        state=${info%% *} name=${info#* }
+        if [ "$state" != "RUNNING" ] && [ "$state" != "PENDING" ]; then
+            echo "refusing: dependency job $id is not running or pending (squeue: '${info:-not found}'); if it finished OK, submit without --dependency" >&2
+            exit 1
+        fi
+        if ! printf '%s\n' "$names" | grep -qx -- "$name"; then
+            echo "refusing: dependency job $id is '$name'; $job may wait only for: $(echo $names | tr ' ' ',')" >&2
+            exit 1
+        fi
+        echo "dependency ok: job $id ($name, $state)"
+    done
+fi
+
 unset SBATCH_ACCOUNT SLURM_ACCOUNT
 mkdir -p "${TRACKA_SLURM_LOGS:-/scratch/ragarw68/trackA/slurm}"   # the scripts' -o directory
 cd "$REPO"                                   # the job starts here ($SLURM_SUBMIT_DIR)
@@ -106,4 +149,14 @@ override=()
 if [ -n "${TRACKA_SUBMIT_ACCOUNT:-}" ] && [ "$script_qos" = "class" ]; then
     override=(-p "$PARTITION" -q "$QOS")      # another listed account: its own partition and QoS
 fi
-sbatch -A "$ACCOUNT" ${override[@]+"${override[@]}"} -t "$limit" ${sb[@]+"${sb[@]}"} "$script" ${jobargs[@]+"${jobargs[@]}"}
+trap - ERR
+if ! out=$(sbatch -A "$ACCOUNT" ${override[@]+"${override[@]}"} -t "$limit" ${sb[@]+"${sb[@]}"} "$script" \
+           ${jobargs[@]+"${jobargs[@]}"} 2>&1); then
+    echo "sbatch refused the job: ${out:-no message}" >&2
+    exit 1
+fi
+echo "$out"
+if ! printf '%s\n' "$out" | grep -qE '^Submitted batch job [0-9]+'; then
+    echo "sbatch printed no job id: nothing may have been submitted; check squeue -u ${USER:-$(id -un)}" >&2
+    exit 1
+fi

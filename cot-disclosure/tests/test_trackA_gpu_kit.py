@@ -254,6 +254,50 @@ def test_running_and_pending_jobs_are_counted(tmp_path):
     assert r.returncode == 1 and "more than 10 jobs" in r.stdout
 
 
+def fake_squeue_jobs(tmp_path, jobs):
+    """A fake squeue: with -j ID it prints that job's "STATE NAME" (nothing if unknown); otherwise no jobs."""
+    table = "".join(f"{k} {v}\n" for k, v in jobs.items())
+    (tmp_path / "jobs.txt").write_text(table)
+    (tmp_path / "bin" / "squeue").write_text(
+        "#!/bin/bash\nwhile [ $# -gt 0 ]; do [ \"$1\" = -j ] && { grep \"^$2 \" " + str(tmp_path / "jobs.txt")
+        + " | cut -d' ' -f2-; exit 0; }; shift; done\nexit 0\n")
+    (tmp_path / "bin" / "squeue").chmod(0o755)
+
+
+@pytest.mark.parametrize("job", ["setup_vllm", "setup_env", "smoke", "timing"])
+def test_every_job_prints_its_job_id(tmp_path, job):
+    env, log = fake_sbatch(tmp_path)
+    r = submit(env, job)
+    assert r.returncode == 0 and "Submitted batch job 1" in r.stdout, r.stderr          # no GPU line: no silence
+
+
+def test_sbatch_failing_or_silent_is_an_error(tmp_path):
+    env, log = fake_sbatch(tmp_path)
+    (tmp_path / "bin" / "sbatch").write_text("#!/bin/bash\necho 'sbatch: error: Invalid qos' >&2\nexit 1\n")
+    r = submit(env, "timing")
+    assert r.returncode == 1 and "sbatch refused the job: sbatch: error: Invalid qos" in r.stderr
+    (tmp_path / "bin" / "sbatch").write_text("#!/bin/bash\nexit 0\n")
+    r = submit(env, "timing")
+    assert r.returncode == 1 and "printed no job id" in r.stderr
+
+
+def test_dependencies_must_be_live_jobs_of_the_right_kind(tmp_path):
+    env, log = fake_sbatch(tmp_path)
+    fake_squeue_jobs(tmp_path, {100: "PENDING trackA-setup-vllm", 101: "RUNNING trackA-timing",
+                                102: "COMPLETED trackA-setup-vllm"})
+    r = submit(env, "vllm_check", "--estimate", "1", "--dependency=afterok:100")
+    assert r.returncode == 0 and "dependency ok: job 100" in r.stdout and "--dependency=afterok:100" in log.read_text()
+    log.unlink()
+    for dep, why in (("afterok:101", "is 'trackA-timing'"), ("afterok:102", "not running or pending"),
+                     ("afterok:999", "not running or pending"), ("afterok:100:101", "is 'trackA-timing'")):
+        r = submit(env, "vllm_check", "--estimate", "1", f"--dependency={dep}")
+        assert r.returncode == 1 and why in r.stderr and not log.exists(), (dep, r.stderr)
+    r = submit(env, "vllm_check", "--estimate", "1", "--dependency", "afterok:101")
+    assert r.returncode == 1 and "trackA-timing" in r.stderr
+    r = submit(env, "timing", "--dependency=afterok:100")
+    assert r.returncode == 1 and "waits for no other job" in r.stderr
+
+
 def test_only_listed_accounts(tmp_path):
     env, log = fake_sbatch(tmp_path)
     r = submit({**env, "TRACKA_SUBMIT_ACCOUNT": "grp_hdavulcu"}, "smoke")
@@ -277,7 +321,7 @@ def test_runs_only_inside_a_job_under_the_course_account(env_vars, ok):
     ("train", ["lora"], ["finetune/train.py", "--version", "lora", "--out", "{out}/train/lora"]),
     ("eval", ["lora_tags", "2/3"], ["finetune/gpu/eval_job.py", "--system", "lora_tags", "--out", "{out}/eval", "--part", "2/3"]),
     ("eval", ["base"], ["finetune/gpu/eval_job.py", "--system", "base", "--out", "{out}/eval"]),
-    ("timing", [], ["finetune/train.py", "--version", "lora,tags,lora_tags,lora_attn3", "--timing", "20", "--out", "{out}/timing"]),
+    ("timing", [], ["finetune/train.py", "--version", "lora,tags,lora_tags,lora_attn3", "--timing", "12", "--out", "{out}/timing"]),
     ("vllm_check", [], ["finetune/gpu/eval_job.py", "--check", "--out", "{out}/vllm_check"])])
 def test_run_sh_builds_each_new_step(tmp_path, step, args, want):
     """run.sh with env.sh stubbed (no mamba on the Mac): which script and arguments each step gets."""
@@ -297,6 +341,16 @@ def test_run_sh_builds_each_new_step(tmp_path, step, args, want):
     assert r.returncode == 0, r.stderr
     line = next(x for x in r.stdout.splitlines() if x.startswith("ARGS "))
     assert line.split()[1:] == [w.format(out=out) for w in want]
+
+
+def test_vllm_gets_its_own_environment_and_outputs_name_it():
+    env = (SOL / "env.sh").read_text()
+    assert "TRACKA_VLLM_ENV=/scratch/ragarw68/envs/olmo-vllm " in env and "TRACKA_ENV=/scratch/ragarw68/envs/olmo " in env
+    setup = (SOL / "setup_vllm.sh").read_text()
+    assert '"$TRACKA_PY" -m pip' not in setup and '"$TRACKA_VLLM_PY" -m pip install' in setup
+    assert "refusing: the vLLM environment must not be the project environment" in setup
+    rec = kit.environments()
+    assert rec["driver"]["prefix"] and "transformers" in rec["driver"] and "vllm_server" not in rec
 
 
 def test_shell_scripts_parse():

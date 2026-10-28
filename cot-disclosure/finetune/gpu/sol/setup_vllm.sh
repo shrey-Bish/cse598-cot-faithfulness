@@ -1,5 +1,5 @@
 #!/bin/bash
-# Make vLLM's own environment for Steps 12-13 on Sol: $TRACKA_VLLM_ENV (/scratch/ragarw68/envs/vllm,
+# Make vLLM's own environment for Steps 12-13 on Sol: $TRACKA_VLLM_ENV (/scratch/ragarw68/envs/olmo-vllm,
 # Python 3.11) with vLLM 0.31.0 (released Oct 5; it pins torch 2.13.0 and transformers < 5.18, so it
 # can't share the project environment, which has torch 2.14.1 and transformers 5.18.0). Only the
 # server runs there: finetune/gpu/eval_job.py (project environment) starts "$TRACKA_VLLM serve".
@@ -10,6 +10,11 @@ source "$(dirname "${BASH_SOURCE[0]}")/env.sh" || exit 1
 set -euo pipefail
 VLLM_VERSION=0.31.0
 export HF_HUB_OFFLINE=0                     # pip only; nothing here touches the model
+# never the project environment: it stays exactly as Steps 8-10 used it (decided Oct 27)
+if [ "$(realpath -m "$TRACKA_VLLM_ENV")" = "$(realpath -m "$TRACKA_ENV")" ]; then
+    echo "refusing: the vLLM environment must not be the project environment ($TRACKA_ENV)" >&2
+    exit 1
+fi
 if [ ! -x "$TRACKA_VLLM_PY" ]; then
     mamba create -y -p "$TRACKA_VLLM_ENV" "python=3.11"
 fi

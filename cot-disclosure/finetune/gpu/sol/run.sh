@@ -2,7 +2,7 @@
 # Run one Track A GPU step inside a Slurm job on Sol: your interactive session, or a batch job
 # (the .sbatch scripts call this). Refuses outside a job, or under an account not in accounts.conf.
 #   cot-disclosure/finetune/gpu/sol/run.sh smoke|step8|step9|step10 [arguments for the Python script]
-#   cot-disclosure/finetune/gpu/sol/run.sh timing                    # S1: 20 longest examples, every version
+#   cot-disclosure/finetune/gpu/sol/run.sh timing                    # S1: 12 examples of every length, every version
 #   cot-disclosure/finetune/gpu/sol/run.sh vllm_check                # S2: the vLLM tag check
 #   cot-disclosure/finetune/gpu/sol/run.sh train VERSION [args]      # S3-S6: lora, tags, lora_tags, lora_attn3
 #   cot-disclosure/finetune/gpu/sol/run.sh eval SYSTEM [K/N] [args]  # E1-E6: one system, the K-th of N parts
@@ -22,7 +22,7 @@ case "$step" in
     step9)  script=finetune/look/attn_to_hint.py ;;
     step10) script=finetune/look/patching.py ;;
     timing) script=finetune/train.py
-            args=(--version lora,tags,lora_tags,lora_attn3 --timing 20 --out "$TRACKA_OUT/timing" "$@") ;;
+            args=(--version lora,tags,lora_tags,lora_attn3 --timing 12 --out "$TRACKA_OUT/timing" "$@") ;;
     vllm_check) script=finetune/gpu/eval_job.py
             args=(--check --out "$TRACKA_OUT/vllm_check" "$@") ;;
     train)  script=finetune/train.py

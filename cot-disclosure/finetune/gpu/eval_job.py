@@ -1,7 +1,7 @@
 """Track A on Sol: one evaluation job (Step 13, jobs E1-E6) or the vLLM tag check (Step 12, job S2).
 
 A job prepares the system's model, starts a vLLM server on it (its own environment,
-$TRACKA_VLLM = /scratch/ragarw68/envs/vllm/bin/vllm, since vLLM pins its own torch), runs
+$TRACKA_VLLM = /scratch/ragarw68/envs/olmo-vllm/bin/vllm, since vLLM pins its own torch), runs
 finetune/eval.py's runs against it, and stops it. Models (under $TRACKA_OUT/models/, made once):
   base, prompt_only   the cached Olmo 3 7B Think snapshot
   lora, lora_attn3    the base with the chosen epoch's LoRA merged in (merge_and_unload)
@@ -125,8 +125,13 @@ def evaluate(system, part, out, workers):
     model, tags = prepare(system, base, out_root() / "train", out_root() / "models")
     tagger = gen.Tagger.load(base, tags) if tags else None
     Path(out).mkdir(parents=True, exist_ok=True)
+    started = kit.now()
     with Server(model, prompt_embeds=tags is not None, log=Path(out) / f"vllm_{system}.log") as srv:
         ev.run(system, gen.server_complete(srv.url, "system", tagger), out, part, workers)
+    with open(Path(out) / "eval_jobs.jsonl", "a") as f:       # which job ran what, in which environments
+        f.write(json.dumps({"system": system, "part": part, "model_dir": str(model), "tags": str(tags) if tags else None,
+                            "started_utc": started, "ended_utc": kit.now(), "slurm": kit.slurm(),
+                            "environments": kit.environments(server=True)}) + "\n")
 
 
 # ---------------------------------------------------------------- S2: the vLLM tag check
@@ -232,7 +237,8 @@ def check(out):
            "tagged_differs_from_plain_output": [a != b for a, b in zip(got_tagged, got_plain)],
            "pass": sum(tagged) >= sum(plain) - CHECK_TOKENS // 4 and min(tagged) > 0,
            "rule": "the tagged version agrees with its HF reference about as far as the plain base does "
-                   "(summed agreement within a quarter of the tokens) and on every prompt from the first token"}
+                   "(summed agreement within a quarter of the tokens) and on every prompt from the first token",
+           "slurm": kit.slurm(), "environments": kit.environments(server=True)}
     (out / "vllm_check.json").write_text(json.dumps(res, indent=1) + "\n")
     print(json.dumps(res))
     return res
