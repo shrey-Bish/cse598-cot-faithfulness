@@ -88,3 +88,16 @@ def test_mentions_when_following_calls_and_sets():
     by = tr.report(rs, by_set=True)["budget_32768"]
     assert sorted(by) == ["voyager | m | thinking=None | set=s", "voyager | m | thinking=None | set=t"]
     assert sum(v["questions"] for v in by.values()) == 6
+
+
+def test_thinking_minus_not_pairs_the_two_qwen3_30b_checkpoints():
+    think = rows()
+    inst = [{**r, "model": "qwen3-30b-a3b-instruct-2507", "followed": False if r["condition"] == "tool_real" else r["followed"]}
+            for r in think]
+    think = [{**r, "model": "qwen3-30b-a3b-thinking-2507"} for r in think]
+    res = tr.report(think + inst)["thinking_minus_not"]["budget_32768"]
+    (pair, chans), = res.items()
+    assert pair.startswith("voyager | qwen3-30b-a3b-thinking-2507") and "instruct" in pair
+    assert chans["tool_real"]["diff"] == 1.0 and chans["user"]["diff"] == 0.0
+    by_set = tr.report(think + inst, by_set=True)["thinking_minus_not"]["budget_32768"]
+    assert list(by_set) == [pair.replace("thinking=None minus", "thinking=None | set=s minus") + " | set=s"]

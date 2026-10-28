@@ -22,6 +22,8 @@ Both cuts, for every model (decided Oct 27): the run's own budget (32,768 tokens
 The Gate 2 question, per model: tool channel minus user channel in following, a paired bootstrap over
 the questions both have (clear = the interval excludes 0 and the gap is positive). Fewer than 5
 questions: "too few questions" (common.MIN_QUESTIONS).
+Thinking vs not (THINKING_PAIRS: Qwen3 30B's Thinking and Instruct checkpoints, Qwen3-8B's switch):
+per channel, following with thinking minus without, paired by question, at both cuts.
 """
 import argparse
 import json
@@ -41,6 +43,8 @@ OUT = CODE / "results" / "trackB"
 SUMMARY = CODE / "results" / "summaries" / "trackB"
 CHANNELS = ("user", "tool_pasted", "tool_real", "tool_injected", "system")
 TOOL_CHANNELS = ("tool_pasted", "tool_real", "tool_injected")
+THINKING_PAIRS = [("voyager | qwen3-30b-a3b-thinking-2507 | thinking=None", "voyager | qwen3-30b-a3b-instruct-2507 | thinking=None"),
+                  ("sol_vllm | qwen3-8b | thinking=True", "sol_vllm | qwen3-8b | thinking=False")]
 
 
 def flags(r):
@@ -172,12 +176,32 @@ def cut(rows, limit=CUT):
     return out
 
 
+def thinking_pairs(by):
+    """Following with thinking minus without (THINKING_PAIRS), per channel both have, paired by question."""
+    out = {}
+    for a, b in THINKING_PAIRS:
+        for key in sorted(k for k in by if k.startswith(a)):
+            other = b + key[len(a):]                  # the same set, with --by-set
+            if other not in by:
+                continue
+            res = {}
+            for c in CHANNELS:
+                x = [r for r in by[key] if r["condition"] == c and r["answered"]]
+                y = [r for r in by[other] if r["condition"] == c and r["answered"]]
+                if x and y:
+                    res[c] = gap(x, y)
+            out[f"{key} minus {other}"] = res
+    return out
+
+
 def report(rows, by_set=False):
     by = defaultdict(list)
     for r in rows:
         by[f"{r['provider']} | {r['model']} | thinking={r['thinking']}" + (f" | set={r['set']}" if by_set else "")].append(r)
+    cuts = {k: cut(v) for k, v in by.items()}
     return {"budget_32768": {k: model_report(v) for k, v in sorted(by.items())},
-            "cut_16000": {k: model_report(cut(v)) for k, v in sorted(by.items())}}
+            "cut_16000": {k: model_report(v) for k, v in sorted(cuts.items())},
+            "thinking_minus_not": {"budget_32768": thinking_pairs(by), "cut_16000": thinking_pairs(cuts)}}
 
 
 def fmt(x):
@@ -195,8 +219,17 @@ def fmt_excess(b):
 
 def show(res):
     for name, table in res.items():
+        if name == "thinking_minus_not":
+            continue
         print(f"\n## {name}")
         show_table(table)
+    for name, pairs in res.get("thinking_minus_not", {}).items():
+        for pair, chans in pairs.items():
+            print(f"\n## thinking minus not, {name}: {pair}")
+            for c, g in chans.items():
+                iv = g["interval"] if isinstance(g["interval"], str) else f"[{g['interval'][0]:+.0%}, {g['interval'][1]:+.0%}]"
+                d = "—" if g["diff"] is None else f"{g['diff']:+.0%}"
+                print(f"  {c}: following {d} {iv} ({g['questions']} q)")
 
 
 def show_table(res):
