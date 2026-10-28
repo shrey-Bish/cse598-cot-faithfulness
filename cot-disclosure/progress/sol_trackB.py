@@ -88,29 +88,35 @@ def snapshot_record(log_dir):
 
 def download(log_dir):
     """The no-GPU download job (the only one with the network): the pinned snapshot unless it is cached,
-    every file's sha256 checked against the Hub's, and the record (revision, path, files, sizes, sha256,
-    the chat template's sha256) in snapshot.json."""
+    every file checked against the Hub (sha256 for the large files, the git blob id for the small ones),
+    and the record (revision, path, files, sizes, hashes, the chat template's sha256) in snapshot.json."""
     import fnmatch
     from huggingface_hub import HfApi
     from finetune.gpu import kit
-    try:
-        snap, cached = snapshot(local_only=True), True
-    except Exception:
-        snap, cached = snapshot(local_only=False), False
     info = HfApi().model_info(REPO, revision=REVISION, files_metadata=True)
+    wanted = [s for s in info.siblings if any(fnmatch.fnmatch(s.rfilename, pat) for pat in PATTERNS)]
+    try:                                               # cached = every wanted file is there (a tokenizer-only
+        snap = snapshot(local_only=True)               # cache is not)
+        cached = all((snap / s.rfilename).exists() for s in wanted)
+    except Exception:
+        cached = False
+    if not cached:
+        snap = snapshot(local_only=False)              # fetches only what is missing
     files, bad = [], []
-    for s in info.siblings:
-        if not any(fnmatch.fnmatch(s.rfilename, pat) for pat in PATTERNS):
-            continue
+    for s in wanted:
         local = snap / s.rfilename
         if not local.exists():
             bad.append(f"{s.rfilename}: missing")
             continue
-        digest = kit.sha256(local)
-        want = s.lfs.sha256 if s.lfs else None
+        lfs = s.lfs
+        want = (lfs.get("sha256") if isinstance(lfs, dict) else getattr(lfs, "sha256", None)) if lfs is not None else None
+        if want:                                       # weights and tokenizer.json: the Hub's sha256
+            digest, kind = kit.sha256(local), "sha256"
+        else:                                          # small files: the Hub's git blob id
+            digest, kind, want = kit.git_blob_id(local), "git_blob_id", getattr(s, "blob_id", None)
         if want and digest != want:
-            bad.append(f"{s.rfilename}: sha256 {digest[:12]} but the Hub has {want[:12]}")
-        files.append({"file": s.rfilename, "bytes": local.stat().st_size, "sha256": digest, "hub_sha256": want})
+            bad.append(f"{s.rfilename}: {kind} {digest[:12]} but the Hub has {want[:12]}")
+        files.append({"file": s.rfilename, "bytes": local.stat().st_size, kind: digest, "hub": want})
     if bad:
         sys.exit(f"refusing: the {REPO}@{REVISION[:8]} snapshot doesn't match the Hub:\n  " + "\n  ".join(bad))
     _, tpl_sha = write_template(snap, log_dir)

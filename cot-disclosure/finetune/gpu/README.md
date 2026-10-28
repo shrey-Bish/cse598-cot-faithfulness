@@ -423,7 +423,7 @@ server's version).
 | S1 timing | `submit.sh timing --estimate 0.5` | 1:00 | `timing/timing.jsonl`: per version, 12 examples spread over the lengths, peak memory, seconds per token, predicted hours |
 | S2 vLLM check | `submit.sh vllm_check --estimate 1 --dependency=afterok:<setup job>` | 1:30 | `vllm_check/vllm_check.json`: served vs Hugging Face, plain and tagged; `pass` |
 | S3–S6 train (batch 2, Oct 28) | `plan_training.py <S1 timing.jsonl>` prints the 4 lines: lora and tags at once, lora_tags `--dependency=afterany:<lora job>`, lora_attn3 `afterany:<tags job>` | the refit's high end × 1.3, ≤ 8:00 | `train/<version>/` (resumes; `epoch<k>/` after each epoch; `final/` at the end) |
-| Track B Qwen3-8B snapshot (no GPU, the only job online) | `submit.sh get_qwen8b` | 1:00 (the script's) | `trackb_qwen8b/snapshot.json`: revision, every file's sha256 checked against the Hub, the chat template's sha256 |
+| Track B Qwen3-8B snapshot (no GPU, the only job online) | `submit.sh get_qwen8b` | 1:00 (the script's) | `trackb_qwen8b/snapshot.json`: revision, every file checked against the Hub (sha256 for weights, git blob id for small files), the chat template's sha256 |
 | Track B Qwen3-8B (replaces Ollama) | `submit.sh trackb_qwen8b --estimate 1.5 --dependency=afterok:<get_qwen8b>` | 2:00 | `results/trackB/sol_vllm*` in the clone; `sol_vllm_runs.jsonl` and `sol_vllm_flags.jsonl` (numbers) come back |
 | E1–E6 evaluate (batch 3) | `plan_eval.py --vllm-check <S2> --train lora=<id>,...` prints the lines: base and prompt_only afterok S2, each version afterok its training job, split by question when over 8 h | high × 1.3, ≤ 8:00 | `eval/eval_<system>*.jsonl*`, `eval_jobs.jsonl` (also written at the time-limit warning; the decoding rate comes from it) |
 

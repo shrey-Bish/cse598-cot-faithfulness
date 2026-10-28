@@ -200,19 +200,21 @@ def test_the_download_job_checks_every_file_against_the_hub(tmp_path, monkeypatc
     (snap / "tokenizer_config.json").write_text(json.dumps({"chat_template": "T"}))
     (snap / "model-00001.safetensors").write_bytes(b"weights")
     good = hashlib.sha256(b"weights").hexdigest()
-    monkeypatch.setattr(st, "snapshot", lambda local_only=True: snap)
-    hub = {"sha": st.REVISION, "lfs": good}
+    fetched = []
+    monkeypatch.setattr(st, "snapshot", lambda local_only=True: fetched.append(local_only) or snap)
+    from finetune.gpu import kit
+    hub = {"sha": st.REVISION, "lfs": good, "blob": kit.git_blob_id(snap / "tokenizer_config.json")}
 
     class Api:
         def model_info(self, repo, revision, files_metadata):
             assert (repo, revision, files_metadata) == (st.REPO, st.REVISION, True)
-            return NS(sha=hub["sha"], siblings=[NS(rfilename="model-00001.safetensors", lfs=NS(sha256=hub["lfs"])),
-                                                NS(rfilename="tokenizer_config.json", lfs=None),
-                                                NS(rfilename="README.md", lfs=None)])
+            return NS(sha=hub["sha"], siblings=[NS(rfilename="model-00001.safetensors", lfs=NS(sha256=hub["lfs"]), blob_id="x"),
+                                                NS(rfilename="tokenizer_config.json", lfs=None, blob_id=hub["blob"]),
+                                                NS(rfilename="README.md", lfs=None, blob_id="y")])
     monkeypatch.setattr(huggingface_hub, "HfApi", Api)
     rec = st.download(tmp_path / "log")
     saved = json.loads((tmp_path / "log" / "snapshot.json").read_text())
-    assert saved == rec and rec["revision"] == st.REVISION and rec["was_cached"]
+    assert saved == rec and rec["revision"] == st.REVISION and rec["was_cached"] and fetched == [True]
     assert [f["file"] for f in rec["files"]] == ["model-00001.safetensors", "tokenizer_config.json"]
     assert rec["files"][0]["sha256"] == good and rec["chat_template_sha256"] == hashlib.sha256(b"T").hexdigest()
     assert st.check_snapshot(snap, tmp_path / "log")["revision"] == st.REVISION
@@ -222,3 +224,11 @@ def test_the_download_job_checks_every_file_against_the_hub(tmp_path, monkeypatc
     hub["lfs"] = "0" * 64
     with pytest.raises(SystemExit, match="doesn't match the Hub"):
         st.download(tmp_path / "log2")
+    hub["lfs"], hub["blob"] = hashlib.sha256(b"weights, changed").hexdigest(), "1" * 40
+    with pytest.raises(SystemExit, match="tokenizer_config.json: git_blob_id"):        # a small file differs
+        st.download(tmp_path / "log3")
+    (snap / "model-00001.safetensors").unlink()                                       # a partial cache: fetched
+    fetched.clear()
+    with pytest.raises(SystemExit, match="model-00001.safetensors: missing"):          # (the fake fetch adds nothing)
+        st.download(tmp_path / "log4")
+    assert fetched == [True, False]
