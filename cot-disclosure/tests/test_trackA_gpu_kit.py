@@ -330,6 +330,17 @@ def test_dependencies_must_be_live_jobs_of_the_right_kind(tmp_path):
     assert r.returncode == 1 and "waits for no other job" in r.stderr
 
 
+def test_c13_waits_only_for_its_snapshots_and_set_as_jobs(tmp_path):
+    """C13 runs after set A (Oct 29): it may wait for get_c13, Step 10, Step 9 and B1 forced, nothing else."""
+    env, log = fake_sbatch(tmp_path)
+    fake_squeue_jobs(tmp_path, {200: "PENDING trackA-step10", 201: "PENDING trackC-get-c13", 202: "RUNNING trackA-eval"})
+    r = submit(env, "c13", "--estimate", "1.5", "--dependency=afterany:200:201")
+    assert r.returncode == 0 and "dependency ok: job 201" in r.stdout and "-t 2:00:00" in log.read_text()
+    log.unlink()
+    r = submit(env, "c13", "--estimate", "1.5", "--dependency=afterany:202")
+    assert r.returncode == 1 and "is 'trackA-eval'" in r.stderr and not log.exists()
+
+
 def test_train_and_eval_need_their_argument_when_submitted(tmp_path):
     """Oct 28: lora_tags and lora_attn3 (afterany on lora and tags) reached run.sh with no version and
     failed in seconds when they started, hours after they were submitted. Now refused at submission."""
@@ -398,7 +409,10 @@ def test_runs_only_inside_a_job_under_the_course_account(env_vars, ok):
     ("eval", ["base", "1/2", "--engine", "vllm"], ["finetune/gpu/eval_job.py", "--system", "base", "--out", "{out}/eval",
                                                    "--part", "1/2", "--engine", "vllm"]),
     ("trackb_qwen8b", ["--engine=vllm"], ["progress/sol_trackB.py", "--run", "--log-dir", "{out}/trackb_qwen8b", "--engine=vllm"]),
-    ("step10", ["--items-from", "I"], ["finetune/look/patching.py", "--items-from", "I"])])
+    ("step10", ["--items-from", "I"], ["finetune/look/patching.py", "--items-from", "I"]),
+    ("c13", ["--model", "granite-4.1-30b"], ["agents/sol_c13.py", "--run", "--log-dir", "{out}/c13", "--model",
+                                             "granite-4.1-30b"]),
+    ("get_c13", [], ["agents/sol_c13.py", "--download", "--log-dir", "{out}/c13"])])
 def test_run_sh_builds_each_new_step(tmp_path, step, args, want):
     """run.sh with env.sh stubbed (no mamba on the Mac): which script and arguments each step gets, after
     the import check (Oct 29), which also checks vLLM's environment in a vLLM job only."""
@@ -417,11 +431,11 @@ def test_run_sh_builds_each_new_step(tmp_path, step, args, want):
     r = subprocess.run(["bash", str(sol / "run.sh"), step, *args], env=env, capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
     check, line = [x for x in r.stdout.splitlines() if x.startswith("ARGS ")]
-    vllm = step == "vllm_check" or "vllm" in " ".join(args)
+    vllm = step in ("vllm_check", "c13") or "vllm" in " ".join(args)
     assert check.split()[1:] == ["finetune/gpu/import_check.py"] + ["--vllm", "/envs/olmo-vllm/bin/python"] * vllm
     assert line.split()[1:] == [w.format(out=out) for w in want]
     online = next(x for x in r.stdout.splitlines() if x.startswith("ONLINE "))
-    assert online == ("ONLINE 0" if step == "get_qwen8b" else "ONLINE unset")      # only the download is online
+    assert online == ("ONLINE 0" if step in ("get_qwen8b", "get_c13") else "ONLINE unset")   # only the downloads are online
 
 
 def test_a_failed_import_check_stops_the_job_before_its_step(tmp_path):
@@ -466,7 +480,8 @@ def test_every_server_command_uses_options_vllm_lists():
     assert version == "0.31.0" and len(opts) > 300
     assert set(cmds) == {f"eval {s}" for s in SYSTEMS} | {"vllm_check plain", "vllm_check tagged"}
     assert vo.problems(cmds, opts) == [] and vo.problems(vo.job_commands(), opts) == []
-    assert set(vo.job_commands()) == set(cmds) | {"trackB qwen3-8b"}              # Track B's Qwen3-8B server too
+    assert set(vo.job_commands()) == set(cmds) | {"trackB qwen3-8b", "c13 granite-4.1-30b", "c13 mistral-small-3.2-24b"}
+    # ^ Track B's Qwen3-8B server and Track C's C13 reviewers too
     assert "--enable-prompt-embeds" in cmds["eval lora_tags"] and "--enable-prompt-embeds" not in cmds["eval lora"]
     assert vo.unknown(["vllm", "serve", "M", "--disable-log-requests"], opts) == ["--disable-log-requests"]
 
@@ -518,7 +533,7 @@ def test_setup_vllm_checks_version_and_commands_against_the_committed_list_witho
     from finetune.gpu import vllm_options as vo
     r, calls = run_setup_vllm(tmp_path / "ok")
     assert r.returncode == 0, r.stderr
-    assert "vLLM 0.31.0 installed = the committed list's 0.31.0; all 9 server commands" in r.stdout
+    assert "vLLM 0.31.0 installed = the committed list's 0.31.0; all 11 server commands" in r.stdout
     assert "python -m pip install --no-input vllm==0.31.0" in calls          # the version comes from the list
     assert "vllm " not in calls.replace("vllm==", "")                         # vllm itself never ran (no --help)
     r, _ = run_setup_vllm(tmp_path / "newer", installed="0.32.0")
@@ -577,7 +592,7 @@ def test_other_differences_on_the_node_are_a_warning_in_the_log(tmp_path, capsys
     vo.gpu_preflight(fake_vllm(tmp_path / "sg018", lines), tmp_path / "sg018", committed=_list(tmp_path, mac))
     out = capsys.readouterr().out
     assert "WARNING: this node's vLLM options differ from the committed 0.31.0 list (choices 1: --mm-processor-device)" in out
-    assert "not in any option or value the 9 server commands use: going on" in out
+    assert "not in any option or value the 11 server commands use: going on" in out
     assert vo.read(tmp_path / "sg018" / "vllm_serve_options_node.txt")[1] == lines           # saved to copy back
     node = [x for x in lines if not x.startswith("--mm-ipc-gpu-memory-gb")] + ["--new-option NEW_OPTION"]
     node = [x.replace("{auto,bfloat16,", "{auto,bfloat16,fp8,") if x.startswith("--dtype") else x for x in node]

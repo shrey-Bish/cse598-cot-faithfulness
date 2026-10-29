@@ -71,7 +71,8 @@ plus_private and plus_tool_log only. The summary adds vs_first_log (minus FIRST'
 item) and final_vs_own_answer (the final letter minus the reviewer's own first letter, paired).
 
 C11, C12 (Oct 29): `--no-check-tool` reruns with C4's original prompt (no added sentence); `--bad-first` reviews
-the bad lookups first. C11 is other reviewer models. C12 uses the redacted variants (reviewer.redact): the
+the bad lookups first. C11 is other reviewer models; C13 (agents/sol_c13.py) two more families on Sol, each on
+the job's own vLLM server (--reviewer-model sol_chat:MODEL, --workers 16; Voyager's runs keep 4). C12 uses the redacted variants (reviewer.redact): the
 summary compares each with C4's unredacted variant (vs_original_prompt, matched by REDACTED_OF) and with C4's
 answer_only (vs_original_answer_only), both paired by item.
 
@@ -768,6 +769,8 @@ def main():
     ap.add_argument("--variants", help=f"--rereview: the reviewer variants (default: {','.join(C9_VARIANTS)}; "
                                        f"with --first-from: {','.join(C10_VARIANTS)})")
     ap.add_argument("--no-check-tool", action="store_true", help="--rereview: C4's original prompt, no added sentence")
+    ap.add_argument("--workers", type=int, default=IN_FLIGHT, help="--rereview: cases at once (default %(default)s, "
+                                                                    "Voyager's; a Sol job's own server takes more)")
     ap.add_argument("--bad-first", action="store_true", help="--rereview: the bad lookups' cases first")
     ap.add_argument("--first-from", metavar="LOG", help="--rereview (C10): the reviewer's own answer_only reviews from "
                                                        "LOG come first; then each variant is a second turn")
@@ -840,8 +843,8 @@ def main_rereview(a, path):
     import client
     try:
         return rereview(cases, reviewers, variants, path, a.run_name or f"run-{uuid.uuid4().hex[:6]}", a.rereview,
-                        reviewer_max_tokens=a.reviewer_max_tokens, stop_file=a.stop_file, first_log=a.first_from,
-                        system_extra=extra)
+                        workers=a.workers, reviewer_max_tokens=a.reviewer_max_tokens, stop_file=a.stop_file,
+                        first_log=a.first_from, system_extra=extra)
     except (client.CanaryFailed, client.ModelUnavailable) as err:
         print(f"halted: {type(err).__name__}: {err}", file=sys.stderr, flush=True)
         return 3

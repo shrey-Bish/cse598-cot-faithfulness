@@ -11,6 +11,8 @@
 #   cot-disclosure/finetune/gpu/sol/run.sh get_qwen8b                # its snapshot (no GPU; the only step online)
 #   cot-disclosure/finetune/gpu/sol/run.sh provenance_forced --cases-from C --runs-from R [--items-from I]   # B1 on set A
 #   cot-disclosure/finetune/gpu/sol/run.sh provenance_gen [--alpha-from S | --version V --checkpoint D] [--part K/N]
+#   cot-disclosure/finetune/gpu/sol/run.sh c13 [--model M]          # Track C: two more reviewer families (agents/sol_c13.py)
+#   cot-disclosure/finetune/gpu/sol/run.sh get_c13                  # their snapshots (no GPU; online)
 # Output: $TRACKA_OUT/<step>/ (/scratch/ragarw68/trackA/<step>/), plus a log of the console there.
 # Every step starts with the import check (finetune/gpu/import_check.py): a broken environment stops the
 # job in seconds, before any model loads.
@@ -20,7 +22,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/env.sh" || exit 1
 set -euo pipefail
 tracka_require_job
 
-step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|val_loss|trackb_qwen8b|get_qwen8b|provenance_forced|provenance_gen [args]}
+step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|val_loss|trackb_qwen8b|get_qwen8b|provenance_forced|provenance_gen|c13|get_c13 [args]}
 shift
 args=("$@")
 case "$step" in
@@ -50,7 +52,12 @@ case "$step" in
             args=(forced --out "$TRACKA_OUT" "$@") ;;
     provenance_gen) script=finetune/gpu/provenance_job.py         # B1 / B2 generation; Hugging Face only
             args=(generate --out "$TRACKA_OUT" "$@") ;;
-    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, val_loss, trackb_qwen8b, get_qwen8b, provenance_forced, provenance_gen)" >&2; exit 2 ;;
+    c13)    script=agents/sol_c13.py                              # Track C: reviewers on our vLLM, one after the other
+            args=(--run --log-dir "$TRACKA_OUT/c13" "$@") ;;
+    get_c13) script=agents/sol_c13.py                             # their snapshots: online, like get_qwen8b
+            export HF_HUB_OFFLINE=0 TRANSFORMERS_OFFLINE=0
+            args=(--download --log-dir "$TRACKA_OUT/c13") ;;
+    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, val_loss, trackb_qwen8b, get_qwen8b, provenance_forced, provenance_gen, c13, get_c13)" >&2; exit 2 ;;
 esac
 mkdir -p "$TRACKA_OUT/$step"
 log="$TRACKA_OUT/$step/console_$(date +%Y%m%d_%H%M%S)_${SLURM_JOB_ID}.log"
@@ -58,10 +65,10 @@ cd "$TRACKA_CODE"
 echo "job $SLURM_JOB_ID ($(tracka_account)) on $(hostname): $script ${args[*]}" | tee "$log"
 # First (Oct 29): the job's imports, each from its own environment, with their versions, in seconds
 # (finetune/gpu/import_check.py): torch, transformers with AutoTokenizer, peft; vllm in vLLM's
-# environment for a vLLM job (vllm_check; eval and trackb_qwen8b with --engine vllm)
+# environment for a vLLM job (vllm_check, c13; eval and trackb_qwen8b with --engine vllm)
 check=(finetune/gpu/import_check.py)
 uses_vllm=0
-if [ "$step" = vllm_check ]; then uses_vllm=1; fi
+if [ "$step" = vllm_check ] || [ "$step" = c13 ]; then uses_vllm=1; fi
 for i in "${!args[@]}"; do
     if [ "${args[$i]}" = "--engine=vllm" ]; then uses_vllm=1; fi
     if [ "${args[$i]}" = "--engine" ] && [ "${args[$((i + 1))]:-}" = vllm ]; then uses_vllm=1; fi

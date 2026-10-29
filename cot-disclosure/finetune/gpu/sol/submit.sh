@@ -158,6 +158,7 @@ depends_on() {          # the job kinds each job may wait for (plain case: works
         val_loss) echo "train" ;;
         provenance_gen) echo "provenance_forced train" ;;
         trackb_qwen8b) echo "setup_vllm get_qwen8b trackb_qwen8b" ;;
+        c13) echo "get_c13 step10 step9 provenance_forced c13" ;;     # after set A's jobs (Oct 29)
     esac
 }
 deps=""

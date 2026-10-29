@@ -138,11 +138,14 @@ def differences(live, committed):
 
 
 def job_commands():
-    """Track A's servers (evaluation, the check) and Track B's Qwen3-8B server (progress/sol_trackB.py)."""
+    """Track A's servers (evaluation, the check), Track B's Qwen3-8B server (progress/sol_trackB.py) and
+    Track C's C13 reviewers (agents/sol_c13.py)."""
     sys.path.insert(0, str(CODE / "progress"))
     import sol_trackB
+    from agents import sol_c13
     from finetune.gpu import eval_job
-    return {**eval_job.server_commands(), "trackB qwen3-8b": sol_trackB.serve_cmd("SNAPSHOT", template="TEMPLATE")}
+    return {**eval_job.server_commands(), "trackB qwen3-8b": sol_trackB.serve_cmd("SNAPSHOT", template="TEMPLATE"),
+            **{f"c13 {name}": sol_c13.serve_cmd(name, "SNAPSHOT") for name in sol_c13.MODELS}}
 
 
 def check_commands(installed=None, committed=TRACKED):
