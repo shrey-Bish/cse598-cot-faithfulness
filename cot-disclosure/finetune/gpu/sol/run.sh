@@ -6,6 +6,7 @@
 #   cot-disclosure/finetune/gpu/sol/run.sh vllm_check                # S2: the vLLM tag check
 #   cot-disclosure/finetune/gpu/sol/run.sh train VERSION [args]      # S3-S6: lora, tags, lora_tags, lora_attn3
 #   cot-disclosure/finetune/gpu/sol/run.sh eval SYSTEM [K/N] [args]  # E1-E6: one system, the K-th of N parts
+#   cot-disclosure/finetune/gpu/sol/run.sh val_loss [VERSION ...]    # validation loss by part: base + each version's epochs
 #   cot-disclosure/finetune/gpu/sol/run.sh trackb_qwen8b [args]      # Track B: Qwen3-8B on vLLM (progress/sol_trackB.py)
 #   cot-disclosure/finetune/gpu/sol/run.sh get_qwen8b                # its snapshot (no GPU; the only step online)
 # Output: $TRACKA_OUT/<step>/ (/scratch/ragarw68/trackA/<step>/), plus a log of the console there.
@@ -15,7 +16,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/env.sh" || exit 1
 set -euo pipefail
 tracka_require_job
 
-step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|trackb_qwen8b|get_qwen8b [args]}
+step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|val_loss|trackb_qwen8b|get_qwen8b [args]}
 shift
 args=("$@")
 case "$step" in
@@ -34,12 +35,14 @@ case "$step" in
             system=${1:?usage: run.sh eval SYSTEM [K/N]}
             args=(--system "$system" --out "$TRACKA_OUT/eval")
             if [ $# -ge 2 ] && [[ "$2" == */* ]]; then args+=(--part "$2" "${@:3}"); else args+=("${@:2}"); fi ;;
+    val_loss) script=finetune/val_loss.py                         # Hugging Face only, no vLLM
+            args=(--out "$TRACKA_OUT/val_loss" --train-dir "$TRACKA_OUT/train" "$@") ;;
     trackb_qwen8b) script=progress/sol_trackB.py
             args=(--run --log-dir "$TRACKA_OUT/trackb_qwen8b" "$@") ;;
     get_qwen8b) script=progress/sol_trackB.py                  # the only step with the network (decided Oct 28)
             export HF_HUB_OFFLINE=0 TRANSFORMERS_OFFLINE=0
             args=(--download --log-dir "$TRACKA_OUT/trackb_qwen8b") ;;
-    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, trackb_qwen8b, get_qwen8b)" >&2; exit 2 ;;
+    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, val_loss, trackb_qwen8b, get_qwen8b)" >&2; exit 2 ;;
 esac
 mkdir -p "$TRACKA_OUT/$step"
 log="$TRACKA_OUT/$step/console_$(date +%Y%m%d_%H%M%S)_${SLURM_JOB_ID}.log"

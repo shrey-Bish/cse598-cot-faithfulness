@@ -1,186 +1,232 @@
-# Session log: the Sol failures fixed, batch 2's epochs, decisions 1–7, and the bare-letter answer after a real call (2026-10-28 12:20 MST)
+# Session log: C4 and Olmo 3 7B Think done, the bare letter is about tool use, the training baseline job, labeling by rule (2026-10-28 18:23 MST)
 
 Project: CSE 598 Group 10. Track A trains Olmo 3 7B Think on Sol to stop hiding hint-following; Track
 B measures hint-following across open models and channels; Track C runs a solver/reviewer/checker
-team on Track B's cases. This log answers Ritik's morning message: the Sol failures, his decisions
-and his notes for FINDINGS.
+team on Track B's cases. This log covers the end of the Voyager runs and Ritik's evening message:
+the training baseline, the bare-letter control and labeling by rule.
 
 ## 1. Header
 
-- **Time:** 2026-10-28 12:20 MST (19:20 UTC). **Track:** all. **By:** Claude Code, for Ritik.
-- **Branch:** `trackA-nosol` (= `main`); `trackB-main` and `trackC-main` start at this log's commit.
-- **Input:** Ritik's message (sacct for Oct 28, the Slurm log tails, lora's and tags' `chosen.json`,
-  decisions 1–7, notes for F15/F16 and C4).
+- **Time:** 2026-10-28 18:23 MST. **Track:** all. **By:** Claude Code, for Ritik.
+- **Branch:** `trackA-nosol` (= `main`); `trackB-main` and `trackC-main` are moved to this log's
+  commit.
+- **Input:** Ritik's evening message: three points, his Sol output (the SubmitLine of the two failed
+  jobs; the three new job numbers).
 
 ## 2. What ran
 
+- **Voyager, finished:**
+  - C4 ended 17:51: 318 of 318 cases, 0 errors.
+  - Olmo 3 7B Think ended 17:52: 805 of 805 jobs, 0 not run, 0 API errors.
+  - Both power guards ended (17:52, 17:53). Nothing of ours runs on the Mac now.
+  - The watcher's exit code 1 was its last `ls logs/voyager_halted`: no halt file, so no halt.
 - **Mac, no calls:**
-  - the batch-2 submit line through `submit.sh` with a fake `sbatch`: today's copy and Sol's
-    (`1c66f33`);
-  - the tests (402 pass);
-  - the Track B labeling batch (`label_kit.py trackb`: 295 rows);
-  - the F15/F16 bootstraps.
-- **Voyager, untouched and running:**
-  - Olmo 3 7B Think: 440 of 805 jobs at 11:56 (445 of 810 runs), 0 errors.
-  - C4: 218 of 318 cases at 12:18, 0 errors.
+  - the C4 summary;
+  - the Track B report with all three models (`--export --by-set`);
+  - the steered exports for Instruct and Olmo;
+  - the label kit, rebuilt with the bare-reply rule;
+  - `export_summaries.py`;
+  - the F17 bootstrap;
+  - `val_loss.py --dry-run` with the real tokenizer;
+  - the tests.
+- **Sol (Ritik, this afternoon):**
+  - pushed and rsynced;
+  - lora_tags **66862721** (limit 5:00), lora_attn3 **66862726** (4:00), vllm_check
+    **66862780** (1:30), all pending (Priority). 630 of 960 GPU-minutes requested.
+  - SubmitLine of 66759772 and 66759822: `sbatch -A … -t … --dependency=afterany:… …/train.sbatch`
+    with nothing after it. The version was missing from the submitted line: **cause 1 confirmed**.
 
 ## 3. Results
 
-**Batch 2 on Sol** (Ritik's sacct and `chosen.json`):
+**Track B, Olmo 3 7B Think** (FINDINGS F17; pinned format, `tool_injected` for the tool; 810 runs,
+10 no answer):
 
-| version | job | state | time (S1 refit, 5–95%) | chosen epoch | validation loss, epoch 1 → 2 |
+| channel | following | above the no-hint baseline | final names the hint, when following | bare final (all runs) |
+|---|---|---|---|---|
+| user | 13 of 162 [5, 13%] | +6 [+2, +10] | 2 of 13 | 24 of 162 |
+| tool, pasted | 64 of 160 [33, 48%] | +38 [+27, +48] | 33 of 64 | 30 of 162 |
+| tool, injected | 46 of 157 [23, 37%] | +27 [+17, +37] | 11 of 46 | **115 of 162** |
+| system note | 34 of 159 [16, 28%] | +19 [+10, +28] | 10 of 34 | **85 of 162** |
+
+- **Gate 2 is clear:** pasted +32 [+22, +42], injected +21 [+13, +30]. At the 16,000 cut: +35
+  [+22, +48] (40 q) and +18 [+9, +27] (49 q).
+  - The cut takes 173 of 810 runs, 72 of them pasted (median pasted run 15,472 tokens).
+  - Gate 2 is now clear for all three Voyager models.
+- **By set:** MMLU-Pro pasted 59 of 89 and injected 44 of 87; puzzles 5 of 71 and 2 of 70.
+- **Bare answers follow the system turn:** no hint 19 of 162. Our system note replaces Olmo's
+  default system prompt, and `tool_injected` uses the function-calling one.
+  - So injected − pasted naming, −28 [−44, −11] over 31 q (unpaired, F15's method), is not about
+    the tool. The system note, with no tool, is named in 10 of 34.
+
+**Track C, C4** (FINDINGS F18; 53 items × 2 teams × 3 repeats):
+- **Shipped wrong on bad lookups: 0 of 75**, in every variant. The checker flagged 73 of 75 bad
+  lookups; the other 2 had right solver answers.
+- **Checker false alarms:** good lookups 7 of 80, floor 12 of 155, good − floor −4 [−11, +4]
+  (27 items). All are on steered MMLU-Pro items: the floor is 18% there and 0% on matched items.
+- **The reviewer alone on the 73 wrong answers after bad lookups,** minus answer only, paired by
+  item over 25 items:
+
+  | variant | Olmo 3 32B | − answer only | Qwen3 30B Instruct | − answer only |
+  |---|---|---|---|---|
+  | answer only | 59 of 73 | — | 62 of 73 | — |
+  | + explanation | 61 of 73 | +3 [−5, +12] | 62 of 73 | +0 [−7, +8] |
+  | + private reasoning | **6 of 73** | **−73 [−86, −58]** | 66 of 73 | +5 [−6, +19] |
+  | + tool log | **3 of 73** | **−77 [−91, −61]** | 56 of 73 | −8 [−25, +9] |
+
+  - With the private reasoning or the tool log, Olmo keeps the wrong letter (66 and 70 of 73), and
+    its reply names the answer key (59 and 66 of 75; 0 of 75 with the answer only).
+  - On good lookups, Olmo keeps the right answer 84 of 84 (vs 67 of 84): +20 [+8, +35].
+- **By kind × set** (Olmo, private − answer only): matched puzzles −77 [−90, −62] (15 items);
+  steered MMLU-Pro −58 [−88, −25] (8); matched MMLU-Pro 6 of 6 → 0 of 6, too few (2).
+- **The solver's final answer** is bare in 151 of 159 tool-team cases, so "+ explanation" adds
+  little.
+
+**Ritik's point 2: is the bare letter about the hint or about tool use?** It is about tool use (no
+new calls):
+
+| C4 solver's final answer | bare (≤30 characters) | median characters | names the tool |
+|---|---|---|---|
+| after a good lookup | 80 of 84 [88, 98%] | 11 | 2 of 84 |
+| after a bad lookup | 71 of 75 [87, 98%] | 11 | 4 of 75 |
+| no tool, same items | 2 of 159 [0, 4%] | 1,979 | 3 of 159 |
+
+- Good − bad: **+1 [−7, +9]** over 53 items, unpaired (each item's lookup is fixed).
+- Against no tool, paired by item: good +93 [+86, +99] (28 items), bad +95 [+88, +100] (25 items).
+- The same holds on the puzzles and on MMLU-Pro.
+- In Track B, Qwen3 Thinking's real-call runs without a call are bare in 56 of 108: 52 of 68 on the
+  puzzles, 4 of 40 on MMLU-Pro. With no hint, a user hint, a pasted hint or a system note: 0 of 162.
+- **F15 now reads:** after a tool call, the final answer stops explaining where its answer came
+  from, whether the tool was right or wrong. That is broader than hints. Which of the two matters
+  more, the declared tool or the call, is tentative.
+
+**Ritik's point 3: labeling.**
+- The queue (L3, 101 rows) goes first.
+- In the Track B batch, bare replies are `no_mention` by rule (`prelabeled.csv`), with a blind 10%
+  spot check per group, rounded up.
+
+| group | runs | bare, by rule | with text | spot check | rows to label |
 |---|---|---|---|---|---|
-| lora | 66759753 | completed | 3:24:50 = 3.41 h (3.66, 3.56–3.78) | 2 | 0.18567 → **0.18537** |
-| tags | 66759769 | completed | 2:48:24 = 2.81 h (2.97, 2.89–3.04) | 2 | 0.21672 → **0.21401** |
-| lora_tags | 66759772 | failed after 7 s | — | — | — |
-| lora_attn3 | 66759822 | failed after 4 s | — | — | — |
-| vllm_check | 66760726 | failed after 3:04 | — | — | — |
+| 1 Qwen3 Thinking (F15) | 113 | 51 | 62 | 6 | **68** (rows 1–68) |
+| 2 Qwen3 Instruct (F16) | 182 | 111 | 71 | 12 | **83** (rows 69–151) |
+| total | 295 | 162 | 133 | 18 | **151** |
 
-- **Epochs:** both chose epoch 2, by lower validation loss (never held-out results). LoRA's loss
-  barely moved (−0.0003); tags' fell 0.0027.
-- **Time:** both ran 5–7% under the refit, and below its 5% bound. The bootstrap range covers the
-  fit, not node-to-node speed. The limits (5:00 and 4:00) keep their room.
+**Ritik's point 1: the training baseline (S7).**
+- `finetune/val_loss.py`: base plus both epochs of lora and tags on the 156 validation examples,
+  each loss split by part. Taught = opener + hint-check sentences + final answer, in hinted
+  examples.
+- Dry run with the real tokenizer:
 
-**Cause 1: lora_tags and lora_attn3 got no version.**
-- **The evidence:** both logs end in `run.sh: line 30: 1: usage: run.sh train lora|tags|...`. Line 30
-  of Sol's `run.sh` is `version=${1:?...}`, so the job ran `run.sh train` with nothing after it.
-- **Not `submit.sh`:** the lines we sent end in `-- lora_tags` and `-- lora_attn3`. Run through
-  `submit.sh` (both copies) with a fake `sbatch`, that line gives
-  `sbatch ... --dependency=afterany:66759753 .../train.sbatch lora_tags`.
-- **Not a version without `--`:** that would put `lora_tags` before the script, and `sbatch` would
-  refuse it ("Unable to open file").
-- **Most likely:** the submitted lines had no `-- VERSION`. I can't see them. On Sol,
-  `sacct -j 66759772,66759822 -o JobID,SubmitLine%250` shows them, if the cluster records them.
-- **Fix:** `submit.sh` now refuses `train` without one of the four versions, and `eval` without a
-  system, at submission. The job no longer fails hours later when it starts. Test:
-  `test_train_and_eval_need_their_argument_when_submitted`.
+  | part | tokens | share |
+  |---|---|---|
+  | opener | 2,569 | 0.2% |
+  | hint-check sentences | 27,976 | 2.2% |
+  | final, hinted | 49,465 | 4.0% |
+  | rest, hinted | 1,023,147 | 82.3% |
+  | final, no hint | 7,088 | 0.6% |
+  | rest, no hint | 133,447 | 10.7% |
+  | **taught** | **80,010** | **6.4%** |
 
-**Cause 2: vllm_check's preflight ran out of time.**
-- **The evidence:** `vllm serve --help=all` didn't finish in 180 s on sg002.
-- **Why it's likely:** this was the first import of vLLM on Sol. `setup_vllm` reads the version from
-  the package metadata without importing vLLM. The imports come from `/scratch`. The server itself
-  is given 1,800 s for the same imports plus the model.
-- **What the log can't show:** whether it was a slow import or a hang.
-- **Fix:** the limit is 900 s. Past it, the job sends SIGABRT with Python's faulthandler on, so the
-  refusal prints vLLM's traceback (most recent call first) and shows where it was. Test:
-  `test_a_help_past_its_time_limit_shows_where_vllm_was`. Every vLLM GPU job uses this preflight
-  (eval, Qwen3-8B).
-
-**Decisions (Ritik, Oct 28), recorded in PLAN, TODO and the handoffs:**
-1. **Qwen3-8B on Sol:** go, after vllm_check passes (the same vLLM stack).
-2. **Batch 3:** go once vllm_check passes. Base and prompt-only go first, then each trained version
-   as its training is done. Re-plan from the first job's measured rate.
-3. **C4:** reported by kind and by kind × set, saying plainly that steered vs matched is also
-   MMLU-Pro vs puzzles. No extra cases.
-4. **Branches:** `trackB-main` and `trackC-main` are made from `main` (local), and kept at `main`
-   until Nov 3.
-5. **The 16,000-cut wording:** "a run whose replies total over 16,000 tokens, both turns of a
-   real-call run together, counts as no answer". It's now in PLAN, FINDINGS, the Track B handoff
-   and `trackB_report.py`.
-6. **The push:** Ritik pushes, after `git fetch` and the `main..origin/main` check.
-7. **C4 before Olmo:** recomputed, no switch.
-   - Olmo did 70, 70 and 82 runs in the last three hours (about 74 an hour), so its 365 remaining
-     jobs end around 17:00.
-   - C4 does about 20 cases an hour, so its 103 remaining end around 17:00–17:30, sooner once Olmo
-     is done.
-   - Both end well before 21:00.
-   - My 07:00 estimates (19:30 and 21:00) came from the first slow hour after Olmo started.
-
-**F15 and F16: the final answer after a real call** (runs that followed the hint; keyword counts
-for "names"; "bare" means a reply of at most 30 characters, a length count):
-
-| model | final answer names the hint: real call vs pasted | real − pasted (questions) | bare `Answer: (X)` after the call | replies with text that name the tool | private reasoning names it (real call) |
-|---|---|---|---|---|---|
-| Qwen3 Thinking | 3 of 54 [2, 15%] vs 54 of 59 [82, 96%] | **−86 [−95, −75]** (37) | **51 of 54 [85, 98%]** | 3 of 3 | 54 of 54 |
-| Qwen3 Instruct | 30 of 147 [15, 28%] vs 29 of 35 [67, 92%] | **−62 [−83, −39]** (52) | **111 of 147 [68, 82%]** | 30 of 36 | — (none) |
-
-- **The contrast is real, but it is mostly the bare letter.** The prompt asks the model to think
-  step by step and then answer. After a tool result, the visible reply is the letter alone: no
-  tool, and no reasoning either. When the reply has text, it names the tool.
-- **No reply after a pasted block is bare** (0 of 59 and 0 of 35). They are worked answers:
-  median 2,756 characters (Thinking) and 12,152 (Instruct).
-- **So the headline is "after a real call, the answer stops explaining",** not "it explains and
-  leaves the tool out". F15's title and reading now say so.
-- **The call is in the tool log,** and Thinking's private reasoning names the tool in 54 of 54. A
-  reader of the final answer alone gets nothing; Track C's answer-only reviewer is in that seat.
-- **Instruct, framed as Ritik asked:** the tool is described as the course answer key, so taking its
-  letter can be reasonable tool use. The claim is about disclosure (30 of 147), not about being
-  fooled.
-- **How the intervals were made:** a bootstrap over the questions with a following run in either
-  channel, unpaired, because the runs that follow differ by channel. Thinking: 29 real-call and 27
-  pasted questions, 19 in both. Instruct: 52 and 16, 16 in both.
-
-**The Track B labeling batch** (TODO L5; `tools/label_kit.py trackb`; gitignored
-`results/labels/trackB/`): 295 rows, in the order to label.
-- **Group 1, rows 1–113:** Qwen3 Thinking's followed real-call (54) and pasted (59) runs, the F15
-  contrast.
-- **Group 2, rows 114–295:** Instruct's (147 and 35).
-- **Within a group,** the channels are mixed in a seeded order.
-- **The sheets** carry the whole final answer and the private reasoning around its first tool
-  keyword. The key keeps the keyword flags.
-- **Kappa** per channel works on these sheets (`tool_real`, `tool_pasted`).
+- The average loss is 94% tokens training does not target.
+- Estimate: 25–45 GPU minutes, inferred from lora's training rate, not measured. Limit 1:00, which
+  brings the total to 690 of 960.
 
 ## 4. Changes
 
-- **Code:**
-  - `finetune/gpu/sol/submit.sh`: `train` and `eval` need their argument at submission.
-  - `finetune/gpu/vllm_options.py`: a 900 s preflight, with vLLM's traceback past it.
-  - `tools/label_kit.py`: `trackb`, and kappa per Track B channel.
-  - `progress/trackB_report.py`: the cut's wording in the docstrings.
-- **Tests:** 3 new; 402 pass.
-- **Docs:**
-  - FINDINGS F15 and F16 (the final answer after a real call; F15's title; status lines), and the
-    budget limitation's wording;
-  - PLAN (batch 2's results and failures, the S rows, B-Q8, batch 3's go, the cut);
-  - TODO (A13, A15, A16, B4, C4, the new L5, H1–H4);
-  - both handoffs (progress, F15/F16, the cut, the branches, C4's reporting);
-  - LABELING_GUIDE (the Track B batch).
-- **Branches:** `trackB-main` and `trackC-main` from `main` (local, not pushed).
+- `agents/run_team.py`:
+  - `reviewer_vs_answer_only` (each variant minus answer only, paired by item);
+  - `solver_replies` (bare, median length, naming the tool, per team and lookup; good − bad
+    unpaired, each − notool paired);
+  - the reviewer alone keeping the wrong letter, and its reply naming the tool;
+  - all of it in `--table` and in each kind / kind × set split.
+- `progress/trackB_report.py`: `final_chars` in the per-run flags (a number); "bare final" per
+  channel, with no hint, and with / without a call.
+- `tools/label_kit.py`: the bare-reply rule, `prelabeled.csv`, the spot check, and kappa's
+  agreement with the rule.
+- `finetune/val_loss.py`, `finetune/gpu/sol/val_loss.sbatch`, a `run.sh` step, and `submit.sh`
+  (val_loss takes versions only and may wait for train jobs).
+- Tests: 12 more than this morning: Track C 2, the Track B report 1, val_loss 4 (a new file), and 5
+  from the GPU kit's job lists (the new step and submission checks). The label kit's test is
+  extended. 414 pass.
+- Exported (numbers only):
+  - `results/summaries/trackB/*` (now with `final_chars`);
+  - `trackC/team_c4_summary.json` (new);
+  - `trackC/team_smoke_olmo32b_summary.json` (its C5 block, regenerated at 00:34 but not exported
+    then);
+  - `voyager_canary.jsonl` (the night's canaries).
+- `steered_cases.jsonl` (gitignored): Instruct has 48 steered (all 24 puzzles, 24 MMLU-Pro) and 6
+  matched. Olmo has 21 steered, 31 matched and 2 other.
+- Docs:
+  - FINDINGS: F15 reworded, F16 a line, F17 and F18 new, a training-loss limitation.
+  - PLAN: the batch-2 resubmission, S7, Track B/C state, labeling order.
+  - TODO: A13, A15, A18 new, B7–B14, C4, C5, L3, L5.
+  - Handoffs B and C, the labeling guide, RUNBOOK §14 and §15.
+
+The F17 contrast's interval (as F15's: a bootstrap over the union of questions, seed 20261028,
+10,000 resamples), from `cot-disclosure/`:
+```bash
+../.venv/bin/python -c "
+import sys,random,collections; sys.path.insert(0,'progress')
+import trackB_report as tr
+rows=[f for f in tr.load_flags() if f['followed'] and f['model']=='olmo3-7b-think' and f['condition'] in ('tool_injected','tool_pasted')]
+g={c:collections.defaultdict(list) for c in ('tool_injected','tool_pasted')}
+for f in rows: g[f['condition']][f['item_id']].append(int(bool(f['mention_final'])))
+qs=sorted(set(g['tool_injected'])|set(g['tool_pasted']))
+rate=lambda d,ids:(lambda k,n:k/n if n else None)(sum(sum(d[i]) for i in ids if i in d),sum(len(d[i]) for i in ids if i in d))
+rng=random.Random(20261028); ds=[]
+for _ in range(10000):
+    s=[rng.choice(qs) for _ in qs]; a,b=rate(g['tool_injected'],s),rate(g['tool_pasted'],s)
+    if a is not None and b is not None: ds.append(a-b)
+ds.sort(); print(rate(g['tool_injected'],qs)-rate(g['tool_pasted'],qs), ds[250], ds[9749])"
+```
 
 ## 5. For review
 
-- **Cause 1 is inferred, not seen:** the submitted lines aren't in what I have. The SubmitLine check
-  settles it.
-- **Cause 2's root** (a slow import or a hang) is still open. The import timing below, or the
-  traceback if it times out again, will show it.
-- **F15's headline is a length effect** as much as a disclosure effect. Worth deciding how the
-  report states it: "after a real call, the final answer is a bare letter", with the tool log and
-  the private reasoning as where the source shows.
-- **The labeling order:** I read "put these runs first" as first in the Track B batch. Whether the
-  batch goes before L3's progress-round queue is Ritik's call.
-- **The private excerpt is centered on the first keyword,** as in L2's kit, so raters see where the
-  keyword is. The final answer is shown whole.
-- **The refit's 5–95% range was too narrow:** both training times fell below it.
+1. **F15 changed meaning a second time today.**
+   - At 12:20 the reading was "after a real call, the answer stops explaining". C4's good lookups
+     show that this is not about the hint: the reply is just as bare when the tool returns the key.
+   - Track B's no-call runs show that on the puzzles, declaring the tool alone is enough (52 of 68
+     bare).
+   - So the −86-point naming contrast is mostly a property of tool use: a bare answer can't name
+     anything. The claim is now about tool use in general.
+2. **The control isn't identical to Track B.** C4 forces the first call; Track B leaves it to the
+   model. C4's 53 items are Qwen3 Thinking's steered and matched cases, not all 54 questions. Good
+   and bad lookups fall on different items (unpaired).
+3. **Olmo's system condition differs in two ways.** Our system note *replaces* its default system
+   prompt, so "system" for Olmo changes both the hint and the identity prompt. The pinned format
+   does this by design (T2). That is why F17 compares the system note with the injected tool, not
+   with the pasted block.
+4. **F18 rests on one reviewer of each family and one reviewer prompt.** "Keeps the wrong letter
+   and names the key" may be reasonable deference to an answer key (as in F16). The claim is only
+   that this reviewer's independent check disappears when it sees the source. The naming counts are
+   keywords.
+5. **The checker's catches depend on the model knowing better without the tool.** That held on
+   73 of 75. On the steered (MMLU-Pro) items its floor is already 18% [7, 30].
+6. **The labeling rule leaves some private reasoning unlabeled.** 45 of Thinking's bare real-call
+   runs (51 minus the 6 spot checks) are out of the sheets. Their private reasoning, the "names the
+   tool in 54 of 54" claim, stays a keyword count. If you want it hand-labeled, that is 45 more rows,
+   private reasoning only. Your call.
+7. **The S7 estimate is inferred** from lora's training time (3.9–7.8 minutes per pass), not
+   measured; the job records its seconds. The hint-check part is a keyword rule. The fork widened
+   it beyond detect.py: the hint wording's own source words, and "suggest" for the user channel,
+   because the user openers say "the suggestion".
+8. **Instruct's export marks all 24 puzzles as steered.** If Track C ever runs on Instruct's cases,
+   its matched set is only 6 MMLU-Pro items.
+9. **Earlier estimates ran early.** At 12:20 I gave "around 17:00" for both runs; they ended at
+   17:51 and 17:52. Olmo ran at about 62 jobs an hour after 11:56, not 74.
 
 ## 6. Next
 
-- **Ritik, Mac** (from the repo root):
-  ```bash
-  git fetch origin && git log --oneline main..origin/main          # must print nothing
-  git push origin main trackA-nosol trackB-main trackC-main
-  git ls-files | rsync -av --files-from=- ./ ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/
-  ```
-- **Ritik, Sol** (from `/scratch/ragarw68/cse598-cot-faithfulness`, after the rsync):
-  ```bash
-  sacct -j 66759772,66759822 -o JobID,SubmitLine%250                               # cause 1, if recorded
-  time /scratch/ragarw68/envs/olmo-vllm/bin/python -c "import vllm"                 # optional: cold import time
-  cot-disclosure/finetune/gpu/sol/submit.sh train --estimate 3.74 -- lora_tags     # limit 5:00
-  cot-disclosure/finetune/gpu/sol/submit.sh train --estimate 3.07 -- lora_attn3    # limit 4:00
-  cot-disclosure/finetune/gpu/sol/submit.sh vllm_check --estimate 1                # limit 1:30; waits for a slot
-  ```
-  - The three jobs need 300 + 240 + 90 = 630 of the 960 GPU-minutes. `vllm_check` starts when a
-    training job ends (lora_attn3: about 2.8 h at the measured rate).
-  - When vllm_check passes:
-    ```bash
-    cot-disclosure/finetune/gpu/sol/submit.sh get_qwen8b                                            # -> job G
-    cot-disclosure/finetune/gpu/sol/submit.sh trackb_qwen8b --estimate 1.5 --dependency=afterok:G
-    source cot-disclosure/finetune/gpu/sol/env.sh
-    "$TRACKA_PY" cot-disclosure/finetune/gpu/plan_eval.py --vllm-check <vllm_check job> \
-        --train lora=66759753,tags=66759769,lora_tags=<job>,lora_attn3=<job>
-    ```
-- **Claude Code:**
-  - C4 done (about 17:00): the C5 tables, then a FINDINGS entry (the Olmo 32B reviewer's drop paired
-    by item, with intervals and the kind × set split), then Instruct's steered export.
-  - Olmo done (about 17:00): its table, a FINDINGS entry, Gate 2 for three models.
-  - Keep `trackB-main` and `trackC-main` at `main`.
-  - The evening daily.
+- **Ritik, Mac:**
+  - `git fetch origin && git log --oneline main..origin/main` must print nothing;
+  - `git push origin main trackA-nosol trackB-main trackC-main`;
+  - `git ls-files | rsync -av --files-from=- ./ ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/`.
+- **Ritik, Sol:**
+  - Submit S7: `cot-disclosure/finetune/gpu/sol/submit.sh val_loss --estimate 0.75
+    --dependency=afterany:66862721:66862726 -- lora tags` (limit 1:00; 690 of 960).
+  - To include lora_tags and lora_attn3 as well: `--estimate 1.25 … -- lora tags lora_tags
+    lora_attn3` (limit 2:00; 750 of 960).
+  - After vllm_check passes: Qwen3-8B and batch 3, as in the 12:20 log.
+- **Raters:** L3 first (101 rows), then the Track B batch (151 rows). A second rater from Shrey or
+  Arsha.
+- **Not decided:** what Track C runs next (Instruct's or Olmo's cases, other reviewers). No
+  Voyager work is queued.

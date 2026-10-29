@@ -290,7 +290,13 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   "$TRACKA_PY" cot-disclosure/finetune/gpu/plan_eval.py --vllm-check <S2 job> --train lora=<id>,tags=<id>,...
   # ^ batch 3: base and prompt_only after S2, each version after its training job; parts under 8 h;
   #   it reads the queue, finished jobs and train/<version>/final/ on Sol, and prints the submit.sh lines
+  cot-disclosure/finetune/gpu/sol/submit.sh val_loss --estimate 0.75 --dependency=afterany:<training jobs> -- lora tags
+  # ^ S7 (Oct 28): the validation loss of base and of each version's two epochs, split into the taught
+  #   tokens (the prefilled opener, the reasoning sentences naming the hint, the final answer) and the
+  #   rest; Hugging Face only (no vLLM); limit 1:00; a rerun skips the systems done
   ```
+  The parts' token counts, with no model (Mac or Sol): `../.venv/bin/python finetune/val_loss.py
+  --dry-run` (Oct 28: 80,010 taught tokens of 1,243,692, 6.4%).
   `submit.sh` sets each limit to the estimate × 1.3 (rounded up to 30 min), refuses a job over 960
   GPU-minutes, and before submitting prints the GPU-minutes of your running and pending jobs and when
   the second slot frees up. Evaluation report (any machine with the copied-back `_runs.jsonl` files):
@@ -298,7 +304,8 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
 - **In → out:** `finetune/data/{train,validation}_examples.jsonl.gz` → `/scratch/ragarw68/trackA/train/
   <version>/` (`latest/`, `epoch1/`, `epoch2/`, `chosen.json`, `final/`); `timing/timing.jsonl`;
   `vllm_check/vllm_check.json`; `eval/eval_<system>.jsonl.gz` + `_runs.jsonl`; `models/` (merged and
-  folded copies).
+  folded copies); `val_loss/val_loss.json` + `val_loss_examples.jsonl` (numbers only: tokens and loss
+  per part and system, each trained system minus base).
 - **Time:** S1 ≤ 30 min, S2 ≤ 1 h, each version 2–3 h, each system's evaluation 5–14 h (1–3 jobs).
   **Check:** S1's `timing.jsonl` (peak memory under 80 GB, predicted hours); S2's `vllm_check.json`
   says `pass`; `train_log.jsonl` losses fall; `chosen.json` names an epoch; every evaluated system
@@ -317,6 +324,10 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   ../.venv/bin/python tools/label_kit.py build     # done Oct 27: results/labels/ (gitignored: model text)
   # each rater fills results/labels/rater1.csv or rater2.csv alone: label_private, label_final, note
   ../.venv/bin/python tools/label_kit.py kappa results/labels/rater1.csv results/labels/rater2.csv
+  # then, after the queue (decided Oct 28), Track B's batch: 151 rows to label in results/labels/trackB/
+  ../.venv/bin/python tools/label_kit.py trackb    # bare replies (<= 30 characters) no_mention by rule, 10% spot check
+  ../.venv/bin/python tools/label_kit.py kappa results/labels/trackB/rater1.csv results/labels/trackB/rater2.csv
+  # ^ also each rater's agreement with the bare-reply rule on the spot-check rows
   ```
 - **In → out:** `docs/progress/LABEL_QUEUE.csv` + saved runs → `results/labels/` (101 rows: 91 + 10
   replacements; sheets, key). `kappa` prints Cohen's kappa per text (private, final), overall and by

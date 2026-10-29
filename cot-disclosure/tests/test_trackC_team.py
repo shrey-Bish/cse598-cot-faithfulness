@@ -108,6 +108,7 @@ def test_summary_splits_lookups_and_gives_the_checker_floor(tmp_path, monkeypatc
     assert tool["good_lookups"]["false_alarms"]["k"] == 0
     alone = tool["bad_lookups"]["reviewer_alone"]                      # the fake reviewer repeats the proposal
     assert alone["corrects_wrong_solver"]["k"] == 0 and alone["corrects_wrong_solver"]["n"] == n_bad
+    assert alone["keeps_wrong_solver"]["k"] == n_bad and alone["reply_names_tool"]["k"] == 0
     assert tool["good_lookups"]["reviewer_alone"]["keeps_right_solver"]["k"] == 12 - n_bad
     rates = rt.checker_rates(checks)
     assert rates["notool"]["k"] == 0 and rates["notool"]["n"] == 12 and rates["tool, bad lookup"]["k"] == n_bad
@@ -151,6 +152,65 @@ def test_c5_compares_the_checker_with_the_no_tool_floor():
     d = rt.floor_comparison(many, solvers)["bad_minus_floor"]
     assert d["items"] == 6 and d["diff"] > 0.5 and d["interval"][0] > 0
     assert "| C5 | value |" in rt.table({"by_team_model_variant": {}, "checker_flag_rate": {}, "c5_checker_vs_floor": c5})
+
+
+def test_the_reviewer_with_more_to_read_against_answer_only_paired_by_item():
+    """Oct 28 (C4): the Olmo 32B reviewer corrected 59 of 73 wrong answers from the answer alone, 6 of 73
+    with the private reasoning. Each variant minus answer only, on the same solver answers, by item."""
+    rows = []
+    for i in range(6):
+        for rep in range(2):
+            for v in ("answer_only", "plus_private", "plus_tool_log"):
+                fixed = v == "answer_only" or (v == "plus_tool_log" and i == 0)
+                rows.append({"team": "tool", "bad_lookup": True, "solver_wrong": True, "item_id": f"b{i}", "repeat": rep,
+                             "reviewer_model": "rev-a", "variant": v, "correct": "A", "letter": "A" if fixed else "B"})
+        rows.append({"team": "tool", "bad_lookup": True, "solver_wrong": False, "item_id": f"b{i}", "repeat": 9,
+                     "reviewer_model": "rev-a", "variant": "plus_private", "correct": "A", "letter": "A"})  # ignored the tool
+    for i in range(3):
+        for v in ("answer_only", "plus_private"):
+            rows.append({"team": "tool", "bad_lookup": False, "solver_wrong": False, "item_id": f"g{i}", "repeat": 0,
+                         "reviewer_model": "rev-a", "variant": v, "correct": "A", "letter": None if v == "answer_only" else "A"})
+    rows.append({"team": "notool", "bad_lookup": None, "solver_wrong": True, "item_id": "b0", "repeat": 0,
+                 "reviewer_model": "rev-a", "variant": "plus_private", "correct": "A", "letter": "B"})
+    rv = rt.reviewer_vs_answer_only(rows)
+    p = rv["corrects_wrong_bad_lookups | rev-a | plus_private"]
+    assert (p["variant_k"], p["variant_n"], p["answer_only_k"], p["answer_only_n"], p["items"]) == (0, 12, 12, 12, 6)
+    assert p["diff"] == -1 and p["interval"] == [-1, -1]
+    t = rv["corrects_wrong_bad_lookups | rev-a | plus_tool_log"]
+    assert t["variant_k"] == 2 and abs(t["diff"] + 10 / 12) < 1e-9 and t["interval"][1] < 0
+    k = rv["keeps_right_good_lookups | rev-a | plus_private"]          # no letter counts as not keeping
+    assert (k["variant_k"], k["answer_only_k"], k["diff"], k["interval"]) == (3, 0, None, "too few questions")
+    assert not any("answer_only" in key for key in rv)
+    md = rt.table({"by_team_model_variant": {}, "checker_flag_rate": {}, "reviewer_vs_answer_only": rv})
+    assert "| corrects a wrong answer (bad lookups) | rev-a | plus_private | 0 of 12 | 12 of 12 | -100% [-100%, -100%] | 6 |" in md
+    assert "| keeps a right answer (good lookups) | rev-a | plus_private | 3 of 3 | 0 of 3 | — too few questions | 3 |" in md
+
+
+def test_the_solvers_final_answer_after_good_and_bad_lookups():
+    """Oct 28: is F15's bare letter about the wrong hint or about the tool call? Good lookups return the
+    key: bare share, median length and naming the tool per arm; good - bad unpaired, each - notool paired."""
+    solvers = []
+    for i in range(12):
+        bad = i < 6
+        for rep in range(2):
+            solvers.append({"team": "tool", "bad_lookup": bad, "item_id": f"q{i}", "repeat": rep,
+                            "final_text": "\n\nAnswer: (B)" if (bad or rep == 0) else "The tool's answer key says (A). Answer: (A)"})
+            solvers.append({"team": "notool", "bad_lookup": None, "item_id": f"q{i}", "repeat": rep,
+                            "final_text": "Step 1 ... " * 10 + "Answer: (A)"})
+    sr = rt.solver_replies(solvers)
+    bad, good, notool = (sr["arms"][k] for k in ("tool, bad lookup", "tool, good lookup", "notool"))
+    assert (bad["bare"]["k"], bad["bare"]["n"], bad["items"], bad["median_chars"]) == (12, 12, 6, len("Answer: (B)"))
+    assert (good["bare"]["k"], good["names_tool"]["k"], notool["bare"]["k"], notool["items"]) == (6, 6, 0, 12)
+    d = sr["differences"]
+    assert d["bare: good minus bad lookup"]["diff"] == -0.5 and not d["bare: good minus bad lookup"]["paired"]
+    assert d["bare: good minus bad lookup"]["items"] == 12 and d["bare: good minus bad lookup"]["interval"][1] < 0
+    assert d["bare: bad lookup minus notool"] == {**d["bare: bad lookup minus notool"], "diff": 1.0, "items": 6, "paired": True}
+    assert d["names_tool: good lookup minus notool"]["diff"] == 0.5
+    few = rt.solver_replies([s for s in solvers if s["item_id"] in ("q0", "q1", "q6")])
+    assert few["differences"]["bare: good minus bad lookup"]["interval"] == "too few questions"
+    md = rt.table({"by_team_model_variant": {}, "checker_flag_rate": {}, "solver_replies": sr})
+    assert "| tool, bad lookup | 6 | 12 of 12 [76%, 100%] | 11 | 0 of 12 [0%, 24%] |" in md
+    assert "| bare: good minus bad lookup (unpaired) | -50%" in md
 
 
 def test_summary_split_by_track_b_kind_and_set(tmp_path, monkeypatch):

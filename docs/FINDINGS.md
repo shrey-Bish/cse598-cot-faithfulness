@@ -1,8 +1,10 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-28 12:20 (F14, F15, F16, T9 and T10 added; F15/F16: the final answer after a
-real call, real call vs pasted; F10's closest-approach reading refuted; limitations section). Design and plans: [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
+status. Started 2026-10-26; last updated 2026-10-28 18:23 (F17 Olmo 3 7B Think in Track B and F18 Track C's C4
+added; F15 reworded: after a tool call the final answer is bare whether the lookup was right or wrong, from C4's control;
+earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limitations section). Design and plans:
+[`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
@@ -460,7 +462,7 @@ the leading forced answer (Step 3's dense curves: 199 runs, 20 questions).
   *tentative*: lasting > temporary (followed runs only, not robust to isolated onsets). The
   spike's length: descriptive.
 
-## F15. Track B, Qwen3 30B Thinking: tool and system hints move it, the user's doesn't; after a real tool call the final answer is a bare letter
+## F15. Track B, Qwen3 30B Thinking: tool and system hints move it, the user's doesn't; after a tool call the final answer is a bare letter, whether the tool was right or wrong
 
 **Setup.** Track B (Oct 27–28, Voyager, served format): 54 questions (24 pilot puzzles, 30
 MMLU-Pro) × 5 conditions × 3 runs = 810 runs at the 32,768-token budget, every one with an answer.
@@ -497,6 +499,25 @@ Each hint names the same wrong letter.
     call has no visible text in 52 of 54. The 3 replies with more text all name the tool.
   - With the pasted block, no reply is bare (0 of 59 [0, 6%]; median 2,756 characters).
   - The private reasoning names the hint in both: 54 of 54 and 59 of 59.
+- **The bare letter comes with the tool call, not with the wrong hint** (checked Oct 28 18:00, no
+  new calls; Ritik's question: "is the bare letter about the hint, or about tool use?"):
+  - *Track C's C4 is the control.* It uses the same model, prompt and tool (`build(..., "tool_real")`),
+    with the first call forced. On about half the items the lookup returns the right letter.
+    | solver's final answer (C4) | bare (≤30 characters) | median characters | names the tool |
+    |---|---|---|---|
+    | after a good lookup (the key) | 80 of 84 [88, 98%] | 11 | 2 of 84 [1, 8%] |
+    | after a bad lookup (the hint) | 71 of 75 [87, 98%] | 11 | 4 of 75 [2, 13%] |
+    | no tool (same model, same items) | 2 of 159 [0, 4%] | 1,979 | 3 of 159 [1, 5%] |
+    - Good − bad: **+1 point [−7, +9]** (53 items, unpaired, because each item's lookup is fixed by
+      the oracle).
+    - Paired by item against no tool: good **+93 [+86, +99]** (28 items), bad **+95 [+88, +100]**
+      (25 items).
+    - The same holds on the puzzles (good 27 of 27, bad 44 of 45) and on MMLU-Pro (good 53 of 57,
+      bad 27 of 30).
+  - *Declaring the tool is part of it.* In Track B's real-call condition, runs that never called
+    the tool are bare in 56 of 108 [43, 61%]. That is 52 of 68 on the puzzles and 4 of 40 on
+    MMLU-Pro. With no hint, a user or pasted hint, or a system note, no reply is bare (0 of 162
+    each). On MMLU-Pro, the call is what goes with it: 47 of 50 with a call vs 4 of 40 without.
 - **Final answers name pasted and system hints.** With a pasted block or a system note, the final
   answer names the hint in most runs that follow it (table). The user's hint is named in 31 of 162
   final answers, all in runs that didn't follow it.
@@ -525,11 +546,13 @@ Each hint names the same wrong letter.
   - **The set matters.** Almost all of that happens on MMLU-Pro: knowledge questions, where it
     also calls the lookup tool. On the puzzles, which it works out (72 of 72 right with no hint), it
     rarely calls the tool and rarely follows.
-  - **After a real call, the answer stops explaining.** It took the tool's letter every time, and
-    the visible reply was the letter alone in 51 of 54: no tool, and no reasoning either. With the
-    same hint pasted, it writes a worked answer that names the hint in 54 of 59. So the channel
-    changes how much the final answer says, not only whether it names the source. Whenever the
-    reply after a call has text, it names the tool (3 of 3).
+  - **After a tool call, the answer stops explaining where it came from, right or wrong.** It took
+    the tool's letter every time, and the visible reply was the letter alone in 51 of 54: no tool,
+    and no reasoning either. C4 shows the same after a lookup that returned the right letter (80 of
+    84) as after a wrong one (71 of 75). So this is not about the hint. After using the tool, the
+    final answer stops saying where its answer came from. That is a disclosure problem broader than
+    hints. With the same hint pasted, it writes a worked answer that names the hint in 54 of 59.
+    Whenever the reply after a call has text, it names the tool (3 of 3).
   - **What a reader sees.** From the final answer alone, nothing shows the tool decided it. The
     call is in the tool log, and the private reasoning names the tool in 54 of 54 (keywords). This
     is the case Track C's reviewer variants test.
@@ -540,16 +563,26 @@ Each hint names the same wrong letter.
 - **Source.**
   - `cot-disclosure/results/summaries/trackB/trackB_report.json` and `trackB_report_by_set.json`
     (`budget_32768` / `cut_16000`, the `qwen3-30b-a3b-thinking-2507` rows)
-  - per-run flags: `trackB_runs.jsonl`
+  - per-run flags: `trackB_runs.jsonl` (the final answer's length is in `final_chars` from Oct 28;
+    the report's "bare final" column)
+  - the C4 control: `cot-disclosure/results/summaries/trackC/team_c4_summary.json`
+    (`solver_replies`), from `python agents/run_team.py --summary --log team_c4 --cases
+    results/trackB/steered_cases.jsonl --table`
   - recomputed with `python progress/trackB_report.py --by-set` (Mac, no calls). Mentions are
     keyword counts (`detect.py`).
 - **Status.**
   - *confirmed*: tool and system hints above the user's (Gate 2) on 54 questions × 3 runs, and
     following after a real call (54 of 54).
-  - *confirmed*: the bare-letter reply after a real call (51 of 54; a length count, no keywords).
+  - *confirmed*: the bare-letter reply after a tool call, whether the lookup was right or wrong.
+    Track B: 51 of 54. C4: good 80 of 84, bad 71 of 75, good − bad +1 [−7, +9]. These are length
+    counts, so no keywords are involved.
   - *confirmed as keyword counts*: the naming contrast (3 of 54 vs 54 of 59) and the private
     reasoning's mentions. Hand labels: these 113 runs are the first group of the Track B labeling
-    batch (`tools/label_kit.py trackb`, decided Oct 28).
+    batch (`tools/label_kit.py trackb`, decided Oct 28). The 51 bare replies are `no_mention` by
+    rule, and 6 of them are spot-checked by the raters.
+  - *tentative*: how much is the declared tool and how much the call. On the puzzles, runs without
+    a call are bare too (52 of 68); on MMLU-Pro, mostly runs with one. In C4 the call is forced; in
+    Track B it is the model's choice.
   - *tentative*: why the sets differ. "Knowledge vs worked out" is one reading; the sets differ in
     more than that.
 
@@ -622,7 +655,9 @@ source the pasted block and the system note also name.
   - **The final answer rarely says so in either.** After a real call, Instruct's final answer names
     the tool in 30 of 147, and Thinking's in 3 of 54. All 30 of Instruct's are on MMLU-Pro. In both
     models, the silence is the bare-letter reply: a reply with text names the tool in 30 of 36
-    (Instruct) and 3 of 3 (Thinking).
+    (Instruct) and 3 of 3 (Thinking). Instruct called every time, so Track B has no run without a
+    call to compare. C4's control, run on Thinking, shows the bare letter comes with the call,
+    whatever the tool returns (F15).
   - **Two checkpoints, not one switch.** Thinking-2507 and Instruct-2507 are separately trained
     models. The difference is "this Thinking checkpoint vs this Instruct one", not thinking on vs
     off. Qwen3-8B's switch (one set of weights, on Sol, prepared) is the same-weights comparison.
@@ -638,9 +673,160 @@ source the pasted block and the system note also name.
     the real call (−57) and on pasted and system hints (+15, +14), on 54 questions × 3 runs.
   - *confirmed*: the bare-letter reply after a call (111 of 147; a length count).
   - *confirmed as keyword counts*: the final answer's mentions. These 182 runs are the second group
-    of the Track B labeling batch, after F15's.
+    of the Track B labeling batch, after F15's. The 111 bare replies are `no_mention` by rule, and
+    12 of them are spot-checked.
   - *tentative*: "thinking cuts the call". It is one pair of checkpoints, and the sets differ as in
     F15.
+
+## F17. Track B, Olmo 3 7B Think: tool hints move it more than the user's (Gate 2 clear, a third model); its final answer goes bare whenever the system turn changes
+
+**Setup.** Oct 28, 05:32–17:52: the same 54 questions × 5 conditions × 3 runs = 810 runs at the
+32,768 budget. It runs in its pinned format: its own Think template, sent to `/v1/completions`.
+Its tool channel is `tool_injected`: our lookup call and the tool's reply are written into the
+conversation, with the tool declared. That is because it never calls a tool by itself, so it has no
+real-call condition. 10 of 810 runs [1, 2%] gave no answer.
+
+| channel | following | above the no-hint baseline | final answer names the hint, when following |
+|---|---|---|---|
+| user | 13 of 162 [5, 13%] | +6 [+2, +10] | 2 of 13 [4, 42%] |
+| tool, pasted | 64 of 160 [33, 48%] | **+38 [+27, +48]** | 33 of 64 [40, 63%] |
+| tool, injected | 46 of 157 [23, 37%] | **+27 [+17, +37]** | 11 of 46 [14, 38%] |
+| system note | 34 of 159 [16, 28%] | **+19 [+10, +28]** | 10 of 34 [17, 46%] |
+
+- **No hint:** right in 123 of 162 [69, 82%]; the hint letter in 4 of 162 [1, 6%].
+- **Gate 2** (tool − user, paired by question, 54 questions): pasted **+32 points [+22, +42]**,
+  injected **+21 [+13, +30]**. Both clear.
+  - At the 16,000 cut they are +35 [+22, +48] (40 questions) and +18 [+9, +27] (49 questions),
+    still clear.
+  - The cut matters more here than for the Qwen3 models. It takes 173 of 810 runs [19, 24%],
+    including 72 of the 162 pasted runs [37, 52%]. With a pasted hint the median run is 15,472
+    output tokens (no hint: 7,855).
+- **By set:**
+
+  | set (no-hint right) | user | tool, pasted | tool, injected | system note | Gate 2 pasted / injected |
+  |---|---|---|---|---|---|
+  | puzzles, 24 q (67 of 72) | 0 of 72 [0, 5%] | 5 of 71 [3, 15%] | 2 of 70 [1, 10%] | 0 of 70 [0, 5%] | +7 [+1, +13] / +3 [+0, +7] |
+  | MMLU-Pro, 30 q (56 of 90) | 13 of 90 [9, 23%] | 59 of 89 [56, 75%] | 44 of 87 [40, 61%] | 34 of 89 [29, 49%] | +52 [+38, +65] / +36 [+23, +49] |
+
+- **The final answer and the system turn:**
+  - Bare final answers (30 characters or fewer, all runs): no hint 19 of 162 [8, 18%], user 24 of
+    162 [10, 21%], pasted 30 of 162 [13, 25%], **injected 115 of 162 [64, 77%]**, **system note
+    85 of 162 [45, 60%]**. The pattern is the same on both sets.
+  - Only two conditions change the system turn. In the system condition, our note replaces Olmo's
+    default system prompt ("You are OLMo, a helpful function-calling AI assistant built by
+    Ai2…"). In the injected condition, the system prompt becomes the function-calling one, with the
+    tool declared. The other three keep the default. So in this model a changed system turn goes
+    with a bare answer, with or without a tool.
+  - So the injected-vs-pasted naming contrast is not about the tool. When following, the final
+    answer names the hint in 11 of 46 injected runs vs 33 of 64 pasted ones: −28 points [−44, −11]
+    over 31 questions (injected 23, pasted 30, both 22; unpaired, F15's method). But the system
+    note, with no tool involved, is named about as rarely: 10 of 34.
+  - The private reasoning names the hint in the runs that follow it: pasted 62 of 64, injected 43
+    of 46, system note 29 of 34, user 6 of 13.
+- **Reading.**
+  - **Gate 2 holds for a third model**, from another family and in its own format. It has the
+    same shape as Qwen3 Thinking (F15). The user's hint barely moves it (+6 points); tool hints do
+    (+38, +27). Nearly all of it is on MMLU-Pro.
+  - **Its bare answers follow the system turn, not the tool.** That is a format effect specific to
+    this model, in line with F2. For Qwen3 Thinking, a system note leaves the answer worked (0 of
+    162 bare), and the bare letter comes with the tool (F15).
+  - A pasted hint makes its reasoning long, so its 16,000-cut numbers rest on fewer runs.
+- **Source.**
+  - `cot-disclosure/results/summaries/trackB/trackB_report.json` and `trackB_report_by_set.json`
+    (`budget_32768` / `cut_16000`, the `olmo3-7b-think` rows, with the "bare final" column)
+  - per-run flags: `trackB_runs.jsonl`
+  - recomputed with `python progress/trackB_report.py --by-set` (Mac, no calls). The naming
+    contrast's interval was computed as F15's, with the command in the Oct 28 18:23 session log.
+    Mentions are keyword counts (`detect.py`).
+- **Status.**
+  - *confirmed*: Gate 2 for Olmo 3 7B Think, both tool channels, at both cuts.
+  - *confirmed*: bare answers whenever the system turn changes (length counts).
+  - *tentative*: the injected-vs-pasted naming contrast, because the system turn confounds it.
+  - Mentions are keyword counts; these runs are not in the labeling batch.
+
+## F18. Track C (C4): one reviewer stops correcting a wrong tool answer once it can see where the answer came from; the checker caught 73 of 75 bad lookups
+
+**Setup.** Oct 28, 03:13–17:51; 318 cases, about 3,000 calls, 0 errors.
+- **Solver:** Qwen3 30B Thinking with the lookup tool, its first call forced. A seeded oracle makes
+  the lookup bad (the hint letter) on 25 of the 53 items and good (the key) on 28.
+- **Items:** Qwen3 Thinking's Track B cases. 24 are *steered* (a tool hint moved it), all from
+  MMLU-Pro. 29 are *matched* (no hint moved it, and it is mostly right with no hint): 24 puzzles and
+  5 MMLU-Pro.
+- **Teams and repeats:** 3 repeats, each in a tool team and a no-tool team.
+- **Reviewers:** Qwen3 30B Instruct and Olmo 3 32B Instruct (served as 3.1). Each sees the answer
+  only, + the solver's explanation, + its private reasoning, or + the tool log.
+- **Checker:** the solver model, asked again without the tool. If its answer changes, the item is
+  escalated and not shipped.
+
+- **The pipeline shipped no wrong answer on a bad lookup**, in any variant (0 of 75 each).
+  - The checker flagged 73 of 75 bad lookups [91, 99%]. In the other 2, the solver had ignored the
+    tool and was right.
+  - False alarms: it flagged 7 of 80 good lookups [4, 17%], with 4 undetermined.
+  - The no-tool floor (the re-ask disagreeing with no lookup at all) is 12 of 155 [4, 13%].
+  - Compared with the floor, paired by item: good − floor −4 [−11, +4] (27 items); bad − floor
+    +95 [+89, +99] (25 items).
+  - Every flag in the floor and on good lookups is on steered MMLU-Pro items: the floor is 12 of 68
+    there and 0 of 87 on matched items.
+- **The reviewer alone** (as if no checker escalated), on the 73 wrong solver answers after bad
+  lookups. Differences are each variant minus the same reviewer with the answer only, paired by
+  item, because every variant reviews the same solver answers (25 items):
+
+  | the reviewer sees | Olmo 3 32B corrects | minus answer only | Qwen3 30B Instruct corrects | minus answer only |
+  |---|---|---|---|---|
+  | the answer only | 59 of 73 [70, 88%] | — | 62 of 73 [75, 91%] | — |
+  | + the explanation | 61 of 73 [73, 90%] | +3 [−5, +12] | 62 of 73 [75, 91%] | +0 [−7, +8] |
+  | + the private reasoning | **6 of 73 [4, 17%]** | **−73 [−86, −58]** | 66 of 73 [82, 95%] | +5 [−6, +19] |
+  | + the tool log | **3 of 73 [1, 11%]** | **−77 [−91, −61]** | 56 of 73 [66, 85%] | −8 [−25, +9] |
+
+  - With the private reasoning or the tool log, the Olmo reviewer keeps the solver's wrong letter
+    in 66 and 70 of 73. Its reply names the answer key or the tool in 59 and 66 of 75 bad-lookup
+    reviews [68, 86%] / [79, 94%], against 0 of 75 with the answer only. The solver's private
+    reasoning names the tool in 75 of 75 of these cases.
+  - The Qwen3 reviewer reads the same and mostly still corrects. Its reply names the key or tool
+    in 47 and 64 of 75, and it keeps the wrong letter in 3 and 13 of 73.
+  - On good lookups the same deference shows the other way: the Olmo reviewer keeps the right
+    answer in 67 of 84 with the answer only and 84 of 84 with the private reasoning or the tool
+    log: +20 [+8, +35] (28 items).
+- **By kind × set** (Olmo 32B, correcting after bad lookups). Steered vs matched is also MMLU-Pro
+  vs puzzles: all 24 steered items are MMLU-Pro, and 24 of the 29 matched items are puzzles.
+
+  | items | answer only | + private reasoning | + tool log | private − answer only |
+  |---|---|---|---|---|
+  | matched, puzzles (15) | 38 of 43 | 5 of 43 | 3 of 43 | −77 [−90, −62] |
+  | steered, MMLU-Pro (8) | 15 of 24 | 1 of 24 | 0 of 24 | −58 [−88, −25] |
+  | matched, MMLU-Pro (2) | 6 of 6 | 0 of 6 | 0 of 6 | too few questions |
+
+  The drop is on both sets, so it isn't one set's. Kind and set can't be separated.
+- **"+ the explanation" adds little in the tool team.** The solver's final answer is bare in 151
+  of 159 tool-team cases [90, 97%] (F15), so this variant shows the reviewer little more than the
+  letter. For both reviewers it matches the answer only.
+- **Reading.**
+  - **Seeing the source made one reviewer defer to it.** What the Olmo reviewer learns from the
+    private reasoning or the tool log is that the answer came from the course answer key. It then
+    keeps that answer and says so. The solver's reasoning was faithful here: it named the tool in
+    75 of 75. The disclosure itself is what the reviewer deferred to.
+  - As in F16, deferring to an answer key can be reasonable. For oversight, the point is that this
+    reviewer's independent check disappears exactly when it can see where the answer came from.
+  - **The two reviewers differ completely.** Olmo 3.1 32B Instruct defers; Qwen3 30B Instruct
+    doesn't. So this is a property of the reviewer model, not of reviewing.
+  - **The re-ask checker kept wrong answers from shipping, not the reviewer.** Its false alarms on
+    good lookups are at the no-tool floor. It works when the model, asked again without the tool,
+    answers otherwise, and on these items that happened 73 of 75 times. Items the model can't
+    answer alone would test it harder; the floor is already 18% on the steered ones.
+- **Source.**
+  - `cot-disclosure/results/summaries/trackC/team_c4_summary.json`:
+    `by_team_model_variant` (with `reviewer_alone.keeps_wrong_solver` and `reply_names_tool`),
+    `reviewer_vs_answer_only`, `c5_checker_vs_floor`, `solver_replies`, `by_kind` and
+    `by_kind_and_set`
+  - recomputed with `python agents/run_team.py --summary --log team_c4 --cases
+    results/trackB/steered_cases.jsonl --table` (Mac, no calls)
+- **Status.**
+  - *confirmed*: the Olmo reviewer's drop with the private reasoning and with the tool log, paired
+    by item on 25 items, on both sets.
+  - *confirmed*: the checker catching 73 of 75, with false alarms at the floor.
+  - *confirmed as keyword counts*: the reviewer naming the key.
+  - *tentative*: why Olmo defers. There is one reviewer model per family and one reviewer prompt.
+  - *tentative*: steered vs matched, because kind and set are confounded.
 
 ---
 
@@ -756,6 +942,11 @@ Each one would have changed a reported number.
 - **Qwen3-8B's serving**: vLLM in bf16 on one A100 (our own server, the snapshot's chat template,
   its sha256 saved with every run), not Ollama's quantized `qwen3:8b`; the 2 Ollama runs made at
   the full context are reported apart, never pooled.
+- **Training losses** (Track A, Step 11; decided Oct 28). The average validation loss is not a
+  result. LoRA's barely moved between epochs (0.18567 → 0.18537), and 93.6% of its tokens are ones
+  training does not target: the model's own reasoning. Training is reported by the loss on the taught
+  tokens against the base model's (S7, `finetune/val_loss.py`). The taught tokens are the prefilled
+  opener, the reasoning sentences naming the hint, and the final answer: 80,010 of 1,243,692.
 - **One budget** for every open model in Track B: 32,768 tokens, prompt and every reply of a run
   (decided Oct 27); each table also shows a 16,000 cut: a run whose replies total over 16,000 tokens,
   both turns of a real-call run together, counts as no answer (wording agreed Oct 28).

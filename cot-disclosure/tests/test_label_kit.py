@@ -80,15 +80,35 @@ def test_the_trackb_batch_labels_the_f15_contrast_first(tmp_path):
         f.writelines(json.dumps(r) + "\n" for r in recs)
     rows, sizes = lk.build_trackb(path, tmp_path / "out", seed=1)
     assert [r["model"] for r in rows] == [think] * 4 + [inst] * 4
-    assert sizes == {lk.TRACKB_GROUPS[0][0]: {"tool_real": 2, "tool_pasted": 2},
-                     lk.TRACKB_GROUPS[1][0]: {"tool_real": 3, "tool_pasted": 1}}
+    assert {g: s["runs"] for g, s in sizes.items()} == {lk.TRACKB_GROUPS[0][0]: {"tool_real": 2, "tool_pasted": 2},
+                                                         lk.TRACKB_GROUPS[1][0]: {"tool_real": 3, "tool_pasted": 1}}
     assert [r["run_id"] for r in lk.trackb_rows(path, seed=1)] == [r["run_id"] for r in rows]          # seeded
+    # Oct 28: every "Answer: (B)" here is bare (no_mention by rule); 1 per group stays in as the spot check
+    assert [(s["bare_no_mention_by_rule"], s["with_text"], s["spot_check"], s["sheet_rows"]) for s in sizes.values()] == \
+        [(4, 0, 1, 1), (3, 1, 1, 2)]
     sheet = list(csv.DictReader(open(tmp_path / "out" / "rater2.csv")))
-    assert len(sheet) == 8 and not {"keyword_private", "keyword_final", "called_tool"} & set(sheet[0])
-    assert [r["label_private"] for r in sheet] == [""] * 4 + ["n/a"] * 4 and all(r["label_final"] == "" for r in sheet)
-    assert sheet[0]["final_text"].startswith("Answer:") or sheet[0]["final_text"].startswith("The answer key")
+    assert len(sheet) == 3 and not {"keyword_private", "keyword_final", "called_tool", "bare", "spot_check"} & set(sheet[0])
+    assert [r["model"] for r in sheet] == [think, inst, inst] and all(r["label_final"] == "" for r in sheet)
+    assert [r["label_private"] for r in sheet] == ["", "n/a", "n/a"]
+    assert any(r["final_text"].startswith("The answer key") for r in sheet)
     key = list(csv.DictReader(open(tmp_path / "out" / "key.csv")))
-    assert key[0]["run_id"] == sheet[0]["run_id"] and {"keyword_final", "called_tool"} <= set(key[0])
+    assert key[0]["run_id"] == sheet[0]["run_id"] and {"keyword_final", "called_tool", "bare", "spot_check"} <= set(key[0])
+    pre = list(csv.DictReader(open(tmp_path / "out" / "prelabeled.csv")))
+    assert len(pre) == 7 and {p["label_final"] for p in pre} == {"no_mention"} and all(p["rule"].startswith("bare") for p in pre)
+    spots = [p for p in pre if p["sheet_row"]]
+    assert len(spots) == 2 and {sheet[int(p["sheet_row"]) - 1]["run_id"] for p in spots} == {p["run_id"] for p in spots}
+    assert json.loads((tmp_path / "out" / "kit.json").read_text())["sheet_rows"] == 3
+    for name, final in (("rater1.csv", "no_mention"), ("rater2.csv", "mentions_only")):     # the spot check in kappa
+        sh = list(csv.DictReader(open(tmp_path / "out" / name)))
+        for r in sh:
+            r["label_final"] = final
+        with open(tmp_path / "out" / name, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=list(sh[0]))
+            w.writeheader()
+            w.writerows(sh)
+    res, _ = lk.kappa(tmp_path / "out" / "rater1.csv", tmp_path / "out" / "rater2.csv")
+    assert res["spot check | rater1 agrees with the rule"] == {"agreement": 1.0, "rows": 2, "of": 2}
+    assert res["spot check | rater2 agrees with the rule"]["agreement"] == 0.0
     assert [lk.channel_of(c) for c in ("tool_real", "system", "expB cue_tool", "pilot wrong hint")] == \
         ["tool_real", "system", "tool", "user"]
 

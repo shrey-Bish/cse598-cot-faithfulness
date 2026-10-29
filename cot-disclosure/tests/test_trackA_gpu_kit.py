@@ -294,7 +294,7 @@ def fake_squeue_jobs(tmp_path, jobs):
     (tmp_path / "bin" / "squeue").chmod(0o755)
 
 
-@pytest.mark.parametrize("job", ["setup_vllm", "setup_env", "smoke", "timing"])
+@pytest.mark.parametrize("job", ["setup_vllm", "setup_env", "smoke", "timing", "val_loss"])
 def test_every_job_prints_its_job_id(tmp_path, job):
     env, log = fake_sbatch(tmp_path)
     r = submit(env, job)
@@ -347,6 +347,23 @@ def test_train_and_eval_need_their_argument_when_submitted(tmp_path):
     assert r.returncode == 0 and sbatch_args(log)[-2:] == ["prompt_only", "1/2"], r.stderr
 
 
+def test_val_loss_takes_versions_and_waits_only_for_training(tmp_path):
+    """Oct 28: the validation loss by part (base + both epochs of each version), after the training jobs."""
+    env, log = fake_sbatch(tmp_path)
+    fake_squeue_jobs(tmp_path, {100: "PENDING trackA-train", 101: "PENDING trackA-vllm-check"})
+    r = submit(env, "val_loss", "--estimate", "0.75", "--", "lora", "lora_attn")
+    assert r.returncode == 1 and "got: 'lora_attn'" in r.stderr and not log.exists(), r.stderr
+    r = submit(env, "val_loss", "--estimate", "0.75", "--dependency=afterany:101", "--", "lora", "tags")
+    assert r.returncode == 1 and "may wait only for: trackA-train" in r.stderr and not log.exists(), r.stderr
+    r = submit(env, "val_loss", "--estimate", "0.75", "--dependency=afterany:100", "--", "lora", "tags")
+    assert r.returncode == 0, r.stderr
+    args = sbatch_args(log)
+    assert args[args.index("-t") + 1] == "1:00:00" and args[-3].endswith("val_loss.sbatch") and args[-2:] == ["lora", "tags"]
+    assert "--dependency=afterany:100" in args
+    text = (SOL / "val_loss.sbatch").read_text()
+    assert "run.sh val_loss" in text and "vllm" not in text.lower().replace("no vllm", "")       # Hugging Face only
+
+
 def test_only_listed_accounts(tmp_path):
     env, log = fake_sbatch(tmp_path)
     r = submit({**env, "TRACKA_SUBMIT_ACCOUNT": "grp_hdavulcu"}, "smoke")
@@ -372,6 +389,8 @@ def test_runs_only_inside_a_job_under_the_course_account(env_vars, ok):
     ("eval", ["base"], ["finetune/gpu/eval_job.py", "--system", "base", "--out", "{out}/eval"]),
     ("timing", [], ["finetune/train.py", "--version", "lora,tags,lora_tags,lora_attn3", "--timing", "12", "--out", "{out}/timing"]),
     ("vllm_check", [], ["finetune/gpu/eval_job.py", "--check", "--out", "{out}/vllm_check"]),
+    ("val_loss", ["lora", "tags"], ["finetune/val_loss.py", "--out", "{out}/val_loss", "--train-dir", "{out}/train", "lora", "tags"]),
+    ("val_loss", [], ["finetune/val_loss.py", "--out", "{out}/val_loss", "--train-dir", "{out}/train"]),
     ("trackb_qwen8b", ["--limit", "5"], ["progress/sol_trackB.py", "--run", "--log-dir", "{out}/trackb_qwen8b", "--limit", "5"]),
     ("get_qwen8b", [], ["progress/sol_trackB.py", "--download", "--log-dir", "{out}/trackb_qwen8b"])])
 def test_run_sh_builds_each_new_step(tmp_path, step, args, want):

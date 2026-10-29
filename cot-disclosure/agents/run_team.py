@@ -36,6 +36,13 @@ re-ask's run-to-run disagreement, the false-alarm floor), and (C5) the checker a
   run_to_run           the notool solver's own variation: pairs of an item's repeats whose letters differ
   bad / good - floor   the tool team's flag rate on bad / good lookups minus the notool team's, paired by
                        item (95% bootstrap clustered by item; fewer than 5 items: "too few questions")
+and the reviewer alone with more to read (tool team), each variant minus the same reviewer with the answer
+only: corrects a wrong answer (bad lookups), keeps a right one (good lookups). Every variant reviews the
+same solver answers, so it is paired by item (the same bootstrap; no letter counts as not correcting).
+And the solver's final answer per team and lookup (the control for Track B's F15, Oct 28): bare (30
+characters or fewer), median length, naming the tool (detect.py's cue_tool keywords); good minus bad
+lookups (different items: a bootstrap over the items of either, unpaired) and each lookup minus the
+notool team (the same items: paired).
 `--summary --table` also prints it all as tables.
 
 Every agent step is appended to results/trackC/team_<mode>.jsonl (gitignored; never rewritten). A case
@@ -61,6 +68,7 @@ from agents.common import log_step, tokens  # noqa: E402
 from client import preflight  # noqa: E402
 from providers.base import route_fields  # noqa: E402
 from common import boot_diff, boot_mean, load, latest, slot, too_few, wilson  # noqa: E402
+from detect import COMPILED  # noqa: E402
 from parse import parse_answer  # noqa: E402
 from providers import generate  # noqa: E402
 from tools.answer_key import build  # noqa: E402
@@ -104,6 +112,8 @@ def summarize(rows):
             for r in sub:                         # the reviewer alone, as if no checker escalated
                 r["_rev_correct"] = r.get(letter) == r["correct"]
                 r["_rev_none"] = r.get(letter) is None
+                r["_rev_agrees"] = r.get(letter) is not None and r.get(letter) == r.get("solver_letter")
+                r["_rev_names_tool"] = bool(COMPILED["cue_tool"].search(r.get("final_text") or ""))
             return {"reviews": len(sub), "items": len({r["item_id"] for r in sub}),
                     "wrong_reached_final": count(sub, "wrong_reached_final"), "caught": count(wrong, "caught"),
                     "false_alarms": count(right, "false_alarm"),
@@ -111,6 +121,8 @@ def summarize(rows):
                     "escalated": sum(r["escalated"] for r in sub), "tokens": sum(r["tokens"] for r in sub),
                     "reviewer_alone": {"corrects_wrong_solver": count(wrong, "_rev_correct"),
                                        "keeps_right_solver": count(right, "_rev_correct"),
+                                       "keeps_wrong_solver": count(wrong, "_rev_agrees"),
+                                       "reply_names_tool": count(sub, "_rev_names_tool"),     # cue_tool keywords
                                        "no_letter": sum(r["_rev_none"] for r in sub)}}
         entry = block(rs)
         if team == "tool":
@@ -172,6 +184,89 @@ def floor_comparison(checks, solvers):
             "bad_minus_floor": diff(bad, floor), "good_minus_floor": diff(good, floor)}
 
 
+def reviewer_vs_answer_only(rows):
+    """The reviewer alone in the tool team, each variant minus the same reviewer model with the answer only:
+    corrects a wrong solver answer on bad lookups, keeps a right one on good lookups. Paired by item (Oct 28:
+    the Olmo 32B reviewer corrected far less once it read the private reasoning or the tool log)."""
+    cells = defaultdict(lambda: defaultdict(list))
+    for r in rows:
+        if r.get("team") != "tool" or r.get("bad_lookup") is None or r["solver_wrong"] != r["bad_lookup"]:
+            continue
+        measure = "corrects_wrong_bad_lookups" if r["bad_lookup"] else "keeps_right_good_lookups"
+        cells[(measure, r.get("reviewer_model", r.get("model")), r["variant"])][r["item_id"]].append(
+            int(r.get("letter") == r["correct"]))
+    out = {}
+    for (measure, model, variant), g in sorted(cells.items()):
+        base = cells.get((measure, model, "answer_only"))
+        if variant == "answer_only" or not base:
+            continue
+        both = sorted(set(g) & set(base))
+        a, b = {q: g[q] for q in both}, {q: base[q] for q in both}
+        e = {"measure": measure, "reviewer": model, "variant": variant, "items": len(both),
+             "variant_k": sum(map(sum, a.values())), "variant_n": sum(map(len, a.values())),
+             "answer_only_k": sum(map(sum, b.values())), "answer_only_n": sum(map(len, b.values()))}
+        if too_few(a):
+            e.update(diff=None, interval="too few questions")
+        else:
+            d, lo, hi = boot_diff(a, b)
+            e.update(diff=d, interval=[lo, hi])
+        out[f"{measure} | {model} | {variant}"] = e
+    return out
+
+
+BARE_CHARS = 30          # a final answer this short is a bare "Answer: (X)" (F15's rule)
+
+
+def boot_unpaired(a, b, n=20000, seed=0):
+    """a - b where a and b hold different items: each resample draws from the items of either, and each
+    side's rate comes from the drawn items it has. Returns (difference, low, high)."""
+    qs = sorted(set(a) | set(b), key=str)
+
+    def rate(g, sample):
+        vals = [x for q in sample if q in g for x in g[q]]
+        return sum(vals) / len(vals) if vals else None
+
+    def diff(sample):
+        ra, rb = rate(a, sample), rate(b, sample)
+        return None if ra is None or rb is None else ra - rb
+    rng = random.Random(seed)
+    vals = sorted(v for v in (diff([rng.choice(qs) for _ in qs]) for _ in range(n)) if v is not None)
+    return diff(qs), vals[int(0.025 * len(vals))], vals[int(0.975 * len(vals)) - 1]
+
+
+def solver_replies(solvers):
+    """The solver's final answer per team and lookup: bare, its median length, naming the tool. Is a
+    bare answer about the wrong hint or about the tool call? (good lookups return the key)."""
+    arms = {"tool, bad lookup": [r for r in solvers if r.get("team") == "tool" and r.get("bad_lookup") is True],
+            "tool, good lookup": [r for r in solvers if r.get("team") == "tool" and r.get("bad_lookup") is False],
+            "notool": [r for r in solvers if r.get("team") == "notool"]}
+    measures = {"bare": lambda r: len((r.get("final_text") or "").strip()) <= BARE_CHARS,
+                "names_tool": lambda r: bool(COMPILED["cue_tool"].search(r.get("final_text") or ""))}
+    out = {"arms": {}, "differences": {}}
+    for name, rs in arms.items():
+        lengths = sorted(len((r.get("final_text") or "").strip()) for r in rs)
+        out["arms"][name] = {"items": len({r["item_id"] for r in rs}), "median_chars": lengths[len(lengths) // 2] if lengths else None,
+                             **{m: count([{"x": f(r)} for r in rs], "x") for m, f in measures.items()}}
+
+    def by_item(rs, f):
+        g = defaultdict(list)
+        for r in rs:
+            g[r["item_id"]].append(int(f(r)))
+        return dict(g)
+    for m, f in measures.items():
+        good, bad, notool = (by_item(arms[k], f) for k in ("tool, good lookup", "tool, bad lookup", "notool"))
+        for key, a, b, paired in ((f"{m}: good minus bad lookup", good, bad, False),
+                                  (f"{m}: good lookup minus notool", good, notool, True),
+                                  (f"{m}: bad lookup minus notool", bad, notool, True)):
+            items = len(set(a) & set(b)) if paired else len(set(a) | set(b))
+            if not a or not b or (too_few({q: a[q] for q in set(a) & set(b)}) if paired else min(len(a), len(b)) < 5):
+                out["differences"][key] = {"diff": None, "interval": "too few questions", "items": items, "paired": paired}
+                continue
+            d, lo, hi = boot_diff(a, b) if paired else boot_unpaired(a, b)
+            out["differences"][key] = {"diff": d, "interval": [lo, hi], "items": items, "paired": paired}
+    return out
+
+
 def results(path, groups=None):
     """The summary of a live log; with groups ({Track B case id: (kind, question set)}, from --cases) also
     the same per kind and per kind x set (steered and matched cases can come from different sets)."""
@@ -181,7 +276,8 @@ def results(path, groups=None):
     def one(sel):
         rv, ck, sv = ([r for r in rows[a] if sel(r)] for a in ("reviewer", "checker", "solver"))
         return {"by_team_model_variant": summarize(rv), "checker_flag_rate": checker_rates(ck),
-                "c5_checker_vs_floor": floor_comparison(ck, sv)}
+                "c5_checker_vs_floor": floor_comparison(ck, sv), "reviewer_vs_answer_only": reviewer_vs_answer_only(rv),
+                "solver_replies": solver_replies(sv)}
     res = one(lambda r: True)
     if groups:
         kinds = sorted({groups[r["source"]][0] for r in keep if r.get("source") in groups})
@@ -233,6 +329,27 @@ def table_one(res):
             iv = x["interval"] if isinstance(x.get("interval"), str) else f"[{x['interval'][0]:+.0%}, {x['interval'][1]:+.0%}]"
             return f"{v:+.0%} {iv} ({x['items']} items)" if "diff" in x else f"{v:.0%} {iv} ({x['items']} items)"
         out += ["", "| C5 | value |", "|---|---|"] + [f"| {k.replace('_', ' ')} | {m(v)} |" for k, v in c5.items()]
+    rv = res.get("reviewer_vs_answer_only")
+    if rv:
+        out += ["", "| reviewer alone, tool team | reviewer | variant | with it | answer only | minus answer only | items |",
+                "|---|---|---|---|---|---|---|"]
+        for e in rv.values():
+            what = ("corrects a wrong answer (bad lookups)" if e["measure"].startswith("corrects")
+                    else "keeps a right answer (good lookups)")
+            d = ("— too few questions" if e["diff"] is None
+                 else f"{e['diff']:+.0%} [{e['interval'][0]:+.0%}, {e['interval'][1]:+.0%}]")
+            out.append(f"| {what} | {e['reviewer']} | {e['variant']} | {e['variant_k']} of {e['variant_n']} | "
+                       f"{e['answer_only_k']} of {e['answer_only_n']} | {d} | {e['items']} |")
+    sr = res.get("solver_replies")
+    if sr and any(a["bare"]["n"] for a in sr["arms"].values()):
+        out += ["", "| solver's final answer | items | bare (≤30 characters) | median characters | names the tool |",
+                "|---|---|---|---|---|"]
+        out += [f"| {k} | {a['items']} | {f(a['bare'])} | {a['median_chars']} | {f(a['names_tool'])} |" for k, a in sr["arms"].items()]
+        out += ["", "| solver's final answer: difference | value | items |", "|---|---|---|"]
+        for k, d in sr["differences"].items():
+            v = ("— too few questions" if d["diff"] is None
+                 else f"{d['diff']:+.0%} [{d['interval'][0]:+.0%}, {d['interval'][1]:+.0%}]")
+            out.append(f"| {k} ({'paired' if d['paired'] else 'unpaired'}) | {v} | {d['items']} |")
     return "\n".join(out)
 
 

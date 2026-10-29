@@ -23,7 +23,8 @@
 # may wait for (depends_on below; e.g. vllm_check waits for setup_vllm), else the submission is refused.
 #
 # train and eval need their argument after --: a version (train), a system and an optional K/N part
-# (eval). Without it they are refused here, not when the job starts hours later.
+# (eval). Without it they are refused here, not when the job starts hours later. val_loss takes
+# versions only (none: lora tags).
 # It always ends with sbatch's "Submitted batch job N", or a clear error and a non-zero exit code.
 set -euo pipefail
 trap 'echo "submit.sh: stopped at line $LINENO ($BASH_COMMAND): exit $?. Nothing was submitted." >&2' ERR
@@ -68,6 +69,14 @@ if [ -n "$want" ] && ! printf '%s\n' $want | grep -qx -- "${jobargs[0]:-}"; then
     echo "refusing: $job needs one of: $want, after -- (submit.sh $job --estimate H -- ${want%% *});" \
          "got: '${jobargs[*]:-nothing}'. Nothing was submitted." >&2
     exit 1
+fi
+if [ "$job" = val_loss ]; then              # versions only (none: lora tags); the base model always comes first
+    for v in ${jobargs[@]+"${jobargs[@]}"}; do
+        if ! printf '%s\n' $versions | grep -qx -- "$v"; then
+            echo "refusing: val_loss takes versions after -- (of: $versions); got: '$v'. Nothing was submitted." >&2
+            exit 1
+        fi
+    done
 fi
 
 accounts=$(grep -E '^#SBATCH[[:space:]]+(-A|--account)' "$script" | sed -E 's/^#SBATCH[[:space:]]+(-A[[:space:]]*|--account[=[:space:]]+)//')
@@ -145,6 +154,7 @@ depends_on() {          # the job kinds each job may wait for (plain case: works
         vllm_check) echo "setup_vllm" ;;
         eval) echo "setup_vllm vllm_check train" ;;
         train) echo "timing train" ;;
+        val_loss) echo "train" ;;
         trackb_qwen8b) echo "setup_vllm get_qwen8b trackb_qwen8b" ;;
     esac
 }

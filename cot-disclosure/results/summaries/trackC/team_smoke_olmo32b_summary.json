@@ -641,5 +641,33 @@
    "wilson": null,
    "undetermined": 0
   }
+ },
+ "c5_checker_vs_floor": {
+  "run_to_run": {
+   "rate": null,
+   "items": 0
+  },
+  "floor": {
+   "rate": null,
+   "items": 0
+  },
+  "bad_lookup": {
+   "rate": 1.0,
+   "interval": "too few questions",
+   "items": 3
+  },
+  "good_lookup": {
+   "rate": 0.0,
+   "interval": "too few questions",
+   "items": 2
+  },
+  "bad_minus_floor": {
+   "diff": null,
+   "items": 0
+  },
+  "good_minus_floor": {
+   "diff": null,
+   "items": 0
+  }
  }
 }

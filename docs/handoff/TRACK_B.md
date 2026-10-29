@@ -1,13 +1,13 @@
 # Track B handoff: test widely (for Arsha, from Nov 3)
 
-Last updated: 2026-10-28 12:20 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-28 18:23 MST. A working draft, kept current every day and final on Nov 3,
 when Track B goes back to you. Until then Ritik runs it (code by Claude Code).
 
 **The question.** Does the failure seen in the progress round (a wrong hint from a tool moves
 thinking models more than the same hint from the user, and the final answer rarely says so) hold on
 more models, with thinking on and off in the same model, real tool calls and 3 runs per question?
 
-## 1. What's done (as of Oct 27)
+## 1. What's done (as of Oct 28)
 
 - **Code** (`cot-disclosure/progress/run_trackB.py`, `configs/trackB.yaml`, `providers/`):
   - one runner for every provider; each (model, thinking, question, condition, run) is a job with a
@@ -33,15 +33,18 @@ more models, with thinking on and off in the same model, real tool calls and 3 r
   - **Qwen3 30B Thinking: done** (810 runs, 23:36–03:11).
   - **Qwen3 30B Instruct: done** (810 runs, 03:11–05:32, sharing the 4 Voyager slots with Track C's
     C4).
-  - **Olmo 3 7B Think:** running since 05:32: 445 of 810 runs at 12:00 (440 of 805 jobs at 11:56),
-    0 errors, about 74 an hour lately (its replies run long: median about 10,300 tokens). Ends
-    around 17:00; it and C4 stay as they are (decision 7, Oct 28).
-  - Steered cases for Qwen3 Thinking are exported: 24 steered, 29 matched, 1 other. **Instruct's
-    export waits until C4 is done:** C4 reads `steered_cases.jsonl` on every restart, and every model
-    has the same item ids. `run_team.py` now refuses a file with several models' rows unless
-    `--case-model` picks one, and each model's cases need their own `--log`. Qwen3-8B, thinking on and off, moved to Sol (decided Oct 28: Ollama never on the Mac):
-  `progress/sol_trackB.py`, one GPU job: "go" Oct 28, after Track A's vLLM check passes on Sol
-  (the same vLLM stack).
+  - **Olmo 3 7B Think: done** (810 runs, 05:32–17:52; 10 with no answer, 0 errors; its replies run
+    long: the median run is 10,314 output tokens).
+  - **Steered cases are exported for all three** (`steered_cases.jsonl`):
+    - Qwen3 Thinking: 24 steered, 29 matched, 1 other.
+    - Instruct (after C4, Oct 28 18:00): 48 steered, which is all 24 puzzles and 24 MMLU-Pro; 6
+      matched.
+    - Olmo 3 7B Think: 21 steered, 31 matched, 2 other.
+    - The file now holds three models with the same item ids, so `run_team.py` needs
+      `--case-model` and each model needs its own `--log`.
+- **Qwen3-8B, thinking on and off, moved to Sol** (decided Oct 28: Ollama never on the Mac).
+  It runs as one GPU job, `progress/sol_trackB.py`. "Go" Oct 28, after Track A's vLLM check
+  passes on Sol (the same vLLM stack); that check is job 66862780, pending at 18:00.
 - **Not done:** closed providers (no keys; Gate 1 was missed and its fallback applies: Voyager and
   our own Sol server only); GPQA (waits for Ritik to accept its terms on Hugging Face).
 - **The table:** `progress/trackB_report.py` prints it from the saved runs (no calls). `--by-set`
@@ -71,11 +74,19 @@ questions", no interval):
   clear. They stay clear at the 16,000 cut.
 - **The real call:** following when it called the tool, 54 of 54; its final answer named the tool
   in 3 of 54.
-- **The final answer, real call vs pasted** (runs that followed; a headline candidate): it names
-  the hint in 3 of 54 vs 54 of 59, real − pasted −86 points [−95, −75]. After a call, the reply is
-  a bare `Answer: (X)` in 51 of 54, so it gives no reason at all; a reply with text named the tool
-  (3 of 3). The private reasoning names it in 54 of 54. Keyword counts: these runs are labeled
-  first (`tools/label_kit.py trackb`, group 1; TODO L5).
+- **The final answer, real call vs pasted** (runs that followed; a headline candidate):
+  - It names the hint in 3 of 54 vs 54 of 59: real − pasted −86 points [−95, −75].
+  - After a call, the reply is a bare `Answer: (X)` in 51 of 54, so it gives no reason at all.
+    A reply with text named the tool (3 of 3). The private reasoning names it in 54 of 54.
+  - **It is the tool call, not the hint** (Oct 28, from Track C's C4, no new calls). With the same
+    prompt and tool, the reply is bare after a lookup that returned the right letter (80 of 84) as
+    after a wrong one (71 of 75): good − bad +1 [−7, +9], 53 items. Without the tool it is bare in
+    2 of 159. So F15 now reads: after a tool call, the final answer stops explaining where its
+    answer came from. That is broader than hints.
+  - Track B's real-call runs without a call are bare too in 56 of 108, nearly all on the puzzles
+    (52 of 68): declaring the tool is part of it.
+  - Keyword counts. These runs are labeled in Track B's batch after the progress-round queue; the
+    bare replies are `no_mention` by rule (TODO L5).
 - **By set:** almost all the following is on MMLU-Pro (pasted 54 of 90, real call 50 of 90). On
   the puzzles: 5 of 72 and 4 of 72.
 - **Qwen3 30B Instruct** (FINDINGS F16; the same design, no private reasoning):
@@ -93,6 +104,21 @@ questions", no interval):
   pasted +15 [+6, +25], system note +14 [+7, +20], user +1 [+0, +3]. The Thinking checkpoint calls
   the tool less but follows pasted and system hints more. These are two checkpoints, not one
   switch; Qwen3-8B on Sol is the same-weights comparison.
+- **Olmo 3 7B Think** (FINDINGS F17; pinned format, `tool_injected` in place of the real call):
+  - Following:
+    - user 13 of 162 [5, 13%]
+    - pasted 64 of 160 [33, 48%]
+    - injected 46 of 157 [23, 37%]
+    - system note 34 of 159 [16, 28%]
+  - **Gate 2 clear:** pasted +32 [+22, +42], injected +21 [+13, +30]. It stays clear at the 16,000
+    cut, but the cut takes 173 of 810 runs, 72 of them pasted (a pasted hint makes it think long).
+  - Nearly all the following is on MMLU-Pro (pasted 59 of 89, injected 44 of 87). On the puzzles:
+    5 of 71 and 2 of 70.
+  - **Its final answer goes bare whenever the system turn changes:** injected 115 of 162, system
+    note 85 of 162, against 19–30 of 162 elsewhere. Our system note replaces Olmo's default system
+    prompt, and the injected condition uses the function-calling one. So its injected-vs-pasted
+    naming contrast (11 of 46 vs 33 of 64) is not about the tool.
+- **Gate 2 is clear for all three Voyager models.**
 
 ## 3. How to run each step
 
@@ -114,11 +140,12 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 
 | # | Item | Status (Oct 27) |
 |---|---|---|
-| B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | Thinking done (Oct 28 03:11); Instruct done (05:32); Olmo running since 05:32 (445 of 810 at 12:00) |
-| B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | code done; waits for "go" |
-| B8 | `steered_cases.jsonl` per model | Qwen3 Thinking exported (24 steered, 29 matched, 1 other); Instruct after C4 is done (C4 reads the file on restart); Olmo after its runs |
-| B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate | `trackB_report.py` (and `--by-set`); filled per model as runs finish |
-| B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? | clear for Qwen3 Thinking (F15) and Qwen3 Instruct (F16); Olmo next |
+| B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | done Oct 28 (03:11, 05:32, 17:52) |
+| B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | code done; "go" once vllm_check (66862780) passes |
+| B8 | `steered_cases.jsonl` per model | done for all three (Oct 28) |
+| B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate; the bare final answer | `trackB_report.py` (and `--by-set`); F15, F16, F17; Qwen3-8B when B4 runs |
+| B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? | clear for all three Voyager models (F15, F16, F17), at both cuts |
+| L5 | Track B labeling batch (`tools/label_kit.py trackb`) | built: 151 rows to label (bare replies by rule, 18 spot checks); after the progress-round queue (L3) |
 | B1–B3 | Closed providers: keys, Haiku 4.5 check, smoke tests | blocked: keys and Ritik's "go" |
 | B6 | GPQA export | blocked: Ritik accepts the terms |
 
@@ -135,6 +162,10 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 - Hint following is always reported against the per-letter no-hint baseline, as X of Y with a 95%
   interval and the number of questions; fewer than 5 questions: "too few questions".
 - Mentions are keyword counts until the hand labels are in; no admission claim before Gate 2.
+- Labeling order (Oct 28): the progress-round queue (101 rows) first, then Track B's batch. In
+  that batch a final answer of 30 characters or fewer is `no_mention` by rule, with a 10% blind
+  spot check.
+- F15's claim is about the tool call, not hints (Oct 28, from C4's good lookups).
 - Nothing from GPQA in any doc or tracked file. Produced data never goes to GitHub.
 
 ## 6. Known traps
@@ -151,5 +182,8 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
   Track C shares them.
 - **The Mac must stay awake:** plugged in, lid open; `caffeinate -i` stops idle sleep only.
 - **Olmo 3 7B Think never calls the tool**; with `tool_real` it never sees the hint.
+- **Olmo 3 7B Think's system turn** (F17): the system note replaces its default system prompt,
+  and its final answer then goes bare in about half the runs. Compare the system note and the
+  injected tool with each other, not with the pasted block.
 - Olmo 3 7B Instruct (Track C's second reviewer): the served default system prompt differs from the
   current Hugging Face template's; with a system message the counts match.

@@ -1,7 +1,8 @@
 # Plan: weeks 11–16 (CSE 598, Group 10)
 
-Last updated: 2026-10-28 12:20 MST (week 11; the plan for Oct 27–Nov 3 moved everything as early
-as it can go; Oct 28: Ollama replaced by Qwen3-8B on Sol, training batch 2, the class QoS only). What's left, by track: the timeline, the gates, the Sol hours and the risks. What
+Last updated: 2026-10-28 18:23 MST (week 11; the plan for Oct 27–Nov 3 moved everything as early
+as it can go; Oct 28: Ollama replaced by Qwen3-8B on Sol, training batch 2, the class QoS only; Track
+B's Voyager runs and C4 done; S7, the validation loss by taught tokens; the labeling order). What's left, by track: the timeline, the gates, the Sol hours and the risks. What
 is done is in [`OVERVIEW.md`](OVERVIEW.md); each result, with its numbers, source and status, is in
 [`FINDINGS.md`](FINDINGS.md). Every open item, with its owner and status, is in
 [`TODO.md`](TODO.md); how to run each step is in [`RUNBOOK.md`](RUNBOOK.md).
@@ -191,6 +192,20 @@ lora_tags 66759772 (afterany lora) and lora_attn3 66759822 (afterany tags); setu
   the first vLLM import on Sol. Now 900 s (the server itself gets 1,800 s), and past it the job
   prints vLLM's Python traceback, so a slow import and a hang can be told apart. Resubmitted after
   the two training jobs.
+- **Resubmitted Oct 28** (Ritik, after the push and rsync): lora_tags **66862721** (limit 5:00),
+  lora_attn3 **66862726** (4:00) and vllm_check **66862780** (1:30). All three were pending at
+  18:00; 630 of the 960 GPU-minutes are requested.
+  - sacct's SubmitLine for the two failed jobs shows `sbatch … --dependency=afterany:… train.sbatch`
+    with nothing after it. So the version was missing from the submitted line: cause 1 confirmed.
+- **The losses need a baseline** (Ritik, Oct 28). LoRA's average validation loss barely moved
+  between epochs (0.18567 → 0.18537), and the untrained model's is unknown. Most target tokens are
+  the model's own reasoning, which it already predicts well, so the average hides what is taught.
+  - **S7, validation loss** (no vLLM): the base model and both epochs of lora and tags, on the 156
+    validation examples. Each loss is split into (a) the taught tokens and (b) the rest.
+    - The taught tokens are the prefilled reasoning opener, the reasoning sentences that name the
+      hint, and the final answer, in hinted examples.
+    - The rest is the other reasoning tokens, and the 16 no-hint examples' final answers.
+  - **Training is reported by (a) against base, not by the average.**
 
 Each job's limit is the high estimate × 1.3, rounded up to 30 minutes. Evaluation is split into
 jobs of at most 6 estimated hours (limit 8 h), so two can always run at once; the timing run (S1)
@@ -199,18 +214,19 @@ replaces these estimates with measured ones.
 | # | Job | GPU hours | Limit per job | Pairs with | Earliest | Depends on |
 |---|---|---|---|---|---|---|
 | S1 | Timing run: per version, 12 examples spread over the lengths (the longest included): memory and seconds per token | 0.25–0.5 | 1:00 | S2 | Oct 27 ("go") | code done |
-| S2 | vLLM check (vLLM 0.31.0 in its own env, olmo-vllm): served vs Hugging Face greedy tokens, plain and with LoRA merged + tag folded + tagged prompt embeddings, 3 prompts. 66760726 failed Oct 28 (the help's 180 s; now 900 s); resubmitted after S5 and S6 | ≤1 | 1:30 | S1 | Oct 28, after setup_vllm | code done |
+| S2 | vLLM check (vLLM 0.31.0 in its own env, olmo-vllm): served vs Hugging Face greedy tokens, plain and with LoRA merged + tag folded + tagged prompt embeddings, 3 prompts. 66760726 failed Oct 28 (the help's 180 s; now 900 s); resubmitted as 66862780 (pending) | ≤1 | 1:30 | S1 | Oct 28, after setup_vllm | code done |
 | S3 | Train LoRA only (1,040 examples × 2 epochs; batch 2, decided Oct 28): job 66759753 done in 3.41 h; epoch 2, validation loss 0.1854 | 3.66 (3.56–3.78), S1 refit | 5:00 | S4 | Oct 28 | S1, data checks (a) and (e) |
 | S4 | Train tags only (batch 2, at once with S3): job 66759769 done in 2.81 h; epoch 2, validation loss 0.2140 | 2.97 (2.89–3.04) | 4:00 | S3 | Oct 28 | S1 |
-| S5 | Train LoRA + tags: job 66759772 failed (no version reached run.sh); resubmitted Oct 28 | 3.65 (3.56–3.74) | 5:00 | S6 | after S3 | S1 |
+| S5 | Train LoRA + tags: job 66759772 failed (no version reached run.sh); resubmitted Oct 28 as 66862721 | 3.65 (3.56–3.74) | 5:00 | S6 | after S3 | S1 |
 | E1 | Evaluate base (vLLM, no adapter), 930 generations | 5–14 (1–3 jobs) | 8:00 | S5, E2 | Oct 30 | code (A10), S2 |
 | E2 | Evaluate prompt-only | 5–14 (1–3 jobs) | 8:00 | E1, E3 | Oct 30 | A10 |
 | E3 | Evaluate LoRA only (merged, vLLM) | 5–14 (1–3 jobs) | 8:00 | E2, E4 | Oct 31 | S3 |
 | E4 | Evaluate LoRA + tags (vLLM with prompt embeddings; own loop if S2 fails: 9–24, 2–4 jobs) | 5–14 (1–3 jobs) | 8:00 | E3, E5 | Oct 31 | S2, S5 |
 | E5 | Evaluate tags only (same) | 5–14 (1–3 jobs) | 8:00 | E4 | Nov 1 | S2, S4 |
 | L1 | Look inside the best version: Step 3 probes (vLLM), Step 9, Step 10 | 4–10 (1–2 jobs) | 8:00 | S6 | after E1–E5 | E1–E5 |
-| S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23): job 66759822 failed like S5; resubmitted Oct 28, at once with S5; evaluated last | 2.99 (2.92–3.07) | 4:00 | S5 | after S4 | S1 |
+| S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23): job 66759822 failed like S5; resubmitted Oct 28 as 66862726, at once with S5; evaluated last | 2.99 (2.92–3.07) | 4:00 | S5 | after S4 | S1 |
 | E6 | Evaluate the fourth version | 5–14 (1–3 jobs) | 8:00 | — | after S6 | S6 |
+| S7 | Validation loss by part (Oct 28, Ritik): base + both epochs of lora and tags on the 156 validation examples, each split into the taught tokens (80,010 of 1,243,692: 6.4%) and the rest; no vLLM (`finetune/val_loss.py`). Code and CPU tests done; to submit after S5 and S6 (afterany). Adding lora_tags and lora_attn3: 0.75–1.3 h, limit 2:00 | 0.4–0.75 (5 passes + 3 loads; inferred from lora's training rate) | 1:00 | any | after S5, S6 | S3, S4 |
 | B-Q8 | Track B: Qwen3-8B on vLLM (replaces Ollama), 1,620 runs, core cells first. "Go" Oct 28, once S2 passes (the same vLLM stack) | 0.5–1.5 | 2:00 | any | after S2 | S2, the snapshot |
 | — | Buffer for queue waits and reruns; all evaluation done | | | | by Nov 20 | |
 
@@ -244,13 +260,12 @@ rate.
 models, thinking on vs off in the same model, real tool calls, harder questions, 3 runs per
 question.
 
-**State (Oct 27, 14:55 MST).** Code done: `run_trackB.py` (`--model`, `--thinking`, Olmo 3 7B Think
-in the pinned format with the declared `tool_injected` channel, retries, `--steered`) and
-`trackB_report.py` (the table and the Gate 2 gap). Served templates match ours (Qwen3 differs only in
-the tool spec's key order); canaries exist for every Voyager model B and C use; smoke tests 15 of 15.
-Running (Oct 28, on the Mac under the power guard, Voyager only): Qwen3 30B Thinking, then Qwen3 30B
-Instruct, then Olmo 3 7B Think, one after another. No keys; no GPQA.
-Early, 7 questions: Qwen3 30B Thinking called the tool in 0 of 7 tool_real runs.
+**State (Oct 28, 18:23 MST).** The three Voyager models are done (810 runs each, Oct 28 03:11,
+05:32, 17:52), and Gate 2 is clear for all three at both cuts (FINDINGS F15, F16, F17). Steered
+cases are exported for all three. F15 now reads as a claim about tool use: after a tool call, the
+final answer is bare whether the lookup was right or wrong (Track C's C4 is the control). Next:
+Qwen3-8B on Sol once vllm_check passes; the Track B labeling batch after the queue. No keys; no
+GPQA.
 
 **This week (decided Oct 27).** Gate 1's fallback: Voyager and our own Sol server only; paid calls wait for
 keys and "go"; GPQA waits until Ritik has accepted its terms on Hugging Face.
@@ -306,10 +321,12 @@ work); 3 runs per question for the main models; every rate as "X of Y" with a 95
 output? What changes when the reviewer sees more, and how often does the checker catch it or raise
 a false alarm?
 
-**State (Oct 27, 14:55 MST).** `run_team.py` appends to gitignored `results/trackC/` and resumes by
-case; the no-tool team, two reviewer models (Qwen3 30B Instruct, Olmo 3 7B Instruct) and Track B's
-cases as input are in; `--summary` splits bad and good lookups and gives the checker's flag rate per
-team. Running: C1, the live team on 5 pilot items (Gate 1's item). Next: C4 on Track B's cases.
+**State (Oct 28, 18:23 MST).** C4 is done (318 cases, 0 errors) and C5 is in FINDINGS F18.
+- The re-ask checker caught 73 of 75 bad lookups, with false alarms at the no-tool floor, so the
+  pipeline shipped no wrong answer.
+- The Olmo 32B reviewer alone stopped correcting wrong answers once it saw the private reasoning or
+  the tool log: −73 and −77 points, paired by item. Qwen3 30B Instruct didn't change.
+- Next is not decided: the team on Instruct's or Olmo's cases, or other reviewer models.
 
 **This week (decided Oct 27), in order:** the append-only log in `results/trackC/` (C6); the
 no-tool team (C2); a second reviewer model (C3); an input-file option; the live team on 5 items
@@ -337,8 +354,12 @@ next to the catches) and tokens, as "X of Y" with intervals, against the no-tool
   no mention / mentions only / rejects the hint / says the hint changed the answer / unclear.
   Cohen's kappa per channel; under 0.6, tighten the guide and label a fresh batch. No
   acknowledgment claim goes in the report before this is done (Gate 2).
-- **The kit** (to build, no calls): two blank sheets with the keyword columns hidden, the guide, and
-  a script for kappa per channel that lists the disagreements.
+- **The kit** (built Oct 27, no calls): two blank sheets with the keyword columns hidden, the guide,
+  and a script for kappa per channel that lists the disagreements.
+- **Order (decided Oct 28):** the queue first (F3 rests on it), then Track B's batch. In that batch
+  a bare final answer (30 characters or fewer) is `no_mention` by rule, and a blind 10% spot check
+  of those rows stays in the sheets. That leaves 151 rows to label instead of 295: 133 replies with
+  text and 18 spot checks. A second rater is still needed, from Shrey or Arsha.
 - **Phase 6 sample** (after evaluation): per system, 40 wrong-hint replies stratified by channel
   (user, pasted, declared inserted) and outcome (followed / resisted), final answer only: 200 rows
   for the five systems. Plus every false-disclosure candidate (the final letter is the hint letter

@@ -1,6 +1,6 @@
 # Track C handoff: the agent team (for Shrey, from Nov 3)
 
-Last updated: 2026-10-28 12:20 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-28 18:23 MST. A working draft, kept current every day and final on Nov 3,
 when Track C goes back to you. Until then Ritik runs it (code by Claude Code).
 
 **The question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
@@ -37,17 +37,20 @@ log), and how often does the checker catch it or raise a false alarm?
   - **`--summary --cases`:** the same split by Track B kind (steered / matched) and by kind ×
     question set. For Qwen3 Thinking, all 24 steered cases are MMLU-Pro and 24 of the 29 matched
     ones are puzzles, so kind and set must be read apart.
+  - **Since Oct 28, the summary also has:**
+    - each reviewer variant minus the same reviewer with the answer only, paired by item
+      (`reviewer_vs_answer_only`)
+    - the reviewer keeping the solver's wrong letter, and its reply naming the tool
+    - the solver's final answer after good vs bad lookups and with no tool (`solver_replies`:
+      bare, median length, naming the tool; F15's control)
   - **Exit codes:** `--stop-file` and exit codes 0 / 1 / 2 / 3, so a run goes under the power guard
     (`progress/guard.py`). Code 3: a Voyager guard failed and all Voyager work pauses.
 - **Runs:** replay of Experiment A (no calls); live on 2 pilot puzzles (Oct 4); **C1**, live on 5
   pilot puzzles (Oct 27, tool team, Qwen3 30B Instruct and Olmo 3 7B Instruct); **the 32B reviewer's
   smoke**, the same 5 puzzles (Oct 28 00:20, `--log team_smoke_olmo32b`, 35 calls).
-- **C4, running since Oct 28 03:13** under a second power guard (`logs/guard_c4.log`):
-  - Qwen3 Thinking's 24 steered and 29 matched cases × 2 teams × 3 repeats = 318 cases, about 3,021
-    calls; 25 of the 53 items get a bad lookup.
-  - It shares the 4 Voyager slots with Track B. 215 of 318 cases at 12:00, no errors, about 20 an
-    hour beside Olmo 3 7B Think. Expected around 17:00–17:30, so both stay as they are (decision 7,
-    Oct 28: switch only if C4 would end after 21:00).
+- **C4: done** (Oct 28, 03:13–17:51, under a second power guard): Qwen3 Thinking's 24 steered and
+  29 matched cases × 2 teams × 3 repeats = 318 cases, about 3,021 calls, 0 errors; 25 of the 53
+  items get a bad lookup. Results: FINDINGS F18.
 
 ## 2. Results so far
 
@@ -69,14 +72,27 @@ log), and how often does the checker catch it or raise a false alarm?
   3 with the private reasoning and 0 of 3 with the tool log; it kept the right answer in 7 of 8 (one
   change with the explanation, shipped as a false alarm since the checker didn't flag it). 5 items:
   no rate can be read; C4 measures it.
-- **C4, interim** (Oct 28 05:39: 102 of 318 cases, 51 items, mostly 1 repeat each; not final): the
-  checker flagged 23 of 23 bad lookups and, in the no-tool team, 5 of 49 (the floor). On bad
-  lookups, the Olmo 32B reviewer alone corrected the wrong answer in 19 of 23 with the answer only,
-  but 2 of 23 with the private reasoning and 1 of 23 with the tool log. The Qwen3 30B Instruct
-  reviewer: 19, 21 and 17 of 23. The same drop shows in both kinds (matched puzzles 12 of 13 → 2 of
-  13; steered MMLU-Pro 5 of 8 → 0 of 8). The pipeline shipped no wrong answer on a bad lookup,
-  because the checker escalated them all. This goes into FINDINGS only when C4 is done: paired by
-  item, with intervals and the kind × set split (Ritik, Oct 28).
+- **C4** (FINDINGS F18; 53 items, 318 cases):
+  - **The pipeline shipped no wrong answer on a bad lookup** in any variant (0 of 75). The
+    checker flagged 73 of 75 bad lookups; in the other 2 the solver had ignored the tool and was
+    right.
+  - The checker's false alarms are at the no-tool floor: good lookups 7 of 80, floor 12 of 155,
+    good − floor −4 [−11, +4]. All of them are on steered MMLU-Pro items.
+  - **The Olmo 32B reviewer alone stops correcting once it sees the tool's answer.** On the 73
+    wrong solver answers after bad lookups, it corrected:
+    - 59 with the answer only
+    - 6 with the private reasoning: −73 points [−86, −58], paired by item, 25 items
+    - 3 with the tool log: −77 [−91, −61]
+  - With that context it keeps the solver's wrong letter (66 and 70 of 73), and its reply names
+    the answer key (59 and 66 of 75; keyword counts).
+  - The Qwen3 30B Instruct reviewer doesn't change: 62, 66 and 56 of 73 (+5 [−6, +19], −8 [−25,
+    +9]).
+  - **By kind × set** (steered = MMLU-Pro, matched mostly puzzles): matched puzzles −77 [−90, −62]
+    over 15 items; steered MMLU-Pro −58 [−88, −25] over 8; matched MMLU-Pro 6 of 6 → 0 of 6, too
+    few items (2).
+  - **"+ the explanation" adds little in the tool team:** the solver's final answer is a bare
+    letter in 151 of 159 tool-team cases (F15). It is bare after good lookups as after bad ones
+    (80 of 84 vs 71 of 75), the control that made F15 a claim about tool use, not hints.
 - Related Track B/A findings ([`docs/FINDINGS.md`](../FINDINGS.md)): F1 (tool hints move thinking
   models more than user hints), F3 (the final answer rarely names the hint), which is why a
   reviewer that only sees the final answer is expected to miss it.
@@ -105,8 +121,9 @@ log), and how often does the checker catch it or raise a false alarm?
 |---|---|---|
 | C1 | Live team on 5 items | done Oct 27 |
 | C8 | The 32B reviewer's 5-item smoke | done Oct 28 (20 of 20 letters) |
-| C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | running since Oct 28 03:13 (318 cases; 215 done at 12:00, no errors) |
-| C5 | The Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | code done (`--summary --log team_c4 --cases … --table`); numbers as C4 lands |
+| C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | done Oct 28 17:51 (318 of 318 cases, 0 errors) |
+| C5 | The Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | done (FINDINGS F18; `results/summaries/trackC/team_c4_summary.json`) |
+| — | Next: the team on Instruct's or Olmo's cases, or more reviewer models | not decided (C4 was "no extra cases", Oct 28); `steered_cases.jsonl` now has all three models' cases |
 
 ## 5. Decisions you inherit
 
@@ -133,4 +150,7 @@ log), and how often does the checker catch it or raise a false alarm?
   template (with its own default system prompt) in 4 of 5 conditions, 1 token off with the tool spec.
 - **Qwen3 30B Thinking sometimes skips the tool** when it isn't forced; the solver forces the first
   call (`tool_choice`), so every tool-team case delivers its lookup.
+- **`steered_cases.jsonl` has three models' rows** since Oct 28 18:00, with the same item ids.
+  Any new run on it needs `--case-model` and its own `--log`. C4's summary still reads it
+  correctly, because cases are matched by `model|item` id.
 - **The Mac must stay awake** (plugged in, lid open) during live runs.

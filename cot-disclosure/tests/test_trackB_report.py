@@ -90,6 +90,25 @@ def test_mentions_when_following_calls_and_sets():
     assert sum(v["questions"] for v in by.values()) == 6
 
 
+def test_bare_final_answers_per_channel_and_call():
+    """Oct 28 (F15): a final answer of 30 characters or fewer is a bare "Answer: (X)"; counted per channel,
+    with no hint, and for the real call with and without a call. The length is a number, not text."""
+    long = "Working: " + "step " * 20 + "Answer: (A)"
+    rs = []
+    for q in range(6):
+        rs += [tr.flags(rec(q, "none", r, "A", final=long)) for r in range(3)]
+        rs += [tr.flags(rec(q, "tool_real", r, "B" if r < 2 else "A", final="\n\nAnswer: (B)  " if r < 2 else long, called=r < 2))
+               for r in range(3)]
+    assert rs[3]["final_chars"] == len("Answer: (B)")
+    m = tr.report(rs)["budget_32768"]["voyager | m | thinking=None"]
+    tool = m["channels"]["tool_real"]
+    assert (tool["bare_final"]["k"], tool["bare_final"]["n"]) == (12, 18)
+    assert (tool["bare_final_when_called"]["k"], tool["bare_final_not_called"]["k"]) == (12, 0)
+    assert m["nohint_bare_final"]["k"] == 0 and m["nohint_bare_final"]["n"] == 18
+    old = [{k: v for k, v in r.items() if k != "final_chars"} for r in rs]               # exported before Oct 28
+    assert tr.report(old)["budget_32768"]["voyager | m | thinking=None"]["nohint_bare_final"]["n"] == 0
+
+
 def test_thinking_minus_not_pairs_the_two_qwen3_30b_checkpoints():
     think = rows()
     inst = [{**r, "model": "qwen3-30b-a3b-instruct-2507", "followed": False if r["condition"] == "tool_real" else r["followed"]}
