@@ -66,6 +66,8 @@ CORE_SET, CORE_CONDITIONS = "mmlupro_30", ("none", "user", "tool_real")   # --or
 TOKENIZERS = {"qwen3-30b-a3b-thinking-2507": "Qwen/Qwen3-30B-A3B-Thinking-2507",   # prompt tokens for the budget
               "qwen3-30b-a3b-instruct-2507": "Qwen/Qwen3-30B-A3B-Instruct-2507", "qwen3:8b": "Qwen/Qwen3-8B",
               "qwen3-8b": "Qwen/Qwen3-8B"}
+# Oct 29: Sol's GPU nodes are offline and cache only sol_trackB's pinned revision, so "main" isn't found there
+TOKENIZER_REVISIONS = {"qwen3-8b": "b968826d9c46dd6066d109eabc6255188de91218"}
 _TOK = {}
 TOOL_CHANNELS = ("tool_real", INJECTED, "tool_pasted")      # what makes a case "steered" for Track C
 log = get_logger("trackB")
@@ -197,7 +199,7 @@ def prompt_tokens(model, msgs, tools):
     from voyager_template_check import count_chat, sorted_keys
     if model not in _TOK:
         from transformers import AutoTokenizer
-        _TOK[model] = AutoTokenizer.from_pretrained(TOKENIZERS[model])
+        _TOK[model] = AutoTokenizer.from_pretrained(TOKENIZERS[model], revision=TOKENIZER_REVISIONS.get(model))
     return count_chat(_TOK[model], msgs, sorted_keys(tools) if tools else None)
 
 

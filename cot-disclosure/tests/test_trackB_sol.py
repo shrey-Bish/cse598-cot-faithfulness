@@ -131,6 +131,20 @@ def test_a_track_b_run_through_the_sol_server(server, tmp_path, monkeypatch):
     assert by_id[rec["run_id"]]["mention_private"] is not None and by_id[rec_off["run_id"]]["followed"] is False
 
 
+def test_the_runner_counts_prompt_tokens_with_the_pinned_snapshot(monkeypatch):
+    """Oct 29 (66932943): Sol's GPU nodes are offline and the download job caches only the pinned revision,
+    so the runner's AutoTokenizer.from_pretrained("Qwen/Qwen3-8B") (main) wasn't found and every run failed
+    at its first prompt count, on either engine. The tokenizer is loaded at sol_trackB's revision."""
+    import transformers
+    import voyager_template_check as vtc
+    calls = []
+    monkeypatch.setattr(tb, "_TOK", {})
+    monkeypatch.setattr(transformers.AutoTokenizer, "from_pretrained", lambda repo, **kw: calls.append((repo, kw)) or "tok")
+    monkeypatch.setattr(vtc, "count_chat", lambda tok, msgs, tools: 11)
+    assert tb.prompt_tokens(st.MODEL, [{"role": "user", "content": "q"}], None) == 11
+    assert calls == [(st.REPO, {"revision": st.REVISION})]
+
+
 def test_the_job_driver(tmp_path, monkeypatch):
     monkeypatch.setenv("TRACKA_OUT", str(tmp_path))
     monkeypatch.setattr(st, "STOP", tmp_path / "stop")

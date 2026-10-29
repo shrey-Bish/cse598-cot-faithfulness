@@ -39,6 +39,7 @@ Every vLLM job's first step checks every server command against the committed op
 node stops the job before any model load or merge; any other difference is a warning in the log.
 """
 import argparse
+import gc
 import json
 import os
 import signal
@@ -128,10 +129,11 @@ def _stop_now(*_):
 
 
 class Server:
-    """vllm serve as a child process; stopped on exit (and on SIGUSR1 from Slurm, _stop_now)."""
+    """vllm serve as a child process; stopped on exit (and on SIGUSR1 from Slurm, _stop_now). cmd: the
+    caller's own command (Track B's Qwen3-8B), else this job's."""
 
-    def __init__(self, model_dir, prompt_embeds, port=gen.PORT, log=None, lora=None):
-        self.cmd = self.command(model_dir, prompt_embeds, port, lora)
+    def __init__(self, model_dir, prompt_embeds, port=gen.PORT, log=None, lora=None, cmd=None):
+        self.cmd = cmd or self.command(model_dir, prompt_embeds, port, lora)
         self.url, self.log = f"http://localhost:{port}", log
 
     @staticmethod
@@ -145,7 +147,10 @@ class Server:
             out.write(gen.log_start_line(self.cmd))                # earlier jobs' lines stay above it
             out.flush()
         print(f"{kit.now()} starting: {' '.join(self.cmd)}", flush=True)
-        self.proc = subprocess.Popen(self.cmd, stdout=out, stderr=subprocess.STDOUT)
+        # Oct 29: vLLM 0.31's sampler warm-up has FlashInfer build its top-k/top-p kernel with nvcc, which
+        # Sol's vLLM environment doesn't have; vLLM's own sampler (seeded and greedy requests never used it)
+        self.proc = subprocess.Popen(self.cmd, stdout=out, stderr=subprocess.STDOUT,
+                                     env={**os.environ, "VLLM_USE_FLASHINFER_SAMPLER": "0"})
         _SERVERS.append(self)
         try:
             gen.wait_ready(self.url, proc=self.proc, log=self.log)
@@ -301,7 +306,10 @@ def hf_greedy(model_dir, prompts, adapter=None, tags_pt=None, device="cuda"):
             ids = tok(p, add_special_tokens=False, return_tensors="pt")["input_ids"].to(device)
             with torch.no_grad():
                 out.append(model.generate(input_ids=ids, max_new_tokens=CHECK_TOKENS, do_sample=False)[0, ids.shape[1]:].tolist())
-    del model
+    # Oct 29: lm holds the model too; with only `del model` it stayed in PyTorch's cache (14.5 GiB) and
+    # the tagged server refused to start
+    model = lm = None
+    gc.collect()
     torch.cuda.empty_cache()
     return out
 

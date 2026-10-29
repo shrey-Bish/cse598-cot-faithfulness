@@ -677,3 +677,57 @@ def test_a_server_log_names_this_starts_root_cause(tmp_path):
     msg = gen.log_tail(log)
     assert msg.startswith("error lines in this start (the likely root cause):\n  RuntimeError: Ninja build failed\n")
     assert "--disable-log-requests" not in msg and "Engine core initialization failed" in msg.splitlines()[-1]
+
+
+def test_the_server_starts_without_flashinfers_sampler_and_takes_track_bs_command(tmp_path, monkeypatch):
+    """Oct 29: vLLM 0.31 warms its sampler up with FlashInfer's top-k/top-p kernel, which FlashInfer
+    compiles on first use, and Sol's vLLM environment has no nvcc (vllm_check 66878660: "Could not find
+    nvcc and default cuda_home='/usr/local/cuda' doesn't exist"). The server gets
+    VLLM_USE_FLASHINFER_SAMPLER=0: vLLM's own sampler (seeded and greedy requests never used FlashInfer's).
+    Track B's job passes its own command, as sol_trackB.run does (a TypeError until now)."""
+    from finetune.gpu import eval_job as ej
+    started = []
+
+    class Proc:
+        def poll(self):
+            return None
+
+        def terminate(self):
+            started.append("terminated")
+
+        def wait(self, timeout=None):
+            return 0
+    monkeypatch.setattr(ej.subprocess, "Popen", lambda cmd, env=None, **kw: started.append((cmd, env)) or Proc())
+    monkeypatch.setattr(ej.gen, "wait_ready", lambda *a, **k: True)
+    monkeypatch.setattr(ej, "_SERVERS", [])
+    monkeypatch.setenv("TRACKA_VLLM", "/envs/olmo-vllm/bin/vllm")
+    with ej.Server(None, False, port=8012, log=tmp_path / "vllm_qwen3_8b.log", cmd=["vllm", "serve", "/qwen"]):
+        pass
+    with ej.Server("/olmo", False, log=tmp_path / "vllm_base.log"):
+        pass
+    (track_b, env), stop_b, (plain, env_a), stop_a = started
+    assert track_b == ["vllm", "serve", "/qwen"] and plain == ej.Server.command("/olmo", False)
+    assert env["VLLM_USE_FLASHINFER_SAMPLER"] == env_a["VLLM_USE_FLASHINFER_SAMPLER"] == "0"
+    assert env["TRACKA_VLLM"] == "/envs/olmo-vllm/bin/vllm" and stop_b == stop_a == "terminated"
+
+
+def test_the_hf_reference_frees_its_model_before_emptying_the_cache(tmp_path, monkeypatch):
+    """Oct 29 (vllm_check 66920320): SourceTaggedLM held the tagged reference's model past `del model`, so
+    empty_cache came too early and the model stayed in PyTorch's cache: 14.5 GiB of the A100, and the
+    tagged server refused to start (64.74 of 79.28 GiB free, 72.94 wanted). Every model is gone by then."""
+    import weakref
+
+    import torch
+    import transformers
+    from finetune.gpu import eval_job as ej
+    d = tiny_model_dir(tmp_path)
+    tags_pt, adapter = ej.synthetic_parts(d, tmp_path)
+    loaded, alive, real = [], [], transformers.AutoModelForCausalLM.from_pretrained
+    monkeypatch.setattr(transformers.AutoModelForCausalLM, "from_pretrained",
+                        lambda *a, **k: (lambda m: loaded.append(weakref.ref(m)) or m)(real(*a, **k)))
+    monkeypatch.setattr(torch.cuda, "empty_cache", lambda: alive.append([r() is not None for r in loaded]))
+    prompt = "<|im_start|>user\nWhich letter?<|im_end|>\n<|im_start|>assistant\n<think>"
+    for kw in ({}, {"adapter": adapter, "tags_pt": tags_pt}):
+        out = ej.hf_greedy(d, [prompt], device="cpu", **kw)
+        assert len(out) == 1 and 0 < len(out[0]) <= ej.CHECK_TOKENS
+    assert alive == [[False], [False, False]]
