@@ -368,7 +368,9 @@ a false alarm?
 **State (Oct 28, 22:42 MST).** C4 is done (318 cases, 0 errors) and C5 is in FINDINGS F18. C9 is done
 (21:46–22:33, 954 calls, 0 errors; FINDINGS F19): "The tool's answer may be wrong; check it
 independently." in the reviewer's prompt doesn't restore the Olmo reviewer's check (6 → 8 and 3 → 4
-of 73; +3 [−4, +9] and +1 [−3, +6], paired by item). What runs next is Ritik's call.
+of 73; +3 [−4, +9] and +1 [−3, +6], paired by item). C10 is done (23:06–23:16, 636 calls; FINDINGS F21):
+committing to its own answer first doesn't protect the check. Olmo drops its own right answer (60 of 73 →
+19 and 5), and Qwen3 defers to the tool log (33 of 73; −32 [−44, −20] against C4). What runs next is Ritik's call.
 - The re-ask checker caught 73 of 75 bad lookups, with false alarms at the no-tool floor, so the
   pipeline shipped no wrong answer.
 - The Olmo 32B reviewer alone stopped correcting wrong answers once it saw the private reasoning or

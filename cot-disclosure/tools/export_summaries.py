@@ -64,6 +64,7 @@ OTHER = {                # Tracks B and C: numbers-only reports their scripts wr
     "results/trackC/team_smoke_olmo32b_summary.json": "trackC/team_smoke_olmo32b_summary.json",   # Oct 28, the 32B reviewer
     "results/trackC/team_c4_summary.json": "trackC/team_c4_summary.json",                        # C4 (--log team_c4)
     "results/trackC/team_c9_summary.json": "trackC/team_c9_summary.json",                        # C9 (--log team_c9)
+    "results/trackC/team_c10_summary.json": "trackC/team_c10_summary.json",                      # C10 (--log team_c10)
 }
 RUNNING = "finetune/run_steps67.py"
 DATA = CODE / "finetune" / "data"

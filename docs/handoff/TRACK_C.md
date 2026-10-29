@@ -114,6 +114,12 @@ log), and how often does the checker catch it or raise a false alarm?
     letter in 63 and 68 of 73, and names the key in 62 and 61 of 75.
   - Qwen3 30B Instruct may gain a little: +4 [+0, +11] and +7 [−4, +19].
   - The answer-only arm doesn't change (+1, +0); good lookups don't either.
+- **C10** (FINDINGS F21; commit first: C9's answer-only review, then the trace and a final answer):
+  - Olmo drops its own right answer: 60 of 73 → 19 (private reasoning) and 5 (tool log); against C4
+    +18 [+10, +26] and +3 [−4, +9].
+  - Qwen3 gets worse with the tool log: 33 of 73 (C4: 56; −32 [−44, −20]); it keeps the wrong
+    letter in 37 of 73.
+  - Good lookups stay near C4. No wrong answer shipped on a bad lookup (the checker).
 - Related Track B/A findings ([`docs/FINDINGS.md`](../FINDINGS.md)): F1 (tool hints move thinking
   models more than user hints), F3 (the final answer rarely names the hint), which is why a
   reviewer that only sees the final answer is expected to miss it.
@@ -145,7 +151,7 @@ log), and how often does the checker catch it or raise a false alarm?
 | C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | done Oct 28 17:51 (318 of 318 cases, 0 errors) |
 | C5 | The Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | done (FINDINGS F18; `results/summaries/trackC/team_c4_summary.json`) |
 | C9 | Does an instruction restore the reviewer's check? The reviewers again on C4's saved cases, one sentence added; compared with C4's prompt, paired by item, by kind × set | done Oct 28 22:33 (954 calls, 0 errors): no, for the Olmo reviewer (F19) |
-| C10 | Commit first: the reviewer's own answer_only review (C9's) first, then the trace and a final answer; compared with C4, C9 and the own answer, paired by item | running (Oct 28; 636 calls) |
+| C10 | Commit first: the reviewer's own answer_only review (C9's) first, then the trace and a final answer; compared with C4, C9 and the own answer, paired by item | done Oct 28 23:16 (636 calls, 0 errors): no protection (F21) |
 | — | Next: the team on Instruct's or Olmo's cases, or more reviewer models | not decided (C4 was "no extra cases", Oct 28); `steered_cases.jsonl` now has all three models' cases |
 
 ## 5. Decisions you inherit
