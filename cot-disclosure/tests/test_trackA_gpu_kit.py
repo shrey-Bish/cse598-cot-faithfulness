@@ -394,9 +394,14 @@ def test_runs_only_inside_a_job_under_the_course_account(env_vars, ok):
     ("val_loss", ["lora", "tags"], ["finetune/val_loss.py", "--out", "{out}/val_loss", "--train-dir", "{out}/train", "lora", "tags"]),
     ("val_loss", [], ["finetune/val_loss.py", "--out", "{out}/val_loss", "--train-dir", "{out}/train"]),
     ("trackb_qwen8b", ["--limit", "5"], ["progress/sol_trackB.py", "--run", "--log-dir", "{out}/trackb_qwen8b", "--limit", "5"]),
-    ("get_qwen8b", [], ["progress/sol_trackB.py", "--download", "--log-dir", "{out}/trackb_qwen8b"])])
+    ("get_qwen8b", [], ["progress/sol_trackB.py", "--download", "--log-dir", "{out}/trackb_qwen8b"]),
+    ("eval", ["base", "1/2", "--engine", "vllm"], ["finetune/gpu/eval_job.py", "--system", "base", "--out", "{out}/eval",
+                                                   "--part", "1/2", "--engine", "vllm"]),
+    ("trackb_qwen8b", ["--engine=vllm"], ["progress/sol_trackB.py", "--run", "--log-dir", "{out}/trackb_qwen8b", "--engine=vllm"]),
+    ("step10", ["--items-from", "I"], ["finetune/look/patching.py", "--items-from", "I"])])
 def test_run_sh_builds_each_new_step(tmp_path, step, args, want):
-    """run.sh with env.sh stubbed (no mamba on the Mac): which script and arguments each step gets."""
+    """run.sh with env.sh stubbed (no mamba on the Mac): which script and arguments each step gets, after
+    the import check (Oct 29), which also checks vLLM's environment in a vLLM job only."""
     sol = tmp_path / "repo" / "cot-disclosure" / "finetune" / "gpu" / "sol"
     sol.mkdir(parents=True)
     for f in ("run.sh", "guard.sh", "accounts.conf"):
@@ -405,16 +410,39 @@ def test_run_sh_builds_each_new_step(tmp_path, step, args, want):
     py = tmp_path / "py"
     py.write_text('#!/bin/bash\necho "ARGS $*"\necho "ONLINE ${HF_HUB_OFFLINE:-unset}"\n')
     py.chmod(0o755)
-    (sol / "env.sh").write_text(f'TRACKA_PY={py}\nTRACKA_OUT={out}\nTRACKA_CODE={tmp_path}\n'
-                                'source "$(dirname "${BASH_SOURCE[0]}")/guard.sh"\n')
+    (sol / "env.sh").write_text(f'TRACKA_PY={py}\nTRACKA_VLLM_PY=/envs/olmo-vllm/bin/python\nTRACKA_OUT={out}\n'
+                                f'TRACKA_CODE={tmp_path}\nsource "$(dirname "${{BASH_SOURCE[0]}}")/guard.sh"\n')
     env = {**{k: v for k, v in os.environ.items() if not k.startswith("SLURM_")},
            "SLURM_JOB_ID": "7", "SLURM_JOB_ACCOUNT": ACCOUNT}
     r = subprocess.run(["bash", str(sol / "run.sh"), step, *args], env=env, capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
-    line = next(x for x in r.stdout.splitlines() if x.startswith("ARGS "))
+    check, line = [x for x in r.stdout.splitlines() if x.startswith("ARGS ")]
+    vllm = step == "vllm_check" or "vllm" in " ".join(args)
+    assert check.split()[1:] == ["finetune/gpu/import_check.py"] + ["--vllm", "/envs/olmo-vllm/bin/python"] * vllm
     assert line.split()[1:] == [w.format(out=out) for w in want]
     online = next(x for x in r.stdout.splitlines() if x.startswith("ONLINE "))
     assert online == ("ONLINE 0" if step == "get_qwen8b" else "ONLINE unset")      # only the download is online
+
+
+def test_a_failed_import_check_stops_the_job_before_its_step(tmp_path):
+    """Oct 29 (Qwen3-8B 66934413 failed after 22 minutes on an import): the check fails the job in seconds."""
+    sol = tmp_path / "repo" / "cot-disclosure" / "finetune" / "gpu" / "sol"
+    sol.mkdir(parents=True)
+    for f in ("run.sh", "guard.sh", "accounts.conf"):
+        shutil.copy(SOL / f, sol / f)
+    py = tmp_path / "py"
+    py.write_text('#!/bin/bash\necho "ARGS $*"\n'
+                  'if [ "$1" = finetune/gpu/import_check.py ]; then echo "import check FAILED"; exit 1; fi\n')
+    py.chmod(0o755)
+    (sol / "env.sh").write_text(f'TRACKA_PY={py}\nTRACKA_VLLM_PY=/v/python\nTRACKA_OUT={tmp_path}/out\n'
+                                f'TRACKA_CODE={tmp_path}\nsource "$(dirname "${{BASH_SOURCE[0]}}")/guard.sh"\n')
+    env = {**{k: v for k, v in os.environ.items() if not k.startswith("SLURM_")},
+           "SLURM_JOB_ID": "7", "SLURM_JOB_ACCOUNT": ACCOUNT}
+    r = subprocess.run(["bash", str(sol / "run.sh"), "step10", "--items-from", "I"], env=env, capture_output=True,
+                       text=True)
+    assert r.returncode == 1 and "the import check failed; nothing else ran" in r.stderr
+    assert [x for x in r.stdout.splitlines() if x.startswith("ARGS ")] == ["ARGS finetune/gpu/import_check.py"]
+    assert "import check FAILED" in next((tmp_path / "out" / "step10").glob("console_*_7.log")).read_text()
 
 
 def test_vllm_gets_its_own_environment_and_outputs_name_it():

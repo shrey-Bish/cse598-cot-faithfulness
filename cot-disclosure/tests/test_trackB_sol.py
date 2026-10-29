@@ -145,6 +145,38 @@ def test_the_runner_counts_prompt_tokens_with_the_pinned_snapshot(monkeypatch):
     assert calls == [(st.REPO, {"revision": st.REVISION})]
 
 
+def test_the_first_tokenizer_load_runs_in_one_thread_only(monkeypatch):
+    """Oct 29 (66934413): the runner's threads (48 against the job's server) reached prompt_tokens' first
+    `from transformers import AutoTokenizer` together. On Sol's Python 3.11 a thread that waits for another
+    thread's import of transformers gets back the module object transformers replaces in sys.modules,
+    which has no AutoTokenizer ("cannot import name 'AutoTokenizer' from 'transformers'": 47 of 48 threads
+    with Python 3.11 on the Mac, 0 with this suite's 3.14). The first load, and its import, now run in one
+    thread while the others wait."""
+    import threading
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    import transformers
+    import voyager_template_check as vtc
+    loads = []
+
+    def slow(repo, **kw):
+        time.sleep(0.05)
+        loads.append(repo)
+        return "tok"
+    monkeypatch.setattr(tb, "_TOK", {})
+    monkeypatch.setattr(transformers.AutoTokenizer, "from_pretrained", slow)
+    monkeypatch.setattr(vtc, "count_chat", lambda tok, msgs, tools: 11)
+    go = threading.Barrier(16)
+
+    def one(_):
+        go.wait()
+        return tb.prompt_tokens(st.MODEL, [{"role": "user", "content": "q"}], None)
+    with ThreadPoolExecutor(16) as pool:
+        assert list(pool.map(one, range(16))) == [11] * 16
+    assert loads == [st.REPO]
+
+
 def test_the_job_driver(tmp_path, monkeypatch):
     monkeypatch.setenv("TRACKA_OUT", str(tmp_path))
     monkeypatch.setattr(st, "STOP", tmp_path / "stop")

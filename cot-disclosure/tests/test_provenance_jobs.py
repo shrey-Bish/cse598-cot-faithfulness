@@ -71,7 +71,8 @@ def test_run_sh_builds_the_steps(tmp_path, step, args, want):
            "SLURM_JOB_ACCOUNT": ACCOUNT}
     r = subprocess.run(["bash", str(sol / "run.sh"), step, *args], env=env, capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
-    line = next(x for x in r.stdout.splitlines() if x.startswith("ARGS "))
+    check, line = [x for x in r.stdout.splitlines() if x.startswith("ARGS ")]      # the import check first (Oct 29)
+    assert check == "ARGS finetune/gpu/import_check.py"
     assert line.split()[1:] == [w.format(out=out) for w in want]
 
 
