@@ -14,8 +14,10 @@ the engine, and why (the self-check's result).
   python finetune/gpu/eval_job.py --system base --part 1/4 --out /scratch/ragarw68/trackA/eval
 
 Engine vllm (optional, for later): a job prepares the system's model, starts a vLLM server on it (its own
-environment, $TRACKA_VLLM = /scratch/ragarw68/envs/olmo-vllm/bin/vllm, since vLLM pins its own torch), runs
-finetune/eval.py's runs against it, and stops it. Models (under $TRACKA_OUT/models/, made once):
+environment, $TRACKA_VLLM = /scratch/ragarw68/envs/olmo-vllm/bin/vllm, since vLLM pins its own torch; its log
+OUT/vllm_<system>_p<k>of<n>.log, one per part), runs finetune/eval.py's runs against it, and stops it. Models
+(under $TRACKA_OUT/models/, made once, each in the making job's own directory and then renamed into place,
+so two parts starting together never write the same files):
   base, prompt_only   the cached Olmo 3 7B Think snapshot
   lora, lora_attn3    the base with the chosen epoch's LoRA merged in (merge_and_unload)
   tags                the base with tag[model] folded into the input embedding table (generate.fold_model)
@@ -66,25 +68,24 @@ def out_root():
 
 
 def merge_lora(base_dir, adapter_dir, out_dir):
-    """The base with a LoRA adapter merged in, saved in bf16 (with the base's tokenizer files)."""
+    """The base with a LoRA adapter merged in, saved in bf16 (with the base's tokenizer files). Built in this
+    job's own directory and renamed into place (gen.build_dir): two parts of a system that start together
+    never write the same files (Oct 29: both used one <out>.tmp)."""
     import shutil
 
     import torch
     from peft import PeftModel
     from transformers import AutoModelForCausalLM
-    out = Path(out_dir)
-    if (out / "config.json").exists():
-        return out
-    model = AutoModelForCausalLM.from_pretrained(base_dir, dtype=torch.bfloat16)
-    model = PeftModel.from_pretrained(model, str(adapter_dir)).merge_and_unload()
-    tmp = out.with_name(out.name + ".tmp")
-    model.save_pretrained(tmp)
-    for f in Path(base_dir).iterdir():
-        if f.is_file() and (f.name.startswith("tokenizer") or f.name in ("special_tokens_map.json", "chat_template.jinja",
-                                                                          "generation_config.json")):
-            shutil.copy(f, tmp / f.name)
-    tmp.rename(out)
-    return out
+
+    def build(tmp):
+        model = AutoModelForCausalLM.from_pretrained(base_dir, dtype=torch.bfloat16)
+        model = PeftModel.from_pretrained(model, str(adapter_dir)).merge_and_unload()
+        model.save_pretrained(tmp)
+        for f in Path(base_dir).iterdir():
+            if f.is_file() and (f.name.startswith("tokenizer") or f.name in ("special_tokens_map.json", "chat_template.jinja",
+                                                                              "generation_config.json")):
+                shutil.copy(f, tmp / f.name)
+    return gen.build_dir(out_dir, build, lambda d: (Path(d) / "config.json").exists())
 
 
 def prepare(system, base_dir, train_root, models_root):
@@ -234,6 +235,12 @@ def evaluate_hf(system, part, out, workers=None, engine="auto", load=None):
     _JOB.clear()
 
 
+def server_log(out, system, part=None):
+    """One vLLM server log per part, named like its record files: vllm_<system>[_p<k>of<n>].log (Oct 29: two
+    parts sharing vllm_base.log interleaved their lines)."""
+    return Path(out) / (f"vllm_{system}" + (f"_p{part[0]}of{part[1]}" if part else "") + ".log")
+
+
 def evaluate(system, part, out, workers):
     from finetune import eval as ev
     base = kit.snapshot()[0]
@@ -242,7 +249,7 @@ def evaluate(system, part, out, workers):
     Path(out).mkdir(parents=True, exist_ok=True)
     _JOB.update({"out": str(out), "system": system, "part": part, "model_dir": str(model),
                  "tags": str(tags) if tags else None, "started_utc": kit.now()})
-    with Server(model, prompt_embeds=tags is not None, log=Path(out) / f"vllm_{system}.log") as srv:
+    with Server(model, prompt_embeds=tags is not None, log=server_log(out, system, part)) as srv:
         ev.run(system, gen.server_complete(srv.url, "system", tagger), out, part, workers)
     _job_row(out, environments=kit.environments(server=True))      # which environments ran it
     _JOB.clear()

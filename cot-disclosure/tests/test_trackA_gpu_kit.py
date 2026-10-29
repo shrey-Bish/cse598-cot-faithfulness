@@ -759,3 +759,103 @@ def test_the_hf_reference_frees_its_model_before_emptying_the_cache(tmp_path, mo
         out = ej.hf_greedy(d, [prompt], device="cpu", **kw)
         assert len(out) == 1 and 0 < len(out[0]) <= ej.CHECK_TOKENS
     assert alive == [[False], [False, False]]
+
+
+def test_each_eval_part_has_its_own_server_log(tmp_path, monkeypatch):
+    """Oct 29: base 1/2 and 2/2 both wrote eval/vllm_base.log, their lines interleaved, so the error a failing
+    part prints could come from the other part's server. One log per part, named like its record files."""
+    from finetune import eval as ev
+    from finetune.gpu import eval_job as ej
+    logs = []
+
+    class FakeServer:
+        def __init__(self, model, prompt_embeds, log=None, **kw):
+            logs.append(Path(log).name)
+            self.url = "http://localhost:1"
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+    monkeypatch.setattr(ej, "Server", FakeServer)
+    monkeypatch.setattr(ej.kit, "snapshot", lambda: (tmp_path / "base",))
+    monkeypatch.setattr(ej, "prepare", lambda system, base, train, models: (base, None))
+    monkeypatch.setattr(ej.kit, "environments", lambda server=True: {})
+    monkeypatch.setattr(ev, "run", lambda *a, **k: None)
+    for part in ((1, 2), (2, 2), None):
+        ej.evaluate("base", part, tmp_path / "eval", 48)
+    assert logs == ["vllm_base_p1of2.log", "vllm_base_p2of2.log", "vllm_base.log"]
+
+
+def test_two_jobs_building_one_model_directory_never_share_files(tmp_path):
+    """Oct 29: two parts of a LoRA or tag system can start together (lora 1/2 and 2/2 were queued side by
+    side), and both merged into one models/<system>_merged.tmp; fold_model even wrote into the directory a
+    server was loading. Each job builds in a directory of its own and renames it into place; a job that
+    finishes second keeps the first one's and removes its own."""
+    import threading
+
+    from finetune import generate as gen
+    out = tmp_path / "models" / "lora_merged"
+    started, release = threading.Event(), threading.Event()
+
+    def slow(tmp):
+        tmp.mkdir(parents=True)
+        (tmp / "w").write_text("A")
+        started.set()
+        release.wait(10)
+        (tmp / "config.json").write_text("{}")
+
+    def fast(tmp):
+        tmp.mkdir(parents=True)
+        (tmp / "w").write_text("B")
+        (tmp / "config.json").write_text("{}")
+    ready = lambda d: (d / "config.json").exists()  # noqa: E731
+    first = threading.Thread(target=lambda: gen.build_dir(out, slow, ready, job="111"))
+    first.start()
+    assert started.wait(10)
+    assert (tmp_path / "models" / "lora_merged.tmp-111" / "w").read_text() == "A"
+    assert gen.build_dir(out, fast, ready, job="222") == out                  # the second job finishes first
+    release.set()
+    first.join(10)
+    assert (out / "w").read_text() == "B" and [p.name for p in out.parent.iterdir()] == ["lora_merged"]
+    assert gen.build_dir(out, lambda tmp: pytest.fail("built again"), ready, job="333") == out
+
+
+def test_merging_writes_in_this_jobs_own_directory(tmp_path, monkeypatch):
+    import transformers
+    from finetune.gpu import eval_job as ej
+    d = tiny_model_dir(tmp_path)
+    _, adapter = ej.synthetic_parts(d, tmp_path)
+    saved, real = [], transformers.PreTrainedModel.save_pretrained
+    monkeypatch.setattr(transformers.PreTrainedModel, "save_pretrained",
+                        lambda self, path, **kw: saved.append(Path(path).name) or real(self, path, **kw))
+    monkeypatch.setenv("SLURM_JOB_ID", "66932947")
+    out = ej.merge_lora(d, adapter, tmp_path / "models" / "lora_merged")
+    assert saved == ["lora_merged.tmp-66932947"] and (out / "config.json").exists()
+    assert sorted(p.name for p in out.parent.iterdir()) == ["lora_merged"]
+
+
+def test_a_second_fold_keeps_the_directory_a_running_part_serves(tmp_path):
+    """The second part of a tag system finds the folded model the first made (same base, same tags) and
+    leaves it alone; other tags make a new one."""
+    import torch
+
+    from finetune import generate as gen
+    d = tiny_model_dir(tmp_path)
+    emb = gen.load_embedding(d)
+    tags = tmp_path / "tags.pt"
+    torch.save(torch.randn(4, emb.shape[1]) * 0.1, tags)
+    out = gen.fold_model(d, tags, tmp_path / "models" / "tags_folded")
+    shard = next(p for p in out.iterdir() if p.suffix == ".safetensors" and not p.is_symlink())
+    before = (shard.stat().st_ino, shard.stat().st_mtime_ns)
+    assert gen.fold_model(d, tags, tmp_path / "models" / "tags_folded") == out
+    assert (shard.stat().st_ino, shard.stat().st_mtime_ns) == before
+    torch.save(torch.randn(4, emb.shape[1]) * 0.1, tags)                      # retrained tags: folded again
+    gen.fold_model(d, tags, tmp_path / "models" / "tags_folded")
+    new = next(p for p in out.iterdir() if p.suffix == ".safetensors" and not p.is_symlink())
+    from finetune.source_tags import SOURCES
+    want = float(torch.load(tags)[SOURCES["model"]].float().norm())
+    assert json.loads((out / "folded_from.json").read_text())["tag_norm"] == pytest.approx(want)
+    assert (new.stat().st_ino, new.stat().st_mtime_ns) != before
+    assert sorted(p.name for p in out.parent.iterdir()) == ["tags_folded"]

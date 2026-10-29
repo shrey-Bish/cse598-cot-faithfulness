@@ -92,44 +92,80 @@ def encode_embeds(tensor):
     return base64.b64encode(buf.getvalue()).decode()
 
 
+def build_dir(out, build, ready, job=None):
+    """out, made by build(tmp) in a directory of this job's own and renamed into place (Oct 29: two parts of
+    one system can start together, and both wrote one models/<system>_merged.tmp). A job that finishes second
+    keeps the first one's and removes its own; one that finds out complete (ready(out)) builds nothing; an
+    outdated out (ready false) is replaced."""
+    out = Path(out)
+    if ready(out):
+        return out
+    job = job or os.environ.get("SLURM_JOB_ID") or str(os.getpid())
+    tmp = out.with_name(f"{out.name}.tmp-{job}")
+    shutil.rmtree(tmp, ignore_errors=True)
+    try:
+        build(tmp)
+        if out.exists() and not ready(out):
+            old = out.with_name(f"{out.name}.old-{job}")
+            out.rename(old)
+            shutil.rmtree(old, ignore_errors=True)
+        try:
+            tmp.rename(out)
+        except OSError:                                    # another job renamed its own into place first
+            if not ready(out):
+                raise
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    return out
+
+
 def fold_model(base_dir, tags_pt, out_dir):
     """A copy of the base model whose input embedding table is E + tag[model] (finetune/tags_vllm.py):
     only the shard holding the table is rewritten; every other file is linked. Olmo 3 7B's input and
-    output embeddings are separate (tie_word_embeddings false), so the output layer is untouched."""
+    output embeddings are separate (tie_word_embeddings false), so the output layer is untouched.
+    Built in this job's own directory (build_dir); a folded model of the same base and tags is kept as it is,
+    since another part of the system may be serving it."""
+    import hashlib
+
     import torch
     from safetensors import safe_open
     from safetensors.torch import save_file
     from finetune.source_tags import SOURCES
-    base, out = Path(base_dir), Path(out_dir)
+    base = Path(base_dir)
     cfg = json.loads((base / "config.json").read_text())
     if cfg.get("tie_word_embeddings"):
         raise ValueError("tied input and output embeddings: folding the model tag would change the output layer")
     tag = torch.load(tags_pt, map_location="cpu")[SOURCES["model"]]
-    out.mkdir(parents=True, exist_ok=True)
-    done = False
-    for f in base.iterdir():
-        dst = out / f.name
-        if dst.exists() or dst.is_symlink():
-            dst.unlink()
-        if f.suffix == ".safetensors":
-            with safe_open(str(f), "pt") as sf:
-                if EMBED_KEY in sf.keys():
-                    tensors = {k: sf.get_tensor(k) for k in sf.keys()}
-                    meta = sf.metadata()
-                    e = tensors[EMBED_KEY]
-                    tensors[EMBED_KEY] = (e.float() + tag.float()).to(e.dtype)
-                    save_file(tensors, str(dst), metadata=meta)
-                    done = True
-                    continue
-        if f.is_dir():
-            shutil.copytree(f, dst, symlinks=True)
-        else:
-            dst.symlink_to(f.resolve())
-    if not done:
-        raise ValueError(f"{EMBED_KEY} not found in {base}")
-    (out / "folded_from.json").write_text(json.dumps({"base": str(base), "tags": str(tags_pt),
-                                                      "tag_norm": float(tag.float().norm())}, indent=1) + "\n")
-    return out
+    made_from = {"base": str(base), "tags": str(tags_pt), "tag_norm": float(tag.float().norm()),
+                 "tags_sha256": hashlib.sha256(Path(tags_pt).read_bytes()).hexdigest()}
+
+    def ready(d):
+        f = Path(d) / "folded_from.json"
+        return f.exists() and json.loads(f.read_text()) == made_from
+
+    def build(out):
+        out.mkdir(parents=True)
+        done = False
+        for f in base.iterdir():
+            dst = out / f.name
+            if f.suffix == ".safetensors":
+                with safe_open(str(f), "pt") as sf:
+                    if EMBED_KEY in sf.keys():
+                        tensors = {k: sf.get_tensor(k) for k in sf.keys()}
+                        meta = sf.metadata()
+                        e = tensors[EMBED_KEY]
+                        tensors[EMBED_KEY] = (e.float() + tag.float()).to(e.dtype)
+                        save_file(tensors, str(dst), metadata=meta)
+                        done = True
+                        continue
+            if f.is_dir():
+                shutil.copytree(f, dst, symlinks=True)
+            else:
+                dst.symlink_to(f.resolve())
+        if not done:
+            raise ValueError(f"{EMBED_KEY} not found in {base}")
+        (out / "folded_from.json").write_text(json.dumps(made_from, indent=1) + "\n")
+    return build_dir(out_dir, build, ready)
 
 
 def serve_cmd(model_dir, port=PORT, lora=None, prompt_embeds=False, vllm="vllm", served_name="system"):
