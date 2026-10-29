@@ -511,16 +511,24 @@ def fake_vllm(tmp_path, lines=None, fail=None):
     return str(exe)
 
 
-def test_every_vllm_job_compares_the_nodes_help_with_the_committed_list_first(tmp_path):
+def test_a_vllm_job_refuses_only_what_the_server_commands_use(tmp_path):
+    """Oct 28, sg018: the check job was refused because --mm-processor-device has a cuda choice on a GPU
+    node, an option no server command uses. Refused now: an option a command uses missing on the node,
+    a value it passes outside the node's choices, or the option changed form."""
     from finetune.gpu import vllm_options as vo
-    lines = [x for x in vo.TRACKED.read_text().splitlines() if x and not x.startswith("#")]
+    lines = vo.read()[1]
     vo.gpu_preflight(fake_vllm(tmp_path / "same", lines), tmp_path / "same")             # the same list: on
-    with pytest.raises(SystemExit, match=r"differ from the committed 0.31.0 list \(removed 1: --seed\)"):
+    assert not (tmp_path / "same" / "vllm_serve_options_node.txt").exists()
+    with pytest.raises(SystemExit, match=r"lacks or changed what the server commands use(.|\n)*eval base: --seed"):
         vo.gpu_preflight(fake_vllm(tmp_path / "diff", [x for x in lines if not x.startswith("--seed ")]), tmp_path / "diff")
     assert vo.load(tmp_path / "diff" / "vllm_serve_options_node.txt")[1] == {k: v for k, v in vo.load()[1].items() if k != "--seed"}
     changed = [x.replace("{auto,bfloat16,", "{auto,") if x.startswith("--dtype") else x for x in lines]
-    with pytest.raises(SystemExit, match="choices 1: --dtype"):
+    with pytest.raises(SystemExit, match=r"eval lora: --dtype bfloat16 \(choices: auto,float,"):
         vo.gpu_preflight(fake_vllm(tmp_path / "choice", changed), tmp_path / "choice")
+    form = [x.replace("--enable-prompt-embeds, --no-enable-prompt-embeds", "--enable-prompt-embeds ENABLE_PROMPT_EMBEDS")
+            for x in lines]
+    with pytest.raises(SystemExit, match="--enable-prompt-embeds: a flag in the committed list, takes a value on this node"):
+        vo.gpu_preflight(fake_vllm(tmp_path / "form", form), tmp_path / "form")
     with pytest.raises(SystemExit, match="exited with code 1 on this node(.|\n)*Failed to infer device type"):
         vo.gpu_preflight(fake_vllm(tmp_path / "cpu", fail="RuntimeError: Failed to infer device type"), tmp_path / "cpu")
     committed = tmp_path / "committed.txt"
@@ -531,15 +539,44 @@ def test_every_vllm_job_compares_the_nodes_help_with_the_committed_list_first(tm
     assert not (tmp_path / "bad" / "ran").exists()                         # a command misfit: refused before vllm
 
 
-def test_a_help_past_its_time_limit_shows_where_vllm_was(tmp_path):
-    """Oct 28, sg002: `vllm serve --help=all` didn't finish in 180 s (the first vLLM import on Sol) and
-    the job said only TimeoutExpired. Now 15 minutes, and past them the refusal carries vLLM's traceback."""
+def test_other_differences_on_the_node_are_a_warning_in_the_log(tmp_path, capsys):
     from finetune.gpu import vllm_options as vo
-    exe = tmp_path / "vllm"
-    exe.write_text(f"#!{sys.executable}\nimport time\n\n\ndef importing_torch():\n    time.sleep(60)\n\n\nimporting_torch()\n")
+    lines = vo.read()[1]
+    mac = [x.replace("{auto,cpu,cuda}", "{auto,cpu}") if x.startswith("--mm-processor-device") else x for x in lines]
+    assert mac != lines
+    vo.gpu_preflight(fake_vllm(tmp_path / "sg018", lines), tmp_path / "sg018", committed=_list(tmp_path, mac))
+    out = capsys.readouterr().out
+    assert "WARNING: this node's vLLM options differ from the committed 0.31.0 list (choices 1: --mm-processor-device)" in out
+    assert "not in any option or value the 9 server commands use: going on" in out
+    assert vo.read(tmp_path / "sg018" / "vllm_serve_options_node.txt")[1] == lines           # saved to copy back
+    node = [x for x in lines if not x.startswith("--mm-ipc-gpu-memory-gb")] + ["--new-option NEW_OPTION"]
+    node = [x.replace("{auto,bfloat16,", "{auto,bfloat16,fp8,") if x.startswith("--dtype") else x for x in node]
+    vo.gpu_preflight(fake_vllm(tmp_path / "other", node), tmp_path / "other")
+    out = capsys.readouterr().out
+    assert "(added 1: --new-option; removed 1: --mm-ipc-gpu-memory-gb; choices 1: --dtype)" in out   # bfloat16 is still there
+    assert "going on" in out and "refusing" not in out
+
+
+def _list(tmp_path, lines):
+    path = tmp_path / "committed_list.txt"
+    path.write_text("# vllm 0.31.0: the option lines of `vllm serve --help=all`\n# a test list\n" + "\n".join(lines) + "\n")
+    return path
+
+
+def test_a_help_past_its_time_limit_shows_where_vllm_was(tmp_path, monkeypatch):
+    """Oct 28, sg002: `vllm serve --help=all` didn't finish in 180 s (the first vLLM import on Sol) and
+    the job said only TimeoutExpired. Now 15 minutes, and past them the refusal carries vLLM's traceback
+    (SIGUSR1 to Python's faulthandler, then a kill; never an abort, which the Mac reports as a crash)."""
+    from finetune.gpu import vllm_options as vo
+    monkeypatch.setattr(vo, "DUMP_WAIT_S", 1)
+    exe, aborted = tmp_path / "vllm", tmp_path / "aborted"
+    exe.write_text(f"#!{sys.executable}\nimport signal, time\n"                  # an abort would only leave a mark
+                   f"signal.signal(signal.SIGABRT, lambda *a: open({str(aborted)!r}, 'w').close())\n\n\n"
+                   f"def importing_torch():\n    time.sleep(60)\n\n\nimporting_torch()\n")
     exe.chmod(0o755)
     with pytest.raises(SystemExit, match=r"didn't finish in 1 s on .*; where it was(.|\n)*in importing_torch"):
         vo.gpu_preflight(str(exe), tmp_path, timeout=1)
+    assert not aborted.exists()                   # no SIGABRT: on the Mac each one was a crash report (Oct 28)
     assert vo.HELP_TIMEOUT_S == 900
     with pytest.raises(SystemExit, match="didn't start"):
         vo.gpu_preflight(str(tmp_path / "missing"), tmp_path)

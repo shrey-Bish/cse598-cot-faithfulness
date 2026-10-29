@@ -20,9 +20,10 @@ It passes when the tagged version agrees with its reference as far as the plain 
 (vllm_check.json, numbers only). The plain base server runs first, before the synthetic LoRA merge
 and the shard writing, so a server that can't start fails the job in minutes.
 
-Every job's first step compares `vllm serve --help=all` on its GPU node with the committed option
-list (finetune/gpu/vllm_serve_options.txt) and checks every server command against it
-(finetune/gpu/vllm_options.py): a difference stops the job before any model load or merge.
+Every job's first step checks every server command against the committed option list
+(finetune/gpu/vllm_serve_options.txt) and against `vllm serve --help=all` on its GPU node
+(finetune/gpu/vllm_options.py): an option or value a command uses that is missing or changed on the
+node stops the job before any model load or merge; any other difference is a warning in the log.
 """
 import argparse
 import json

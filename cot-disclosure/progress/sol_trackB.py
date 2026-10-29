@@ -11,8 +11,9 @@ stops it. Thinking on/off goes in each request (enable_thinking, providers/sol_v
   cot-disclosure/finetune/gpu/sol/submit.sh trackb_qwen8b --estimate 1.5 --dependency=afterok:<get_qwen8b job>
   # back to the Mac, numbers only (results/trackB/): sol_vllm_runs.jsonl and sol_vllm_flags.jsonl
 
-First step: `vllm serve --help=all` on the GPU node must give the committed option list and the
-server command must fit it (finetune/gpu/vllm_options.py); then the snapshot must be on disk at the
+First step: the server command must fit the committed option list and `vllm serve --help=all` on
+the GPU node (an option or value it uses missing or changed there stops the job; other differences
+are a warning; finetune/gpu/vllm_options.py); then the snapshot must be on disk at the
 pinned revision, its files the sizes snapshot.json recorded. The server gets the snapshot's chat
 template as a file (--chat-template, written from tokenizer_config.json), and the runner saves that
 file's sha256 with every run (chat_template_sha256). Slurm's
@@ -158,8 +159,8 @@ def export_flags(records=OUT / "sol_vllm.jsonl.gz", out=FLAGS):
 
 
 def preflight(vllm, log_dir):
-    """The job's first step: `vllm serve --help=all` on this GPU node must give the committed option list,
-    and every server command (this one included) must fit it (finetune/gpu/vllm_options.py)."""
+    """The job's first step: every server command (this one included) must fit the committed option list
+    and this GPU node's `vllm serve --help=all` (finetune/gpu/vllm_options.py)."""
     from finetune.gpu import vllm_options
     vllm_options.gpu_preflight(vllm, log_dir)
 

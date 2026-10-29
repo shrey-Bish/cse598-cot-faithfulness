@@ -1,6 +1,6 @@
 # Runbook: how to run every step
 
-Last updated: 2026-10-27 13:55 MST. One page per step: what it does, where it runs, the commands in order,
+Last updated: 2026-10-28 21:50 MST. One page per step: what it does, where it runs, the commands in order,
 inputs and outputs, how long it takes, and what to check. Written so anyone in the group can run a
 step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md); open work in
 [`TODO.md`](TODO.md).
@@ -290,10 +290,14 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   "$TRACKA_PY" cot-disclosure/finetune/gpu/plan_eval.py --vllm-check <S2 job> --train lora=<id>,tags=<id>,...
   # ^ batch 3: base and prompt_only after S2, each version after its training job; parts under 8 h;
   #   it reads the queue, finished jobs and train/<version>/final/ on Sol, and prints the submit.sh lines
-  cot-disclosure/finetune/gpu/sol/submit.sh val_loss --estimate 0.75 --dependency=afterany:<training jobs> -- lora tags
+  cot-disclosure/finetune/gpu/sol/submit.sh val_loss --estimate 1.25 --dependency=afterany:<training jobs> -- lora tags lora_tags lora_attn3
   # ^ S7 (Oct 28): the validation loss of base and of each version's two epochs, split into the taught
   #   tokens (the prefilled opener, the reasoning sentences naming the hint, the final answer) and the
-  #   rest; Hugging Face only (no vLLM); limit 1:00; a rerun skips the systems done
+  #   rest; Hugging Face only (no vLLM); all four versions (decided Oct 28): 45-80 GPU minutes, limit 2:00;
+  #   refused at once if a version's checkpoint is missing; a rerun skips the systems done
+  # Every vLLM job's first step (vllm_check, eval, trackb_qwen8b): `vllm serve --help=all` on the node. It stops
+  #   only if an option or value a server command uses is missing or changed there; other differences are a
+  #   WARNING line in the job's log, and the node's list is saved as trackA/vllm_serve_options_node.txt
   ```
   The parts' token counts, with no model (Mac or Sol): `../.venv/bin/python finetune/val_loss.py
   --dry-run` (Oct 28: 80,010 taught tokens of 1,243,692, 6.4%).
@@ -324,10 +328,11 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   ../.venv/bin/python tools/label_kit.py build     # done Oct 27: results/labels/ (gitignored: model text)
   # each rater fills results/labels/rater1.csv or rater2.csv alone: label_private, label_final, note
   ../.venv/bin/python tools/label_kit.py kappa results/labels/rater1.csv results/labels/rater2.csv
-  # then, after the queue (decided Oct 28), Track B's batch: 151 rows to label in results/labels/trackB/
-  ../.venv/bin/python tools/label_kit.py trackb    # bare replies (<= 30 characters) no_mention by rule, 10% spot check
+  # then, after the queue (decided Oct 28), Track B's batch: 171 rows to label in results/labels/trackB/
+  ../.venv/bin/python tools/label_kit.py trackb    # bare replies (<= 30 characters) no_mention by rule, 10% spot check;
+                                                   # rows 152-171: private reasoning only, the keyword check (F15)
   ../.venv/bin/python tools/label_kit.py kappa results/labels/trackB/rater1.csv results/labels/trackB/rater2.csv
-  # ^ also each rater's agreement with the bare-reply rule on the spot-check rows
+  # ^ also each rater's agreement with the bare-reply rule on the spot-check rows, and with the keyword on rows 152-171
   ```
 - **In → out:** `docs/progress/LABEL_QUEUE.csv` + saved runs → `results/labels/` (101 rows: 91 + 10
   replacements; sheets, key). `kappa` prints Cohen's kappa per text (private, final), overall and by
@@ -420,7 +425,8 @@ It refuses a push that adds anything under a produced-data folder, any file with
   → checker (re-asks without the tool). Wrong answers shipped, catches, false alarms, per team ×
   reviewer model × variant, bad and good lookups apart. **Where:** Mac → Voyager.
   **Status:** code done Oct 27 (append-only, resumable); C1 (5 items) done Oct 27; the 32B
-  reviewer's smoke done Oct 28 00:20; C4 running since Oct 28 03:13 under a second power guard.
+  reviewer's smoke done Oct 28 00:20; C4 done Oct 28 17:51 (318 cases); C9 (the reviewers again, with
+  one sentence added) running since Oct 28 21:46 under the power guard.
 - **Commands** (from `cot-disclosure/`):
   ```bash
   ../.venv/bin/python agents/run_team.py --replay                       # saved data, no calls
@@ -439,6 +445,12 @@ It refuses a push that adds anything under a produced-data folder, any file with
   ../.venv/bin/python agents/run_team.py --summary                      # results/trackC/team_live_summary.json
   ../.venv/bin/python agents/run_team.py --summary --log team_c4 --cases results/trackB/steered_cases.jsonl --table
                                                                         # C4, also by Track B kind and kind x set
+  # C9 (Oct 28): only the reviewers again, on C4's saved tool-team cases, with CHECK_TOOL after the system prompt
+  ../.venv/bin/python agents/run_team.py --rereview team_c4 --cases results/trackB/steered_cases.jsonl --log team_c9 --dry-run
+  nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
+    --job "voyager:c9=agents/run_team.py --rereview team_c4 --cases results/trackB/steered_cases.jsonl --log team_c9 --run-name C9-oct28" >> logs/guard_c9.log 2>&1 &
+  ../.venv/bin/python agents/run_team.py --summary --log team_c9 --cases results/trackB/steered_cases.jsonl --table
+                                                                        # + vs_original_prompt: with the sentence minus C4's prompt, paired by item
   ```
 - **Out:** `results/trackC/team_live.jsonl` (every agent step, appended; a case is done at its
   `case_done` row), `team_live_summary.json`, `team_replay.jsonl` (all gitignored; `results/scope/`

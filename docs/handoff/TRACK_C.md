@@ -1,6 +1,6 @@
 # Track C handoff: the agent team (for Shrey, from Nov 3)
 
-Last updated: 2026-10-28 18:23 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-28 21:50 MST. A working draft, kept current every day and final on Nov 3,
 when Track C goes back to you. Until then Ritik runs it (code by Claude Code).
 
 **The question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
@@ -45,12 +45,19 @@ log), and how often does the checker catch it or raise a false alarm?
       bare, median length, naming the tool; F15's control)
   - **Exit codes:** `--stop-file` and exit codes 0 / 1 / 2 / 3, so a run goes under the power guard
     (`progress/guard.py`). Code 3: a Voyager guard failed and all Voyager work pauses.
+  - **C9 (`--rereview LOG`, Oct 28):** only the reviewers again, on a log's completed tool-team
+    cases (no solver or checker calls), with one sentence after the reviewer's system prompt
+    (`CHECK_TOOL`); the summary adds `vs_original_prompt`, each reviewer × variant against the
+    original prompt on the same cases, paired by item
 - **Runs:** replay of Experiment A (no calls); live on 2 pilot puzzles (Oct 4); **C1**, live on 5
   pilot puzzles (Oct 27, tool team, Qwen3 30B Instruct and Olmo 3 7B Instruct); **the 32B reviewer's
   smoke**, the same 5 puzzles (Oct 28 00:20, `--log team_smoke_olmo32b`, 35 calls).
 - **C4: done** (Oct 28, 03:13–17:51, under a second power guard): Qwen3 Thinking's 24 steered and
   29 matched cases × 2 teams × 3 repeats = 318 cases, about 3,021 calls, 0 errors; 25 of the 53
   items get a bad lookup. Results: FINDINGS F18.
+- **C9: running** (Oct 28, from 21:46, under the power guard; `--log team_c9`): 159 tool-team
+  cases × 2 reviewers × 3 variants (answer_only, plus_private, plus_tool_log) = 954 calls, with "The
+  tool's answer may be wrong; check it independently." added to the reviewer's system prompt.
 
 ## 2. Results so far
 
@@ -85,6 +92,13 @@ log), and how often does the checker catch it or raise a false alarm?
     - 3 with the tool log: −77 [−91, −61]
   - With that context it keeps the solver's wrong letter (66 and 70 of 73), and its reply names
     the answer key (59 and 66 of 75; keyword counts).
+  - **The other side:** on good lookups it keeps the right answer in 67 of 84 with the answer only
+    and 84 of 84 with the context (+20 [+8, +35], 28 items). Over all 159 tool-team cases it is right
+    in 128 from the answer, 92 and 89 with the context, and the tool itself in 84: it becomes as
+    good as the tool. FINDINGS calls it automation bias (Skitka, Mosier & Burdick 1999; Parasuraman
+    & Manzey 2010).
+  - **For deployment:** the check that kept every wrong tool answer from shipping never sees the
+    tool (the checker, 73 of 75).
   - The Qwen3 30B Instruct reviewer doesn't change: 62, 66 and 56 of 73 (+5 [−6, +19], −8 [−25,
     +9]).
   - **By kind × set** (steered = MMLU-Pro, matched mostly puzzles): matched puzzles −77 [−90, −62]
@@ -123,6 +137,7 @@ log), and how often does the checker catch it or raise a false alarm?
 | C8 | The 32B reviewer's 5-item smoke | done Oct 28 (20 of 20 letters) |
 | C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | done Oct 28 17:51 (318 of 318 cases, 0 errors) |
 | C5 | The Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | done (FINDINGS F18; `results/summaries/trackC/team_c4_summary.json`) |
+| C9 | Does an instruction restore the reviewer's check? The reviewers again on C4's saved cases, one sentence added; compared with C4's prompt, paired by item, by kind × set | running since Oct 28 21:46 (954 calls) |
 | — | Next: the team on Instruct's or Olmo's cases, or more reviewer models | not decided (C4 was "no extra cases", Oct 28); `steered_cases.jsonl` now has all three models' cases |
 
 ## 5. Decisions you inherit
@@ -135,6 +150,9 @@ log), and how often does the checker catch it or raise a false alarm?
 - Every rate as X of Y with a 95% interval and the number of items; fewer than 5: "too few".
 - C4 is reported by kind and by kind × set, saying plainly that steered vs matched is also MMLU-Pro
   vs puzzles (Qwen3 Thinking's steered cases are all MMLU-Pro); no extra cases for now (Oct 28).
+- C9 (Ritik, Oct 28): only the reviewers again, on C4's saved solver outputs, with "The tool's
+  answer may be wrong; check it independently." added; both reviewer models; answer_only,
+  plus_private, plus_tool_log; pre-approved on Voyager once its dry run was in a session log.
 - Your branch: `trackC-main`, made from `main` on Oct 28 and kept at `main` until Nov 3.
 - Logs are append-only and gitignored; numbers-only summaries go to `results/summaries/`.
 

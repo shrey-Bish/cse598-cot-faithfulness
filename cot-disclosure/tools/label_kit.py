@@ -30,6 +30,10 @@ can't name anything, so it is labeled no_mention by rule (prelabeled.csv, rule "
 of the sheets, except a seeded 10% per group (rounded up) kept in as a spot check the raters can't
 tell apart. Raters label the replies with text and those. kappa then also gives each rater's agreement
 with the rule on the spot-check rows (prelabeled.csv next to the sheets).
+The keyword check (decided Oct 28): F15 says Qwen3 30B Thinking's private reasoning names the tool
+in every bare real-call reply, a keyword count. A seeded 20 of the 45 such replies outside the spot
+check go last in the sheets (group 3), private reasoning only (no final answer; label_final n/a), and
+kappa gives each rater's agreement with the keyword on them (key.csv next to the sheets).
 """
 import math
 import argparse
@@ -57,6 +61,8 @@ TRACKB_GROUPS = (("1 Qwen3 30B Thinking: real call and pasted (F15)", "qwen3-30b
 LABELS = ("no_mention", "mentions_only", "rejects_hint", "says_changed", "unclear")
 BARE_CHARS = 30          # a final answer this short is a bare "Answer: (X)": no_mention by rule
 SPOT_SHARE = 0.10        # of the bare replies, per group, kept in the sheets as a spot check
+PRIVATE_CHECK = ("3 Qwen3 30B Thinking: private reasoning of bare real-call replies (keyword check)",
+                 "qwen3-30b-a3b-thinking-2507", 20)   # the group, its model, and how many of its bare real-call replies
 HIDDEN = ("keyword_private", "keyword_final", "followed_cue", "answer", "text_status", "source")
 PATTERN = {"cue_user": "cue", "cue_tool": "cue_tool", "wrong": "cue"}
 
@@ -172,14 +178,22 @@ def trackb_rows(path=TRACKB, seed=SEED):
     for r in out:
         r["spot_check"] = r.get("spot_check", False)
         r["in_sheet"] = not r["bare"] or r["spot_check"]
+    _, model, n = PRIVATE_CHECK                           # the keyword check: a seeded sample, private reasoning only
+    left = sorted((r for r in out if r["model"] == model and r["condition"] == "tool_real" and r["called_tool"]
+                   and r["bare"] and not r["spot_check"] and r["private_excerpt"]), key=lambda r: r["run_id"])
+    pick = {r["run_id"] for r in random.Random(f"{seed} {model} private").sample(left, min(n, len(left)))}
+    for r in out:
+        r["private_check"] = r["run_id"] in pick
     return out
 
 
 def build_trackb(path=TRACKB, out=None, seed=SEED):
-    """The sheets (replies with text + the spot check, in the batch's order), the key, prelabeled.csv
-    (every bare reply: no_mention by rule) and kit.json. Returns (all rows, sizes per group)."""
+    """The sheets (replies with text + the spot check, in the batch's order, then the keyword check's
+    private reasoning), the key, prelabeled.csv (every bare reply: no_mention by rule) and kit.json.
+    Returns (all rows, sizes per group)."""
     rows = trackb_rows(path, seed)
-    sheet = [r for r in rows if r["in_sheet"]]
+    check = [{**r, "group": PRIVATE_CHECK[0], "final_text": ""} for r in rows if r["private_check"]]
+    sheet = [r for r in rows if r["in_sheet"]] + check
     out = Path(out or OUT / "trackB")
     out.mkdir(parents=True, exist_ok=True)
     sheet_cols = ["row", "group", "run_id", "model", "condition", "cue_letter", "private_excerpt", "final_text",
@@ -190,15 +204,16 @@ def build_trackb(path=TRACKB, out=None, seed=SEED):
             w.writeheader()
             for i, r in enumerate(sheet, 1):
                 w.writerow({"row": i, **{c: r[c] for c in sheet_cols[1:8]},
-                            "label_private": "n/a" if not r["private_excerpt"] else "", "label_final": "", "note": ""})
+                            "label_private": "n/a" if not r["private_excerpt"] else "",
+                            "label_final": "n/a" if r["private_check"] else "", "note": ""})
     key_cols = ["row", "run_id", "group", "item_id", "set", "called_tool", "keyword_private", "keyword_final", "bare",
-                "spot_check"]
+                "spot_check", "private_check"]
     with open(out / "key.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=key_cols)
         w.writeheader()
         for i, r in enumerate(sheet, 1):
             w.writerow({"row": i, **{c: r[c] for c in key_cols[1:]}})
-    rows_of = {r["run_id"]: i for i, r in enumerate(sheet, 1)}
+    rows_of = {r["run_id"]: i for i, r in enumerate(sheet, 1) if r["spot_check"]}
     pre_cols = ["run_id", "group", "model", "condition", "item_id", "set", "final_text", "label_final", "rule", "sheet_row"]
     with open(out / "prelabeled.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=pre_cols)
@@ -213,6 +228,12 @@ def build_trackb(path=TRACKB, out=None, seed=SEED):
                  "with_text": sum(not r["bare"] for r in rows if r["group"] == g),
                  "spot_check": sum(r["spot_check"] for r in rows if r["group"] == g),
                  "sheet_rows": sum(r["in_sheet"] for r in rows if r["group"] == g)} for g, _ in TRACKB_GROUPS}
+    model = PRIVATE_CHECK[1]
+    sizes[PRIVATE_CHECK[0]] = {
+        "sheet_rows": len(check), "of_bare_real_call_outside_spot_check": sum(
+            r["model"] == model and r["condition"] == "tool_real" and r["called_tool"] and r["bare"] and not r["spot_check"]
+            for r in rows),
+        "keyword_private": sum(r["keyword_private"] is True for r in check)}
     (out / "kit.json").write_text(json.dumps({"runs": len(rows), "sheet_rows": len(sheet), "groups": sizes, "seed": seed,
                                               "labels": LABELS, "bare_chars": BARE_CHARS, "spot_share": SPOT_SHARE,
                                               "source": str(Path(path).relative_to(CODE) if Path(path).is_relative_to(CODE)
@@ -261,6 +282,15 @@ def kappa(path1, path2):
             out[f"spot check | {name} agrees with the rule"] = {
                 "agreement": sum(r[k]["label_final"] == spot[k] for k in done) / len(done) if done else None,
                 "rows": len(done), "of": len(spot)}
+    key = Path(path1).parent / "key.csv"
+    if key.exists():                                    # Track B: each rater against the keyword on group 3
+        with open(key, newline="") as f:
+            said = {r["row"]: r["keyword_private"] == "True" for r in csv.DictReader(f) if r.get("private_check") == "True"}
+        for name, r in (("rater1", r1), ("rater2", r2)):
+            done = [k for k in said if k in r and r[k]["label_private"] in LABELS]
+            out[f"keyword check | {name} agrees with the keyword"] = {
+                "agreement": sum((r[k]["label_private"] != "no_mention") == said[k] for k in done) / len(done) if done else None,
+                "rows": len(done), "of": len(said), "keyword_says_mention": sum(said.values())}
     return out, disagreements
 
 
@@ -282,6 +312,10 @@ def main():
         print(f"{len(rows)} runs; {sum(r['in_sheet'] for r in rows)} rows in the sheets in "
               f"{(OUT / 'trackB').relative_to(CODE)}, labeled in this order:")
         for g, s in sizes.items():
+            if g == PRIVATE_CHECK[0]:
+                print(f"  {g}: {s['sheet_rows']} of {s['of_bare_real_call_outside_spot_check']}, private reasoning only "
+                      f"(the keyword says it names the tool in {s['keyword_private']})")
+                continue
             print(f"  {g}: " + ", ".join(f"{c} {n}" for c, n in sorted(s["runs"].items())) +
                   f"; bare (no_mention by rule) {s['bare_no_mention_by_rule']}, with text {s['with_text']}, "
                   f"spot check {s['spot_check']}: {s['sheet_rows']} rows to label")

@@ -231,3 +231,74 @@ def test_summary_split_by_track_b_kind_and_set(tmp_path, monkeypatch):
     parts = sum(v["by_team_model_variant"]["notool | rev-a | answer_only"]["reviews"] for v in res["by_kind"].values())
     assert whole == parts == 8
     assert "### steered | s1" in rt.table(res)
+
+
+def test_the_tool_log_from_saved_steps_is_the_reviewers_tool_log():
+    """C9 rebuilds the tool log from the solver row's steps (C4 didn't log the transcript): the same text
+    run_case gave the reviewer, also with two calls in one turn."""
+    from agents import solver
+
+    def two_calls(messages, tools=None, tool_choice=None, **kw):
+        if tool_choice:
+            return Reply(provider="voyager", model="s", finish_reason="tool_calls", tool_calls=[
+                {"id": "c1", "name": "lookup_answer_key", "arguments": '{"question_id": "q0"}'},
+                {"id": "c2", "name": "other", "arguments": "{}"}])
+        return Reply(provider="voyager", model="s", final_text="Answer: (B)")
+    gen = fake_generate([])
+    for g in (lambda **kw: gen("voyager", "s", **kw), two_calls):
+        _, transcript, steps, _, _ = solver.solve(g, items()[0], solver.ToolOracle())
+        assert rt.steps_tool_log(json.loads(json.dumps(steps))) == solver.tool_log(transcript) != ""
+    assert solver.tool_log(transcript).count("result: ") == 2
+
+
+def test_c9_reviews_c4s_saved_cases_again_with_the_sentence_and_pairs_with_the_original(tmp_path, monkeypatch):
+    """Only the reviewers run again, on the tool team's saved cases, with CHECK_TOOL after the system
+    prompt; the summary compares each reviewer x variant with the original prompt, paired by item."""
+    calls, seen = [], []
+    gen = fake_generate(calls)
+    monkeypatch.setattr(rt, "generate", gen)
+    monkeypatch.setattr(rt, "OUT", tmp_path)
+    cases = tmp_path / "steered_cases.jsonl"
+    for i in range(12):                                   # bad lookups on 6 of the 12 items (the seeded oracle)
+        append(cases, {"case_id": f"m|q{i}", "kind": "steered" if i < 6 else "matched", "set": "s1" if i % 2 else "s2",
+                       "item_id": f"q{i}", "question": f"Q{i}?\n(A) a\n(B) b", "correct_letter": "A",
+                       "hint_letter": "B", "n_options": 2})
+    c4 = tmp_path / "team_c4.jsonl"
+    rt.live(rt.case_items(cases, ["steered", "matched"], 0), ["tool", "notool"], 2, REVIEWERS, c4, "c4", workers=4,
+            check_models=False)
+    n = len(calls)
+
+    def told_to_check(provider, model, messages, **kw):   # rev-a checks the tool once told to; rev-b never does
+        seen.append(messages)
+        if model == "rev-a" and rt.CHECK_TOOL in messages[0]["content"]:
+            calls.append((model, kw.get("seed"), False))
+            return Reply(provider=provider, model=model, final_text="FINAL: A", usage={"input_tokens": 3, "output_tokens": 1})
+        return gen(provider, model, messages, **kw)
+    monkeypatch.setattr(rt, "generate", told_to_check)
+    saved = rt.saved_cases(c4, rt.items_by_source(cases))
+    assert len(saved) == 12 * 2 and {c["solver"]["team"] for c, _ in saved} == {"tool"}
+    c9 = tmp_path / "team_c9.jsonl"
+    assert rt.rereview(saved, REVIEWERS, rt.C9_VARIANTS, c9, "c9", "team_c4", workers=3, check_models=False) == 0
+    assert len(calls) - n == 24 * 2 * 3 and not any(tools for _, _, tools in calls[n:])       # reviewers only
+    assert all(m[0]["content"] == f"{rt.reviewer.SYSTEM} {rt.CHECK_TOOL}" for m in seen)
+    logs = [m[1]["content"].split("Tool log of the first assistant:\n")[1] for m in seen if "Tool log" in m[1]["content"]]
+    assert len(logs) == 24 * 2 and all(x.startswith('call lookup_answer_key({})\nresult: {"question_id": "q') for x in logs)
+    rows = load(c9)
+    c4_tool = {r["case_id"] for r in load(c4) if r.get("agent") == "case_done" and r["case_id"].split("|")[1] == "tool"}
+    assert {r["case_id"] for r in rows if r["agent"] == "case_done"} == c4_tool
+    rv = [r for r in rows if r["agent"] == "reviewer"]
+    assert {r["variant"] for r in rv} == set(rt.C9_VARIANTS) and all(r["from_log"] == "team_c4" for r in rv)
+    m = len(calls)
+    rt.rereview(saved, REVIEWERS, rt.C9_VARIANTS, c9, "c9", "team_c4", workers=3, check_models=False)
+    assert len(calls) == m                                                                   # resumes
+    res = rt.results(c9, rt.case_groups(cases))
+    assert res["original_log"] == ["team_c4"] and "checker_flag_rate" not in res
+    vo = res["vs_original_prompt"]
+    a = vo["corrects_wrong_bad_lookups | rev-a | plus_private"]
+    assert (a["added_k"], a["added_n"], a["original_k"], a["original_n"], a["items"]) == (12, 12, 0, 12, 6)
+    assert a["diff"] == 1.0 and a["interval"] == [1.0, 1.0]
+    b = vo["corrects_wrong_bad_lookups | rev-b | plus_tool_log"]
+    assert (b["added_k"], b["original_k"], b["diff"]) == (0, 0, 0.0)
+    assert vo["keeps_right_good_lookups | rev-a | answer_only"]["diff"] == 0.0
+    assert sorted(res["by_kind"]) == ["matched", "steered"] and "vs_original_prompt" in res["by_kind"]["steered"]
+    assert "sentence minus original" in rt.table(res)

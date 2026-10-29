@@ -1,10 +1,33 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-28 18:23 (F17 Olmo 3 7B Think in Track B and F18 Track C's C4
-added; F15 reworded: after a tool call the final answer is bare whether the lookup was right or wrong, from C4's control;
+status. Started 2026-10-26; last updated 2026-10-28 21:50 (the story so far; F18: both sides of the
+reviewer's deference, automation bias, the deployment reading; at 18:23 F17 Olmo 3 7B Think in Track B and F18
+Track C's C4 added, F15 reworded: after a tool call the final answer is bare whether the lookup was right or wrong;
 earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limitations section). Design and plans:
 [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
+
+**The story so far (Oct 28).**
+1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
+   from the user, in all three Track B models (Gate 2; 54 questions × 3 runs; tool − user with the
+   pasted block: Qwen3 30B Thinking +35, Qwen3 30B Instruct +21, Olmo 3 7B Think +32 points).
+   *Confirmed* (F1, F15, F16, F17).
+2. **After a tool call, the answer stops explaining.** The final answer becomes a bare letter whether
+   the tool was right or wrong (C4: 80 of 84 after good lookups, 71 of 75 after bad, 2 of 159 with no
+   tool). *Confirmed* for Qwen3 30B Thinking (F15) and Instruct (F16). *Tentative* for Olmo, where
+   any change to the system turn does it (F17), and *tentative* how much is the declared tool and how
+   much the call.
+3. **Inside Olmo 3 7B Think, layers 15, 19 and 23 read the hint straight from the prompt** and pass
+   it to the answer: 0.90 [0.85, 0.96] of the drop at the takeover. *Confirmed* on 19 cuts over 9
+   questions, one model (F11, F12). The reasoning relays little of it (F13). The mechanism as a
+   whole is *tentative*.
+4. **Downstream, a reviewer shown the tool's output defers to it.** Olmo 3.1 32B Instruct corrects a
+   wrong tool answer in 59 of 73 from the answer alone, and in 6 and 3 of 73 once it sees the
+   solver's private reasoning or the tool log. *Confirmed* for that reviewer (F18). Qwen3 30B
+   Instruct doesn't defer, so it depends on the model. Whether an instruction restores the check is
+   C9, running (*waiting*).
+5. **The fix:** Track A trains Olmo 3 7B Think (LoRA, source tags) to follow fewer wrong hints
+   without losing accuracy. Gate 3 (Nov 22) decides. *Waiting*.
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
@@ -579,7 +602,9 @@ Each hint names the same wrong letter.
   - *confirmed as keyword counts*: the naming contrast (3 of 54 vs 54 of 59) and the private
     reasoning's mentions. Hand labels: these 113 runs are the first group of the Track B labeling
     batch (`tools/label_kit.py trackb`, decided Oct 28). The 51 bare replies are `no_mention` by
-    rule, and 6 of them are spot-checked by the raters.
+    rule, and 6 of them are spot-checked by the raters. The private reasoning of a seeded 20 of the
+    other 45 bare real-call replies goes last in the batch (rows 152–171) as a check on the keyword,
+    which says it names the tool in 20 of 20.
   - *tentative*: how much is the declared tool and how much the call. On the puzzles, runs without
     a call are bare too (52 of 68); on MMLU-Pro, mostly runs with one. In C4 the call is forced; in
     Track B it is the model's choice.
@@ -784,9 +809,18 @@ real-call condition. 10 of 810 runs [1, 2%] gave no answer.
     reasoning names the tool in 75 of 75 of these cases.
   - The Qwen3 reviewer reads the same and mostly still corrects. Its reply names the key or tool
     in 47 and 64 of 75, and it keeps the wrong letter in 3 and 13 of 73.
-  - On good lookups the same deference shows the other way: the Olmo reviewer keeps the right
-    answer in 67 of 84 with the answer only and 84 of 84 with the private reasoning or the tool
-    log: +20 [+8, +35] (28 items).
+- **Both sides of the context effect** (the Olmo reviewer alone; differences paired by item):
+
+  | the Olmo reviewer sees | corrects a wrong answer (bad lookups, 25 items) | keeps a right answer (good lookups, 28 items) | right, all tool-team cases |
+  |---|---|---|---|
+  | the answer only | 59 of 73 [70, 88%] | 67 of 84 [70, 87%] | 128 of 159 [74, 86%] |
+  | + the private reasoning | 6 of 73: −73 [−86, −58] | 84 of 84: +20 [+8, +35] | 92 of 159 [50, 65%] |
+  | + the tool log | 3 of 73: −77 [−91, −61] | 84 of 84: +20 [+8, +35] | 89 of 159 [48, 63%] |
+  | the tool itself | — | — | 84 of 159 [45, 60%] |
+
+  - It gains on good lookups what it loses on bad ones. With the context, **the reviewer becomes as
+    good as the tool**, 92 and 89 of 159 against the tool's 84: it stops being a second opinion.
+  - The Qwen3 reviewer is right in 136, 144 and 135 of 159 in the same three variants.
 - **By kind × set** (Olmo 32B, correcting after bad lookups). Steered vs matched is also MMLU-Pro
   vs puzzles: all 24 steered items are MMLU-Pro, and 24 of the 29 matched items are puzzles.
 
@@ -809,10 +843,24 @@ real-call condition. 10 of 810 runs [1, 2%] gave no answer.
     reviewer's independent check disappears exactly when it can see where the answer came from.
   - **The two reviewers differ completely.** Olmo 3.1 32B Instruct defers; Qwen3 30B Instruct
     doesn't. So this is a property of the reviewer model, not of reviewing.
+  - **Automation bias.** This is what human-factors research calls automation bias: taking an
+    automated aid's output in place of one's own check, so the aid's errors become the user's
+    ("errors of commission": Skitka, Mosier & Burdick 1999; a review: Parasuraman & Manzey 2010).
+    Here the user of the aid is itself a model, and the aid's output reaches it through the
+    solver's own disclosure. The term comes from studies of people, so it names the pattern, not a
+    shared cause.
   - **The re-ask checker kept wrong answers from shipping, not the reviewer.** Its false alarms on
     good lookups are at the no-tool floor. It works when the model, asked again without the tool,
     answers otherwise, and on these items that happened 73 of 75 times. Items the model can't
     answer alone would test it harder; the floor is already 18% on the steered ones.
+  - **For deployment:** the check that kept every wrong tool answer from shipping is the one that
+    never sees the tool (the checker, 73 of 75). The reviewers given only the answer never saw it
+    either and corrected most (59 and 62 of 73). A reviewer shown the tool's trace may keep
+    checking or may defer, depending on the model. So keep at least one check that never sees the
+    tool's output, and don't assume that showing a reviewer more of the trace helps.
+  - **Next (C9, running Oct 28):** does one sentence in the reviewer's prompt ("The tool's answer
+    may be wrong; check it independently.") restore the check? Only the reviewers run again, on
+    these saved cases.
 - **Source.**
   - `cot-disclosure/results/summaries/trackC/team_c4_summary.json`:
     `by_team_model_variant` (with `reviewer_alone.keeps_wrong_solver` and `reply_names_tool`),
@@ -820,9 +868,16 @@ real-call condition. 10 of 810 runs [1, 2%] gave no answer.
     `by_kind_and_set`
   - recomputed with `python agents/run_team.py --summary --log team_c4 --cases
     results/trackB/steered_cases.jsonl --table` (Mac, no calls)
+  - "right, all tool-team cases" is `reviewer_alone`'s `corrects_wrong_solver` + `keeps_right_solver`
+    in the whole tool-team block; the tool is right on the 84 good lookups
+  - automation bias: L. J. Skitka, K. L. Mosier and M. Burdick, "Does automation bias
+    decision-making?", *International Journal of Human-Computer Studies* 51(5), 991–1006, 1999
+    (doi:10.1006/ijhc.1999.0252); R. Parasuraman and D. H. Manzey, "Complacency and bias in human
+    use of automation: an attentional integration", *Human Factors* 52(3), 381–410, 2010
+    (doi:10.1177/0018720810376055)
 - **Status.**
   - *confirmed*: the Olmo reviewer's drop with the private reasoning and with the tool log, paired
-    by item on 25 items, on both sets.
+    by item on 25 items, on both sets, and its rise on good lookups (+20 [+8, +35], 28 items).
   - *confirmed*: the checker catching 73 of 75, with false alarms at the floor.
   - *confirmed as keyword counts*: the reviewer naming the key.
   - *tentative*: why Olmo defers. There is one reviewer model per family and one reviewer prompt.

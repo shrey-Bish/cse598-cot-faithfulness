@@ -1,5 +1,5 @@
 # vllm 0.31.0: the option lines of `vllm serve --help=all`
-# made on the Mac (Oct 27) by running vLLM 0.31.0's own CLI from its PyPI source release (vllm-0.31.0.tar.gz, sha256 dde46f1efbe846e5bd0c5c4ec6ec71842c42254c7ff3d9bebb2a57028715d380) on the CPU; setup_vllm.sh saves Sol's installed list and says whether it matches this one
+# made on sg018 (Oct 28, job 66862780) by `vllm serve --help=all` on the GPU; the Mac's CPU list it replaces (from vLLM 0.31.0's PyPI source) differed only in --mm-processor-device, which has a cuda choice on a GPU
 --aggregate-engine-logging
 --api-server-count API_SERVER_COUNT, -asc API_SERVER_COUNT
 --config CONFIG
@@ -230,7 +230,7 @@
 --mm-ipc-gpu-memory-gb MM_IPC_GPU_MEMORY_GB
 --mm-processor-cache-gb MM_PROCESSOR_CACHE_GB
 --mm-processor-cache-type {lru,shm}
---mm-processor-device {auto,cpu}
+--mm-processor-device {auto,cpu,cuda}
 --mm-processor-kwargs MM_PROCESSOR_KWARGS
 --mm-shm-cache-max-object-size-mb MM_SHM_CACHE_MAX_OBJECT_SIZE_MB
 --mm-tensor-ipc {direct_rpc,torch_shm}

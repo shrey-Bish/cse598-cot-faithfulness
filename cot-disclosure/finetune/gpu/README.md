@@ -440,7 +440,11 @@ can't print that help without a GPU ("Failed to infer device type" on a CPU node
 `setup_vllm` (CPU) checks that the installed version is the list's and that every server command the
 jobs start fits the list, and runs no `--help`; every vLLM GPU job's first step, before any model
 load, merge or shard writing, runs `vllm serve --help=all` on its node and stops (within the help's
-run time, about a minute) if it differs from the list, saving the node's list as
+run time) only if an option or value a server command uses is missing or changed there: an option
+gone, a value outside the node's choices, or a flag that now takes a value (or the reverse). Any other
+difference is a warning in the job's log (Oct 28: S2 66862780 was refused on sg018 because
+`--mm-processor-device`, which no command uses, has a `cuda` choice on a GPU; the committed list is
+now sg018's). Either way the node's list is saved as
 `/scratch/ragarw68/trackA/vllm_serve_options_node.txt` to copy back; and a CPU test checks the exact
 commands against the list (`vllm_options.py`).
 If a server exits, the job's error ends with the last 30 lines of its log. S2 starts the plain base

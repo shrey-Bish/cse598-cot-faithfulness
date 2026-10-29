@@ -1,6 +1,6 @@
 # Track B handoff: test widely (for Arsha, from Nov 3)
 
-Last updated: 2026-10-28 18:23 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-28 21:50 MST. A working draft, kept current every day and final on Nov 3,
 when Track B goes back to you. Until then Ritik runs it (code by Claude Code).
 
 **The question.** Does the failure seen in the progress round (a wrong hint from a tool moves
@@ -44,7 +44,8 @@ more models, with thinking on and off in the same model, real tool calls and 3 r
       `--case-model` and each model needs its own `--log`.
 - **Qwen3-8B, thinking on and off, moved to Sol** (decided Oct 28: Ollama never on the Mac).
   It runs as one GPU job, `progress/sol_trackB.py`. "Go" Oct 28, after Track A's vLLM check
-  passes on Sol (the same vLLM stack); that check is job 66862780, pending at 18:00.
+  passes on Sol (the same vLLM stack). Job 66862780 failed at its preflight on an option no command
+  uses; the rule is now narrower (only what the server commands use), and the check is to resubmit.
 - **Not done:** closed providers (no keys; Gate 1 was missed and its fallback applies: Voyager and
   our own Sol server only); GPQA (waits for Ritik to accept its terms on Hugging Face).
 - **The table:** `progress/trackB_report.py` prints it from the saved runs (no calls). `--by-set`
@@ -141,11 +142,11 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 | # | Item | Status (Oct 27) |
 |---|---|---|
 | B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | done Oct 28 (03:11, 05:32, 17:52) |
-| B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | code done; "go" once vllm_check (66862780) passes |
+| B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | code done; "go" once vllm_check passes (66862780 failed at the preflight on an unused option; to resubmit) |
 | B8 | `steered_cases.jsonl` per model | done for all three (Oct 28) |
 | B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate; the bare final answer | `trackB_report.py` (and `--by-set`); F15, F16, F17; Qwen3-8B when B4 runs |
 | B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? | clear for all three Voyager models (F15, F16, F17), at both cuts |
-| L5 | Track B labeling batch (`tools/label_kit.py trackb`) | built: 151 rows to label (bare replies by rule, 18 spot checks); after the progress-round queue (L3) |
+| L5 | Track B labeling batch (`tools/label_kit.py trackb`) | built: 171 rows to label (bare replies by rule, 18 spot checks, and 20 rows of private reasoning checking F15's keyword count); after the progress-round queue (L3) |
 | B1–B3 | Closed providers: keys, Haiku 4.5 check, smoke tests | blocked: keys and Ritik's "go" |
 | B6 | GPQA export | blocked: Ritik accepts the terms |
 
