@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-28 22:42 (F19: an instruction doesn't restore the
+status. Started 2026-10-26; last updated 2026-10-28 23:03 (F20: the tags check and lora_attn3 first; at 22:42 F19: an instruction doesn't restore the
 reviewer's check; F20: training against base on the taught tokens; at 21:50 the story so far, F18: both sides
 of the reviewer's deference, automation bias, the deployment reading; at 18:23 F17 Olmo 3 7B Think in Track B and F18
 Track C's C4 added, F15 reworded: after a tool call the final answer is bare whether the lookup was right or wrong;
@@ -971,26 +971,51 @@ clustered by question. Each overall loss matches its training run's `state.json`
     still fall twice as much as the rest (−40% vs −19%).
 - **By hint channel** (lora, taught tokens): user −57%, pasted −58%, injected −60%.
 - **Epoch 1 → 2** moves little: lora's taught −57.4% → −58.4%, lora_attn3's −47.4% → −52.4%.
+- **The tags prediction, checked in the loss** (Ritik, Oct 28). We predicted that tags help most on
+  the inserted tool turn. So: lora_tags minus lora on the taught tokens, per channel, paired by
+  question (epoch 2; nats per token):
+
+  | taught tokens | lora_tags − lora | questions |
+  |---|---|---|
+  | all | +0.0009 [+0.0004, +0.0014] (+0.5% of lora's loss) | 34 |
+  | user | +0.0002 [−0.0003, +0.0008] (+0.1%) | 30 |
+  | tool, pasted | +0.0012 [+0.0004, +0.0020] (+0.6%) | 34 |
+  | tool, inserted turn (injected) | +0.0015 [+0.0007, +0.0026] (+0.7%) | 34 |
+  | **injected − pasted** | **+0.0003 [−0.0008, +0.0015]** | 34 |
+
+  - **Not borne out in the loss.** Tags don't lower it on any channel. lora_tags is slightly
+    *higher* than lora (0.5%), and no more so on the inserted turn than on the pasted block. At
+    epoch 1 the pattern is the same: +1.3% overall, injected − pasted +0.0019 [−0.0002, +0.0047].
+  - **Loss can't show whether tags change how tool text is treated.** It measures how well each
+    version predicts the taught text with the tags in place, not what the model does with a hint
+    from a tool. Gate 3's behavior test decides that: following wrong hints, per channel, in batch
+    3's evaluation.
 - **Reading.**
+  - **LoRA on layers 15, 19 and 23 only** (lora_attn3: 1.6 M parameters, 3.9% of full LoRA's 40.0
+    M) **gets 85–90% of full LoRA's drop on the taught tokens.** These are the layers Step 10 found
+    reading the hint (F11). This is loss, not behavior.
   - The average loss hid this. LoRA's overall loss moved 0.18567 → 0.18537 between epochs. Against
     base it fell 24%, and on the taught tokens without the opener 40%, on held-out questions.
   - **Tags alone barely target what was taught.** Without the opener they cut 9%, less than the 12%
-    on the rest. Added to LoRA (lora_tags), tags change nothing measurable: −0.2731 vs −0.2740.
-  - LoRA on the attention of layers 15, 19 and 23 only (lora_attn3) gets 85–90% of full LoRA's
-    drop.
+    on the rest. Added to LoRA (lora_tags), they don't help on any channel (above).
   - The rest falls 19% too: training also fits the targets' general style.
   - **This is teacher-forced loss.** It says the versions learned to predict the taught text. It
     doesn't say they will write it, or follow fewer wrong hints. That is the evaluation (batch 3,
     queued) and Gate 3.
 - **Source.**
   - `cot-disclosure/results/summaries/trackA/val_loss_report.json` (`minus_base` per system and
-    group), from `val_loss.json` and `val_loss_examples.jsonl` in the same folder
+    group; `contrasts`: lora_tags minus lora per channel and injected minus pasted), from
+    `val_loss.json` and `val_loss_examples.jsonl` in the same folder
+  - lora_attn3's parameters: rank 16 on q, k, v and o of 3 layers (4096 wide) = 1,572,864; full LoRA
+    on all 7 projections of 32 layers = 39,976,960 (from the model's config)
   - recomputed with `python finetune/val_loss.py --report results/summaries/trackA`
 - **Status.**
   - *confirmed*: every version lowers the taught tokens' loss against base, with every interval
     clear of 0. LoRA's taught tokens without the opener fall more than the rest, with intervals far
     apart.
-  - *confirmed*: tags alone don't favor the taught tokens; lora_tags ≈ lora.
+  - *confirmed*: tags alone don't favor the taught tokens. lora_tags is 0.5% above lora (the
+    interval excludes 0), with no injected − pasted difference: the tags prediction isn't borne
+    out in the loss. Whether tags change behavior on tool text: *waiting* (Gate 3).
   - *tentative*: the hint-check part rests on a keyword rule, not labels.
   - Behavior: *waiting* (Gate 3).
 

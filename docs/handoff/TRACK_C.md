@@ -145,6 +145,7 @@ log), and how often does the checker catch it or raise a false alarm?
 | C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | done Oct 28 17:51 (318 of 318 cases, 0 errors) |
 | C5 | The Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | done (FINDINGS F18; `results/summaries/trackC/team_c4_summary.json`) |
 | C9 | Does an instruction restore the reviewer's check? The reviewers again on C4's saved cases, one sentence added; compared with C4's prompt, paired by item, by kind × set | done Oct 28 22:33 (954 calls, 0 errors): no, for the Olmo reviewer (F19) |
+| C10 | Commit first: the reviewer's own answer_only review (C9's) first, then the trace and a final answer; compared with C4, C9 and the own answer, paired by item | running (Oct 28; 636 calls) |
 | — | Next: the team on Instruct's or Olmo's cases, or more reviewer models | not decided (C4 was "no extra cases", Oct 28); `steered_cases.jsonl` now has all three models' cases |
 
 ## 5. Decisions you inherit
@@ -160,6 +161,9 @@ log), and how often does the checker catch it or raise a false alarm?
 - C9 (Ritik, Oct 28): only the reviewers again, on C4's saved solver outputs, with "The tool's
   answer may be wrong; check it independently." added; both reviewer models; answer_only,
   plus_private, plus_tool_log; pre-approved on Voyager once its dry run was in a session log.
+- C10 (Ritik, Oct 28): commit first, on C4's saved cases, reusing C9's answer_only replies as the
+  first turn; both reviewer models; plus_private and plus_tool_log; pre-approved on Voyager once its
+  dry run was in a session log.
 - Your branch: `trackC-main`, made from `main` on Oct 28 and kept at `main` until Nov 3.
 - Logs are append-only and gitignored; numbers-only summaries go to `results/summaries/`.
 

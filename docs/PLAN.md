@@ -229,8 +229,12 @@ lora_tags 66759772 (afterany lora) and lora_attn3 66759822 (afterany tags); setu
 
   - The fixed opener is 3% of the taught tokens and half of LoRA's drop. Without it, the taught
     tokens fall twice as much as the rest.
-  - Tags alone don't favor the taught tokens, and add nothing to LoRA. lora_attn3 gets 85–90% of
-    LoRA's drop.
+  - LoRA on layers 15, 19 and 23 only (lora_attn3, 1.6 M parameters) gets 85–90% of full LoRA's
+    drop on the taught tokens: the layers Step 10 found. Loss, not behavior.
+  - Tags alone don't favor the taught tokens. lora_tags − lora is +0.5% on the taught tokens, and
+    injected − pasted of that is +0.0003 [−0.0008, +0.0015]: the prediction that tags help most on
+    the inserted tool turn isn't borne out in the loss. Loss can't show whether tags change how tool
+    text is treated; Gate 3's behavior test decides.
   - This is teacher-forced loss; whether the versions follow fewer wrong hints is batch 3 and Gate 3.
 - **Queued Oct 28 night (10 of the QoS's 10 submissions):** vllm_check **66878660**; Qwen3-8B
   (get_qwen8b 66879245 done in 1:31; trackb_qwen8b **66879362**, after the snapshot); batch 3,

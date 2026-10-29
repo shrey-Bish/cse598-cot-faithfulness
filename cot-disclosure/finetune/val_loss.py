@@ -32,6 +32,9 @@ unfinished system is redone next time.
 --report: each trained system minus base per group (taught, its parts, not taught, overall) and the taught
 tokens per hint channel, and the taught tokens without the opener (hint_check + final_hinted), paired (the same tokens), with a 95% bootstrap clustered by question (the record id's
 item; 20,000 resamples, seed 0). Writes results/summaries/trackA/val_loss_report.json and prints a table.
+Contrasts (CONTRASTS; Ritik, Oct 28): lora_tags minus lora on the taught tokens, per hint channel, and the
+injected minus pasted difference of that (the prediction: tags help most on the inserted tool turn), paired
+by question in the same resamples.
 """
 import argparse
 import json
@@ -199,6 +202,8 @@ REPORT_GROUPS = ("taught", "taught_no_opener", "opener", "hint_check", "final_hi
                                  # tokens but under LoRA about half of their drop: a fixed phrase, learned)
 CHANNELS = ("user", "tool_pasted", "tool_injected")
 REPORT = CODE / "results" / "summaries" / "trackA" / "val_loss_report.json"
+CONTRASTS = (("lora_tags/epoch2", "lora/epoch2"), ("lora_tags/epoch1", "lora/epoch1"))
+CONTRAST_GROUPS = ("taught", "taught_no_opener", *(f"taught | {c}" for c in CHANNELS))
 
 
 def per_item(rows):
@@ -235,6 +240,34 @@ def boot_minus(sys_items, base_items, group, n=20000, seed=0):
     return diff(items), [vals[int(0.025 * n)], vals[int(0.975 * n) - 1]], len(items)
 
 
+def contrast(a_items, b_items, groups=CONTRAST_GROUPS, n=20000, seed=0):
+    """a minus b (the same tokens) per group, and "injected minus pasted" of that, each with a 95% bootstrap
+    over questions (one resample for all, so the last is paired too)."""
+    import random
+    items = sorted(set(a_items) & set(b_items))
+
+    def diffs(sample):
+        out = {}
+        for g in groups:
+            tok = sum(b_items[q][g][0] for q in sample if g in b_items[q])
+            out[g] = (sum(a_items[q][g][1] - b_items[q][g][1] for q in sample if g in b_items[q]) / tok) if tok else None
+        i, p = out.get("taught | tool_injected"), out.get("taught | tool_pasted")
+        out["injected minus pasted"] = None if i is None or p is None else i - p
+        return out
+    point = diffs(items)
+    rng = random.Random(seed)
+    draws = [diffs([rng.choice(items) for _ in items]) for _ in range(n)]
+    res = {}
+    for k, v in point.items():
+        vals = sorted(d[k] for d in draws if d[k] is not None)
+        base = [g for g in ([k] if k in groups else ["taught | tool_injected", "taught | tool_pasted"])]
+        tok = {g: sum(b_items[q][g][0] for q in items if g in b_items[q]) for g in base}
+        res[k] = {"diff": v, "interval": [vals[int(0.025 * len(vals))], vals[int(0.975 * len(vals)) - 1]] if vals else None,
+                  "items": len({q for q in items for g in base if g in b_items[q] and b_items[q][g][0]}),
+                  "b_loss": (sum(b_items[q][k][1] for q in items if k in b_items[q]) / tok[k]) if k in groups and tok[k] else None}
+    return res
+
+
 def report(src, out=REPORT):
     """Each trained system minus base (REPORT_GROUPS and the taught tokens per channel), with intervals."""
     res = json.loads((Path(src) / "val_loss.json").read_text())
@@ -257,7 +290,8 @@ def report(src, out=REPORT):
     rep_ = {"source": {k: v for k, v in res.items() if k not in ("systems", "minus_base", "environments")},
             "bootstrap": "paired, clustered by question (record id's item), 20,000 resamples, seed 0",
             "state_check": {s: e.get("overall_minus_state") for s, e in res["systems"].items()},
-            "minus_base": table}
+            "minus_base": table,
+            "contrasts": {f"{a} minus {b}": contrast(items[a], items[b]) for a, b in CONTRASTS if a in items and b in items}}
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     Path(out).write_text(json.dumps(rep_, indent=1) + "\n")
     def cell(e):
@@ -277,6 +311,15 @@ def report(src, out=REPORT):
             for c in cols) + " |")
         for name, t in table.items():
             print(f"| {name} | " + " | ".join(cell(t[c]) for c in cols) + " |")
+    for name, c in rep_["contrasts"].items():
+        print(f"\n{name} (nats per token; 95% bootstrap over questions; relative to the second's loss)")
+        print("| group | difference | items |")
+        print("|---|---|---|")
+        for k, e in c.items():
+            rel = f" ({e['diff'] / e['b_loss']:+.1%})" if e["b_loss"] else ""
+            iv = f" [{e['interval'][0]:+.4f}, {e['interval'][1]:+.4f}]" if e["interval"] else ""
+            print(f"| {k.replace(' | ', ', ')} | {e['diff']:+.4f}{iv}{rel} | {e['items']} |" if e["diff"] is not None
+                  else f"| {k} | — | {e['items']} |")
     print(f"(each system minus base, nats per token, 95% bootstrap clustered by question; relative to base in "
           f"parentheses) -> {out}")
     return rep_

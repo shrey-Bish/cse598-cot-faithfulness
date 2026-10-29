@@ -301,4 +301,70 @@ def test_c9_reviews_c4s_saved_cases_again_with_the_sentence_and_pairs_with_the_o
     assert (b["added_k"], b["original_k"], b["diff"]) == (0, 0, 0.0)
     assert vo["keeps_right_good_lookups | rev-a | answer_only"]["diff"] == 0.0
     assert sorted(res["by_kind"]) == ["matched", "steered"] and "vs_original_prompt" in res["by_kind"]["steered"]
-    assert "sentence minus original" in rt.table(res)
+    assert "this run minus team_c4" in rt.table(res)
+
+
+def test_c10_commits_to_its_own_answer_first_then_sees_the_trace(tmp_path, monkeypatch):
+    """C10: C9's answer_only review (its system prompt, message and reply) is the first turn; the second
+    shows what the variant adds and asks for a final answer. Compared with C4, C9 and the own answer."""
+    calls, seen = [], []
+    gen = fake_generate(calls)
+    monkeypatch.setattr(rt, "OUT", tmp_path)
+    cases = tmp_path / "steered_cases.jsonl"
+    for i in range(12):
+        append(cases, {"case_id": f"m|q{i}", "kind": "steered" if i < 6 else "matched", "set": "s1" if i % 2 else "s2",
+                       "item_id": f"q{i}", "question": f"Q{i}?\n(A) a\n(B) b", "correct_letter": "A",
+                       "hint_letter": "B", "n_options": 2})
+    monkeypatch.setattr(rt, "generate", gen)
+    rt.live(rt.case_items(cases, ["steered", "matched"], 0), ["tool"], 2, REVIEWERS, tmp_path / "team_c4.jsonl", "c4",
+            workers=4, check_models=False)
+
+    def reviewer(provider, model, messages, **kw):
+        """rev-a checks on its own (answer only, or with its own answer kept); defers once it reads the trace.
+        rev-b always defers."""
+        seen.append(messages)
+        calls.append((model, kw.get("seed"), False))
+        proposed = messages[1]["content"].split("Proposed answer: (")[1][0]
+        own = len(messages) == 4 and "FINAL: A" in messages[2]["content"]
+        trace = "Private reasoning" in messages[-1]["content"]
+        letter = "A" if model == "rev-a" and (own or not trace) else proposed
+        return Reply(provider=provider, model=model, final_text=f"FINAL: {letter}", usage={"input_tokens": 3, "output_tokens": 1})
+    monkeypatch.setattr(rt, "generate", reviewer)
+    saved = rt.saved_cases(tmp_path / "team_c4.jsonl", rt.items_by_source(cases))
+    rt.rereview(saved, REVIEWERS, rt.C9_VARIANTS, tmp_path / "team_c9.jsonl", "c9", "team_c4", workers=3, check_models=False)
+    c9_first = {(r["case_id"], r["reviewer_model"]): r for r in load(tmp_path / "team_c9.jsonl")
+                if r.get("variant") == "answer_only"}
+    n, seen[:] = len(calls), []
+    saved = rt.saved_cases(tmp_path / "team_c4.jsonl", rt.items_by_source(cases))
+    extra = rt.attach_first(saved, tmp_path / "team_c9.jsonl", REVIEWERS)
+    assert extra == rt.CHECK_TOOL
+    c10 = tmp_path / "team_c10.jsonl"
+    assert rt.rereview(saved, REVIEWERS, rt.C10_VARIANTS, c10, "c10", "team_c4", workers=3, check_models=False,
+                       first_log="team_c9", system_extra=extra) == 0
+    assert len(calls) - n == 24 * 2 * 2
+    first_user = {m[1]["content"] for m in seen}
+    for m in seen:
+        assert [x["role"] for x in m] == ["system", "user", "assistant", "user"]
+        assert m[0]["content"] == f"{rt.reviewer.SYSTEM} {rt.CHECK_TOOL}" and "Private reasoning" not in m[1]["content"]
+        assert m[3]["content"].startswith("More about the proposed answer.") and m[3]["content"].endswith(rt.reviewer.SECOND)
+    assert sum("Tool log of the first assistant" in m[3]["content"] for m in seen) == 48 and len(first_user) == 12
+    rows = [r for r in load(c10) if r["agent"] == "reviewer"]
+    for r in rows:
+        f = c9_first[(r["case_id"], r["reviewer_model"])]
+        assert r["first_log"] == "team_c9" and r["first_letter"] == f["letter"] and r["first_attempt"] == f["attempt"]
+    sent = {(m[1]["content"], m[2]["content"]) for m in seen}
+    assert all(any(f["final_text"] == a for _, a in sent) for f in c9_first.values())         # C9's replies, as sent
+    m = len(calls)
+    rt.rereview(saved, REVIEWERS, rt.C10_VARIANTS, c10, "c10", "team_c4", workers=3, check_models=False,
+                first_log="team_c9", system_extra=extra)
+    assert len(calls) == m                                                                   # resumes
+    res = rt.results(c10, rt.case_groups(cases))
+    assert res["original_log"] == ["team_c4"] and res["first_log"] == ["team_c9"]
+    key = "corrects_wrong_bad_lookups | rev-a | plus_private"
+    assert (res["vs_original_prompt"][key]["diff"], res["vs_first_log"][key]["diff"]) == (1.0, 1.0)   # C4 and C9: 0
+    assert res["final_vs_own_answer"][key]["diff"] == 0.0
+    assert res["final_vs_own_answer"]["corrects_wrong_bad_lookups | rev-b | plus_tool_log"]["final_k"] == 0
+    assert "vs_first_log" in res["by_kind_and_set"]["steered | s1"]
+    t = rt.table(res)
+    assert "this run minus team_c4" in t and "this run minus team_c9" in t and "final answer minus own first answer" in t
+

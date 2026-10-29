@@ -149,3 +149,17 @@ def test_dry_run_counts_parts_without_a_model(tiny, tmp_path, capsys):
     assert counts["overall"] > counts["taught"] > 0 and 0 < lo <= hi
     assert "5 systems (base + lora, tags x 2 epochs), 3 models built" in capsys.readouterr().out
     assert vl.predicted_minutes(5, 3, vl.VAL_TOKENS) == [25.5, 45.0]
+
+
+def test_the_contrast_per_channel_and_injected_minus_pasted():
+    """lora_tags minus lora per channel, and injected minus pasted of that, in the same resamples."""
+    b = {f"q{i}": {"taught | tool_injected": [10, 5.0], "taught | tool_pasted": [10, 4.0], "taught | user": [10, 3.0],
+                   "taught": [30, 12.0], "taught_no_opener": [20, 8.0]} for i in range(6)}
+    a = {q: {g: [n, s - (1.0 if g in ("taught | tool_injected", "taught") else 0.0)] for g, (n, s) in v.items()}
+         for q, v in b.items()}
+    res = vl.contrast(a, b, n=200)
+    assert abs(res["taught | tool_injected"]["diff"] + 0.1) < 1e-12 and res["taught | tool_pasted"]["diff"] == 0.0
+    assert abs(res["injected minus pasted"]["diff"] + 0.1) < 1e-12 and res["injected minus pasted"]["items"] == 6
+    assert res["injected minus pasted"]["interval"][0] <= -0.1 <= res["injected minus pasted"]["interval"][1]
+    assert abs(res["taught | tool_injected"]["b_loss"] - 0.5) < 1e-12 and res["injected minus pasted"]["b_loss"] is None
+

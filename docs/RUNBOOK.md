@@ -458,6 +458,12 @@ It refuses a push that adds anything under a produced-data folder, any file with
     --job "voyager:c9=agents/run_team.py --rereview team_c4 --cases results/trackB/steered_cases.jsonl --log team_c9 --run-name C9-oct28" >> logs/guard_c9.log 2>&1 &
   ../.venv/bin/python agents/run_team.py --summary --log team_c9 --cases results/trackB/steered_cases.jsonl --table
                                                                         # + vs_original_prompt: with the sentence minus C4's prompt, paired by item
+  # C10 (Oct 28): commit first: C9's answer_only review is the first turn, then the trace and a final answer
+  ../.venv/bin/python agents/run_team.py --rereview team_c4 --first-from team_c9 --cases results/trackB/steered_cases.jsonl --log team_c10 --dry-run
+  nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
+    --job "voyager:c10=agents/run_team.py --rereview team_c4 --first-from team_c9 --cases results/trackB/steered_cases.jsonl --log team_c10 --run-name C10-oct28" >> logs/guard_c10.log 2>&1 &
+  ../.venv/bin/python agents/run_team.py --summary --log team_c10 --cases results/trackB/steered_cases.jsonl --table
+                                                                        # + vs_first_log (minus C9) and final_vs_own_answer
   ```
 - **Out:** `results/trackC/team_live.jsonl` (every agent step, appended; a case is done at its
   `case_done` row), `team_live_summary.json`, `team_replay.jsonl` (all gitignored; `results/scope/`
