@@ -1,6 +1,6 @@
 # Track A GPU kit: ASU Sol
 
-Last updated: 2026-10-27 15:35 MST. The look-inside steps that need the weights (Steps 8–10, done
+Last updated: 2026-10-29 16:45 MST (vLLM back, the import check, C13). The look-inside steps that need the weights (Steps 8–10, done
 Oct 26–27), the Sol plumbing every GPU step reuses, and the jobs of Steps 11–13 (code done Oct 27,
 not run yet). The job plan is in `docs/PLAN.md` (Track A) and the status in `docs/TODO.md`. The Sol commands below run from the clone's root
 (`/scratch/ragarw68/cse598-cot-faithfulness`); the scripts move into `cot-disclosure/` and the
@@ -477,6 +477,24 @@ five times a step (a gather, then `.contiguous()`, then attention); at Olmo's 10
 context that is ~100 tokens/s on one A100, so `plan_eval.py`'s prior is 70–120 tokens/s: 27–60 GPU h
 a system (mid 38), 163–359 for the six. vLLM is optional for later.
 
+**Back on vLLM (Oct 29, afternoon).** The root cause was FlashInfer's top-k/top-p sampler: vLLM 0.31
+builds it with nvcc in its warm-up, and the vLLM environment has none. The server now starts with
+`VLLM_USE_FLASHINFER_SAMPLER=0` (vLLM's own sampler). S2's rerun failed again (66920320) at the
+tagged server's start: the Hugging Face comparison's model still held 14.5 GiB of the A100 (freed
+now). S2 66928369 passed: merged LoRA + the folded tag + tagged prompt embeddings agreed with
+`SourceTaggedLM` on 48 of 48 greedy tokens on all 3 prompts (the plain base: 48, 11, 48). Every
+version can run on vLLM; base runs at ~340–430 tokens/s a job (Hugging Face: ~50). Since Oct 29:
+- **Every job starts with an import check** (`import_check.py`, from `sol/run.sh`): torch,
+  transformers with `AutoTokenizer`, tokenizers and peft from the job's own environment, and in a
+  vLLM job vllm with vLLM's Python; the versions and the `sitecustomize` loaded go in the log, and a
+  failure ends the job in seconds.
+- **One server log per eval part:** `eval/vllm_<system>_p<k>of<n>.log`.
+- **Merged and folded models are built in the job's own directory** (`models/<name>.tmp-<job id>`)
+  and renamed into place, so two parts of a system can start together. A leftover `.tmp-*` directory
+  is a job killed while building it; delete it when no job is running.
+- **The tag versions send every prompt as embeddings** (4,096 bf16 values a token: a 20,000-token
+  second round is ~160 MB a request). Watch the first tag part's tokens/s and memory.
+
 `submit.sh` always ends with sbatch's `Submitted batch job N`, or a clear error and a non-zero exit
 code (Oct 27: a job script without a GPU line used to make it exit silently). A `--dependency` must
 name running or pending jobs of the kind the job waits for (`vllm_check` on `setup_vllm`; `eval` on
@@ -501,6 +519,23 @@ Hugging Face only: vLLM can't apply it, so `submit.sh eval` refuses the gate ver
 Back on the Mac: `provenance_forced.json` and the `eval_prov-*_runs.jsonl` files (numbers only), then
 `python finetune/gpu/provenance_job.py report --out <dir>`: the measures against alpha = 1, paired by
 question, and the trade-off figure.
+
+## C13: two more reviewer families on vLLM (Track C, Oct 29)
+
+Reviewer only, on C4's 159 saved tool-team cases with C4's prompt (`agents/run_team.py --rereview
+team_c4 --no-check-tool`), the variants answer_only, plus_private and plus_tool_log, C11's settings.
+Two models, each served by our vLLM in the same job, one after the other (`agents/sol_c13.py`,
+`providers/sol_chat.py`): IBM Granite 4.1 30B and Mistral Small 3.2 24B Instruct (Apache 2.0, not
+gated; Mistral in its own format). Inputs by rsync (they hold text):
+`results/trackC/team_c4.jsonl` and `results/trackB/steered_cases.jsonl` into the clone.
+
+| Job | `submit.sh` line | Limit | Output |
+|---|---|---|---|
+| snapshots (no GPU, online) | `submit.sh get_c13` | 3:00 (the script's) | `/scratch/ragarw68/hf`; `c13/snapshot_<model>.json` (every file checked against the Hub, and the model's generation config) |
+| C13 | `submit.sh c13 --estimate 1.5 --dependency=afterany:<set A's jobs>` | 2:00 | `results/trackC/team_c13_granite.jsonl`, `team_c13_mistral.jsonl` in the clone; `c13/vllm_<model>.log` |
+
+Back on the Mac: both logs into `results/trackC/`, then `python agents/run_team.py --summary --log
+team_c13_granite --cases results/trackB/steered_cases.jsonl --table` (and `team_c13_mistral`).
 
 ## Later steps on the trained versions (Phase 6)
 

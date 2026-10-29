@@ -1,6 +1,6 @@
 # Plan: weeks 11–16 (CSE 598, Group 10)
 
-Last updated: 2026-10-28 22:42 MST (week 11; the plan for Oct 27–Nov 3 moved everything as early
+Last updated: 2026-10-29 16:45 MST (C11–C13; week 11; the plan for Oct 27–Nov 3 moved everything as early
 as it can go; Oct 28: Ollama replaced by Qwen3-8B on Sol, training batch 2, the class QoS only; Track
 B's Voyager runs and C4 done; S7, the validation loss by taught tokens, on all four versions; the labeling order;
 the vLLM preflight's rule; C9). What's left, by track: the timeline, the gates, the Sol hours and the risks. What
@@ -390,6 +390,11 @@ independently." in the reviewer's prompt doesn't restore the Olmo reviewer's che
 of 73; +3 [−4, +9] and +1 [−3, +6], paired by item). C10 is done (23:06–23:16, 636 calls; FINDINGS F21):
 committing to its own answer first doesn't protect the check. Olmo drops its own right answer (60 of 73 →
 19 and 5), and Qwen3 defers to the tool log (33 of 73; −32 [−44, −20] against C4). What runs next is Ritik's call.
+C11 and C12 are done (Oct 29; F22, F23): the deference follows the family in four reviewers, and
+redacting the tool's letter restores part of Olmo's check (its split by set is hypothesis H23, to test).
+C13 (Oct 29, after set A on Sol): a third and fourth family, IBM Granite 4.1 30B and Mistral Small 3.2
+24B Instruct, reviewer only on C4's cases with C4's prompt, each on our vLLM (`agents/sol_c13.py`; 954
+reviews, 0.6–1.5 A100 h); pre-registered in the Oct 29 16:45 session log.
 - The re-ask checker caught 73 of 75 bad lookups, with false alarms at the no-tool floor, so the
   pipeline shipped no wrong answer.
 - The Olmo 32B reviewer alone stopped correcting wrong answers once it saw the private reasoning or

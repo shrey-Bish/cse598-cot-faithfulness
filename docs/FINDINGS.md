@@ -1,7 +1,8 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-29 10:55 (F23: redacting the tool's letter restores part of the check;
+status. Started 2026-10-26; last updated 2026-10-29 16:45 (F23's split by set restated as hypothesis H23, to test;
+Oct 29 10:55 F23: redacting the tool's letter restores part of the check;
 F22: the reviewer's deference follows the model family; Oct 28 23:25
 F21: committing first doesn't protect the reviewer's check;
 at 23:03 F20: the tags check and lora_attn3 first; at 22:42 F19: an instruction doesn't restore the
@@ -1176,13 +1177,22 @@ and settings, on C4's 159 saved tool-team cases (bad lookups first). Two new var
   more, but stays far below its answer-only level. It keeps the solver's wrong letter in 44 and 39
   of 73 (unredacted: 66 and 70). Its reply still names the answer key or the tool in 57 and 61 of
   75 bad-lookup reviews.
-- **By set, the restoration is all on the matched puzzles:**
+- **By set, what was observed** (a description, not a finding; the explanation is a hypothesis to test,
+  below):
   - matched puzzles: +33 [+21, +44] and +35 [+18, +51] against unredacted (15 items);
   - steered MMLU-Pro: 2 of 24 against 1 and 0, so +4 [−8, +17] and +8 [+0, +21] (8 items), while
     answer only corrects 15 of 24 there;
   - matched MMLU-Pro: too few questions (2).
   - It isn't the A/I gap in the redaction: those letters are 3 of 21 steered cases and 9 of 49
     matched ones, and every steered reasoning was redacted (median 29 redactions, at least 5).
+- **Hypothesis H23 (to test; not a finding):** on puzzles the reviewer can re-solve the item once the
+  letter is hidden, so redaction restores its check; on hard items the solver's reasoning persuades it,
+  stated letter or not. Here set and difficulty go together (the reviewer alone corrects 38 of 43
+  puzzle cases and 15 of 24 steered MMLU-Pro ones), and 8 steered items can't tell them apart.
+  - **Test:** split by the reviewer's own ability, not by set. On cases not used here (or with the
+    split fixed before looking), group the bad-lookup items by whether the reviewer alone (answer
+    only) corrects them in most repeats. H23 predicts redaction's gain sits in the re-solvable group
+    on both sets; if instead it follows the set, the cue differs by kind of question.
 - **Good lookups** (28 items): Olmo keeps the right answer in 84 and 82 of 84 (C4: 84, 84); Qwen3 in
   71 and 74 (C4: 76, 77; −6 [−15, +1], −4 [−13, +4]).
 - **No letter:** Olmo gave none in 1 and 4 of 73 bad-lookup reviews (counted as not correcting).
@@ -1193,9 +1203,9 @@ and settings, on C4's 159 saved tool-team cases (bad lookups first). Two new var
     removes about a third of the drop), and knowing that the answer came from a key, which stays
     (its reply still names the key in most reviews). The solver's own final letter is still visible
     after redaction, so "knowing the source" includes being able to match that letter to it.
-  - On the steered MMLU-Pro items redaction does nothing. Why is open: these are the questions where
-    a hint moved the solver in Track B; the reviewer alone corrects fewer of them (15 of 24, against
-    38 of 43 puzzles).
+  - On the 8 steered MMLU-Pro items redaction did nothing here. These are the questions where a hint
+    moved the solver in Track B, and the reviewer alone corrects fewer of them; H23 is one explanation,
+    to be tested, not concluded from these 8.
   - With F19 and F21, a third cheap fix (hiding the letter) is partial. F18's point stands.
 - **Source.**
   - `cot-disclosure/results/summaries/trackC/team_c12_summary.json`: `vs_original_prompt`
@@ -1207,7 +1217,9 @@ and settings, on C4's 159 saved tool-team cases (bad lookups first). Two new var
   - *confirmed*: redaction restores part of the Olmo reviewer's check (+23, +29; the intervals
     exclude 0), and it stays far below answer only (−49, −48).
   - *confirmed*: redaction doesn't hurt the Qwen3 reviewer.
-  - *tentative*: the two-part reading, and the split by set (8 steered items).
+  - *tentative*: the two-part reading.
+  - *hypothesis, to test*: the split by set (H23; 8 steered items). Restated Oct 29 at Ritik's
+    request: the 10:55 log's "all of it on matched puzzles" is an observation on these cases.
 
 ## Measurement traps we hit and fixed
 
