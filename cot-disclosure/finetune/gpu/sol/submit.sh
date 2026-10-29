@@ -60,8 +60,9 @@ done
 # Oct 28: lora_tags and lora_attn3 (afterany on lora and tags) reached run.sh with no version and
 # failed in seconds when they started, hours after they were submitted
 versions="lora tags lora_tags lora_attn3"
+gates="gate3 lora_attn3_gate"              # B2 (Oct 29): trained and measured like the others; not served by vLLM (no eval)
 case "$job" in
-    train) want=$versions ;;
+    train) want="$versions $gates" ;;
     eval)  want="base prompt_only $versions" ;;
     *)     want="" ;;
 esac
@@ -72,8 +73,8 @@ if [ -n "$want" ] && ! printf '%s\n' $want | grep -qx -- "${jobargs[0]:-}"; then
 fi
 if [ "$job" = val_loss ]; then              # versions only (none: lora tags); the base model always comes first
     for v in ${jobargs[@]+"${jobargs[@]}"}; do
-        if ! printf '%s\n' $versions | grep -qx -- "$v"; then
-            echo "refusing: val_loss takes versions after -- (of: $versions); got: '$v'. Nothing was submitted." >&2
+        if ! printf '%s\n' $versions $gates | grep -qx -- "$v"; then
+            echo "refusing: val_loss takes versions after -- (of: $versions $gates); got: '$v'. Nothing was submitted." >&2
             exit 1
         fi
     done
@@ -155,6 +156,7 @@ depends_on() {          # the job kinds each job may wait for (plain case: works
         eval) echo "setup_vllm vllm_check train" ;;
         train) echo "timing train" ;;
         val_loss) echo "train" ;;
+        provenance_gen) echo "provenance_forced train" ;;
         trackb_qwen8b) echo "setup_vllm get_qwen8b trackb_qwen8b" ;;
     esac
 }

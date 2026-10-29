@@ -9,6 +9,8 @@
 #   cot-disclosure/finetune/gpu/sol/run.sh val_loss [VERSION ...]    # validation loss by part: base + each version's epochs
 #   cot-disclosure/finetune/gpu/sol/run.sh trackb_qwen8b [args]      # Track B: Qwen3-8B on vLLM (progress/sol_trackB.py)
 #   cot-disclosure/finetune/gpu/sol/run.sh get_qwen8b                # its snapshot (no GPU; the only step online)
+#   cot-disclosure/finetune/gpu/sol/run.sh provenance_forced --cases-from C --runs-from R [--items-from I]   # B1 on set A
+#   cot-disclosure/finetune/gpu/sol/run.sh provenance_gen [--alpha-from S | --version V --checkpoint D] [--part K/N]
 # Output: $TRACKA_OUT/<step>/ (/scratch/ragarw68/trackA/<step>/), plus a log of the console there.
 # Slurm's warning before the time limit (sbatch --signal=B:USR1@300) is passed on to Python: training
 # saves a resume checkpoint at its next optimizer step; evaluation stops and resumes in the next job.
@@ -16,7 +18,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/env.sh" || exit 1
 set -euo pipefail
 tracka_require_job
 
-step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|val_loss|trackb_qwen8b|get_qwen8b [args]}
+step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|val_loss|trackb_qwen8b|get_qwen8b|provenance_forced|provenance_gen [args]}
 shift
 args=("$@")
 case "$step" in
@@ -29,7 +31,7 @@ case "$step" in
     vllm_check) script=finetune/gpu/eval_job.py
             args=(--check --out "$TRACKA_OUT/vllm_check" "$@") ;;
     train)  script=finetune/train.py
-            version=${1:?usage: run.sh train lora|tags|lora_tags|lora_attn3}
+            version=${1:?usage: run.sh train lora|tags|lora_tags|lora_attn3|gate3|lora_attn3_gate}
             args=(--version "$version" --out "$TRACKA_OUT/train/$version" "${@:2}") ;;
     eval)   script=finetune/gpu/eval_job.py
             system=${1:?usage: run.sh eval SYSTEM [K/N]}
@@ -42,7 +44,11 @@ case "$step" in
     get_qwen8b) script=progress/sol_trackB.py                  # the only step with the network (decided Oct 28)
             export HF_HUB_OFFLINE=0 TRANSFORMERS_OFFLINE=0
             args=(--download --log-dir "$TRACKA_OUT/trackb_qwen8b") ;;
-    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, val_loss, trackb_qwen8b, get_qwen8b)" >&2; exit 2 ;;
+    provenance_forced) script=finetune/gpu/provenance_job.py      # B1 on set A; Hugging Face only
+            args=(forced --out "$TRACKA_OUT" "$@") ;;
+    provenance_gen) script=finetune/gpu/provenance_job.py         # B1 / B2 generation; Hugging Face only
+            args=(generate --out "$TRACKA_OUT" "$@") ;;
+    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, val_loss, trackb_qwen8b, get_qwen8b, provenance_forced, provenance_gen)" >&2; exit 2 ;;
 esac
 mkdir -p "$TRACKA_OUT/$step"
 log="$TRACKA_OUT/$step/console_$(date +%Y%m%d_%H%M%S)_${SLURM_JOB_ID}.log"

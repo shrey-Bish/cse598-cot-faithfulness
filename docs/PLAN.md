@@ -272,6 +272,11 @@ replaces these estimates with measured ones.
 | E6 | Evaluate the fourth version: to submit when slots free up | 5–14 (1–3 jobs) | 8:00 | — | after S6 | S6 |
 | S7 | Validation loss by part (Oct 28, Ritik): base + both epochs of all four versions (decided Oct 28 21:30) on the 156 validation examples, each split into the taught tokens (80,010 of 1,243,692: 6.4%) and the rest; no vLLM (`finetune/val_loss.py`). 66865939 done Oct 28 in 0:37:09 (all four versions) | 0.62 measured (0.75–1.3 inferred) | 2:00 | any | after S5, S6 | S3–S6 |
 | B-Q8 | Track B: Qwen3-8B on vLLM (replaces Ollama), 1,620 runs, core cells first. "Go" Oct 28; get_qwen8b 66879245 done (1:31), trackb_qwen8b 66879362 queued after it (not after S2: submit.sh doesn't allow that dependency) | 0.5–1.5 | 2:00 | any | after S2 | S2, the snapshot |
+| S9A | Set A, Step 9 (attention to the hint) on set A's runs (Oct 29: questions not used to find the readout; `--runs-from`, `--items-from`, `--step3-from`) | ≤1 | as Step 9 | any | after set A's runs (Voyager, Oct 29) | set A |
+| S10A | Set A, Step 10 (patching) on set A's cases (`--cases-from`); the pre-registered readout question (share at 15/19/23, cut (ii)) | ≤1 | as Step 10 | any | after set A's cases | set A |
+| P1 | B1 forced answer at set A's takeover cuts, alpha in {1, 0.5, 0.25, 0.1, 0}, deployable and oracle spans; chooses alpha on set A (`provenance_forced`) | 0.25–0.5 | 1:00 | any | after set A's cases | set A |
+| P2 | B1 generation on the held-out 30 MMLU-Pro: wrong, correct and no tool hint, pasted and inserted, at alpha = 1 and the chosen alphas (`provenance_gen`, 4 parts; 630 runs) | 11–23 (speed a guess) | 6:00 each | any | after P1 | P1 |
+| G1 | B2 train gate3 and lora_attn3_gate (a learned per-head bias on tool keys in 15/19/23; LR_GATE 1e-2 to confirm) + their val_loss | ~2.75 each + 0.3 | 4:00 | each other | after Ritik confirms LR_GATE | S1 |
 | — | Buffer for queue waits and reruns; all evaluation done | | | | by Nov 20 | |
 
 With two jobs at a time the running time is about half the GPU hours: 18–45 hours for S1–L1

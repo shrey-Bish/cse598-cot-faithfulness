@@ -6,8 +6,14 @@ Versions, all on the same data (finetune/data/train_examples.jsonl.gz from run_s
   lora_tags    LoRA + source tags
   lora_attn3   the fourth version, scheduled last: LoRA on the attention projections of layers 15, 19
                and 23 only (where Step 10 sees the hint's effect leave the hint tokens, F11)
+  gate3        provenance-gated attention (finetune/provenance.py, B2): a learned bias per head in layers
+               15, 19 and 23 on the attention logits to tool-tagged keys (the source tags), zero-initialized,
+               the base model frozen: the source signal sits in the layers that read the hint, not in the
+               input embedding
+  lora_attn3_gate  lora_attn3 and the gate together
 Settings (decided Oct 27, one setting): rank 16, alpha 32, dropout 0.05; learning rate 2e-4 for LoRA,
-1e-3 for the tag table; 2 epochs; batch 1 with ACCUM examples per optimizer step (each example's mean
+1e-3 for the tag table, LR_GATE for the gates (new Oct 29: a scalar per head moves at most ~lr per Adam step, so
+2e-4 would leave it near 0 after 260 steps); 2 epochs; batch 1 with ACCUM examples per optimizer step (each example's mean
 loss weighs the same); WARMUP of the steps rising linearly, then a linear decay to 0. bf16 weights,
 gradient checkpointing. The loss is only on the model's own tokens: the reply after the prompt's
 "<think>", through the template's closing <|endoftext|> (system, user, hint and tool tokens, and the
@@ -43,11 +49,13 @@ sys.path.insert(0, str(CODE / "progress"))
 
 from finetune import olmo_format  # noqa: E402
 
-VERSIONS = ("lora", "tags", "lora_tags", "lora_attn3")
+VERSIONS = ("lora", "tags", "lora_tags", "lora_attn3", "gate3", "lora_attn3_gate")
+GATES = ("gate3", "lora_attn3_gate")
 TRAIN = CODE / "finetune" / "data" / "train_examples.jsonl.gz"
 VALIDATION = CODE / "finetune" / "data" / "validation_examples.jsonl.gz"
 RANK, ALPHA, DROPOUT = 16, 32, 0.05
 LR_LORA, LR_TAGS = 2e-4, 1e-3
+LR_GATE = 1e-2                               # the gate versions' per-head biases (Oct 29; a decision for Ritik)
 EPOCHS = 2
 ACCUM = 8
 WARMUP = 0.03
@@ -130,9 +138,9 @@ def build(version, model_path, dtype="bf16", device="cuda", attn="sdpa", checkpo
         model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     for p in model.parameters():
         p.requires_grad_(False)
-    if version in ("lora", "lora_tags", "lora_attn3"):
+    if version in ("lora", "lora_tags", "lora_attn3", "lora_attn3_gate"):
         from peft import LoraConfig, get_peft_model
-        attn3 = version == "lora_attn3"
+        attn3 = version in ("lora_attn3", "lora_attn3_gate")
         cfg = LoraConfig(r=RANK, lora_alpha=ALPHA, lora_dropout=DROPOUT, task_type="CAUSAL_LM",
                          target_modules=LORA_ATTN if attn3 else LORA_ALL,
                          layers_to_transform=ATTN3_LAYERS if attn3 else None)
@@ -140,6 +148,9 @@ def build(version, model_path, dtype="bf16", device="cuda", attn="sdpa", checkpo
     if version in ("tags", "lora_tags"):
         model = SourceTaggedLM(model, freeze_base=False)          # the base is already frozen; LoRA stays trainable
         model.tags.to(device=device, dtype=torch.float32)
+    if version in GATES:                                          # after LoRA, so the gates stay trainable
+        from finetune.provenance import attach_gate
+        attach_gate(model, ATTN3_LAYERS)
     return model
 
 
@@ -157,8 +168,10 @@ def trainable(lm):
 def optimizer(lm):
     import torch
     params = trainable(lm)
-    groups = [{"params": [p for n, p in params.items() if not n.startswith("tags.")], "lr": LR_LORA},
-              {"params": [p for n, p in params.items() if n.startswith("tags.")], "lr": LR_TAGS}]
+    gate = lambda n: "provenance_gate" in n  # noqa: E731
+    groups = [{"params": [p for n, p in params.items() if not n.startswith("tags.") and not gate(n)], "lr": LR_LORA},
+              {"params": [p for n, p in params.items() if n.startswith("tags.")], "lr": LR_TAGS},
+              {"params": [p for n, p in params.items() if gate(n)], "lr": LR_GATE}]
     return torch.optim.AdamW([g for g in groups if g["params"]], weight_decay=0.0)
 
 
@@ -167,9 +180,11 @@ def example_loss(lm, ex, device, chunk=CHUNK):
     import torch
     import torch.nn.functional as F
     from torch.utils.checkpoint import checkpoint
+    from finetune.provenance import set_sources
     from finetune.source_tags import SourceTaggedLM
     ids = torch.tensor([ex["ids"]], device=device)
     model = causal(lm)
+    set_sources(model, ex["src"])                                 # gate versions: mark the tool-tagged keys
     if isinstance(lm, SourceTaggedLM):
         embeds = lm.embed(ids, torch.tensor([ex["src"]], device=device))
     else:
@@ -403,6 +418,10 @@ def export(version, model_path, out, device):
         inner.save_pretrained(final / "adapter")
     if isinstance(lm, SourceTaggedLM):
         torch.save(lm.tags.weight.detach().cpu(), final / "tags.pt")
+    if version in GATES:
+        from finetune.provenance import gate_values
+        torch.save({n: p.detach().cpu() for n, p in trainable(lm).items() if "provenance_gate" in n}, final / "gate.pt")
+        (final / "gate.json").write_text(json.dumps(gate_values(lm), indent=1) + "\n")
     (final / "chosen.json").write_text(json.dumps({**chosen, "version": version}, indent=1) + "\n")
     return final
 

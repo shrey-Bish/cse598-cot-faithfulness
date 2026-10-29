@@ -467,6 +467,24 @@ name running or pending jobs of the kind the job waits for (`vllm_check` on `set
 
 The order, hours and dates: `docs/PLAN.md` (Track A). Results back by rsync, summaries only.
 
+## B1 and B2: provenance-scaled attention (Oct 29)
+
+The method, the decision rule for alpha and the full Sol lines: `finetune/PROVENANCE.md`. In short:
+a bias on the attention logits to the tool's tokens in layers 15, 19 and 23. B1 sets it from alpha at
+inference (training-free); B2 learns one per head (`train.py` versions `gate3`, `lora_attn3_gate`).
+Hugging Face only: vLLM can't apply it, so `submit.sh eval` refuses the gate versions.
+
+| Job | `submit.sh` line | Limit | Output (`/scratch/ragarw68/trackA/`) |
+|---|---|---|---|
+| B1 forced, set A only | `submit.sh provenance_forced --estimate 0.5 -- --cases-from C --runs-from R --items-from I` | 1:00 | `provenance_forced/cuts/*.json`, `provenance_forced.json` (P(W), P(O), the correct-hint P(O) per span and alpha; the chosen alpha) |
+| B1 generation, the held-out 30 | `submit.sh provenance_gen --estimate 4.5 --dependency=afterok:<forced> -- --alpha-from …/provenance_forced.json --part K/4` | 6:00 | `provenance_gen/eval_prov-*_runs.jsonl` (numbers), texts beside them (stay on Sol) |
+| B2 train | `submit.sh train --estimate 3.07 -- gate3` (and `lora_attn3_gate`) | 4:00 | `train/<version>/` as the other versions; `final/gate.pt`, `gate.json` |
+| B2 generation | `submit.sh provenance_gen --estimate 4.5 -- --version gate3 --checkpoint …/train/gate3/epoch<k> --part K/2` | 6:00 | as B1's, system `prov-gate3` |
+
+Back on the Mac: `provenance_forced.json` and the `eval_prov-*_runs.jsonl` files (numbers only), then
+`python finetune/gpu/provenance_job.py report --out <dir>`: the measures against alpha = 1, paired by
+question, and the trade-off figure.
+
 ## Later steps on the trained versions (Phase 6)
 
 Steps 9 and 10 take `--model DIR` (a merged or wrapped trained version), `--runs-from` (that

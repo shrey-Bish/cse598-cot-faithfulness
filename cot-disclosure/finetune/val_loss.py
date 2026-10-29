@@ -151,9 +151,11 @@ def token_losses(lm, ex, device, chunk=tr.CHUNK):
     """Every reply token's loss, in order (no grad): train.example_loss without the mean."""
     import torch
     import torch.nn.functional as F
+    from finetune.provenance import set_sources
     from finetune.source_tags import SourceTaggedLM
     ids = torch.tensor([ex["ids"]], device=device)
     model = tr.causal(lm)
+    set_sources(model, ex["src"])                                 # gate versions (B2): the tool-tagged keys
     if isinstance(lm, SourceTaggedLM):
         embeds = lm.embed(ids, torch.tensor([ex["src"]], device=device))
     else:
