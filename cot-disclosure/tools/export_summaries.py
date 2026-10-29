@@ -51,6 +51,8 @@ GPU = {                  # copied back from Sol to results/trackA/gpu/ (numbers 
     "gpu/step9_aligned.svg": "Step 9 follow-up: the takeover-aligned curve",
     "gpu/step9_onsets.png": "Step 9 follow-up: attention around permanent vs temporary onsets (matched)",
     "gpu/step9_onsets.svg": "Step 9 follow-up: attention around permanent vs temporary onsets (matched)",
+    "gpu/val_loss.json": "S7: validation loss by part, base and both epochs of each version (tokens and mean loss)",
+    "gpu/val_loss_examples.jsonl": "S7: per system and example, tokens and loss sum per part (record ids only)",
 }
 LATER = ["nohint_train_runs.jsonl", "targets_runs.jsonl", "target_samples_runs.jsonl", "targets_prefill_runs.jsonl",
          "target_samples_prefill_runs.jsonl"]                    # Steps 6-7: after the run finishes
@@ -61,6 +63,7 @@ OTHER = {                # Tracks B and C: numbers-only reports their scripts wr
     "results/trackC/team_replay_summary.json": "trackC/team_replay_summary.json",
     "results/trackC/team_smoke_olmo32b_summary.json": "trackC/team_smoke_olmo32b_summary.json",   # Oct 28, the 32B reviewer
     "results/trackC/team_c4_summary.json": "trackC/team_c4_summary.json",                        # C4 (--log team_c4)
+    "results/trackC/team_c9_summary.json": "trackC/team_c9_summary.json",                        # C9 (--log team_c9)
 }
 RUNNING = "finetune/run_steps67.py"
 DATA = CODE / "finetune" / "data"

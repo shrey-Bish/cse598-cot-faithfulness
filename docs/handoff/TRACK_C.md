@@ -1,6 +1,6 @@
 # Track C handoff: the agent team (for Shrey, from Nov 3)
 
-Last updated: 2026-10-28 21:50 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-28 22:42 MST. A working draft, kept current every day and final on Nov 3,
 when Track C goes back to you. Until then Ritik runs it (code by Claude Code).
 
 **The question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
@@ -55,9 +55,10 @@ log), and how often does the checker catch it or raise a false alarm?
 - **C4: done** (Oct 28, 03:13–17:51, under a second power guard): Qwen3 Thinking's 24 steered and
   29 matched cases × 2 teams × 3 repeats = 318 cases, about 3,021 calls, 0 errors; 25 of the 53
   items get a bad lookup. Results: FINDINGS F18.
-- **C9: running** (Oct 28, from 21:46, under the power guard; `--log team_c9`): 159 tool-team
-  cases × 2 reviewers × 3 variants (answer_only, plus_private, plus_tool_log) = 954 calls, with "The
-  tool's answer may be wrong; check it independently." added to the reviewer's system prompt.
+- **C9: done** (Oct 28, 21:46–22:33, under the power guard; `--log team_c9`): 159 tool-team
+  cases × 2 reviewers × 3 variants (answer_only, plus_private, plus_tool_log) = 954 calls, 0 errors,
+  with "The tool's answer may be wrong; check it independently." added to the reviewer's system
+  prompt. Results: FINDINGS F19.
 
 ## 2. Results so far
 
@@ -107,6 +108,12 @@ log), and how often does the checker catch it or raise a false alarm?
   - **"+ the explanation" adds little in the tool team:** the solver's final answer is a bare
     letter in 151 of 159 tool-team cases (F15). It is bare after good lookups as after bad ones
     (80 of 84 vs 71 of 75), the control that made F15 a claim about tool use, not hints.
+- **C9** (FINDINGS F19; the same 159 cases, paired by item with C4's prompt):
+  - The sentence doesn't restore the Olmo reviewer's check: with the private reasoning it corrects
+    6 → 8 of 73 (+3 [−4, +9]), with the tool log 3 → 4 (+1 [−3, +6]). It still keeps the wrong
+    letter in 63 and 68 of 73, and names the key in 62 and 61 of 75.
+  - Qwen3 30B Instruct may gain a little: +4 [+0, +11] and +7 [−4, +19].
+  - The answer-only arm doesn't change (+1, +0); good lookups don't either.
 - Related Track B/A findings ([`docs/FINDINGS.md`](../FINDINGS.md)): F1 (tool hints move thinking
   models more than user hints), F3 (the final answer rarely names the hint), which is why a
   reviewer that only sees the final answer is expected to miss it.
@@ -137,7 +144,7 @@ log), and how often does the checker catch it or raise a false alarm?
 | C8 | The 32B reviewer's 5-item smoke | done Oct 28 (20 of 20 letters) |
 | C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | done Oct 28 17:51 (318 of 318 cases, 0 errors) |
 | C5 | The Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | done (FINDINGS F18; `results/summaries/trackC/team_c4_summary.json`) |
-| C9 | Does an instruction restore the reviewer's check? The reviewers again on C4's saved cases, one sentence added; compared with C4's prompt, paired by item, by kind × set | running since Oct 28 21:46 (954 calls) |
+| C9 | Does an instruction restore the reviewer's check? The reviewers again on C4's saved cases, one sentence added; compared with C4's prompt, paired by item, by kind × set | done Oct 28 22:33 (954 calls, 0 errors): no, for the Olmo reviewer (F19) |
 | — | Next: the team on Instruct's or Olmo's cases, or more reviewer models | not decided (C4 was "no extra cases", Oct 28); `steered_cases.jsonl` now has all three models' cases |
 
 ## 5. Decisions you inherit

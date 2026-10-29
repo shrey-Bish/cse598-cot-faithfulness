@@ -1,6 +1,6 @@
 # Runbook: how to run every step
 
-Last updated: 2026-10-28 21:50 MST. One page per step: what it does, where it runs, the commands in order,
+Last updated: 2026-10-28 22:40 MST. One page per step: what it does, where it runs, the commands in order,
 inputs and outputs, how long it takes, and what to check. Written so anyone in the group can run a
 step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md); open work in
 [`TODO.md`](TODO.md).
@@ -300,7 +300,14 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   #   WARNING line in the job's log, and the node's list is saved as trackA/vllm_serve_options_node.txt
   ```
   The parts' token counts, with no model (Mac or Sol): `../.venv/bin/python finetune/val_loss.py
-  --dry-run` (Oct 28: 80,010 taught tokens of 1,243,692, 6.4%).
+  --dry-run` (Oct 28: 80,010 taught tokens of 1,243,692, 6.4%). S7 took 0:37:09 for all four
+  versions (Oct 28). Back on the Mac (numbers only; `finetune/gpu/README.md`, "Results back"):
+  ```bash
+  cd cot-disclosure && mkdir -p results/trackA/gpu && S=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA
+  rsync -av $S/val_loss/val_loss.json $S/val_loss/val_loss_examples.jsonl results/trackA/gpu/
+  ../.venv/bin/python finetune/val_loss.py --report results/trackA/gpu    # each version minus base, clustered by question
+  ../.venv/bin/python tools/export_summaries.py                           # -> results/summaries/trackA/
+  ```
   `submit.sh` sets each limit to the estimate × 1.3 (rounded up to 30 min), refuses a job over 960
   GPU-minutes, and before submitting prints the GPU-minutes of your running and pending jobs and when
   the second slot frees up. Evaluation report (any machine with the copied-back `_runs.jsonl` files):
@@ -426,7 +433,7 @@ It refuses a push that adds anything under a produced-data folder, any file with
   reviewer model × variant, bad and good lookups apart. **Where:** Mac → Voyager.
   **Status:** code done Oct 27 (append-only, resumable); C1 (5 items) done Oct 27; the 32B
   reviewer's smoke done Oct 28 00:20; C4 done Oct 28 17:51 (318 cases); C9 (the reviewers again, with
-  one sentence added) running since Oct 28 21:46 under the power guard.
+  one sentence added) done Oct 28 22:33 (954 calls; FINDINGS F19).
 - **Commands** (from `cot-disclosure/`):
   ```bash
   ../.venv/bin/python agents/run_team.py --replay                       # saved data, no calls

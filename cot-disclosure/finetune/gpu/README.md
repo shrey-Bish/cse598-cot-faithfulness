@@ -137,6 +137,10 @@ rsync -av $S/smoke/smoke.json $S/step8/step8_checkpoint.json $S/step9/step9_atte
 rsync -av $S/step9/step9_followup.json $S/step9/step9_aligned.png $S/step9/step9_aligned.svg \
     $S/step9/step9_onsets.png $S/step9/step9_onsets.svg $S/step9/step9_reduced.npz \
     results/trackA/gpu/                                    # after the Step 9 follow-up (section 3)
+rsync -av $S/val_loss/val_loss.json $S/val_loss/val_loss_examples.jsonl results/trackA/gpu/   # S7 (numbers only)
+rsync -av $S/vllm_check/vllm_check.json results/trackA/gpu/                                    # S2
+mkdir -p results/trackA/gpu/eval && rsync -av "$S/eval/eval_*_runs.jsonl" results/trackA/gpu/eval/
+                                                           # evaluation: numbers only; the texts (.jsonl.gz) stay on Sol
 ```
 
 Then, on the Mac:
@@ -153,8 +157,13 @@ Then, on the Mac:
 - `python finetune/look/patching.py --by-layer-type results/trackA/gpu/step10_patching.json`
   gives the first, superseded reading: mean restoration over the full vs sliding layers
   (docs/FINDINGS.md, T7).
-- `python tools/export_summaries.py` copies the numbers-only Step 9 and 10 summaries and the
-  figures into `results/summaries/trackA/`.
+- `python finetune/val_loss.py --report results/trackA/gpu` (S7): each trained system minus base on
+  the taught tokens (and their parts, per hint channel) and the rest, with a 95% bootstrap clustered
+  by question; writes `results/summaries/trackA/val_loss_report.json`.
+- `python finetune/eval.py --report --out results/trackA/gpu/eval`: the evaluation report from the
+  `_runs.jsonl` files (`eval_report.json` there).
+- `python tools/export_summaries.py` copies the numbers-only Step 9 and 10 summaries, S7's two files
+  and the figures into `results/summaries/trackA/`.
 
 `smoke.json` and `step8_checkpoint.json` hold prompt text and token strings, so they stay
 gitignored.

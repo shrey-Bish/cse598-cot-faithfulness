@@ -1,8 +1,9 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-28 21:50 (the story so far; F18: both sides of the
-reviewer's deference, automation bias, the deployment reading; at 18:23 F17 Olmo 3 7B Think in Track B and F18
+status. Started 2026-10-26; last updated 2026-10-28 22:42 (F19: an instruction doesn't restore the
+reviewer's check; F20: training against base on the taught tokens; at 21:50 the story so far, F18: both sides
+of the reviewer's deference, automation bias, the deployment reading; at 18:23 F17 Olmo 3 7B Think in Track B and F18
 Track C's C4 added, F15 reworded: after a tool call the final answer is bare whether the lookup was right or wrong;
 earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limitations section). Design and plans:
 [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
@@ -24,10 +25,14 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
 4. **Downstream, a reviewer shown the tool's output defers to it.** Olmo 3.1 32B Instruct corrects a
    wrong tool answer in 59 of 73 from the answer alone, and in 6 and 3 of 73 once it sees the
    solver's private reasoning or the tool log. *Confirmed* for that reviewer (F18). Qwen3 30B
-   Instruct doesn't defer, so it depends on the model. Whether an instruction restores the check is
-   C9, running (*waiting*).
+   Instruct doesn't defer, so it depends on the model. Telling it "The tool's answer may be wrong;
+   check it independently" doesn't restore the check: 8 and 4 of 73 (F19, *confirmed* as no
+   restoration).
 5. **The fix:** Track A trains Olmo 3 7B Think (LoRA, source tags) to follow fewer wrong hints
-   without losing accuracy. Gate 3 (Nov 22) decides. *Waiting*.
+   without losing accuracy. The four trained versions learned the taught tokens on held-out
+   questions: LoRA cuts their loss by 58% against base, and by 40% without the fixed opener, twice
+   the drop on the rest (F20, *confirmed* as loss). Whether they behave differently is Gate 3 (Nov
+   22). *Waiting*.
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
@@ -884,6 +889,110 @@ real-call condition. 10 of 810 runs [1, 2%] gave no answer.
   - *tentative*: steered vs matched, because kind and set are confounded.
 
 ---
+
+## F19. Track C (C9): telling the reviewer to check the tool doesn't restore its check
+
+**Setup.** Oct 28, 21:46–22:33; 954 calls, 0 errors. Only the reviewers run again, on C4's 159 saved
+tool-team cases: the same solver answers, private reasoning, tool logs and checker flags. One
+sentence is added after the reviewer's system prompt: "The tool's answer may be wrong; check it
+independently." The settings are C4's otherwise (temperature 0.6, seed = repeat). Both reviewers
+run three variants: the answer only, + the private reasoning, + the tool log. Differences are the
+sentence minus C4's prompt on the same cases, paired by item.
+
+| reviewer, variant | corrects a wrong answer (bad lookups, 25 items): C4 → with the sentence | difference | keeps a right one (good lookups, 28 items): C4 → with it | difference |
+|---|---|---|---|---|
+| Olmo 3 32B, answer only | 59 → 60 of 73 | +1 [−5, +8] | 67 → 64 of 84 | −4 [−12, +6] |
+| Olmo 3 32B, + private reasoning | **6 → 8 of 73** | **+3 [−4, +9]** | 84 → 84 of 84 | +0 |
+| Olmo 3 32B, + tool log | **3 → 4 of 73** | **+1 [−3, +6]** | 84 → 84 of 84 | +0 |
+| Qwen3 30B Instruct, answer only | 62 → 62 of 73 | +0 [−4, +4] | 72 → 72 of 84 | +0 [−10, +10] |
+| Qwen3 30B Instruct, + private reasoning | 66 → 69 of 73 | +4 [+0, +11] | 76 → 75 of 84 | −1 [−5, +2] |
+| Qwen3 30B Instruct, + tool log | 56 → 61 of 73 | +7 [−4, +19] | 77 → 77 of 84 | +0 [−5, +5] |
+
+- **The Olmo reviewer still defers.** With the sentence it keeps the solver's wrong letter in 63
+  and 68 of 73 (C4: 66 and 70), and its reply names the answer key or the tool in 62 and 61 of 75.
+  Within C9, the private reasoning minus the answer only is still −71 [−83, −58], and the tool log
+  −77 [−88, −64]. The sentence restores at most 9 points of a 73-point drop (the upper bound).
+- **The Qwen3 reviewer may gain a little:** +4 [+0, +11] with the private reasoning (the interval
+  touches 0) and +7 [−4, +19] with the tool log. That is mostly on the matched puzzles, where its
+  tool-log corrections go from 35 to 41 of 43 (+14 [+0, +30], 15 items).
+- **By kind × set** (the Olmo reviewer, corrects, C4 → with the sentence):
+  - matched puzzles (15 items): 5 → 6 of 43 with the private reasoning, 3 → 4 with the tool log
+    (+2 [−5, +10] each)
+  - steered MMLU-Pro (8 items): 1 → 2 of 24 and 0 → 0
+  - matched MMLU-Pro (2 items): too few questions
+- **The sentence alone changes nothing** where the reviewer never sees the tool: answer only +1 and
+  +0. The Olmo reviewer gives no letter in 8 of 159 (C4: 7), cut off at the 8,000-token cap.
+- **The pipeline is unchanged:** no wrong answer shipped on a bad lookup in any Olmo variant or
+  Qwen3 variant with context (0 of 75), because the checker's flags are C4's. Qwen3 with the answer
+  only shipped 1 of 75.
+- **Reading.** A generic warning in the prompt doesn't undo the deference in F18. Once the Olmo
+  reviewer reads that the answer came from the answer key, it keeps that answer, even when told
+  the tool may be wrong. For deployment, F18's point stands: keep a check that never sees the tool's
+  output. Whether a stronger intervention works (a reviewer that must answer before reading the
+  trace, or the trace withheld) is not tested.
+- **Source.**
+  - `cot-disclosure/results/summaries/trackC/team_c9_summary.json`: `vs_original_prompt` (overall,
+    `by_kind`, `by_kind_and_set`), `reviewer_vs_answer_only`, `by_team_model_variant`
+  - recomputed with `python agents/run_team.py --summary --log team_c9 --cases
+    results/trackB/steered_cases.jsonl --table` (reads C4's log for the comparison; Mac, no calls)
+- **Status.**
+  - *confirmed*: no restoration for the Olmo reviewer (the intervals exclude more than +9 points,
+    against −73 and −77), on both sets.
+  - *tentative*: the Qwen3 reviewer's small gain (the interval touches 0).
+  - One sentence, one wording, one solver's cases.
+
+## F20. Track A, training: against base, the taught tokens' loss fell by 58% with LoRA, and by 40% without the fixed opener
+
+**Setup.** S7 on Sol, Oct 28 (66865939, 0:37:09). This is the validation loss of the base model and
+of both epochs of all four trained versions. It uses the 156 validation examples on 34 questions,
+none of them among the 217 training questions. Each loss is split into:
+- **taught tokens** (80,010 of 1,243,692 reply tokens, 6.4%), in hinted examples:
+  - the prefilled reasoning opener (2,569 tokens);
+  - the reasoning sentences that name the hint's source, by a keyword rule (27,976);
+  - the final answer (49,465).
+- **the rest:** the other reasoning tokens, and the no-hint examples' final answers.
+
+Differences are each version minus base on the same tokens, in nats per token, with a 95% bootstrap
+clustered by question. Each overall loss matches its training run's `state.json` within 1e-8.
+
+| epoch 2 (all four chose it) | taught | taught without the opener | the rest | overall |
+|---|---|---|---|---|
+| base (loss) | 0.4696 | 0.3304 | 0.2287 | 0.2442 |
+| lora | −0.2740 [−0.3132, −0.2401] (−58%) | −0.1328 [−0.1527, −0.1176] (−40%) | −0.0440 [−0.0475, −0.0406] (−19%) | −0.0588 (−24%) |
+| lora_tags | −0.2731 [−0.3121, −0.2392] (−58%) | −0.1318 [−0.1516, −0.1168] (−40%) | −0.0435 [−0.0469, −0.0400] (−19%) | −0.0582 (−24%) |
+| lora_attn3 | −0.2460 [−0.2809, −0.2156] (−52%) | −0.1127 [−0.1268, −0.1016] (−34%) | −0.0380 [−0.0414, −0.0347] (−17%) | −0.0514 (−21%) |
+| tags | −0.0793 [−0.0908, −0.0701] (−17%) | −0.0300 [−0.0339, −0.0264] (−9%) | −0.0268 [−0.0296, −0.0244] (−12%) | −0.0302 (−12%) |
+
+- **By part** (lora, epoch 2, minus base):
+  - the opener: 4.66 → 0.13 nats per token (−97%). Base would almost never write it.
+  - the hint-check sentences: 0.395 → 0.305 (−23% [−28, −19]).
+  - the final answer: 0.294 → 0.137 (−53% [−65, −45]).
+  - The opener is 3% of the taught tokens but half of their drop. Without it, the taught tokens
+    still fall twice as much as the rest (−40% vs −19%).
+- **By hint channel** (lora, taught tokens): user −57%, pasted −58%, injected −60%.
+- **Epoch 1 → 2** moves little: lora's taught −57.4% → −58.4%, lora_attn3's −47.4% → −52.4%.
+- **Reading.**
+  - The average loss hid this. LoRA's overall loss moved 0.18567 → 0.18537 between epochs. Against
+    base it fell 24%, and on the taught tokens without the opener 40%, on held-out questions.
+  - **Tags alone barely target what was taught.** Without the opener they cut 9%, less than the 12%
+    on the rest. Added to LoRA (lora_tags), tags change nothing measurable: −0.2731 vs −0.2740.
+  - LoRA on the attention of layers 15, 19 and 23 only (lora_attn3) gets 85–90% of full LoRA's
+    drop.
+  - The rest falls 19% too: training also fits the targets' general style.
+  - **This is teacher-forced loss.** It says the versions learned to predict the taught text. It
+    doesn't say they will write it, or follow fewer wrong hints. That is the evaluation (batch 3,
+    queued) and Gate 3.
+- **Source.**
+  - `cot-disclosure/results/summaries/trackA/val_loss_report.json` (`minus_base` per system and
+    group), from `val_loss.json` and `val_loss_examples.jsonl` in the same folder
+  - recomputed with `python finetune/val_loss.py --report results/summaries/trackA`
+- **Status.**
+  - *confirmed*: every version lowers the taught tokens' loss against base, with every interval
+    clear of 0. LoRA's taught tokens without the opener fall more than the rest, with intervals far
+    apart.
+  - *confirmed*: tags alone don't favor the taught tokens; lora_tags ≈ lora.
+  - *tentative*: the hint-check part rests on a keyword rule, not labels.
+  - Behavior: *waiting* (Gate 3).
 
 ## Measurement traps we hit and fixed
 

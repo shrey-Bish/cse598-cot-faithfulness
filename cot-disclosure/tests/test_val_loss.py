@@ -127,6 +127,20 @@ def test_base_and_each_epoch_against_train_validation_loss(tiny, tmp_path, capsy
     assert len((out / "val_loss_examples.jsonl").read_text().splitlines()) == 12       # nothing doubled
     with pytest.raises(SystemExit, match="no checkpoint in"):
         vl.run(["tags"], tmp_path / "train", out, model=str(d), validation=val, device="cpu")
+    rep = vl.report(out, out=tmp_path / "report.json")["minus_base"]                    # back on the Mac
+    assert set(rep) == {"lora/epoch1", "lora/epoch2"}
+    for g in ("taught", "not_taught", "overall"):                                   # the same points as val_loss.json
+        assert abs(rep["lora/epoch2"][g]["minus_base"] - res["minus_base"]["lora/epoch2"][g]) < 1e-9
+    e = rep["lora/epoch2"]["taught"]
+    assert e["items"] == len({x["record_id"].split("|")[0] for x in EXAMPLES if x["hint_channel"] != "none"})
+    if e["items"] > 1:
+        assert e["interval"][0] <= e["minus_base"] <= e["interval"][1]
+    assert abs(rep["lora/epoch1"]["overall"]["minus_base"]) < 1e-5
+    tn = rep["lora/epoch2"]["taught_no_opener"]
+    hc, fh = rep["lora/epoch2"]["hint_check"], rep["lora/epoch2"]["final_hinted"]
+    assert tn["tokens"] == hc["tokens"] + fh["tokens"]
+    assert abs(tn["minus_base"] * tn["tokens"] - hc["minus_base"] * hc["tokens"] - fh["minus_base"] * fh["tokens"]) < 1e-9
+    assert json.loads((tmp_path / "report.json").read_text())["bootstrap"].startswith("paired, clustered by question")
 
 
 def test_dry_run_counts_parts_without_a_model(tiny, tmp_path, capsys):

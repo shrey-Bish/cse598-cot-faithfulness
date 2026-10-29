@@ -1,6 +1,6 @@
 # Plan: weeks 11–16 (CSE 598, Group 10)
 
-Last updated: 2026-10-28 21:50 MST (week 11; the plan for Oct 27–Nov 3 moved everything as early
+Last updated: 2026-10-28 22:42 MST (week 11; the plan for Oct 27–Nov 3 moved everything as early
 as it can go; Oct 28: Ollama replaced by Qwen3-8B on Sol, training batch 2, the class QoS only; Track
 B's Voyager runs and C4 done; S7, the validation loss by taught tokens, on all four versions; the labeling order;
 the vLLM preflight's rule; C9). What's left, by track: the timeline, the gates, the Sol hours and the risks. What
@@ -203,8 +203,40 @@ lora_tags 66759772 (afterany lora) and lora_attn3 66759822 (afterany tags); setu
   CPU). The committed list is now sg018's. The preflight now refuses only what a server command
   uses: an option missing, a value outside the node's choices, or a flag that now takes a value (or
   the reverse). Any other difference is a warning in the job's log. To resubmit after the rsync.
-- **S7 is 66865939**, waiting on S5 and S6. Decided Oct 28 21:30: it covers all four versions. If it
-  was submitted with lora and tags only, it is cancelled and resubmitted with all four (limit 2:00).
+- **All four versions are trained** (Oct 28), and each chose epoch 2. Validation loss, epoch 1 → 2:
+
+  | version | job | time (refit's estimate) | epoch 1 | epoch 2 |
+  |---|---|---|---|---|
+  | lora | 66759753 | 3.41 h (3.66) | 0.18567 | 0.18537 |
+  | tags | 66759769 | 2.81 h (2.97) | 0.21672 | 0.21401 |
+  | lora_tags | 66862721 | 3:25:40 = 3.43 h (3.65) | 0.18723 | 0.18598 |
+  | lora_attn3 | 66862726 | 2:44:43 = 2.75 h (2.99) | 0.19654 | 0.19278 |
+
+  Every run came in 5–8% under the S1 refit's point estimate, below its low end.
+- **S7 (66865939) done in 0:37:09**, on all four versions: 9 systems (base and two epochs each), 5
+  models built. That is under the 45–80 minutes inferred from lora's training rate: a validation
+  pass is cheaper than the 1/4–1/2 of a training step assumed.
+- **Training, reported by the taught tokens against base** (S7; FINDINGS F20; 156 validation examples
+  on 34 held-out questions; 95% bootstrap clustered by question; epoch 2):
+
+  | version | taught | taught without the opener | the rest | overall |
+  |---|---|---|---|---|
+  | base (loss) | 0.4696 | 0.3304 | 0.2287 | 0.2442 |
+  | lora | −58% [−67, −51] | −40% [−46, −36] | −19% | −24% |
+  | lora_tags | −58% [−66, −51] | −40% [−46, −35] | −19% | −24% |
+  | lora_attn3 | −52% [−60, −46] | −34% [−38, −31] | −17% | −21% |
+  | tags | −17% [−19, −15] | −9% [−10, −8] | −12% | −12% |
+
+  - The fixed opener is 3% of the taught tokens and half of LoRA's drop. Without it, the taught
+    tokens fall twice as much as the rest.
+  - Tags alone don't favor the taught tokens, and add nothing to LoRA. lora_attn3 gets 85–90% of
+    LoRA's drop.
+  - This is teacher-forced loss; whether the versions follow fewer wrong hints is batch 3 and Gate 3.
+- **Queued Oct 28 night (10 of the QoS's 10 submissions):** vllm_check **66878660**; Qwen3-8B
+  (get_qwen8b 66879245 done in 1:31; trackb_qwen8b **66879362**, after the snapshot); batch 3,
+  afterok vllm_check: base 66879564 / 66879567, prompt_only 66879569 / 66879571, lora 66879572 /
+  66879573, tags 66879761 / 66879792 (2 parts each, limit 4:30, estimate 3.26 h from the prior rate).
+  lora_tags and lora_attn3 (4 parts) wait for free submission slots.
 - **The losses need a baseline** (Ritik, Oct 28). LoRA's average validation loss barely moved
   between epochs (0.18567 → 0.18537), and the untrained model's is unknown. Most target tokens are
   the model's own reasoning, which it already predicts well, so the average hides what is taught.
@@ -222,20 +254,20 @@ replaces these estimates with measured ones.
 | # | Job | GPU hours | Limit per job | Pairs with | Earliest | Depends on |
 |---|---|---|---|---|---|---|
 | S1 | Timing run: per version, 12 examples spread over the lengths (the longest included): memory and seconds per token | 0.25–0.5 | 1:00 | S2 | Oct 27 ("go") | code done |
-| S2 | vLLM check (vLLM 0.31.0 in its own env, olmo-vllm): served vs Hugging Face greedy tokens, plain and with LoRA merged + tag folded + tagged prompt embeddings, 3 prompts. 66760726 failed Oct 28 (the help's 180 s; now 900 s); 66862780 failed after 6:23 (an unused option's choices; the preflight now refuses only what the commands use); to resubmit | ≤1 | 1:30 | S1 | Oct 28, after setup_vllm | code done |
-| S3 | Train LoRA only (1,040 examples × 2 epochs; batch 2, decided Oct 28): job 66759753 done in 3.41 h; epoch 2, validation loss 0.1854 | 3.66 (3.56–3.78), S1 refit | 5:00 | S4 | Oct 28 | S1, data checks (a) and (e) |
-| S4 | Train tags only (batch 2, at once with S3): job 66759769 done in 2.81 h; epoch 2, validation loss 0.2140 | 2.97 (2.89–3.04) | 4:00 | S3 | Oct 28 | S1 |
-| S5 | Train LoRA + tags: job 66759772 failed (no version reached run.sh); resubmitted Oct 28 as 66862721 | 3.65 (3.56–3.74) | 5:00 | S6 | after S3 | S1 |
-| E1 | Evaluate base (vLLM, no adapter), 930 generations | 5–14 (1–3 jobs) | 8:00 | S5, E2 | Oct 30 | code (A10), S2 |
-| E2 | Evaluate prompt-only | 5–14 (1–3 jobs) | 8:00 | E1, E3 | Oct 30 | A10 |
-| E3 | Evaluate LoRA only (merged, vLLM) | 5–14 (1–3 jobs) | 8:00 | E2, E4 | Oct 31 | S3 |
-| E4 | Evaluate LoRA + tags (vLLM with prompt embeddings; own loop if S2 fails: 9–24, 2–4 jobs) | 5–14 (1–3 jobs) | 8:00 | E3, E5 | Oct 31 | S2, S5 |
-| E5 | Evaluate tags only (same) | 5–14 (1–3 jobs) | 8:00 | E4 | Nov 1 | S2, S4 |
+| S2 | vLLM check (vLLM 0.31.0 in its own env, olmo-vllm): served vs Hugging Face greedy tokens, plain and with LoRA merged + tag folded + tagged prompt embeddings, 3 prompts. 66760726 failed Oct 28 (the help's 180 s; now 900 s); 66862780 failed after 6:23 (an unused option's choices; the preflight now refuses only what the commands use); resubmitted as 66878660 (pending) | ≤1 | 1:30 | S1 | Oct 28, after setup_vllm | code done |
+| S3 | Train LoRA only (1,040 examples × 2 epochs; batch 2, decided Oct 28): job 66759753 done in 3.41 h; epoch 2, validation loss 0.18567 → 0.18537 | 3.66 (3.56–3.78), S1 refit | 5:00 | S4 | Oct 28 | S1, data checks (a) and (e) |
+| S4 | Train tags only (batch 2, at once with S3): job 66759769 done in 2.81 h; epoch 2, validation loss 0.21672 → 0.21401 | 2.97 (2.89–3.04) | 4:00 | S3 | Oct 28 | S1 |
+| S5 | Train LoRA + tags: job 66759772 failed (no version reached run.sh); 66862721 done Oct 28 in 3:25:40; epoch 2, validation loss 0.18723 → 0.18598 | 3.65 (3.56–3.74) | 5:00 | S6 | after S3 | S1 |
+| E1 | Evaluate base (vLLM, no adapter), 930 generations: 66879564, 66879567 (queued Oct 28, after S2) | 5–14 (1–3 jobs) | 8:00 | S5, E2 | Oct 30 | code (A10), S2 |
+| E2 | Evaluate prompt-only: 66879569, 66879571 (queued) | 5–14 (1–3 jobs) | 8:00 | E1, E3 | Oct 30 | A10 |
+| E3 | Evaluate LoRA only (merged, vLLM): 66879572, 66879573 (queued) | 5–14 (1–3 jobs) | 8:00 | E2, E4 | Oct 31 | S3 |
+| E4 | Evaluate LoRA + tags (vLLM with prompt embeddings; own loop if S2 fails: 9–24, 2–4 jobs): to submit when slots free up | 5–14 (1–3 jobs) | 8:00 | E3, E5 | Oct 31 | S2, S5 |
+| E5 | Evaluate tags only (same): 66879761, 66879792 (queued) | 5–14 (1–3 jobs) | 8:00 | E4 | Nov 1 | S2, S4 |
 | L1 | Look inside the best version: Step 3 probes (vLLM), Step 9, Step 10 | 4–10 (1–2 jobs) | 8:00 | S6 | after E1–E5 | E1–E5 |
-| S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23): job 66759822 failed like S5; resubmitted Oct 28 as 66862726, at once with S5; evaluated last | 2.99 (2.92–3.07) | 4:00 | S5 | after S4 | S1 |
-| E6 | Evaluate the fourth version | 5–14 (1–3 jobs) | 8:00 | — | after S6 | S6 |
-| S7 | Validation loss by part (Oct 28, Ritik): base + both epochs of all four versions (decided Oct 28 21:30) on the 156 validation examples, each split into the taught tokens (80,010 of 1,243,692: 6.4%) and the rest; no vLLM (`finetune/val_loss.py`). Submitted as 66865939 (afterany S5, S6); resubmitted with all four if it has only lora and tags | 0.75–1.3 (9 passes + 5 loads; inferred from lora's training rate) | 2:00 | any | after S5, S6 | S3–S6 |
-| B-Q8 | Track B: Qwen3-8B on vLLM (replaces Ollama), 1,620 runs, core cells first. "Go" Oct 28, once S2 passes (the same vLLM stack) | 0.5–1.5 | 2:00 | any | after S2 | S2, the snapshot |
+| S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23): job 66759822 failed like S5; 66862726 done Oct 28 in 2:44:43; epoch 2, validation loss 0.19654 → 0.19278; evaluated last | 2.99 (2.92–3.07) | 4:00 | S5 | after S4 | S1 |
+| E6 | Evaluate the fourth version: to submit when slots free up | 5–14 (1–3 jobs) | 8:00 | — | after S6 | S6 |
+| S7 | Validation loss by part (Oct 28, Ritik): base + both epochs of all four versions (decided Oct 28 21:30) on the 156 validation examples, each split into the taught tokens (80,010 of 1,243,692: 6.4%) and the rest; no vLLM (`finetune/val_loss.py`). 66865939 done Oct 28 in 0:37:09 (all four versions) | 0.62 measured (0.75–1.3 inferred) | 2:00 | any | after S5, S6 | S3–S6 |
+| B-Q8 | Track B: Qwen3-8B on vLLM (replaces Ollama), 1,620 runs, core cells first. "Go" Oct 28; get_qwen8b 66879245 done (1:31), trackb_qwen8b 66879362 queued after it (not after S2: submit.sh doesn't allow that dependency) | 0.5–1.5 | 2:00 | any | after S2 | S2, the snapshot |
 | — | Buffer for queue waits and reruns; all evaluation done | | | | by Nov 20 | |
 
 With two jobs at a time the running time is about half the GPU hours: 18–45 hours for S1–L1
@@ -329,10 +361,10 @@ work); 3 runs per question for the main models; every rate as "X of Y" with a 95
 output? What changes when the reviewer sees more, and how often does the checker catch it or raise
 a false alarm?
 
-**State (Oct 28, 21:50 MST).** C4 is done (318 cases, 0 errors) and C5 is in FINDINGS F18. C9 runs
-since 21:46 (decided by Ritik Oct 28): only the reviewers again, on C4's saved tool-team cases, with
-"The tool's answer may be wrong; check it independently." added to the reviewer's prompt; 954 calls;
-compared with C4's prompt, paired by item.
+**State (Oct 28, 22:42 MST).** C4 is done (318 cases, 0 errors) and C5 is in FINDINGS F18. C9 is done
+(21:46–22:33, 954 calls, 0 errors; FINDINGS F19): "The tool's answer may be wrong; check it
+independently." in the reviewer's prompt doesn't restore the Olmo reviewer's check (6 → 8 and 3 → 4
+of 73; +3 [−4, +9] and +1 [−3, +6], paired by item). What runs next is Ritik's call.
 - The re-ask checker caught 73 of 75 bad lookups, with false alarms at the no-tool floor, so the
   pipeline shipped no wrong answer.
 - The Olmo 32B reviewer alone stopped correcting wrong answers once it saw the private reasoning or

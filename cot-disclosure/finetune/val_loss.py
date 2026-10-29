@@ -6,6 +6,8 @@ already predicts well; what training teaches is a small part of each target, so 
   python finetune/val_loss.py --dry-run                                    # parts' token counts, GPU minutes; tokenizer only
   python finetune/val_loss.py --out OUT --train-dir TRAIN lora tags        # base, then epoch1 and epoch2 of each version
 On Sol: finetune/gpu/sol/submit.sh val_loss --estimate H [--dependency=afterany:N] -- lora tags
+Back on the Mac (val_loss.json and val_loss_examples.jsonl copied to results/trackA/gpu/):
+  python finetune/val_loss.py --report results/trackA/gpu     # each system minus base, with intervals
 
 The same tokens and labels as train.py's validation loss (train.encode, train.usable). Each reply token
 belongs to one part, the part where its first non-space character is:
@@ -26,6 +28,10 @@ Output (numbers only): OUT/val_loss.json (per system and part: tokens and mean l
 base) and OUT/val_loss_examples.jsonl (per system and example: tokens and loss sum per part). A rerun skips
 the systems already in val_loss.json; Slurm's warning (SIGUSR1) stops before the next example, and the
 unfinished system is redone next time.
+
+--report: each trained system minus base per group (taught, its parts, not taught, overall) and the taught
+tokens per hint channel, and the taught tokens without the opener (hint_check + final_hinted), paired (the same tokens), with a 95% bootstrap clustered by question (the record id's
+item; 20,000 resamples, seed 0). Writes results/summaries/trackA/val_loss_report.json and prints a table.
 """
 import argparse
 import json
@@ -188,6 +194,94 @@ def summarize(rows):
     return {g: {"tokens": n, "loss": s / n if n else None} for g, (n, s) in acc.items()}
 
 
+REPORT_GROUPS = ("taught", "taught_no_opener", "opener", "hint_check", "final_hinted", "not_taught", "rest_hinted",
+                 "overall")      # taught_no_opener: hint_check + final_hinted (Oct 28: the opener is 3% of the taught
+                                 # tokens but under LoRA about half of their drop: a fixed phrase, learned)
+CHANNELS = ("user", "tool_pasted", "tool_injected")
+REPORT = CODE / "results" / "summaries" / "trackA" / "val_loss_report.json"
+
+
+def per_item(rows):
+    """{system: {item: {group: [tokens, loss sum]}}} from val_loss_examples.jsonl rows, and the same for the
+    taught tokens per hint channel ("taught | <channel>")."""
+    out = {}
+    for r in rows:
+        g = summarize([r])
+        n = g["hint_check"]["tokens"] + g["final_hinted"]["tokens"]
+        g["taught_no_opener"] = {"tokens": n, "loss": (sum((g[k]["loss"] or 0.0) * g[k]["tokens"] for k in
+                                                           ("hint_check", "final_hinted")) / n) if n else None}
+        cell = out.setdefault(r["system"], {}).setdefault(r["record_id"].split("|")[0], {})
+        names = list(g) + ([f"taught | {r['channel']}"] if r["channel"] in CHANNELS else [])
+        for name in names:
+            src = g[name if name in g else "taught"]
+            acc = cell.setdefault(name, [0, 0.0])
+            acc[0] += src["tokens"]
+            acc[1] += (src["loss"] or 0.0) * src["tokens"]
+    return out
+
+
+def boot_minus(sys_items, base_items, group, n=20000, seed=0):
+    """(system - base) token-weighted mean loss on the group, and its 95% interval clustered by item."""
+    import random
+    items = sorted(q for q in base_items if group in base_items[q] and base_items[q][group][0])
+
+    def diff(sample):
+        tok = sum(base_items[q][group][0] for q in sample)
+        return (sum(sys_items[q][group][1] for q in sample) - sum(base_items[q][group][1] for q in sample)) / tok
+    if not items:
+        return None, None, 0
+    rng = random.Random(seed)
+    vals = sorted(diff([rng.choice(items) for _ in items]) for _ in range(n))
+    return diff(items), [vals[int(0.025 * n)], vals[int(0.975 * n) - 1]], len(items)
+
+
+def report(src, out=REPORT):
+    """Each trained system minus base (REPORT_GROUPS and the taught tokens per channel), with intervals."""
+    res = json.loads((Path(src) / "val_loss.json").read_text())
+    rows = [json.loads(x) for x in (Path(src) / "val_loss_examples.jsonl").read_text().splitlines() if x.strip()]
+    items = per_item(rows)
+    if "base" not in items:
+        raise SystemExit(f"no base rows in {src}/val_loss_examples.jsonl")
+    groups = list(REPORT_GROUPS) + [f"taught | {c}" for c in CHANNELS]
+    table = {}
+    for name in [s for s in res["systems"] if s != "base"]:
+        if name not in items:
+            continue
+        table[name] = {}
+        for g in groups:
+            d, iv, k = boot_minus(items[name], items["base"], g)
+            tok = sum(v[g][0] for v in items["base"].values() if g in v)
+            base = sum(v[g][1] for v in items["base"].values() if g in v) / tok if tok else None
+            table[name][g] = {"base": base, "system": None if base is None else base + d, "minus_base": d,
+                              "interval": iv, "relative": d / base if base else None, "tokens": tok, "items": k}
+    rep_ = {"source": {k: v for k, v in res.items() if k not in ("systems", "minus_base", "environments")},
+            "bootstrap": "paired, clustered by question (record id's item), 20,000 resamples, seed 0",
+            "state_check": {s: e.get("overall_minus_state") for s, e in res["systems"].items()},
+            "minus_base": table}
+    Path(out).parent.mkdir(parents=True, exist_ok=True)
+    Path(out).write_text(json.dumps(rep_, indent=1) + "\n")
+    def cell(e):
+        if e["minus_base"] is None:
+            return "—"
+        iv = "" if e["interval"] is None else f" [{e['interval'][0]:+.4f}, {e['interval'][1]:+.4f}]"
+        return f"{e['minus_base']:+.4f}{iv} ({e['relative']:+.1%})"
+    first = next(iter(table.values()), {})
+    for title, cols in (("taught tokens and the rest", ("taught", "taught_no_opener", "not_taught", "overall")),
+                        ("taught tokens by part and by hint channel", ("opener", "hint_check", "final_hinted",
+                                                                       *(f"taught | {c}" for c in CHANNELS)))):
+        print(f"\n{title}: each system minus base")
+        print("| system | " + " | ".join(c.replace(" | ", ", ") for c in cols) + " |")
+        print("|---" * (len(cols) + 1) + "|")
+        print("| base (loss; tokens) | " + " | ".join(
+            f"{first[c]['base']:.4f}; {first[c]['tokens']:,}" if first.get(c, {}).get("base") is not None else "—"
+            for c in cols) + " |")
+        for name, t in table.items():
+            print(f"| {name} | " + " | ".join(cell(t[c]) for c in cols) + " |")
+    print(f"(each system minus base, nats per token, 95% bootstrap clustered by question; relative to base in "
+          f"parentheses) -> {out}")
+    return rep_
+
+
 def minus_base(systems):
     base = systems["base"]["groups"]
     return {name: {g: (s["groups"][g]["loss"] - base[g]["loss"]) if base[g]["loss"] is not None else None
@@ -321,7 +415,11 @@ def main(argv=None):
     ap.add_argument("--dtype", default="bf16", choices=("bf16", "fp32"))
     ap.add_argument("--attn", default="sdpa")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--report", metavar="DIR", help="val_loss.json and val_loss_examples.jsonl copied back from Sol: "
+                                                    "each system minus base with intervals")
     a = ap.parse_args(argv)
+    if a.report:
+        return report(a.report)
     for v in a.versions:
         if v not in tr.VERSIONS:
             sys.exit(f"unknown version {v!r}; one of {tr.VERSIONS}")
