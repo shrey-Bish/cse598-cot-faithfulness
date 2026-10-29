@@ -180,8 +180,9 @@ def channel(rec):
     return {(c, a): lbl for c, a, lbl in tk.GROUPS}[(rec["condition"], rec.get("arm"))]
 
 
-def inputs(runs_from=None):
-    """(hinted answered Step 2b runs, {question_id: item}, {run_id: Step 3 row})."""
+def inputs(runs_from=None, items_from=None, step3_from=None):
+    """(hinted answered Step 2b runs, {question_id: item}, {run_id: Step 3 row}). items_from and step3_from
+    (set A, Oct 29): the questions in Step 2b's item format and Step 3's runs of another question set."""
     from finetune import base_format as bf
     from finetune.look import takeover as tk
     if runs_from is None:
@@ -190,9 +191,9 @@ def inputs(runs_from=None):
     runs, _ = tk.runs_to_probe(rows)
     hinted = [r for r in runs if r["condition"] != "none"]
     step3 = {}
-    for r in load(tk.RUNS_OUT):
+    for r in load(step3_from or tk.RUNS_OUT):
         step3[r["source_run_id"]] = r
-    return hinted, {it["question_id"]: it for it in bf.questions()}, step3
+    return hinted, {it["question_id"]: it for it in (load(items_from) if items_from else bf.questions())}, step3
 
 
 def run_meta(rec, res, step3, snap_commit, items):
@@ -225,13 +226,13 @@ def estimate(lengths, layers=32, full=8, window=4096, d=4096):
 
 
 def run(model=None, device="auto", out=None, dry_run=False, limit=None, runs_from=None, q_chunk=Q_CHUNK,
-        k_chunk=K_CHUNK, base="sdpa"):
+        k_chunk=K_CHUNK, base="sdpa", items_from=None, step3_from=None):
     import numpy as np
     from finetune.look import takeover as tk
     path, commit = kit.snapshot(model)
     snap = kit.describe_snapshot(path, commit)
     print(kit.snapshot_line(snap))
-    hinted, items, step3 = inputs(runs_from)
+    hinted, items, step3 = inputs(runs_from, items_from, step3_from)
     tok = kit.load_tokenizer(path)
     lengths = {r["run_id"]: tokens_of(tok, r) for r in hinted}
     hinted.sort(key=lambda r: (lengths[r["run_id"]], r["run_id"]))
@@ -985,6 +986,8 @@ def main(argv=None):
     ap.add_argument("--limit", type=int, help="only the N shortest runs")
     ap.add_argument("--model", help="a local model directory (a trained version, or a test's tiny model)")
     ap.add_argument("--runs-from", help="a base_format-style .jsonl.gz of runs (default: Step 2b's)")
+    ap.add_argument("--items-from", help="with --runs-from: the questions, Step 2b's item format (set A: setA/items.jsonl)")
+    ap.add_argument("--step3-from", help="with --runs-from: Step 3's per-run rows (set A: setA/takeover_runs.jsonl)")
     ap.add_argument("--device", default="auto")
     ap.add_argument("--q-chunk", type=int, default=Q_CHUNK)
     ap.add_argument("--k-chunk", type=int, default=K_CHUNK)
@@ -998,7 +1001,8 @@ def main(argv=None):
         return followup(a.out, model=a.model, reduced_from=a.from_reduced)
     if a.report:
         return report(a.out)
-    d = run(a.model, a.device, a.out, a.dry_run, a.limit, a.runs_from, a.q_chunk, a.k_chunk)
+    d = run(a.model, a.device, a.out, a.dry_run, a.limit, a.runs_from, a.q_chunk, a.k_chunk, items_from=a.items_from,
+            step3_from=a.step3_from)
     if d and not a.limit:
         return report(d=d)
     return d

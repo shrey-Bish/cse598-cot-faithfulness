@@ -368,3 +368,60 @@ def test_c10_commits_to_its_own_answer_first_then_sees_the_trace(tmp_path, monke
     t = rt.table(res)
     assert "this run minus team_c4" in t and "this run minus team_c9" in t and "final answer minus own first answer" in t
 
+
+
+def test_redaction_removes_every_statement_of_the_tools_letter():
+    from agents import reviewer as rv
+    text, n = rv.redact("Option B says 5. The answer key says B. So (B) it is; \"B\" again. BB and B2 stay.", "B")
+    assert n == 4 and "B" not in text.replace("BB", "").replace("B2", "") and "Option [redacted] says 5" in text
+    text, n = rv.redact("I think A is wrong. A ratio. The tool says (A). The answer is A. Option A fits.", "A")
+    assert n == 3 and text.startswith("I think A is wrong. A ratio.") and "Option [redacted] fits" in text
+    log, n = rv.redact_tool_log('call lookup_answer_key({"question_id": "q"})\nresult: {"expected": "C", "source": "x"}', "C")
+    assert n == 1 and '"expected": "[redacted]"' in log and log.startswith("call lookup_answer_key")
+    m = rv.message("plus_tool_log_redacted", "Q?", "C", "Answer: (C)", "The tool says C.", log.replace("[redacted]", "C"),
+                   tool_letter="C")[1]["content"]
+    assert "The tool says [redacted]." in m and '"expected": "[redacted]"' in m and "Proposed answer: (C)" in m
+    try:
+        rv.message("plus_private_redacted", "Q?", "C", "", "r")
+        raise AssertionError("no tool letter accepted")
+    except ValueError:
+        pass
+
+
+def test_c11_c12_original_prompt_bad_first_and_redacted_against_c4(tmp_path, monkeypatch):
+    calls, seen = [], []
+    gen = fake_generate(calls)
+    monkeypatch.setattr(rt, "OUT", tmp_path)
+    cases = tmp_path / "steered_cases.jsonl"
+    for i in range(12):
+        append(cases, {"case_id": f"m|q{i}", "kind": "steered" if i < 6 else "matched", "set": "s1" if i % 2 else "s2",
+                       "item_id": f"q{i}", "question": f"Q{i}?\n(A) a\n(B) b", "correct_letter": "A",
+                       "hint_letter": "B", "n_options": 2})
+    monkeypatch.setattr(rt, "generate", gen)
+    rt.live(rt.case_items(cases, ["steered", "matched"], 0), ["tool"], 2, REVIEWERS, tmp_path / "team_c4.jsonl", "c4",
+            workers=4, check_models=False)
+
+    def reviewer(provider, model, messages, **kw):          # defers unless the tool's letter is hidden
+        seen.append(messages)
+        calls.append((model, kw.get("seed"), False))
+        user = messages[-1]["content"]
+        proposed = user.split("Proposed answer: (")[1][0]
+        hidden = "[redacted]" in user
+        return Reply(provider=provider, model=model, final_text=f"FINAL: {'A' if hidden else proposed}",
+                     usage={"input_tokens": 3, "output_tokens": 1})
+    monkeypatch.setattr(rt, "generate", reviewer)
+    saved = rt.saved_cases(tmp_path / "team_c4.jsonl", rt.items_by_source(cases))
+    saved.sort(key=lambda x: (x[0]["solver"]["bad_lookup"] is not True, x[0]["case_id"]))
+    assert [c["solver"]["bad_lookup"] for c, _ in saved][:12] == [True] * 12           # bad lookups first
+    c12 = tmp_path / "team_c12.jsonl"
+    assert rt.rereview(saved, REVIEWERS, ("plus_private_redacted", "plus_tool_log_redacted"), c12, "c12", "team_c4",
+                       workers=1, check_models=False, system_extra=None) == 0
+    assert all(m[0]["content"] == rt.reviewer.SYSTEM for m in seen)                    # C4's prompt, unchanged
+    rows = [r for r in load(c12) if r["agent"] == "reviewer"]
+    assert all(r["redacted_in_tool_log"] >= 1 for r in rows if r["variant"] == "plus_tool_log_redacted")
+    res = rt.results(c12, rt.case_groups(cases))
+    k = "corrects_wrong_bad_lookups | rev-a | plus_tool_log_redacted"                 # only the tool log has the letter here
+    assert res["vs_original_prompt"][k]["diff"] == 1.0                                 # against C4's plus_tool_log
+    assert res["vs_original_answer_only"][k]["diff"] == 1.0                            # C4's answer_only: rev-a defers
+    assert res["vs_original_prompt"]["corrects_wrong_bad_lookups | rev-a | plus_private_redacted"]["diff"] == 0.0
+    assert "this run minus team_c4 answer_only" in rt.table(res)

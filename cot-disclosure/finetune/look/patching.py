@@ -184,7 +184,7 @@ def patch_cut(model, tok, lay, clean_ids, hint_letter, own, n_options):
 
 
 # ---------------------------------------------------------------- inputs and jobs
-def inputs(runs_from=None, cases_from=None):
+def inputs(runs_from=None, cases_from=None, items_from=None):
     """(chosen cases, {run_id: Step 2b record}, {question_id: item}, Step 4 forced answers by run)."""
     from finetune import base_format as bf
     from finetune.look import deletion as dl
@@ -203,7 +203,7 @@ def inputs(runs_from=None, cases_from=None):
         for r in load(dl.RUNS_OUT):
             if r["deletion_arm"] == "hint" and r["call"] == "forced" and r["status"] == "ok":
                 step4[r["source_run_id"]] = r["outcome"]
-    return cases, steps, {it["question_id"]: it for it in bf.questions()}, step4
+    return cases, steps, {it["question_id"]: it for it in (load(items_from) if items_from else bf.questions())}, step4
 
 
 def jobs(tok, cases, steps, items):
@@ -222,11 +222,11 @@ def job_id(j):
     return f"{j['case']['source_run_id']}_{j['cut']}"
 
 
-def run(model=None, device="auto", out=None, dry_run=False, limit=None, runs_from=None, cases_from=None):
+def run(model=None, device="auto", out=None, dry_run=False, limit=None, runs_from=None, cases_from=None, items_from=None):
     path, commit = kit.snapshot(model)
     snap = kit.describe_snapshot(path, commit)
     print(kit.snapshot_line(snap))
-    cases, steps, items, step4 = inputs(runs_from, cases_from)
+    cases, steps, items, step4 = inputs(runs_from, cases_from, items_from)
     tok = kit.load_tokenizer(path)
     todo_all = jobs(tok, cases, steps, items)
     if limit:
@@ -688,6 +688,8 @@ def main(argv=None):
     ap.add_argument("--model", help="a local model directory (a trained version, or a test's tiny model)")
     ap.add_argument("--runs-from", help="a base_format-style .jsonl.gz of runs (default: Step 2b's)")
     ap.add_argument("--cases-from", help="a takeover_cases-style .jsonl (default: Step 3's)")
+    ap.add_argument("--items-from", help="the questions in Step 2b's item format (set A: setA/items.jsonl)")
+    ap.add_argument("--handoff-out", help="with --handoff: write the summary here instead (set A), figure beside it")
     ap.add_argument("--device", default="auto")
     ap.add_argument("--out", help="output base directory (default $TRACKA_OUT)")
     a = ap.parse_args(argv)
@@ -699,11 +701,14 @@ def main(argv=None):
         h = handoff(summary, dist)
         paths = paths_at_cut_ii(summary, dist)
         show_handoff(h, paths)
-        HANDOFF_FIG.parent.mkdir(parents=True, exist_ok=True)
-        plot_handoff(summary, HANDOFF_FIG)
-        HANDOFF_OUT.write_text(json.dumps({"handoff": h, "paths_at_cut_ii": paths,
-                                           "snapshot_commits": summary["snapshot_commits"]}, indent=1) + "\n")
-        print(f"saved {HANDOFF_OUT.relative_to(CODE)} and {HANDOFF_FIG.relative_to(CODE)} (+ .svg)")
+        out_json = Path(a.handoff_out) if a.handoff_out else HANDOFF_OUT
+        fig = out_json.with_suffix(".png") if a.handoff_out else HANDOFF_FIG
+        fig.parent.mkdir(parents=True, exist_ok=True)
+        out_json.parent.mkdir(parents=True, exist_ok=True)
+        plot_handoff(summary, fig)
+        out_json.write_text(json.dumps({"handoff": h, "paths_at_cut_ii": paths,
+                                        "snapshot_commits": summary["snapshot_commits"]}, indent=1) + "\n")
+        print(f"saved {out_json} and {fig} (+ .svg)")
         return h, paths
     if a.by_layer_type:
         res = by_layer_type(json.loads(Path(a.by_layer_type).read_text()))
@@ -714,7 +719,7 @@ def main(argv=None):
         return res
     if a.report:
         return report(a.out)
-    d = run(a.model, a.device, a.out, a.dry_run, a.limit, a.runs_from, a.cases_from)
+    d = run(a.model, a.device, a.out, a.dry_run, a.limit, a.runs_from, a.cases_from, a.items_from)
     if d and not a.limit:
         return report(d=d)
     return d

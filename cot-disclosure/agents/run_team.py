@@ -15,6 +15,10 @@ Voyager guard failed (identity canary or catalog; client.py writes logs/voyager_
                                                            # C9: only the reviewers again, on C4's saved cases
   python agents/run_team.py --rereview team_c4 --first-from team_c9 --cases results/trackB/steered_cases.jsonl \
         --log team_c10 --dry-run                           # C10: the reviewer commits to its own answer first
+  python agents/run_team.py --rereview team_c4 --no-check-tool --bad-first --reviewer-model voyager:olmo3-7b-instruct \
+        --reviewer-model voyager:qwen3-30b-a3b-thinking-2507 --cases results/trackB/steered_cases.jsonl --log team_c11 --dry-run
+  python agents/run_team.py --rereview team_c4 --no-check-tool --bad-first --variants plus_private_redacted,plus_tool_log_redacted \
+        --cases results/trackB/steered_cases.jsonl --log team_c12 --dry-run      # C12: the tool's letter redacted
 
 Teams: tool (the solver gets the lookup_answer_key tool, forced on its first turn; a seeded oracle makes
 each item's lookup bad, returning the hint letter, or good, returning the key, about half each) and
@@ -66,6 +70,11 @@ reasoning; plus_tool_log: also the tool log) and asks for a final answer (review
 plus_private and plus_tool_log only. The summary adds vs_first_log (minus FIRST's same variant, paired by
 item) and final_vs_own_answer (the final letter minus the reviewer's own first letter, paired).
 
+C11, C12 (Oct 29): `--no-check-tool` reruns with C4's original prompt (no added sentence); `--bad-first` reviews
+the bad lookups first. C11 is other reviewer models. C12 uses the redacted variants (reviewer.redact): the
+summary compares each with C4's unredacted variant (vs_original_prompt, matched by REDACTED_OF) and with C4's
+answer_only (vs_original_answer_only), both paired by item.
+
 Every agent step is appended to results/trackC/team_<mode>.jsonl (gitignored; never rewritten). A case
 (item, team, repeat) counts as done once its closing "case_done" row is written, so a rerun resumes.
 The Oct 4 runs stay in results/scope/.
@@ -106,6 +115,7 @@ REVIEWER_MAX_TOKENS = 8000    # Oct 27: Olmo 3 7B Instruct re-solves the puzzle 
 CHECK_TOOL = "The tool's answer may be wrong; check it independently."      # C9 (Ritik, Oct 28), after the system prompt
 C9_VARIANTS = ("answer_only", "plus_private", "plus_tool_log")
 C10_VARIANTS = ("plus_private", "plus_tool_log")
+REDACTED_OF = {"plus_private_redacted": "plus_private", "plus_tool_log_redacted": "plus_tool_log"}
 
 
 def outcome(correct, solver_letter, reviewer_letter, flagged):
@@ -256,8 +266,17 @@ def prompt_vs_original(new, old, against=None):
     cases = {r["case_id"] for r in new}
     a, b = reviewer_cells(new), reviewer_cells([r for r in old if r["case_id"] in cases])
     return {f"{m} | {model} | {v}": {"measure": m, "reviewer": model, "variant": v, "against": against,
-                                     **paired(g, b[(m, model, v)], ("added", "original"))}
-            for (m, model, v), g in sorted(a.items()) if (m, model, v) in b}
+                                     **paired(g, b[(m, model, REDACTED_OF.get(v, v))], ("added", "original"))}
+            for (m, model, v), g in sorted(a.items()) if (m, model, REDACTED_OF.get(v, v)) in b}
+
+
+def vs_answer_only_of(new, old, against=None):
+    """C12: each redacted variant minus the same reviewer's answer_only in another log (C4), paired by item."""
+    cases = {r["case_id"] for r in new}
+    a, b = reviewer_cells(new), reviewer_cells([r for r in old if r["case_id"] in cases])
+    return {f"{m} | {model} | {v}": {"measure": m, "reviewer": model, "variant": v, "against": f"{against} answer_only",
+                                     **paired(g, b[(m, model, "answer_only")], ("added", "original"))}
+            for (m, model, v), g in sorted(a.items()) if v in REDACTED_OF and (m, model, "answer_only") in b}
 
 
 def own_answer_change(rows):
@@ -340,6 +359,8 @@ def results(path, groups=None):
                **({"solver_replies": solver_replies(sv)} if teamed else {})}
         if original:
             out["vs_original_prompt"] = prompt_vs_original(rv, [r for r in original if sel(r)], ", ".join(sources))
+            if any(r["variant"] in REDACTED_OF for r in rv):
+                out["vs_original_answer_only"] = vs_answer_only_of(rv, [r for r in original if sel(r)], ", ".join(sources))
         if first:
             out["vs_first_log"] = prompt_vs_original(rv, [r for r in first if sel(r)], ", ".join(firsts))
             out["final_vs_own_answer"] = own_answer_change(rv)
@@ -411,7 +432,8 @@ def table_one(res):
                  else f"{e['diff']:+.0%} [{e['interval'][0]:+.0%}, {e['interval'][1]:+.0%}]")
             out.append(f"| {what} | {e['reviewer']} | {e['variant']} | {e['variant_k']} of {e['variant_n']} | "
                        f"{e['answer_only_k']} of {e['answer_only_n']} | {d} | {e['items']} |")
-    for key, (this, other) in (("vs_original_prompt", ("this run", None)), ("vs_first_log", ("this run", None)),
+    for key, (this, other) in (("vs_original_prompt", ("this run", None)), ("vs_original_answer_only", ("this run", None)),
+                               ("vs_first_log", ("this run", None)),
                                ("final_vs_own_answer", ("final answer", "own first answer"))):
         vo = res.get(key)
         if not vo:
@@ -602,13 +624,18 @@ def rereview_case(case, item, reviewers, variants, path, run_name, from_log, sys
         extra = {"first_log": first_log, "first_attempt": f["attempt"], "first_letter": f["letter"],
                  "design": "commit_first"} if f else {}
         for variant in variants:
+            log_text = steps_tool_log(s["steps"])
             r_reply, r_letter, rule = reviewer.review(gen_r, variant, item["question"], s["letter"], item["n_options"],
                                                       final_text=s["final_text"], reasoning_text=s["reasoning_text"],
-                                                      tool_log=steps_tool_log(s["steps"]), system_extra=system_extra,
-                                                      first_reply=(f["final_text"] or "") if f else None)
+                                                      tool_log=log_text, system_extra=system_extra,
+                                                      first_reply=(f["final_text"] or "") if f else None,
+                                                      tool_letter=s.get("tool_letter"))
+            red = ({"redacted_in_reasoning": reviewer.redact(s["reasoning_text"], s["tool_letter"])[1],
+                    "redacted_in_tool_log": reviewer.redact_tool_log(log_text, s["tool_letter"])[1]}
+                   if variant in REDACTED_OF else {})
             errors += [r_reply.error] if r_reply.error else []
             res = outcome(item["correct"], s["letter"], r_letter, c["flag"])
-            log_step(path, **base, **extra, agent="reviewer", variant=variant, model=rm, reviewer_model=rm, letter=r_letter,
+            log_step(path, **base, **extra, **red, agent="reviewer", variant=variant, model=rm, reviewer_model=rm, letter=r_letter,
                      parse_rule=rule, solver_letter=s["letter"], correct=item["correct"], bad_lookup=s["bad_lookup"],
                      solver_wrong=s["letter"] != item["correct"], checker_flag=c["flag"], **res,
                      tokens=tokens(r_reply)["input"] + tokens(r_reply)["output"], final_text=r_reply.final_text,
@@ -740,6 +767,8 @@ def main():
     ap.add_argument("--stop-file", help="live: start no new case once this file exists (progress/guard.py)")
     ap.add_argument("--variants", help=f"--rereview: the reviewer variants (default: {','.join(C9_VARIANTS)}; "
                                        f"with --first-from: {','.join(C10_VARIANTS)})")
+    ap.add_argument("--no-check-tool", action="store_true", help="--rereview: C4's original prompt, no added sentence")
+    ap.add_argument("--bad-first", action="store_true", help="--rereview: the bad lookups' cases first")
     ap.add_argument("--first-from", metavar="LOG", help="--rereview (C10): the reviewer's own answer_only reviews from "
                                                        "LOG come first; then each variant is a second turn")
     a = ap.parse_args()
@@ -785,22 +814,25 @@ def main_rereview(a, path):
     if not a.cases:
         sys.exit("--rereview needs --cases (the questions of the saved cases)")
     variants = (a.variants or ",".join(C10_VARIANTS if a.first_from else C9_VARIANTS)).split(",")
-    if any(v not in reviewer.VARIANTS for v in variants):
-        sys.exit(f"variants: {reviewer.VARIANTS}")
+    if any(v not in reviewer.VARIANTS + reviewer.REDACTED_VARIANTS for v in variants):
+        sys.exit(f"variants: {reviewer.VARIANTS + reviewer.REDACTED_VARIANTS}")
     if a.first_from and "answer_only" in variants:
         sys.exit("--first-from: the answer_only review is the first turn, not a variant")
     if path in (OUT / f"{a.rereview}.jsonl", OUT / f"{a.first_from}.jsonl"):
         sys.exit("--rereview writes to its own --log, never a log it reads")
     reviewers = parse_models(a.reviewer_model)
     cases = saved_cases(OUT / f"{a.rereview}.jsonl", items_by_source(a.cases))
-    extra = attach_first(cases, OUT / f"{a.first_from}.jsonl", reviewers) if a.first_from else CHECK_TOOL
+    extra = attach_first(cases, OUT / f"{a.first_from}.jsonl", reviewers) if a.first_from else (None if a.no_check_tool else CHECK_TOOL)
+    if a.bad_first:
+        cases.sort(key=lambda x: (x[0]["solver"]["bad_lookup"] is not True, x[0]["case_id"]))
     finished = done_cases(path)
     todo = [x for x in cases if x[0]["case_id"] not in finished]
     bad = sum(c["solver"]["bad_lookup"] is True for c, _ in cases)
     print(f"{len(cases)} saved tool-team cases of {a.rereview} ({len({it['item_id'] for _, it in cases})} items; "
           f"{bad} bad and {len(cases) - bad} good lookups), {len(todo)} to run: ~{len(todo) * len(reviewers) * len(variants)} "
           f"calls ({len(reviewers)} reviewer models x {len(variants)} variants: {', '.join(variants)}); no solver or "
-          f"checker calls. Added to the reviewer's system prompt: \"{extra}\""
+          f"checker calls. " + (f"Added to the reviewer's system prompt: \"{extra}\"" if extra else "C4's reviewer prompt, unchanged")
+          + (f"; bad lookups first ({bad} cases)" if a.bad_first else "")
           + (f". Commit first: each review is the second turn after the reviewer's own answer_only reply in "
              f"{a.first_from} (all {len(cases) * len(reviewers)} found)" if a.first_from else ""))
     if a.dry_run:

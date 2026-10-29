@@ -817,11 +817,11 @@ def report(rows=None, steps=None, key=None):
     return cases
 
 
-def save_cases(cases):
-    append(CASES_OUT, {"timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                       "rule": "followed runs whose takeover comes at or after half the reasoning, on questions whose "
-                               "two Step 2b no-hint runs were both answered and correct",
-                       "use": "default cases for Track A Step 4 (deletion) and Step 10 (patching)",
+def save_cases(cases, path=None, rule=None, use=None):
+    append(path or CASES_OUT, {"timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                       "rule": rule or "followed runs whose takeover comes at or after half the reasoning, on questions "
+                                       "whose two Step 2b no-hint runs were both answered and correct",
+                       "use": use or "default cases for Track A Step 4 (deletion) and Step 10 (patching)",
                        "cases": [{"source_run_id": r["source_run_id"], "source_timestamp_utc": r["source_timestamp_utc"],
                                   "item_id": r["item_id"], "condition": r["condition"], "arm": r.get("arm"),
                                   "repeat": r["repeat"], "hint_letter": r["hint_letter"],
