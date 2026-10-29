@@ -19,7 +19,7 @@ numbers-only summaries are tracked. This step removed the produced files from th
 
 | Command | Where | Calls | Duration | Result |
 |---|---|---|---|---|
-| Stop the Ollama grid (SIGTERM; resumable) | Mac | — | — | 19 rows saved; nothing else writing (the other Claude session confirmed it was idle) |
+| Stop the Ollama grid (SIGTERM; resumable) | Mac | — | — | 19 rows saved; nothing else writing (the other session confirmed it was idle) |
 | `untrack_produced.py --not-in main --run --backup ~/backup-before-rewrite.bundle` | Mac | 0 | ~1 min | rewrite done; pre-push check refuses 1 file (below) |
 | `pytest -q` | Mac | 0 | 1:52 | 333 pass |
 | Restart the Ollama grid (`--model qwen3:8b`) | Mac (local) | ~1,939 left | ~51 h | running |
@@ -109,11 +109,11 @@ numbers-only summaries are tracked. This step removed the produced files from th
 
 **Ritik, to push** (fast-forwards from `origin/main` `15e0047`; the pre-push hook checks them):
 ```bash
-# after decision 1. With (a), Claude Code first pauses the runs and runs (one minute):
+# after decision 1. With (a), Ritik first pauses the runs and runs (one minute):
 #   .venv/bin/python cot-disclosure/tools/untrack_produced.py --run --backup ~/backup-before-rewrite-2.bundle
 # then, from the repo root:
 git -C ~/Documents/Projects/ODL/cse598-cot-faithfulness push origin main trackA-nosol
 ```
-**Claude Code, now:** handoff docs (`docs/handoff/TRACK_B.md`, `TRACK_C.md`) and
+**Ritik, Arsha and Shrey, now:** handoff docs (`docs/handoff/TRACK_B.md`, `TRACK_C.md`) and
 `tools/make_handoff_bundle.py`; watch the runs; export Qwen3 Thinking's steered cases when it ends and
 start C4 on them; then Qwen3 Instruct and Olmo on Voyager; the daily log tonight.

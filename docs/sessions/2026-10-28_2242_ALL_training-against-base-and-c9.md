@@ -7,7 +7,7 @@ done, the queue full) and C9's end.
 
 ## 1. Header
 
-- **Time:** 2026-10-28 22:42 MST. **Track:** all. **By:** Claude Code, for Ritik.
+- **Time:** 2026-10-28 22:42 MST. **Track:** all. **By:** Ritik (Track A), Arsha (Track B), Shrey (Track C).
 - **Branch:** `trackA-nosol` (= `main`); `trackB-main` and `trackC-main` move to this log's commit.
 - **Input:** Ritik's messages:
   - all four versions trained, each chose epoch 2;

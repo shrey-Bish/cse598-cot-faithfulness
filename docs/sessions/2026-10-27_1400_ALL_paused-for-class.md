@@ -45,5 +45,5 @@ runs: if its tool-call rate stays near 0, (a) add a forced-call arm for tool_rea
 
 ## 9. Next
 
-**On resume** (Claude Code): restart the three runs (Qwen3 Thinking on Voyager, the Ollama grid, C1),
+**On resume** (Ritik, Arsha and Shrey): restart the three runs (Qwen3 Thinking on Voyager, the Ollama grid, C1),
 then figures #1 (pinned panel) and #4, and the daily log tonight.

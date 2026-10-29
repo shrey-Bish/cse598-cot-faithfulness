@@ -144,4 +144,4 @@ source cot-disclosure/finetune/gpu/sol/env.sh
 "$TRACKA_PY" cot-disclosure/finetune/gpu/plan_training.py /scratch/ragarw68/trackA/timing/timing.jsonl
 # -> the table and four submit.sh lines: run the first two, put their job ids into the last two
 ```
-**Claude Code:** watch the Voyager runs; decision 5's code; the branches; the handoff docs.
+**Arsha and Shrey:** watch the Voyager runs; decision 5's code; the branches; the handoff docs.

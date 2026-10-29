@@ -473,7 +473,8 @@ It refuses a push that adds anything under a produced-data folder, any file with
 ## 20. Session logs
 
 - **What:** after every run (a Voyager batch, a Sol job, an analysis that changes a reported number)
-  and at every stop, Claude Code writes `docs/sessions/YYYY-MM-DD_HHMM_<A|B|C|ALL>_<name>.md` (Arizona
+  and at every stop, the track's owner (Track A Ritik, Track B Arsha, Track C Shrey) writes
+  `docs/sessions/YYYY-MM-DD_HHMM_<A|B|C|ALL>_<name>.md` (Arizona
   time), copies it to `docs/sessions/LATEST.md` and adds a line to `docs/sessions/INDEX.md`; and at
   the end of each day `docs/sessions/DAILY_YYYY-MM-DD.md` (per track: what ran, what's in flight, key
   numbers, decisions waiting, tomorrow's plan).

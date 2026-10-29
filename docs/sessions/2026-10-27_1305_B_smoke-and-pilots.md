@@ -4,8 +4,7 @@ Project: CSE 598 Group 10, "Do thinking modes make chain-of-thought more honest?
 (from the user or from a tool) is added to multiple-choice questions; we measure whether the answer
 follows it and whether the model says so. Track A explains and fixes it in Olmo 3 7B Think; Track B
 tests more models; Track C tests a solver-reviewer-checker agent team. Models run on ASU Voyager (an
-API), Ollama (local) and ASU Sol (GPUs). Until Nov 3 Ritik runs all three tracks (code by Claude
-Code); then Track B goes to Arsha and Track C to Shrey.
+API), Ollama (local) and ASU Sol (GPUs). Until Nov 3 Ritik runs all three tracks; then Track B goes to Arsha and Track C to Shrey.
 
 ## 1. Header
 
@@ -185,7 +184,7 @@ Nothing copied to or from Sol.
 
 **Ritik:** nothing to run now. Answer decisions 1–4 when convenient.
 
-**Claude Code, after this log:** Track C code (C6, C2, C3, C7). When Steps 6–7 end:
+**Shrey, after this log:** Track C code (C6, C2, C3, C7). **Ritik,** when Steps 6–7 end:
 1. Assemble, export the summaries, write the final-count log.
 2. Pause the Ollama grid; back up (`git bundle` to `~/backup-before-rewrite.bundle`, sha256 list
    beside it); rewrite (`untrack_produced.py --not-in main --run --backup ~/backup-before-rewrite.bundle`,

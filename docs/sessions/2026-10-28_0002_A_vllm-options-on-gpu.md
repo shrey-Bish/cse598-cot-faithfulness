@@ -70,5 +70,5 @@ range once this code is on Sol.
 ## 6. Next
 
 Ritik: the rsync, `submit.sh setup_vllm`, then `submit.sh vllm_check --estimate 1
---dependency=afterok:<setup_vllm job>`; the batch-2 lines. Claude Code: watch the Voyager runs;
+--dependency=afterok:<setup_vllm job>`; the batch-2 lines. Arsha and Shrey: watch the Voyager runs;
 decision 5's code; the branches; the handoff docs.

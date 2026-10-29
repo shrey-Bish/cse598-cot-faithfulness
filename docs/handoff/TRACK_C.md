@@ -1,7 +1,7 @@
 # Track C handoff: the agent team (for Shrey, from Nov 3)
 
 Last updated: 2026-10-28 22:42 MST. A working draft, kept current every day and final on Nov 3,
-when Track C goes back to you. Until then Ritik runs it (code by Claude Code).
+when Track C goes back to you. Until then Ritik runs it.
 
 **The question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
 output? What changes when the reviewer sees more (the explanation, the private reasoning, the tool

@@ -6,7 +6,7 @@ covers C10's run and results. The design and the dry run are in
 
 ## 1. Header
 
-- **Time:** 2026-10-28 23:19 MST. **Track:** C. **By:** Ritik.
+- **Time:** 2026-10-28 23:19 MST. **Track:** C. **By:** Shrey.
 - **Branch:** `trackA-nosol` (= `main`); `trackB-main` and `trackC-main` move to this log's commit.
 
 ## 2. What ran

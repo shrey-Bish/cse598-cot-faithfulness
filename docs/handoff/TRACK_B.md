@@ -1,7 +1,7 @@
 # Track B handoff: test widely (for Arsha, from Nov 3)
 
 Last updated: 2026-10-28 21:50 MST. A working draft, kept current every day and final on Nov 3,
-when Track B goes back to you. Until then Ritik runs it (code by Claude Code).
+when Track B goes back to you. Until then Ritik runs it.
 
 **The question.** Does the failure seen in the progress round (a wrong hint from a tool moves
 thinking models more than the same hint from the user, and the final answer rarely says so) hold on
