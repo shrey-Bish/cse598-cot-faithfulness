@@ -114,6 +114,6 @@ numbers-only summaries are tracked. This step removed the produced files from th
 # then, from the repo root:
 git -C ~/Documents/Projects/ODL/cse598-cot-faithfulness push origin main trackA-nosol
 ```
-**Ritik, Arsha and Shrey, now:** handoff docs (`docs/handoff/TRACK_B.md`, `TRACK_C.md`) and
+**Ritik, now:** handoff docs (`docs/handoff/TRACK_B.md`, `TRACK_C.md`) and
 `tools/make_handoff_bundle.py`; watch the runs; export Qwen3 Thinking's steered cases when it ends and
 start C4 on them; then Qwen3 Instruct and Olmo on Voyager; the daily log tonight.

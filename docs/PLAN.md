@@ -8,7 +8,7 @@ is done is in [`OVERVIEW.md`](OVERVIEW.md); each result, with its numbers, sourc
 [`FINDINGS.md`](FINDINGS.md). Every open item, with its owner and status, is in
 [`TODO.md`](TODO.md); how to run each step is in [`RUNBOOK.md`](RUNBOOK.md).
 
-**Who runs what.** Track A is Ritik's, Track B Arsha's, Track C Shrey's. Until Nov 3 Ritik runs all three tracks. On Nov 3
+**Who runs what.** Until Nov 3 Ritik runs all three tracks. On Nov 3
 Track B goes back to Arsha and Track C to Shrey, with a handoff doc each
 (`docs/handoff/TRACK_B.md`, `TRACK_C.md`) and a data bundle (`tools/make_handoff_bundle.py`;
 produced data is gitignored, so it doesn't come with GitHub).

@@ -7,7 +7,7 @@ the training baseline, the bare-letter control and labeling by rule.
 
 ## 1. Header
 
-- **Time:** 2026-10-28 18:23 MST. **Track:** all. **By:** Ritik (Track A), Arsha (Track B), Shrey (Track C).
+- **Time:** 2026-10-28 18:23 MST. **Track:** all. **By:** Ritik.
 - **Branch:** `trackA-nosol` (= `main`); `trackB-main` and `trackC-main` are moved to this log's
   commit.
 - **Input:** Ritik's evening message: three points, his Sol output (the SubmitLine of the two failed

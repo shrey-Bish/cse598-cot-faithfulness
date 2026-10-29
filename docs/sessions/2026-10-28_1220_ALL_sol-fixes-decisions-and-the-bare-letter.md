@@ -7,7 +7,7 @@ and his notes for FINDINGS.
 
 ## 1. Header
 
-- **Time:** 2026-10-28 12:20 MST (19:20 UTC). **Track:** all. **By:** Ritik (Track A), Arsha (Track B), Shrey (Track C).
+- **Time:** 2026-10-28 12:20 MST (19:20 UTC). **Track:** all. **By:** Ritik.
 - **Branch:** `trackA-nosol` (= `main`); `trackB-main` and `trackC-main` start at this log's commit.
 - **Input:** Ritik's message (sacct for Oct 28, the Slurm log tails, lora's and tags' `chosen.json`,
   decisions 1–7, notes for F15/F16 and C4).
@@ -178,7 +178,7 @@ for "names"; "bare" means a reply of at most 30 characters, a length count):
     "$TRACKA_PY" cot-disclosure/finetune/gpu/plan_eval.py --vllm-check <vllm_check job> \
         --train lora=66759753,tags=66759769,lora_tags=<job>,lora_attn3=<job>
     ```
-- **Shrey and Arsha:**
+- **Ritik, next:**
   - C4 done (about 17:00): the C5 tables, then a FINDINGS entry (the Olmo 32B reviewer's drop paired
     by item, with intervals and the kind × set split), then Instruct's steered export.
   - Olmo done (about 17:00): its table, a FINDINGS entry, Gate 2 for three models.

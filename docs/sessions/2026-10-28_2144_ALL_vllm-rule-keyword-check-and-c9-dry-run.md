@@ -7,7 +7,7 @@ on the 18:23 log) up to the start of C9. C9's results get their own log.
 
 ## 1. Header
 
-- **Time:** 2026-10-28 21:44 MST. **Track:** all. **By:** Ritik (Track A), Arsha (Track B), Shrey (Track C).
+- **Time:** 2026-10-28 21:44 MST. **Track:** all. **By:** Ritik.
 - **Branch:** `trackA-nosol` (= `main`); `trackB-main` and `trackC-main` move to this log's commit.
 - **Input:** Ritik's message: vllm_check 66862780 failed after 6:23 at the preflight ("choices 1:
   --mm-processor-device"); he copied sg018's option list to `finetune/gpu/vllm_serve_options.txt`.

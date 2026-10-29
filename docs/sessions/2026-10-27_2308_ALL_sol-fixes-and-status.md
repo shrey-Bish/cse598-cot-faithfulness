@@ -141,5 +141,5 @@ cot-disclosure/finetune/gpu/sol/submit.sh setup_vllm            # "Submitted bat
 cot-disclosure/finetune/gpu/sol/submit.sh vllm_check --estimate 1 --dependency=afterok:N   # limit 1:30
 tail -3 /scratch/ragarw68/trackA/slurm/trackA-setup-vllm-N.out  # "... all 8 server commands use only options it lists"
 ```
-**Ritik and Shrey (no calls):** the daily log; decision 5's code; the `trackB-main` and `trackC-main`
+**Ritik (no calls):** the daily log; decision 5's code; the `trackB-main` and `trackC-main`
 branches; then whatever decisions 1 and 2 say.

@@ -184,7 +184,7 @@ Nothing copied to or from Sol.
 
 **Ritik:** nothing to run now. Answer decisions 1–4 when convenient.
 
-**Shrey, after this log:** Track C code (C6, C2, C3, C7). **Ritik,** when Steps 6–7 end:
+**Ritik, after this log:** Track C code (C6, C2, C3, C7). When Steps 6–7 end:
 1. Assemble, export the summaries, write the final-count log.
 2. Pause the Ollama grid; back up (`git bundle` to `~/backup-before-rewrite.bundle`, sha256 list
    beside it); rewrite (`untrack_produced.py --not-in main --run --backup ~/backup-before-rewrite.bundle`,

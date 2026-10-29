@@ -7,7 +7,7 @@ its dry run is in a session log.
 
 ## 1. Header
 
-- **Time:** 2026-10-28 23:03 MST. **Track:** A and C. **By:** Ritik (Track A), Shrey (Track C).
+- **Time:** 2026-10-28 23:03 MST. **Track:** A and C. **By:** Ritik.
 - **Branch:** `trackA-nosol` (= `main`); `trackB-main` and `trackC-main` move to this log's commit.
 
 ## 2. What ran
