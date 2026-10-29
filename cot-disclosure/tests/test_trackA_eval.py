@@ -64,11 +64,16 @@ def test_run_saves_numbers_apart_and_resumes(tmp_path, monkeypatch):
         return {"error": None, "content": "Done.</think>\n\nAnswer: (A)", "finish": "stop", "reasoning": "",
                 "usage": {"prompt_tokens": 10, "completion_tokens": 5}}
     ev.run("base", complete, tmp_path, part=(1, 30), workers=4, n_tokens=lambda t: 10)
-    rows = load(tmp_path / "eval_base_runs.jsonl")
-    assert len(rows) == 31 and "final_text" not in rows[0] and len(load(tmp_path / "eval_base.jsonl.gz")) == 31
+    rows = load(tmp_path / "eval_base_p1of30_runs.jsonl")                             # a part writes its own files
+    assert len(rows) == 31 and "final_text" not in rows[0] and len(load(tmp_path / "eval_base_p1of30.jsonl.gz")) == 31
     n = len(calls)
     ev.run("base", complete, tmp_path, part=(1, 30), workers=4, n_tokens=lambda t: 10)
     assert len(calls) == n
+    assert len({r["item_id"] for r in rows}) > 1                                    # a part spans questions
+    ev.run("base", complete, tmp_path, part=(1, 15), workers=4, n_tokens=lambda t: 10)   # 62 runs, 31 done in 1/30
+    assert len(calls) == n + 31 and len(load(tmp_path / "eval_base_p1of15_runs.jsonl")) == 31
+    assert len(ev.rows_of(tmp_path)) == 62 and [f.name for f in ev.runs_files(tmp_path, "base")] == [
+        "eval_base_p1of15_runs.jsonl", "eval_base_p1of30_runs.jsonl"]
 
 
 def synthetic(system, follow, nq=6, mention=True, correct_nohint=True):

@@ -1,22 +1,37 @@
-"""Track B on Sol: Qwen3-8B served by vLLM on one A100, thinking on and off (decided Oct 28: Ollama never
-runs on the Mac). One job starts the server from vLLM's own environment ($TRACKA_VLLM, envs/olmo-vllm),
-runs progress/run_trackB.py against it (provider sol_vllm, --order core-first: the 30 MMLU-Pro items x
-none / user / tool_real x on / off x 3 runs first, then the puzzles, then the other conditions), and
-stops it. Thinking on/off goes in each request (enable_thinking, providers/sol_vllm.py).
+"""Track B on Sol: Qwen3-8B on one A100, thinking on and off (decided Oct 28: Ollama never runs on the Mac).
+One job runs progress/run_trackB.py's Qwen3-8B jobs (provider sol_vllm, --order core-first: the 30 MMLU-Pro
+items x none / user / tool_real x on / off x 3 runs first, then the puzzles, then the other conditions)
+on one of two engines (--engine):
+  hf    (default, decided Oct 29 after vLLM's engine core failed in its kernel warmup) Hugging Face
+        generation in this process, the job's own environment ($TRACKA_PY, the one that trained Track A):
+        the snapshot loaded in bf16, finetune/hf_engine.py's engine (continuous batching after its
+        self-check on the GPU, else static batches), and the runner called in-process with that engine
+        installed (providers/sol_hf.py renders the snapshot's chat template and parses the reply as the
+        vLLM server did). Runs in flight: the engine's (its key/value cache at 8,000 tokens a run).
+  vllm  the server from vLLM's own environment ($TRACKA_VLLM, envs/olmo-vllm), the runner against it as
+        a subprocess, and the server stopped at the end.
+Thinking on/off goes in each request (enable_thinking, providers/sol_vllm.py). Every record names its
+engine ("engine": hf-continuous, hf-static or vllm).
 
   # once, a job without a GPU and the only one with the network: the pinned snapshot into $HF_HOME
   # (/scratch/ragarw68/hf) unless it is cached, checked against the Hub's sha256 of every file
   cot-disclosure/finetune/gpu/sol/submit.sh get_qwen8b          # -> $TRACKA_OUT/trackb_qwen8b/snapshot.json
-  # the job: 1 A100, offline, resumable (finished runs are skipped); limit = estimate x 1.3
-  cot-disclosure/finetune/gpu/sol/submit.sh trackb_qwen8b --estimate 1.5 --dependency=afterok:<get_qwen8b job>
+  # the job: 1 A100, offline, resumable (finished runs are skipped); limit = estimate x 1.3. --engine hf:
+  # 1,620 runs, ~6.7M generated tokens (Voyager's Qwen3 30B lengths: ~6,200 a run thinking, ~2,000 not)
+  # at ~120-190 tokens/s (paged SDPA copies each run's keys and values about 11 times a step with
+  # Qwen3's 4 query heads per key head; not measured), so 10-15 GPU h: two jobs of at most 8 h
+  cot-disclosure/finetune/gpu/sol/submit.sh trackb_qwen8b --estimate 6.15                  # --engine hf
+  cot-disclosure/finetune/gpu/sol/submit.sh trackb_qwen8b --estimate 6.15 --dependency=afterany:<that job>
+  cot-disclosure/finetune/gpu/sol/submit.sh trackb_qwen8b --estimate 1.5 -- --engine vllm
   # back to the Mac, numbers only (results/trackB/): sol_vllm_runs.jsonl and sol_vllm_flags.jsonl
 
-First step: the server command must fit the committed option list and `vllm serve --help=all` on
-the GPU node (an option or value it uses missing or changed there stops the job; other differences
-are a warning; finetune/gpu/vllm_options.py); then the snapshot must be on disk at the
-pinned revision, its files the sizes snapshot.json recorded. The server gets the snapshot's chat
-template as a file (--chat-template, written from tokenizer_config.json), and the runner saves that
-file's sha256 with every run (chat_template_sha256). Slurm's
+First step (vllm only): the server command must fit the committed option list and `vllm serve --help=all`
+on the GPU node (an option or value it uses missing or changed there stops the job; other differences
+are a warning; finetune/gpu/vllm_options.py). Then, either engine: the snapshot must be on disk at the
+pinned revision, its files the sizes snapshot.json recorded. The snapshot's chat template is written
+to a file (from chat_template.jinja or tokenizer_config.json); the vLLM server gets that file
+(--chat-template), the hf engine renders with its text, and every run saves its sha256
+(chat_template_sha256). Slurm's
 warning (USR1, 5 minutes before the limit) makes the runner start no new request; replies still in
 flight when the job ends are not saved and run again in the next job (never "no answer"). At the end,
 every record's numbers-only flags (progress/trackB_report.flags: answered, followed, mention flags,
@@ -165,16 +180,73 @@ def preflight(vllm, log_dir):
     vllm_options.gpu_preflight(vllm, log_dir)
 
 
-def run(extra, log_dir):
-    from finetune.gpu import eval_job
-    vllm = os.environ.get("TRACKA_VLLM", "vllm")
-    preflight(vllm, log_dir)
+def checked_snapshot(log_dir):
     try:
         snap = snapshot()
     except Exception as err:
         sys.exit(f"no {REPO} snapshot at {REVISION} in $HF_HOME ({type(err).__name__}): run the download job "
                  f"first (submit.sh get_qwen8b)")
     check_snapshot(snap, log_dir)
+    return snap
+
+
+def runner_args(extra):
+    """The runner options the job passes on (--thinking, --limit), parsed for the in-process runner."""
+    ap = argparse.ArgumentParser(prog="run_trackB (in-process)")
+    ap.add_argument("--thinking", choices=["on", "off"])
+    ap.add_argument("--limit", type=int)
+    return ap.parse_args(list(extra))
+
+
+EXPECTED_TOKENS = 8000            # a run's key/value cache when sizing the runs in flight (Qwen3 30B Thinking:
+                                  # mean 5,332 output tokens, p90 11,404, on these 810 jobs on Voyager)
+
+
+def hf_engine_for(snap, temperature, log=print, device="cuda"):
+    """(engine, tokenizer, sampling) for Qwen3-8B: finetune/hf_engine.py's, with sol_vllm's top_p and top_k."""
+    from finetune import hf_engine
+    from finetune.gpu import kit
+    model, tok = hf_engine.load(snap, device=device)
+    sample = {**hf_engine.sampling(snap, tok, temperature), "top_p": sol_vllm.TOP_P, "top_k": sol_vllm.TOP_K}
+    dev = next(model.parameters()).device
+    workers = hf_engine.workers_for(model, kit.free_bytes(dev), expected_tokens=EXPECTED_TOKENS) if dev.type == "cuda" else None
+    return hf_engine.make(model, tok, sample, seed=0, workers=workers, log=log), tok, sample
+
+
+def run_hf(extra, log_dir):
+    """--engine hf: the runner in this process, its sol_vllm requests on the installed engine."""
+    import yaml
+    import run_trackB as tb
+    from providers import sol_hf
+    snap = checked_snapshot(log_dir)
+    _, tpl_sha = write_template(snap, log_dir)
+    a = runner_args(extra)
+    STOP.parent.mkdir(parents=True, exist_ok=True)
+    STOP.unlink(missing_ok=True)
+    signal.signal(signal.SIGUSR1, lambda *_: STOP.write_text("Slurm's time-limit warning"))
+    cfg = yaml.safe_load(open(tb.CONFIG))
+    engine, tok, sample = hf_engine_for(snap, cfg["temperature"])
+    sol_hf.install(engine, tok, chat_template(snap), tpl_sha, sample)
+    try:
+        cfg = {**cfg, "sol_in_flight": engine.workers}
+        all_jobs = tb.jobs(cfg, only_models=[MODEL], thinking=None if a.thinking is None else a.thinking == "on",
+                           order="core-first")
+        print(f"{len(all_jobs)} {MODEL} jobs; engine {engine.kind}, {engine.workers} runs in flight", flush=True)
+        rc = tb.run(cfg, all_jobs, a.limit, str(STOP))
+    finally:
+        sol_hf.uninstall()
+        engine.close()
+    print(f"runner exit {rc} (0 done, 1 work left, 2 stopped); {export_flags()} records' flags in {FLAGS}", flush=True)
+    return rc
+
+
+def run(extra, log_dir, engine="hf"):
+    if engine == "hf":
+        return run_hf(extra, log_dir)
+    from finetune.gpu import eval_job
+    vllm = os.environ.get("TRACKA_VLLM", "vllm")
+    preflight(vllm, log_dir)
+    snap = checked_snapshot(log_dir)
     template, tpl_sha = write_template(snap, log_dir)
     cmd = serve_cmd(snap, vllm=vllm, template=template)
     STOP.parent.mkdir(parents=True, exist_ok=True)
@@ -198,6 +270,8 @@ def main():
     mode.add_argument("--print-cmd", action="store_true", help="the server command")
     ap.add_argument("--thinking", choices=["on", "off"], help="only this setting")
     ap.add_argument("--limit", type=int, help="at most N runs (a smoke test)")
+    ap.add_argument("--engine", choices=["hf", "vllm"], default="hf",
+                    help="hf: Hugging Face generation in this process (default, Oct 29); vllm: our vLLM server")
     ap.add_argument("--log-dir", default=os.environ.get("TRACKA_OUT", "/scratch/ragarw68/trackA") + "/trackb_qwen8b")
     a = ap.parse_args()
     if a.download:
@@ -209,7 +283,7 @@ def main():
         print(export_flags())
     else:
         extra = (["--thinking", a.thinking] if a.thinking else []) + (["--limit", str(a.limit)] if a.limit else [])
-        sys.exit(run(extra, a.log_dir))
+        sys.exit(run(extra, a.log_dir, a.engine))
 
 
 if __name__ == "__main__":

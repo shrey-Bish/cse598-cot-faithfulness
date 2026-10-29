@@ -10,4 +10,4 @@
 #SBATCH -o /scratch/ragarw68/trackA/slurm/%x-%j.out
 # Track A Step 10, activation patching (~1-2 h; resumes from the cuts already saved). Submit only
 # through submit.sh:   cot-disclosure/finetune/gpu/sol/submit.sh step10
-cd "$SLURM_SUBMIT_DIR" && exec cot-disclosure/finetune/gpu/sol/run.sh step10
+cd "$SLURM_SUBMIT_DIR" && exec cot-disclosure/finetune/gpu/sol/run.sh step10 "$@"

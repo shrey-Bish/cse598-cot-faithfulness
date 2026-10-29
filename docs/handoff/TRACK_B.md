@@ -43,9 +43,12 @@ more models, with thinking on and off in the same model, real tool calls and 3 r
     - The file now holds three models with the same item ids, so `run_team.py` needs
       `--case-model` and each model needs its own `--log`.
 - **Qwen3-8B, thinking on and off, moved to Sol** (decided Oct 28: Ollama never on the Mac).
-  It runs as one GPU job, `progress/sol_trackB.py`. "Go" Oct 28, after Track A's vLLM check
-  passes on Sol (the same vLLM stack). Job 66862780 failed at its preflight on an option no command
-  uses; the rule is now narrower (only what the server commands use), and the check is to resubmit.
+  It runs as GPU jobs, `progress/sol_trackB.py`. Its vLLM run (66879362) failed on Oct 29 in vLLM's
+  engine start, like Track A's check. Since Oct 29 the default is Hugging Face generation in the
+  job's own process (`--engine hf`): `providers/sol_hf.py` renders the snapshot's chat template with
+  `enable_thinking` and splits `<think>` and hermes tool calls as the vLLM server did; the provider
+  stays `sol_vllm`, so run ids and records are unchanged, and each record names its engine. About
+  10–15 GPU h (an estimate), so two 8-hour jobs; the second resumes the first.
 - **Not done:** closed providers (no keys; Gate 1 was missed and its fallback applies: Voyager and
   our own Sol server only); GPQA (waits for Ritik to accept its terms on Hugging Face).
 - **The table:** `progress/trackB_report.py` prints it from the saved runs (no calls). `--by-set`
@@ -142,7 +145,7 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 | # | Item | Status (Oct 27) |
 |---|---|---|
 | B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | done Oct 28 (03:11, 05:32, 17:52) |
-| B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | code done; "go" once vllm_check passes (66862780 failed at the preflight on an unused option; to resubmit) |
+| B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | code done; vLLM run 66879362 failed Oct 29; Hugging Face path done Oct 29 (`--engine hf`), two 8 h jobs to submit |
 | B8 | `steered_cases.jsonl` per model | done for all three (Oct 28) |
 | B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate; the bare final answer | `trackB_report.py` (and `--by-set`); F15, F16, F17; Qwen3-8B when B4 runs |
 | B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? | clear for all three Voyager models (F15, F16, F17), at both cuts |

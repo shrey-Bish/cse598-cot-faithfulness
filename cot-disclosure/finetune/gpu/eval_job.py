@@ -1,7 +1,20 @@
 """Track A on Sol: one evaluation job (Step 13, jobs E1-E6) or the vLLM tag check (Step 12, job S2).
 
-A job prepares the system's model, starts a vLLM server on it (its own environment,
-$TRACKA_VLLM = /scratch/ragarw68/envs/olmo-vllm/bin/vllm, since vLLM pins its own torch), runs
+Engine hf (the default since Oct 29, after the vLLM engine failed to start on Sol twice): the system's
+model in this environment (the one that ran training, S7 and Steps 8-10), finetune/eval.py's runs through
+finetune/hf_engine.py: continuous batching with a paged key/value cache, after a self-check on the GPU
+(static batches if it fails), many runs in flight, resumable by run and by part like every evaluation job.
+  base, prompt_only   the snapshot
+  lora, lora_attn3    the snapshot with the chosen epoch's adapter merged in memory (merge_and_unload)
+  tags                the snapshot with hf_engine.TagTable (tag[source] added per token, as in training)
+  lora_tags           both
+Each record says which engine ran it (engine: continuous / static); eval_jobs.jsonl has the sampling,
+the engine, and why (the self-check's result).
+
+  python finetune/gpu/eval_job.py --system base --part 1/4 --out /scratch/ragarw68/trackA/eval
+
+Engine vllm (optional, for later): a job prepares the system's model, starts a vLLM server on it (its own
+environment, $TRACKA_VLLM = /scratch/ragarw68/envs/olmo-vllm/bin/vllm, since vLLM pins its own torch), runs
 finetune/eval.py's runs against it, and stops it. Models (under $TRACKA_OUT/models/, made once):
   base, prompt_only   the cached Olmo 3 7B Think snapshot
   lora, lora_attn3    the base with the chosen epoch's LoRA merged in (merge_and_unload)
@@ -10,7 +23,7 @@ finetune/eval.py's runs against it, and stops it. Models (under $TRACKA_OUT/mode
 Tag versions get tagged prompt embeddings (--enable-prompt-embeds). Merging first means no system
 needs vLLM's prompt embeddings together with LoRA.
 
-  python finetune/gpu/eval_job.py --system base --part 1/2 --out /scratch/ragarw68/trackA/eval
+  python finetune/gpu/eval_job.py --engine vllm --system base --part 1/2 --out /scratch/ragarw68/trackA/eval
   python finetune/gpu/eval_job.py --check --out /scratch/ragarw68/trackA/vllm_check     # S2
 
 The check (S2): a synthetic tag table and LoRA adapter (seeded), the served versions against the
@@ -20,7 +33,7 @@ It passes when the tagged version agrees with its reference as far as the plain 
 (vllm_check.json, numbers only). The plain base server runs first, before the synthetic LoRA merge
 and the shard writing, so a server that can't start fails the job in minutes.
 
-Every job's first step checks every server command against the committed option list
+Every vLLM job's first step checks every server command against the committed option list
 (finetune/gpu/vllm_serve_options.txt) and against `vllm serve --help=all` on its GPU node
 (finetune/gpu/vllm_options.py): an option or value a command uses that is missing or changed on the
 node stops the job before any model load or merge; any other difference is a warning in the log.
@@ -32,6 +45,7 @@ import signal
 import subprocess
 import sys
 import time
+import zlib
 from pathlib import Path
 
 CODE = Path(__file__).resolve().parents[2]
@@ -127,6 +141,9 @@ class Server:
 
     def __enter__(self):
         out = open(self.log, "a") if self.log else subprocess.DEVNULL
+        if self.log:
+            out.write(gen.log_start_line(self.cmd))                # earlier jobs' lines stay above it
+            out.flush()
         print(f"{kit.now()} starting: {' '.join(self.cmd)}", flush=True)
         self.proc = subprocess.Popen(self.cmd, stdout=out, stderr=subprocess.STDOUT)
         _SERVERS.append(self)
@@ -164,6 +181,52 @@ def preflight():
     from finetune.gpu import vllm_options
     print(f"{kit.now()} checking the vLLM server options on this node", flush=True)
     vllm_options.gpu_preflight(os.environ.get("TRACKA_VLLM", "vllm"), out_root())
+
+
+def hf_parts(system, train_root):
+    """(adapter directory or None, tags.pt or None) of a system, for the hf engine (nothing is written)."""
+    if system in ("base", "prompt_only"):
+        return None, None
+    final = Path(train_root) / system / "final"
+    if not (final / "chosen.json").exists():
+        raise FileNotFoundError(f"{final}/chosen.json: train and export {system} first (finetune/train.py --export)")
+    return (final / "adapter" if system in LORA else None), (final / "tags.pt" if system in TAGGED else None)
+
+
+def job_seed(system, part):
+    """The job's one generator seed (hf_engine: per-run seeds can't be kept inside a batch)."""
+    return zlib.crc32(f"{system}:{part}:{os.environ.get('SLURM_JOB_ID', '0')}".encode())
+
+
+def evaluate_hf(system, part, out, workers=None, engine="auto", load=None):
+    """One system (or part) through finetune/hf_engine.py; SystemExit(1) if the engine broke mid-way (the runs
+    saved so far count; the next job resumes)."""
+    import torch
+    from finetune import eval as ev
+    from finetune import hf_engine as he
+    base = kit.snapshot()[0]
+    adapter, tags = hf_parts(system, out_root() / "train")
+    Path(out).mkdir(parents=True, exist_ok=True)
+    log = lambda s: print(f"{kit.now()} {s}", flush=True)  # noqa: E731
+    log(f"loading {system}: {base}{f' + adapter {adapter}' if adapter else ''}{f' + tags {tags}' if tags else ''}")
+    model, tok = (load or he.load)(base, "auto", adapter=adapter)
+    encode = he.TagTable.install(model, tok, torch.load(tags, map_location="cpu")).ids if tags else None
+    sample = he.sampling(base, tok, ev.TEMPERATURE)
+    eng = he.make(model, tok, sample, seed=job_seed(system, part), encode=encode, workers=workers, log=log, engine=engine)
+    _JOB.update({"out": str(out), "system": system, "part": part, "model_dir": str(base),
+                 "adapter": str(adapter) if adapter else None, "tags": str(tags) if tags else None,
+                 "engine": eng.kind, "engine_why": eng.why, "workers": eng.workers, "sampling": sample,
+                 "started_utc": kit.now()})
+    try:
+        ev.run(system, eng, out, part, eng.workers)
+    finally:
+        eng.close() if hasattr(eng, "close") else None
+    if getattr(eng, "broken", None):
+        _job_row(out, stopped=f"the engine broke: {eng.broken}")
+        _JOB.clear()
+        raise SystemExit(f"the {eng.kind} engine broke: {eng.broken} (the runs saved so far count; resubmit to resume)")
+    _job_row(out, environments=kit.environments(server=False))
+    _JOB.clear()
 
 
 def evaluate(system, part, out, workers):
@@ -294,18 +357,25 @@ def main():
     ap.add_argument("--system")
     ap.add_argument("--part")
     ap.add_argument("--out", required=True)
-    ap.add_argument("--workers", type=int, default=48)
+    ap.add_argument("--workers", type=int, help="runs in flight (default: hf from the GPU's free memory; vllm 48)")
+    ap.add_argument("--engine", choices=("hf", "vllm"), default="hf")
+    ap.add_argument("--hf-engine", choices=("auto", "continuous", "static"), default="auto",
+                    help="auto: continuous batching if its self-check passes, else static batches")
     ap.add_argument("--check", action="store_true", help="S2: the vLLM tag check")
     a = ap.parse_args()
     signal.signal(signal.SIGUSR1, _stop_now)
-    if os.environ.get("SLURM_JOB_ID"):                       # on Sol, first: the server options on this node,
-        preflight()                                          # then the Mac's bytes (kit manifest)
+    if os.environ.get("SLURM_JOB_ID"):                       # on Sol, first: the server options on this node
+        if a.check or a.engine == "vllm":                    # (vLLM jobs only), then the Mac's bytes (kit manifest)
+            preflight()
         kit.check_inputs("eval")
     if a.check:
         check(a.out)
         return
     part = tuple(int(x) for x in a.part.split("/")) if a.part else None
-    evaluate(a.system, part, a.out, a.workers)
+    if a.engine == "hf":
+        evaluate_hf(a.system, part, a.out, a.workers, a.hf_engine)
+    else:
+        evaluate(a.system, part, a.out, a.workers or 48)
 
 
 if __name__ == "__main__":

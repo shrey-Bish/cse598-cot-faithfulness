@@ -239,23 +239,40 @@ def choose_alpha(entry):
 
 
 # ---------------------------------------------------------------- generate (the 30 held-out questions)
+def out_of_memory(err):
+    import torch
+    return isinstance(err, torch.cuda.OutOfMemoryError) or (isinstance(err, RuntimeError) and "out of memory" in str(err))
+
+
 class Batched:
     """A complete_fn (finetune/continuation.py's interface) that batches concurrent requests for one
     Hugging Face generate: requests with the same temperature and stop strings, up to max_batch, while
     prompt + max_tokens of all of them fits token_budget (the KV cache); out of memory -> one at a time.
     Each prompt's marked span (deployable or oracle) follows it through the left padding. Per-run seeds
-    can't be kept inside a batch: the batch's generator is seeded from its first run's seed and a counter."""
+    can't be kept inside a batch: the batch's generator is seeded from its first run's seed and a counter.
+    sample: finetune/hf_engine.sampling's dict (end ids, and top_p/top_k only if the snapshot sets them);
+    encode: prompt -> token ids instead of the tokenizer (hf_engine.TagTable.ids; no marked span then).
+    A batch that raises (other than out of memory) gives its runs error replies, so no caller waits forever;
+    after BROKEN_AFTER such batches in a row the engine is broken and every later run fails at once."""
+    kind = "static"
+    BROKEN_AFTER = 3
 
     def __init__(self, model, tok, hook, span, *, extra_ranges=None, max_batch=8, token_budget=110000,
-                 wait_s=2.0, reserve=16000, max_new=None):
+                 wait_s=2.0, reserve=16000, max_new=None, sample=None, encode=None):
         self.model, self.tok, self.hook, self.span = model, tok, hook, span
+        self.sample = sample or {"temperature": 0.6, "eos_ids": [tok.eos_token_id]}
+        self.encode = encode
         self.extra = extra_ranges or {}                         # {user message text: [(start, end)] pasted block}
         self.max_batch, self.budget, self.wait_s, self.reserve = max_batch, token_budget, wait_s, reserve
         self.q, self.thread, self.count = queue.Queue(), None, 0
         self.batches = []                                        # sizes, for the log
         self.max_new = max_new                                   # tests only: cap every call's new tokens
+        self.fails, self.broken = 0, None
 
     def __call__(self, name, prompt, *, max_tokens, temperature=0.6, seed=None, backoff=None, extra=None):
+        from finetune import hf_engine as he
+        if self.broken:
+            return he.failed(name, self.broken, self.kind)
         if self.thread is None:
             self.thread = threading.Thread(target=self._work, daemon=True)
             self.thread.start()
@@ -273,7 +290,8 @@ class Batched:
             self.thread = None
 
     def cost(self, r):
-        return len(self.tok(r["prompt"], add_special_tokens=False)["input_ids"]) + min(r["max_tokens"], self.reserve)
+        n = len(self.encode(r["prompt"])) if self.encode else len(self.tok(r["prompt"], add_special_tokens=False)["input_ids"])
+        return n + min(r["max_tokens"], self.reserve)
 
     def _work(self):
         held = []
@@ -281,21 +299,26 @@ class Batched:
             first = held.pop(0) if held else self.q.get()
             if first is None:
                 return
-            batch, used, t0 = [first], self.cost(first), time.monotonic()
-            while len(batch) < self.max_batch:
-                try:
-                    r = self.q.get(timeout=max(0.0, self.wait_s - (time.monotonic() - t0)))
-                except queue.Empty:
-                    break
-                if r is None:
-                    held.append(None)
-                    break
-                c = self.cost(r)
-                if r["key"] == first["key"] and used + c <= self.budget:
-                    batch.append(r)
-                    used += c
-                else:
-                    held.append(r)
+            batch = [first]
+            try:
+                used, t0 = self.cost(first), time.monotonic()
+                while len(batch) < self.max_batch:
+                    try:
+                        r = self.q.get(timeout=max(0.0, self.wait_s - (time.monotonic() - t0)))
+                    except queue.Empty:
+                        break
+                    if r is None:
+                        held.append(None)
+                        break
+                    c = self.cost(r)
+                    if r["key"] == first["key"] and used + c <= self.budget:
+                        batch.append(r)
+                        used += c
+                    else:
+                        held.append(r)
+            except Exception as err:                              # noqa: BLE001 - this batch fails, the loop goes on
+                self._deliver(batch, None, err)
+                continue
             self._run(batch)
 
     def mark(self, prompt, offsets):
@@ -307,16 +330,41 @@ class Batched:
         return pv.mark_for(offsets, prompt, self.span, extra)
 
     def _run(self, batch):
-        import torch
         try:
-            results = self._generate(batch)
-        except torch.cuda.OutOfMemoryError:
-            torch.cuda.empty_cache()
-            results = [self._generate([r])[0] for r in batch]
-        except RuntimeError as err:                               # some backends raise a plain RuntimeError
-            if "out of memory" not in str(err):
+            try:
+                results = self._generate(batch)
+            except Exception as err:                              # noqa: BLE001
+                if not out_of_memory(err):
+                    raise
+                import torch
+                torch.cuda.empty_cache()
+                results = [self._one(r) for r in batch]
+        except Exception as err:                                  # noqa: BLE001 - never leave a caller waiting
+            self._deliver(batch, None, err)
+            return
+        self._deliver(batch, results)
+
+    def _one(self, r):
+        """One run alone (after its batch ran out of memory); out of memory again: an error reply."""
+        from finetune import hf_engine as he
+        try:
+            return self._generate([r])[0]
+        except Exception as err:                                  # noqa: BLE001
+            if not out_of_memory(err):
                 raise
-            results = [self._generate([r])[0] for r in batch]
+            return he.failed(r["name"], f"out of memory alone: {err}", self.kind)
+
+    def _deliver(self, batch, results, err=None):
+        from finetune import hf_engine as he
+        if err is None:
+            self.fails = 0
+        else:
+            self.fails += 1
+            msg = f"{type(err).__name__}: {err}"
+            print(f"  batch of {len(batch)} failed ({self.fails} in a row): {msg}", flush=True)
+            if self.fails >= self.BROKEN_AFTER:
+                self.broken = f"{self.fails} batches in a row failed; the last: {msg}"
+            results = [he.failed(r["name"], msg, self.kind) for r in batch]
         for r, res in zip(batch, results):
             r["result"] = res
             r["done"].set()
@@ -325,9 +373,13 @@ class Batched:
         import torch
         self.batches.append(len(batch))
         tok, dev = self.tok, next(self.model.parameters()).device
-        encs = [tok(r["prompt"], add_special_tokens=False, return_offsets_mapping=True) for r in batch]
-        ids = [list(e["input_ids"]) for e in encs]
-        mks = [self.mark(r["prompt"], e["offset_mapping"]) for r, e in zip(batch, encs)]
+        if self.encode:
+            ids = [list(self.encode(r["prompt"])) for r in batch]
+            mks = [[0] * len(x) for x in ids]
+        else:
+            encs = [tok(r["prompt"], add_special_tokens=False, return_offsets_mapping=True) for r in batch]
+            ids = [list(e["input_ids"]) for e in encs]
+            mks = [self.mark(r["prompt"], e["offset_mapping"]) for r, e in zip(batch, encs)]
         n = max(map(len, ids))
         pad = tok.pad_token_id
         input_ids = torch.tensor([[pad] * (n - len(x)) + x for x in ids], device=dev)
@@ -337,9 +389,11 @@ class Batched:
         self.count += 1
         torch.manual_seed(first["seed"] * 100003 + self.count)
         kw = {"max_new_tokens": min(max(r["max_tokens"] for r in batch), self.max_new or 10 ** 9), "pad_token_id": pad,
-              "eos_token_id": tok.eos_token_id, "attention_mask": attn}
+              "eos_token_id": self.sample["eos_ids"], "attention_mask": attn}
         if first["temperature"] and first["temperature"] > 0:
-            kw.update({"do_sample": True, "temperature": first["temperature"]})
+            kw.update({"do_sample": True, "temperature": first["temperature"], "top_k": self.sample.get("top_k", 0),
+                       "top_p": self.sample.get("top_p", 1.0)})
+            kw.update({k: self.sample[k] for k in ("min_p", "repetition_penalty") if k in self.sample})
         else:
             kw.update({"do_sample": False})
         if first["stops"]:
@@ -347,20 +401,17 @@ class Batched:
         start = time.monotonic()
         with torch.no_grad(), self.hook.marked(mark):
             out = self.model.generate(input_ids=input_ids, **kw)[:, n:].tolist()
+        from finetune import hf_engine as he
         res = []
         for r, x, toks in zip(batch, ids, out):
-            while toks and toks[-1] == pad:
-                toks.pop()
+            if pad not in self.sample["eos_ids"]:
+                while toks and toks[-1] == pad:
+                    toks.pop()
             toks = toks[: min(r["max_tokens"], self.max_new or 10 ** 9)]
-            eos = bool(toks) and toks[-1] == tok.eos_token_id
-            text = tok.decode(toks, skip_special_tokens=False)
-            if eos and text.endswith(tok.eos_token):
-                text = text[: -len(tok.eos_token)]
-            stopped = eos or any(text.endswith(s) for s in r["stops"])
-            res.append({"content": text, "finish": "stop" if stopped or len(toks) < r["max_tokens"] else "length",
-                        "error": None, "reasoning": "", "usage": {"prompt_tokens": len(x), "completion_tokens": len(toks)},
-                        "latency_s": round(time.monotonic() - start, 2), "served_model": r["name"],
-                        "requested_model_id": r["name"], "reasoning_effort": None, "batch": len(batch)})
+            ends = [i for i, t in enumerate(toks) if t in self.sample["eos_ids"]]
+            toks = toks[: ends[0] + 1] if ends else toks                  # padding after the end, if pad is an end id
+            res.append({**he.reply(tok, self.sample, toks, len(x), r["max_tokens"], r["stops"], r["name"], start, self.kind),
+                        "batch": len(batch)})
         return res
 
 
@@ -439,12 +490,15 @@ def generate(out, alphas=None, alpha_from=None, part=None, model=None, device="a
     hook = None if version else pv.attach(m, layers, heads)
     if version:
         hook = _GateHook(m)
+    from finetune import hf_engine as he
+    sample = he.sampling(path, tok, ev.TEMPERATURE)               # the evaluation's sampling (finetune/hf_engine.py)
+    print(f"sampling: {sample}", flush=True)
     for system, span, alpha in cfgs:
         if alpha is not None:
             hook.set_alpha(alpha)
         gen = Batched(m, tok, hook, span, extra_ranges=pasted, max_batch=max_batch, token_budget=token_budget,
-                      max_new=max_new)
-        done = {r["run_id"] for r in latest(load(d / f"eval_{system}_runs.jsonl")) if r["status"] == "ok"}
+                      max_new=max_new, sample=sample)
+        done = {r["run_id"] for r in latest([r for f in ev.runs_files(d, system) for r in load(f)]) if r["status"] == "ok"}
         todo = [j for j in jobs if ev.job_id(system, j) not in done]
         print(f"{system} ({span}, alpha {alpha}): {len(todo)} runs to go", flush=True)
         t0, n_tok = time.monotonic(), 0
@@ -456,7 +510,7 @@ def generate(out, alphas=None, alpha_from=None, part=None, model=None, device="a
                     continue
                 rec.update({"span": span, "alpha": alpha, "layers": list(layers), "heads": heads, "version": version,
                             "snapshot_commit": commit})
-                ev.save(d, rec)
+                ev.save(d, rec, part)
                 n_tok += rec.get("completion_tokens") or 0
                 if i % 20 == 0 or i == len(todo):
                     el = time.monotonic() - t0
@@ -512,11 +566,10 @@ def report(out, base_system="prov-a1"):
     """Per configuration: the three measures (pooled and per channel), each minus alpha = 1 paired by
     question; no answer counts as not following and not accepting (and is counted)."""
     d = Path(out)
-    systems = {}
-    for p in sorted(d.glob("eval_prov-*_runs.jsonl")):
-        rows = [r for r in latest(load(p)) if r["status"] == "ok"]
-        if rows:
-            systems[rows[0]["system"]] = rows
+    systems = defaultdict(list)                                  # whole and part files (finetune/eval.py stem)
+    for r in latest([r for p in sorted(d.glob("eval_prov-*_runs.jsonl")) for r in load(p)]):
+        if r["status"] == "ok":
+            systems[r["system"]].append(r)
     res = {"systems": {}, "bootstrap": "paired by question (clustered), 20,000 resamples, seed 0"}
     for name, rows in systems.items():
         e = {"span": rows[0].get("span"), "alpha": rows[0].get("alpha"), "runs": len(rows),

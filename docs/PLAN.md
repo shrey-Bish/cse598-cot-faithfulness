@@ -241,6 +241,18 @@ lora_tags 66759772 (afterany lora) and lora_attn3 66759822 (afterany tags); setu
   afterok vllm_check: base 66879564 / 66879567, prompt_only 66879569 / 66879571, lora 66879572 /
   66879573, tags 66879761 / 66879792 (2 parts each, limit 4:30, estimate 3.26 h from the prior rate).
   lora_tags and lora_attn3 (4 parts) wait for free submission slots.
+- **Night of Oct 28–29: vLLM failed to start, twice.** vllm_check 66878660 (after 24:26) and
+  trackb_qwen8b 66879362 (after 13:39) both ended with "Engine core initialization failed", in
+  `warmup_kernels` inside `compile_or_warm_up_model`, after the weights loaded; the root-cause line
+  wasn't in the copied lines (the morning daily has the command that prints it). The 8 eval parts
+  were removed; nothing is queued. **Decided (Ritik, Oct 29):** batch 3 runs on Hugging Face
+  generation in the training environment (`finetune/hf_engine.py`): base, prompt-only, the four
+  versions and B1, on one stack; Qwen3-8B too. vLLM stays optional for later.
+  - **The cost (an estimate from memory traffic, not measured):** transformers' paged SDPA copies
+    each run's keys and values about five times a step, so ~70–120 tokens/s on one A100 at Olmo's
+    ~10,500-token average context. Per system 27–60 GPU h (mid 38) in 10 parts of 8:00; 163–359 for
+    the six (mid 230), so 3.5–7.5 days of both slots. vLLM was planned at 500–1,500 tokens/s. The
+    first part's log prints the measured rate every 25 runs; `plan_eval.py` re-plans from it.
 - **The losses need a baseline** (Ritik, Oct 28). LoRA's average validation loss barely moved
   between epochs (0.18567 → 0.18537), and the untrained model's is unknown. Most target tokens are
   the model's own reasoning, which it already predicts well, so the average hides what is taught.
@@ -262,16 +274,16 @@ replaces these estimates with measured ones.
 | S3 | Train LoRA only (1,040 examples × 2 epochs; batch 2, decided Oct 28): job 66759753 done in 3.41 h; epoch 2, validation loss 0.18567 → 0.18537 | 3.66 (3.56–3.78), S1 refit | 5:00 | S4 | Oct 28 | S1, data checks (a) and (e) |
 | S4 | Train tags only (batch 2, at once with S3): job 66759769 done in 2.81 h; epoch 2, validation loss 0.21672 → 0.21401 | 2.97 (2.89–3.04) | 4:00 | S3 | Oct 28 | S1 |
 | S5 | Train LoRA + tags: job 66759772 failed (no version reached run.sh); 66862721 done Oct 28 in 3:25:40; epoch 2, validation loss 0.18723 → 0.18598 | 3.65 (3.56–3.74) | 5:00 | S6 | after S3 | S1 |
-| E1 | Evaluate base (vLLM, no adapter), 930 generations: 66879564, 66879567 (queued Oct 28, after S2) | 5–14 (1–3 jobs) | 8:00 | S5, E2 | Oct 30 | code (A10), S2 |
-| E2 | Evaluate prompt-only: 66879569, 66879571 (queued) | 5–14 (1–3 jobs) | 8:00 | E1, E3 | Oct 30 | A10 |
-| E3 | Evaluate LoRA only (merged, vLLM): 66879572, 66879573 (queued) | 5–14 (1–3 jobs) | 8:00 | E2, E4 | Oct 31 | S3 |
-| E4 | Evaluate LoRA + tags (vLLM with prompt embeddings; own loop if S2 fails: 9–24, 2–4 jobs): to submit when slots free up | 5–14 (1–3 jobs) | 8:00 | E3, E5 | Oct 31 | S2, S5 |
-| E5 | Evaluate tags only (same): 66879761, 66879792 (queued) | 5–14 (1–3 jobs) | 8:00 | E4 | Nov 1 | S2, S4 |
+| E1 | Evaluate base, 930 generations (Hugging Face since Oct 29; the Oct 28 vLLM parts were removed) | 27–60, mid 38 (10 parts) | 8:00 | E2 | Oct 29 | code (A10) |
+| E2 | Evaluate prompt-only (same) | 27–60 (10 parts) | 8:00 | E1, E3 | Oct 29 | A10 |
+| E3 | Evaluate LoRA only (adapter merged in memory) | 27–60 (10 parts) | 8:00 | E2, E4 | after E1 | S3 |
+| E4 | Evaluate LoRA + tags (tags as token ids into a widened embedding table) | 27–60 (10 parts) | 8:00 | E3, E5 | after E2 | S5 |
+| E5 | Evaluate tags only (same) | 27–60 (10 parts) | 8:00 | E4 | after E3 | S4 |
 | L1 | Look inside the best version: Step 3 probes (vLLM), Step 9, Step 10 | 4–10 (1–2 jobs) | 8:00 | S6 | after E1–E5 | E1–E5 |
 | S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23): job 66759822 failed like S5; 66862726 done Oct 28 in 2:44:43; epoch 2, validation loss 0.19654 → 0.19278; evaluated last | 2.99 (2.92–3.07) | 4:00 | S5 | after S4 | S1 |
-| E6 | Evaluate the fourth version: to submit when slots free up | 5–14 (1–3 jobs) | 8:00 | — | after S6 | S6 |
+| E6 | Evaluate the fourth version (Hugging Face) | 27–60 (10 parts) | 8:00 | — | after S6 | S6 |
 | S7 | Validation loss by part (Oct 28, Ritik): base + both epochs of all four versions (decided Oct 28 21:30) on the 156 validation examples, each split into the taught tokens (80,010 of 1,243,692: 6.4%) and the rest; no vLLM (`finetune/val_loss.py`). 66865939 done Oct 28 in 0:37:09 (all four versions) | 0.62 measured (0.75–1.3 inferred) | 2:00 | any | after S5, S6 | S3–S6 |
-| B-Q8 | Track B: Qwen3-8B on vLLM (replaces Ollama), 1,620 runs, core cells first. "Go" Oct 28; get_qwen8b 66879245 done (1:31), trackb_qwen8b 66879362 queued after it (not after S2: submit.sh doesn't allow that dependency) | 0.5–1.5 | 2:00 | any | after S2 | S2, the snapshot |
+| B-Q8 | Track B: Qwen3-8B (replaces Ollama), 1,620 runs, core cells first. get_qwen8b 66879245 done (1:31); trackb_qwen8b 66879362 failed in vLLM's start (Oct 29, 13:39); now Hugging Face (`--engine hf`, the default), ~6.7M tokens at ~120–190 tokens/s | 10–15 (2 jobs) | 8:00 | any | Oct 29 | the snapshot |
 | S9A | Set A, Step 9 (attention to the hint) on set A's runs (Oct 29: questions not used to find the readout; `--runs-from`, `--items-from`, `--step3-from`) | ≤1 | as Step 9 | any | after set A's runs (Voyager, Oct 29) | set A |
 | S10A | Set A, Step 10 (patching) on set A's cases (`--cases-from`); the pre-registered readout question (share at 15/19/23, cut (ii)) | ≤1 | as Step 10 | any | after set A's cases | set A |
 | P1 | B1 forced answer at set A's takeover cuts, alpha in {1, 0.5, 0.25, 0.1, 0}, deployable and oracle spans; chooses alpha on set A (`provenance_forced`) | 0.25–0.5 | 1:00 | any | after set A's cases | set A |
@@ -279,14 +291,15 @@ replaces these estimates with measured ones.
 | G1 | B2 train gate3 and lora_attn3_gate (a learned per-head bias on tool keys in 15/19/23; LR_GATE 1e-2 to confirm) + their val_loss | ~2.75 each + 0.3 | 4:00 | each other | after Ritik confirms LR_GATE | S1 |
 | — | Buffer for queue waits and reruns; all evaluation done | | | | by Nov 20 | |
 
-With two jobs at a time the running time is about half the GPU hours: 18–45 hours for S1–L1
-(+3–8 for the fourth version). Starting Oct 29, E1–E5 can be done between Oct 31 and Nov 4 if the
-queue waits are short; Nov 9 is the cutoff for the fourth version, Nov 20 for everything. Ritik
-submits every job; nothing runs without "go".
+With two jobs at a time the running time is about half the GPU hours. On Hugging Face (Oct 29),
+E1–E6 are 163–359 GPU h (mid 230): 3.5–7.5 days of both slots, plus Qwen3-8B (10–15), set A's
+Steps 9–10, P1–P2 and G1. Starting Oct 29, E1–E5 end between about Nov 2 and Nov 6 if the queue is
+free; Nov 9 is the cutoff for the fourth version, Nov 20 for everything. A working vLLM (planned at
+500–1,500 tokens/s) would bring E1–E6 to 15–50 GPU h. Ritik submits every job; nothing runs without "go".
 
-**Batch 3 (evaluation), "go" Oct 28** once S2 passes: base and prompt-only first, then each trained
-version as its training is done. `plan_eval.py` re-plans the hours from the first job's measured
-rate.
+**Batch 3 (evaluation), "go" Oct 28; on Hugging Face since Oct 29:** base and prompt-only first, then
+each trained version. `plan_eval.py` prints the lines; made again at any time, it leaves out runs
+already saved and parts already queued, and uses the measured rate once a part has finished.
 
 ### Risks (Track A)
 
@@ -297,6 +310,7 @@ rate.
 | Sol queue waits, or the 960 GPU-minute cap | Limits of estimate × 1.3; jobs of at most 8 h that resume; `submit.sh` checks the cap before submitting; start Oct 29, done by Nov 20 |
 | The fourth version delays the main ones | Scheduled last; dropped if E1–E5 aren't done by Nov 9 |
 | vLLM can't serve the tag versions | Own decoding loop (+8–19 GPU h), still inside the budget |
+| vLLM doesn't start on Sol (Oct 29), and Hugging Face generation is 4–20× slower | Batch 3 on Hugging Face (163–359 GPU h); the first part measures the rate; the vLLM root cause from its log; if E1–E5 can't end by Nov 9, Ritik picks the scope (fewer runs per question, or systems) |
 | Training targets are shorter than held-out replies (median 7,343 vs 11,988 tokens; MMLU-Pro targets are short) | Report length by source; check no-hint accuracy on long held-out questions |
 | The mechanism rests on 9 questions and 21 cases (F4, F11, F13) | Said in each finding; the look-inside rerun on the trained model adds cases |
 | The Mac sleeps during Voyager runs (lost 9 hours on Oct 27) | Plugged in, lid open; `caffeinate -s` only helps on power |

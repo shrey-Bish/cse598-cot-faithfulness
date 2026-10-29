@@ -1,164 +1,172 @@
-# Session log: the night's dry runs: set A, C11, C12 (2026-10-29 00:20 MST)
+# Session log: Hugging Face generation for Sol's batch 3 and Qwen3-8B (2026-10-29 08:10 MST)
 
 Project: CSE 598 Group 10. Track A trains Olmo 3 7B Think on Sol to stop hiding hint-following and
-localizes where the hint is read; Track C runs a solver/reviewer/checker team on Track B's cases. This
-log holds the dry runs of the three Voyager experiments in Ritik's overnight plan (Part 3 A, C11 and
-C12), with each one's main comparison and decision rule, written before any of them runs.
+evaluates the versions (batch 3); Track B adds Qwen3-8B on Sol. On the night of Oct 28–29 both vLLM
+jobs failed to start. This log covers what replaced vLLM, why each job would have failed, the cost,
+and the morning's Sol commands (in the Oct 29 daily).
 
 ## 1. Header
 
-- **Time:** 2026-10-29 00:20 MST. **Track:** A and C. **By:** Ritik.
-- **Branch:** `trackA-nosol` (= `main`); the night's commits stay local until the single push at the
-  end.
-- **Input:** Ritik's overnight plan (Oct 28–29).
+- **Time:** Oct 29, 01:00–02:05, then 07:36–08:10 MST. **Track:** A and B. **By:** Ritik.
+- **Branch:** `trackA-nosol`. Three earlier commits and this one are local; the repo is public, and
+  the push waits for Ritik's "push".
+- **Input:** Ritik's Sol message (night of Oct 28): requests 1–4 below.
+- **Tests:** 476 pass.
+- **In flight:** Voyager, under the guard since 07:58: set A (140 of 204 runs at 08:00), then C11,
+  then C12. Nothing on Sol.
 
-## 2. What ran
+## 2. What happened on Sol
 
-- **Mac, no calls:**
-  - the attribution fix (487d47d: every log "By:" line and every past-work owner is Ritik);
-  - the code below, with its tests;
-  - the three dry runs.
-- **Voyager:** nothing yet. The three runs start after this log, under one power guard, in Part 4's
-  order: A, then C11, then C12.
+- **vllm_check 66878660** failed after 24:26, and **trackb_qwen3-8b 66879362** after 13:39. Both
+  ended with "RuntimeError: Engine core initialization failed. See root cause above".
+- **The traceback:** `_initialize_kv_caches` → `compile_or_warm_up_model` → `gpu_worker.py:876`
+  `warmup_kernels(` → torch's `decorate_context`. The copied lines stop there, so the root-cause line
+  is not known.
+  - `vllm_base.log` line 4 (`--disable-log-requests`) is from Oct 27. The log is appended to across
+    jobs.
+  - The weights had loaded in both jobs. Olmo runs through vLLM's Transformers backend, and Qwen3-8B
+    natively, so the cause is more likely the node or the environment than either model.
+- **The 8 eval parts were removed.** Nothing is queued.
 
-## 3. Code (new or changed, all with CPU tests)
+## 3. Request 1: the root cause
 
-- **`finetune/setA.py`** (new): set A's runs, probes and cases (§4). It reuses Step 2b's runner
-  (`base_format.one`) and Step 3's probes (`look/takeover.py`).
-  - `takeover.save_cases` takes a path, rule and use.
-  - Steps 9 and 10 take `--items-from` (and Step 9 `--step3-from`). Without them, Step 9's inputs
-    are the Test 2 questions and Step 3's runs file.
-  - `patching.py --handoff` takes `--handoff-out`, so set A's readout doesn't overwrite Test 2's.
-- **`agents/reviewer.py`:**
-  - the redacted variants for C12;
-  - `redact`: every standalone mention of the tool's letter in the private reasoning;
-  - `redact_tool_log`: the returned letter in the tool log.
-- **`agents/run_team.py`:**
-  - `--no-check-tool` (C4's original prompt) and `--bad-first`;
-  - C12's comparisons with C4's unredacted variant (`vs_original_prompt`) and with C4's
-    answer_only (`vs_original_answer_only`).
-- **Tests:** `tests/test_setA.py` (6), 3 more in `tests/test_trackC_team.py`. The existing Step 3,
-  9 and 10 tests pass (55).
+- **Not found.** The daily's command 1 prints both tracebacks from `warmup_kernels` to the end.
+- **The next failure names its cause itself:** `generate.log_tail` now reads only this start's part
+  of a server log (each start writes a `=== server start` line). It lists the start's error lines
+  first, without EngineCore prefixes and generic lines ("See root cause above"), then the last 30
+  lines.
+- **Test:** `test_a_server_log_names_this_starts_root_cause`.
 
-## 4. Dry runs, main comparisons and decision rules (pre-registered)
+## 4. Request 2: Hugging Face generation for batch 3
 
-### A. Set A: does the readout replicate on questions not used to find it?
+**`finetune/hf_engine.py`** (new; 10 CPU tests on a tiny Olmo 3 with the real tokenizer):
+- **Load:** the base snapshot in bf16, the adapter merged in memory.
+- **Tag versions:** `TagTable` widens the input embedding table to 4 blocks (model, system, user,
+  tool); row = embedding + tag. Prompt ids are shifted by the block, so tags work as plain token ids.
+  The logits equal training's `SourceTaggedLM.embed` inputs on CPU (atol 1e-5).
+- **Engines:**
+  - transformers 5.18's continuous batching (the same version on Sol) after a GPU self-check: its
+    greedy tokens against plain `generate` on 2 prompts, at least 8 of 16 alike from the first;
+  - else static batches (B1's `Batched`).
+- **Sampling, as vLLM's would have been:**
+  - temperature 0.6; top_p, top_k, min_p and repetition_penalty only if the snapshot's
+    `generation_config.json` sets them, never Hugging Face's default top_k = 50;
+  - Olmo 3 7B Think's at d97e442 sets top_p 0.95, checked against the pinned blob hash
+    (d456a34e) on Oct 29;
+  - end ids: the tokenizer's, the config's and `<|im_end|>`; special tokens skipped in the text;
+  - stop strings as vLLM's (text up to and including the stop).
+- **Seeds:** per-run seeds can't be kept inside a batch. The job's generator is seeded from system,
+  part and job id.
 
-```
-$ ../.venv/bin/python finetune/setA.py --dry-run
-set A: 34 questions ({'mmlupro_train': 16, 'fresh_puzzles_hard': 18}), none in training or in Test 2; sure (3 of 3 Step 6 no-hint runs correct): 34 of 34
-204 runs: pasted tool block x 3 and declared inserted tool turn x 3 per question = 204 calls, plus up to 204 if inserted-tool replies keep calling
-  time at Step 2b's 78 s/call, 4 in flight: 66 min (longer for long puzzle replies: Step 6's no-hint runs here had a median of 8,606 tokens)
-then Step 3 grid_tail probes on the followed runs (~0.5 s a probe, a few dozen per run), then the cases -> results/trackA/setA/cases.jsonl
-```
+**`eval_job.py --engine hf`** (now the default; `--engine vllm` is still available):
+- `kit.check_inputs` always runs; the vLLM preflight only for vLLM.
+- Each record and the `eval_jobs.jsonl` row name the engine, why it was chosen, runs in flight and
+  the sampling.
 
-- **Questions:** the 34 validation questions of the training data. None is among the 217 training
-  questions, and none is among Test 2's 30 (the questions F11 and F12 were found on, and the
-  evaluation set); a test checks both.
-- **Hint letter:** each question's own, chosen in Steps 6–7 (`pool.jsonl`), fixed before tonight.
-  It is never the correct letter and never one of the model's no-hint answers.
-- **Runs:** Step 2b's code, format and wordings. That is the pasted tool block × 3 and the declared
-  inserted tool turn × 3 per question, the two arms Steps 9 and 10 used.
-- **No-hint baseline:** the 3 Step 6 runs per question. They give the own answer (majority) and
-  "sure" (all 3 correct). All 34 questions are sure.
-- **Then:** Step 3's grid_tail probes on every followed run; cases are followed runs with a late
-  takeover on sure questions. Tomorrow on Sol: Step 10 on those cases, and Step 9 on set A's runs
-  (`--runs-from`, `--items-from`, `--step3-from`, `--cases-from`; the lines are in the morning
-  daily).
-- **Main comparison:** at cut (ii), the share of the hint-row restoration drop at layers 15, 19 and
-  23 (`patching.py --handoff`, set A's step10_patching.json), with a 95% bootstrap clustered by
-  question. Test 2 gave 0.90 [0.85, 0.96] (F11).
-- **Decision rule:**
-  - **Replicates:** the lower bound is above 0.375 (3 of the 8 full-attention layers' even share),
-    *and* 15, 19 and 23 are the three layers with the largest drops.
-  - **Partly:** one of the two holds.
-  - **Does not replicate:** neither holds.
-  - It is reported against 0.90 either way.
-- **Too few:** if fewer than 5 questions have a late takeover, the answer is "too few". The log then
-  proposes more questions from MMLU-Pro categories that are neither in the evaluation nor used by
-  training.
+**Concurrent writers:** two jobs appending to one file on Sol's shared /scratch is unsafe. Each part
+now writes `eval_<system>_p<k>of<n>.jsonl.gz` and `…_runs.jsonl`. Resume and the report read every
+file of a system; B1's report groups by system across part files.
 
-### C11. Is the deference general? Two more reviewer models
+**Four fixes; each would have broken or stalled a job:**
 
-```
-$ ../.venv/bin/python agents/run_team.py --rereview team_c4 --no-check-tool --bad-first --reviewer-model voyager:olmo3-7b-instruct --reviewer-model voyager:qwen3-30b-a3b-thinking-2507 --reviewer-max-tokens 16000 --cases results/trackB/steered_cases.jsonl --log team_c11 --dry-run
-159 saved tool-team cases of team_c4 (53 items; 75 bad and 84 good lookups), 159 to run: ~954 calls (2 reviewer models x 3 variants: answer_only, plus_private, plus_tool_log); no solver or checker calls. C4's reviewer prompt, unchanged; bad lookups first (75 cases)
-```
+| Problem | Effect on Sol | Fix and test |
+|---|---|---|
+| A static batch that raised anything but out-of-memory killed the worker thread | every waiting run hangs until the time limit (seen on CPU: the test hung) | each run of a failed batch gets an error reply (retried later); three failing batches in a row break the engine and end the job. `test_a_static_batch_that_raises_…` |
+| Continuous batching switches the model to paged attention; a start that failed partway left it there | the static fallback fails on every batch ("paged\|sdpa was called without a paged attention cache") | `make` restores the attention before the fallback. `test_a_failed_start_leaves_the_static_fallback_its_own_attention` (fails without the fix) |
+| `step8`, `step9`, `step10` and `smoke` job scripts didn't pass their arguments | set A's Step 9/10 would have run on Test 2's inputs, silently | `"$@"` added; a test checks every job script |
+| Parts were every N-th question | parts 0.7–5.4 h apart: 17 parts per system | parts are every N-th run (`eval.jobs`): 10 equal parts of ~6 h |
 
-- **Models:**
-  - Olmo 3 7B Instruct (Olmo family, 7B, no thinking);
-  - Qwen3 30B Thinking (Qwen family, 30B MoE, thinking).
-  - With C4's Olmo 3.1 32B Instruct (defers) and Qwen3 30B Instruct (doesn't), family, size and
-    thinking can be told apart.
-  - Both have identity canaries.
-  - **Left out:** Olmo 3 7B Think, whose served chat endpoint uses the Instruct template, not its
-    own (Track B had to render its format by hand); and Olmo 3.1 32B Think, which has no canary.
-- **Settings:** C4's reviewer prompt, temperature 0.6, seed = repeat, on C4's saved cases. The cap is
-  16,000 tokens (C4: 8,000), because a thinking reviewer's reasoning counts. No letter counts as not
-  correcting, and is reported.
-- **Main comparison:** per model, plus_private minus answer_only on correcting a wrong answer after
-  a bad lookup (25 items), paired by item. The same for plus_tool_log.
-- **Decision rule:**
-  - **Defers:** the difference's upper bound is below −20 points.
-  - **Doesn't defer:** the interval includes 0, or lies above −20.
-  - **Unclear:** otherwise.
-- **Across the four models:**
-  - **Family:** both Olmo defer, both Qwen don't.
-  - **Size:** Olmo 7B differs from Olmo 32B.
-  - **Thinking:** Qwen Thinking differs from Qwen Instruct.
-  - It is reported as whichever of these the four results fit, or none.
-- **Order:** bad lookups first, so the main comparison is complete first if time runs short.
+**`plan_eval.py`:**
+- `--engine hf` is the default; it needs no vLLM check, and the tag versions run on it.
+- **Step 2b's lengths as a range:** 92 of 350 runs stopped at Voyager's 16,000-token cap and were
+  never continued. They count as recorded (low), as the 94 continued runs' mean, 23,547 (mid), and as
+  the 32,768 cap less the prompt (high).
+- **Parts:** the fewest N whose every part's high end × 1.3 fits 8 h. Each part gets its own
+  estimate.
+- **Made again at any time:**
+  - it leaves out saved runs (every part file);
+  - it leaves out parts already queued (sacct's SubmitLine); a system with queued parts keeps their N;
+  - it uses the rate measured by finished jobs on the same engine.
+- 8 tests.
 
-### C12. What is the cue? The tool's letter redacted
+**The rate: an estimate, not measured.**
+- Paged SDPA gathers each run's keys and values into a new tensor, then copies it again
+  (`.contiguous()`) before attention: about 5 passes a step.
+- A run holds ~3.0 GB of keys and values at Olmo's 10,522-token average context per generated
+  token: 8 full layers × 16 KiB a token, plus 24 sliding layers × 16 KiB × 4,096.
+- 16 in flight move ~254 GB a step with the weights: ~160 ms at ~1.6 TB/s, ~100 tokens/s. More in
+  flight doesn't help (ceiling ~110).
+- The prior is **70–120 tokens/s**.
 
-```
-$ ../.venv/bin/python agents/run_team.py --rereview team_c4 --no-check-tool --bad-first --variants plus_private_redacted,plus_tool_log_redacted --cases results/trackB/steered_cases.jsonl --log team_c12 --dry-run
-159 saved tool-team cases of team_c4 (53 items; 75 bad and 84 good lookups), 159 to run: ~636 calls (2 reviewer models x 2 variants: plus_private_redacted, plus_tool_log_redacted); no solver or checker calls. C4's reviewer prompt, unchanged; bad lookups first (75 cases)
-```
+| | low | mid | high |
+|---|---|---|---|
+| tokens per system (M) | 11.7 | 13.4 | 15.0 |
+| GPU h per system | 27.1 | 38.4 | 59.8 |
+| GPU h, six systems | 163 | 230 | 359 |
 
-- **Reviewers:** C4's two, with C4's prompt and settings.
-- **Redaction rule** (fixed before the run, `reviewer.redact`):
-  - **Private reasoning:** every standalone mention of the tool's letter ("B", "(B)", '"B"')
-    becomes "[redacted]". On the 75 bad lookups, that is a median of 40 redactions per reasoning,
-    and at least 5 in each.
-  - **Letters A and I** (12 of the 75) are also English words. For them only option-like forms go:
-    "(A)", "A)", quoted, or after option/answer/choice/letter/is/be/to. So "I think A is wrong"
-    could survive.
-  - **Tool log:** the returned letter is redacted.
-  - **Unchanged:** the proposed answer and the solver's final answer ("Answer: (B)"). The reviewer
-    must see what it reviews.
-- **Main comparison:** for each reviewer, on correcting a wrong answer after a bad lookup, paired by
-  item:
-  - plus_private_redacted minus C4's plus_private;
-  - plus_tool_log_redacted minus C4's plus_tool_log;
-  - each redacted variant minus C4's answer_only.
-- **Decision rule** (the Olmo reviewer, which defers):
-  - **The letter is the cue:** redacted minus unredacted has an interval above 0, *and* redacted
-    minus answer_only's interval includes 0.
-  - **The letter is not the cue:** redacted minus unredacted's interval includes 0. The deference
-    then comes from knowing the answer came from the key, not from seeing its letter.
-  - **Partly:** in between.
-  - For the Qwen3 reviewer (no deference to remove), this is a check that redaction doesn't hurt.
+At two jobs at once that is 3.5–7.5 days. vLLM was planned at 500–1,500 tokens/s (15–50 GPU h for
+six systems). B1's generation (P2) uses the same static path; its 11–23 GPU h (PROVENANCE.md) is
+from an 80–160 tokens/s guess and is likely low.
 
-## 5. The guard (power rules; at most 4 requests in flight; canaries first)
+## 5. Request 3: Qwen3-8B the same way
 
-```
-cd cot-disclosure
-nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
-  --job "voyager:setA=finetune/setA.py --run" \
-  --job "voyager:c11:setA=agents/run_team.py --rereview team_c4 --no-check-tool --bad-first --reviewer-model voyager:olmo3-7b-instruct --reviewer-model voyager:qwen3-30b-a3b-thinking-2507 --reviewer-max-tokens 16000 --cases results/trackB/steered_cases.jsonl --log team_c11 --run-name C11-oct29" \
-  --job "voyager:c12:c11=agents/run_team.py --rereview team_c4 --no-check-tool --bad-first --variants plus_private_redacted,plus_tool_log_redacted --cases results/trackB/steered_cases.jsonl --log team_c12 --run-name C12-oct29" \
-  >> logs/guard_night.log 2>&1 &
-```
-`logs/stop_guard` stops all three, letting requests in flight finish. Exit 3 means a Voyager guard
-failed, and every Voyager job pauses.
+- **`providers/sol_hf.py`** (new) and `sol_trackB.py --engine hf` (the default). It renders the
+  snapshot's chat template as vLLM's chat endpoint hands messages to it:
+  - tool-call arguments as a mapping;
+  - `enable_thinking` only when the request sets it.
+- **It parses the reply as the server's parsers did:**
+  - `--reasoning-parser qwen3`: `<think>` split out;
+  - `--tool-call-parser hermes`: `<tool_call>` blocks, only when tools were declared.
+- **A reply cut inside its reasoning** is all private reasoning (finish "length", no answer).
+- **The provider name stays `sol_vllm`,** so run ids, records, flags and the report are unchanged.
+  Each record names its engine.
+- **Tests:** 8, with the Qwen3-8B tokenizer from the local cache. The template rendering equals
+  `apply_chat_template` with vLLM's message form; a whole Track B run goes through a fake engine.
+- **Size:**
+  - 1,620 runs, ~6.7M tokens (Voyager's Qwen3 30B lengths: ~6,200 a run thinking, ~2,000 not).
+  - Qwen3's 4 query heads per key head add a copy (`repeat_kv`), so ~120–190 tokens/s: **10–15
+    GPU h**, two 8-hour jobs.
+  - The first estimate in the job's docstring (5 h) was too low.
 
-## 6. For review
+## 6. Request 4: the morning commands
 
-- **Set A's hint letters come from Steps 6–7's choice,** not from Test 2's rule (Test 2 had its own
-  per question). Both were fixed before the runs.
-- **C11's 16,000-token cap differs from C4's 8,000;** a thinking reviewer needs it.
-- **C12's redaction can miss some mentions of A and I** (12 of 75 bad lookups). It removes the
-  letter, not the fact that a tool was consulted.
-- **The power guard chains the jobs:** C11 starts only when set A exits 0. If set A gets stuck, C11
-  and C12 wait.
+They are in [DAILY_2026-10-29.md](DAILY_2026-10-29.md), ahead of the set-A jobs:
+- 0, pull;
+- 1, vLLM's root cause;
+- 2, base 1/10 to 7/10 and Qwen3-8B (two jobs), with the tenth slot left for set A;
+- 3, copy-backs;
+- 4, set A's Step 10, Step 9 and B1 forced, with `--out $A`, once set A is done.
+
+## 7. Files and tests
+
+- **New:** `finetune/hf_engine.py`, `providers/sol_hf.py`, `tests/test_hf_engine.py`,
+  `tests/test_trackB_sol_hf.py`.
+- **Changed:**
+  - `finetune/eval.py` (every-N-th-run parts, per-part files);
+  - `finetune/generate.py` (log_tail);
+  - `finetune/gpu/eval_job.py`, `finetune/gpu/provenance_job.py` (static engine, report by system),
+    `finetune/gpu/plan_eval.py`;
+  - `progress/sol_trackB.py`, `progress/run_trackB.py` (engine field), `providers/sol_vllm.py`;
+  - job scripts `step8`, `step9`, `step10`, `smoke`, `trackb_qwen8b`; `run.sh` comment;
+  - tests for eval, provenance, the GPU kit, generate, Track B and the planner.
+- **Docs:** GPU README (the Hugging Face section, table rows), PLAN (the night, E1–E6, B-Q8, the
+  schedule, a risk), TODO (A16, A29, A33, A34, B4), the Track B handoff, the daily.
+- **Tests:** the full suite, 476 pass (08:08).
+
+## 8. For review
+
+1. **The speed is an estimate from memory traffic.** Base 1/10's log prints the measured rate every
+   25 runs. If it is near 100 tokens/s, batch 3 needs most of the remaining Sol time.
+2. **The scope may need a choice** (fewer runs per question, or fewer systems) if vLLM's cause isn't
+   a small fix. That is Ritik's call.
+3. **The GPU self-check's threshold** (8 of 16 greedy tokens alike) is a judgment. bf16 kernels can
+   diverge early and still be correct; a failure only means the static fallback.
+4. **Parts by run, not by question:** a part now holds runs of many questions. Analysis merges
+   every part, so nothing downstream changes.
+
+## 9. Next
+
+- Ritik: "push" (the pre-push check passes), then the daily's commands 0–2, and command 1's output
+  to me.
+- Mac: set A finishing on Voyager, then its Sol lines (command 4); C11 and C12 after it under the
+  guard.

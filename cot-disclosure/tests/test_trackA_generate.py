@@ -164,3 +164,46 @@ def test_eval_job_prepares_merged_and_folded_models(tagged, tmp_path):
     b0 = AutoModelForCausalLM.from_pretrained(d)
     q = "model.layers.0.self_attn.q_proj.weight"
     assert not torch.allclose(dict(m.named_parameters())[q].float(), dict(b0.named_parameters())[q].float())
+
+
+def test_eval_job_hf_engine_runs_a_trained_tag_version_and_records_the_engine(tagged, tmp_path, monkeypatch):
+    """Oct 29, vLLM failing on Sol: lora_tags through finetune/hf_engine.py (adapter merged in memory, the tag
+    table installed, continuous batching after its self-check); records and eval_jobs.jsonl say so."""
+    from finetune import eval as ev
+    from finetune import hf_engine as he
+    from finetune import train as tr
+    from finetune.gpu import eval_job as ej
+    from finetune.gpu import kit
+    from progress.common import load
+    d, tok, _, _ = tagged
+    exs = []
+    for i in range(3):
+        msgs, _ = build(f"Q{i}?\n(A) 1\n(B) 2", f"q{i}", "user", "B")
+        exs.append(tr.encode(tok, {"record_id": str(i), "messages": msgs, "tools": None,
+                                   "target_raw": "Checked the hint.</think>\n\nAnswer: (A)"}))
+    lm = tr.build("lora_tags", d, dtype="fp32", device="cpu", attn="eager")
+    with torch.no_grad():
+        lm.tags.weight.normal_(0, 0.3)
+    tr.train(lm, exs, exs[:1], tmp_path / "train" / "lora_tags", "cpu", epochs=1, accum=2)
+    tr.export("lora_tags", d, tmp_path / "train" / "lora_tags", "cpu")
+    monkeypatch.setenv("TRACKA_OUT", str(tmp_path))
+    monkeypatch.setattr(kit, "snapshot", lambda *a: (Path(d), None))
+    two = ev.jobs()[:1] + [j for j in ev.jobs() if j["channel"] == "tool_injected"][:1]
+    monkeypatch.setattr(ev, "jobs", lambda part=None: two)
+    monkeypatch.setattr(olmo_format, "n_tokens", lambda text: 0)
+    monkeypatch.setattr(olmo_format, "CAP_TOTAL", 6)                    # 6 new tokens per run on the CPU
+    installed = []
+    real_install = he.TagTable.install
+    monkeypatch.setattr(he.TagTable, "install", classmethod(lambda cls, m, t, tags: installed.append(tags.shape)
+                                                             or real_install.__func__(cls, m, t, tags)))
+    ej.evaluate_hf("lora_tags", None, tmp_path / "eval", workers=2, load=lambda p, dev, adapter=None: he.load(p, "cpu", adapter))
+    rows = load(tmp_path / "eval" / "eval_lora_tags_runs.jsonl")
+    assert len(rows) == 2 and {r["engine"] for r in rows} == {"continuous"} and {r["status"] for r in rows} == {"ok"}
+    assert all(r["completion_tokens"] <= 6 for r in rows) and installed
+    job = load(tmp_path / "eval" / "eval_jobs.jsonl")[-1]
+    assert job["engine"] == "continuous" and job["engine_why"] == "self-check passed" and job["adapter"].endswith("adapter")
+    assert job["tags"].endswith("tags.pt") and job["sampling"]["temperature"] == ev.TEMPERATURE and job["workers"] == 2
+    assert 100265 in job["sampling"]["eos_ids"] and "environments" in job
+    with pytest.raises(FileNotFoundError, match="train and export"):
+        ej.hf_parts("tags", tmp_path / "train")
+    assert ej.hf_parts("prompt_only", tmp_path / "train") == (None, None)

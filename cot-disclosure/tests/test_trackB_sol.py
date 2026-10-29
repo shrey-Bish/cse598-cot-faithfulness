@@ -142,19 +142,19 @@ def test_the_job_driver(tmp_path, monkeypatch):
     monkeypatch.setattr(st, "preflight", refuse)
     monkeypatch.setattr(st, "snapshot", lambda local_only=True: order.append("snapshot") or tmp_path / "snap")
     with pytest.raises(SystemExit, match="differ"):                       # the node check comes first
-        st.run([], tmp_path / "log")
+        st.run([], tmp_path / "log", engine="vllm")
     assert order == ["preflight"]
     monkeypatch.setattr(st, "preflight", lambda vllm, log_dir: order.append("preflight"))
     monkeypatch.setattr(st, "snapshot", lambda local_only=True: (_ for _ in ()).throw(OSError("not cached")))
     with pytest.raises(SystemExit, match="no Qwen/Qwen3-8B snapshot.*run the download job first"):
-        st.run([], tmp_path / "log")
+        st.run([], tmp_path / "log", engine="vllm")
     snap = tmp_path / "snap"
     snap.mkdir()
     (snap / "tokenizer_config.json").write_text(json.dumps({"chat_template": "{{ messages }}"}))
     (snap / "model.safetensors").write_bytes(b"w" * 10)
     monkeypatch.setattr(st, "snapshot", lambda local_only=True: snap)
     with pytest.raises(SystemExit, match="run the download job first"):                # no snapshot.json yet
-        st.run([], tmp_path / "log")
+        st.run([], tmp_path / "log", engine="vllm")
     (tmp_path / "log").mkdir(exist_ok=True)
     (tmp_path / "log" / "snapshot.json").write_text(json.dumps({"revision": st.REVISION, "files": [
         {"file": "model.safetensors", "bytes": 10}]}))
@@ -179,7 +179,7 @@ def test_the_job_driver(tmp_path, monkeypatch):
     monkeypatch.setattr(st.subprocess, "call", fake_call)
     monkeypatch.setattr(st.signal, "signal", lambda sig, h: handlers.__setitem__("usr1", lambda: h(sig, None)))
     monkeypatch.setattr(st, "export_flags", lambda: 0)
-    assert st.run(["--limit", "5"], tmp_path / "log") == 2
+    assert st.run(["--limit", "5"], tmp_path / "log", engine="vllm") == 2
     assert seen["cmd"][:3] == ["vllm", "serve", str(tmp_path / "snap")] and "--reasoning-parser" in seen["cmd"]
     template = Path(seen["cmd"][seen["cmd"].index("--chat-template") + 1])
     assert template.read_text() == "{{ messages }}"

@@ -24,6 +24,8 @@ import argparse
 import base64
 import io
 import json
+import os
+import re
 import shutil
 import subprocess
 import sys
@@ -143,12 +145,33 @@ def serve_cmd(model_dir, port=PORT, lora=None, prompt_embeds=False, vllm="vllm",
     return cmd
 
 
-def log_tail(path, n=30):
-    """The last n lines of a server log, for an error message."""
+SERVER_START = "=== server start"           # the line a job writes into a server log before each start
+ERROR_LINE = re.compile(r"\b\w*(?:Error|Exception)\b(?::| \d)|\berror:|CUDA error|No such file|not found|Killed")
+GENERIC = ("Engine core initialization failed", "See root cause above", "the server exited with code")
+
+
+def log_start_line(cmd):
+    return f"{SERVER_START} {time.strftime('%Y-%m-%d %H:%M:%S')} job {os.environ.get('SLURM_JOB_ID', '-')}: {' '.join(map(str, cmd))}\n"
+
+
+def log_tail(path, n=30, causes=8):
+    """This start's part of a server log (after its last SERVER_START line; a log is appended to across
+    jobs): its last n lines, and first its error lines, the likely root cause (a traceback's last line is
+    often only "See root cause above"), for an error message."""
     if not path or not Path(path).exists():
         return f"(no server log{f' at {path}' if path else ''})"
-    lines = Path(path).read_text(errors="replace").splitlines()[-n:]
-    return f"the last {len(lines)} lines of {path}:\n" + "\n".join(lines)
+    lines = Path(path).read_text(errors="replace").splitlines()
+    starts = [i for i, x in enumerate(lines) if x.startswith(SERVER_START)]
+    if starts:
+        lines = lines[starts[-1]:]
+    errs = []
+    for x in lines:
+        msg = re.sub(r"^\(EngineCore[^)]*\)\s*(?:ERROR\s+\S+\s+\S+\s+\[[^]]*\]\s*)?", "", x).strip()
+        if ERROR_LINE.search(msg) and not any(g in msg for g in GENERIC) and msg not in errs:
+            errs.append(msg)
+    head = ("error lines in this start (the likely root cause):\n  " + "\n  ".join(errs[-causes:]) + "\n") if errs else ""
+    tail = lines[-n:]
+    return f"{head}the last {len(tail)} lines of {path}:\n" + "\n".join(tail)
 
 
 def wait_ready(url, timeout=1800, proc=None, log=None):

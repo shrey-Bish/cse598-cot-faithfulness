@@ -11,11 +11,15 @@ number, with one cap of 32,768 tokens for prompt and reply over all rounds (past
 continued as every Track A run is (finetune/continuation.py: past a quoted call; a tool call in the
 final answer answered like Step 2b, at most twice more). Systems: base; prompt_only (the base model
 with finetune/prompts/guide_note.txt at the end of the system turn, in every round); lora, tags,
-lora_tags, lora_attn3 (finetune/train.py). Generation goes through a local vLLM server
-(finetune/generate.py; the tag versions send tagged prompt embeddings).
+lora_tags, lora_attn3 (finetune/train.py). Generation (finetune/gpu/eval_job.py): Hugging Face batched
+generation in the job's own process (finetune/hf_engine.py, the default since Oct 29), or a local vLLM
+server (finetune/generate.py; the tag versions send tagged prompt embeddings). Each record says which
+engine ran it.
 
 Records: OUT/eval_<system>.jsonl.gz (texts) and OUT/eval_<system>_runs.jsonl (numbers and keyword
-flags only: what the report reads). Resumable; runs that got no reply are retried twice.
+flags only: what the report reads); a part k/n writes its own pair, eval_<system>_p<k>of<n>..., so two
+jobs never append to one file (Sol's /scratch is shared by nodes; Oct 29). Resumable; runs that got no
+reply are retried twice; the report and resuming read every file of a system.
 
   python finetune/eval.py --dry-run
   python finetune/eval.py --system base --url http://localhost:8011 --out OUT [--part 1/2] [--workers 48]
@@ -103,19 +107,17 @@ def job(q, wid, letter, rep):
 
 
 def jobs(part=None):
-    """930 jobs (31 per question); part=(k, n) keeps the k-th of n equal slices of the questions."""
-    qs = questions()
-    if part:
-        k, n = part
-        qs = qs[k - 1::n]
+    """930 jobs (31 per question); part=(k, n) keeps every n-th job from the k-th, so each part gets some of
+    every question's runs and the parts are about equally long (Oct 29: slicing by question gave parts up
+    to 7x apart in Step 2b's reply lengths)."""
     out = []
-    for q in qs:
+    for q in questions():
         wrong = q["hint_letters"][0]
         out += [job(q, w, wrong, r) for w in MAIN for r in range(RUNS)]
         out += [job(q, w, q["correct"], 0) for w in MAIN]
         out += [job(q, w, x, 0) for w in EXTRA for x in (wrong, q["correct"])]
         out += [job(q, None, None, r) for r in range(RUNS)]
-    return out
+    return out[part[0] - 1::part[1]] if part else out
 
 
 def job_id(system, j):
@@ -166,6 +168,7 @@ def run_one(system, j, complete_fn, n_tokens=None):
             "finish_reason": reply.get("finish"), "no_answer_reason": reply.get("no_answer_reason"),
             "prompt_tokens": usage.get("prompt_tokens"), "completion_tokens": usage.get("completion_tokens"),
             "tool_calls_by_model": model_calls, "rounds": len(rounds), "seconds": round(time.monotonic() - start, 1),
+            "engine": reply.get("engine") or "vllm-server",
             "final_text": reply.get("content") or "", "reasoning_text": reply.get("reasoning") or "",
             **flags(j, reply.get("content"), reply.get("reasoning"))}
 
@@ -173,37 +176,53 @@ def run_one(system, j, complete_fn, n_tokens=None):
 TEXT_KEYS = ("final_text", "reasoning_text")
 
 
-def save(out, rec):
-    append(Path(out) / f"eval_{rec['system']}.jsonl.gz", rec)
-    append(Path(out) / f"eval_{rec['system']}_runs.jsonl", {k: v for k, v in rec.items() if k not in TEXT_KEYS})
+def stem(system, part=None):
+    """A system's record files: eval_<system>, or eval_<system>_p<k>of<n> for a part (one writer per file)."""
+    return f"eval_{system}" + (f"_p{part[0]}of{part[1]}" if part else "")
+
+
+def runs_files(out, system):
+    """Every numbers-only file of a system: the whole-system one and each part's."""
+    whole = Path(out) / f"{stem(system)}_runs.jsonl"
+    return [whole] * whole.exists() + sorted(Path(out).glob(f"{stem(system)}_p*of*_runs.jsonl"))
+
+
+def save(out, rec, part=None):
+    s = stem(rec["system"], part)
+    append(Path(out) / f"{s}.jsonl.gz", rec)
+    append(Path(out) / f"{s}_runs.jsonl", {k: v for k, v in rec.items() if k not in TEXT_KEYS})
 
 
 def run(system, complete_fn, out, part=None, workers=48, n_tokens=None):
     Path(out).mkdir(parents=True, exist_ok=True)
     todo_all = jobs(part)
     for attempt in range(1 + NOT_RUN_PASSES):
-        done = {r["run_id"] for r in latest(load(Path(out) / f"eval_{system}_runs.jsonl")) if r["status"] == "ok"}
+        done = {r["run_id"] for r in latest([r for p in runs_files(out, system) for r in load(p)]) if r["status"] == "ok"}
         todo = [j for j in todo_all if job_id(system, j) not in done]
         if not todo:
             break
         print(f"{system}: pass {attempt + 1}, {len(todo)} runs, {workers} at a time", flush=True)
-        failed = 0
+        failed, tokens, t0 = 0, 0, time.monotonic()
         with ThreadPoolExecutor(workers) as pool:
             for i, rec in enumerate(pool.map(lambda j: run_one(system, j, complete_fn, n_tokens), todo), 1):
-                save(out, rec)
+                save(out, rec, part)
                 failed += rec["status"] != "ok"
-                if i % 50 == 0 or i == len(todo):
-                    print(f"  {i}/{len(todo)} runs; no reply {failed}", flush=True)
+                tokens += rec.get("completion_tokens") or 0
+                if i % 25 == 0 or i == len(todo):
+                    el = time.monotonic() - t0
+                    print(f"  {i}/{len(todo)} runs; no reply {failed}; {tokens:,} tokens in {el / 3600:.2f} h = "
+                          f"{tokens / max(el, 1):.0f} generated tokens/s", flush=True)
         if not failed:
             break
 
 
 # ---------------------------------------------------------------- report
 def rows_of(out):
+    """Every finished run in OUT (all systems, whole and part files), the last record of each run."""
     rows = []
     for p in sorted(Path(out).glob("eval_*_runs.jsonl")):
-        rows += [r for r in latest(load(p)) if r["status"] == "ok"]
-    return rows
+        rows += load(p)
+    return [r for r in latest(rows) if r["status"] == "ok"]
 
 
 def by_question(rows, outcome):
@@ -382,7 +401,7 @@ def main():
     ap.add_argument("--served-name", help="the model name on the server (default: the system's name)")
     ap.add_argument("--tagger", nargs=2, metavar=("BASE_DIR", "TAGS_PT"), help="tag versions: send tagged prompt embeddings")
     ap.add_argument("--out", default=str(CODE / "results" / "trackA" / "eval"))
-    ap.add_argument("--part", help="k/n: the k-th of n slices of the questions (for jobs under the time limit)")
+    ap.add_argument("--part", help="k/n: every n-th run from the k-th (for jobs under the time limit)")
     ap.add_argument("--workers", type=int, default=48)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--report", action="store_true")

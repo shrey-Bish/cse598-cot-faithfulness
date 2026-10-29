@@ -166,6 +166,8 @@ def test_every_job_script_uses_the_course_account_within_limits(script):
     gpus = [o for o in opts if o.startswith("-G ")]
     assert gpus in ([], ["-G a100:1"])
     assert "run.sh" in script.read_text() or "setup_env.sh" in script.read_text() or "setup_vllm.sh" in script.read_text()
+    if "run.sh" in script.read_text():                         # Oct 29: step9 and step10 dropped set A's --items-from
+        assert script.read_text().rstrip().endswith(f'run.sh {script.stem} "$@"')
 
 
 def fake_sbatch(tmp_path):
@@ -637,3 +639,41 @@ def test_sol_scripts_call_the_env_python_by_full_path():
         for i, line in enumerate(f.read_text().splitlines(), 1):
             code = line.split("#", 1)[0] if not line.lstrip().startswith("#") else ""
             assert not bare.search(code), f"{f.name}:{i}: {line.strip()}"
+
+
+def test_eval_job_on_the_hf_engine_skips_the_vllm_preflight(tmp_path, monkeypatch):
+    """Oct 29: evaluation is Hugging Face by default; only the vLLM check and --engine vllm check the server options."""
+    from finetune.gpu import eval_job as ej
+    order = []
+    monkeypatch.setenv("SLURM_JOB_ID", "7")
+    monkeypatch.setattr(ej, "preflight", lambda: order.append("preflight"))
+    monkeypatch.setattr(kit, "check_inputs", lambda step: order.append("inputs"))
+    monkeypatch.setattr(ej, "evaluate_hf", lambda *a: order.append(("hf",) + a[:2] + a[3:]))
+    monkeypatch.setattr(ej, "evaluate", lambda *a: order.append(("vllm",) + a[:2] + a[3:]))
+    monkeypatch.setattr(sys, "argv", ["eval_job.py", "--system", "lora", "--part", "2/4", "--out", str(tmp_path)])
+    ej.main()
+    assert order == ["inputs", ("hf", "lora", (2, 4), None, "auto")]
+    order.clear()
+    monkeypatch.setattr(sys, "argv", ["eval_job.py", "--system", "base", "--out", str(tmp_path), "--engine", "vllm"])
+    ej.main()
+    assert order == ["preflight", "inputs", ("vllm", "base", None, 48)]
+    order.clear()
+    monkeypatch.setattr(sys, "argv", ["eval_job.py", "--system", "base", "--out", str(tmp_path), "--hf-engine", "static",
+                                      "--workers", "6"])
+    ej.main()
+    assert order == ["inputs", ("hf", "base", None, 6, "static")]
+
+
+def test_a_server_log_names_this_starts_root_cause(tmp_path):
+    """Oct 29: vllm_base.log is appended to across jobs (line 4 was Oct 27's argument error) and the
+    traceback's last line only says "See root cause above": the error names this start's error lines."""
+    from finetune import generate as gen
+    log = tmp_path / "vllm_base.log"
+    log.write_text("vllm: error: unrecognized arguments: --disable-log-requests\n" + gen.log_start_line(["vllm", "serve", "/m"])
+                   + "INFO loading weights\n" + "".join(f"(EngineCore pid=9) ERROR 10-29 00:33:49 [core.py:1433]   File \"x{i}.py\"\n"
+                                                         for i in range(40))
+                   + "(EngineCore pid=9) ERROR 10-29 00:33:49 [core.py:1433] RuntimeError: Ninja build failed\n"
+                   + "RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}\n")
+    msg = gen.log_tail(log)
+    assert msg.startswith("error lines in this start (the likely root cause):\n  RuntimeError: Ninja build failed\n")
+    assert "--disable-log-requests" not in msg and "Engine core initialization failed" in msg.splitlines()[-1]

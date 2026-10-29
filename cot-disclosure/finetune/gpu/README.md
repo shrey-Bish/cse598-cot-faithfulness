@@ -433,8 +433,8 @@ server's version).
 | S2 vLLM check | `submit.sh vllm_check --estimate 1 --dependency=afterok:<setup job>` | 1:30 | `vllm_check/vllm_check.json`: served vs Hugging Face, plain and tagged; `pass` |
 | S3–S6 train (batch 2, Oct 28) | `plan_training.py <S1 timing.jsonl>` prints the 4 lines: lora and tags at once, lora_tags `--dependency=afterany:<lora job>`, lora_attn3 `afterany:<tags job>` | the refit's high end × 1.3, ≤ 8:00 | `train/<version>/` (resumes; `epoch<k>/` after each epoch; `final/` at the end) |
 | Track B Qwen3-8B snapshot (no GPU, the only job online) | `submit.sh get_qwen8b` | 1:00 (the script's) | `trackb_qwen8b/snapshot.json`: revision, every file checked against the Hub (sha256 for weights, git blob id for small files), the chat template's sha256 |
-| Track B Qwen3-8B (replaces Ollama) | `submit.sh trackb_qwen8b --estimate 1.5 --dependency=afterok:<get_qwen8b>` | 2:00 | `results/trackB/sol_vllm*` in the clone; `sol_vllm_runs.jsonl` and `sol_vllm_flags.jsonl` (numbers) come back |
-| E1–E6 evaluate (batch 3) | `plan_eval.py --vllm-check <S2> --train lora=<id>,...` prints the lines: base and prompt_only afterok S2, each version afterok its training job, split by question when over 8 h | high × 1.3, ≤ 8:00 | `eval/eval_<system>*.jsonl*`, `eval_jobs.jsonl` (also written at the time-limit warning; the decoding rate comes from it) |
+| Track B Qwen3-8B (replaces Ollama) | `submit.sh trackb_qwen8b --estimate 6.15`, then the same with `--dependency=afterany:<that job>` (Hugging Face, the default since Oct 29: ~6.7M tokens, 10–15 GPU h; vLLM: `-- --engine vllm`) | 8:00 | `results/trackB/sol_vllm*` in the clone; `sol_vllm_runs.jsonl` and `sol_vllm_flags.jsonl` (numbers) come back; each record names its engine |
+| E1–E6 evaluate (batch 3) | `plan_eval.py --train lora=<id>,...` prints the lines (Hugging Face, the default since Oct 29; `--engine vllm --vllm-check <S2>` for vLLM): each version afterok its training job, every system in the fewest parts of every N-th run under 8 h; made again at any time, it leaves out saved runs and queued parts and uses the measured rate | each part's high × 1.3, ≤ 8:00 | `eval/eval_<system>_p<k>of<n>*.jsonl*` (one writer per file), `eval_jobs.jsonl` (also written at the time-limit warning; the decoding rate comes from it) |
 
 **S1's refit (Oct 28).** S1's straight line (seconds = fixed + per token × tokens) came out with a
 negative fixed part: the cost per token grows with length. `plan_training.py` refits seconds =
@@ -456,9 +456,26 @@ difference is a warning in the job's log (Oct 28: S2 66862780 was refused on sg0
 now sg018's). Either way the node's list is saved as
 `/scratch/ragarw68/trackA/vllm_serve_options_node.txt` to copy back; and a CPU test checks the exact
 commands against the list (`vllm_options.py`).
-If a server exits, the job's error ends with the last 30 lines of its log. S2 starts the plain base
-server first, before the synthetic LoRA merge and the shard writing, so a server that can't start
+If a server exits, the job's error gives this start's error lines first (a server log is appended to
+across jobs; each start writes a `=== server start` line), then the last 30 lines. S2 starts the plain
+base server first, before the synthetic LoRA merge and the shard writing, so a server that can't start
 fails in minutes.
+
+**Hugging Face generation for batch 3 (decided Oct 29).** On the night of Oct 28, S2 (66878660) and
+Track B's Qwen3-8B (66879362) both failed in vLLM's engine start, in `warmup_kernels` inside
+`compile_or_warm_up_model`, after the weights loaded; the root-cause line wasn't in the copied
+lines. Evaluation now runs in the training environment (`finetune/hf_engine.py`; `eval_job.py
+--engine hf`, the default): the model in bf16, the adapter merged in memory, the tag versions through
+a widened embedding table (tags as token ids, checked against training's inputs on CPU), and
+transformers 5.18's continuous batching after a self-check on the GPU (its greedy tokens against plain
+`generate`), else static batches. A failed batch gives its runs error replies (retried by the next
+pass or job); three in a row break the engine and end the job. Sampling as vLLM's would have been:
+temperature 0.6, and top_p, top_k, min_p or repetition_penalty only if the snapshot's
+`generation_config.json` sets them (Olmo 3 7B Think's at d97e442 sets top_p 0.95, checked Oct 29). Every record and `eval_jobs.jsonl`
+row names its engine. **Speed, not measured:** paged SDPA copies each run's keys and values about
+five times a step (a gather, then `.contiguous()`, then attention); at Olmo's 10,522-token average
+context that is ~100 tokens/s on one A100, so `plan_eval.py`'s prior is 70–120 tokens/s: 27–60 GPU h
+a system (mid 38), 163–359 for the six. vLLM is optional for later.
 
 `submit.sh` always ends with sbatch's `Submitted batch job N`, or a clear error and a non-zero exit
 code (Oct 27: a job script without a GPU line used to make it exit silently). A `--dependency` must

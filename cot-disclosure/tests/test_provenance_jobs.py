@@ -143,11 +143,12 @@ def test_generate_runs_each_configuration_and_the_report(tmp_path, monkeypatch):
     out = pj.generate(tmp_path / "out", alpha_from=summary, part=(1, 30), model=str(d), device="cpu", layers=(1, 3),
                       max_batch=3, limit=3, max_new=4)
     files = sorted(p.name for p in out.glob("eval_prov-*_runs.jsonl"))
-    assert files == ["eval_prov-a1_runs.jsonl", "eval_prov-deployable-a0.25_runs.jsonl", "eval_prov-oracle-a0.1_runs.jsonl"]
+    assert files == ["eval_prov-a1_p1of30_runs.jsonl", "eval_prov-deployable-a0.25_p1of30_runs.jsonl",
+                     "eval_prov-oracle-a0.1_p1of30_runs.jsonl"]                          # a part writes its own files
     rows = [r for f in files for r in load(out / f)]
     assert len(rows) == 9 and {r["alpha"] for r in rows} == {1.0, 0.25, 0.1}
     assert not any("final_text" in r or "reasoning_text" in r for r in rows)            # numbers only
-    assert (out / "eval_prov-a1.jsonl.gz").exists()                                    # texts beside them (stay on Sol)
+    assert (out / "eval_prov-a1_p1of30.jsonl.gz").exists()                             # texts beside them (stay on Sol)
     again = pj.generate(tmp_path / "out", alpha_from=summary, part=(1, 30), model=str(d), device="cpu", layers=(1, 3),
                         max_batch=3, limit=3, max_new=4)
     assert sum(1 for f in files for _ in load(again / f)) == 9                          # resumes
@@ -165,10 +166,11 @@ def test_the_report_against_alpha_one_paired_by_question(tmp_path):
                 "timestamp_utc": "t"}
     for q in range(6):
         for system, alpha, span, follow in (("prov-a1", 1.0, "deployable", True), ("prov-oracle-a0.1", 0.1, "oracle", q < 2)):
+            f = tmp_path / f"eval_{system}_p{q % 2 + 1}of2_runs.jsonl"                     # one system over two parts
             for ch in ("tool_pasted", "tool_injected"):
-                append(tmp_path / f"eval_{system}_runs.jsonl", row(system, alpha, span, q, ch, False, "B" if follow else "A"))
-                append(tmp_path / f"eval_{system}_runs.jsonl", row(system, alpha, span, q, ch, True, "A"))
-            append(tmp_path / f"eval_{system}_runs.jsonl", row(system, alpha, span, q, "none", None, "A"))
+                append(f, row(system, alpha, span, q, ch, False, "B" if follow else "A"))
+                append(f, row(system, alpha, span, q, ch, True, "A"))
+            append(f, row(system, alpha, span, q, "none", None, "A"))
     res = pj.report(tmp_path)
     e = res["systems"]["prov-oracle-a0.1"]
     assert e["wrong_hint_following | all"]["text"] == "4 of 12" and res["systems"]["prov-a1"]["wrong_hint_following | all"]["text"] == "12 of 12"

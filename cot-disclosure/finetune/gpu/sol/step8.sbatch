@@ -10,4 +10,4 @@
 #SBATCH -o /scratch/ragarw68/trackA/slurm/%x-%j.out
 # Track A Step 8, the checkpoint check (~5-10 min). Submit only through submit.sh:
 #   cot-disclosure/finetune/gpu/sol/submit.sh step8
-cd "$SLURM_SUBMIT_DIR" && exec cot-disclosure/finetune/gpu/sol/run.sh step8
+cd "$SLURM_SUBMIT_DIR" && exec cot-disclosure/finetune/gpu/sol/run.sh step8 "$@"

@@ -10,4 +10,4 @@
 #SBATCH -o /scratch/ragarw68/trackA/slurm/%x-%j.out
 # Sol kit item 1 as a batch job (class QoS, 15 min). Submit only through submit.sh, from anywhere:
 #   cot-disclosure/finetune/gpu/sol/submit.sh smoke
-cd "$SLURM_SUBMIT_DIR" && exec cot-disclosure/finetune/gpu/sol/run.sh smoke
+cd "$SLURM_SUBMIT_DIR" && exec cot-disclosure/finetune/gpu/sol/run.sh smoke "$@"

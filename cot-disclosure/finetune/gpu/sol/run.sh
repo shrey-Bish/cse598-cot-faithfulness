@@ -7,7 +7,7 @@
 #   cot-disclosure/finetune/gpu/sol/run.sh train VERSION [args]      # S3-S6: lora, tags, lora_tags, lora_attn3
 #   cot-disclosure/finetune/gpu/sol/run.sh eval SYSTEM [K/N] [args]  # E1-E6: one system, the K-th of N parts
 #   cot-disclosure/finetune/gpu/sol/run.sh val_loss [VERSION ...]    # validation loss by part: base + each version's epochs
-#   cot-disclosure/finetune/gpu/sol/run.sh trackb_qwen8b [args]      # Track B: Qwen3-8B on vLLM (progress/sol_trackB.py)
+#   cot-disclosure/finetune/gpu/sol/run.sh trackb_qwen8b [args]      # Track B: Qwen3-8B, Hugging Face or vLLM (progress/sol_trackB.py)
 #   cot-disclosure/finetune/gpu/sol/run.sh get_qwen8b                # its snapshot (no GPU; the only step online)
 #   cot-disclosure/finetune/gpu/sol/run.sh provenance_forced --cases-from C --runs-from R [--items-from I]   # B1 on set A
 #   cot-disclosure/finetune/gpu/sol/run.sh provenance_gen [--alpha-from S | --version V --checkpoint D] [--part K/N]

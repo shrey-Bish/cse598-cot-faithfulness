@@ -23,8 +23,9 @@ tokens for prompt and reply over all rounds (each record keeps its completion to
 tool by itself, so its tool channel is tool_injected: our lookup_answer_key call and the tool's
 reply are written into the conversation, with the function declared in the system prompt.
 
-Qwen3-8B (provider sol_vllm, decided Oct 28: Ollama never on the Mac) runs inside a Sol GPU job against
-our own vLLM server, thinking on and off through enable_thinking (progress/sol_trackB.py).
+Qwen3-8B (provider sol_vllm, decided Oct 28: Ollama never on the Mac) runs inside a Sol GPU job, thinking on
+and off through enable_thinking (progress/sol_trackB.py): Hugging Face generation in the job's own process
+(providers/sol_hf.py, since Oct 29), or our own vLLM server; each record names its engine.
 
 --steered writes one row per question for a model whose runs are all done: the question, its
 letters, the no-hint runs and each hinted channel's runs, and the case kind for Track C:
@@ -238,7 +239,7 @@ def run_one(cfg, j):
         "latency_s": reply.latency_s, "cost_usd": reply.cost_usd, "total_output_tokens": used["out"],
         "max_tokens": cap_new if paid else {"total_with_prompt": cfg["token_budget"], "prompt_tokens_local": prompt_n},
         "budget_total": None if paid else cfg["token_budget"], "num_ctx": (reply.raw or {}).get("num_ctx"),
-        "chat_template_sha256": (reply.raw or {}).get("chat_template_sha256"),
+        "chat_template_sha256": (reply.raw or {}).get("chat_template_sha256"), "engine": (reply.raw or {}).get("engine"),
         "prompt_messages": msgs, "transcript": transcript})
 
 
@@ -282,7 +283,7 @@ def summary_row(rec):
             "hint_letter", "correct_letter", "parsed_letter", "status", "finish_reason", "no_answer_reason", "error_type",
             "called_tool", "tool_calls_by_model", "latency_s", "cost_usd", "requested_model_id", "reasoning_effort",
             "served_model", "reasoning_visibility", "total_output_tokens", "budget_total", "num_ctx",
-            "chat_template_sha256")
+            "chat_template_sha256", "engine")
     usage = rec.get("usage") or {}
     return {**{k: rec.get(k) for k in keys}, "input_tokens": usage.get("input_tokens"),
             "output_tokens": usage.get("output_tokens")}

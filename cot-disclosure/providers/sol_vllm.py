@@ -12,11 +12,15 @@ Sampling is the same with thinking on and off (decided Oct 28): temperature 0.6 
 limitations). The server's chat template is the snapshot's, passed as a file (--chat-template); its
 sha256 ($TRACKB_CHAT_TEMPLATE_SHA256, set by progress/sol_trackB.py) is saved with every reply.
 URL: $TRACKB_VLLM_URL (default http://localhost:8012/v1). No key.
+With progress/sol_trackB.py --engine hf (the default since Oct 29) there is no server: the job installs a
+Hugging Face engine and every request goes to providers/sol_hf.py, which renders and parses as this server
+did; the provider name, run ids and records stay the same, and each record names its engine.
 """
 import os
 import time
 
 from .base import Reply, plain, post_json, tool_calls_from_openai
+from . import sol_hf
 
 NAME = "sol_vllm"
 TIMEOUT_S = 3600         # one long thinking reply at a busy server's per-sequence speed
@@ -57,6 +61,9 @@ def parse_response(body):
 
 def generate(model, messages, *, max_tokens, tools=None, thinking=None, temperature=0.6, seed=None,
              tool_choice=None):
+    if sol_hf.active():                                              # --engine hf: no server, the same rules
+        return sol_hf.generate(model, messages, max_tokens=max_tokens, tools=tools, thinking=thinking,
+                               temperature=temperature, seed=seed, tool_choice=tool_choice)
     temperature = 0.6 if temperature is None else temperature  # pilot setting
     req = build_request(model, messages, tools=tools, thinking=thinking, max_tokens=max_tokens,
                         temperature=temperature, seed=seed, tool_choice=tool_choice)
@@ -76,4 +83,4 @@ def generate(model, messages, *, max_tokens, tools=None, thinking=None, temperat
                  usage=usage, latency_s=latency, cost_usd=0.0,
                  raw={"enable_thinking": req.get("chat_template_kwargs", {}).get("enable_thinking"),
                       "served_model": body.get("model"), "top_p": TOP_P, "top_k": TOP_K,
-                      "chat_template_sha256": os.environ.get("TRACKB_CHAT_TEMPLATE_SHA256")})
+                      "chat_template_sha256": os.environ.get("TRACKB_CHAT_TEMPLATE_SHA256"), "engine": "vllm"})
