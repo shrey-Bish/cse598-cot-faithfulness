@@ -1,7 +1,9 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-28 23:25 (F21: committing first doesn't protect the reviewer's check;
+status. Started 2026-10-26; last updated 2026-10-29 10:55 (F23: redacting the tool's letter restores part of the check;
+F22: the reviewer's deference follows the model family; Oct 28 23:25
+F21: committing first doesn't protect the reviewer's check;
 at 23:03 F20: the tags check and lora_attn3 first; at 22:42 F19: an instruction doesn't restore the
 reviewer's check; F20: training against base on the taught tokens; at 21:50 the story so far, F18: both sides
 of the reviewer's deference, automation bias, the deployment reading; at 18:23 F17 Olmo 3 7B Think in Track B and F18
@@ -30,7 +32,13 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    check it independently" doesn't restore the check: 8 and 4 of 73 (F19, *confirmed* as no
    restoration). Having the reviewer commit to its own answer before it sees the trace doesn't
    either: it drops most of its own right answers, and the Qwen3 reviewer, which held its check
-   when shown everything at once, now defers to the tool log (F21, *confirmed*).
+   when shown everything at once, now defers to the tool log (F21, *confirmed*). Two more
+   reviewers (C11): Olmo 3 7B Instruct defers too (1 of 73 against 32 alone), Qwen3 30B Thinking
+   doesn't (67 against 66). In four reviewers the deference follows the family, not size or
+   thinking (F22; *confirmed* per model, the family reading *tentative*). Redacting the tool's
+   letter from what the Olmo 32B reviewer sees restores part of its check (6 → 23 and 3 → 24 of
+   73), not most of it (alone: 59): it defers to the source as well as to the letter (F23,
+   *confirmed* as partial).
 5. **The fix:** Track A trains Olmo 3 7B Think (LoRA, source tags) to follow fewer wrong hints
    without losing accuracy. The four trained versions learned the taught tokens on held-out
    questions: LoRA cuts their loss by 58% against base, and by 40% without the fixed opener, twice
@@ -1082,6 +1090,124 @@ the sentence: this isolates committing first), and against the reviewer's own fi
     Qwen3 does worse than in C4 and C9 (the intervals exclude 0).
   - *confirmed*: Olmo's partial gain with the private reasoning (+18 [+10, +26]), on both sets.
   - *tentative*: why ("new evidence"); one wording of the second turn; one solver's cases.
+
+## F22. Track C (C11): the deference follows the model family: both Olmo reviewers defer, both Qwen3 reviewers don't
+
+**Setup.** Oct 29, 09:32–10:31; 954 reviews, 0 errors. Only the reviewers run again, on C4's 159
+saved tool-team cases (bad lookups first), with C4's prompt (no added sentence), temperature 0.6,
+seed = repeat, and a 16,000-token cap (C4: 8,000; a thinking reviewer's reasoning counts).
+- **Two new reviewers**, each with an identity canary: Olmo 3 7B Instruct (Olmo, 7B, no thinking)
+  and Qwen3 30B Thinking (Qwen, 30B MoE, thinking). Each sees the answer only, + the solver's
+  private reasoning, or + the tool log.
+- **Pre-registered** (session log Oct 29 00:20): per model, a variant minus answer only on
+  correcting a wrong answer after a bad lookup, paired by item (25 items). *Defers*: the upper bound
+  is below −20. *Doesn't defer*: the interval includes 0 or lies above −20. Then, across C4's two
+  reviewers and these two: family, size or thinking, whichever the four fit.
+
+| reviewer | answer only | + private reasoning | minus answer only | + tool log | minus answer only | rule |
+|---|---|---|---|---|---|---|
+| Olmo 3 7B Instruct (C11) | 32 of 73 [33, 55%] | 1 of 73 [0, 7%] | **−42 [−58, −28]** | 1 of 73 [0, 7%] | **−42 [−58, −28]** | defers |
+| Qwen3 30B Thinking (C11) | 66 of 73 [82, 95%] | 67 of 73 [83, 96%] | +1 [−6, +10] | 67 of 73 [83, 96%] | +1 [−5, +9] | doesn't defer |
+| Olmo 3.1 32B Instruct (C4, F18) | 59 of 73 | 6 of 73 | −73 [−86, −58] | 3 of 73 | −77 [−91, −61] | defers |
+| Qwen3 30B Instruct (C4, F18) | 62 of 73 | 66 of 73 | +5 [−6, +19] | 56 of 73 | −8 [−25, +9] | doesn't defer |
+
+- **Across the four** (the pre-registered reading): *family* fits, since both Olmo reviewers defer
+  and both Qwen3 reviewers don't. *Size* doesn't: Olmo 7B and 32B both defer. *Thinking* doesn't:
+  Qwen3 Thinking and Instruct both hold their check.
+- **Olmo 7B keeps the solver's wrong letter** in 72 of 73 with either context (answer only: 17; in
+  24 it picks a third letter). Its reply names the answer key or the tool in 58 and 39 of 75
+  bad-lookup reviews, against 5 with the answer only.
+- **Olmo 7B is a weaker reviewer on its own** (32 of 73 from the answer alone; Olmo 32B: 59). Its
+  drop is smaller in points (−42) because it starts lower; with the context it reaches the floor,
+  1 of 73.
+- **Good lookups** (28 items): Olmo 7B keeps the right answer in 84 of 84 with either context,
+  against 59 of 84 alone (+30 [+18, +43]). Qwen3 Thinking keeps it in 83 and 84 of 84, against 74
+  (+11 [+2, +20], +12 [+5, +20]).
+- **Right over all 159 tool-team cases:** Olmo 7B 92 alone and 87 with either context (the tool
+  alone: 84); Qwen3 Thinking 142, 152 and 153.
+- **By kind × set** (minus answer only, private reasoning): Olmo 7B matched puzzles −35 [−49, −22]
+  (15 items), steered MMLU-Pro −46 [−79, −12] (8 items); Qwen3 Thinking −2 [−7, +0] and +8 [−8,
+  +29]. Matched MMLU-Pro: too few questions (2). Olmo's deference is on both sets.
+- **No letter:** Qwen3 Thinking gave none in 2 of 73 bad-lookup reviews with the private reasoning
+  (counted as not correcting) and 5 of 84 good-lookup reviews with the answer only.
+- **The pipeline is unchanged:** the checker's flags are C4's; no wrong answer shipped on a bad
+  lookup.
+- **Reading.**
+  - With two reviewers per family, *family* is the only one of the three readings the four fit. It
+    can't separate the family from what comes with it: pretraining data, the post-training recipe,
+    the chat template.
+  - Thinking doesn't protect within Qwen3, and size doesn't within Olmo.
+  - For deployment, F18's point holds across four reviewers: the check that never sees the tool
+    (the checker, 73 of 75) is the reliable one.
+- **Source.**
+  - `cot-disclosure/results/summaries/trackC/team_c11_summary.json`: `reviewer_vs_answer_only`,
+    `by_team_model_variant`, `by_kind`, `by_kind_and_set`
+  - recomputed with `python agents/run_team.py --summary --log team_c11 --cases
+    results/trackB/steered_cases.jsonl --table` (Mac, no calls)
+- **Status.**
+  - *confirmed*: Olmo 3 7B Instruct defers (−42, the interval below −20, with either context).
+  - *confirmed*: Qwen3 30B Thinking doesn't (the intervals include 0).
+  - *tentative*: the family reading. It rests on two models per family and one solver's cases.
+
+## F23. Track C (C12): redacting the tool's letter restores part of the reviewer's check, not most of it
+
+**Setup.** Oct 29, 10:31–10:46; 636 reviews, 0 errors. C4's two reviewers again, with C4's prompt
+and settings, on C4's 159 saved tool-team cases (bad lookups first). Two new variants:
+- **+ private reasoning, redacted:** every standalone mention of the tool's letter ("B", "(B)",
+  '"B"') becomes "[redacted]". On the bad lookups that is a median of 40 redactions a reasoning, at
+  least 5 each. For A and I (also English words) only option-like forms go.
+- **+ tool log, redacted:** the returned letter is redacted.
+- **Unchanged:** the proposed answer and the solver's final answer ("Answer: (B)"). The reviewer
+  must see what it reviews, so the solver's letter is still in front of it; what goes is every
+  statement that the key gave that letter.
+- **Pre-registered** (session log Oct 29 00:20), for the Olmo reviewer, which defers. *The letter is
+  the cue*: redacted − unredacted has an interval above 0, and redacted − answer only includes 0.
+  *Not the cue*: redacted − unredacted includes 0. *Partly*: in between. For Qwen3 it is a check
+  that redaction doesn't hurt.
+
+| reviewer, variant | corrects a wrong answer (bad lookups, 25 items) | unredacted (C4) | redacted − unredacted | answer only (C4) | redacted − answer only | rule |
+|---|---|---|---|---|---|---|
+| Olmo 3.1 32B, + private reasoning | 23 of 73 [22, 43%] | 6 of 73 | **+23 [+13, +34]** | 59 of 73 | **−49 [−64, −34]** | partly |
+| Olmo 3.1 32B, + tool log | 24 of 73 [23, 44%] | 3 of 73 | **+29 [+16, +41]** | 59 of 73 | **−48 [−62, −33]** | partly |
+| Qwen3 30B Instruct, + private reasoning | 68 of 73 [85, 97%] | 66 of 73 | +3 [+0, +7] | 62 of 73 | +8 [−1, +20] | no harm |
+| Qwen3 30B Instruct, + tool log | 64 of 73 [78, 93%] | 56 of 73 | +11 [−1, +25] | 62 of 73 | +3 [−6, +12] | no harm |
+
+- **Partly, for the Olmo reviewer.** Without the letter's statements it corrects 23 and 29 points
+  more, but stays far below its answer-only level. It keeps the solver's wrong letter in 44 and 39
+  of 73 (unredacted: 66 and 70). Its reply still names the answer key or the tool in 57 and 61 of
+  75 bad-lookup reviews.
+- **By set, the restoration is all on the matched puzzles:**
+  - matched puzzles: +33 [+21, +44] and +35 [+18, +51] against unredacted (15 items);
+  - steered MMLU-Pro: 2 of 24 against 1 and 0, so +4 [−8, +17] and +8 [+0, +21] (8 items), while
+    answer only corrects 15 of 24 there;
+  - matched MMLU-Pro: too few questions (2).
+  - It isn't the A/I gap in the redaction: those letters are 3 of 21 steered cases and 9 of 49
+    matched ones, and every steered reasoning was redacted (median 29 redactions, at least 5).
+- **Good lookups** (28 items): Olmo keeps the right answer in 84 and 82 of 84 (C4: 84, 84); Qwen3 in
+  71 and 74 (C4: 76, 77; −6 [−15, +1], −4 [−13, +4]).
+- **No letter:** Olmo gave none in 1 and 4 of 73 bad-lookup reviews (counted as not correcting).
+- **The pipeline is unchanged:** the checker's flags are C4's; no wrong answer shipped on a bad
+  lookup.
+- **Reading.**
+  - The Olmo reviewer's deference has two parts: the key's letter stated in the trace (redaction
+    removes about a third of the drop), and knowing that the answer came from a key, which stays
+    (its reply still names the key in most reviews). The solver's own final letter is still visible
+    after redaction, so "knowing the source" includes being able to match that letter to it.
+  - On the steered MMLU-Pro items redaction does nothing. Why is open: these are the questions where
+    a hint moved the solver in Track B; the reviewer alone corrects fewer of them (15 of 24, against
+    38 of 43 puzzles).
+  - With F19 and F21, a third cheap fix (hiding the letter) is partial. F18's point stands.
+- **Source.**
+  - `cot-disclosure/results/summaries/trackC/team_c12_summary.json`: `vs_original_prompt`
+    (minus C4's unredacted variant), `vs_original_answer_only`, `by_team_model_variant`,
+    `by_kind`, `by_kind_and_set`
+  - recomputed with `python agents/run_team.py --summary --log team_c12 --cases
+    results/trackB/steered_cases.jsonl --table` (reads C4's log; Mac, no calls)
+- **Status.**
+  - *confirmed*: redaction restores part of the Olmo reviewer's check (+23, +29; the intervals
+    exclude 0), and it stays far below answer only (−49, −48).
+  - *confirmed*: redaction doesn't hurt the Qwen3 reviewer.
+  - *tentative*: the two-part reading, and the split by set (8 steered items).
 
 ## Measurement traps we hit and fixed
 
