@@ -61,6 +61,8 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
   Pre-registered: does the share of the hint-row drop at cut (ii) replicate at 15, 19 and 23?
   **Answered (F26): replicates.** 0.90 [0.76, 1.06] at 15, 19 and 23 on 16 questions (lower bound above 0.375), and
   23, 15, 19 are the three largest drops (0.43, 0.30, 0.17). The circularity objection is answered.
+  Step 9 too (F32, pre-registered): F12's three heads separate followed from resisted runs on set A, +0.068 [+0.044,
+  +0.088] (Test 2 +0.084).
 
 **1.5 Training learns the taught text; most of LoRA's gain is reachable from the three layers alone.**
 - **Evidence:** F20.

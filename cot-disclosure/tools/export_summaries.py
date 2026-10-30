@@ -60,7 +60,8 @@ KEEP_PATH = {             # under results/trackA/ -> under results/summaries/ (s
     "setA/step10_handoff.json": "trackA/setA/step10_handoff.json",          # patching.py --handoff (F26)
     "setA/step10_handoff.png": "trackA/setA/step10_handoff.png",
     "setA/step10_handoff.svg": "trackA/setA/step10_handoff.svg",
-    "setA/step9_attention.json": "trackA/setA/step9_attention.json",        # set A, Step 9 (back, unread)
+    "setA/step9_attention.json": "trackA/setA/step9_attention.json",        # set A, Step 9
+    "setA/step9_fixed_heads.json": "trackA/setA/step9_fixed_heads.json",    # set A, F12's three heads (F32)
     "setA/provenance_forced.json": "trackA/setA/provenance_forced.json",    # B1's forced answers and alpha (F27)
     "gpu/eval/eval_report.json": "trackA/gpu/eval/eval_report.json",        # batch 3 (F28)
     "gpu/eval/gate3.json": "trackA/gpu/eval/gate3.json",                    # finetune/gate3.py

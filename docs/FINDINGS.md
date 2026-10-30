@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-30 10:30 (F31 C16: the Olmo reviewer corrects fewer wrong answers
+status. Started 2026-10-26; last updated 2026-10-30 10:35 (F32: set A's Step 9 replicates F12's three heads; at 10:30 F31 C16: the Olmo reviewer corrects fewer wrong answers
 when the final answer names the tool, unclear by the rule; Qwen3 unchanged; F28 corrected at 10:00: the guide note
 isn't what the targets were made with; the title-question reading of F29; at 09:30 F26 set A: the readout at 15/19/23 replicates; F27 B1's
 alpha 0.25 / 0.5; F28 Gate 3 interim: LoRA passes, the note does as well in the prompt, false disclosure rises; F29
@@ -36,8 +36,9 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
 3. **Inside Olmo 3 7B Think, layers 15, 19 and 23 read the hint straight from the prompt** and pass
    it to the answer: 0.90 [0.85, 0.96] of the drop at the takeover on Test 2's questions, and 0.90
    [0.76, 1.06] on 16 questions not used to find it (set A; the same three layers have the largest
-   drops). *Confirmed* on two question sets, one model (F11, F12, F26). The reasoning relays little of it
-   (F13). The mechanism as a whole is *tentative*.
+   drops), where F12's three heads also separate followed from resisted runs again (+0.068 [+0.044,
+   +0.088]; F32). *Confirmed* on two question sets, one model (F11, F12, F26, F32). The reasoning relays
+   little of it (F13). The mechanism as a whole is *tentative*.
 4. **Downstream, a reviewer shown the tool's output defers to it.** Olmo 3.1 32B Instruct corrects a
    wrong tool answer in 59 of 73 from the answer alone, and in 6 and 3 of 73 once it sees the
    solver's private reasoning or the tool log. *Confirmed* for that reviewer (F18). Qwen3 30B
@@ -420,6 +421,8 @@ clean answer, so the information hasn't left those tokens yet. It then falls in 
 - **Status.** *confirmed*: the layer agreement (two independent methods), and followed > resisted in
   these heads pooled over channels and for the inserted and pasted channels. Not for inserted +
   declared.
+- **Set A (F32, Oct 30):** the three heads, fixed in advance, replicate on 15 questions not used to find them
+  (+0.068 [+0.044, +0.088]); there inserted + declared is above 0 too (+0.031 [+0.008, +0.052]).
 
 ## Mechanism, in one paragraph (Steps 8–10, tentative as a whole)
 
@@ -1628,6 +1631,29 @@ that defers. Why Olmo defers is open. **Source:**
   pre-registered 20-point rule.
 - *confirmed*: no change for Qwen3.
 - One wording, one solver, 1 repeat.
+
+## F32. Track A (set A, Step 9): F12's three heads separate followed from resisted runs on questions not used to find them
+
+**Setup.** Set A's Step 9 (Sol 66953968, 201 runs, 16 questions). The rule was pre-registered Oct 30 10:10, before
+the per-run file was on the Mac:
+- at the answer position, the mean over F12's three heads (L19H31, L23H17, L15H31) of the hint's mass minus the
+  control span's;
+- followed minus resisted, clustered by question;
+- replicates if the interval lies above 0.
+
+**Result: replicates.** +0.068 [+0.044, +0.088], 15 questions (56 followed, 145 resisted runs). Test 2: +0.084
+[+0.062, +0.105].
+- **Per head:** L19H31 +0.080 [+0.047, +0.109], L23H17 +0.084 [+0.062, +0.106], L15H31 +0.040 [+0.008, +0.071].
+- **By channel:** pasted +0.087 [+0.070, +0.106]; inserted + declared +0.031 [+0.008, +0.052]. On Test 2 the latter
+  included 0 (+0.028 [−0.002, +0.058]); the points are close.
+- **Not set A's top heads by mass:** set A's own ranking puts L23H20, L7H3, L27H5, L19H2 and L15H1 first. The heads
+  that look most at the hint aren't the ones that separate the outcomes.
+
+**Source.** `cot-disclosure/results/summaries/trackA/setA/step9_fixed_heads.json`; `python
+finetune/look/attn_to_hint.py --fixed-heads results/trackA/setA/step9_reduced.npz`.
+
+**Status.** *confirmed* on a second question set (one model). With F26, both Step 9's heads and Step 10's layers
+replicate on questions not used to find them.
 
 ## Measurement traps we hit and fixed
 

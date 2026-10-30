@@ -25,6 +25,8 @@ The runs of Oct 28–29:
      training nor evaluation.
    - **Answered (F26): no, and it replicates.** On set A, 16 questions not used to find the layers: 0.90 [0.76, 1.06]
      at 15, 19 and 23 (31 cuts); evaluation set 0.90 [0.85, 0.96]. Pre-registered rule: replicates.
+   - The heads too (F32): L19H31, L23H17 and L15H31, fixed in advance, separate followed from resisted runs on set A
+     (+0.068 [+0.044, +0.088]).
 2. **Is the readout specific to these three layers, or do all full-attention layers do it?**
    - F11 says the other five full layers read almost nothing on the evaluation set.
    - **Answered by A (F26):** on set A the 8 full layers hold 0.92 [0.83, 1.03] and 15/19/23 hold 0.90, so the
