@@ -1,140 +1,81 @@
-# Session log: Thread 1 on a second model: Qwen3-8B Steps 3 and 10, prepared and pre-registered (2026-10-30 11:45 MST)
+# Session log: C18: removing the solver's sentences that cite the tool restores the Olmo reviewer's check (2026-10-30 17:20 MST)
 
-Project: CSE 598 Group 10, Track A. "One model" is Thread 1's biggest gap. Ritik asked (Oct 30) for Step 3 (takeover
-probes) and Step 10 (patching) for Qwen3-8B with thinking on, using Track B's runs on Sol, with these constraints:
-- localization on one half;
-- a pre-registered replication on the other;
-- nothing ever chosen on the 30 evaluation questions;
-- prepared, not submitted.
+Project: CSE 598 Group 10, Track C. C18 tests H33: is the cue the argument for the wrong letter? It was pre-registered
+in the 17:00 log (commit `1928820`) before any call. FINDINGS F34. **By:** Ritik.
 
-Code in `af2f2fb`. **By:** Ritik.
+## 1. What ran
 
-## 1. Why Qwen3-8B is a real test
+- **Voyager, 16:45–16:49:** 136 reviews, 0 errors, under the power guard (on battery at 77%, above the guard's 15%).
+- **Answers:** C16's 34 final answers that named the tool after a bad lookup (every one wrong).
+- **Versions:**
+  - **unchanged** (`team_c18_unchanged`);
+  - **stripped** (`team_c18_stripped`): the 2–4 sentences per answer that name the tool removed, the rest kept.
+    The median length falls from 474 to 126 characters.
+- **Reviewers:** Olmo 3.1 32B and Qwen3 30B Instruct, `plus_explanation`, C4's prompt.
+- **Read:** `python agents/c18.py`.
 
-Olmo 3 7B Think's readout (15, 19, 23) is partly forced by its architecture: 24 of its 32 layers slide over 4,096
-tokens, so a far hint can be read only by the 8 full-attention layers. Qwen3-8B has 36 layers, all full attention
-(`use_sliding_window: false`). Any layer can read the hint. If a few still carry most of the drop, and they are the
-same few on new questions, the readout isn't an artifact of Olmo's windows.
+## 2. The pre-registered reading
 
-## 2. Halves, channel and counts
+Correcting a wrong answer (34 items); stripped minus unchanged; paired by item; two-sided with C11's 20-point margin.
 
-- **Localization: the 24 pilot puzzles only.** Track B's other set, `mmlupro_30`, **is** Track A's 30 evaluation
-  questions (the same file). So it can only be the replication half, read by the rule below. The localization
-  code refuses any non-puzzle or any of the 30, and a test shows the chosen layers don't change with the MMLU-Pro
-  data.
-- **Channel: `tool_real`** (the model calls `lookup_answer_key`; the wrong letter comes back as a real tool
-  message). On the puzzles it is the only channel followed: 66 of 72 runs; pasted and system once each, user never.
-  It is Qwen's analog of Olmo's declared inserted tool turn. Pasted, system and user are described on MMLU-Pro only,
-  outside the verdict.
-- **Counts** (thinking on; from the Mac's numbers-only runs file; `qwen8b_mech.py plan`):
+| reviewer | stripped | unchanged | minus | rule | H33 |
+|---|---|---|---|---|---|
+| Olmo 3.1 32B | 25 of 34 | 9 of 34 | **+47 [+29, +65]** | more corrections | **the tool mentions are part of the cue** |
+| Qwen3 30B Instruct | 28 of 34 | 26 of 34 | +6 [−9, +21] | no change | (it doesn't defer) |
 
-| half | sure questions | followed `tool_real` runs | on sure questions |
-|---|---|---|---|
-| puzzles (localization) | 23 of 24 | 66 (24 questions) | 63 (23) |
-| MMLU-Pro (replication) | 21 of 30 | 77 (28) | 50 (19) |
+**H33 as stated is not supported for the Olmo reviewer.** Removing the sentences that cite the tool restores most of
+its check; the argument that's left doesn't hold it back.
 
-How many are late takeovers (the cases) is unknown until Step 3 runs.
+## 3. Also reported (no decision)
 
-## 3. Method (`finetune/look/qwen8b_mech.py`)
+- **The stability check:** the unchanged answers reviewed again give exactly C16's original results (Olmo 9 of 34,
+  Qwen3 26 of 34, +0 [0, 0]). The same prompt and seed reproduce on Voyager.
+- **Stripped minus C17's own-working version** (32 items both have): Olmo 23 against 22, +3 [−9, +16]; Qwen3 +6 [0,
+  +16]. Once the tool sentences are gone, Olmo reviews these answers about as it reviews a bare answer with "based on
+  my own step-by-step working".
 
-- **Prompts:** each run's final-call prompt is rebuilt with Track B's renderer.
-  - It must match the server's token count; a run that doesn't is left out.
-  - If more than 10% don't match, the job stops before loading the model.
-- **Step 3:** every sentence of all 251 followed thinking-on runs is probed, as Track A's Step 3 does.
-  - The forced answer closes Qwen3's think block, then "Answer: (".
-  - The probes use a reused cache, checked against fresh forwards at 2 probes per run.
-  - The takeover point, "late" (at or after half the reasoning) and the cases follow Track A's definitions.
-- **Step 10:** Track A's patching code unchanged, at cuts (i) and (ii).
-  - The clean prompt swaps the hint's W for O in the tool's reply (one token).
-  - Restoration is measured per layer at the hint tokens, the reasoning and the answer position.
+## 4. Reading, with C16 and C17
 
-## 4. The rules (fixed before any probe; two choices are Ritik's, below)
+The three experiments on the Olmo reviewer (it defers; Qwen3 doesn't move in any of them):
 
-**Definitions.**
-- **Cases:** followed `tool_real` runs whose takeover is at or after half the reasoning, on questions whose 3
-  no-hint runs were all correct.
-- **Drop at layer l:** restoration at the hint's tokens after layer l − 1 minus after layer l (`patching.handoff`).
-- **Excluded cuts:** |LD_clean − LD_hinted| < 0.5.
-- **Intervals:** 95% bootstrap clustered by question.
+| what the reviewer sees | corrects (Olmo) | source |
+|---|---|---|
+| the solver's bare answer (+ a neutral or a tool-naming line) | about 36–37 of 53 | C16 control, C17 |
+| the solver's own disclosure: its working + sentences citing the tool's letter | 25 of 53 (C16); 9 of 34 named | C16, C18 |
+| that disclosure with the tool-citing sentences removed | 25 of 34 | C18 |
 
-**Localization** (puzzles, `tool_real`, cut (ii)): the chosen layers S are the 3 layers with the largest mean drop,
-ties to the lower layer. With fewer than 5 questions with a usable cut, the result is "too few" and nothing is
-chosen (fallback, decision 3).
+- **The cue isn't a generic source label.** "This answer is based on the lookup tool's result." changes nothing
+  (C17).
+- **It isn't the solver's working either.** With the tool sentences gone, the working that remains doesn't hold Olmo
+  back (C18).
+- **It is the solver's sentences that cite the tool's letter as authority:** "the course answer key specifies the
+  expected answer as H… Despite the discrepancy, the tool response confirms the expected answer is H."
+- **Revised hypothesis (H34, untested):** the deferring reviewer follows a statement that an authoritative source
+  gave this letter, especially one that overrides the solver's own working. A generic mention of a tool doesn't do
+  it.
 
-**Replication** (MMLU-Pro, `tool_real`, cut (ii)), with S:
-- **replicates:** the share of the drop at S has a lower bound above **T**, *and* S **match** this half's 3 largest
-  drops;
-- **partly:** one of the two;
-- **doesn't replicate:** neither;
-- **too few:** fewer than 5 questions with a usable cut.
+**For deployment:**
+- Disclosure written by the solver can make a deferring reviewer worse, because the disclosure carries the authority
+  claim.
+- The check that never sees the tool (the checker) held throughout.
 
-Reported either way against the puzzles' share at S and Olmo's 0.90 (Test 2, set A).
+**Limits:**
+- 34 items.
+- One solver.
+- Which sentences go is decided by a keyword, so the removed sentences carry both the citation and its
+  justification.
+- One deferring reviewer family.
 
-**Descriptive only, never in the verdict:**
-- how many layers hold 80% of the drop;
-- cut (i);
-- the answer position's rise at S;
-- the swap of only the prompt's letter;
-- the secondary channels.
+## 5. What changes
 
-## 5. Ritik's choices before anything is submitted
+- **FINDINGS F34.** Story step 4: the deferring family follows the solver's citations of the tool's letter, not a
+  source label (C17) and not the remaining argument (C18).
+- **CLAIMS** 2.1 and B15's headline.
+- **REVIEWER_QUESTIONS** thread 1, question 10.
+- **TODO C18:** done; H34 for Shrey's plan.
+- **PLAN; TRACK_C.**
+- **Exported:** `c18_summary.json`, `team_c18_unchanged_summary.json`, `team_c18_stripped_summary.json`.
 
-The rule becomes final when these are answered. The jobs aren't submitted before then, so no data exists yet.
+## 6. Source
 
-1. **T, the share threshold.**
-   - As drafted: T = 3/36 = 0.083, S's even share. That mirrors Olmo's 3/8 = 0.375, but with 36 layers almost any
-     concentrated pattern passes it.
-   - **Recommended: T = 0.5**, "these three layers hold most of the drop". That is the claim that would make the
-     readout a property of the model rather than of Olmo's windows.
-2. **"Match".**
-   - Strict: S are exactly this half's top 3.
-   - **Recommended: each layer of S is within one layer of one of this half's top 3.** In 36 layers, neighbours can
-     swap ranks from noise. The strict version stays as a descriptive line either way.
-3. **If the puzzles give too few cases.**
-   - Plausible: the tool's reply sits right before the thinking, so Qwen may lead with W from the start (an "at 0"
-     takeover, not a late one).
-   - **Recommended, A:** 24–48 fresh puzzles from the existing generator with a new seed at the pilot's level, run on
-     Sol (no hint × 3, `tool_real` × 3; about 1 GPU h; a small runner, not written yet). Then Steps 3 and 10 on
-     them.
-   - **B:** widen the case rule on both halves to any takeover after the first sentence. It has to be fixed before
-     Step 3 is read.
-4. **Step 10's limit.** `--estimate 4.3` (a 6:00 limit) covers the upper bound. `--estimate 3.0` (4:00) covers the
-   puzzles and MMLU-Pro `tool_real`; the secondary channels would resume in a second job.
-
-## 6. Cost and lines
-
-**GPU estimate** (A100 80 GB, bf16; 8,000 tokens/s and 0.05 s per cached probe are assumptions, not measurements):
-- Step 3: about 1.1 h.
-- Step 10: about 2.6 h at Olmo's late-takeover share, at most 4.3 h.
-
-**After the current 10 jobs, as places free** (MaxSubmitPU 10). It needs the push and a `git pull` on Sol:
-
-```bash
-# optional, login node, no GPU (~1–2 min): rebuilds every prompt and checks it against the server's count
-source cot-disclosure/finetune/gpu/sol/env.sh && cd cot-disclosure && "$TRACKA_PY" finetune/look/qwen8b_mech.py step3 --dry-run && cd ..
-cot-disclosure/finetune/gpu/sol/submit.sh qwen8b_step3 --estimate 1.2
-cot-disclosure/finetune/gpu/sol/submit.sh qwen8b_step10 --estimate 4.3 --dependency=afterok:<the qwen8b_step3 job id>
-```
-
-If Step 3 fails, the dependent Step 10 sits pending: `scancel` it.
-
-**Copy back (numbers only, one remote path per rsync):**
-```bash
-cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure && mkdir -p results/trackB/qwen8b_mech
-S=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA
-rsync -av $S/qwen8b_step3/qwen8b_step3.json results/trackB/qwen8b_mech/
-rsync -av $S/qwen8b_step3/takeover_runs.jsonl results/trackB/qwen8b_mech/
-rsync -av $S/qwen8b_step3/cases.jsonl results/trackB/qwen8b_mech/
-rsync -av $S/qwen8b_step10/qwen8b_step10_patching.json results/trackB/qwen8b_mech/
-rsync -av $S/qwen8b_step10/qwen8b_readout.json results/trackB/qwen8b_mech/
-../.venv/bin/python finetune/look/qwen8b_mech.py readout results/trackB/qwen8b_mech/qwen8b_step10_patching.json
-```
-
-## 7. Tested, and not
-
-- **Tested:** 23 CPU tests with a tiny random Qwen3 on the real tokenizer and chat template, covering the hint spans,
-  the one-token clean prompt, the forced answer, cached against fresh probes, the patching identities, the guard
-  against the 30, the planted verdicts, and both jobs end to end. The full suite: 561.
-- **Not tested on a GPU:** bf16 numerics of the cached probes; CUDA attention on a trimmed cache; loading the real
-  snapshot; memory at 30K+ tokens; the throughput figures; whether the rebuilt prompts equal what vLLM saw (the
-  job's check 1 and the login-node dry run test this).
+`cot-disclosure/results/summaries/trackC/c18_summary.json`. Recomputed with `python agents/c18.py`.

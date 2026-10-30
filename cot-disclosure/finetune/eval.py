@@ -449,8 +449,9 @@ def sheet_plan(rows, seed=SHEET_SEED):
 
 def label_sheets(out, seed=SHEET_SEED):
     """L4's sheets where the texts are (Sol): out/label_L4/part1.csv, part2.csv (row, run_id, channel, hint_letter,
-    final_answer, label_final, note: no system, no candidate mark) and key_L4.csv (part, row, run_id, system, candidate,
-    match, item_id, seed). Both raters get the same sheets."""
+    final_answer, label_final, guess_trained, note: no system, no candidate mark; the rater guesses "trained model?
+    yes / no") and key_L4.csv (part, row, run_id, system, candidate, match, item_id, seed). Rows run on from part 1
+    into part 2, so the key reads by row. Both raters get the same sheets."""
     texts = {}
     for p in sorted(Path(out).glob("eval_*.jsonl.gz")):
         for r in latest(load(p)):
@@ -460,7 +461,7 @@ def label_sheets(out, seed=SHEET_SEED):
     plan = sheet_plan(rows_of(out), seed)
     d = Path(out) / "label_L4"
     d.mkdir(parents=True, exist_ok=True)
-    paths = {"key": d / "key_L4.csv"}
+    paths, row = {"key": d / "key_L4.csv"}, 0
     with open(paths["key"], "w", newline="") as kf:
         k = csv.writer(kf)
         k.writerow(["part", "row", "run_id", "system", "candidate", "match", "item_id", "seed"])
@@ -468,10 +469,11 @@ def label_sheets(out, seed=SHEET_SEED):
             paths[name] = d / f"{name}.csv"
             with open(paths[name], "w", newline="") as f:
                 w = csv.writer(f)
-                w.writerow(["row", "run_id", "channel", "hint_letter", "final_answer", "label_final", "note"])
-                for i, r in enumerate(rows, 1):
-                    w.writerow([i, r["run_id"], r["channel"], r["hint_letter"], texts[r["run_id"]], "", ""])
-                    k.writerow([name[-1], i, r["run_id"], r["system"], r["candidate"], r["match"], r["item_id"], seed])
+                w.writerow(["row", "run_id", "channel", "hint_letter", "final_answer", "label_final", "guess_trained", "note"])
+                for r in rows:
+                    row += 1
+                    w.writerow([row, r["run_id"], r["channel"], r["hint_letter"], texts[r["run_id"]], "", "", ""])
+                    k.writerow([name[-1], row, r["run_id"], r["system"], r["candidate"], r["match"], r["item_id"], seed])
     return paths
 
 

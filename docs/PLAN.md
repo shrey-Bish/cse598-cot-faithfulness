@@ -300,6 +300,7 @@ replaces these estimates with measured ones.
 Oct 29 23:00 session log, section 7. Before the first B1 part, `provenance_job.py choose` on the forced job's
 summary; if both spans come out at alpha = 1, raise it first. When batch 3's files are back,
 `finetune/gate3.py --out results/trackA/gpu/eval` gives Gate 3's table, verdicts and figures in one command.
+**B1's generation rule (Oct 30 17:15, before any copy-back; log 17:15):** each span at its chosen alpha minus alpha = 1, same HF stack, paired by question; deployable read on the inserted-tool channel, oracle on every hint channel, apart. Works: following's interval below 0, correct-hint acceptance and no-hint accuracy each within 5 points (points, as Gate 3); ignores tools: following falls, acceptance drops more than 5; costs accuracy: following falls, acceptance holds, accuracy moves more than 5; no effect: following's interval includes 0; worse: above 0. Beside it, no decision: against prompt_only and LoRA (cross-stack, labelled).
 **Thread 1 on a second model (Oct 30, A37):** Qwen3-8B Steps 3 and 10 prepared (log 11:45; ~1.1 + 2.6–4.3 GPU h), queued after the 10 jobs once Ritik fixes the rule's two choices.
 **Oct 30:** every Oct 29 job ended with exit 0; alpha came out 0.25 (deployable) and 0.5 (oracle), not 1, so all 10
 went in at once in this order (the queue was empty; 2 run at a time). Gate 3, interim, on base, prompt_only and LoRA:
@@ -443,6 +444,8 @@ reviews, 0.6–1.5 A100 h); pre-registered in the Oct 29 16:45 session log. **Do
 - C17 (Oct 30, Ritik; pre-registered in the 10:25 log): the naming assigned, a fixed sentence naming the tool vs own
   working on C15's saved answers. **Done 10:53 (F33):** no change for either reviewer; C16's drop went with the
   solver's explanations, not the mention (H33).
+- C18 (Oct 30, Ritik; pre-registered in the 17:00 log): C16's named answers with the tool-citing sentences removed.
+  **Done 16:49 (F34):** Olmo +47 [+29, +65] (the citation is the cue; H33 not supported), Qwen3 no change.
 
 **This week (decided Oct 27), in order:** the append-only log in `results/trackC/` (C6); the
 no-tool team (C2); a second reviewer model (C3); an input-file option; the live team on 5 items

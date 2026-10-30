@@ -71,7 +71,8 @@ The runs of Oct 28–29:
       **C16 (F31): it doesn't help.** Olmo 3.1 32B corrects 25 against 36 of 53 when the answer names the tool
       (−21 [−34, −8], unclear by the 20-point rule); Qwen3 30B Instruct 44 against 44.
       **C17 (F33):** a fixed sentence naming the tool doesn't cause it (+0 [−11, +11] against a sentence naming the
-      solver's own working); the drop went with the solver's own explanations (H33).
+      solver's own working). **C18 (F34):** removing the solver's tool-citing sentences restores it (+47 [+29, +65]):
+      the reviewer follows the citation of the tool's letter as authority, not the label or the argument.
     - B15's "before" is Track B's runs from one to two days earlier, not an interleaved control; C16's control runs
       the same day.
 

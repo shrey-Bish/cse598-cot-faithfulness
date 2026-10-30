@@ -165,3 +165,26 @@ def test_kappa_reads_l4_sheets_with_a_final_answer_only(tmp_path):
     out = lk.kappa(tmp_path / "rater1.csv", tmp_path / "rater2.csv")
     res = out[0] if isinstance(out, tuple) else out
     assert res["final | all"]["rows"] == 3 and res["private | all"]["rows"] == 0
+
+
+def test_kappa_reports_the_raters_guesses_against_l4s_key(tmp_path):
+    """L4 (Oct 30): each rater guesses "trained model? yes / no"; kappa reports the guesses' accuracy against the key."""
+    import csv
+    cols = ["row", "run_id", "channel", "hint_letter", "final_answer", "label_final", "guess_trained", "note"]
+    guesses = {"rater1": ["yes", "no", "yes", "no"], "rater2": ["no", "no", "yes", ""]}
+    for rater, g in guesses.items():
+        with open(tmp_path / f"{rater}.csv", "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=cols)
+            w.writeheader()
+            for row in range(1, 5):
+                w.writerow({"row": row, "run_id": f"r{row}", "channel": "user", "hint_letter": "B", "final_answer": "x",
+                            "label_final": "mentions_only", "guess_trained": g[row - 1], "note": ""})
+    with open(tmp_path / "key_L4.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["part", "row", "run_id", "system", "candidate", "match", "item_id", "seed"])
+        w.writeheader()
+        for row, system in enumerate(["lora", "base", "lora", "prompt_only"], 1):
+            w.writerow({"part": 1, "row": row, "run_id": f"r{row}", "system": system, "candidate": True, "match": "target",
+                        "item_id": "q", "seed": "s"})
+    res = lk.kappa(tmp_path / "rater1.csv", tmp_path / "rater2.csv")[0]
+    assert res["guess | rater1 right about the trained model"] == {"right": 4, "of": 4, "accuracy": 1.0}
+    assert res["guess | rater2 right about the trained model"] == {"right": 2, "of": 3, "accuracy": 2 / 3}

@@ -93,7 +93,8 @@ Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
    - C16 (F31): a final answer that names the tool makes the Olmo reviewer correct fewer wrong answers
      (−21 [−34, −8]); Qwen3 unchanged. Disclosure without independence doesn't help.
    - C17 (F33): a fixed sentence naming the tool doesn't do it (+0 [−11, +11] against own working); the drop
-     went with the solver's explanations (H33).
+     went with the solver's explanations. C18 (F34): removing the solver's tool-citing sentences restores the
+     check (+47): the reviewer follows the citation of the tool's letter as authority.
 6. **What works**
    - The blind re-ask checker (73 of 75; false alarms at the floor), with every reviewer (C13) and on
      fresh items (53 of 53, C15).

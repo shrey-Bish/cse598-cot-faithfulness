@@ -1,0 +1,1515 @@
+{
+ "by_team_model_variant": {
+  "tool | olmo3-32b-instruct | plus_explanation": {
+   "reviews": 34,
+   "items": 34,
+   "wrong_reached_final": {
+    "k": 0,
+    "n": 34,
+    "text": "0 of 34",
+    "wilson": [
+     0.0,
+     0.10151455559221921
+    ]
+   },
+   "caught": {
+    "k": 34,
+    "n": 34,
+    "text": "34 of 34",
+    "wilson": [
+     0.8984854444077807,
+     0.9999999999999999
+    ]
+   },
+   "false_alarms": {
+    "k": 0,
+    "n": 0,
+    "text": "0 of 0",
+    "wilson": null
+   },
+   "undetermined": 0,
+   "escalated": 34,
+   "tokens": 29206,
+   "reviewer_alone": {
+    "corrects_wrong_solver": {
+     "k": 25,
+     "n": 34,
+     "text": "25 of 34",
+     "wilson": [
+      0.5688285857931482,
+      0.8539880939281604
+     ]
+    },
+    "keeps_right_solver": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "keeps_wrong_solver": {
+     "k": 3,
+     "n": 34,
+     "text": "3 of 34",
+     "wilson": [
+      0.030465943437106874,
+      0.22960486705060304
+     ]
+    },
+    "reply_names_tool": {
+     "k": 1,
+     "n": 34,
+     "text": "1 of 34",
+     "wilson": [
+      0.005210906218596753,
+      0.14915573433878604
+     ]
+    },
+    "no_letter": 0
+   },
+   "bad_lookups": {
+    "reviews": 34,
+    "items": 34,
+    "wrong_reached_final": {
+     "k": 0,
+     "n": 34,
+     "text": "0 of 34",
+     "wilson": [
+      0.0,
+      0.10151455559221921
+     ]
+    },
+    "caught": {
+     "k": 34,
+     "n": 34,
+     "text": "34 of 34",
+     "wilson": [
+      0.8984854444077807,
+      0.9999999999999999
+     ]
+    },
+    "false_alarms": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "undetermined": 0,
+    "escalated": 34,
+    "tokens": 29206,
+    "reviewer_alone": {
+     "corrects_wrong_solver": {
+      "k": 25,
+      "n": 34,
+      "text": "25 of 34",
+      "wilson": [
+       0.5688285857931482,
+       0.8539880939281604
+      ]
+     },
+     "keeps_right_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "keeps_wrong_solver": {
+      "k": 3,
+      "n": 34,
+      "text": "3 of 34",
+      "wilson": [
+       0.030465943437106874,
+       0.22960486705060304
+      ]
+     },
+     "reply_names_tool": {
+      "k": 1,
+      "n": 34,
+      "text": "1 of 34",
+      "wilson": [
+       0.005210906218596753,
+       0.14915573433878604
+      ]
+     },
+     "no_letter": 0
+    }
+   },
+   "good_lookups": {
+    "reviews": 0,
+    "items": 0,
+    "wrong_reached_final": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "caught": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "false_alarms": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "undetermined": 0,
+    "escalated": 0,
+    "tokens": 0,
+    "reviewer_alone": {
+     "corrects_wrong_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "keeps_right_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "keeps_wrong_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "reply_names_tool": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "no_letter": 0
+    }
+   }
+  },
+  "tool | qwen3-30b-a3b-instruct-2507 | plus_explanation": {
+   "reviews": 34,
+   "items": 34,
+   "wrong_reached_final": {
+    "k": 0,
+    "n": 34,
+    "text": "0 of 34",
+    "wilson": [
+     0.0,
+     0.10151455559221921
+    ]
+   },
+   "caught": {
+    "k": 34,
+    "n": 34,
+    "text": "34 of 34",
+    "wilson": [
+     0.8984854444077807,
+     0.9999999999999999
+    ]
+   },
+   "false_alarms": {
+    "k": 0,
+    "n": 0,
+    "text": "0 of 0",
+    "wilson": null
+   },
+   "undetermined": 0,
+   "escalated": 34,
+   "tokens": 27522,
+   "reviewer_alone": {
+    "corrects_wrong_solver": {
+     "k": 28,
+     "n": 34,
+     "text": "28 of 34",
+     "wilson": [
+      0.66486262458356,
+      0.9165103100332392
+     ]
+    },
+    "keeps_right_solver": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "keeps_wrong_solver": {
+     "k": 0,
+     "n": 34,
+     "text": "0 of 34",
+     "wilson": [
+      0.0,
+      0.10151455559221921
+     ]
+    },
+    "reply_names_tool": {
+     "k": 1,
+     "n": 34,
+     "text": "1 of 34",
+     "wilson": [
+      0.005210906218596753,
+      0.14915573433878604
+     ]
+    },
+    "no_letter": 0
+   },
+   "bad_lookups": {
+    "reviews": 34,
+    "items": 34,
+    "wrong_reached_final": {
+     "k": 0,
+     "n": 34,
+     "text": "0 of 34",
+     "wilson": [
+      0.0,
+      0.10151455559221921
+     ]
+    },
+    "caught": {
+     "k": 34,
+     "n": 34,
+     "text": "34 of 34",
+     "wilson": [
+      0.8984854444077807,
+      0.9999999999999999
+     ]
+    },
+    "false_alarms": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "undetermined": 0,
+    "escalated": 34,
+    "tokens": 27522,
+    "reviewer_alone": {
+     "corrects_wrong_solver": {
+      "k": 28,
+      "n": 34,
+      "text": "28 of 34",
+      "wilson": [
+       0.66486262458356,
+       0.9165103100332392
+      ]
+     },
+     "keeps_right_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "keeps_wrong_solver": {
+      "k": 0,
+      "n": 34,
+      "text": "0 of 34",
+      "wilson": [
+       0.0,
+       0.10151455559221921
+      ]
+     },
+     "reply_names_tool": {
+      "k": 1,
+      "n": 34,
+      "text": "1 of 34",
+      "wilson": [
+       0.005210906218596753,
+       0.14915573433878604
+      ]
+     },
+     "no_letter": 0
+    }
+   },
+   "good_lookups": {
+    "reviews": 0,
+    "items": 0,
+    "wrong_reached_final": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "caught": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "false_alarms": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "undetermined": 0,
+    "escalated": 0,
+    "tokens": 0,
+    "reviewer_alone": {
+     "corrects_wrong_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "keeps_right_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "keeps_wrong_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "reply_names_tool": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "no_letter": 0
+    }
+   }
+  }
+ },
+ "reviewer_vs_answer_only": {},
+ "original_log": [
+  "team_c16_solve"
+ ],
+ "by_kind": {
+  "fresh": {
+   "by_team_model_variant": {
+    "tool | olmo3-32b-instruct | plus_explanation": {
+     "reviews": 34,
+     "items": 34,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 34,
+      "text": "0 of 34",
+      "wilson": [
+       0.0,
+       0.10151455559221921
+      ]
+     },
+     "caught": {
+      "k": 34,
+      "n": 34,
+      "text": "34 of 34",
+      "wilson": [
+       0.8984854444077807,
+       0.9999999999999999
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "undetermined": 0,
+     "escalated": 34,
+     "tokens": 29206,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 25,
+       "n": 34,
+       "text": "25 of 34",
+       "wilson": [
+        0.5688285857931482,
+        0.8539880939281604
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "keeps_wrong_solver": {
+       "k": 3,
+       "n": 34,
+       "text": "3 of 34",
+       "wilson": [
+        0.030465943437106874,
+        0.22960486705060304
+       ]
+      },
+      "reply_names_tool": {
+       "k": 1,
+       "n": 34,
+       "text": "1 of 34",
+       "wilson": [
+        0.005210906218596753,
+        0.14915573433878604
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 34,
+      "items": 34,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 34,
+       "text": "0 of 34",
+       "wilson": [
+        0.0,
+        0.10151455559221921
+       ]
+      },
+      "caught": {
+       "k": 34,
+       "n": 34,
+       "text": "34 of 34",
+       "wilson": [
+        0.8984854444077807,
+        0.9999999999999999
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 34,
+      "tokens": 29206,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 25,
+        "n": 34,
+        "text": "25 of 34",
+        "wilson": [
+         0.5688285857931482,
+         0.8539880939281604
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 3,
+        "n": 34,
+        "text": "3 of 34",
+        "wilson": [
+         0.030465943437106874,
+         0.22960486705060304
+        ]
+       },
+       "reply_names_tool": {
+        "k": 1,
+        "n": 34,
+        "text": "1 of 34",
+        "wilson": [
+         0.005210906218596753,
+         0.14915573433878604
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 0,
+      "items": 0,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 0,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "no_letter": 0
+      }
+     }
+    },
+    "tool | qwen3-30b-a3b-instruct-2507 | plus_explanation": {
+     "reviews": 34,
+     "items": 34,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 34,
+      "text": "0 of 34",
+      "wilson": [
+       0.0,
+       0.10151455559221921
+      ]
+     },
+     "caught": {
+      "k": 34,
+      "n": 34,
+      "text": "34 of 34",
+      "wilson": [
+       0.8984854444077807,
+       0.9999999999999999
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "undetermined": 0,
+     "escalated": 34,
+     "tokens": 27522,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 28,
+       "n": 34,
+       "text": "28 of 34",
+       "wilson": [
+        0.66486262458356,
+        0.9165103100332392
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "keeps_wrong_solver": {
+       "k": 0,
+       "n": 34,
+       "text": "0 of 34",
+       "wilson": [
+        0.0,
+        0.10151455559221921
+       ]
+      },
+      "reply_names_tool": {
+       "k": 1,
+       "n": 34,
+       "text": "1 of 34",
+       "wilson": [
+        0.005210906218596753,
+        0.14915573433878604
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 34,
+      "items": 34,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 34,
+       "text": "0 of 34",
+       "wilson": [
+        0.0,
+        0.10151455559221921
+       ]
+      },
+      "caught": {
+       "k": 34,
+       "n": 34,
+       "text": "34 of 34",
+       "wilson": [
+        0.8984854444077807,
+        0.9999999999999999
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 34,
+      "tokens": 27522,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 28,
+        "n": 34,
+        "text": "28 of 34",
+        "wilson": [
+         0.66486262458356,
+         0.9165103100332392
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 34,
+        "text": "0 of 34",
+        "wilson": [
+         0.0,
+         0.10151455559221921
+        ]
+       },
+       "reply_names_tool": {
+        "k": 1,
+        "n": 34,
+        "text": "1 of 34",
+        "wilson": [
+         0.005210906218596753,
+         0.14915573433878604
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 0,
+      "items": 0,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 0,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "no_letter": 0
+      }
+     }
+    }
+   },
+   "reviewer_vs_answer_only": {}
+  }
+ },
+ "by_kind_and_set": {
+  "fresh | mmlupro_c15": {
+   "by_team_model_variant": {
+    "tool | olmo3-32b-instruct | plus_explanation": {
+     "reviews": 25,
+     "items": 25,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 25,
+      "text": "0 of 25",
+      "wilson": [
+       0.0,
+       0.13319225276039096
+      ]
+     },
+     "caught": {
+      "k": 25,
+      "n": 25,
+      "text": "25 of 25",
+      "wilson": [
+       0.866807747239609,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "undetermined": 0,
+     "escalated": 25,
+     "tokens": 11250,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 18,
+       "n": 25,
+       "text": "18 of 25",
+       "wilson": [
+        0.5242339465222645,
+        0.8571614622631634
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "keeps_wrong_solver": {
+       "k": 3,
+       "n": 25,
+       "text": "3 of 25",
+       "wilson": [
+        0.04166817117905039,
+        0.2995579409188468
+       ]
+      },
+      "reply_names_tool": {
+       "k": 1,
+       "n": 25,
+       "text": "1 of 25",
+       "wilson": [
+        0.007096233423382073,
+        0.1954406391161776
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 25,
+      "items": 25,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 25,
+       "text": "0 of 25",
+       "wilson": [
+        0.0,
+        0.13319225276039096
+       ]
+      },
+      "caught": {
+       "k": 25,
+       "n": 25,
+       "text": "25 of 25",
+       "wilson": [
+        0.866807747239609,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 25,
+      "tokens": 11250,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 18,
+        "n": 25,
+        "text": "18 of 25",
+        "wilson": [
+         0.5242339465222645,
+         0.8571614622631634
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 3,
+        "n": 25,
+        "text": "3 of 25",
+        "wilson": [
+         0.04166817117905039,
+         0.2995579409188468
+        ]
+       },
+       "reply_names_tool": {
+        "k": 1,
+        "n": 25,
+        "text": "1 of 25",
+        "wilson": [
+         0.007096233423382073,
+         0.1954406391161776
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 0,
+      "items": 0,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 0,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "no_letter": 0
+      }
+     }
+    },
+    "tool | qwen3-30b-a3b-instruct-2507 | plus_explanation": {
+     "reviews": 25,
+     "items": 25,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 25,
+      "text": "0 of 25",
+      "wilson": [
+       0.0,
+       0.13319225276039096
+      ]
+     },
+     "caught": {
+      "k": 25,
+      "n": 25,
+      "text": "25 of 25",
+      "wilson": [
+       0.866807747239609,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "undetermined": 0,
+     "escalated": 25,
+     "tokens": 12367,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 20,
+       "n": 25,
+       "text": "20 of 25",
+       "wilson": [
+        0.6086904946512343,
+        0.9113941536925313
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "keeps_wrong_solver": {
+       "k": 0,
+       "n": 25,
+       "text": "0 of 25",
+       "wilson": [
+        0.0,
+        0.13319225276039096
+       ]
+      },
+      "reply_names_tool": {
+       "k": 1,
+       "n": 25,
+       "text": "1 of 25",
+       "wilson": [
+        0.007096233423382073,
+        0.1954406391161776
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 25,
+      "items": 25,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 25,
+       "text": "0 of 25",
+       "wilson": [
+        0.0,
+        0.13319225276039096
+       ]
+      },
+      "caught": {
+       "k": 25,
+       "n": 25,
+       "text": "25 of 25",
+       "wilson": [
+        0.866807747239609,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 25,
+      "tokens": 12367,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 20,
+        "n": 25,
+        "text": "20 of 25",
+        "wilson": [
+         0.6086904946512343,
+         0.9113941536925313
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 25,
+        "text": "0 of 25",
+        "wilson": [
+         0.0,
+         0.13319225276039096
+        ]
+       },
+       "reply_names_tool": {
+        "k": 1,
+        "n": 25,
+        "text": "1 of 25",
+        "wilson": [
+         0.007096233423382073,
+         0.1954406391161776
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 0,
+      "items": 0,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 0,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "no_letter": 0
+      }
+     }
+    }
+   },
+   "reviewer_vs_answer_only": {}
+  },
+  "fresh | puzzles_c15": {
+   "by_team_model_variant": {
+    "tool | olmo3-32b-instruct | plus_explanation": {
+     "reviews": 9,
+     "items": 9,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 9,
+      "text": "0 of 9",
+      "wilson": [
+       0.0,
+       0.299145051727044
+      ]
+     },
+     "caught": {
+      "k": 9,
+      "n": 9,
+      "text": "9 of 9",
+      "wilson": [
+       0.700854948272956,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "undetermined": 0,
+     "escalated": 9,
+     "tokens": 17956,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 7,
+       "n": 9,
+       "text": "7 of 9",
+       "wilson": [
+        0.4525889666922117,
+        0.9367748934594303
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "keeps_wrong_solver": {
+       "k": 0,
+       "n": 9,
+       "text": "0 of 9",
+       "wilson": [
+        0.0,
+        0.299145051727044
+       ]
+      },
+      "reply_names_tool": {
+       "k": 0,
+       "n": 9,
+       "text": "0 of 9",
+       "wilson": [
+        0.0,
+        0.299145051727044
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 9,
+      "items": 9,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 9,
+       "text": "0 of 9",
+       "wilson": [
+        0.0,
+        0.299145051727044
+       ]
+      },
+      "caught": {
+       "k": 9,
+       "n": 9,
+       "text": "9 of 9",
+       "wilson": [
+        0.700854948272956,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 9,
+      "tokens": 17956,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 7,
+        "n": 9,
+        "text": "7 of 9",
+        "wilson": [
+         0.4525889666922117,
+         0.9367748934594303
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 9,
+        "text": "0 of 9",
+        "wilson": [
+         0.0,
+         0.299145051727044
+        ]
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 9,
+        "text": "0 of 9",
+        "wilson": [
+         0.0,
+         0.299145051727044
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 0,
+      "items": 0,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 0,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "no_letter": 0
+      }
+     }
+    },
+    "tool | qwen3-30b-a3b-instruct-2507 | plus_explanation": {
+     "reviews": 9,
+     "items": 9,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 9,
+      "text": "0 of 9",
+      "wilson": [
+       0.0,
+       0.299145051727044
+      ]
+     },
+     "caught": {
+      "k": 9,
+      "n": 9,
+      "text": "9 of 9",
+      "wilson": [
+       0.700854948272956,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "undetermined": 0,
+     "escalated": 9,
+     "tokens": 15155,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 8,
+       "n": 9,
+       "text": "8 of 9",
+       "wilson": [
+        0.565000291629209,
+        0.9801091125830901
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "keeps_wrong_solver": {
+       "k": 0,
+       "n": 9,
+       "text": "0 of 9",
+       "wilson": [
+        0.0,
+        0.299145051727044
+       ]
+      },
+      "reply_names_tool": {
+       "k": 0,
+       "n": 9,
+       "text": "0 of 9",
+       "wilson": [
+        0.0,
+        0.299145051727044
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 9,
+      "items": 9,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 9,
+       "text": "0 of 9",
+       "wilson": [
+        0.0,
+        0.299145051727044
+       ]
+      },
+      "caught": {
+       "k": 9,
+       "n": 9,
+       "text": "9 of 9",
+       "wilson": [
+        0.700854948272956,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 9,
+      "tokens": 15155,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 8,
+        "n": 9,
+        "text": "8 of 9",
+        "wilson": [
+         0.565000291629209,
+         0.9801091125830901
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 9,
+        "text": "0 of 9",
+        "wilson": [
+         0.0,
+         0.299145051727044
+        ]
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 9,
+        "text": "0 of 9",
+        "wilson": [
+         0.0,
+         0.299145051727044
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 0,
+      "items": 0,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 0,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "no_letter": 0
+      }
+     }
+    }
+   },
+   "reviewer_vs_answer_only": {}
+  }
+ }
+}

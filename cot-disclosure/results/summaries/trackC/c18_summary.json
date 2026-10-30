@@ -1,0 +1,99 @@
+{
+ "main_stripped_minus_unchanged": {
+  "olmo3-32b-instruct": {
+   "items": 34,
+   "variant_k": 25,
+   "variant_n": 34,
+   "answer_only_k": 9,
+   "answer_only_n": 34,
+   "diff": 0.4705882352941177,
+   "interval": [
+    0.2941176470588236,
+    0.6470588235294117
+   ],
+   "reading": "more corrections"
+  },
+  "qwen3-30b-a3b-instruct-2507": {
+   "items": 34,
+   "variant_k": 28,
+   "variant_n": 34,
+   "answer_only_k": 26,
+   "answer_only_n": 34,
+   "diff": 0.05882352941176472,
+   "interval": [
+    -0.08823529411764697,
+    0.2058823529411764
+   ],
+   "reading": "no change"
+  }
+ },
+ "reading": {
+  "olmo3-32b-instruct": "the tool mentions are part of the cue",
+  "qwen3-30b-a3b-instruct-2507": "the argument is the cue"
+ },
+ "stripped_minus_c17_own": {
+  "olmo3-32b-instruct": {
+   "items": 32,
+   "variant_k": 23,
+   "variant_n": 32,
+   "answer_only_k": 22,
+   "answer_only_n": 32,
+   "diff": 0.03125,
+   "interval": [
+    -0.09375,
+    0.15625
+   ],
+   "reading": "no change"
+  },
+  "qwen3-30b-a3b-instruct-2507": {
+   "items": 32,
+   "variant_k": 26,
+   "variant_n": 32,
+   "answer_only_k": 24,
+   "answer_only_n": 32,
+   "diff": 0.0625,
+   "interval": [
+    0.0,
+    0.15625
+   ],
+   "reading": "no change"
+  }
+ },
+ "unchanged_minus_c16_original": {
+  "olmo3-32b-instruct": {
+   "items": 34,
+   "variant_k": 9,
+   "variant_n": 34,
+   "answer_only_k": 9,
+   "answer_only_n": 34,
+   "diff": 0.0,
+   "interval": [
+    0.0,
+    0.0
+   ],
+   "reading": "no change"
+  },
+  "qwen3-30b-a3b-instruct-2507": {
+   "items": 34,
+   "variant_k": 26,
+   "variant_n": 34,
+   "answer_only_k": 26,
+   "answer_only_n": 34,
+   "diff": 0.0,
+   "interval": [
+    0.0,
+    0.0
+   ],
+   "reading": "no change"
+  }
+ },
+ "sentences_removed": {
+  "min": 2,
+  "max": 4,
+  "total": 180
+ },
+ "cases": {
+  "unchanged": 34,
+  "stripped": 34
+ }
+}

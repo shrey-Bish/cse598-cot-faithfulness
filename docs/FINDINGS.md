@@ -1,7 +1,8 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-30 11:00 (F33 C17: a sentence naming the tool doesn't cause the
+status. Started 2026-10-26; last updated 2026-10-30 17:20 (F34 C18: removing the solver's tool-citing sentences
+restores the Olmo reviewer's check, +47; H33 not supported; the story's headlines for F32-F34; at 11:00 F33 C17: a sentence naming the tool doesn't cause the
 drop; at 10:35 F32: set A's Step 9 replicates F12's three heads; at 10:30 F31 C16: the Olmo reviewer corrects fewer wrong answers
 when the final answer names the tool, unclear by the rule; Qwen3 unchanged; F28 corrected at 10:00: the guide note
 isn't what the targets were made with; the title-question reading of F29; at 09:30 F26 set A: the readout at 15/19/23 replicates; F27 B1's
@@ -38,7 +39,7 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    it to the answer: 0.90 [0.85, 0.96] of the drop at the takeover on Test 2's questions, and 0.90
    [0.76, 1.06] on 16 questions not used to find it (set A; the same three layers have the largest
    drops), where F12's three heads also separate followed from resisted runs again (+0.068 [+0.044,
-   +0.088]; F32). *Confirmed* on two question sets, one model (F11, F12, F26, F32). The reasoning relays
+   +0.088]; F32). **The mechanism holds by two methods on new questions.** *Confirmed* on two question sets, one model (F11, F12, F26, F32). The reasoning relays
    little of it (F13). The mechanism as a whole is *tentative*.
 4. **Downstream, a reviewer shown the tool's output defers to it.** Olmo 3.1 32B Instruct corrects a
    wrong tool answer in 59 of 73 from the answer alone, and in 6 and 3 of 73 once it sees the
@@ -60,9 +61,11 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    families, only Olmo's two do. When the solver's final answer names the tool (B15's instruction; C16,
    F31), the Olmo reviewer corrects fewer wrong answers (25 against 36 of 53, −21 [−34, −8]; unclear
    by the 20-point rule) and Qwen3 doesn't change: disclosure without independence doesn't help the
-   deferring family. A fixed sentence naming the tool, added to bare answers, changes nothing (C17, F33:
-   +0 [−11, +11] against one naming the solver's own working). So the drop came with the solver's own
-   explanations of why the tool's letter wins, not with the mention (H33, untested).
+   deferring family. **The deferring family responds to the solver's citation of the tool's letter as
+   authority, not to a source label or to the argument:** a fixed sentence naming the tool changes nothing
+   (C17, F33: +0 [−11, +11]), and removing the solver's own tool-citing sentences, keeping its working,
+   restores the check (C18, F34: 25 against 9 of 34, +47 [+29, +65]). H33 ("the argument is the cue") is
+   not supported; H34 (an authority claim is the cue) is untested.
 5. **The title question, in the same weights (Qwen3-8B, F29).** Switching thinking on puts the tool in the
    private reasoning (it names the tool after 141 of 145 calls) and not in the final answer (0 of 143 followed
    runs name it), and it raises the call rate (145 against 35 of 162 runs), so the model takes the tool's wrong
@@ -1685,6 +1688,8 @@ replicate on questions not used to find them.
   letter, median 353 characters on bad lookups against C15's bare 11.
 - **H33 (untested):** the deferring reviewer responds to an argument for the tool's letter, or to its length or
   authority, not to the mention.
+- **Tested in C18 (F34):** removing the tool-citing sentences restores the check (+47), so the cue is the citation
+  of the tool's letter, not the remaining argument; H33 is not supported.
 
 **Source.** `cot-disclosure/results/summaries/trackC/c17_summary.json`, `team_c17_names_summary.json`,
 `team_c17_own_summary.json`; `python agents/c17.py`.
@@ -1692,6 +1697,43 @@ replicate on questions not used to find them.
 **Status.**
 - *confirmed*: no change from a fixed naming sentence, both reviewers (one wording each).
 - The cause of C16's drop is open (H33).
+
+## F34. Track C (C18): removing the solver's sentences that cite the tool restores the Olmo reviewer's check; the cue is the citation, not the argument
+
+**Setup.**
+- Pre-registered Oct 30 17:00; run 16:45–16:49, 136 reviews, 0 errors.
+- **Answers:** C16's 34 final answers that named the tool after a bad lookup.
+- **Versions:** unchanged, and stripped (the 2–4 sentences per answer that name the tool removed; median length 474
+  → 126 characters).
+- **Reviewers:** Olmo 3.1 32B and Qwen3 30B Instruct, plus_explanation, C4's prompt.
+- **Reading:** two-sided with C11's 20-point margin; H33 ("the argument is the cue") is supported only by "no
+  change".
+
+**Result** (correcting a wrong answer, 34 items, paired):
+
+| reviewer | stripped − unchanged | rule | H33 reading |
+|---|---|---|---|
+| Olmo 3.1 32B | 25 vs 9 of 34, **+47 [+29, +65]** | more corrections | the tool mentions are part of the cue |
+| Qwen3 30B Instruct | 28 vs 26, +6 [−9, +21] | no change | — |
+
+- **Stability:** reviewing the unchanged answers again gives exactly C16's results (9 and 26 of 34).
+- **Stripped − C17's own-working version:** Olmo +3 [−9, +16], Qwen3 +6 [0, +16] (no decision).
+
+**Reading.**
+- With C17 (F33), the deferring reviewer doesn't respond to a generic source label, nor to the solver's remaining
+  working.
+- It responds to the solver's sentences that cite the tool's letter as authority, often overriding the solver's own
+  working ("the course answer key specifies H… despite the discrepancy, the tool confirms H").
+- H33 as stated is not supported.
+- **H34 (untested):** an authority claim for the letter is the cue.
+
+**Source.** `cot-disclosure/results/summaries/trackC/c18_summary.json`, `team_c18_unchanged_summary.json`,
+`team_c18_stripped_summary.json`; `python agents/c18.py`.
+
+**Status.**
+- *confirmed*: removing the tool-citing sentences restores Olmo's corrections (+47).
+- *not supported*: H33.
+- One solver, 34 items, a keyword decides which sentences go.
 
 ## Measurement traps we hit and fixed
 

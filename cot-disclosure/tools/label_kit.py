@@ -241,6 +241,9 @@ def build_trackb(path=TRACKB, out=None, seed=SEED):
     return rows, sizes
 
 
+TRAINED = {"lora", "tags", "lora_tags", "lora_attn3"}        # L4's key: the fine-tuned systems (finetune/train.py)
+
+
 def cohen_kappa(a, b):
     """(kappa, observed agreement, n) for two equal-length label lists."""
     n = len(a)
@@ -283,6 +286,16 @@ def kappa(path1, path2):
             out[f"spot check | {name} agrees with the rule"] = {
                 "agreement": sum(r[k]["label_final"] == spot[k] for k in done) / len(done) if done else None,
                 "rows": len(done), "of": len(spot)}
+    l4 = Path(path1).parent / "key_L4.csv"
+    if l4.exists():                                     # L4 (Oct 30): each rater's "trained model?" guesses against the key
+        with open(l4, newline="") as f:
+            trained = {r["row"]: r["system"] in TRAINED for r in csv.DictReader(f)}
+        for name, r in (("rater1", r1), ("rater2", r2)):
+            g = {k: r[k].get("guess_trained", "").strip().lower() for k in r if k in trained}
+            done = [k for k, v in g.items() if v in ("yes", "no")]
+            right = sum((g[k] == "yes") == trained[k] for k in done)
+            out[f"guess | {name} right about the trained model"] = {"right": right, "of": len(done),
+                                                                     "accuracy": right / len(done) if done else None}
     key = Path(path1).parent / "key.csv"
     if key.exists():                                    # Track B: each rater against the keyword on group 3
         with open(key, newline="") as f:

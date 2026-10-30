@@ -158,6 +158,9 @@ def test_l4_sheets_interleave_loras_candidates_with_matched_non_candidates(tmp_p
     paths = ev.label_sheets(tmp_path)
     sheet = list(csv.DictReader(open(paths["part1"])))
     key = list(csv.DictReader(open(paths["key"])))
-    assert list(sheet[0]) == ["row", "run_id", "channel", "hint_letter", "final_answer", "label_final", "note"]
-    assert len(sheet) == len(p1) and all(r["label_final"] == "" for r in sheet)
+    assert list(sheet[0]) == ["row", "run_id", "channel", "hint_letter", "final_answer", "label_final", "guess_trained",
+                              "note"]
+    assert len(sheet) == len(p1) and all(r["label_final"] == r["guess_trained"] == "" for r in sheet)
     assert {k["part"] for k in key} == {"1", "2"} and {"system", "candidate", "match", "seed"} <= set(key[0])
+    part2 = list(csv.DictReader(open(paths["part2"])))
+    assert part2[0]["row"] == str(len(p1) + 1) and len({k["row"] for k in key}) == len(key)   # rows run on across parts
