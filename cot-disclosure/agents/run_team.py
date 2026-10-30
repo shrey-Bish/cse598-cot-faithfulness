@@ -82,6 +82,10 @@ C17 (Oct 30): `--rereview team_c15_solve --final-suffix names_tool|own_working` 
 one fixed sentence appended (FINAL_SUFFIXES; logs team_c17_names, team_c17_own); team_c16_control is the unchanged
 version. agents/c17.py reads the three.
 
+C18 (Oct 30): `--rereview team_c16_solve --only-named-bad [--final-edit strip_tool]` reviews C16's final answers that
+named the tool after a bad lookup, unchanged (team_c18_unchanged) and with those sentences removed (team_c18_stripped);
+agents/c18.py reads them.
+
 C11, C12 (Oct 29): `--no-check-tool` reruns with C4's original prompt (no added sentence); `--bad-first` reviews
 the bad lookups first. C11 is other reviewer models; C13 (agents/sol_c13.py) two more families on Sol, each on
 the job's own vLLM server (--reviewer-model sol_chat:MODEL, --workers 16; Voyager's runs keep 4). C12 uses the redacted variants (reviewer.redact): the
@@ -95,6 +99,7 @@ The Oct 4 runs stay in results/scope/.
 import argparse
 import json
 import random
+import re
 import sys
 import uuid
 from collections import defaultdict
@@ -131,6 +136,7 @@ C10_VARIANTS = ("plus_private", "plus_tool_log")
 REDACTED_OF = {"plus_private_redacted": "plus_private", "plus_tool_log_redacted": "plus_tool_log"}
 FINAL_SUFFIXES = {"names_tool": "This answer is based on the lookup tool's result.",      # C17 (Ritik, Oct 30): one fixed
                   "own_working": "This answer is based on my own step-by-step working."}  # sentence after the final answer
+SENTENCE_BREAK = re.compile(r"((?<=[.!?])[ \t]+|\n+)")
 
 
 def outcome(correct, solver_letter, reviewer_letter, flagged):
@@ -631,18 +637,42 @@ def saved_cases(src, items, team="tool"):
     return [({"case_id": k, **c}, items[c["solver"]["source"]]) for k, c in sorted(rows.items())]
 
 
+def strip_tool(text):
+    """C18: (the final answer without its sentences that name the tool (detect.py's cue_tool), how many went). A
+    sentence ends at . ! ? before a space, or at a line break; what's left keeps its own breaks."""
+    parts = SENTENCE_BREAK.split(text or "")
+    kept, removed = [], 0
+    for i in range(0, len(parts), 2):
+        seg, before = parts[i], parts[i - 1] if i else ""
+        if seg.strip() and COMPILED["cue_tool"].search(seg):
+            removed += 1
+        elif seg.strip():
+            kept.append(("" if not kept else before) + seg)
+    return "".join(kept).strip(), removed
+
+
+def named_bad(cases):
+    """C18: the saved cases whose lookup was bad and whose final answer names the tool."""
+    return [(c, it) for c, it in cases if c["solver"]["bad_lookup"] is True
+            and COMPILED["cue_tool"].search(c["solver"]["final_text"] or "")]
+
+
 def rereview_case(case, item, reviewers, variants, path, run_name, from_log, system_extra=CHECK_TOOL,
-                  reviewer_max_tokens=REVIEWER_MAX_TOKENS, first_log=None, final_suffix=None):
+                  reviewer_max_tokens=REVIEWER_MAX_TOKENS, first_log=None, final_suffix=None, final_edit=None):
     """One saved case: every reviewer model x variant again, with system_extra; a case_done row when no
     call failed. The case keeps its id, so it pairs with the original's reviews. With first_log (C10),
     each review is the second turn after the reviewer's own answer_only reply in case["first"]. With
-    final_suffix (C17), the solver's final answer the reviewer sees ends with that FINAL_SUFFIXES sentence."""
+    final_suffix (C17), the solver's final answer the reviewer sees ends with that FINAL_SUFFIXES sentence; with
+    final_edit "strip_tool" (C18), its sentences that name the tool are removed."""
     s, c = case["solver"], case["checker"]
     base = {"mode": "rereview", "run_name": run_name, "case_id": case["case_id"], "attempt": uuid.uuid4().hex[:12],
             "team": s["team"], "repeat": s["repeat"], "item_id": s["item_id"], "source": s.get("source"),
             "from_log": from_log, "from_attempt": s["attempt"], "system_extra": system_extra,
             **({"final_suffix": final_suffix} if final_suffix else {})}
     final = f"{s['final_text'] or ''}\n\n{FINAL_SUFFIXES[final_suffix]}" if final_suffix else s["final_text"]
+    if final_edit:
+        final, removed = strip_tool(final)
+        base.update(final_edit=final_edit, sentences_removed=removed, final_chars=len(final))
     errors = []
     for rp, rm in reviewers:
         gen_r = lambda **kw: generate(rp, rm, max_tokens=reviewer_max_tokens, temperature=0.6, seed=s["repeat"], **kw)  # noqa: E731
@@ -674,7 +704,7 @@ def rereview_case(case, item, reviewers, variants, path, run_name, from_log, sys
 
 def rereview(cases, reviewers, variants, path, run_name, from_log, workers=IN_FLIGHT, check_models=True,
              reviewer_max_tokens=REVIEWER_MAX_TOKENS, stop_file=None, first_log=None, system_extra=CHECK_TOOL,
-             final_suffix=None):
+             final_suffix=None, final_edit=None):
     """The saved cases not reviewed again yet; exit codes as live()."""
     if check_models:
         for provider, model in reviewers:
@@ -685,7 +715,8 @@ def rereview(cases, reviewers, variants, path, run_name, from_log, workers=IN_FL
     todo = [(c, it) for c, it in cases if c["case_id"] not in finished]
     print(f"{len(todo)} cases to review again ({len(finished)} done before), {workers} at a time", flush=True)
     return run_all(todo, lambda x: rereview_case(*x, reviewers, variants, path, run_name, from_log, system_extra,
-                                                 reviewer_max_tokens, first_log, final_suffix), workers, stop_file)
+                                                 reviewer_max_tokens, first_log, final_suffix, final_edit), workers,
+                   stop_file)
 
 
 def attach_first(cases, first_path, reviewers):
@@ -802,6 +833,10 @@ def main():
     ap.add_argument("--bad-first", action="store_true", help="--rereview: the bad lookups' cases first")
     ap.add_argument("--final-suffix", choices=sorted(FINAL_SUFFIXES), help="--rereview (C17): the solver's final answer "
                                                                           "the reviewer sees ends with this fixed sentence")
+    ap.add_argument("--final-edit", choices=["strip_tool"], help="--rereview (C18): the solver's final answer without "
+                                                                 "its sentences that name the tool")
+    ap.add_argument("--only-named-bad", action="store_true", help="--rereview (C18): only the bad lookups whose final "
+                                                                  "answer names the tool")
     ap.add_argument("--disclose", action="store_true", help="live (C16): the solver's turn ends with B15's instruction "
                                                            "to say what its answer is based on")
     ap.add_argument("--first-from", metavar="LOG", help="--rereview (C10): the reviewer's own answer_only reviews from "
@@ -859,6 +894,8 @@ def main_rereview(a, path):
         sys.exit("--rereview writes to its own --log, never a log it reads")
     reviewers = parse_models(a.reviewer_model)
     cases = saved_cases(OUT / f"{a.rereview}.jsonl", items_by_source(a.cases))
+    if a.only_named_bad:
+        cases = named_bad(cases)
     extra = attach_first(cases, OUT / f"{a.first_from}.jsonl", reviewers) if a.first_from else (None if a.no_check_tool else CHECK_TOOL)
     if a.bad_first:
         cases.sort(key=lambda x: (x[0]["solver"]["bad_lookup"] is not True, x[0]["case_id"]))
@@ -871,6 +908,8 @@ def main_rereview(a, path):
           f"checker calls. " + (f"Added to the reviewer's system prompt: \"{extra}\"" if extra else "C4's reviewer prompt, unchanged")
           + (f"; bad lookups first ({bad} cases)" if a.bad_first else "")
           + (f"; the final answer ends: \"{FINAL_SUFFIXES[a.final_suffix]}\"" if a.final_suffix else "")
+          + ("; only bad lookups whose final answer names the tool" if a.only_named_bad else "")
+          + ("; the final answer's sentences naming the tool removed" if a.final_edit else "")
           + (f". Commit first: each review is the second turn after the reviewer's own answer_only reply in "
              f"{a.first_from} (all {len(cases) * len(reviewers)} found)" if a.first_from else ""))
     if a.dry_run:
@@ -879,7 +918,8 @@ def main_rereview(a, path):
     try:
         return rereview(cases, reviewers, variants, path, a.run_name or f"run-{uuid.uuid4().hex[:6]}", a.rereview,
                         workers=a.workers, reviewer_max_tokens=a.reviewer_max_tokens, stop_file=a.stop_file,
-                        first_log=a.first_from, system_extra=extra, final_suffix=a.final_suffix)
+                        first_log=a.first_from, system_extra=extra, final_suffix=a.final_suffix,
+                        final_edit=a.final_edit)
     except (client.CanaryFailed, client.ModelUnavailable) as err:
         print(f"halted: {type(err).__name__}: {err}", file=sys.stderr, flush=True)
         return 3
