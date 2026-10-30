@@ -221,6 +221,10 @@ def test_a_zero_gate_is_the_base_model_and_it_learns(tiny, tmp_path, monkeypatch
     opt = tr.optimizer(lm)
     assert [g["lr"] for g in opt.param_groups][-1] == tr.LR_GATE
     tr.train(lm, data, data[:1], tmp_path, "cpu", epochs=1, accum=2)
+    log = [json.loads(x) for x in open(tmp_path / "train_log.jsonl")]
+    assert all(len(r["gates"]) == 2 * 4 for r in log if "step" in r and "epoch_done" not in r)    # every bias, every step
+    drift = next(r["gate_drift"] for r in log if r.get("epoch_done") == 1)
+    assert drift["step"] == 2 and drift["lr_times_steps"] == pytest.approx(2 * tr.LR_GATE)
     moved = {n: p.detach().clone() for n, p in tr.trainable(lm).items() if "provenance_gate" in n}
     assert any(float(v.abs().sum()) > 0 for v in moved.values())
     again = tr.build(version, tiny, dtype="fp32", device="cpu", attn="sdpa")
@@ -229,6 +233,15 @@ def test_a_zero_gate_is_the_base_model_and_it_learns(tiny, tmp_path, monkeypatch
     assert set(back) == set(moved) and all(torch.equal(back[n].detach(), moved[n]) for n in moved)
     final = tr.export(version, str(tiny), tmp_path, "cpu")
     assert (final / "gate.pt").exists() and len(json.loads((final / "gate.json").read_text())) == 2 * 4
+    assert json.loads((final / "gate_drift.json").read_text())["step"] == 2
+
+
+def test_gate_drift_uses_the_applied_learning_rates_and_flags_a_bias_at_the_bound():
+    from finetune import train as tr
+    d = tr.gate_drift({"15.0": 0.1, "19.3": -1.25}, 260, 260)
+    assert d["lr_times_steps"] == pytest.approx(2.6) and d["bound_applied"] == pytest.approx(1.31)
+    assert d["at_bound"] == ["19.3"] and "0.03" in d["proposal"]
+    assert tr.gate_drift({"15.0": 0.1}, 260, 260)["proposal"] is None
 
 
 def test_val_loss_marks_the_tool_keys_for_gate_versions(tiny, monkeypatch):

@@ -26,6 +26,9 @@ the validation slice (validation_examples.jsonl.gz). chosen.json names the epoch
 validation loss: never chosen by held-out results. The end of the last epoch (or --export) writes the chosen epoch as a PEFT adapter
 (LoRA versions) and tags.pt (tag versions) under out/final/. Every step of the log is appended to
 out/train_log.jsonl.
+Gate versions (B2) also log every learned bias at every optimizer step ("gates") and, after each epoch, their drift
+against Adam's bound (gate_drift; out/final/gate_drift.json for the chosen epoch): a bias that reaches the bound is
+reported with a rerun at GATE_RERUN_LR proposed, and the run is left as it is.
 
   python finetune/train.py --version lora --dry-run                      # examples, tokens, steps; no model
   python finetune/train.py --version lora --out OUT                      # train (resumes from OUT/latest)
@@ -55,7 +58,9 @@ TRAIN = CODE / "finetune" / "data" / "train_examples.jsonl.gz"
 VALIDATION = CODE / "finetune" / "data" / "validation_examples.jsonl.gz"
 RANK, ALPHA, DROPOUT = 16, 32, 0.05
 LR_LORA, LR_TAGS = 2e-4, 1e-3
-LR_GATE = 1e-2                               # the gate versions' per-head biases (Oct 29; a decision for Ritik)
+LR_GATE = 1e-2                               # the gate versions' per-head biases (approved by Ritik, Oct 29)
+GATE_BOUND_SHARE = 0.9                       # a gate bias within 10% of its drift bound reaches it (gate_drift)
+GATE_RERUN_LR = 3e-2                         # proposed then (Ritik, Oct 29): a rerun, never a change to the run
 EPOCHS = 2
 ACCUM = 8
 WARMUP = 0.03
@@ -298,6 +303,20 @@ def log_row(out, row):
         f.write(json.dumps(row) + "\n")
 
 
+def gate_drift(values, step, total, lr=LR_GATE):
+    """Adam moves a parameter by at most about its learning rate per step, so a gate bias that starts at 0 stays
+    within lr times the schedule's factors summed over the steps so far: bound_applied. With the warmup and the linear
+    decay that is about half of lr x steps (lr_times_steps, Ritik's estimate of the bound: 2.6 for 260 steps), so the
+    check uses the applied sum (1.31 for 260 steps). A bias within 10% of it reaches the bound: reported, and a rerun at
+    GATE_RERUN_LR proposed (Ritik, Oct 29)."""
+    f = schedule(total)
+    bound = lr * sum(f(i) for i in range(step))
+    at = sorted(k for k, v in values.items() if bound > 0 and abs(v) >= GATE_BOUND_SHARE * bound)
+    return {"step": step, "total_steps": total, "bound_applied": bound, "lr_times_steps": lr * step,
+            "max_abs": max((abs(v) for v in values.values()), default=0.0), "at_bound": at,
+            "proposal": f"rerun at LR_GATE {GATE_RERUN_LR:g}; this run stays as it is" if at else None}
+
+
 def train(lm, train_set, val_set, out, device, epochs=EPOCHS, accum=ACCUM, max_steps=None, meta=None):
     """Train to the end (or max_steps optimizer steps, or a signal); returns the final position."""
     import torch
@@ -311,6 +330,9 @@ def train(lm, train_set, val_set, out, device, epochs=EPOCHS, accum=ACCUM, max_s
     signal.signal(signal.SIGTERM, _on_signal)
     signal.signal(signal.SIGUSR1, _on_signal)
     lm.train()
+    gates = any("provenance_gate" in n for n in trainable(lm))
+    if gates:
+        from finetune.provenance import gate_values
     group_losses, group_tokens, t0 = [], 0, time.monotonic()
     while pos["epoch"] < epochs:
         idx = order(len(train_set), pos["epoch"])
@@ -330,7 +352,8 @@ def train(lm, train_set, val_set, out, device, epochs=EPOCHS, accum=ACCUM, max_s
                 log_row(out, {"step": pos["step"], "epoch": pos["epoch"] + 1, "loss": sum(group_losses) / len(group_losses),
                               "examples": len(group_losses), "tokens": group_tokens, "lr": sched.get_last_lr(),
                               "seconds": round(time.monotonic() - t0, 2),
-                              "max_memory_gb": round(torch.cuda.max_memory_allocated() / 2 ** 30, 2) if torch.cuda.is_available() else None})
+                              "max_memory_gb": round(torch.cuda.max_memory_allocated() / 2 ** 30, 2) if torch.cuda.is_available() else None,
+                              **({"gates": gate_values(lm)} if gates else {})})
                 group_losses, group_tokens, t0 = [], 0, time.monotonic()
                 if pos["index"] == len(idx):
                     break
@@ -342,7 +365,12 @@ def train(lm, train_set, val_set, out, device, epochs=EPOCHS, accum=ACCUM, max_s
         vloss, vtok = validation_loss(lm, val_set, device) if val_set else (None, 0)
         save_state(lm, out / f"epoch{epoch}", {"epoch": epoch, "validation_loss": vloss, "validation_tokens": vtok,
                                                "step": pos["step"], **(meta or {})})
-        log_row(out, {"epoch_done": epoch, "validation_loss": vloss, "validation_tokens": vtok, "step": pos["step"]})
+        drift = gate_drift(gate_values(lm), pos["step"], total) if gates else None
+        log_row(out, {"epoch_done": epoch, "validation_loss": vloss, "validation_tokens": vtok, "step": pos["step"],
+                      **({"gate_drift": drift} if drift else {})})
+        if drift and drift["at_bound"]:
+            print(f"gate biases at Adam's bound after epoch {epoch} ({drift['bound_applied']:.2f}): {drift['at_bound']}; "
+                  f"{drift['proposal']}", flush=True)
         pos = {"epoch": epoch, "index": 0, "step": pos["step"]}
         save_state(lm, out / "latest", {**pos, **(meta or {})}, opt, sched)
         choose(out)
@@ -422,6 +450,10 @@ def export(version, model_path, out, device):
         from finetune.provenance import gate_values
         torch.save({n: p.detach().cpu() for n, p in trainable(lm).items() if "provenance_gate" in n}, final / "gate.pt")
         (final / "gate.json").write_text(json.dumps(gate_values(lm), indent=1) + "\n")
+        rows = [json.loads(x) for x in open(Path(out) / "train_log.jsonl")] if (Path(out) / "train_log.jsonl").exists() else []
+        drift = next((r["gate_drift"] for r in rows if r.get("epoch_done") == chosen["epoch"] and "gate_drift" in r), None)
+        if drift:
+            (final / "gate_drift.json").write_text(json.dumps(drift, indent=1) + "\n")
     (final / "chosen.json").write_text(json.dumps({**chosen, "version": version}, indent=1) + "\n")
     return final
 

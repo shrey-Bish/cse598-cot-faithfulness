@@ -70,6 +70,10 @@ reasoning; plus_tool_log: also the tool log) and asks for a final answer (review
 plus_private and plus_tool_log only. The summary adds vs_first_log (minus FIRST's same variant, paired by
 item) and final_vs_own_answer (the final letter minus the reviewer's own first letter, paired).
 
+C15 (Oct 29, fresh items from agents/fresh_items.py, --kinds fresh): `--live --solve-only` runs the solver and the
+checker of every case first (log team_c15_solve), then `--rereview team_c15_solve` runs the reviewers on those saved
+cases (log team_c15); agents/c15.py reads both.
+
 C11, C12 (Oct 29): `--no-check-tool` reruns with C4's original prompt (no added sentence); `--bad-first` reviews
 the bad lookups first. C11 is other reviewer models; C13 (agents/sol_c13.py) two more families on Sol, each on
 the job's own vLLM server (--reviewer-model sol_chat:MODEL, --workers 16; Voyager's runs keep 4). C12 uses the redacted variants (reviewer.redact): the
@@ -766,6 +770,8 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--table", action="store_true", help="with --summary: print markdown tables")
     ap.add_argument("--stop-file", help="live: start no new case once this file exists (progress/guard.py)")
+    ap.add_argument("--solve-only", action="store_true", help="live: the solver and the checker only, no reviewers "
+                                                             "(C15's first phase; the reviews follow with --rereview)")
     ap.add_argument("--variants", help=f"--rereview: the reviewer variants (default: {','.join(C9_VARIANTS)}; "
                                        f"with --first-from: {','.join(C10_VARIANTS)})")
     ap.add_argument("--no-check-tool", action="store_true", help="--rereview: C4's original prompt, no added sentence")
@@ -793,7 +799,7 @@ def main():
     teams = a.teams.split(",")
     if any(t not in TEAMS for t in teams):
         sys.exit(f"teams: {TEAMS}")
-    reviewers = parse_models(a.reviewer_model)
+    reviewers = [] if a.solve_only else parse_models(a.reviewer_model)
     oracle = solver.ToolOracle(wrong_rate=0.5)
     items = case_items(a.cases, a.kinds.split(","), a.per_kind, model=a.case_model) if a.cases else pilot_items(a.n, oracle)
     cases = plan_cases(items, teams, a.repeats)

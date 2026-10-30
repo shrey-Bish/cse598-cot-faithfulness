@@ -34,6 +34,10 @@ letters, the no-hint runs and each hinted channel's runs, and the case kind for 
   matched  no hinted channel did that, and most answered no-hint runs were correct
   other    everything else (e.g. the model picks the hint letter without a hint)
 Rows are appended once per model and never rewritten.
+
+B15 (progress/run_b15.py, Oct 29) reuses run_one with two job fields: letter_kind "correct" (the tool returns the right
+letter instead of the hint's) and instruction (the user turn's last instruction, in place of the pilot's). Its records
+go to b15_<provider>.jsonl.gz and b15_<provider>_runs.jsonl (experiment "b15"), never into Track B's table.
 """
 import argparse
 import json
@@ -71,6 +75,7 @@ TOKENIZERS = {"qwen3-30b-a3b-thinking-2507": "Qwen/Qwen3-30B-A3B-Thinking-2507",
 TOKENIZER_REVISIONS = {"qwen3-8b": "b968826d9c46dd6066d109eabc6255188de91218"}
 _TOK, _TOK_LOCK = {}, threading.Lock()
 TOOL_CHANNELS = ("tool_real", INJECTED, "tool_pasted")      # what makes a case "steered" for Track C
+FILE_PREFIX = {"trackB": "", "b15": "b15_"}                 # each experiment's own records files
 log = get_logger("trackB")
 
 
@@ -178,13 +183,22 @@ def dry_run(cfg, todo):
         print(line)
 
 
+def job_letter(j):
+    """The letter the hint (or the tool) gives: the item's hint letter, or the right one for a job with letter_kind
+    "correct" (B15's correct tool); none without a hint."""
+    if j["condition"] == "none":
+        return None
+    return j["item"]["correct"] if j.get("letter_kind") == "correct" else j["item"]["hint_letter"]
+
+
 def base_record(j, m, item):
-    hinted = j["condition"] != "none"
-    return {"run_id": j["run_id"], "experiment": "trackB", "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    return {"run_id": j["run_id"], "experiment": j.get("experiment", "trackB"),
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "provider": m["provider"], "model": m["model"], "thinking": m.get("thinking"), "format": m.get("format", "served"),
             "set": item["set"], "item_id": item["item_id"], "condition": j["condition"], "repeat": j["repeat"],
-            "hint_letter": item["hint_letter"] if hinted else None, "correct_letter": item["correct"],
-            "n_options": item["n_options"]}
+            "hint_letter": job_letter(j), "correct_letter": item["correct"], "n_options": item["n_options"],
+            **({"arm": j["arm"], "letter_kind": j.get("letter_kind", "hint"), "instruction": j.get("instruction")}
+               if j.get("arm") else {})}
 
 
 def no_answer_if_cut(rec):
@@ -211,8 +225,8 @@ def run_one(cfg, j):
     m, item = j["model"], j["item"]
     if m.get("format") == "pinned":
         return run_one_pinned(cfg, j)
-    msgs, tools = build(item["question"], item["item_id"], j["condition"],
-                        None if j["condition"] == "none" else item["hint_letter"])
+    msgs, tools = build(item["question"], item["item_id"], j["condition"], job_letter(j),
+                        **({"instruction": j["instruction"]} if j.get("instruction") else {}))
     paid = m["provider"] in budget.PAID
     if paid:                                       # closed models: a per-call cap that bounds spend
         cap_new, prompt_n = cfg["closed_max_tokens"], None
@@ -231,7 +245,7 @@ def run_one(cfg, j):
     steps = []
     if tools:
         reply, transcript, steps = run_tool_loop(gen, msgs, tools, question_id=item["item_id"],
-                                                 letter=item["hint_letter"], force_first=False)
+                                                 letter=job_letter(j), force_first=False)
     else:
         reply, transcript = gen(messages=msgs), msgs
     letter = parse_answer(reply.final_text, item["n_options"])[0] if not reply.error else None
@@ -289,19 +303,23 @@ def summary_row(rec):
             "hint_letter", "correct_letter", "parsed_letter", "status", "finish_reason", "no_answer_reason", "error_type",
             "called_tool", "tool_calls_by_model", "latency_s", "cost_usd", "requested_model_id", "reasoning_effort",
             "served_model", "reasoning_visibility", "total_output_tokens", "budget_total", "num_ctx",
-            "chat_template_sha256", "engine")
+            "chat_template_sha256", "engine", "experiment", "arm", "letter_kind")
     usage = rec.get("usage") or {}
     return {**{k: rec.get(k) for k in keys}, "input_tokens": usage.get("input_tokens"),
             "output_tokens": usage.get("output_tokens")}
 
 
-def records_path(provider):
-    return OUT / f"{provider}.jsonl.gz"
+def records_path(provider, experiment="trackB"):
+    return OUT / f"{FILE_PREFIX[experiment]}{provider}.jsonl.gz"
+
+
+def runs_path(provider, experiment="trackB"):
+    return OUT / f"{FILE_PREFIX[experiment]}{provider}_runs.jsonl"
 
 
 def save(rec):
-    append(records_path(rec["provider"]), rec)
-    append(OUT / f"{rec['provider']}_runs.jsonl", summary_row(rec))
+    append(records_path(rec["provider"], rec["experiment"]), rec)
+    append(runs_path(rec["provider"], rec["experiment"]), summary_row(rec))
 
 
 def current(r):
@@ -314,8 +332,8 @@ def current(r):
     return not (r.get("finish_reason") == "length" and not r.get("budget_total"))
 
 
-def done(provider):
-    return {r["run_id"] for r in latest(load(OUT / f"{provider}_runs.jsonl")) if current(r)}
+def done(provider, experiment="trackB"):
+    return {r["run_id"] for r in latest(load(runs_path(provider, experiment))) if current(r)}
 
 
 def run(cfg, all_jobs, limit=None, stop_file=None):
@@ -324,6 +342,7 @@ def run(cfg, all_jobs, limit=None, stop_file=None):
     is done, 2 when stopped by the file, 1 when some are left (a supervisor restarts it); main() returns 3
     when a Voyager guard (catalog or identity canary) failed: the guard does not restart it."""
     providers = {j["model"]["provider"] for j in all_jobs}
+    experiment = next(iter({j.get("experiment", "trackB") for j in all_jobs}))
     workers = in_flight(cfg, next(iter(providers))) if len(providers) == 1 else 1
     for name in sorted({j["model"]["model"] for j in all_jobs if j["model"]["provider"] == "voyager"}):
         with slot():
@@ -337,11 +356,11 @@ def run(cfg, all_jobs, limit=None, stop_file=None):
         except (budget.BudgetExceeded, MissingKey) as err:
             log.error(f"stopped {j['model']['provider']}: {err}")
             return None
-    finished = set().union(*(done(p) for p in providers))
+    finished = set().union(*(done(p, experiment) for p in providers))
     chosen = [j for j in all_jobs if j["run_id"] not in finished]
     chosen = chosen[:limit] if limit else chosen                 # fixed at the start: retries stay inside it
     for attempt in range(1 + NOT_RUN_PASSES):
-        finished = set().union(*(done(p) for p in providers))
+        finished = set().union(*(done(p, experiment) for p in providers))
         todo = [j for j in chosen if j["run_id"] not in finished]
         if not todo:
             break
@@ -360,7 +379,7 @@ def run(cfg, all_jobs, limit=None, stop_file=None):
             return 2
         if "not_run" not in statuses:
             break
-    finished = set().union(*(done(p) for p in providers))
+    finished = set().union(*(done(p, experiment) for p in providers))
     return 0 if all(j["run_id"] in finished for j in chosen) else 1
 
 
