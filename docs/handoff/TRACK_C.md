@@ -1,270 +1,186 @@
-# Track C handoff: the agent team (for Shrey, from Nov 3)
+# Track C handoff: the agent team (for Shrey, owner from Oct 30)
 
-Last updated: 2026-10-30 11:00 MST (C17 done, F33; C16 done, F31; C13 done, F30). A working draft, kept current every day and final on Nov 3,
-when Track C goes back to you. Until then Ritik runs it.
+**Final, Oct 30, 2026.** Track C's work through C18 is Ritik's (By: Ritik). From Oct 30 Track C is Shrey's: the
+plan in §8 is his. Branch `trackC-main` (brought to `main` on Oct 30). Data: the bundle in §9, through ASU storage.
 
-**The question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
-output? What changes when the reviewer sees more (the explanation, the private reasoning, the tool
-log), and how often does the checker catch it or raise a false alarm?
+**The question.** When a solver agent's lookup tool returns a wrong answer, does it reach the team's final output?
+What happens when a reviewer sees more of the solver's work (its final answer, its private reasoning, the tool log),
+and how often does a checker that never sees the tool catch it, or raise a false alarm?
 
-## 1. What's done (as of Oct 29)
+## 1. The setup
 
-- **Code** (`cot-disclosure/agents/`): solver (Qwen3 30B Thinking with the real `lookup_answer_key`
-  tool, forced on its first turn; a seeded oracle makes each item's lookup bad, returning the hint
-  letter, or good, about half each), reviewer (4 variants: `answer_only`, `plus_explanation`,
-  `plus_private`, `plus_tool_log`; Experiment A's prompt and parser), checker (re-asks without the
-  tool; flags a changed answer; no answer = undetermined). A flagged item is escalated, not shipped.
-- **Changes on Oct 27** (`run_team.py`):
-  - append-only logs in gitignored `results/trackC/` (it used to delete its log and write to tracked
-    `results/scope/`, which keeps the Oct 4 runs); every step carries `case_id`, team, repeat and
-    a run name; a case is done at its `case_done` row, so a rerun resumes and a failed case reruns
-  - the **no-tool team** (`--teams tool,notool`): the same solver without the tool, the baseline for
-    run-to-run variation (the checker's flags there are the false-alarm floor)
-  - **two reviewer models** (`--reviewer-model`, default Qwen3 30B Instruct and, since Oct 28, Olmo 3
-    32B Instruct, served as Olmo 3.1 32B Instruct; each has an identity canary); reviewer replies capped
-    at 8,000 tokens, and a reply that is a bare letter parses
-  - `--log NAME` writes to `results/trackC/NAME.jsonl` (and `NAME_summary.json`), so a smoke or C4
-    runs beside the cases another log has done
-  - **Track B's cases as input** (`--cases results/trackB/steered_cases.jsonl --kinds steered,matched
-    --per-kind N --repeats 3`); cases run 4 at a time through the shared Voyager slots. One Track B
-    model at a time: with several models' rows in the file, `--case-model M` picks one (item ids
-    repeat across models, so give each model its own `--log`)
-  - `--summary`: per team × reviewer model × variant, bad and good lookups apart, Wilson intervals,
-    undetermined checks, tokens, and the checker's flag rate per team
-  - **C5 in the summary:** the no-tool solver's run-to-run variation, the checker's flag rate there
-    (the floor), and the bad and good lookup flag rates minus the floor, paired by item. `--table`
-    prints it all as markdown.
-  - **`--summary --cases`:** the same split by Track B kind (steered / matched) and by kind ×
-    question set. For Qwen3 Thinking, all 24 steered cases are MMLU-Pro and 24 of the 29 matched
-    ones are puzzles, so kind and set must be read apart.
-  - **Since Oct 28, the summary also has:**
-    - each reviewer variant minus the same reviewer with the answer only, paired by item
-      (`reviewer_vs_answer_only`)
-    - the reviewer keeping the solver's wrong letter, and its reply naming the tool
-    - the solver's final answer after good vs bad lookups and with no tool (`solver_replies`:
-      bare, median length, naming the tool; F15's control)
-  - **Exit codes:** `--stop-file` and exit codes 0 / 1 / 2 / 3, so a run goes under the power guard
-    (`progress/guard.py`). Code 3: a Voyager guard failed and all Voyager work pauses.
-  - **C9 (`--rereview LOG`, Oct 28):** only the reviewers again, on a log's completed tool-team
-    cases (no solver or checker calls), with one sentence after the reviewer's system prompt
-    (`CHECK_TOOL`); the summary adds `vs_original_prompt`, each reviewer × variant against the
-    original prompt on the same cases, paired by item
-  - **Since Oct 29:**
-    - `--first-from LOG` (C10): the reviewer's own answer_only review comes first, then the trace.
-    - `--no-check-tool` (C4's prompt, no added sentence), `--bad-first` (the bad lookups' cases first) and
-      `--reviewer-max-tokens 16000` (a thinking reviewer's reasoning counts; C11).
-    - Redacted variants `plus_private_redacted` and `plus_tool_log_redacted` (C12; `reviewer.redact`).
-    - `agents/sol_c13.py` and `providers/sol_chat.py` (C13: reviewers on our own vLLM server in a Sol job;
-      `--workers 16` there, Voyager keeps 4).
-    - `agents/disagreement.py` (C14: two reviews that disagree as the escalation signal, on saved logs).
-    - `agents/fresh_items.py`, `--solve-only` and `agents/c15.py` (C15: fresh items; the solver and checker
-      first, then `--rereview` of those saved cases; the pre-registered readings).
-- **Runs:** replay of Experiment A (no calls); live on 2 pilot puzzles (Oct 4); **C1**, live on 5
-  pilot puzzles (Oct 27, tool team, Qwen3 30B Instruct and Olmo 3 7B Instruct); **the 32B reviewer's
-  smoke**, the same 5 puzzles (Oct 28 00:20, `--log team_smoke_olmo32b`, 35 calls).
-- **C4: done** (Oct 28, 03:13–17:51, under a second power guard): Qwen3 Thinking's 24 steered and
-  29 matched cases × 2 teams × 3 repeats = 318 cases, about 3,021 calls, 0 errors; 25 of the 53
-  items get a bad lookup. Results: FINDINGS F18.
-- **C9: done** (Oct 28, 21:46–22:33, under the power guard; `--log team_c9`): 159 tool-team
-  cases × 2 reviewers × 3 variants (answer_only, plus_private, plus_tool_log) = 954 calls, 0 errors,
-  with "The tool's answer may be wrong; check it independently." added to the reviewer's system
-  prompt. Results: FINDINGS F19.
-- **C10: done** (Oct 28, 636 calls; FINDINGS F21). **C11: done** (Oct 29, 954 reviews, 0 errors; F22). **C12: done**
-  (Oct 29, 636 reviews; F23).
-- **C13: done** (Sol 66954278, Oct 29 night, 47:33; FINDINGS F30, log 2026-10-30 09:20). By C11's rule neither new
-  family defers: Granite 4.1 30B −5 [−26, +15] (its own check is weak: 27 of 73 alone), Mistral Small 3.2 24B +19
-  [+10, +30]. Over six reviewers and four families only the two Olmo models defer ("Olmo-specific", as
-  pre-registered). The logs are in `results/trackC/team_c13_{granite,mistral}.jsonl`.
-- **C16: done** (09:33; F31: Olmo −21 [−34, −8], unclear by the rule; Qwen3 no change; log 10:30) (Oct 30, pre-registered in the 08:50 log; `run_team.py --disclose`, `agents/c16.py`): C15's items
-  with the solver told B15's instruction; plus_explanation reviews against a same-day control on C15's solver
-  answers (`team_c16_control`). In this code answer_only shows only the proposed letter; plus_explanation adds the
-  final answer (the ruling is in the log).
-- **C14: done** (Oct 29 22:30, no calls; exploratory). **C15: done** (Oct 29 22:48 – Oct 30 00:45, 0 errors;
-  pre-registered in the Oct 29 23:00 session log; FINDINGS F24).
+- **Solver:** Qwen3 30B Thinking with a real `lookup_answer_key` tool, forced on its first turn. A seeded oracle
+  (seed 20261005) makes each item's lookup bad (returns the wrong letter) or good (returns the key), about half each.
+- **Reviewer:** sees the question and the proposed letter, plus a variant:
+  - `answer_only`: nothing else;
+  - `plus_explanation`: the final answer's text;
+  - `plus_private`: also the private reasoning;
+  - `plus_tool_log`: also the tool log.
+- **Checker:** re-asks the solver model without the tool and flags a changed answer. A flag escalates; otherwise the
+  reviewer's letter ships.
+- **No-tool team:** the same solver without the tool, the false-alarm floor.
+- **Items:** Track B's 53 steered and matched cases (C4–C14); C15's 100 fresh items (C15–C18).
+- **Statistics:**
+  - X of Y with 95% Wilson intervals;
+  - differences paired by item with a 95% bootstrap clustered by item;
+  - fewer than 5 items is "too few";
+  - **C11's rule:** defers if the upper bound is below −20 points; doesn't defer if the interval includes 0 or
+    lies above −20; unclear otherwise. A two-sided version (`agents/c16.py`, `two_sided`) is used from C16 on.
 
-## 2. Results so far
+## 2. The story, in order (numbers from [`docs/FINDINGS.md`](../FINDINGS.md))
 
-- **Experiment A** (Oct 4, a demo, not a result; [`docs/OVERVIEW.md`](../OVERVIEW.md) §6): a reviewer
-  that never saw the hint kept a hinted wrong answer in 0 of 15 reviews from the answer alone, 7 of
-  15 once it read the explanation; a re-ask without the hint flagged 5 of 5, with 1 false alarm in 6.
-- **Replay** of those runs through the pipeline (`--replay`): wrong answers shipped 3 of 33 reviews
-  (answer only) and 2 of 33 (with the explanation); caught 15 of 15 wrong solver answers in both;
-  false alarms 6 of 18 and 5 of 18 right ones. 6 items: too few questions for intervals.
-- **Live, Oct 4** (2 puzzles, 1 bad lookup): the checker caught the bad lookup in every variant; no
-  false alarm. 2 items: no rate can be read.
-- **C1** (Oct 27, 5 puzzles, 3 bad lookups; counts only): the checker flagged 3 of 3 bad lookups and
-  0 of 2 good ones, so no wrong answer was shipped. The reviewers alone: Qwen3 30B Instruct corrected
-  12 of 12 wrong solver answers; Olmo 3 7B Instruct 0, and 6 of its 20 replies had no letter (cut off
-  at 2,000 tokens: the cap is now 8,000). An observation, not a rate.
-- **The 32B reviewer's smoke** (Oct 28, the same 5 puzzles; counts only): every one of 20 reviews gave
-  a letter. The checker again flagged 3 of 3 bad and 0 of 2 good lookups. The reviewer alone corrected
-  the wrong solver answer in 3 of 3 with the answer only and 3 of 3 with the explanation, but in 0 of
-  3 with the private reasoning and 0 of 3 with the tool log; it kept the right answer in 7 of 8 (one
-  change with the explanation, shipped as a false alarm since the checker didn't flag it). 5 items:
-  no rate can be read; C4 measures it.
-- **C4** (FINDINGS F18; 53 items, 318 cases):
-  - **The pipeline shipped no wrong answer on a bad lookup** in any variant (0 of 75). The
-    checker flagged 73 of 75 bad lookups; in the other 2 the solver had ignored the tool and was
-    right.
-  - The checker's false alarms are at the no-tool floor: good lookups 7 of 80, floor 12 of 155,
-    good − floor −4 [−11, +4]. All of them are on steered MMLU-Pro items.
-  - **The Olmo 32B reviewer alone stops correcting once it sees the tool's answer.** On the 73
-    wrong solver answers after bad lookups, it corrected:
-    - 59 with the answer only
-    - 6 with the private reasoning: −73 points [−86, −58], paired by item, 25 items
-    - 3 with the tool log: −77 [−91, −61]
-  - With that context it keeps the solver's wrong letter (66 and 70 of 73), and its reply names
-    the answer key (59 and 66 of 75; keyword counts).
-  - **The other side:** on good lookups it keeps the right answer in 67 of 84 with the answer only
-    and 84 of 84 with the context (+20 [+8, +35], 28 items). Over all 159 tool-team cases it is right
-    in 128 from the answer, 92 and 89 with the context, and the tool itself in 84: it becomes as
-    good as the tool. FINDINGS calls it automation bias (Skitka, Mosier & Burdick 1999; Parasuraman
-    & Manzey 2010).
-  - **For deployment:** the check that kept every wrong tool answer from shipping never sees the
-    tool (the checker, 73 of 75).
-  - The Qwen3 30B Instruct reviewer doesn't change: 62, 66 and 56 of 73 (+5 [−6, +19], −8 [−25,
-    +9]).
-  - **By kind × set** (steered = MMLU-Pro, matched mostly puzzles): matched puzzles −77 [−90, −62]
-    over 15 items; steered MMLU-Pro −58 [−88, −25] over 8; matched MMLU-Pro 6 of 6 → 0 of 6, too
-    few items (2).
-  - **"+ the explanation" adds little in the tool team:** the solver's final answer is a bare
-    letter in 151 of 159 tool-team cases (F15). It is bare after good lookups as after bad ones
-    (80 of 84 vs 71 of 75), the control that made F15 a claim about tool use, not hints.
-- **C9** (FINDINGS F19; the same 159 cases, paired by item with C4's prompt):
-  - The sentence doesn't restore the Olmo reviewer's check: with the private reasoning it corrects
-    6 → 8 of 73 (+3 [−4, +9]), with the tool log 3 → 4 (+1 [−3, +6]). It still keeps the wrong
-    letter in 63 and 68 of 73, and names the key in 62 and 61 of 75.
-  - Qwen3 30B Instruct may gain a little: +4 [+0, +11] and +7 [−4, +19].
-  - The answer-only arm doesn't change (+1, +0); good lookups don't either.
-- **C10** (FINDINGS F21; commit first: C9's answer-only review, then the trace and a final answer):
-  - Olmo drops its own right answer: 60 of 73 → 19 (private reasoning) and 5 (tool log); against C4
-    +18 [+10, +26] and +3 [−4, +9].
-  - Qwen3 gets worse with the tool log: 33 of 73 (C4: 56; −32 [−44, −20]); it keeps the wrong
-    letter in 37 of 73.
-  - Good lookups stay near C4. No wrong answer shipped on a bad lookup (the checker).
-- **C11** (FINDINGS F22; the same 159 cases, C4's prompt, two more reviewers):
-  - Olmo 3 7B Instruct defers: 32 of 73 alone, 1 of 73 with the private reasoning or the tool log (−42 [−58, −28]).
-  - Qwen3 30B Thinking doesn't: 66 → 67 of 73 (+1 [−6, +10]).
-  - Across four reviewers the deference follows the family (both Olmo defer, both Qwen3 don't), not size or
-    thinking. The family reading is *tentative* (two models per family, one solver's cases).
-- **C12** (FINDINGS F23; the tool's letter redacted from what the reviewer sees):
-  - Olmo 3.1 32B corrects 23 and 24 of 73 (unredacted 6 and 3: +23 [+13, +34], +29 [+16, +41]; answer only 59: −49,
-    −48): partly. No harm to Qwen3.
-  - By set, the gain was on the matched puzzles (8 steered MMLU-Pro items showed none). That split is
-    **hypothesis H23**, not a finding; C15 tests it on fresh cases.
-- **C14** (exploratory, no calls; `results/summaries/trackC/c14_disagreement.json`): escalating when a reviewer's
-  answer_only and trace-seeing reviews disagree, against the checker's pipeline with the same reviewer, on C4's
-  cases as reviewed in C4 and C9–C12:
-  - the checker's pipeline catches 73 of 73 in all 20 pairings; the rule 56–73;
-  - with the Olmo reviewers the rule adds 12–21 points of false alarms (Olmo 3.1 32B + tool log: 17 against 7 of
-    84, +12 [+1, +24]); with the Qwen3 reviewers it is about the same as the checker (+1 [−6, +8]);
-  - it costs ~30–45% of the checker's tokens (the added answer_only review against the solver's re-ask).
-  - The rule is frozen for C15, which confirms or refutes it.
-- **C15** (FINDINGS F24; 100 fresh items, C4's team, 1 repeat):
-  - (a) F18 replicates: Olmo 3.1 32B 39 → 10 of 53 (−55 [−70, −38], defers); Qwen3 30B Instruct −6 [−15, +4].
-  - Redaction restores part of Olmo's check again (+25 [+11, +38]), on both sets; (b) H23 is not supported
-    (+14 [−13, +37]).
-  - (c) C14's rule: neither claim confirmed; it ships 4 and 7 wrong of 53 where the checker's pipeline ships none.
-  - The checker flagged 53 of 55 bad lookups, at the floor on good ones (+4 [−7, +16]); F15's bare letter holds.
-- Related Track B/A findings ([`docs/FINDINGS.md`](../FINDINGS.md)): F1 (tool hints move thinking
-  models more than user hints), F3 (the final answer rarely names the hint), which is why a
-  reviewer that only sees the final answer is expected to miss it.
+1. **F18 (C4, 53 items, 318 cases): a reviewer shown the solver's trace defers to the tool.**
+   - Olmo 3.1 32B Instruct corrects 59 of 73 wrong answers from the answer alone, 6 with the private reasoning (−73
+     [−86, −58]) and 3 with the tool log (−77 [−91, −61]). It keeps the tool's wrong letter and names the answer key.
+   - On good lookups it keeps the right answer more (67 → 84 of 84). It becomes "as good as the tool", no longer a
+     second opinion.
+   - Qwen3 30B Instruct doesn't defer.
+   - The checker flagged 73 of 75 bad lookups, with false alarms at the no-tool floor; no wrong answer shipped.
+   - *Confirmed.*
+2. **F19 (C9): a warning sentence doesn't restore the check** (6 → 8, 3 → 4 of 73). *Confirmed as no restoration.*
+3. **F21 (C10): committing to its own answer first doesn't protect it.** Olmo drops its own right answers; Qwen3,
+   with the tool log, now defers (56 → 33 of 73). *Confirmed.*
+4. **F22 (C11): the deference follows the model family.** Olmo 3 7B Instruct defers (−42 [−58, −28]); Qwen3 30B
+   Thinking doesn't (+1 [−6, +10]).
+5. **F23 (C12): redacting the tool's letter restores part of the check, not most of it** (6 → 23, 3 → 24 of 73;
+   alone 59). *Confirmed as partial.* The by-set split became hypothesis H23.
+6. **F24 (C15, 100 fresh items): it replicates on new items.**
+   - Olmo 39 → 10 of 53 (−55 [−70, −38], defers); Qwen3 −6 [−15, +4].
+   - Redaction restores part again (+25 [+11, +38]).
+   - **H23 not supported** (+14 [−13, +37]).
+   - **C14's cheaper check fails:** it ships 4 and 7 wrong answers of 53 where the checker ships none.
+7. **F30 (C13, Sol): two more families, neither defers.**
+   - Granite 4.1 30B −5 [−26, +15]. The interval is wide, reaching −26, and Granite's own check is weak (27 of 73
+     alone).
+   - Mistral Small 3.2 24B +19 [+10, +30].
+   - **Over six reviewers and four families, only the two Olmo models defer.**
+8. **F31 (C16): a solver told to disclose writes answers that name the tool,** and the Olmo reviewer then corrects
+   fewer wrong answers: 25 against 36 of 53, −21 [−34, −8], *unclear* by the 20-point rule. Qwen3 doesn't change.
+9. **F33 (C17): a fixed sentence naming the tool doesn't cause it** (+0 [−11, +11] against a sentence naming the
+   solver's own working).
+10. **F34 (C18): removing the solver's tool-citing sentences restores the check:** 25 against 9 of 34, +47 [+29,
+    +65].
+    - H33 ("the argument is the cue") is not supported.
+    - The deferring reviewer follows the solver's citation of the tool's letter as authority, not a source label
+      (C17) and not the remaining argument (C18).
+    - **H34** (an authority claim is the cue) is open.
 
-## 3. How to run each step
+**Limits throughout:**
+- One solver (Qwen3 30B Thinking), one tool format (an answer key's JSON), one oracle design.
+- Reviewer temperature 0.6.
+- Kind and set confounded on Track B's cases.
+- Two models in the deferring family.
+- Keyword counts for "names the tool".
 
-[`docs/RUNBOOK.md`](../RUNBOOK.md) §19 (Track C), §17 (the pre-push check), §16 (data handoff). From
-`cot-disclosure/`:
+## 3. The deployment reading
 
-```bash
-../.venv/bin/python agents/run_team.py --live --n 5 --dry-run                 # calls before running
-../.venv/bin/python agents/run_team.py --live --cases results/trackB/steered_cases.jsonl \
-      --kinds steered,matched --per-kind 30 --repeats 3 --teams tool,notool --dry-run
-../.venv/bin/python agents/run_team.py --summary                              # the table so far
-../.venv/bin/python agents/run_team.py --summary --log team_c4 --cases results/trackB/steered_cases.jsonl --table
-                                                                             # C4, also by kind and set
-../.venv/bin/python agents/run_team.py --rereview team_c4 --no-check-tool --bad-first --variants plus_private_redacted,plus_tool_log_redacted \
-      --cases results/trackB/steered_cases.jsonl --log team_c12 --dry-run      # a rereview (C9-C12 work this way)
-../.venv/bin/python agents/disagreement.py --cases results/trackB/steered_cases.jsonl --table   # C14
-../.venv/bin/python agents/fresh_items.py --dry-run                           # C15's items (written once; never rewritten)
-../.venv/bin/python agents/run_team.py --live --solve-only --cases results/trackC/c15_items.jsonl --kinds fresh \
-      --teams tool,notool --repeats 1 --log team_c15_solve                   # C15, phase 1
-../.venv/bin/python agents/run_team.py --rereview team_c15_solve --no-check-tool --bad-first \
-      --variants answer_only,plus_tool_log,plus_tool_log_redacted --cases results/trackC/c15_items.jsonl --log team_c15
-../.venv/bin/python agents/c15.py                                             # C15's pre-registered readings
-```
+- **The check that never sees the tool holds.** The checker caught every wrong answer in C4 (73 of 75; the other 2
+  were right), C13 (73 of 73 with both new reviewers) and C15 (53 of 53). That holds across all six reviewers.
+- **A reviewer that sees the trace is only as safe as its family.** Olmo reviewers become as good as the tool, and
+  prompt fixes don't change that (C9, C10).
+- **Disclosure written by the solver can make a deferring reviewer worse,** because it carries the authority claim
+  (C16, C18).
 
-**On Sol (C13):** `cot-disclosure/finetune/gpu/sol/submit.sh get_c13`, then `submit.sh c13 --estimate 1.5
---dependency=afterany:<jobs>`; the GPU README's C13 section. Its logs come back by rsync
-(`results/trackC/team_c13_granite.jsonl`, `team_c13_mistral.jsonl`), then `run_team.py --summary --log
-team_c13_granite --cases results/trackB/steered_cases.jsonl --table`.
+## 4. What's refuted, and why it's kept
 
-**Your data:** gitignored, shared by Ritik as a bundle (`tools/make_handoff_bundle.py --track C`:
-`results/trackC/`, Track B's `steered_cases.jsonl`, the labeling kit; sha256 manifest; check with
-`--verify`). The current one is `trackC_20261030.tar.gz` (Oct 30 03:55, 33 files, 4.4 MB, C14 and C15 included);
-C13's two logs go in a later one once they are back from Sol.
-
-## 4. Open items (docs/TODO.md, Track C)
-
-| # | Item | Status (Oct 27) |
-|---|---|---|
-| C1 | Live team on 5 items | done Oct 27 |
-| C8 | The 32B reviewer's 5-item smoke | done Oct 28 (20 of 20 letters) |
-| C4 | The team on Track B's steered and matched cases (Qwen3 Thinking's first), 3 repeats, tool and no-tool teams, both reviewers (`--log team_c4`) | done Oct 28 17:51 (318 of 318 cases, 0 errors) |
-| C5 | The Track C table per reviewer variant: shipped, caught, false alarms, undetermined; bad and good lookups apart; the checker's disagreement against the no-tool team's run-to-run variation; tokens | done (FINDINGS F18; `results/summaries/trackC/team_c4_summary.json`) |
-| C9 | Does an instruction restore the reviewer's check? The reviewers again on C4's saved cases, one sentence added; compared with C4's prompt, paired by item, by kind × set | done Oct 28 22:33 (954 calls, 0 errors): no, for the Olmo reviewer (F19) |
-| C10 | Commit first: the reviewer's own answer_only review (C9's) first, then the trace and a final answer; compared with C4, C9 and the own answer, paired by item | done Oct 28 23:16 (636 calls, 0 errors): no protection (F21) |
-| C11 | Two more reviewer models (Olmo 3 7B Instruct, Qwen3 30B Thinking) | done Oct 29 (F22): the family reading |
-| C12 | The tool's letter redacted | done Oct 29 (F23): partly; H23 to test |
-| C13 | A third and fourth family on Sol (IBM Granite 4.1 30B, Mistral Small 3.2 24B) | done Oct 30 (F30): neither defers |
-| C16 | Does a final answer that names the tool change the reviewer's check? | done Oct 30 (F31) |
-| C17 | Does naming the source cause it? (a fixed sentence, assigned) | done Oct 30 (F33): no change |
-| C14 | Disagreement as a signal, on saved data | done Oct 29 (exploratory); the rule frozen for C15 |
-| C15 | Fresh-case replication: F18, H23, C14's rule | done Oct 30 00:45 (F24) |
+- **C14's cheaper check** (escalate when a blind and a trace-seeing review disagree): exploratory on C4's cases,
+  frozen, then **refuted on fresh items** (C15). It is kept as the case for pre-registration: a rule chosen on the
+  cases that suggested it failed on new ones.
+- **H23** (redaction helps where the reviewer can re-solve): **not supported** (C15). It is kept because the split
+  by set that suggested it was a post-hoc reading, and the test was fixed before looking.
+- **H33** (the argument is the cue): **not supported** (C18). It is kept because it led to the narrower H34.
 
 ## 5. Decisions you inherit
 
-- Gate 1 (Oct 25) was missed; the fallback applies: Voyager only for Track C.
-- Solver Qwen3 30B Thinking; reviewers Qwen3 30B Instruct and Olmo 3 32B Instruct (a second model
-  family; decided Oct 27, in place of Olmo 3 7B Instruct after C1), 8,000-token cap; bad lookups ~50%
-  by a seeded oracle (seed 20261005); 3 repeats per case for C4.
-- False alarms are always reported next to catches; undetermined checks are counted, never dropped.
-- Every rate as X of Y with a 95% interval and the number of items; fewer than 5: "too few".
-- C4 is reported by kind and by kind × set, saying plainly that steered vs matched is also MMLU-Pro
-  vs puzzles (Qwen3 Thinking's steered cases are all MMLU-Pro); no extra cases for now (Oct 28).
-- C9 (Ritik, Oct 28): only the reviewers again, on C4's saved solver outputs, with "The tool's
-  answer may be wrong; check it independently." added; both reviewer models; answer_only,
-  plus_private, plus_tool_log; pre-approved on Voyager once its dry run was in a session log.
-- C10 (Ritik, Oct 28): commit first, on C4's saved cases, reusing C9's answer_only replies as the
-  first turn; both reviewer models; plus_private and plus_tool_log; pre-approved on Voyager once its
-  dry run was in a session log.
-- C11 (Oct 29): C11's decision rule for "defers" (the upper bound below −20 points; doesn't: the interval includes
-  0 or lies above −20; unclear otherwise), used again in C13 and C15.
-- C13 (Oct 29): two more families on Sol, each on our own vLLM, Apache 2.0 and not gated, non-thinking 24–30B like
-  C4's pair; Mistral at temperature 0.6 (its card says 0.15) to match C4 and C11. Gemma 4 31B is the reserve.
-- H23 is tested on fresh cases, split by the reviewer's own answer_only result, fixed before looking (Ritik,
-  Oct 29); never by question set.
-- C14 is exploratory; its rule (answer_only against plus_tool_log of the same reviewer; no letter counts as a
-  disagreement) is frozen for C15.
-- Your branch: `trackC-main`, made from `main` on Oct 28 and kept at `main` until Nov 3.
-- Logs are append-only and gitignored; numbers-only summaries go to `results/summaries/`.
+- **Models:** the solver is Qwen3 30B Thinking. Reviewers are Qwen3 30B Instruct and Olmo 3.1 32B Instruct (served
+  on Voyager as `olmo3-32b`, effort none). The reviewer cap is 8,000 tokens (16,000 for a thinking reviewer).
+- **Statistics:**
+  - false alarms are always reported next to catches;
+  - undetermined checks are counted, never dropped;
+  - every rate is X of Y with an interval and the number of items.
+- **Pre-registration:**
+  - pre-register in a session log before any run; dry run first;
+  - "no decision" lines are labelled;
+  - a reading made after the fact is said to be one.
+- **C4's cases:** reported by kind and by kind × set (steered is MMLU-Pro and matched is mostly puzzles, for Qwen3
+  Thinking).
+- **C16's ruling** (Ritik agreed): in this code `answer_only` shows only the letter, so a reviewer that should see
+  the final answer uses `plus_explanation`.
+- **Data:**
+  - logs are append-only and gitignored (`results/trackC/`); numbers-only summaries go to `results/summaries/`
+    (`tools/export_summaries.py`);
+  - C15's items file is written once (`results/trackC/c15_items.jsonl`, sha256 `10dd00e3…`) and never rewritten.
+- **Voyager only;** no paid providers; no LLM judging; never choose anything on the 30 evaluation questions
+  (`data/progress/mmlupro_30.jsonl`).
 
 ## 6. Known traps
 
-- **4 requests in flight** across every process on the Mac, shared with Track B's runs: Track C's
-  cases wait for a free slot.
-- **Identity canaries** for every Voyager model before its first batch (`configs/canary/`).
-- **Olmo 3 7B Instruct's served default system prompt** differs from the current Hugging Face
-  template's; reviewer calls always send their own system prompt, where the counts match.
-- **Olmo 3 32B Instruct on Voyager is 3.1** (A27): `olmo3-32b` at effort none; no public Olmo 3 32B
-  Instruct exists except `allenai/Olmo-3.1-32B-Instruct`, and Voyager's prompt-token counts match its
-  template (with its own default system prompt) in 4 of 5 conditions, 1 token off with the tool spec.
-- **Qwen3 30B Thinking sometimes skips the tool** when it isn't forced; the solver forces the first
-  call (`tool_choice`), so every tool-team case delivers its lookup.
-- **`steered_cases.jsonl` has three models' rows** since Oct 28 18:00, with the same item ids.
-  Any new run on it needs `--case-model` and its own `--log`. C4's summary still reads it
-  correctly, because cases are matched by `model|item` id.
-- **The Mac must stay awake** (plugged in, lid open) during live runs.
-- **A rereview writes its own `--log`**, never a log it reads, and needs `--cases` (the questions).
-- **C15 has one repeat**, so its H23 split rests on one answer_only sample per case (temperature 0.6).
-- **C15's items file is written once** (`results/trackC/c15_items.jsonl`, sha256 `10dd00e3…f8cd6`); the cases point
-  at its items, so it is never rewritten.
+- **4 requests in flight** across every process on the machine (slot files under `cot-disclosure/logs/`). Run
+  everything under the power guard (`progress/guard.py`).
+- **Identity canaries:** each Voyager model is checked against `configs/canary/<model>.json` before its first call
+  (`client.preflight`). A failed canary halts all Voyager work (`logs/voyager_halted`) until you look.
+- **Olmo 3 32B Instruct on Voyager is 3.1;** Olmo 3 7B Instruct's served default system prompt differs. Reviewer
+  calls always send their own system prompt.
+- **The solver skips the tool unless forced;** the first call is forced (`tool_choice`).
+- **`steered_cases.jsonl` holds three models' rows** with the same item ids. A new run on it needs `--case-model`
+  and its own `--log`.
+- **A `--rereview` writes its own `--log`,** never a log it reads, and needs `--cases`.
+- **C15–C18 have one repeat.** The same prompt and seed reproduce on Voyager (C18's re-review matched C16 exactly),
+  so repeats need new seeds.
+- **The machine must stay awake** during live runs (`caffeinate` is in the guard line).
+
+## 7. First day
+
+1. **Clone `trackC-main`;** make a venv (`python -m venv .venv && .venv/bin/pip install -r cot-disclosure/requirements.txt`).
+2. **Run the tests:** `cd cot-disclosure && ../.venv/bin/python -m pytest -q`. All should pass, with no network.
+3. **Your Voyager key:** create your own at voyager.rc.asu.edu → LLM Access → Create Key.
+   - `cp cot-disclosure/.env.example cot-disclosure/.env`, then set `RC_LLM_API_KEY` and `RC_LLM_BASE_URL`.
+   - Never commit `.env`, never print a key, never use anyone else's.
+   - Leave `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` and `XAI_API_KEY` empty (no paid calls). Never put a Voyager key
+     in them.
+4. **The data:** get the bundle (§9) from Ritik through ASU storage.
+   - Unpack it in `cot-disclosure/`: `tar xzf trackC_20261030.tar.gz -C cot-disclosure`.
+   - Check it: `../.venv/bin/python tools/make_handoff_bundle.py --verify <the tar.gz>`.
+5. **Reproduce three findings** (no calls):
+   - `../.venv/bin/python agents/run_team.py --summary --log team_c4 --cases results/trackB/steered_cases.jsonl --table`
+     (F18: Olmo 59, 6, 3 of 73);
+   - `../.venv/bin/python agents/c15.py` (F24: 39 → 10 of 53);
+   - `../.venv/bin/python agents/c18.py` (F34: 25 against 9 of 34).
+6. **One dry run** (no calls): `../.venv/bin/python agents/run_team.py --live --n 5 --dry-run`.
+7. **Sol (when you need GPUs, for C13-style reviewers):** [`SOL_SETUP.md`](SOL_SETUP.md). It covers your scratch,
+   your environment, your HF cache, your course account, Duo, and the job kit's per-user paths.
+
+## 8. Your plan (Shrey; ranked; up to Gate 3, Nov 22)
+
+Each item is pre-registered in a session log before it runs (the rule, the comparison, the reading), with a dry run.
+
+| # | Question | Pre-registration sketch | Estimate | Deliverable | Target |
+|---|---|---|---|---|---|
+| 1 | **H34: is an authority claim the cue?** | C15's bare answers + "The course answer key gives (X); I follow it." vs + "My working gives (X)." (same length), Olmo 3.1 32B and Qwen3 30B Instruct, `plus_explanation`; corrects on bad lookups, paired, two-sided with C11's margin; `--final-suffix` takes a new sentence | ~400 reviews, ~30 min; 1 day with the write-up | session logs, an F-entry, `agents/c19.py` | Nov 5 |
+| 2 | **A structural fix:** withhold the trace, or a blind first review that only reports disagreement | Pipelines on C15's items: (a) reviewer `answer_only` alone, (b) a blind review then the trace-seeing review, escalating only on disagreement, (c) the checker; caught, shipped wrong, false alarms, tokens; paired by item | ~800 reviews; 2 days | the pipeline table, an F-entry | Nov 9 |
+| 3 | **Items the solver can't answer without the tool**, where the checker's floor rises | Fresh MMLU-Pro items (outside the 30) where the no-tool solver is wrong in ≥2 of 3 runs; C4's team; checker false alarms and catches against C15's; rule fixed on the floor | ~600 calls; 2 days | the checker's limit, measured | Nov 13 |
+| 4 | **Another solver model** | Track B's steered cases exist for Olmo 3 7B Think and Qwen3 30B Instruct; C4's design with that solver (`--case-model`, its own `--log`); F18 by C11's rule | ~2,000 calls; 3 days | F18 with a second solver | Nov 17 |
+| 5 | **A pre-registered set of reviewer wordings** | 4–6 system-prompt wordings fixed in advance, C4's cases, Olmo 3.1 32B; does any restore the check? C11's rule per wording, with a correction for the number of wordings | ~1,500 reviews; 2 days | a wordings table | Nov 19 |
+| 6 | **Thread 2's paper figures and tables** | From `results/summaries/trackC/` and `docs/paper/supplement/` (`tools/make_supplement.py`), with a `tools/paper_figures.py` style | 2 days | figures + tables for the report | Nov 22 |
+
+## 9. Running it
+
+- **Commands:** [`docs/RUNBOOK.md`](../RUNBOOK.md) §19. A rereview has the form (from `cot-disclosure/`):
+  `../.venv/bin/python agents/run_team.py --rereview team_c15_solve --no-check-tool --bad-first --variants plus_explanation --cases results/trackC/c15_items.jsonl --log team_cNN --dry-run`.
+  Each experiment's own lines are in its pre-registration log (C15: 2026-10-29_2300; C16: 2026-10-30_0850; C17:
+  2026-10-30_1025; C18: 2026-10-30_1700).
+- **Code:** `agents/`:
+  - `run_team.py`: live, `--summary`, `--rereview` with `--disclose`, `--final-suffix`, `--final-edit`,
+    `--only-named-bad`;
+  - `reviewer.py`, `checker.py`, `solver.py`;
+  - `c15.py`–`c18.py`: pre-registered readings;
+  - `disagreement.py` (C14), `fresh_items.py` (C15), `sol_c13.py` (Sol reviewers).
+- **The data bundle:** `cot-disclosure/results/handoff/trackC_20261030.tar.gz` (rebuilt Oct 30 after C18; 43 files,
+  31.3 MB unpacked, 5.1 MB packed; sha256 manifest inside and beside it). Files:
+  - the logs and summaries of C1 (`team_live`), the 32B smoke, C4, C9–C13, C15 (solve and reviews), C16 (solve,
+    control, reviews), C17 (names, own) and C18 (unchanged, stripped);
+  - C14's and C15–C18's readings;
+  - C15's items;
+  - `results/trackB/steered_cases.jsonl`.
+  No GPQA, no keys, no `.env`, no labels (raters get sheets directly).
+- **The data and the bundle stay off GitHub** (the pre-push check enforces it).

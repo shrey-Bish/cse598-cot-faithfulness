@@ -26,7 +26,7 @@ OUT = CODE / "results" / "handoff"
 TRACKS = {
     "A": ["results/trackA", "finetune/data"],
     "B": ["results/trackB", "results/voyager_canary.jsonl"],
-    "C": ["results/trackC", "results/trackB/steered_cases.jsonl", "results/labels"],
+    "C": ["results/trackC", "results/trackB/steered_cases.jsonl"],     # labels go to the raters directly (Oct 30)
 }
 GPQA = re.compile(r"gpqa", re.IGNORECASE)
 

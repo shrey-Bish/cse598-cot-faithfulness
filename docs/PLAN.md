@@ -12,8 +12,8 @@ is done is in [`OVERVIEW.md`](OVERVIEW.md); each result, with its numbers, sourc
 [`FINDINGS.md`](FINDINGS.md). Every open item, with its owner and status, is in
 [`TODO.md`](TODO.md); how to run each step is in [`RUNBOOK.md`](RUNBOOK.md).
 
-**Who runs what.** Until Nov 3 Ritik runs all three tracks. On Nov 3
-Track B goes back to Arsha and Track C to Shrey, with a handoff doc each
+**Who runs what.** Ritik ran all three tracks through Oct 30. Track C went to Shrey on Oct 30 (early); Track B goes
+back to Arsha on Nov 3. Each has a handoff doc
 (`docs/handoff/TRACK_B.md`, `TRACK_C.md`) and a data bundle (`tools/make_handoff_bundle.py`;
 produced data is gitignored, so it doesn't come with GitHub).
 
@@ -47,7 +47,7 @@ the old week-14 schedule. A date is the earliest start; Sol queue waits move it.
 | Wed Oct 28 | Steps 11–13 code (`train.py`, tagged generation, `eval.py`, Sol scripts) and the kit's QoS checks, CPU tests | Qwen3 30B Instruct, then Olmo 3 7B Think (Voyager, in the background); Qwen3-8B on Sol: code and CPU tests (runs on "go") | Append-only log in `results/trackC/`, no-tool team, second reviewer, input file; then the live team on 5 items | Labeling kit; the 10 replacement rows |
 | Thu Oct 29 | **First Sol jobs** (on "go"): timing run and vLLM tag check, then training | Olmo 3 runs finish; the first Track B table; the Gate 2 question answered as soon as the data allows | The team on Qwen3 Thinking's steered cases, 3 repeats, tool and no-tool teams | Labeling starts (two raters) |
 | Fri Oct 30–Sun Nov 1 | Training done; evaluation of base, prompt-only and the 3 versions (E1–E5) | Analysis; gaps filled | Steered cases continue; the Track C table | Labels; kappa as rows come in |
-| Mon Nov 2–Tue Nov 3 | E1–E5 continue | **Handoff to Arsha, Nov 3** | **Handoff to Shrey, Nov 3** | Handoff docs and bundles final |
+| Mon Nov 2–Tue Nov 3 | E1–E5 continue | **Handoff to Arsha, Nov 3** | Shrey (Track C since Oct 30) | Handoff docs and bundles final |
 | Nov 4–9 | E1–E5 done; look inside the best version (L1); the fourth version last (S6, E6), dropped if E1–E5 aren't done by Nov 9 | Arsha | Shrey | **Gate 2, Nov 8** |
 | Nov 10–20 | Step 13 analysis; reruns; all evaluation done by Nov 20 at the latest | | | Phase 6 sample labeled |
 | Nov 22 | **Gate 3** | | | |
@@ -405,7 +405,7 @@ rate; cost and tokens.
 **Success.** 6+ models across 3+ providers (or, under the Gate 1 fallback, the providers that
 work); 3 runs per question for the main models; every rate as "X of Y" with a 95% interval.
 
-## Track C: multi-agent pipeline (Ritik until Nov 3, then Shrey)
+## Track C: multi-agent pipeline (Shrey from Oct 30; the work through C18 is Ritik's)
 
 **Question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
 output? What changes when the reviewer sees more, and how often does the checker catch it or raise

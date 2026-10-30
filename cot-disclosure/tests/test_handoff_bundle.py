@@ -32,6 +32,8 @@ def test_bundle_has_the_track_files_and_a_manifest_without_gpqa(tmp_path):
     assert json.loads((tmp_path / "out" / "trackB_t.manifest.json").read_text())["files"] == manifest["files"]
     with pytest.raises(SystemExit, match="never overwritten"):
         hb.build("B", out_dir=tmp_path / "out", root=tmp_path, stamp="t")
+    (tmp_path / "results" / "labels" / "gate3").mkdir(parents=True)               # Track A's label sample: not Track C's
+    (tmp_path / "results" / "labels" / "gate3" / "label_sample.csv").write_text("row\n")
     c_tar, c = hb.build("C", out_dir=tmp_path / "out", root=tmp_path, stamp="t")
     assert {f["path"] for f in c["files"]} == {"results/trackC/team_live.jsonl", "results/trackB/steered_cases.jsonl"}
 
