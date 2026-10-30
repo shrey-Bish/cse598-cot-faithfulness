@@ -74,6 +74,10 @@ C15 (Oct 29, fresh items from agents/fresh_items.py, --kinds fresh): `--live --s
 checker of every case first (log team_c15_solve), then `--rereview team_c15_solve` runs the reviewers on those saved
 cases (log team_c15); agents/c15.py reads both.
 
+C16 (Oct 30): `--live --solve-only --disclose` on C15's items (tool team; log team_c16_solve): the solver's turn ends
+with B15's instruction. Then plus_explanation reviews of it (team_c16) and of team_c15_solve (team_c16_control);
+agents/c16.py reads them with C15's answer_only reviews.
+
 C11, C12 (Oct 29): `--no-check-tool` reruns with C4's original prompt (no added sentence); `--bad-first` reviews
 the bad lookups first. C11 is other reviewer models; C13 (agents/sol_c13.py) two more families on Sol, each on
 the job's own vLLM server (--reviewer-model sol_chat:MODEL, --workers 16; Voyager's runs keep 4). C12 uses the redacted variants (reviewer.redact): the
@@ -518,23 +522,31 @@ def done_cases(path):
 
 
 # ---------------------------------------------------------------- live (Voyager)
-def run_case(item, team, repeat, oracle, reviewers, path, run_name, reviewer_max_tokens=REVIEWER_MAX_TOKENS):
-    """One case: solver, checker, every reviewer model x variant; a case_done row when no call failed."""
+def disclose_instruction():
+    """C16: the solver's closing instruction with B15's sentence after it, as B15 sent it (run_b15.instruction)."""
+    return f"{pilot.STEPS} {pilot.DISCLOSE}"
+
+
+def run_case(item, team, repeat, oracle, reviewers, path, run_name, reviewer_max_tokens=REVIEWER_MAX_TOKENS,
+             instruction=None):
+    """One case: solver, checker, every reviewer model x variant; a case_done row when no call failed. instruction
+    (C16) replaces the solver's closing instruction and is logged on its row."""
     sp, sm = SOLVER_MODEL
     attempt = uuid.uuid4().hex[:12]
     base = {"mode": "live", "run_name": run_name, "case_id": case_id(item, team, repeat), "attempt": attempt,
             "team": team, "repeat": repeat, "item_id": item["item_id"], "source": item.get("source")}
     gen_s = lambda **kw: generate(sp, sm, max_tokens=16000, temperature=0.6, **{"seed": repeat, **kw})  # noqa: E731
     if team == "tool":
-        s_reply, transcript, steps, tool_letter, is_bad = solver.solve(gen_s, item, oracle)
+        s_reply, transcript, steps, tool_letter, is_bad = solver.solve(gen_s, item, oracle, instruction=instruction)
     else:
-        msgs, _ = build(item["question"], item["item_id"], "none")
+        msgs, _ = build(item["question"], item["item_id"], "none", **({"instruction": instruction} if instruction else {}))
         s_reply, transcript, steps, tool_letter, is_bad = gen_s(messages=msgs), msgs, [], None, None
     s_letter = parse_answer(s_reply.final_text, item["n_options"])[0] if not s_reply.error else None
     log_step(path, **base, agent="solver", model=sm, bad_lookup=is_bad, tool_letter=tool_letter, letter=s_letter,
              correct=item["correct"], steps=steps, reasoning_visibility=s_reply.reasoning_visibility,
              final_text=s_reply.final_text, reasoning_text=s_reply.reasoning_text, usage=s_reply.usage,
-             error=s_reply.error, finish_reason=s_reply.finish_reason, **route_fields(s_reply))
+             error=s_reply.error, finish_reason=s_reply.finish_reason, **route_fields(s_reply),
+             **({"instruction": instruction} if instruction else {}))
     c_reply, c_letter, flag = checker.check(gen_s, item, s_letter, seed=3 + 10 * repeat)
     log_step(path, **base, agent="checker", model=sm, bad_lookup=is_bad, letter=c_letter, flag=flag,
              final_text=c_reply.final_text, usage=c_reply.usage, error=c_reply.error, finish_reason=c_reply.finish_reason,
@@ -571,7 +583,7 @@ def calls_per_case(team, reviewers):
 
 
 def live(items, teams, repeats, reviewers, path, run_name, workers=IN_FLIGHT, check_models=True,
-         reviewer_max_tokens=REVIEWER_MAX_TOKENS, stop_file=None):
+         reviewer_max_tokens=REVIEWER_MAX_TOKENS, stop_file=None, instruction=None):
     """Run the cases not done yet. Returns 0 when every case is complete, 1 when some are left (rerun
     resumes), 2 when stop_file stopped it (no new case starts once it exists; the ones in flight finish)."""
     oracle = solver.ToolOracle(wrong_rate=0.5)
@@ -583,8 +595,8 @@ def live(items, teams, repeats, reviewers, path, run_name, workers=IN_FLIGHT, ch
     finished = done_cases(path)
     todo = [c for c in plan_cases(items, teams, repeats) if case_id(*c) not in finished]
     print(f"{len(todo)} cases to run ({len(finished)} done before), {workers} at a time", flush=True)
-    return run_all(todo, lambda c: run_case(*c, oracle, reviewers, path, run_name, reviewer_max_tokens), workers,
-                   stop_file)
+    return run_all(todo, lambda c: run_case(*c, oracle, reviewers, path, run_name, reviewer_max_tokens, instruction),
+                   workers, stop_file)
 
 
 # ---------------------------------------------------------------- C9: the reviewers again, on saved cases
@@ -778,6 +790,8 @@ def main():
     ap.add_argument("--workers", type=int, default=IN_FLIGHT, help="--rereview: cases at once (default %(default)s, "
                                                                     "Voyager's; a Sol job's own server takes more)")
     ap.add_argument("--bad-first", action="store_true", help="--rereview: the bad lookups' cases first")
+    ap.add_argument("--disclose", action="store_true", help="live (C16): the solver's turn ends with B15's instruction "
+                                                           "to say what its answer is based on")
     ap.add_argument("--first-from", metavar="LOG", help="--rereview (C10): the reviewer's own answer_only reviews from "
                                                        "LOG come first; then each variant is a second turn")
     a = ap.parse_args()
@@ -805,15 +819,17 @@ def main():
     cases = plan_cases(items, teams, a.repeats)
     todo = [c for c in cases if case_id(*c) not in done_cases(path)]
     calls = sum(calls_per_case(t, reviewers) for _, t, _ in todo)
+    instruction = disclose_instruction() if a.disclose else None
     print(f"{len(items)} items x {len(teams)} teams x {a.repeats} repeats = {len(cases)} cases, {len(todo)} to run, "
           f"~{calls} calls (solver, checker, {len(reviewers)} reviewer models x variants); bad lookups among the "
-          f"items: {sum(oracle.is_bad(it['item_id']) for it in items)} of {len(items)}")
+          f"items: {sum(oracle.is_bad(it['item_id']) for it in items)} of {len(items)}"
+          + (f"; the solver's turn ends: \"{instruction}\"" if instruction else ""))
     if a.dry_run:
         return
     import client
     try:
         return live(items, teams, a.repeats, reviewers, path, a.run_name or f"run-{uuid.uuid4().hex[:6]}",
-                    reviewer_max_tokens=a.reviewer_max_tokens, stop_file=a.stop_file)
+                    reviewer_max_tokens=a.reviewer_max_tokens, stop_file=a.stop_file, instruction=instruction)
     except (client.CanaryFailed, client.ModelUnavailable) as err:    # Voyager work pauses (client.HALT_FILE)
         print(f"halted: {type(err).__name__}: {err}", file=sys.stderr, flush=True)
         return 3
