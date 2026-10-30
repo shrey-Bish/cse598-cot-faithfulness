@@ -1,12 +1,18 @@
 # Questions a reviewer would ask that we can't answer yet
 
-Each question: why it matters, and which of tonight's runs (Oct 28–29) or the next Sol jobs answer
-it. Tonight's runs:
+Each question: why it matters, and which runs answer it. Updated Oct 29 23:15: C11 and C12 are in (F22, F23);
+added C13 (Sol), C14 (exploratory), C15 (fresh items, running) and B15 (a disclosure instruction, running).
+The runs of Oct 28–29:
 - **A:** set A localization replication (Voyager runs and probes tonight; Steps 9/10 on Sol).
 - **B1:** provenance-scaled attention (code tonight, Sol jobs).
 - **B2:** a learned per-head provenance bias (code tonight, training later).
 - **C11:** more reviewer models.
 - **C12:** the redacted cue.
+- **C13:** a third and fourth reviewer family (Granite, Mistral) on Sol, after set A.
+- **C14:** two reviews that disagree, as a cheaper check (exploratory, saved data).
+- **C15:** 100 fresh items: F18, H23 and C14's rule, pre-registered.
+- **B15:** one instruction asking the final answer to say what it is based on.
+- **Gate 3:** batch 3's table and figures in one command (`finetune/gate3.py`) when its files are back.
 
 `[___]` marks a number to fill in.
 
@@ -42,17 +48,26 @@ it. Tonight's runs:
    - The mechanism is Olmo 3 7B Think only. Behavior (Gate 2) holds for 3 models.
    - Not answered tonight. Next: Steps 9/10 on a second open model.
 9. **Are the mention counts real acknowledgments?**
-   - Keyword counts until the hand labels (L3, L5). Not answered tonight.
+   - Keyword counts until the hand labels (L3, L5). Not answered yet; the raters' one-page guide is ready
+     (`docs/progress/RATER_GUIDE.md`).
+10. **Couldn't you just ask the model to say where its answer came from?** (F15: after a tool call the final answer
+    is a bare letter.)
+    - **Answered by B15:** one added instruction; does naming the tool after a call rise (Thinking: 3 of 54 before),
+      does the bare letter fall, and at what cost to correct-tool acceptance and no-hint accuracy?
+    - `[Thinking: names the tool after a call ___ of ___ (before 3 of 54); bare ___; Instruct: ___ (before 35 of 162)]`
 
 ## Thread 2: automation bias in reviewers
 
 1. **Is the deference one model's quirk?**
-   - It is one of two so far (F18).
-   - **Answered by C11:** at least two more reviewer models varying family, size and thinking.
-   - `[plus_private − answer_only on bad lookups, per model: ___]`
+   - **Partly answered by C11 (F22):** Olmo 3 7B Instruct defers too (−42 [−58, −28]); Qwen3 30B Thinking doesn't
+     (+1 [−6, +10]). In four reviewers it follows the family, not size or thinking (*tentative*: two per family).
+   - **C13** adds two families on Sol (Granite, Mistral): does family still predict it?
+     `[Granite ___; Mistral ___]`
 2. **What does the reviewer defer to: the visible letter or the reasoning?**
-   - **Answered by C12:** the redacted tool log and redacted private reasoning.
-   - `[Olmo: redacted plus_private ___ of 73 (C4: 6), redacted plus_tool_log ___ of 73 (C4: 3); Qwen3: ___]`
+   - **Answered in part by C12 (F23):** with the tool's letter redacted, Olmo corrects 23 and 24 of 73 (C4: 6 and 3;
+     answer only 59). The letter is part of the cue, not most of it.
+   - By set, the gain was on the matched puzzles: **hypothesis H23** (re-solvable items), tested in **C15** on fresh
+     items, split by the reviewer's own answer_only result. `[restoration where it re-solves ___, where it doesn't ___]`
 3. **Is the deference just reasonable trust in an answer key?**
    - Partly. On good lookups it helps (67 → 84 of 84).
    - Our point is that the independent check disappears: "as good as the tool" (F18: 92 and 89 of
@@ -64,8 +79,14 @@ it. Tonight's runs:
      withheld).
 5. **Does the checker work when the model can't answer without the tool?**
    - Not tested. Its false-alarm floor is already 18% on steered MMLU-Pro (F18).
-   - Next: items the solver gets wrong without the tool.
-6. **One solver, one tool format?**
+   - C15's fresh items include hard puzzles and MMLU-Pro outside the evaluation categories: its floor there is
+     reported. Items the solver gets wrong without the tool are still the open test.
+   - **Is there a cheaper check?** C14 (exploratory): escalating when the answer_only and trace-seeing reviews
+     disagree never beat the checker's pipeline on catches; with a non-deferring reviewer it matched it at about a
+     third of the tokens, with a deferring one it added false alarms. **C15 (c)** tests that on fresh items.
+6. **Does any of it hold on new items?**
+   - **Answered by C15 (a):** F18's comparison on 100 fresh items, C11's rule. `[Olmo ___; Qwen3 ___]`
+7. **One solver, one tool format?**
    - Yes (Qwen3 30B Thinking; the answer key's JSON).
    - Not answered tonight. Next: Track B's other models as solvers (steered cases exist for all
      three).

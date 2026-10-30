@@ -2,7 +2,8 @@
 
 Last updated: 2026-10-28 21:50 (the Track B batch: bare replies labeled by rule, a 10% spot check, and 20 rows of private reasoning as a keyword check: 171 rows; the queue first. Earlier: the 10 replacement rows, the kit).
 
-For two human raters (team members). Use it with `LABEL_QUEUE.csv`. The keyword columns
+For two human raters (team members). Use it with `LABEL_QUEUE.csv`. The one-page version (order, time per row,
+sending sheets back, kappa) is [`RATER_GUIDE.md`](RATER_GUIDE.md). The keyword columns
 in the queue (`keyword_private`, `keyword_final`) come from an automatic **keyword
 pre-sort**. They only say where to look. They are not labels, and raters should ignore
 them while labeling.

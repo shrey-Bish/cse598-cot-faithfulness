@@ -1,13 +1,13 @@
 # Track B handoff: test widely (for Arsha, from Nov 3)
 
-Last updated: 2026-10-28 21:50 MST. A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-29 23:15 MST. A working draft, kept current every day and final on Nov 3,
 when Track B goes back to you. Until then Ritik runs it.
 
 **The question.** Does the failure seen in the progress round (a wrong hint from a tool moves
 thinking models more than the same hint from the user, and the final answer rarely says so) hold on
 more models, with thinking on and off in the same model, real tool calls and 3 runs per question?
 
-## 1. What's done (as of Oct 28)
+## 1. What's done (as of Oct 29)
 
 - **Code** (`cot-disclosure/progress/run_trackB.py`, `configs/trackB.yaml`, `providers/`):
   - one runner for every provider; each (model, thinking, question, condition, run) is a job with a
@@ -47,8 +47,16 @@ more models, with thinking on and off in the same model, real tool calls and 3 r
   engine start, like Track A's check. Since Oct 29 the default is Hugging Face generation in the
   job's own process (`--engine hf`): `providers/sol_hf.py` renders the snapshot's chat template with
   `enable_thinking` and splits `<think>` and hermes tool calls as the vLLM server did; the provider
-  stays `sol_vllm`, so run ids and records are unchanged, and each record names its engine. About
-  10–15 GPU h (an estimate), so two 8-hour jobs; the second resumes the first.
+  stays `sol_vllm`, so run ids and records are unchanged, and each record names its engine.
+  - **Back on vLLM (Oct 29):** vLLM's start failure was FlashInfer's sampler needing nvcc (the server now starts
+    with `VLLM_USE_FLASHINFER_SAMPLER=0`). 66932943 then failed at the first prompt count (the tokenizer pinned to
+    the cached revision since), and 66934413 on `from transformers import AutoTokenizer`: a Python 3.11 race when
+    48 threads import transformers at once (one thread loads it now). Every Sol job now starts with an import check.
+  - **Queued:** 66954217 (`submit.sh trackb_qwen8b --estimate 3 -- --engine vllm`, limit 4:00, resumable; resubmit
+    the same line if it stops with runs left). Its texts stay on Sol; the numbers-only `sol_vllm_runs.jsonl` and
+    `sol_vllm_flags.jsonl` come back by rsync, and `trackB_report.py` reads the flags.
+- **B15 (Oct 29, running on Voyager):** can one instruction bring the tool back into the final answer?
+  `progress/run_b15.py`, pre-registered in the Oct 29 23:00 session log (section 2 below).
 - **Not done:** closed providers (no keys; Gate 1 was missed and its fallback applies: Voyager and
   our own Sol server only); GPQA (waits for Ritik to accept its terms on Hugging Face).
 - **The table:** `progress/trackB_report.py` prints it from the saved runs (no calls). `--by-set`
@@ -123,6 +131,14 @@ questions", no interval):
     prompt, and the injected condition uses the function-calling one. So its injected-vs-pasted
     naming contrast (11 of 46 vs 33 of 64) is not about the tool.
 - **Gate 2 is clear for all three Voyager models.**
+- **B15 (running; pre-registered Oct 29 23:00):** Qwen3 30B Thinking and Instruct, the 54 questions, 3 runs, with
+  "In your final answer, say what your answer is based on, including any tool result you used." added after the
+  answer instruction.
+  - Arms: no hint; tool_real with the wrong letter; tool_real with the right letter; the pasted block; and the
+    right letter without the instruction (Track B has no right-letter runs to compare with).
+  - Pre-registered: does naming the tool after a call rise (Thinking before: 3 of 54; Instruct: 35 of 162), does the
+    bare letter fall (51 of 54; 111 of 162), does following change? Side effects: correct-tool acceptance, no-hint
+    accuracy, the call rate.
 
 ## 3. How to run each step
 
@@ -134,7 +150,12 @@ handoff). In short, from `cot-disclosure/`:
 ../.venv/bin/python progress/run_trackB.py --run --model M --limit 5           # smoke test
 nohup caffeinate -i ../.venv/bin/python -u progress/run_trackB.py --run --model M >> logs/trackB_M.log 2>&1 &
 ../.venv/bin/python progress/run_trackB.py --steered --model qwen3-30b-a3b-thinking-2507   # for Track C
+../.venv/bin/python progress/run_b15.py --dry-run                                # B15: jobs, calls, hours
+../.venv/bin/python progress/run_b15.py --report                                 # B15's pre-registered comparisons
 ```
+
+**Qwen3-8B (Sol):** `cot-disclosure/finetune/gpu/sol/submit.sh trackb_qwen8b --estimate 3 -- --engine vllm`; copy
+back `results/trackB/sol_vllm_{runs,flags}.jsonl` from the Sol clone, then `trackB_report.py` (and `--by-set`).
 
 **Your data:** produced data is gitignored, so it won't come with GitHub. Ritik shares the bundle
 (`tools/make_handoff_bundle.py --track B`: `results/trackB/` and the canary log, with a sha256
@@ -145,11 +166,12 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 | # | Item | Status (Oct 27) |
 |---|---|---|
 | B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | done Oct 28 (03:11, 05:32, 17:52) |
-| B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | code done; vLLM run 66879362 failed Oct 29; Hugging Face path done Oct 29 (`--engine hf`), two 8 h jobs to submit |
+| B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | on vLLM after the Oct 29 fixes; 66954217 queued (limit 4:00, resumable) |
+| B15 | One instruction to bring the tool back into the final answer (Qwen3 30B Thinking and Instruct) | running on Voyager (Oct 29, after Track C's C15 solver phase); pre-registered |
 | B8 | `steered_cases.jsonl` per model | done for all three (Oct 28) |
 | B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate; the bare final answer | `trackB_report.py` (and `--by-set`); F15, F16, F17; Qwen3-8B when B4 runs |
 | B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? | clear for all three Voyager models (F15, F16, F17), at both cuts |
-| L5 | Track B labeling batch (`tools/label_kit.py trackb`) | built: 171 rows to label (bare replies by rule, 18 spot checks, and 20 rows of private reasoning checking F15's keyword count); after the progress-round queue (L3) |
+| L5 | Track B labeling batch (`tools/label_kit.py trackb`) | built: 171 rows to label (bare replies by rule, 18 spot checks, and 20 rows of private reasoning checking F15's keyword count); after the progress-round queue (L3); the one-page rater guide is `docs/progress/RATER_GUIDE.md` |
 | B1–B3 | Closed providers: keys, Haiku 4.5 check, smoke tests | blocked: keys and Ritik's "go" |
 | B6 | GPQA export | blocked: Ritik accepts the terms |
 
@@ -171,6 +193,9 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
   spot check.
 - F15's claim is about the tool call, not hints (Oct 28, from C4's good lookups).
 - Nothing from GPQA in any doc or tracked file. Produced data never goes to GitHub.
+- B15 (Ritik, Oct 29): one instruction, Qwen3 30B Thinking and Instruct, Track B's 54 questions and 3 runs; its
+  "before" is Track B's own runs; a right-letter arm without the instruction runs beside it. Its records stay out
+  of Track B's table (`b15_voyager.jsonl.gz`).
 
 ## 6. Known traps
 
@@ -189,5 +214,10 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
 - **Olmo 3 7B Think's system turn** (F17): the system note replaces its default system prompt,
   and its final answer then goes bare in about half the runs. Compare the system note and the
   injected tool with each other, not with the pasted block.
+- **Sol's clone pulls from GitHub since Oct 29.** It was cloned from a bundle on Oct 26 and moved onto GitHub's
+  history in place (the GPU README gives the commands); a plain `git reset --hard` to origin would delete the
+  produced files the old commit tracked.
+- **B15's "before" is a day or two older** than its runs (the same Voyager route, checked by the identity canary);
+  the right-letter control runs beside it.
 - Olmo 3 7B Instruct (Track C's second reviewer): the served default system prompt differs from the
   current Hugging Face template's; with a system message the counts match.

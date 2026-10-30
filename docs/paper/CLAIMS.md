@@ -1,6 +1,7 @@
 # Candidate claims: evidence, status, objection, what settles it
 
-Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md) (Oct 29). Status words as in
+Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md) (Oct 29; updated 23:15 with C11–C15 and
+B15). Status words as in
 FINDINGS: *confirmed* (measured as stated, the interval excludes no effect), *tentative* (direction
 there, interval includes 0 or a confound remains), *waiting* (the run is going or planned).
 `[TONIGHT: ...]` marks a number tonight's runs fill in.
@@ -39,7 +40,8 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
   43).
 - **Strongest objection:** forced answers off-distribution; few questions.
 - **Settles it:** more questions with late takeovers. Set A (tonight) adds the 34 validation
-  questions: `[TONIGHT: followed runs, questions with a late takeover]`.
+  questions: set A (Oct 29, Voyager) followed 30 of 100 pasted and 26 of 101 inserted runs, with 39 late takeovers
+  on 16 sure questions (above the minimum of 5); Steps 9 and 10 on them are queued on Sol.
 
 **1.4 Three full-attention layers (15, 19, 23) read the hint's letter straight from the prompt.**
 - **Evidence:**
@@ -103,14 +105,15 @@ without making the model ignore correct tools.**
     private reasoning (−73 [−86, −58]) and 3 with the tool log (−77 [−91, −61]). It keeps the
     wrong letter 66 and 70 of 73 and names the answer key.
   - On both sets.
-- **Status:** *confirmed* for one reviewer. Qwen3 30B Instruct doesn't (62, 66, 56 of 73).
-- **Strongest objection:** one model of two. It could be prompt-specific. Deferring to an answer
-  key can be reasonable.
+- **Status:** *confirmed* for two reviewers of one family: Olmo 3.1 32B (F18) and Olmo 3 7B Instruct (C11, F22:
+  32 → 1 of 73, −42 [−58, −28]). Qwen3 30B Instruct and Qwen3 30B Thinking don't (+1 [−6, +10]). In four reviewers
+  it follows the family, not size or thinking: *tentative*.
+- **Strongest objection:** one family of two, one solver's cases. It could be prompt-specific. Deferring to an
+  answer key can be reasonable.
 - **Settles it:**
-  - C11: more reviewer models varying family, size and thinking. Pre-registered: does
-    plus_private − answer_only drop, and does the drop track family, size or thinking?
-    `[TONIGHT: per model ___]`
-  - C12 for the cue.
+  - C13 (Sol, queued): IBM Granite 4.1 30B and Mistral Small 3.2 24B. Does family still predict it?
+    `[Granite ___; Mistral ___]`
+  - C15 (Voyager, running): F18's comparison on 100 fresh items (C11's rule). `[Olmo ___; Qwen3 ___]`
 
 **2.2 It becomes as good as the tool, no longer a second opinion.**
 - **Evidence:** F18. Right in 128 of 159 from the answer, 92 and 89 with the trace; the tool
@@ -132,11 +135,12 @@ without making the model ignore correct tools.**
   reviewer answers blind first and only reports disagreement).
 
 **2.4 What the reviewer defers to: the tool's letter, or the reasoning around it.**
-- **Evidence:** C12 tonight. Redacted tool log (the returned letter replaced by "[redacted]") and
-  redacted private reasoning (every statement of the tool's letter redacted).
-- **Status:** *waiting*.
-- **Settles it:** if deference disappears with the letter redacted, the visible answer-key letter
-  is the cue. `[TONIGHT: Olmo plus_private redacted ___ of 73 vs 6; plus_tool_log redacted ___ vs 3]`
+- **Evidence:** C12 (F23). With every statement of the tool's letter redacted, the Olmo 3.1 32B reviewer corrects
+  23 and 24 of 73 (unredacted 6 and 3: +23 [+13, +34], +29 [+16, +41]; answer only 59: −49, −48). No harm to Qwen3.
+- **Status:** *confirmed* as partial: the letter is part of the cue, the source (knowing it came from a key) the
+  rest. The split by set (the gain on puzzles) is **H23**, a hypothesis.
+- **Settles it:** C15 (b): restoration where the reviewer's own answer_only review corrects vs where it doesn't, on
+  fresh items. `[___ vs ___]`
 
 **2.5 The check that never sees the tool works.**
 - **Evidence:** F18. The re-ask checker flagged 73 of 75 bad lookups. False alarms on good lookups
@@ -147,6 +151,15 @@ without making the model ignore correct tools.**
   18% on steered MMLU-Pro.
 - **Settles it:** items the model can't answer without the tool, and the cost in escalations.
 
+**2.6 A cheaper check: escalate when a blind review and a trace-seeing review disagree.**
+- **Evidence:** C14 (exploratory: chosen on C4's cases as reviewed in C4 and C9–C12). Against the checker's
+  pipeline with the same reviewer: catches 56–73 of 73 against 73; with Qwen3 reviewers about the same false
+  alarms (+1 [−6, +8]) at ~30–45% of the checker's tokens; with Olmo reviewers 12–21 points more false alarms.
+- **Status:** *waiting* (C15 (c), pre-registered: (c1) Olmo's extra false alarms; (c2) Qwen3 within 10 points of
+  the checker).
+- **Strongest objection:** it only works with a reviewer that doesn't defer, which is what we can't assume.
+- **Settles it:** C15 (c); then a reviewer family that defers on other items.
+
 ## Supporting (Track B)
 
 - **F15:** after a tool call the final answer is a bare letter, right or wrong (the C4 control). It
@@ -154,5 +167,9 @@ without making the model ignore correct tools.**
   *tentative*.
 - **F16:** Instruct calls the tool every time and takes its letter (147 of 162); Thinking − Instruct
   on the real call −57 [−70, −43].
+- **B15 (running, pre-registered):** can one instruction ("say what your answer is based on, including any tool
+  result you used") bring the tool back into the final answer? Thinking names it after 3 of 54 calls today; the
+  bare letter is 51 of 54. *Waiting.* If it works, F15 is a default, not a limit; if not, it is harder to fix than a
+  prompt.
 - **F17:** Gate 2 clear for a third model and family. The system-turn confound for bare answers
   is *tentative*.

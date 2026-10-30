@@ -1,6 +1,8 @@
 # Plan: weeks 11–16 (CSE 598, Group 10)
 
-Last updated: 2026-10-29 16:45 MST (C11–C13; week 11; the plan for Oct 27–Nov 3 moved everything as early
+Last updated: 2026-10-29 23:00 MST (Ritik's decisions of 22:20: the order of the 10 unsubmitted Sol jobs, B2's LR_GATE
+1e-2 approved, H23 tested on C15; C14 done, C15 and B15 pre-registered and running on Voyager; the Gate 3 command;
+earlier: C11–C13; week 11; the plan for Oct 27–Nov 3 moved everything as early
 as it can go; Oct 28: Ollama replaced by Qwen3-8B on Sol, training batch 2, the class QoS only; Track
 B's Voyager runs and C4 done; S7, the validation loss by taught tokens, on all four versions; the labeling order;
 the vLLM preflight's rule; C9). What's left, by track: the timeline, the gates, the Sol hours and the risks. What
@@ -274,22 +276,28 @@ replaces these estimates with measured ones.
 | S3 | Train LoRA only (1,040 examples × 2 epochs; batch 2, decided Oct 28): job 66759753 done in 3.41 h; epoch 2, validation loss 0.18567 → 0.18537 | 3.66 (3.56–3.78), S1 refit | 5:00 | S4 | Oct 28 | S1, data checks (a) and (e) |
 | S4 | Train tags only (batch 2, at once with S3): job 66759769 done in 2.81 h; epoch 2, validation loss 0.21672 → 0.21401 | 2.97 (2.89–3.04) | 4:00 | S3 | Oct 28 | S1 |
 | S5 | Train LoRA + tags: job 66759772 failed (no version reached run.sh); 66862721 done Oct 28 in 3:25:40; epoch 2, validation loss 0.18723 → 0.18598 | 3.65 (3.56–3.74) | 5:00 | S6 | after S3 | S1 |
-| E1 | Evaluate base, 930 generations (Hugging Face since Oct 29; the Oct 28 vLLM parts were removed) | 27–60, mid 38 (10 parts) | 8:00 | E2 | Oct 29 | code (A10) |
-| E2 | Evaluate prompt-only (same) | 27–60 (10 parts) | 8:00 | E1, E3 | Oct 29 | A10 |
-| E3 | Evaluate LoRA only (adapter merged in memory) | 27–60 (10 parts) | 8:00 | E2, E4 | after E1 | S3 |
-| E4 | Evaluate LoRA + tags (tags as token ids into a widened embedding table) | 27–60 (10 parts) | 8:00 | E3, E5 | after E2 | S5 |
-| E5 | Evaluate tags only (same) | 27–60 (10 parts) | 8:00 | E4 | after E3 | S4 |
+| E1 | Evaluate base, 930 generations: done Oct 29 on vLLM (66932942/44, 2 parts of 465 runs, 3:22 each, ~470 tokens/s) | 6.7 measured | 5:30 | E2 | Oct 29 | code (A10) |
+| E2 | Evaluate prompt-only (vLLM, 66932945/46, running Oct 29 night) | ~7 | 5:30 | E1, E3 | Oct 29 | A10 |
+| E3 | Evaluate LoRA only (vLLM, merged; 66932947/48 queued) | ~7 | 5:30 | E2, E4 | after E1 | S3 |
+| E4 | Evaluate LoRA + tags (vLLM, the tag folded, prompts as embeddings; not submitted: Ritik's order) | ~7 | 5:30 | E3, E5 | after E2 | S5 |
+| E5 | Evaluate tags only (same; not submitted: Ritik's order) | ~7 | 5:30 | E4 | after E3 | S4 |
 | L1 | Look inside the best version: Step 3 probes (vLLM), Step 9, Step 10 | 4–10 (1–2 jobs) | 8:00 | S6 | after E1–E5 | E1–E5 |
 | S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23): job 66759822 failed like S5; 66862726 done Oct 28 in 2:44:43; epoch 2, validation loss 0.19654 → 0.19278; evaluated last | 2.99 (2.92–3.07) | 4:00 | S5 | after S4 | S1 |
-| E6 | Evaluate the fourth version (Hugging Face) | 27–60 (10 parts) | 8:00 | — | after S6 | S6 |
+| E6 | Evaluate the fourth version (vLLM; not submitted: Ritik's order) | ~7 | 5:30 | — | after S6 | S6 |
 | S7 | Validation loss by part (Oct 28, Ritik): base + both epochs of all four versions (decided Oct 28 21:30) on the 156 validation examples, each split into the taught tokens (80,010 of 1,243,692: 6.4%) and the rest; no vLLM (`finetune/val_loss.py`). 66865939 done Oct 28 in 0:37:09 (all four versions) | 0.62 measured (0.75–1.3 inferred) | 2:00 | any | after S5, S6 | S3–S6 |
 | B-Q8 | Track B: Qwen3-8B (replaces Ollama), 1,620 runs, core cells first. get_qwen8b 66879245 done (1:31); trackb_qwen8b 66879362 failed in vLLM's start (Oct 29, 13:39); now Hugging Face (`--engine hf`, the default), ~6.7M tokens at ~120–190 tokens/s | 10–15 (2 jobs) | 8:00 | any | Oct 29 | the snapshot |
 | S9A | Set A, Step 9 (attention to the hint) on set A's runs (Oct 29: questions not used to find the readout; `--runs-from`, `--items-from`, `--step3-from`) | ≤1 | as Step 9 | any | after set A's runs (Voyager, Oct 29) | set A |
 | S10A | Set A, Step 10 (patching) on set A's cases (`--cases-from`); the pre-registered readout question (share at 15/19/23, cut (ii)) | ≤1 | as Step 10 | any | after set A's cases | set A |
 | P1 | B1 forced answer at set A's takeover cuts, alpha in {1, 0.5, 0.25, 0.1, 0}, deployable and oracle spans; chooses alpha on set A (`provenance_forced`) | 0.25–0.5 | 1:00 | any | after set A's cases | set A |
 | P2 | B1 generation on the held-out 30 MMLU-Pro: wrong, correct and no tool hint, pasted and inserted, at alpha = 1 and the chosen alphas (`provenance_gen`, 4 parts; 630 runs) | 11–23 (speed a guess) | 6:00 each | any | after P1 | P1 |
-| G1 | B2 train gate3 and lora_attn3_gate (a learned per-head bias on tool keys in 15/19/23; LR_GATE 1e-2 to confirm) + their val_loss | ~2.75 each + 0.3 | 4:00 | each other | after Ritik confirms LR_GATE | S1 |
+| G1 | B2 train gate3 and lora_attn3_gate (a learned per-head bias on tool keys in 15/19/23) + their val_loss. LR_GATE 1e-2 approved (Ritik, Oct 29); every bias logged at every step, and after each epoch checked against Adam's applied bound (1.31 over 260 steps with the warmup and decay; Ritik's lr × steps is 2.6): a bias at the bound is reported with a rerun at 3e-2 proposed, the run left as it is | ~2.75 each + 0.3 | 4:00 | each other | after batch 3's order | S1 |
 | — | Buffer for queue waits and reruns; all evaluation done | | | | by Nov 20 | |
+
+**Order of the 10 unsubmitted jobs (Ritik, Oct 29 22:20), as slots free:** B1 provenance_gen 1/4 and 2/4; tags
+1/2 and 2/2; provenance_gen 3/4 and 4/4; lora_tags 1/2 and 2/2; lora_attn3 1/2 and 2/2. The exact lines are in the
+Oct 29 23:00 session log, section 7. Before the first B1 part, `provenance_job.py choose` on the forced job's
+summary; if both spans come out at alpha = 1, raise it first. When batch 3's files are back,
+`finetune/gate3.py --out results/trackA/gpu/eval` gives Gate 3's table, verdicts and figures in one command.
 
 With two jobs at a time the running time is about half the GPU hours. On Hugging Face (Oct 29),
 E1–E6 are 163–359 GPU h (mid 230): 3.5–7.5 days of both slots, plus Qwen3-8B (10–15), set A's
@@ -329,6 +337,13 @@ cases are exported for all three. F15 now reads as a claim about tool use: after
 final answer is bare whether the lookup was right or wrong (Track C's C4 is the control). Next:
 Qwen3-8B on Sol once vllm_check passes; the Track B labeling batch after the queue. No keys; no
 GPQA.
+
+**B15 (Oct 29, running on Voyager after C15's solver; pre-registered in the 23:00 log):** can one instruction
+("In your final answer, say what your answer is based on, including any tool result you used.") bring the tool
+back into the final answer? Qwen3 30B Thinking and Instruct, Track B's 54 questions, 3 runs; tool_real with the
+wrong and the right letter, the pasted block, no hint, and a right-letter arm without the instruction
+(`progress/run_b15.py`, 1,620 runs, its own records files). Pre-registered: naming the tool after a call rises
+(Thinking: 3 of 54 before), the bare letter falls, following changes or not; side effects reported.
 
 **This week (decided Oct 27).** Gate 1's fallback: Voyager and our own Sol server only; paid calls wait for
 keys and "go"; GPQA waits until Ritik has accepted its terms on Hugging Face.
@@ -399,7 +414,14 @@ reviews, 0.6–1.5 A100 h); pre-registered in the Oct 29 16:45 session log.
   pipeline shipped no wrong answer.
 - The Olmo 32B reviewer alone stopped correcting wrong answers once it saw the private reasoning or
   the tool log: −73 and −77 points, paired by item. Qwen3 30B Instruct didn't change.
-- Next is not decided: the team on Instruct's or Olmo's cases, or other reviewer models.
+- C14 (Oct 29, exploratory, no calls; `agents/disagreement.py`): escalating when the answer_only review and the
+  trace-seeing review disagree never beat the checker's pipeline on C4's cases (catches 56–73 of 73 against 73);
+  with Olmo reviewers it adds 12–21 points of false alarms, with Qwen3 ones it matches the checker at about a third
+  of the tokens. The rule is frozen for C15.
+- C15 (Oct 29, running on Voyager; pre-registered in the 23:00 log): 100 fresh items (60 MMLU-Pro from the
+  categories evaluation doesn't use, 40 puzzles), C4's team, 1 repeat, Olmo 3.1 32B and Qwen3 30B Instruct reviewing
+  answer_only, plus_tool_log and plus_tool_log_redacted: (a) does F18 replicate, (b) H23 split by the reviewer's own
+  answer_only result, (c) C14's rule against the checker.
 
 **This week (decided Oct 27), in order:** the append-only log in `results/trackC/` (C6); the
 no-tool team (C2); a second reviewer model (C3); an input-file option; the live team on 5 items
