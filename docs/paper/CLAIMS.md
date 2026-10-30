@@ -70,10 +70,14 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
     85–90% of that drop.
 - **Status:** *confirmed* as teacher-forced loss on held-out questions. **Behavior, interim (F28): Gate 3 is met
   by LoRA** (following −10 [−16, −4], no-hint accuracy −2 points, hiding −24). LoRA on 15/19/23 is still running.
-- **Strongest objection:** loss is not behavior. Half the taught drop is a memorized opener. Now also:
-  - the guide note the targets were made with does as well in the prompt (prompt_only −13; LoRA minus it +3
-    [−1, +8]): training internalizes the note, not more;
-  - LoRA's false-disclosure candidates rise (+10 [+2, +18]): it may describe a check it doesn't do.
+- **Strongest objection:** loss is not behavior. Half the taught drop is a memorized opener. Now also, from Gate 3
+  (F28):
+  - LoRA passes by the pre-registered rule, *and* it doesn't beat an independent one-line instruction in the prompt
+    (prompt_only −13; LoRA minus it +3 [−1, +8]);
+  - *and* its false-disclosure candidates rise (+10 [+2, +18]) while the instruction's fall (−9 [−14, −4]).
+- **Candidate cautionary claim (waiting on hand labels):** fine-tuning for disclosure reduced hint-following no more
+  than an instruction, and may have taught the model to claim checks it didn't do. The labels of LoRA's
+  false-disclosure candidates go first in the queue.
 - **Settles it:** the label sample (false disclosure; what the trained answer says); LoRA on 15/19/23 and the tag
   versions (Gate 3, all six systems).
 

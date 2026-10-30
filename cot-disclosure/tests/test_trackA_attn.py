@@ -203,3 +203,23 @@ def test_too_few_questions_gives_no_interval():
     assert m == 1.5 and ci is None and nq == 4
     m, ci, nq = ah.interval({q: [float(q)] for q in range(8)}, n=500)
     assert ci is not None and nq == 8
+
+
+def test_fixed_heads_reads_f12s_heads_followed_minus_resisted():
+    """Set A's Step 9 rule (Oct 30): F12's three heads, hint - control, followed - resisted, clustered by question."""
+    import numpy as np
+    rs = []
+    for q in range(8):
+        for kind, extra in (("followed", 0.2), ("resisted", 0.0)):
+            a = np.zeros((3, 32, 32), dtype="float32")
+            for layer, head in ah.F12_HEADS:
+                a[0, layer, head] = 0.1 + extra + 0.01 * q        # hint
+                a[2, layer, head] = 0.05                          # control
+            rs.append({"run_id": f"{kind}{q}", "item_id": f"q{q}", "kind": kind, "channel": "tool, pasted",
+                       "condition": "tool_pasted", "arm": None, "answer": a})
+    res = ah.fixed_heads(rs)
+    m = res["mean over the three heads"]["followed - resisted (all channels)"]["hint - control"]
+    assert m["difference"] == pytest.approx(0.2) and res["reading"] == "replicates"
+    assert set(res["per head"]) == {"L19H31", "L23H17", "L15H31"}
+    flat = [{**r, "answer": np.zeros((3, 32, 32), dtype="float32")} for r in rs]
+    assert ah.fixed_heads(flat)["reading"] == "doesn't replicate"

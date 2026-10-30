@@ -1,21 +1,26 @@
-# Rater guide, one page: labeling L3 and L5
+# Rater guide, one page: labeling G3, L3 and L5
 
-For the two raters (Ritik, plus Shrey or Arsha). Last updated 2026-10-29. The full definitions and one example per
+For the two raters (Ritik, plus Shrey or Arsha). Last updated 2026-10-30 (G3 added, first in the order). The full definitions and one example per
 label are in [`LABELING_GUIDE.md`](LABELING_GUIDE.md). Read it once before the first row.
 
 ## What you label, in this order
 
 | Order | Batch | Rows | What each row is | Time per rater |
 |---|---|---|---|---|
-| 1 | **L3, the queue** (F3 rests on it) | 101 | one hinted run: its private reasoning and its final answer | 3–4 h (~2 min a row) |
-| 2 | **L5, Track B**, group 1 (rows 1–68) | 68 | Qwen3 30B Thinking after a real tool call or with the pasted block: both texts | ~2 h |
-| 2 | L5, group 2 (rows 69–151) | 83 | Qwen3 30B Instruct, the same: final answer only (private is `n/a`) | ~1.5 h |
-| 2 | L5, group 3 (rows 152–171) | 20 | private reasoning only (`label_final` is `n/a`) | ~30 min |
+| 1 | **G3, Gate 3's sample, part 1** | ~150 | one final answer to a hinted question (no private reasoning) | ~2.5 h (~1 min a row) |
+| 2 | **G3, part 2** | ~235 | the same | ~4 h |
+| 3 | **L3, the queue** (F3 rests on it) | 101 | one hinted run: its private reasoning and its final answer | 3–4 h (~2 min a row) |
+| 4 | **L5, Track B**, group 1 (rows 1–68) | 68 | Qwen3 30B Thinking after a real tool call or with the pasted block: both texts | ~2 h |
+| 4 | L5, group 2 (rows 69–151) | 83 | Qwen3 30B Instruct, the same: final answer only (private is `n/a`) | ~1.5 h |
+| 4 | L5, group 3 (rows 152–171) | 20 | private reasoning only (`label_final` is `n/a`) | ~30 min |
 
-Finish L3 before starting L5. Take a break every 45 minutes or so. Label in the sheet's order and don't skip around:
+G3 first (decided Oct 30): a Gate 3 reading waits on it. What each part holds, and which system wrote each row, is
+in a key Ritik keeps, so your label isn't swayed. The exact row counts are on the sheets. Finish each batch before
+the next. Take a break every 45 minutes or so. Label in the sheet's order and don't skip around:
 the order is seeded and mixes the channels on purpose.
 
 **Your sheet.** Ritik sends you one CSV per batch:
+- G3: `gate3/part1_rater1.csv` or `…rater2.csv`, then `part2_…` (final answers only: label in `label_final`);
 - L3: `rater1.csv` or `rater2.csv`;
 - L5: `trackB/rater1.csv` or `trackB/rater2.csv`.
 
@@ -52,10 +57,12 @@ For each text, put exactly one of these in `label_private` or `label_final`:
 ## Sending the sheet back
 
 - **Save:** as CSV (UTF-8), with the same columns and row order.
-- **Name the file** `<batch>_<rater1 or rater2>_<your name>.csv`, for example `L3_rater2_shrey.csv`.
+- **Name the file** `<batch>_<rater1 or rater2>_<your name>.csv`, for example `L3_rater2_shrey.csv` or
+  `G3part1_rater2_arsha.csv`.
 - **Send it to Ritik directly** (email, or the team's shared folder he names), **never** in a commit or pull
   request.
-- **Deadlines:** L3 as soon as you can. Both batches, with kappa, are due before **Gate 2 on Nov 8**.
+- **Deadlines:** G3 part 1 as soon as you can, then part 2. L3 and L5, with kappa, are due before **Gate 2 on
+  Nov 8**.
 
 ## How agreement is computed (Ritik runs it; no AI involved)
 

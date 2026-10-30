@@ -452,6 +452,7 @@ def report(out=None, d=None):
 
 # ---------------------------------------------------------------- the follow-up (Oct 26)
 READOUT_LAYERS = (15, 19, 23)     # Step 10: the layers where the hint's information leaves the hint tokens
+F12_HEADS = ((19, 31), (23, 17), (15, 31))   # F12 (Oct 26): followed > resisted on Test 2; set A's rule (Oct 30)
 ALIGN = 15                        # sentences either side of the takeover / closest approach
 RISE_WINDOW, RISE_BASE = (-2, 0), (-ALIGN, -6)
 CURVE_BOOT = 4000
@@ -496,6 +497,27 @@ def save_reduced(rs, full, path):
                         sent_sliding=np.concatenate([r["sent_sliding"] for r in rs], axis=1),
                         reach=np.concatenate([r["sentence_reaches_hint_in_sliding"] for r in rs]))
     return path
+
+
+def fixed_heads(rs, heads=F12_HEADS):
+    """Set A's Step 9 rule (pre-registered Oct 30): at the answer position, the mean over F12's three heads of the
+    hint's mass minus the control span's, followed minus resisted, with diff()'s 95% bootstrap clustered by question.
+    Replicates: the interval lies above 0; reversed: below 0; doesn't replicate: it includes 0. The hint's mass alone,
+    each channel and each head are reported beside it."""
+    import numpy as np
+    hc = lambda r: float(np.mean([r["answer"][0, l, h] - r["answer"][2, l, h] for l, h in heads]))  # noqa: E731
+    hint = lambda r: float(np.mean([r["answer"][0, l, h] for l, h in heads]))  # noqa: E731
+    fol, res = [r for r in rs if r["kind"] == "followed"], [r for r in rs if r["kind"] == "resisted"]
+    out = {"heads": [f"L{l}H{h}" for l, h in heads],
+           "mean over the three heads": {c: {"hint - control": diff(a, b, hc), "hint": diff(a, b, hint)}
+                                         for c, (a, b) in comparison_groups(rs).items() if c.startswith("followed - resisted")},
+           "per head": {f"L{l}H{h}": diff(fol, res, lambda r, l=l, h=h: float(r["answer"][0, l, h] - r["answer"][2, l, h]))
+                        for l, h in heads}}
+    main = out["mean over the three heads"]["followed - resisted (all channels)"]["hint - control"]
+    ci = main.get("ci95") if main else None
+    out["reading"] = ("too few questions" if not ci else "replicates" if ci[0] > 0 else "reversed" if ci[1] < 0
+                      else "doesn't replicate")
+    return out
 
 
 def load_reduced(path):
@@ -983,6 +1005,10 @@ def main(argv=None):
     ap.add_argument("--followup", action="store_true", help="the Oct 26 follow-up from the saved runs; no model, no GPU")
     ap.add_argument("--plot-followup", metavar="SUMMARY", help="redraw the aligned-curve figure from a step9_followup.json")
     ap.add_argument("--from-reduced", metavar="NPZ", help="with --followup: from a copied-back step9_reduced.npz (Mac)")
+    ap.add_argument("--reduce-only", action="store_true", help="write step9_reduced.npz from the saved runs and stop "
+                                                               "(set A on Sol; no model, no GPU)")
+    ap.add_argument("--fixed-heads", metavar="NPZ", help="F12's three heads, followed - resisted, from a "
+                                                         "step9_reduced.npz -> step9_fixed_heads.json beside it (Mac)")
     ap.add_argument("--limit", type=int, help="only the N shortest runs")
     ap.add_argument("--model", help="a local model directory (a trained version, or a test's tiny model)")
     ap.add_argument("--runs-from", help="a base_format-style .jsonl.gz of runs (default: Step 2b's)")
@@ -997,6 +1023,19 @@ def main(argv=None):
         summary = json.loads(Path(a.plot_followup).read_text())
         plot_onsets(summary, Path(a.plot_followup).parent)
         return plot_followup(summary, Path(a.plot_followup).parent)
+    if a.reduce_only:
+        d, full = kit.out_dir("step9", a.out), kit.full_attention_layers(a.model)
+        rs = reduced(d, full)
+        if not rs:
+            raise SystemExit(f"no saved runs in {d}")
+        print(f"{save_reduced(rs, full, d / REDUCED)}: {len(rs)} runs")
+        return d / REDUCED
+    if a.fixed_heads:
+        res = fixed_heads(load_reduced(a.fixed_heads)[0])
+        path = Path(a.fixed_heads).with_name("step9_fixed_heads.json")
+        path.write_text(json.dumps(res, indent=1) + "\n")
+        print(json.dumps(res, indent=1))
+        return res
     if a.followup:
         return followup(a.out, model=a.model, reduced_from=a.from_reduced)
     if a.report:

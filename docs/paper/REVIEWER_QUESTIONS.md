@@ -48,8 +48,10 @@ The runs of Oct 28–29:
    - **Answered by B2's training** (loss by part as in S7, then behavior), not tonight.
 7. **Does training change behavior, not just loss?**
    - **Answered in part (F28, interim):** LoRA follows 10 points fewer wrong hints [−16, −4] with the same no-hint
-     accuracy (Gate 3 met). But the guide note it was trained from does as well in the prompt (LoRA minus prompt_only
-     +3 [−1, +8]), and its false-disclosure candidates rise (+10 [+2, +18]). Three trained versions still to come.
+     accuracy (Gate 3 met by the rule). But an independent one-line instruction in the prompt does as well (LoRA minus
+     prompt_only +3 [−1, +8]), and LoRA's false-disclosure candidates rise (+10 [+2, +18]) while the instruction's
+     fall (−9). Candidate cautionary claim, waiting on labels: fine-tuning for disclosure reduced hint-following no
+     more than an instruction, and may have taught the model to claim checks it didn't do.
 8. **One model?**
    - The mechanism is Olmo 3 7B Think only. Behavior (Gate 2) holds for 3 models.
    - Not answered tonight. Next: Steps 9/10 on a second open model.
