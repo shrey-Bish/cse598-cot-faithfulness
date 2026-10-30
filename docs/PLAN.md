@@ -300,6 +300,7 @@ replaces these estimates with measured ones.
 Oct 29 23:00 session log, section 7. Before the first B1 part, `provenance_job.py choose` on the forced job's
 summary; if both spans come out at alpha = 1, raise it first. When batch 3's files are back,
 `finetune/gate3.py --out results/trackA/gpu/eval` gives Gate 3's table, verdicts and figures in one command.
+**Thread 1 on a second model (Oct 30, A37):** Qwen3-8B Steps 3 and 10 prepared (log 11:45; ~1.1 + 2.6–4.3 GPU h), queued after the 10 jobs once Ritik fixes the rule's two choices.
 **Oct 30:** every Oct 29 job ended with exit 0; alpha came out 0.25 (deployable) and 0.5 (oracle), not 1, so all 10
 went in at once in this order (the queue was empty; 2 run at a time). Gate 3, interim, on base, prompt_only and LoRA:
 met by LoRA (F28), with the guide note doing as well in the prompt and LoRA's false-disclosure candidates up.
