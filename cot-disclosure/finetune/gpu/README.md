@@ -96,8 +96,19 @@ cd ~/Documents/Projects/ODL/cse598-cot-faithfulness
 git ls-files | rsync -av --files-from=- ./ ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/
 ```
 
-(An earlier clone made from the Oct 26 bundle works too; replace it with the GitHub clone once
-the push is done.)
+Sol's clone was made from the Oct 26 bundle, so its `origin` was the bundle and `git pull` said
+"Already up to date". On Oct 29 it was moved onto GitHub's history in place:
+
+```bash
+git remote set-url origin https://github.com/shrey-Bish/cse598-cot-faithfulness.git
+git fetch origin trackA-nosol
+git reset origin/trackA-nosol   # HEAD and index only; no file on disk moves
+git reset --hard                # tracked files become the commit's
+```
+
+Don't `git reset --hard origin/trackA-nosol` (or re-clone) from a pre-rewrite checkout: the bundle's
+commit tracks 62 produced files (Steps 8–10's inputs, `finetune/data/`) that are ignored now, and
+that command deletes them. From here `git pull --ff-only` works.
 
 ### Data: rsync (VPN on)
 

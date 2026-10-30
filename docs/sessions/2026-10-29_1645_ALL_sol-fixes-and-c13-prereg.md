@@ -260,6 +260,13 @@ git stash push --include-untracked -m "rsync copies, Oct 29" && git pull --ff-on
 source cot-disclosure/finetune/gpu/sol/env.sh
 "$TRACKA_PY" cot-disclosure/finetune/gpu/import_check.py --vllm "$TRACKA_VLLM_PY"   # both environments' versions
 # (the running base parts loaded their code at start; the pull doesn't touch them)
+#
+# Correction, 21:16: step 1 was wrong. Sol's clone came from the Oct 26 bundle, so `origin` was the bundle:
+# the pull said "Already up to date" at d67e5a9 (before the Oct 27 rewrite), the stash left Oct 26's code,
+# and the old env.sh has no TRACKA_PY. Done instead: git stash pop; origin set to GitHub; git fetch; then
+# git reset origin/trackA-nosol and git reset --hard, which keeps the 62 produced files the bundle's commit
+# tracked (a direct reset --hard to origin deletes them). The finetune/gpu README has the commands. The
+# check then passed in 510 s on the login node, so its vLLM limit is now 900 s, up from 300.
 
 # 2. Mac, from cot-disclosure/: set A's inputs (skip if they're already on Sol)
 rsync -av results/trackA/setA/{runs.jsonl.gz,items.jsonl,takeover_runs.jsonl,cases.jsonl} \

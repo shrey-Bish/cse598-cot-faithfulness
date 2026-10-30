@@ -21,7 +21,8 @@ import time
 from pathlib import Path
 
 PACKAGES = ("torch", "transformers", "tokenizers", "peft")
-VLLM_TIMEOUT_S = 300          # vLLM's first import on a node reads many files from /scratch
+VLLM_TIMEOUT_S = 900          # vLLM's first import on a node reads many files from /scratch (login node,
+                              # Oct 29: both checks took 510 s, so 300 s was too close)
 
 # run by vLLM's Python: its versions, and where vllm came from (all inside its prefix?)
 VLLM_PROBE = r"""
@@ -98,19 +99,23 @@ def main():
         print(f"would import {', '.join(PACKAGES)} (and AutoTokenizer) with {sys.executable}"
               + (f", and vllm with {a.vllm}" if a.vllm else ""))
         return 0
+    # a line on stderr as each part starts: each can take minutes, and the result line comes only at the end
+    print(f"importing {', '.join(PACKAGES)} with {sys.executable} ...", file=sys.stderr, flush=True)
     start = time.monotonic()
     found, problems = check_project()
     line = (f"import check ({sys.prefix}, Python {sys.version.split()[0]}): "
             + ", ".join(f"{k} {v}" for k, v in found.items()) + (" (AutoTokenizer ok)" if not problems else ""))
     site = sys.modules.get("sitecustomize")
-    line += f"; sitecustomize: {getattr(site, '__file__', None) or 'none'}"
+    line += f"; sitecustomize: {getattr(site, '__file__', None) or 'none'} ({time.monotonic() - start:.0f} s)"
     if a.vllm:
+        print(f"importing vllm with {a.vllm} (up to {VLLM_TIMEOUT_S} s) ...", file=sys.stderr, flush=True)
+        start = time.monotonic()
         res, bad = check_vllm(a.vllm)
         problems += bad
         if res:
             line += (f"; vLLM environment ({res['prefix']}, Python {res['python']}): "
                      + ", ".join(f"{k} {v}" for k, v in res["versions"].items()))
-    line += f" ({time.monotonic() - start:.0f} s)"
+        line += f" ({time.monotonic() - start:.0f} s)"
     if problems:
         print(line.replace("import check", "import check FAILED", 1), flush=True)
         print("  " + "\n  ".join(problems), file=sys.stderr, flush=True)

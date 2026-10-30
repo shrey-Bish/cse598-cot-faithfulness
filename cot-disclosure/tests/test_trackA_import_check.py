@@ -84,6 +84,20 @@ def test_a_failure_exits_1_with_what_is_wrong(tmp_path, monkeypatch, capsys):
     assert out.out.startswith("import check FAILED (") and "import transformers: ImportError: x" in out.err
 
 
+def test_each_part_says_when_it_starts_and_how_long_it_took(monkeypatch, capsys):
+    """Oct 29: the login node printed nothing for 510 s, then one line with the total."""
+    ok = {"prefix": "/envs/olmo-vllm", "python": "3.11.18", "versions": {"vllm": "0.31.0"}}
+    monkeypatch.setattr(ic, "check_project", lambda: ({"torch": "2.14.1"}, []))
+    monkeypatch.setattr(ic, "check_vllm", lambda python: (ok, []))
+    monkeypatch.setattr(sys, "argv", ["import_check.py", "--vllm", "/envs/olmo-vllm/bin/python"])
+    assert ic.main() == 0
+    out = capsys.readouterr()
+    assert out.err.splitlines() == [f"importing torch, transformers, tokenizers, peft with {sys.executable} ...",
+                                    f"importing vllm with /envs/olmo-vllm/bin/python (up to {ic.VLLM_TIMEOUT_S} s) ..."]
+    assert out.out.count(" s)") == 2 and out.out.rstrip().endswith("vllm 0.31.0 (0 s)")
+    assert ic.VLLM_TIMEOUT_S >= 900
+
+
 def test_dry_run_imports_nothing(monkeypatch, capsys):
     monkeypatch.setattr(ic, "check_project", lambda: pytest.fail("imported"))
     monkeypatch.setattr(sys, "argv", ["import_check.py", "--dry-run", "--vllm", "/envs/olmo-vllm/bin/python"])
