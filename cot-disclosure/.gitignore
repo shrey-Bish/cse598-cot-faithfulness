@@ -14,6 +14,8 @@ results/trackC/
 results/voyager_canary.jsonl
 results/labels/
 results/handoff/
+# old produced data and bundles, kept off GitHub (Oct 30 cleanup)
+results/archive/
 finetune/data/
 # GPQA is gated: no GPQA data file is ever tracked
 *[Gg][Pp][Qq][Aa]*.json
