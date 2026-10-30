@@ -549,6 +549,53 @@ gated; Mistral in its own format). Inputs by rsync (they hold text):
 Back on the Mac: both logs into `results/trackC/`, then `python agents/run_team.py --summary --log
 team_c13_granite --cases results/trackB/steered_cases.jsonl --table` (and `team_c13_mistral`).
 
+## Qwen3-8B: Steps 3 and 10 (Thread 1 on a second model, Oct 30)
+
+`finetune/look/qwen8b_mech.py`: Track A's takeover probes (Step 3) and patching (Step 10) on Track B's Qwen3-8B runs
+with thinking on (`Qwen/Qwen3-8B` @ b968826d: 36 layers, all full attention). The runs, with their texts, are already
+in the clone (`results/trackB/sol_vllm.jsonl.gz`), so nothing goes up by rsync; the code does (commit, then pull or the
+`git ls-files` rsync). Both jobs use the snapshot the download job checked (`trackb_qwen8b/snapshot.json`) and refuse
+a chat template other than the runs' own; each run's prompt is rebuilt from its messages and must have the server's
+token count.
+
+- **Halves.** Localization = the 24 pilot puzzles, where the layers are chosen. Replication = the 30 MMLU-Pro
+  questions, Track A's evaluation questions, read only by the rule fixed in the module's docstring (Oct 30, before
+  any number). Primary channel: `tool_real` (the hint in the real tool message); `tool_pasted`, `system` and `user`
+  are secondary, MMLU-Pro only.
+- **Step 3** probes every sentence of every followed thinking-on run (251 runs) on one reused key/value cache per run,
+  with a fresh forward checked at two probes per run; then the cases (late takeovers on sure questions).
+- **Step 10** patches cuts (i) and (ii) of the cases, puzzles first, then MMLU-Pro `tool_real`, then the secondary
+  channels; one file per cut, so a rerun resumes. At the end: the summary, the localization (the 3 layers with the
+  largest drop on the puzzles) and the replication verdict.
+
+| Job | `submit.sh` line | Limit | Output (`/scratch/ragarw68/trackA/`) |
+|---|---|---|---|
+| Step 3 | `submit.sh qwen8b_step3 --estimate 1.2` | 2:00 | `qwen8b_step3/`: `probes.jsonl.gz` (per-probe letter probabilities), `takeover_runs.jsonl`, `cases.jsonl`, `qwen8b_step3.json` |
+| Step 10 | `submit.sh qwen8b_step10 --estimate 4.3 --dependency=afterok:<Step 3>` | 6:00 | `qwen8b_step10/`: `cuts/*.json`, `qwen8b_step10_patching.json`, `qwen8b_readout.json` |
+
+Estimates (`python finetune/look/qwen8b_mech.py plan` on the Mac, from the numbers-only rows): Step 3 ~1.1 GPU h;
+Step 10 ~4.3 GPU h if every followed run on a sure question is a case, ~2.6 at Olmo's late share; the puzzles and
+MMLU-Pro `tool_real` alone, ~2.7 at most. Optional check first, on the login node without a GPU (rebuilds every prompt,
+counts runs, sentences and tokens): `source cot-disclosure/finetune/gpu/sol/env.sh && cd cot-disclosure &&
+"$TRACKA_PY" finetune/look/qwen8b_mech.py step3 --dry-run`.
+
+Back to the Mac, numbers only (no prompt or reasoning text in any of them), one path per rsync:
+
+```bash
+cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure && mkdir -p results/trackB/qwen8b_mech
+S=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA
+rsync -av $S/qwen8b_step3/qwen8b_step3.json results/trackB/qwen8b_mech/
+rsync -av $S/qwen8b_step3/takeover_runs.jsonl results/trackB/qwen8b_mech/
+rsync -av $S/qwen8b_step3/cases.jsonl results/trackB/qwen8b_mech/
+rsync -av $S/qwen8b_step3/probes.jsonl.gz results/trackB/qwen8b_mech/
+rsync -av $S/qwen8b_step10/qwen8b_step10_patching.json results/trackB/qwen8b_mech/
+rsync -av $S/qwen8b_step10/qwen8b_readout.json results/trackB/qwen8b_mech/
+```
+
+Then `python finetune/look/qwen8b_mech.py readout results/trackB/qwen8b_mech/qwen8b_step10_patching.json` recomputes
+the localization and the verdict from the summary alone. **CPU test (Mac):** `python -m pytest tests/test_qwen8b_mech.py`
+(a tiny random Qwen3 with the real tokenizer and template).
+
 ## Later steps on the trained versions (Phase 6)
 
 Steps 9 and 10 take `--model DIR` (a merged or wrapped trained version), `--runs-from` (that
