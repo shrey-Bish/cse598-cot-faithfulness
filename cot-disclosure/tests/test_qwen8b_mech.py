@@ -323,16 +323,18 @@ def test_the_localization_is_chosen_on_the_puzzles_alone():
 
 
 def test_the_replication_verdicts():
+    """Ritik's rule (Oct 30, 17:10): the share at S has a lower bound above 0.5, and each layer of S is within one
+    layer of one of this half's top 3; the even share 3/36 and the strict top 3 are descriptive."""
     s = planted()
     r = qm.readout(s)["replication"]
-    assert r["verdict"] == "replicates" and r["lower_bound_above_even"] and r["same_top_layers"]
-    assert r["even_share"] == pytest.approx(3 / 36) and r["share_at_layers"]["low"] > 0.9
-    assert r["descriptive"]["lower_bound_above_0.5"]
-    near = qm.readout(planted(rep={5: 0.45, 9: 0.3, 21: 0.2}))["replication"]      # 2 of 3 layers, one off by one
-    assert near["verdict"] == "partly" and near["lower_bound_above_even"] and not near["same_top_layers"]
-    assert near["descriptive"]["each_chosen_within_one_layer_of_top_here"]
-    # (the top K of positive drops always hold at least K / 36: "partly" by the same top layers alone can only come
-    # from a wide interval)
+    assert r["verdict"] == "replicates" and r["lower_bound_above_threshold"] and r["chosen_within_one_layer"]
+    assert r["threshold"] == 0.5 and r["share_at_layers"]["low"] > 0.9
+    assert r["descriptive"]["lower_bound_above_even_share"] and r["descriptive"]["same_top_layers"]
+    near = qm.readout(planted(rep={5: 0.45, 9: 0.3, 21: 0.2}))["replication"]      # one layer off by one
+    assert near["verdict"] == "replicates" and near["chosen_within_one_layer"]
+    assert not near["descriptive"]["same_top_layers"]
+    weak = qm.readout(planted(rep={5: 0.2, 9: 0.15, 20: 0.1}))["replication"]      # the same layers, under half
+    assert weak["verdict"] == "partly" and not weak["lower_bound_above_threshold"] and weak["chosen_within_one_layer"]
     far = qm.readout(planted(rep={1: 0.45, 2: 0.3, 3: 0.2}))["replication"]
     assert far["verdict"] == "doesn't replicate" and far["share_at_layers"]["mean"] < 3 / 36
     diffuse = qm.readout(planted(rep={i: -0.5 / 36 for i in (5, 9, 20)}))["replication"]   # less than even there
@@ -340,7 +342,6 @@ def test_the_replication_verdicts():
     few = qm.readout(planted(rep_q=4))["replication"]
     assert few["verdict"] == "too few" and few["questions"] == 4
     qm.show_readout(qm.readout(s))
-
 
 
 # ---------------------------------------------------------------- the plan from the numbers-only rows

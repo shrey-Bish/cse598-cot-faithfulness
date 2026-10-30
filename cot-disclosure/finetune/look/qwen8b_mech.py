@@ -38,20 +38,23 @@ takeover, each closed as above. Clean = the hint's letter W replaced by the own 
 position: 36 x 3 + 4 passes a cut. The handoff (patching.handoff): per layer, the drop in hint-token
 restoration, and its share at chosen layers.
 
-The rules (pre-registered: written Oct 30, before any Qwen3-8B probe or patch):
+The rules (pre-registered: written Oct 30, before any Qwen3-8B probe or patch; the threshold and the match fixed by
+Ritik at 17:10, before anything was submitted):
   Localization (puzzles, tool_real, cut (ii), cuts with |LD_clean - LD_hinted| >= 0.5): the chosen layers S
   are the K = 3 layers with the largest mean drop in hint-token restoration (a tie goes to the lower layer).
   Too few: under 5 questions with a usable cut (ii).
   Replication (MMLU-Pro, tool_real, cut (ii)): the share of the drop at S, with a 95% bootstrap clustered by
   question.
-    replicates          its lower bound is above K / 36 (S's even share of the 36 full-attention layers),
-                        and S are the K largest mean drops on this half
+    replicates          its lower bound is above 0.5 (the K layers hold most of the drop), and each layer of S is
+                        within one layer of one of this half's K largest mean drops
     partly              one of the two
     doesn't replicate   neither
     too few             under 5 questions with a usable cut (ii)
   Reported either way against the puzzles' share at S and Olmo's 0.90 (F11, F26). Descriptive only: whether
-  the lower bound is above 0.5, whether each layer of S is within one layer of this half's top K, cut (i),
-  the answer position's rise, and the secondary channels with the same numbers.
+  the lower bound is above K / 36 (S's even share), whether S are exactly this half's top K, cut (i), the answer
+  position's rise, and the secondary channels with the same numbers. Chosen on puzzles, tested on MMLU-Pro: a
+  replication is the stronger evidence; a failure can't separate "no localization" from "the question type
+  changed it".
 
   python finetune/look/qwen8b_mech.py plan                  # the Mac: counts per half and channel, GPU hours
   python finetune/look/qwen8b_mech.py step3 [--dry-run]     # Sol, GPU: probes, takeover points, cases
@@ -98,7 +101,7 @@ ANSWER = "\n\nAnswer: ("
 LETTERS = "ABCDEFGHIJ"
 K = 3                          # chosen layers (Olmo's readout was 3 layers)
 N_LAYERS = 36                  # Qwen3-8B; all full attention
-STRONG = 0.5                   # descriptive: most of the drop at the K layers
+STRONG = 0.5                   # the replication's threshold (Ritik, Oct 30 17:10): most of the drop at the K layers
 NO_HINT_RUNS = 3
 MAX_PROMPT_MISMATCH = 0.1      # more runs than this whose prompt doesn't reproduce: something systematic, stop
 CHECK_TOL = 0.05               # cached vs fresh forward: a larger difference in any letter's probability is reported
@@ -748,14 +751,15 @@ def replicate(summary, loc, channel=PRIMARY, cut="ii"):
         return {**out, "verdict": "too few"}
     share, even = a["drop_share_readout"], len(S) / len(layers)
     top = top_layers(a["drop_by_layer"], len(S))
-    above = share is not None and share["low"] is not None and share["low"] > even
-    same = set(top) == set(S)
-    verdict = "replicates" if above and same else "partly" if above or same else "doesn't replicate"
+    low = share["low"] if share is not None else None
+    above = low is not None and low > STRONG
+    near = all(any(abs(x - y) <= 1 for y in top) for x in S)
+    verdict = "replicates" if above and near else "partly" if above or near else "doesn't replicate"
     other = h["by_cut_type"]["i" if cut == "ii" else "ii"]["all"]
-    return {**out, "verdict": verdict, "share_at_layers": share, "even_share": even, "lower_bound_above_even": above,
-            "top_layers_here": top, "same_top_layers": same,
-            "descriptive": {"lower_bound_above_0.5": bool(share and share["low"] is not None and share["low"] > STRONG),
-                            "each_chosen_within_one_layer_of_top_here": all(any(abs(x - y) <= 1 for y in top) for x in S),
+    return {**out, "verdict": verdict, "share_at_layers": share, "threshold": STRONG, "lower_bound_above_threshold": above,
+            "top_layers_here": top, "chosen_within_one_layer": near,
+            "descriptive": {"even_share": even, "lower_bound_above_even_share": low is not None and low > even,
+                            "same_top_layers": set(top) == set(S),
                             "rise_share_at_layers": a["rise_share_readout"],
                             "layers_holding_80pct": layers_for(a["drop_by_layer"]),
                             f"cut_{'i' if cut == 'ii' else 'ii'}_share_at_layers": other.get("drop_share_readout"),
@@ -789,10 +793,13 @@ def show_readout(r):
         if "share_at_layers" not in rep:
             print(f"{name} ({rep['channel']}): {rep['verdict']}")
             continue
+        d = rep["descriptive"]
         print(f"{name} (MMLU-Pro, {rep['channel']}, cut ({rep['cut']})): {rep['verdict'].upper()}: share at "
-              f"{rep['layers']} {f(rep['share_at_layers'])} (even share {rep['even_share']:.3f}; above it: "
-              f"{rep['lower_bound_above_even']}); the {len(rep['layers'])} largest drops here {rep['top_layers_here']} "
-              f"(the same: {rep['same_top_layers']}); {rep['usable_cuts']} cuts, {rep['questions']} questions")
+              f"{rep['layers']} {f(rep['share_at_layers'])} (lower bound above {rep['threshold']}: "
+              f"{rep['lower_bound_above_threshold']}); the {len(rep['layers'])} largest drops here {rep['top_layers_here']} "
+              f"(each chosen layer within one of them: {rep['chosen_within_one_layer']}); {rep['usable_cuts']} cuts, "
+              f"{rep['questions']} questions. Descriptive: above the even share {d['even_share']:.3f}: "
+              f"{d['lower_bound_above_even_share']}; exactly the same layers: {d['same_top_layers']}")
     for half, s in r["swap_only_the_prompt_letter"].items():
         print(f"cut (ii), {half}: swapping only the prompt's letter moves the answer off W in {s['off_W']} of {s['of']}")
 

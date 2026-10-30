@@ -77,29 +77,24 @@ Reported either way against the puzzles' share at S and Olmo's 0.90 (Test 2, set
 - the swap of only the prompt's letter;
 - the secondary channels.
 
-## 5. Ritik's choices before anything is submitted
+## 5. The rule's choices, fixed by Ritik (Oct 30, ~17:10), before anything is submitted
 
-The rule becomes final when these are answered. The jobs aren't submitted before then, so no data exists yet.
+These replace the draft's open choices. `qwen8b_mech.replicate` and its tests apply them (commit of 17:15). No
+Qwen3-8B probe or patch exists yet.
 
-1. **T, the share threshold.**
-   - As drafted: T = 3/36 = 0.083, S's even share. That mirrors Olmo's 3/8 = 0.375, but with 36 layers almost any
-     concentrated pattern passes it.
-   - **Recommended: T = 0.5**, "these three layers hold most of the drop". That is the claim that would make the
-     readout a property of the model rather than of Olmo's windows.
-2. **"Match".**
-   - Strict: S are exactly this half's top 3.
-   - **Recommended: each layer of S is within one layer of one of this half's top 3.** In 36 layers, neighbours can
-     swap ranks from noise. The strict version stays as a descriptive line either way.
-3. **If the puzzles give too few cases.**
-   - Plausible: the tool's reply sits right before the thinking, so Qwen may lead with W from the start (an "at 0"
-     takeover, not a late one).
-   - **Recommended, A:** 24–48 fresh puzzles from the existing generator with a new seed at the pilot's level, run on
-     Sol (no hint × 3, `tool_real` × 3; about 1 GPU h; a small runner, not written yet). Then Steps 3 and 10 on
-     them.
-   - **B:** widen the case rule on both halves to any takeover after the first sentence. It has to be fixed before
-     Step 3 is read.
-4. **Step 10's limit.** `--estimate 4.3` (a 6:00 limit) covers the upper bound. `--estimate 3.0` (4:00) covers the
-   puzzles and MMLU-Pro `tool_real`; the secondary channels would resume in a second job.
+1. **T = 0.5.** Replicates needs the share of the drop at the 3 chosen layers to have a 95% lower bound above 0.5 on
+   the replication half: the three layers hold most of the drop.
+2. **Match:** each chosen layer is within ±1 of one of the replication half's 3 largest drops.
+3. **Verdict:** replicates if both hold, partly if one, doesn't replicate if neither, too few under 5 questions.
+   Descriptive only, never in the verdict: whether the lower bound is above the even share 3/36, and whether the
+   chosen layers are exactly the replication half's top 3.
+4. **Fewer than 5 usable puzzle questions** (known after Step 3): 24–48 fresh puzzles run on Sol first (about 1
+   GPU-h; the runner isn't written yet), then Steps 3 and 10 on them. Localization stays on puzzles only.
+5. **Step 10's limit: 6 h** (`--estimate 4.3`).
+6. **What a result can say:** chosen on puzzles, tested on MMLU-Pro. A replication is the stronger evidence. A
+   failure can't separate "no localization" from "the question type changed it".
+
+**Submit lines** (as places free after the current 10 jobs; after the push and a `git pull` on Sol): section 6.
 
 ## 6. Cost and lines
 
