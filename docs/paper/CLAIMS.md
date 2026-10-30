@@ -1,7 +1,7 @@
 # Candidate claims: evidence, status, objection, what settles it
 
 Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md) (Oct 29; updated 23:15 with C11–C14, Oct
-30 01:10 with C15 and 04:00 with B15). Status words as in
+30 01:10 with C15, 04:00 with B15, 09:30 with set A, B1's alpha, Gate 3 interim, Qwen3-8B and C13). Status words as in
 FINDINGS: *confirmed* (measured as stated, the interval excludes no effect), *tentative* (direction
 there, interval includes 0 or a confound remains), *waiting* (the run is going or planned).
 `[TONIGHT: ...]` marks a number tonight's runs fill in.
@@ -14,8 +14,10 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
   - Gate 2 in Track B, 54 questions × 3 runs, tool − user, pasted / real call or injected:
     - Qwen3 30B Thinking +35 [+24, +46] / +31 [+22, +42] (F15);
     - Qwen3 30B Instruct +21 [+12, +31] / +90 [+83, +96] (F16);
-    - Olmo 3 7B Think +32 [+22, +42] / +21 [+13, +30] (F17).
-- **Status:** *confirmed* (three models). *Tentative* for Olmo alone in its pinned format (F1:
+    - Olmo 3 7B Think +32 [+22, +42] / +21 [+13, +30] (F17);
+    - Qwen3-8B, the same weights, thinking on +19 [+10, +29] / +78 [+69, +86], off +13 [+7, +21] / +13 [+3, +23]
+      (F29).
+- **Status:** *confirmed* (four models; thinking on and off in one of them). *Tentative* for Olmo alone in its pinned format (F1:
   +19 [−2, +40], one user run per question).
 - **Strongest objection:** the channels differ in more than the source: wording, position, and
   the pasted block sits inside the user turn.
@@ -41,7 +43,7 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
 - **Strongest objection:** forced answers off-distribution; few questions.
 - **Settles it:** more questions with late takeovers. Set A (tonight) adds the 34 validation
   questions: set A (Oct 29, Voyager) followed 30 of 100 pasted and 26 of 101 inserted runs, with 39 late takeovers
-  on 16 sure questions (above the minimum of 5); Steps 9 and 10 on them are queued on Sol.
+  on 16 sure questions (above the minimum of 5). Step 10 on them is done (F26); Step 9 is back, unread.
 
 **1.4 Three full-attention layers (15, 19, 23) read the hint's letter straight from the prompt.**
 - **Evidence:**
@@ -50,14 +52,15 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
     followed from resisted.
   - F13: removing the prompt's letter moves the answer off W in 13 of 21 cuts; deleting the
     reasoning's mentions brings back the own answer in 7 of 19.
-- **Status:** *confirmed* on 19 cuts, 9 questions, one model. The mechanism as a whole is
-  *tentative*.
+- **Status:** *confirmed* on two question sets, one model: Test 2 (19 cuts, 9 questions) and set A (31 cuts, 16
+  questions not used to find it; F26). The mechanism as a whole is *tentative*.
 - **Strongest objection (the one that blocks a repair paper):** the layers and heads were found on
   the same 30 MMLU-Pro questions we evaluate on, so a fix designed from them is circular. Also one
   model and one patching setup.
 - **Settles it:** set A, the 34 validation questions (in neither training nor the held-out 30).
   Pre-registered: does the share of the hint-row drop at cut (ii) replicate at 15, 19 and 23?
-  `[TONIGHT/SOL: share at 15/19/23 on set A = ___ (questions ___)]`
+  **Answered (F26): replicates.** 0.90 [0.76, 1.06] at 15, 19 and 23 on 16 questions (lower bound above 0.375), and
+  23, 15, 19 are the three largest drops (0.43, 0.30, 0.17). The circularity objection is answered.
 
 **1.5 Training learns the taught text; most of LoRA's gain is reachable from the three layers alone.**
 - **Evidence:** F20.
@@ -65,10 +68,14 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
     the rest −19%.
   - LoRA on the attention of layers 15/19/23 only (1.6 M parameters, 3.9% of full LoRA's) reaches
     85–90% of that drop.
-- **Status:** *confirmed* as teacher-forced loss on held-out questions. Behavior *waiting* (batch 3,
-  Gate 3).
-- **Strongest objection:** loss is not behavior. Half the taught drop is a memorized opener.
-- **Settles it:** batch 3: hint following, no-hint accuracy and disclosure per version (Gate 3).
+- **Status:** *confirmed* as teacher-forced loss on held-out questions. **Behavior, interim (F28): Gate 3 is met
+  by LoRA** (following −10 [−16, −4], no-hint accuracy −2 points, hiding −24). LoRA on 15/19/23 is still running.
+- **Strongest objection:** loss is not behavior. Half the taught drop is a memorized opener. Now also:
+  - the guide note the targets were made with does as well in the prompt (prompt_only −13; LoRA minus it +3
+    [−1, +8]): training internalizes the note, not more;
+  - LoRA's false-disclosure candidates rise (+10 [+2, +18]): it may describe a check it doesn't do.
+- **Settles it:** the label sample (false disclosure; what the trained answer says); LoRA on 15/19/23 and the tag
+  versions (Gate 3, all six systems).
 
 **1.6 Input-embedding provenance tags don't help.**
 - **Evidence:** F20.
@@ -81,8 +88,10 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
 
 **1.7 (B1) Downweighting attention to tool-span keys in those layers cuts wrong-tool-hint following
 without making the model ignore correct tools.**
-- **Evidence:** none yet. Code tonight; Sol tomorrow.
-- **Status:** *waiting*.
+- **Evidence:** alpha chosen on set A by the rule fixed before set A existed (F27). Deployable (tool turn) 0.25:
+  forced P(W) −7.6 [−12.2, −3.7], correct hint −4.8. Oracle 0.5: −8.6 [−12.6, −5.2], correct hint −4.3. Lower alphas
+  cost a correct hint more than 5 points.
+- **Status:** alpha fixed; behavior *waiting* (provenance_gen, 4 parts, submitted Oct 30).
 - **Strongest objection:** it may just make the model ignore tools. Its layers and alpha could be
   tuned on the evaluation questions.
 - **Settles it:**
@@ -90,7 +99,7 @@ without making the model ignore correct tools.**
   - then generation on the held-out 30: wrong-hint following vs correct-hint acceptance (the
     trade-off curve) and no-hint accuracy, at the chosen alpha and at alpha = 1 (same code path);
   - deployable (tool-role span) and oracle (pasted span) reported apart.
-- `[SOL: following at alpha* vs 1 = ___; correct-hint acceptance = ___]`
+- `[SOL: following at alpha* (0.25 deployable, 0.5 oracle) vs 1 = ___; correct-hint acceptance = ___]`
 
 **1.8 (B2) A learned per-head provenance bias in those layers beats input-embedding tags.**
 - **Status:** *waiting* (code tonight, training after Gate 3's schedule allows).
@@ -106,13 +115,14 @@ without making the model ignore correct tools.**
     wrong letter 66 and 70 of 73 and names the answer key.
   - On both sets.
 - **Status:** *confirmed* for two reviewers of one family: Olmo 3.1 32B (F18) and Olmo 3 7B Instruct (C11, F22:
-  32 → 1 of 73, −42 [−58, −28]). Qwen3 30B Instruct and Qwen3 30B Thinking don't (+1 [−6, +10]). In four reviewers
-  it follows the family, not size or thinking: *tentative*.
+  32 → 1 of 73, −42 [−58, −28]). Qwen3 30B Instruct and Qwen3 30B Thinking don't (+1 [−6, +10]), nor do Granite 4.1
+  30B (−5 [−26, +15]) and Mistral Small 3.2 24B (+19 [+10, +30]) (C13, F30). Over six reviewers and four families it
+  follows the family: *confirmed*. The claim is "some reviewer families defer", not "reviewers defer".
 - **Strongest objection:** one family of two, one solver's cases. It could be prompt-specific. Deferring to an
   answer key can be reasonable.
 - **Settles it:**
-  - C13 (Sol, queued): IBM Granite 4.1 30B and Mistral Small 3.2 24B. Does family still predict it?
-    `[Granite ___; Mistral ___]`
+  - C13 (F30, done): neither Granite nor Mistral defers; the pre-registered reading is "Olmo-specific". Granite's
+    own check is weak (27 of 73 alone), so its test has less room.
   - C15 (F24, done): on 100 fresh items Olmo 3.1 32B defers again (39 → 10 of 53, −55 [−70, −38]) and Qwen3 30B
     Instruct doesn't (−6 [−15, +4]): *confirmed* on fresh items.
 
@@ -177,5 +187,13 @@ without making the model ignore correct tools.**
   - **Objection:** keyword counts, and the instruction adds a little noise: with no hint the final matches the tool
     keyword in 4 and 17 of 162 (Track B: 2 and 8), some of them echoing the instruction. That is far below the rise
     after a call; hand labels would settle it.
+  - **Objection:** the "before" is not an interleaved control. It is Track B's runs from one to two days earlier
+    (same route, canary passed); only the right-letter arm without the instruction ran beside B15.
+- **Headline:** disclosure can be prompted, but it doesn't reduce deference to the tool. C16 (running) asks
+  whether a final answer that names the tool changes a reviewer's check.
+- **F29 (Qwen3-8B, thinking on and off, the same weights):** thinking on calls the tool in 145 of 162 runs against
+  35, and so follows the real call's wrong letter far more (+64 [+51, +75]); the pasted block and the user hint
+  don't move (+4, −2). After a call with thinking on the final answer is bare (138 of 145) and names the tool in 0
+  of 143 followed runs. *Confirmed* (one model).
 - **F17:** Gate 2 clear for a third model and family. The system-turn confound for bare answers
   is *tentative*.

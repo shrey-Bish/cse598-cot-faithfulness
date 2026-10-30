@@ -27,7 +27,8 @@ Smoke and Steps 8–10 ran in the Oct 26 interactive session; Step 9's follow-up
 - **Where.** `-p public -q class -G a100:1`. Quick script tests and setup
   without a GPU use the same `-p public -q class`: the course account has only the class QoS, and
   a job without a GPU still takes one of its 2 job slots (Oct 28). Batch jobs resume from their own checkpoints.
-- **The class QoS** (`sacctmgr -P show qos class`, confirmed Oct 27):
+- **The class QoS** (`sacctmgr -P show qos class`, confirmed Oct 27; re-checked Oct 30, unchanged; MaxTRESPU is
+  empty):
 
   | Field | Value |
   |---|---|
@@ -44,7 +45,7 @@ Smoke and Steps 8–10 ran in the Oct 26 interactive session; Step 9's follow-up
   through the first). Interactive sessions count too: while one is open, run in it. DenyOnLimit
   rejects at submission any job whose own request is over 960 GPU-minutes. Each job's limit is
   its estimate × 1.3, rounded up to the next 30 minutes; resume makes short limits safe. The
-  checks `submit.sh` will make before submitting (TODO A12, not written yet): refuse a job over 960
+  checks `submit.sh` makes before submitting (TODO A12, done Oct 27): refuse a job over 960
   GPU-minutes; add its GPU-minutes to the remaining GPU-minutes of your running and pending jobs
   (`squeue`), warn if the total is over 960, and say when the second slot frees up; accounts,
   partitions and QoS come from one config file, and only the accounts listed there are allowed.

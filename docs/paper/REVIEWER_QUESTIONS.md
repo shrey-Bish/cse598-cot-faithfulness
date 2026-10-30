@@ -1,6 +1,7 @@
 # Questions a reviewer would ask that we can't answer yet
 
-Each question: why it matters, and which runs answer it. Updated Oct 30 04:00: C15 (F24) and B15 (F25) are in;
+Each question: why it matters, and which runs answer it. Updated Oct 30 09:30: set A (F26), B1's alpha (F27), Gate 3
+interim (F28), Qwen3-8B (F29) and C13 (F30) are in; C16 running. Oct 30 04:00: C15 (F24) and B15 (F25);
 Oct 29 23:15: C11 and C12 (F22, F23); added C13 (Sol), C14 (exploratory).
 The runs of Oct 28–29:
 - **A:** set A localization replication (Voyager runs and probes tonight; Steps 9/10 on Sol).
@@ -22,10 +23,12 @@ The runs of Oct 28–29:
    - Yes, so far. F11 and F12 used the 30 MMLU-Pro evaluation questions.
    - **Answered by A:** the same readout measure on the 34 validation questions, used in neither
      training nor evaluation.
-   - `[share of the hint-row drop at 15/19/23, cut (ii), set A = ___ (questions ___); evaluation set 0.90 [0.85, 0.96]]`
+   - **Answered (F26): no, and it replicates.** On set A, 16 questions not used to find the layers: 0.90 [0.76, 1.06]
+     at 15, 19 and 23 (31 cuts); evaluation set 0.90 [0.85, 0.96]. Pre-registered rule: replicates.
 2. **Is the readout specific to these three layers, or do all full-attention layers do it?**
    - F11 says the other five full layers read almost nothing on the evaluation set.
-   - **Answered by A** on separate questions. `[other full layers' share on set A = ___]`
+   - **Answered by A (F26):** on set A the 8 full layers hold 0.92 [0.83, 1.03] and 15/19/23 hold 0.90, so the
+     other five hold about 0.02; the next largest drop is layer 31's 0.07 [0.04, 0.10].
 3. **Does a fix that downweights the tool span just make the model ignore tools?**
    - **Answered by B1:** the trade-off curve, wrong-hint following against correct-hint acceptance,
      and no-hint accuracy at the chosen alpha and at alpha = 1.
@@ -37,13 +40,16 @@ The runs of Oct 28–29:
 5. **Was alpha tuned on the test set?**
    - No, by design. Alpha is chosen on set A's forced answers before any generation on the
      held-out 30.
-   - **Answered by A + B1's first Sol job.** `[alpha* = ___]`
+   - **Answered (F27):** alpha* = 0.25 on the tool turn (deployable), 0.5 on every hint span (oracle), chosen on set
+     A's forced answers by the rule committed before set A existed.
 6. **Why should a per-head bias beat input-embedding tags?**
    - The tags did nothing measurable in loss (F20). B2 puts the provenance signal where the hint is
      read.
    - **Answered by B2's training** (loss by part as in S7, then behavior), not tonight.
 7. **Does training change behavior, not just loss?**
-   - **Answered by batch 3** (evaluation jobs queued on Sol; Gate 3), not tonight.
+   - **Answered in part (F28, interim):** LoRA follows 10 points fewer wrong hints [−16, −4] with the same no-hint
+     accuracy (Gate 3 met). But the guide note it was trained from does as well in the prompt (LoRA minus prompt_only
+     +3 [−1, +8]), and its false-disclosure candidates rise (+10 [+2, +18]). Three trained versions still to come.
 8. **One model?**
    - The mechanism is Olmo 3 7B Think only. Behavior (Gate 2) holds for 3 models.
    - Not answered tonight. Next: Steps 9/10 on a second open model.
@@ -58,14 +64,17 @@ The runs of Oct 28–29:
     - Following doesn't change (Thinking +6 [−2, +14], Instruct −1 [−7, +6] on the real call), and neither do
       correct-tool acceptance or no-hint accuracy. The answer says it took the tool's wrong letter, and takes it.
     - Still open: does a final answer that names the tool help a reviewer catch it, or give it more to defer to?
+      **C16** (pre-registered Oct 30 08:50, running): `[Olmo ___; Qwen3 ___]`
+    - B15's "before" is Track B's runs from one to two days earlier, not an interleaved control; C16's control runs
+      the same day.
 
 ## Thread 2: automation bias in reviewers
 
 1. **Is the deference one model's quirk?**
    - **Partly answered by C11 (F22):** Olmo 3 7B Instruct defers too (−42 [−58, −28]); Qwen3 30B Thinking doesn't
      (+1 [−6, +10]). In four reviewers it follows the family, not size or thinking (*tentative*: two per family).
-   - **C13** adds two families on Sol (Granite, Mistral): does family still predict it?
-     `[Granite ___; Mistral ___]`
+   - **C13 (F30):** Granite 4.1 30B −5 [−26, +15], Mistral Small 3.2 24B +19 [+10, +30]: neither defers. Over six
+     reviewers and four families, only the two Olmo models do. It is a family's trait, not a general one.
 2. **What does the reviewer defer to: the visible letter or the reasoning?**
    - **Answered in part by C12 (F23):** with the tool's letter redacted, Olmo corrects 23 and 24 of 73 (C4: 6 and 3;
      answer only 59). The letter is part of the cue, not most of it.

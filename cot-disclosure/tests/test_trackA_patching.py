@@ -175,3 +175,25 @@ def test_handoff_shares_and_paths(tmp_path):
     pt.show_handoff(pt.handoff(s), p)
     pt.plot_handoff(s, tmp_path / "handoff.png")
     assert (tmp_path / "handoff.png").exists() and (tmp_path / "handoff.svg").exists()
+
+
+def test_hint_distances_read_the_inputs_they_are_given(monkeypatch):
+    """Set A's handoff (Oct 30): the distances came from Test 2's cases whatever --cases-from said."""
+    from finetune.look import patching as pt
+    seen = {}
+    monkeypatch.setattr(pt.kit, "snapshot", lambda: ("snap", None))
+    monkeypatch.setattr(pt.kit, "load_tokenizer", lambda path: None)
+    monkeypatch.setattr(pt, "inputs", lambda *a, **k: seen.update(args=a, kwargs=k) or ([], {}, {}, {}))
+    monkeypatch.setattr(pt, "jobs", lambda tok, cases, steps, items: [])
+    assert pt.hint_distances("setA/runs.jsonl.gz", "setA/cases.jsonl", "setA/items.jsonl") == {}
+    assert seen["args"] == ("setA/runs.jsonl.gz", "setA/cases.jsonl", "setA/items.jsonl")
+
+
+def test_handoff_shows_cases_with_no_step4_run(capsys):
+    """Set A (Oct 30) has no Step 4 deletion runs: the display says so instead of failing."""
+    s = handoff_summary()
+    s = {**s, "cuts": [{**c, "step4_forced_after_deleting_mentions": None} for c in s["cuts"]]}
+    p = pt.paths_at_cut_ii(s)
+    assert p["step4_delete_the_mentions"]["of"] == 0
+    pt.show_handoff(pt.handoff(s), p)
+    assert "Step 4: no deletion runs on these cases" in capsys.readouterr().out

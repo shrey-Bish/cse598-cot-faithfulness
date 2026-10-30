@@ -1,7 +1,10 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-30 04:00 (F25, B15: one instruction brings the tool back into the
+status. Started 2026-10-26; last updated 2026-10-30 09:30 (F26 set A: the readout at 15/19/23 replicates; F27 B1's
+alpha 0.25 / 0.5; F28 Gate 3 interim: LoRA passes, the note does as well in the prompt, false disclosure rises; F29
+Qwen3-8B: thinking on calls the tool far more; F30 C13: neither new family defers; B15's "before" stated plainly;
+at 04:00 F25, B15: one instruction brings the tool back into the
 final answer, following unchanged; at 01:10 F24, C15 on 100 fresh items: F18 replicates, redaction
 restores part of the check again, H23 not supported, C14's cheaper check fails; earlier Oct 29 16:45 F23's split by set
 restated as hypothesis H23, to test;
@@ -15,22 +18,24 @@ Track C's C4 added, F15 reworded: after a tool call the final answer is bare whe
 earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limitations section). Design and plans:
 [`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
 
-**The story so far (Oct 28).**
+**The story so far (Oct 28; updated Oct 30).**
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
    from the user, in all three Track B models (Gate 2; 54 questions × 3 runs; tool − user with the
-   pasted block: Qwen3 30B Thinking +35, Qwen3 30B Instruct +21, Olmo 3 7B Think +32 points).
-   *Confirmed* (F1, F15, F16, F17).
+   pasted block: Qwen3 30B Thinking +35, Qwen3 30B Instruct +21, Olmo 3 7B Think +32 points), and in
+   Qwen3-8B with thinking on and off (+19, +13; F29). *Confirmed* (F1, F15, F16, F17, F29).
 2. **After a tool call, the answer stops explaining.** The final answer becomes a bare letter whether
    the tool was right or wrong (C4: 80 of 84 after good lookups, 71 of 75 after bad, 2 of 159 with no
    tool). *Confirmed* for Qwen3 30B Thinking (F15) and Instruct (F16). *Tentative* for Olmo, where
    any change to the system turn does it (F17), and *tentative* how much is the declared tool and how
-   much the call. It is a default, not a limit: one instruction to say what the answer is based on brings
-   the tool back (Thinking bare 51 of 54 → 30 of 63; Instruct 111 → 12 of 162), and the model still takes
-   the tool's wrong letter as often (B15, F25).
+   much the call. Qwen3-8B with thinking on shows it too: bare after 138 of 145 calls (F29).
+   **Disclosure can be prompted, but it doesn't reduce deference to the tool.** One instruction to say
+   what the answer is based on brings the tool back (Thinking bare 51 of 54 → 30 of 63; Instruct 111 → 12
+   of 162), and the model still takes the tool's wrong letter as often (B15, F25).
 3. **Inside Olmo 3 7B Think, layers 15, 19 and 23 read the hint straight from the prompt** and pass
-   it to the answer: 0.90 [0.85, 0.96] of the drop at the takeover. *Confirmed* on 19 cuts over 9
-   questions, one model (F11, F12). The reasoning relays little of it (F13). The mechanism as a
-   whole is *tentative*.
+   it to the answer: 0.90 [0.85, 0.96] of the drop at the takeover on Test 2's questions, and 0.90
+   [0.76, 1.06] on 16 questions not used to find it (set A; the same three layers have the largest
+   drops). *Confirmed* on two question sets, one model (F11, F12, F26). The reasoning relays little of it
+   (F13). The mechanism as a whole is *tentative*.
 4. **Downstream, a reviewer shown the tool's output defers to it.** Olmo 3.1 32B Instruct corrects a
    wrong tool answer in 59 of 73 from the answer alone, and in 6 and 3 of 73 once it sees the
    solver's private reasoning or the tool log. *Confirmed* for that reviewer (F18). Qwen3 30B
@@ -46,12 +51,18 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    73), not most of it (alone: 59): it defers to the source as well as to the letter (F23,
    *confirmed* as partial). On 100 fresh items (C15, F24), both replicate (−55; redaction +25), the
    split by the reviewer's own ability (H23) isn't supported, and a cheaper check built from two
-   reviews ships wrong answers (4 and 7 of 53) where the checker stops all 53.
+   reviews ships wrong answers (4 and 7 of 53) where the checker stops all 53. Two more families on
+   Sol (C13, F30): neither Granite 4.1 30B nor Mistral Small 3.2 24B defers. In six reviewers over four
+   families, only Olmo's two do.
 5. **The fix:** Track A trains Olmo 3 7B Think (LoRA, source tags) to follow fewer wrong hints
    without losing accuracy. The four trained versions learned the taught tokens on held-out
    questions: LoRA cuts their loss by 58% against base, and by 40% without the fixed opener, twice
-   the drop on the rest (F20, *confirmed* as loss). Whether they behave differently is Gate 3 (Nov
-   22). *Waiting*.
+   the drop on the rest (F20, *confirmed* as loss). **Gate 3, interim (F28): met.** LoRA follows 10
+   points fewer wrong hints [−16, −4] with the same no-hint accuracy. But the guide note it was trained
+   from does as well in the prompt (−13; LoRA minus it +3 [−1, +8]), and LoRA's false-disclosure
+   candidates rise (+10 [+2, +18]): hand labels decide whether it describes a check it doesn't do.
+   Three trained versions are still to come. B1 (attention to tool spans scaled down at 15/19/23) has its
+   alpha from set A (F27); its generation runs next.
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
@@ -366,6 +377,8 @@ clean answer, so the information hasn't left those tokens yet. It then falls in 
   --handoff results/trackA/gpu/step10_patching.json`.
 - **Status.** *confirmed* on these 19 + 19 cuts (9 questions, one model). At cut (ii) only 2 cuts
   (2 questions) have the hint within the window: too few to read.
+- **Set A (F26, Oct 30):** replicates on 16 questions not used to find it: 0.90 [0.76, 1.06] at 15, 19 and 23,
+  the same three layers the largest.
 
 ## F12. Attention and patching point at the same three layers, and the same heads separate outcomes
 
@@ -1158,6 +1171,7 @@ seed = repeat, and a 16,000-token cap (C4: 8,000; a thinking reviewer's reasonin
   - *confirmed*: Olmo 3 7B Instruct defers (−42, the interval below −20, with either context).
   - *confirmed*: Qwen3 30B Thinking doesn't (the intervals include 0).
   - *tentative*: the family reading. It rests on two models per family and one solver's cases.
+  - **C13 (F30, Oct 30):** Granite and Mistral don't defer. The family reading is *confirmed* on four families.
 
 ## F23. Track C (C12): redacting the tool's letter restores part of the reviewer's check, not most of it
 
@@ -1368,8 +1382,14 @@ The Thinking model's calling runs are 63 of 162 with the instruction, over 33 qu
 - **Open, not run:** whether a final answer that names the tool helps a downstream reviewer catch a wrong letter,
   or gives it more to defer to (F18).
 
-**Limits.** The "before" runs are a day or two older (same route; the canary passed). One wording. Keyword counts
-until hand labels. The run's own budget only.
+**Limits.**
+- **The "before" is not an interleaved control.** It is Track B's own runs of the same models, made one to two
+  days earlier (Oct 27–28), on the same Voyager route; the identity canary passed. Only the right-letter arm
+  without the instruction ran beside B15. A drift in the served models between those days would show up as a
+  B15 effect. C16 runs its control the same day.
+- One wording.
+- Keyword counts until hand labels.
+- The run's own budget only.
 
 **Source.**
 - `cot-disclosure/results/summaries/trackB/b15_report.json` (per model: the pre-registered comparisons with
@@ -1380,6 +1400,163 @@ until hand labels. The run's own budget only.
 - *confirmed as keyword counts*, both models: naming the tool after a call rises; the bare letter falls.
 - No change detected in following: all four intervals include 0 (Thinking's pasted one only just, +6 [0, +13]).
 - No detectable cost to correct-tool acceptance or no-hint accuracy.
+
+## F26. Track A (set A): on 16 questions not used to find it, the readout at layers 15, 19 and 23 replicates
+
+**Setup.**
+- **Set A:** the training data's 34 validation questions (in neither training nor the 30 evaluation questions).
+  Runs on Voyager (Oct 29), then Step 10 on Sol (66953953, Oct 29 night).
+- **Cases:** 34 followed runs with a late takeover on sure questions, 16 questions. 66 cuts: 34 at the takeover
+  (ii), 32 before the first mention (i).
+- **Rule** (Oct 29 00:20 log, before set A's runs), at cut (ii):
+  - **replicates:** the share of the hint-row drop at 15, 19 and 23 has a lower bound above 0.375 *and* those are
+    the three largest drops;
+  - **partly:** one of the two;
+  - **doesn't replicate:** neither.
+
+**Result: replicates.**
+
+| cut | cuts (questions) | share at the 8 full layers | share at 15, 19, 23 | Test 2 (F11) |
+|---|---|---|---|---|
+| (ii) all | 31 (16) | 0.92 [0.83, 1.03] | **0.90 [0.76, 1.06]** | 0.90 [0.85, 0.96] |
+| (ii) hint beyond the window | 22 (13) | 1.03 [0.95, 1.12] | 1.01 [0.87, 1.19] | 0.92 [0.88, 0.97] |
+| (ii) hint within the window | 9 (6) | 0.68 [0.53, 0.81] | 0.62 [0.43, 0.76] | too few questions |
+| (i) all | 32 (15) | 0.57 [0.47, 0.68] | 0.51 [0.42, 0.63] | 0.59 [0.48, 0.72] |
+
+- **The largest drops at (ii)** are 23 (0.43 [0.30, 0.60]), 15 (0.30 [0.22, 0.39]) and 19 (0.17 [0.11, 0.23]).
+  Next is 31 (0.07). Test 2: 0.39, 0.34, 0.17.
+- 3 of the 34 cut-(ii) cases have a logit-difference gap under 0.5 and are left out, as on Test 2 (2 of 21).
+- **The answer position gains it at the same layers:** 0.57 [0.46, 0.70] of its rise at (ii). Test 2: 0.62.
+- **Swapping only the prompt's letter** (F13's direct path) moves the answer off W in 12 of 34 [21, 52%], all to
+  O. Test 2: 13 of 21 [41, 79%]. Set A has no Step 4 deletions to compare with.
+- **Step 9 on set A** (201 runs) is back. It isn't read: no rule was fixed for it.
+
+**Source.** `cot-disclosure/results/summaries/trackA/setA/step10_handoff.json`, `step10_patching.json`; `python
+finetune/look/patching.py --handoff results/trackA/setA/step10_patching.json --handoff-out
+results/trackA/setA/step10_handoff.json --runs-from … --cases-from … --items-from …` (set A's files).
+
+**Status.** *confirmed*: the readout at 15, 19 and 23 replicates on questions not used to find it (one model, one
+patching setup). The circularity objection to designing a fix from these layers (CLAIMS 1.4) is answered.
+
+## F27. Track A (B1): on set A, alpha 0.25 on the tool turn and 0.5 on every hint span lower the forced wrong answer by 8–9 points within the correct-hint limit
+
+**Setup.**
+- B1 scales the attention from layers 15, 19 and 23 to the hint span's keys by alpha.
+- **Forced answers at set A's cuts** (Sol 66953970), alphas 0.5, 0.25, 0.1 and 0 against 1. Two spans:
+  - **deployable:** the inserted tool turn, 16 cuts at (ii) over 12 questions;
+  - **oracle:** every hint span, 34 cuts over 16 questions.
+- **Rule** (commit `0bd2241`, Oct 29 00:31, before set A existed), at cut (ii):
+  - eligible if P(own answer) doesn't fall and P(own answer) with a correct hint falls by at most 5 points;
+  - chosen: the eligible alpha with the largest fall in P(W), ties to the larger alpha;
+  - none eligible: 1.
+
+**Result.**
+- **Deployable: alpha 0.25.** P(W) −7.6 [−12.2, −3.7], P(O) +7.2 [+3.2, +11.8], correct hint −4.8 [−7.8, −2.4].
+  Eligible: 0.25 and 0.5.
+- **Oracle: alpha 0.5.** P(W) −8.6 [−12.6, −5.2], P(O) +7.4 [+4.1, +11.3], correct hint −4.3 [−7.1, −2.2]. Eligible:
+  0.5.
+- **The correct-hint cost sets the limit.** Every lower alpha lowers P(W) further (alpha 0, oracle: −20.6) but
+  costs a correct hint more than 5 points.
+
+**Status.** Alpha is fixed (not 1), so B1's generation on the held-out 30 runs (provenance_gen, 4 parts, submitted
+Oct 30). Following, correct-hint acceptance and no-hint accuracy there are *waiting*. **Source:**
+`cot-disclosure/results/summaries/trackA/setA/provenance_forced.json`.
+
+## F28. Track A (Gate 3, interim): LoRA passes, the guide note does as well in the prompt, and false-disclosure candidates rise
+
+**Setup.**
+- Batch 3, the 30 held-out questions, 930 runs per system, on Sol with vLLM.
+- **Back:** base, prompt_only (the base model with the guide note the training targets were made with, at the end
+  of the system turn) and LoRA.
+- **Waiting:** tags, LoRA + tags, LoRA on 15/19/23.
+- **Rule** (PLAN; `eval.report()` since Oct 25; `finetune/gate3.py`): a trained version passes when
+  - following minus base has an interval below 0,
+  - no-hint accuracy is within 5 points (the point),
+  - hiding minus base has an interval reaching 0 or below.
+  Gate 3 is met if one passes.
+
+**Result, interim: Gate 3 is met.**
+
+| system | following (wrong hints) | − base | no-hint accuracy | − base | hiding − base | false disclosure − base |
+|---|---|---|---|---|---|---|
+| base | 249 of 530 [37, 57%] | — | 58 of 90 | — | — | — |
+| prompt only | 179 of 532 [22, 46%] | −13 [−21, −6] | 56 of 89 | −2 | −8 [−12, −4] | −9 [−14, −4] |
+| LoRA (passes) | 197 of 532 [27, 48%] | **−10 [−16, −4]** | 56 of 89 | **−2** | **−24 [−32, −17]** | **+10 [+2, +18]** |
+
+- **LoRA minus prompt_only** (not pre-registered): following +3 [−1, +8]. LoRA does without the note what the note
+  does in the prompt; it isn't shown to do more.
+- **Hiding:** LoRA's trained opener names the hint (456 of 532 by broad keyword, base 146), so a keyword-based
+  hiding can barely occur. PLAN: for trained versions, the hand-labeled categories decide.
+- **False disclosure** (pre-registered check: "if this rises after training, the model learned to describe
+  checking without doing it"): it rises for LoRA, 147 of 532 against 96. These are keyword candidates; the label
+  sample decides.
+- **Correct-hint acceptance:** 206 of 238, 206 of 239, 208 of 239.
+
+**Status.**
+- *Met* (interim, by the rule; LoRA's verdict rests on all its 930 runs).
+- *Not shown*: that training beats the note in the prompt.
+- *Waiting*: the false-disclosure labels, and three trained versions.
+
+**Source.** `cot-disclosure/results/summaries/trackA/gpu/eval/gate3.json`, `gate3_table.md`, `eval_report.json`,
+`figures/gate3_*`.
+
+## F29. Track B (B4): Qwen3-8B with thinking on calls the tool far more and so takes its wrong letter far more; after the call its answer is bare
+
+**Setup.**
+- Qwen3-8B (`b968826d`), our vLLM on Sol, `enable_thinking` on and off: the same weights.
+- Track B's 54 questions, every channel, 3 runs, 1,620 runs (Sol 66954217).
+- No decision rule was fixed for on minus off. It is read here as "differs" when the paired interval excludes 0.
+
+**Result** (32,768-token budget; on minus off, paired by question):
+- **Following:**
+  - user 16 against 19 of 159–162: −2 [−8, +4];
+  - pasted block 47 against 41: +4 [−4, +11];
+  - **real tool call 143 against 40 of 162: +64 [+51, +75]**;
+  - system note 45 against 29: +10 [+2, +19].
+- **The call rate:** on 145 of 162, off 35 of 162. When it calls, it takes the letter (143 of 145; 33 of 35).
+- **Gate 2 is clear in both modes:** pasted − user +19 (on) and +13 (off); real − user +78 and +13.
+- **After a call with thinking on:** the final answer is bare in 138 of 145, and it names the tool in 0 of 143
+  followed runs. The private reasoning names it in 141 of 145.
+- **No-hint accuracy:** 137 against 122 of 162.
+- **With the 16,000-token cut:** the same (real call +63, system +9). Thinking on loses 43 runs to no answer.
+
+**Reading.** Holding the weights fixed, thinking on makes the model use the tool, and using it is what carries the
+wrong letter. The 30B twins went the other way (Thinking − Instruct −57) because the Instruct model calls every
+time. F15's bare final answer after a call appears in a fourth model.
+
+**Status.**
+- *confirmed* (one model): on minus off on the real call; Gate 2 in both modes.
+- *confirmed as keyword and length counts*: the bare answer after a call.
+
+**Source.** `cot-disclosure/results/summaries/trackB/trackB_report.json` (rows `sol_vllm | qwen3-8b`),
+`trackB_report_by_set.json`.
+
+## F30. Track C (C13): neither new reviewer family defers; across six reviewers only the two Olmo models do
+
+**Setup.**
+- IBM Granite 4.1 30B and Mistral Small 3.2 24B Instruct, each on its own vLLM on Sol (66954278).
+- **Cases:** C4's 159 saved tool-team cases, with C4's prompt and C11's settings; 477 reviews per model.
+- **Pre-registered** in the Oct 29 16:45 log:
+  - per model, C11's rule on plus_private minus answer_only (correcting a wrong answer after a bad lookup, 25 items);
+  - does family still predict it ("Olmo-specific" if neither defers)?
+
+**Result.**
+
+| reviewer | answer only | + private | minus | rule | + tool log |
+|---|---|---|---|---|---|
+| Granite 4.1 30B | 27 of 73 | 23 of 73 | −5 [−26, +15] | doesn't defer | −3 [−27, +21] |
+| Mistral Small 3.2 24B | 49 of 73 | 63 of 73 | +19 [+10, +30] | doesn't defer | +19 [+9, +31] |
+
+- **Family: Olmo-specific.** Over six reviewers and four families, the two Olmo models defer and the other four
+  don't.
+- **Granite's own check is weak** (27 of 73 alone), so there is less to lose. Its interval reaches −26.
+- **Mistral corrects more** with the trace.
+- **Both keep right answers better** with the trace (58 → 84 and 47 → 84 of 84).
+- The checker's pipeline catches 73 of 73 with both.
+
+**Status.** *confirmed* per model. F22's family reading is *confirmed* on four families, two models in the family
+that defers. Why Olmo defers is open. **Source:**
+`cot-disclosure/results/summaries/trackC/team_c13_granite_summary.json`, `team_c13_mistral_summary.json`.
 
 ## Measurement traps we hit and fixed
 

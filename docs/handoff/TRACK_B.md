@@ -1,6 +1,6 @@
 # Track B handoff: test widely (for Arsha, from Nov 3)
 
-Last updated: 2026-10-30 04:00 MST (B15 done, F25). A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-30 09:30 MST (Qwen3-8B done, F29; 04:00 B15 done, F25). A working draft, kept current every day and final on Nov 3,
 when Track B goes back to you. Until then Ritik runs it.
 
 **The question.** Does the failure seen in the progress round (a wrong hint from a tool moves
@@ -42,6 +42,11 @@ more models, with thinking on and off in the same model, real tool calls and 3 r
     - Olmo 3 7B Think: 21 steered, 31 matched, 2 other.
     - The file now holds three models with the same item ids, so `run_team.py` needs
       `--case-model` and each model needs its own `--log`.
+- **Qwen3-8B: done Oct 30** (Sol 66954217, vLLM, 2:01, 1,620 runs; FINDINGS F29, log 2026-10-30 09:15). The same
+  weights with thinking on call the tool in 145 of 162 runs against 35, and follow the real call's wrong letter +64
+  [+51, +75] more; pasted +4 [−4, +11], user −2, system +10 [+2, +19]. Gate 2 is clear in both modes. After a call
+  with thinking on the final answer is bare (138 of 145). The table also shows a 2-run `ollama | qwen3:8b` row from
+  the Oct 27 timing pilot: not part of B4; leave it out of the paper's table.
 - **Qwen3-8B, thinking on and off, moved to Sol** (decided Oct 28: Ollama never on the Mac).
   It runs as GPU jobs, `progress/sol_trackB.py`. Its vLLM run (66879362) failed on Oct 29 in vLLM's
   engine start, like Track A's check. Since Oct 29 the default is Hugging Face generation in the
@@ -179,7 +184,7 @@ later one once they are back.
 | # | Item | Status (Oct 27) |
 |---|---|---|
 | B7 | Voyager runs: Qwen3 Thinking, then Instruct, then Olmo 3 7B Think | done Oct 28 (03:11, 05:32, 17:52) |
-| B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | on vLLM after the Oct 29 fixes; 66954217 queued (limit 4:00, resumable) |
+| B4 | Qwen3-8B on Sol, thinking on and off (replaces the Ollama grid) | done Oct 30 (66954217; F29) |
 | B15 | One instruction to bring the tool back into the final answer (Qwen3 30B Thinking and Instruct) | done Oct 30 03:44 (F25): naming rises, the bare letter falls, following unchanged |
 | B8 | `steered_cases.jsonl` per model | done for all three (Oct 28) |
 | B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate; the bare final answer | `trackB_report.py` (and `--by-set`); F15, F16, F17; Qwen3-8B when B4 runs |

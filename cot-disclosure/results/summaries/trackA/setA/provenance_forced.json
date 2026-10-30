@@ -1,0 +1,584 @@
+{
+ "step": "provenance_forced",
+ "timestamp_utc": "2026-10-30T05:43:10+00:00",
+ "model": "allenai/Olmo-3-7B-Think",
+ "snapshot_dir": "/scratch/ragarw68/hf/hub/models--allenai--Olmo-3-7B-Think/snapshots/d97e442d7cc678210054dbcc9b440894d62c89a4",
+ "snapshot_commit": "d97e442d7cc678210054dbcc9b440894d62c89a4",
+ "snapshot_is_d97e442": true,
+ "files_vs_d97e442": {
+  "same": true,
+  "weights_same": true,
+  "differ": [],
+  "missing": [],
+  "hashed_regular_files": [
+   "model-00001-of-00003.safetensors",
+   "model-00002-of-00003.safetensors",
+   "model-00003-of-00003.safetensors"
+  ],
+  "checked": 12,
+  "reference_revision": "d97e442d7cc678210054dbcc9b440894d62c89a4",
+  "revisions_with_the_same_weights": 24
+ },
+ "versions": {
+  "python": "3.11.18",
+  "torch": "2.14.1+cu130",
+  "transformers": "5.18.0",
+  "tokenizers": "0.23.2",
+  "huggingface_hub": "1.33.0",
+  "accelerate": "1.15.0",
+  "peft": "0.21.2",
+  "safetensors": "0.8.0",
+  "numpy": "2.4.6",
+  "torch_cuda_build": "13.0"
+ },
+ "gpu": {
+  "name": "NVIDIA A100-SXM4-80GB",
+  "memory_gib": 79.3,
+  "capability": "8.0",
+  "count": 1,
+  "bf16": true
+ },
+ "code": {
+  "commit": "427f39e3a036e8bee51ba26b161b8c67ddfcd060",
+  "finetune_dirty": false
+ },
+ "slurm": {
+  "SLURM_JOB_ID": "66953970",
+  "SLURM_JOB_ACCOUNT": "class_cse59888883fall2026",
+  "SLURM_JOB_PARTITION": "public",
+  "SLURM_JOB_QOS": "class",
+  "SLURMD_NODENAME": "sg032"
+ },
+ "host": "sg032",
+ "environments": {
+  "driver": {
+   "python": "3.11.18",
+   "prefix": "/scratch/ragarw68/envs/olmo",
+   "torch": "2.14.1+cu130",
+   "transformers": "5.18.0",
+   "tokenizers": "0.23.2",
+   "huggingface_hub": "1.33.0",
+   "accelerate": "1.15.0",
+   "peft": "0.21.2",
+   "safetensors": "0.8.0",
+   "numpy": "2.4.6",
+   "torch_cuda_build": "13.0"
+  }
+ },
+ "layers": [
+  15,
+  19,
+  23
+ ],
+ "heads": null,
+ "by_span_and_cut": {
+  "deployable | ii": {
+   "cuts": 16,
+   "questions": 12,
+   "by_alpha": {
+    "0.5": {
+     "p_w": {
+      "diff": -0.04071274003945291,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.06713175773620605,
+       -0.0187563959728269
+      ]
+     },
+     "p_o": {
+      "diff": 0.03851926217845403,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       0.015789195120608685,
+       0.06504170669918843
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.027592683443799615,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.044941562077249676,
+       -0.013552277833999446
+      ]
+     }
+    },
+    "0.25": {
+     "p_w": {
+      "diff": -0.0764408204559004,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.12210039608180523,
+       -0.03677047150475638
+      ]
+     },
+     "p_o": {
+      "diff": 0.07247035467003116,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       0.03154377997130863,
+       0.11841655788787951
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.04835362817539135,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.07811954772720735,
+       -0.023551423867632235
+      ]
+     }
+    },
+    "0.1": {
+     "p_w": {
+      "diff": -0.0978633366903523,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.15643472718407533,
+       -0.047780841206466515
+      ]
+     },
+     "p_o": {
+      "diff": 0.09245022600089214,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       0.04075213493446687,
+       0.15213259673004764
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.060454721630776476,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.1029288191237035,
+       -0.02655168677133938
+      ]
+     }
+    },
+    "0.0": {
+     "p_w": {
+      "diff": -0.13122578091861214,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.2135271579027176,
+       -0.06188754418262226
+      ]
+     },
+     "p_o": {
+      "diff": 0.12543442684102502,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       0.05494301618241212,
+       0.20846706003807672
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.07265014639597211,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.12505585643728928,
+       -0.0310843417585905
+      ]
+     }
+    }
+   }
+  },
+  "deployable | i": {
+   "cuts": 16,
+   "questions": 12,
+   "by_alpha": {
+    "0.5": {
+     "p_w": {
+      "diff": -0.05876947039444502,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.14280386044433993,
+       -0.006089892818530578
+      ]
+     },
+     "p_o": {
+      "diff": 0.023576659966579427,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       0.0014739311316892174,
+       0.056279815734683325
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.014378726267750608,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.03621234274857367,
+       -0.00017248491948360905
+      ]
+     }
+    },
+    "0.25": {
+     "p_w": {
+      "diff": -0.08852865610868577,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.21443110135372562,
+       -0.009617277207124832
+      ]
+     },
+     "p_o": {
+      "diff": 0.035078572960514975,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       0.0021148882949546532,
+       0.08332173440507368
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.04150896432383888,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.11571995523117948,
+       -0.00019469702480516085
+      ]
+     }
+    },
+    "0.1": {
+     "p_w": {
+      "diff": -0.10348176336582782,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.23982261227409557,
+       -0.01357014886486223
+      ]
+     },
+     "p_o": {
+      "diff": 0.042743812123603675,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       0.002881929232330549,
+       0.09976351319346577
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.06498919295108863,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.19224581580895644,
+       -0.00021292283182607635
+      ]
+     }
+    },
+    "0.0": {
+     "p_w": {
+      "diff": -0.11281918471015828,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.25417004025829976,
+       -0.01724788857845283
+      ]
+     },
+     "p_o": {
+      "diff": 0.04876110509690079,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       0.0033427186163488146,
+       0.11229377106428728
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.07292666432886108,
+      "cuts": 16,
+      "questions": 12,
+      "interval": [
+       -0.21824933391534224,
+       -0.0002431205405931299
+      ]
+     }
+    }
+   }
+  },
+  "oracle | ii": {
+   "cuts": 34,
+   "questions": 16,
+   "by_alpha": {
+    "0.5": {
+     "p_w": {
+      "diff": -0.08565635529949385,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       -0.12648185112458818,
+       -0.052371624431439806
+      ]
+     },
+     "p_o": {
+      "diff": 0.07361552804541267,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       0.04076578440084464,
+       0.11343163601945132
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.04277717097669237,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       -0.07142559991916642,
+       -0.022095430744229816
+      ]
+     }
+    },
+    "0.25": {
+     "p_w": {
+      "diff": -0.13642156539786168,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       -0.18788075514748925,
+       -0.09078372005537591
+      ]
+     },
+     "p_o": {
+      "diff": 0.11504207186198849,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       0.06960411751726818,
+       0.16545357438071598
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.06523014835907173,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       -0.10654787327761629,
+       -0.03193416113912639
+      ]
+     }
+    },
+    "0.1": {
+     "p_w": {
+      "diff": -0.17305786155082067,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       -0.2342361552582588,
+       -0.11635181269541915
+      ]
+     },
+     "p_o": {
+      "diff": 0.14372848165049512,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       0.08800702857195877,
+       0.2022103563821314
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.08111672382716172,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       -0.1297026414908674,
+       -0.04073879554241156
+      ]
+     }
+    },
+    "0.0": {
+     "p_w": {
+      "diff": -0.20578201948528124,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       -0.2787022167550666,
+       -0.1378450218398939
+      ]
+     },
+     "p_o": {
+      "diff": 0.1715526577235564,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       0.10540406918661915,
+       0.2412950712846128
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.09474044014624429,
+      "cuts": 34,
+      "questions": 16,
+      "interval": [
+       -0.14927522108037544,
+       -0.04703942214338375
+      ]
+     }
+    }
+   }
+  },
+  "oracle | i": {
+   "cuts": 32,
+   "questions": 15,
+   "by_alpha": {
+    "0.5": {
+     "p_w": {
+      "diff": -0.054174732064744546,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       -0.10308545241894151,
+       -0.017262648644018993
+      ]
+     },
+     "p_o": {
+      "diff": 0.03551281477595225,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       0.007232319644819947,
+       0.06762551842022166
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.025914532970091386,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       -0.05764924396168102,
+       -0.005559241951259813
+      ]
+     }
+    },
+    "0.25": {
+     "p_w": {
+      "diff": -0.08172209931924002,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       -0.1515772831181411,
+       -0.030438725829345887
+      ]
+     },
+     "p_o": {
+      "diff": 0.04852094207030788,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       0.011107890990084949,
+       0.090666070499004
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.058541167843600306,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       -0.12612015153131179,
+       -0.012307391301146709
+      ]
+     }
+    },
+    "0.1": {
+     "p_w": {
+      "diff": -0.11779001423424118,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       -0.20044195513860183,
+       -0.053594882008293564
+      ]
+     },
+     "p_o": {
+      "diff": 0.05565687797727392,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       0.01484832765353334,
+       0.1019362259489396
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.08212923020164453,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       -0.16987747054932137,
+       -0.019459324724533978
+      ]
+     }
+    },
+    "0.0": {
+     "p_w": {
+      "diff": -0.14871760326073913,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       -0.246731500090196,
+       -0.07192713497135594
+      ]
+     },
+     "p_o": {
+      "diff": 0.06067064345383599,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       0.017317184019045584,
+       0.11049156877066528
+      ]
+     },
+     "p_o_correct_hint": {
+      "diff": -0.0964734204107387,
+      "cuts": 32,
+      "questions": 15,
+      "interval": [
+       -0.19270490169791238,
+       -0.026828742739852324
+      ]
+     }
+    }
+   }
+  }
+ },
+ "chosen": {
+  "deployable": {
+   "alpha": 0.25,
+   "dW": -0.0764408204559004,
+   "eligible": [
+    0.25,
+    0.5
+   ],
+   "why": "most negative dW among eligible alphas (-0.076); ties within 0.01 to the larger alpha"
+  },
+  "oracle": {
+   "alpha": 0.5,
+   "dW": -0.08565635529949385,
+   "eligible": [
+    0.5
+   ],
+   "why": "most negative dW among eligible alphas (-0.086); ties within 0.01 to the larger alpha"
+  }
+ },
+ "rule": "(written Oct 29, before any set A number exists), per span, at cut (ii):\n  dW(a) = mean over cuts of P_a(W) - P_1(W) on the hinted prompt; dO(a) = the same for P(O);\n  dC(a) = the same for P(O) on the correct-hint prompt.\n  Eligible: dO(a) >= 0 and dC(a) >= -0.05 (a correct tool hint keeps its pull, within 5 points).\n  Chosen: the eligible alpha with the most negative dW; within 0.01 of it, the larger alpha (the milder\n  change). No eligible alpha: 1 (no fix), reported as such. The deployable span is chosen on the cases\n  with an inserted tool turn; the oracle span on all cases. Never on the 30 evaluation questions."
+}

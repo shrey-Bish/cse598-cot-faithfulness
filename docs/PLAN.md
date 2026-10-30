@@ -1,6 +1,8 @@
 # Plan: weeks 11–16 (CSE 598, Group 10)
 
-Last updated: 2026-10-30 04:00 MST (B15 done, F25; C15 done, F24; Oct 29 23:00 Ritik's decisions of 22:20: the order of the 10 unsubmitted Sol jobs, B2's LR_GATE
+Last updated: 2026-10-30 09:30 MST (Sol's night all done: set A replicates F26, B1's alpha 0.25 / 0.5 F27, Gate 3
+interim met by LoRA F28, Qwen3-8B F29, C13 F30; the 10 jobs submitted in Ritik's order; C16 pre-registered and
+running; the QoS re-checked; 04:00 B15 done, F25; C15 done, F24; Oct 29 23:00 Ritik's decisions of 22:20: the order of the 10 unsubmitted Sol jobs, B2's LR_GATE
 1e-2 approved, H23 tested on C15; C14 done, C15 and B15 pre-registered and run on Voyager; the Gate 3 command;
 earlier: C11–C13; week 11; the plan for Oct 27–Nov 3 moved everything as early
 as it can go; Oct 28: Ollama replaced by Qwen3-8B on Sol, training batch 2, the class QoS only; Track
@@ -154,7 +156,7 @@ hits it has no answer). Five systems: base, prompt-only, LoRA only, tags only, L
   their limits are to live in one config file that `sol/submit.sh` reads; it allows only the
   accounts listed there (today only the course account; Ritik adds others himself if more Sol
   access comes).
-- **The class QoS** (`sacctmgr -P show qos class`, confirmed Oct 27): MaxTRES cpu=32,
+- **The class QoS** (`sacctmgr -P show qos class`, confirmed Oct 27, re-checked Oct 30): MaxTRES cpu=32,
   gres/gpu=4, mem=320G; MaxWall 24 h; MaxJobsPU 2; MaxSubmitPU 10; MaxTRESRunMinsPU
   gres/gpu=960; Flags DenyOnLimit. What that means here:
   - Slurm counts each running job's *remaining* time × GPUs against the 960 GPU-minutes. One
@@ -277,13 +279,13 @@ replaces these estimates with measured ones.
 | S4 | Train tags only (batch 2, at once with S3): job 66759769 done in 2.81 h; epoch 2, validation loss 0.21672 → 0.21401 | 2.97 (2.89–3.04) | 4:00 | S3 | Oct 28 | S1 |
 | S5 | Train LoRA + tags: job 66759772 failed (no version reached run.sh); 66862721 done Oct 28 in 3:25:40; epoch 2, validation loss 0.18723 → 0.18598 | 3.65 (3.56–3.74) | 5:00 | S6 | after S3 | S1 |
 | E1 | Evaluate base, 930 generations: done Oct 29 on vLLM (66932942/44, 2 parts of 465 runs, 3:22 each, ~470 tokens/s) | 6.7 measured | 5:30 | E2 | Oct 29 | code (A10) |
-| E2 | Evaluate prompt-only (vLLM, 66932945/46, running Oct 29 night) | ~7 | 5:30 | E1, E3 | Oct 29 | A10 |
-| E3 | Evaluate LoRA only (vLLM, merged; 66932947/48 queued) | ~7 | 5:30 | E2, E4 | after E1 | S3 |
-| E4 | Evaluate LoRA + tags (vLLM, the tag folded, prompts as embeddings; not submitted: Ritik's order) | ~7 | 5:30 | E3, E5 | after E2 | S5 |
-| E5 | Evaluate tags only (same; not submitted: Ritik's order) | ~7 | 5:30 | E4 | after E3 | S4 |
+| E2 | Evaluate prompt-only: done Oct 29 night (vLLM, 66932945/46, 2:54 and 3:02) | ~7 | 5:30 | E1, E3 | Oct 29 | A10 |
+| E3 | Evaluate LoRA only: done Oct 30 (vLLM, merged; 66932947/48, 2:59 and 3:16); Gate 3 met by it, interim (F28) | ~7 | 5:30 | E2, E4 | after E1 | S3 |
+| E4 | Evaluate LoRA + tags (vLLM, the tag folded, prompts as embeddings; submitted Oct 30, Ritik's order) | ~7 | 5:30 | E3, E5 | after E2 | S5 |
+| E5 | Evaluate tags only (same; submitted Oct 30, Ritik's order) | ~7 | 5:30 | E4 | after E3 | S4 |
 | L1 | Look inside the best version: Step 3 probes (vLLM), Step 9, Step 10 | 4–10 (1–2 jobs) | 8:00 | S6 | after E1–E5 | E1–E5 |
 | S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23): job 66759822 failed like S5; 66862726 done Oct 28 in 2:44:43; epoch 2, validation loss 0.19654 → 0.19278; evaluated last | 2.99 (2.92–3.07) | 4:00 | S5 | after S4 | S1 |
-| E6 | Evaluate the fourth version (vLLM; not submitted: Ritik's order) | ~7 | 5:30 | — | after S6 | S6 |
+| E6 | Evaluate the fourth version (vLLM; submitted Oct 30, Ritik's order) | ~7 | 5:30 | — | after S6 | S6 |
 | S7 | Validation loss by part (Oct 28, Ritik): base + both epochs of all four versions (decided Oct 28 21:30) on the 156 validation examples, each split into the taught tokens (80,010 of 1,243,692: 6.4%) and the rest; no vLLM (`finetune/val_loss.py`). 66865939 done Oct 28 in 0:37:09 (all four versions) | 0.62 measured (0.75–1.3 inferred) | 2:00 | any | after S5, S6 | S3–S6 |
 | B-Q8 | Track B: Qwen3-8B (replaces Ollama), 1,620 runs, core cells first. get_qwen8b 66879245 done (1:31); trackb_qwen8b 66879362 failed in vLLM's start (Oct 29, 13:39); now Hugging Face (`--engine hf`, the default), ~6.7M tokens at ~120–190 tokens/s | 10–15 (2 jobs) | 8:00 | any | Oct 29 | the snapshot |
 | S9A | Set A, Step 9 (attention to the hint) on set A's runs (Oct 29: questions not used to find the readout; `--runs-from`, `--items-from`, `--step3-from`) | ≤1 | as Step 9 | any | after set A's runs (Voyager, Oct 29) | set A |
@@ -298,6 +300,9 @@ replaces these estimates with measured ones.
 Oct 29 23:00 session log, section 7. Before the first B1 part, `provenance_job.py choose` on the forced job's
 summary; if both spans come out at alpha = 1, raise it first. When batch 3's files are back,
 `finetune/gate3.py --out results/trackA/gpu/eval` gives Gate 3's table, verdicts and figures in one command.
+**Oct 30:** every Oct 29 job ended with exit 0; alpha came out 0.25 (deployable) and 0.5 (oracle), not 1, so all 10
+went in at once in this order (the queue was empty; 2 run at a time). Gate 3, interim, on base, prompt_only and LoRA:
+met by LoRA (F28), with the guide note doing as well in the prompt and LoRA's false-disclosure candidates up.
 
 With two jobs at a time the running time is about half the GPU hours. On Hugging Face (Oct 29),
 E1–E6 are 163–359 GPU h (mid 230): 3.5–7.5 days of both slots, plus Qwen3-8B (10–15), set A's
@@ -363,7 +368,9 @@ keys and "go"; GPQA waits until Ritik has accepted its terms on Hugging Face.
 4. Qwen3-8B on Sol (decided Oct 28: Ollama never runs on the Mac): our vLLM server on one A100
    (`progress/sol_trackB.py`), thinking on and off through `enable_thinking`, the core cells first
    (30 MMLU-Pro × none/user/tool_real × on/off × 3 runs), then the puzzles, then the rest: 1,620
-   runs, 0.5–1.5 GPU hours (one job, limit 2:00). Code and CPU tests done; runs on "go".
+   runs, 0.5–1.5 GPU hours (one job, limit 2:00). Code and CPU tests done; runs on "go". **Done Oct 30** (66954217, vLLM, 2:01; F29):
+   thinking on calls the tool in 145 of 162 runs against 35, and follows the real call +64 [+51, +75] more; Gate 2
+   clear in both modes.
 
 **Conditions** (`tools/answer_key.py`, same wrong letter per question): `none`, `user`,
 `tool_pasted`, `tool_real`, `system`; for Olmo 3 7B Think, `tool_injected` in place of `tool_real`
@@ -412,7 +419,8 @@ C11 and C12 are done (Oct 29; F22, F23): the deference follows the family in fou
 redacting the tool's letter restores part of Olmo's check (its split by set is hypothesis H23, to test).
 C13 (Oct 29, after set A on Sol): a third and fourth family, IBM Granite 4.1 30B and Mistral Small 3.2
 24B Instruct, reviewer only on C4's cases with C4's prompt, each on our vLLM (`agents/sol_c13.py`; 954
-reviews, 0.6–1.5 A100 h); pre-registered in the Oct 29 16:45 session log.
+reviews, 0.6–1.5 A100 h); pre-registered in the Oct 29 16:45 session log. **Done Oct 30 (F30):** neither defers
+(Granite −5 [−26, +15], Mistral +19 [+10, +30]); over six reviewers and four families only Olmo's two do.
 - The re-ask checker caught 73 of 75 bad lookups, with false alarms at the no-tool floor, so the
   pipeline shipped no wrong answer.
 - The Olmo 32B reviewer alone stopped correcting wrong answers once it saw the private reasoning or
@@ -427,6 +435,9 @@ reviews, 0.6–1.5 A100 h); pre-registered in the Oct 29 16:45 session log.
   answer_only result, (c) C14's rule against the checker. **Done Oct 30 00:45 (F24):** F18 replicates (Olmo −55,
   Qwen3 −6), redaction again restores part of Olmo's check (+25), H23 is not supported, and C14's rule ships 4 and 7
   wrong answers of 53 where the checker ships none.
+- C16 (Oct 30, Ritik; pre-registered in the 08:50 log; running): C15's items with the solver told B15's instruction;
+  do reviewers that see a final answer naming the tool correct it more or less often than the same reviews of C15's
+  solver (same-day control)? Two-sided, C11's margin (`agents/c16.py`).
 
 **This week (decided Oct 27), in order:** the append-only log in `results/trackC/` (C6); the
 no-tool team (C2); a second reviewer model (C3); an input-file option; the live team on 5 items

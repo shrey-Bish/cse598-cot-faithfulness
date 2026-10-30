@@ -434,11 +434,12 @@ def show_by_layer_type(res):
         print(f"| ({cut}) | left out (gap < {res['min_gap']}) | {res[cut]['left_out_small_gap']} | | | | | |")
 
 
-def hint_distances():
+def hint_distances(runs_from=None, cases_from=None, items_from=None):
     """{job id: tokens from the hint (its last token; its letter) to the answer position, and the
-    cut's length}, rebuilt with the tokenizer alone (no model), as the GPU run built the inputs."""
+    cut's length}, rebuilt with the tokenizer alone (no model), as the GPU run built the inputs
+    (set A: the same --runs-from, --cases-from and --items-from as its Step 10 job)."""
     tok = kit.load_tokenizer(kit.snapshot()[0])
-    cases, steps, items, _ = inputs()
+    cases, steps, items, _ = inputs(runs_from, cases_from, items_from)
     out = {}
     for j in jobs(tok, cases, steps, items):
         lay = hs.layout(tok, steps[j["case"]["source_run_id"]], j["reasoning"])
@@ -588,8 +589,11 @@ def show_handoff(h, paths):
     print(f"Swap only the prompt's letter (W -> O; the reasoning still names W): off W in {s['off_W']} of {s['of']} "
           f"[{s['off_W_ci95'][0]:.2f}, {s['off_W_ci95'][1]:.2f}] ({s['to_O']} to O, {s['to_another_letter']} to another "
           f"letter); still W in {s['still_W']}.")
-    print(f"Step 4, delete the mentions (prompt still W): back to the own answer in {d4['back_to_own']} of {d4['of']} "
-          f"[{d4['ci95'][0]:.2f}, {d4['ci95'][1]:.2f}] ({d4['outcomes']}).")
+    if d4["of"]:
+        print(f"Step 4, delete the mentions (prompt still W): back to the own answer in {d4['back_to_own']} of "
+              f"{d4['of']} [{d4['ci95'][0]:.2f}, {d4['ci95'][1]:.2f}] ({d4['outcomes']}).")
+    else:
+        print("Step 4: no deletion runs on these cases (Test 2's only).")
     print(f"Both, {paths['cases_in_both']} cases: {paths['cross_table']}")
     print("| case | channel | tokens, letter to answer | LD hinted | LD clean | clean answers | Step 4 |")
     print("|---|---|---|---|---|---|---|")
@@ -697,7 +701,7 @@ def main(argv=None):
         return plot(json.loads(Path(a.plot).read_text()), Path(a.plot).parent)
     if a.handoff:
         summary = json.loads(Path(a.handoff).read_text())
-        dist = None if a.no_distances else hint_distances()
+        dist = None if a.no_distances else hint_distances(a.runs_from, a.cases_from, a.items_from)
         h = handoff(summary, dist)
         paths = paths_at_cut_ii(summary, dist)
         show_handoff(h, paths)

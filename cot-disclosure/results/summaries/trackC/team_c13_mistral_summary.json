@@ -1,0 +1,4123 @@
+{
+ "by_team_model_variant": {
+  "tool | mistral-small-3.2-24b | answer_only": {
+   "reviews": 159,
+   "items": 53,
+   "wrong_reached_final": {
+    "k": 32,
+    "n": 159,
+    "text": "32 of 159",
+    "wilson": [
+     0.1463224979885118,
+     0.27028798528374465
+    ]
+   },
+   "caught": {
+    "k": 73,
+    "n": 73,
+    "text": "73 of 73",
+    "wilson": [
+     0.9500079912950344,
+     0.9999999999999999
+    ]
+   },
+   "false_alarms": {
+    "k": 39,
+    "n": 86,
+    "text": "39 of 86",
+    "wilson": [
+     0.3525159460769202,
+     0.5584383048934465
+    ]
+   },
+   "undetermined": 4,
+   "escalated": 80,
+   "tokens": 109713,
+   "reviewer_alone": {
+    "corrects_wrong_solver": {
+     "k": 49,
+     "n": 73,
+     "text": "49 of 73",
+     "wilson": [
+      0.5572900604786939,
+      0.7680551420196056
+     ]
+    },
+    "keeps_right_solver": {
+     "k": 49,
+     "n": 86,
+     "text": "49 of 86",
+     "wilson": [
+      0.4643620329800088,
+      0.6692065905644412
+     ]
+    },
+    "keeps_wrong_solver": {
+     "k": 5,
+     "n": 73,
+     "text": "5 of 73",
+     "wilson": [
+      0.029609038464428368,
+      0.15052105123985696
+     ]
+    },
+    "reply_names_tool": {
+     "k": 1,
+     "n": 159,
+     "text": "1 of 159",
+     "wilson": [
+      0.0011110813910467122,
+      0.03476098043784022
+     ]
+    },
+    "no_letter": 1
+   },
+   "bad_lookups": {
+    "reviews": 75,
+    "items": 25,
+    "wrong_reached_final": {
+     "k": 0,
+     "n": 75,
+     "text": "0 of 75",
+     "wilson": [
+      3.469446951953614e-18,
+      0.04872384321400895
+     ]
+    },
+    "caught": {
+     "k": 73,
+     "n": 73,
+     "text": "73 of 73",
+     "wilson": [
+      0.9500079912950344,
+      0.9999999999999999
+     ]
+    },
+    "false_alarms": {
+     "k": 0,
+     "n": 2,
+     "text": "0 of 2",
+     "wilson": [
+      0.0,
+      0.6576197760453506
+     ]
+    },
+    "undetermined": 0,
+    "escalated": 73,
+    "tokens": 52458,
+    "reviewer_alone": {
+     "corrects_wrong_solver": {
+      "k": 49,
+      "n": 73,
+      "text": "49 of 73",
+      "wilson": [
+       0.5572900604786939,
+       0.7680551420196056
+      ]
+     },
+     "keeps_right_solver": {
+      "k": 2,
+      "n": 2,
+      "text": "2 of 2",
+      "wilson": [
+       0.3423802239546494,
+       1.0
+      ]
+     },
+     "keeps_wrong_solver": {
+      "k": 5,
+      "n": 73,
+      "text": "5 of 73",
+      "wilson": [
+       0.029609038464428368,
+       0.15052105123985696
+      ]
+     },
+     "reply_names_tool": {
+      "k": 0,
+      "n": 75,
+      "text": "0 of 75",
+      "wilson": [
+       3.469446951953614e-18,
+       0.04872384321400895
+      ]
+     },
+     "no_letter": 0
+    }
+   },
+   "good_lookups": {
+    "reviews": 84,
+    "items": 28,
+    "wrong_reached_final": {
+     "k": 32,
+     "n": 84,
+     "text": "32 of 84",
+     "wilson": [
+      0.2844714917644011,
+      0.4878455865866441
+     ]
+    },
+    "caught": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "false_alarms": {
+     "k": 39,
+     "n": 84,
+     "text": "39 of 84",
+     "wilson": [
+      0.36154228207118067,
+      0.5701528414341329
+     ]
+    },
+    "undetermined": 4,
+    "escalated": 7,
+    "tokens": 57255,
+    "reviewer_alone": {
+     "corrects_wrong_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "keeps_right_solver": {
+      "k": 47,
+      "n": 84,
+      "text": "47 of 84",
+      "wilson": [
+       0.4530710163815971,
+       0.6607704444428802
+      ]
+     },
+     "keeps_wrong_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "reply_names_tool": {
+      "k": 1,
+      "n": 84,
+      "text": "1 of 84",
+      "wilson": [
+       0.002104583064289022,
+       0.06439543817499638
+      ]
+     },
+     "no_letter": 1
+    }
+   }
+  },
+  "tool | mistral-small-3.2-24b | plus_private": {
+   "reviews": 159,
+   "items": 53,
+   "wrong_reached_final": {
+    "k": 0,
+    "n": 159,
+    "text": "0 of 159",
+    "wilson": [
+     0.0,
+     0.0235901772661976
+    ]
+   },
+   "caught": {
+    "k": 73,
+    "n": 73,
+    "text": "73 of 73",
+    "wilson": [
+     0.9500079912950344,
+     0.9999999999999999
+    ]
+   },
+   "false_alarms": {
+    "k": 7,
+    "n": 86,
+    "text": "7 of 86",
+    "wilson": [
+     0.03998643132048015,
+     0.15860182741282047
+    ]
+   },
+   "undetermined": 4,
+   "escalated": 80,
+   "tokens": 514070,
+   "reviewer_alone": {
+    "corrects_wrong_solver": {
+     "k": 63,
+     "n": 73,
+     "text": "63 of 73",
+     "wilson": [
+      0.7658757250391587,
+      0.9238561042572363
+     ]
+    },
+    "keeps_right_solver": {
+     "k": 86,
+     "n": 86,
+     "text": "86 of 86",
+     "wilson": [
+      0.9572418020685576,
+      1.0
+     ]
+    },
+    "keeps_wrong_solver": {
+     "k": 6,
+     "n": 73,
+     "text": "6 of 73",
+     "wilson": [
+      0.038213750255271794,
+      0.16794395564887746
+     ]
+    },
+    "reply_names_tool": {
+     "k": 13,
+     "n": 159,
+     "text": "13 of 159",
+     "wilson": [
+      0.048402298604288914,
+      0.13485237797687008
+     ]
+    },
+    "no_letter": 0
+   },
+   "bad_lookups": {
+    "reviews": 75,
+    "items": 25,
+    "wrong_reached_final": {
+     "k": 0,
+     "n": 75,
+     "text": "0 of 75",
+     "wilson": [
+      3.469446951953614e-18,
+      0.04872384321400895
+     ]
+    },
+    "caught": {
+     "k": 73,
+     "n": 73,
+     "text": "73 of 73",
+     "wilson": [
+      0.9500079912950344,
+      0.9999999999999999
+     ]
+    },
+    "false_alarms": {
+     "k": 0,
+     "n": 2,
+     "text": "0 of 2",
+     "wilson": [
+      0.0,
+      0.6576197760453506
+     ]
+    },
+    "undetermined": 0,
+    "escalated": 73,
+    "tokens": 373664,
+    "reviewer_alone": {
+     "corrects_wrong_solver": {
+      "k": 63,
+      "n": 73,
+      "text": "63 of 73",
+      "wilson": [
+       0.7658757250391587,
+       0.9238561042572363
+      ]
+     },
+     "keeps_right_solver": {
+      "k": 2,
+      "n": 2,
+      "text": "2 of 2",
+      "wilson": [
+       0.3423802239546494,
+       1.0
+      ]
+     },
+     "keeps_wrong_solver": {
+      "k": 6,
+      "n": 73,
+      "text": "6 of 73",
+      "wilson": [
+       0.038213750255271794,
+       0.16794395564887746
+      ]
+     },
+     "reply_names_tool": {
+      "k": 10,
+      "n": 75,
+      "text": "10 of 75",
+      "wilson": [
+       0.07406584669872786,
+       0.22833163832487874
+      ]
+     },
+     "no_letter": 0
+    }
+   },
+   "good_lookups": {
+    "reviews": 84,
+    "items": 28,
+    "wrong_reached_final": {
+     "k": 0,
+     "n": 84,
+     "text": "0 of 84",
+     "wilson": [
+      0.0,
+      0.04373172907438993
+     ]
+    },
+    "caught": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "false_alarms": {
+     "k": 7,
+     "n": 84,
+     "text": "7 of 84",
+     "wilson": [
+      0.04095255039885021,
+      0.16215722382980807
+     ]
+    },
+    "undetermined": 4,
+    "escalated": 7,
+    "tokens": 140406,
+    "reviewer_alone": {
+     "corrects_wrong_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "keeps_right_solver": {
+      "k": 84,
+      "n": 84,
+      "text": "84 of 84",
+      "wilson": [
+       0.95626827092561,
+       0.9999999999999999
+      ]
+     },
+     "keeps_wrong_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "reply_names_tool": {
+      "k": 3,
+      "n": 84,
+      "text": "3 of 84",
+      "wilson": [
+       0.012219669136271434,
+       0.09981693643280493
+      ]
+     },
+     "no_letter": 0
+    }
+   }
+  },
+  "tool | mistral-small-3.2-24b | plus_tool_log": {
+   "reviews": 159,
+   "items": 53,
+   "wrong_reached_final": {
+    "k": 0,
+    "n": 159,
+    "text": "0 of 159",
+    "wilson": [
+     0.0,
+     0.0235901772661976
+    ]
+   },
+   "caught": {
+    "k": 73,
+    "n": 73,
+    "text": "73 of 73",
+    "wilson": [
+     0.9500079912950344,
+     0.9999999999999999
+    ]
+   },
+   "false_alarms": {
+    "k": 7,
+    "n": 86,
+    "text": "7 of 86",
+    "wilson": [
+     0.03998643132048015,
+     0.15860182741282047
+    ]
+   },
+   "undetermined": 4,
+   "escalated": 80,
+   "tokens": 522781,
+   "reviewer_alone": {
+    "corrects_wrong_solver": {
+     "k": 63,
+     "n": 73,
+     "text": "63 of 73",
+     "wilson": [
+      0.7658757250391587,
+      0.9238561042572363
+     ]
+    },
+    "keeps_right_solver": {
+     "k": 86,
+     "n": 86,
+     "text": "86 of 86",
+     "wilson": [
+      0.9572418020685576,
+      1.0
+     ]
+    },
+    "keeps_wrong_solver": {
+     "k": 4,
+     "n": 73,
+     "text": "4 of 73",
+     "wilson": [
+      0.02151249726624227,
+      0.13258997623817909
+     ]
+    },
+    "reply_names_tool": {
+     "k": 16,
+     "n": 159,
+     "text": "16 of 159",
+     "wilson": [
+      0.06289366451798808,
+      0.15720666575123893
+     ]
+    },
+    "no_letter": 0
+   },
+   "bad_lookups": {
+    "reviews": 75,
+    "items": 25,
+    "wrong_reached_final": {
+     "k": 0,
+     "n": 75,
+     "text": "0 of 75",
+     "wilson": [
+      3.469446951953614e-18,
+      0.04872384321400895
+     ]
+    },
+    "caught": {
+     "k": 73,
+     "n": 73,
+     "text": "73 of 73",
+     "wilson": [
+      0.9500079912950344,
+      0.9999999999999999
+     ]
+    },
+    "false_alarms": {
+     "k": 0,
+     "n": 2,
+     "text": "0 of 2",
+     "wilson": [
+      0.0,
+      0.6576197760453506
+     ]
+    },
+    "undetermined": 0,
+    "escalated": 73,
+    "tokens": 377305,
+    "reviewer_alone": {
+     "corrects_wrong_solver": {
+      "k": 63,
+      "n": 73,
+      "text": "63 of 73",
+      "wilson": [
+       0.7658757250391587,
+       0.9238561042572363
+      ]
+     },
+     "keeps_right_solver": {
+      "k": 2,
+      "n": 2,
+      "text": "2 of 2",
+      "wilson": [
+       0.3423802239546494,
+       1.0
+      ]
+     },
+     "keeps_wrong_solver": {
+      "k": 4,
+      "n": 73,
+      "text": "4 of 73",
+      "wilson": [
+       0.02151249726624227,
+       0.13258997623817909
+      ]
+     },
+     "reply_names_tool": {
+      "k": 13,
+      "n": 75,
+      "text": "13 of 75",
+      "wilson": [
+       0.10419146226184511,
+       0.2743081153046408
+      ]
+     },
+     "no_letter": 0
+    }
+   },
+   "good_lookups": {
+    "reviews": 84,
+    "items": 28,
+    "wrong_reached_final": {
+     "k": 0,
+     "n": 84,
+     "text": "0 of 84",
+     "wilson": [
+      0.0,
+      0.04373172907438993
+     ]
+    },
+    "caught": {
+     "k": 0,
+     "n": 0,
+     "text": "0 of 0",
+     "wilson": null
+    },
+    "false_alarms": {
+     "k": 7,
+     "n": 84,
+     "text": "7 of 84",
+     "wilson": [
+      0.04095255039885021,
+      0.16215722382980807
+     ]
+    },
+    "undetermined": 4,
+    "escalated": 7,
+    "tokens": 145476,
+    "reviewer_alone": {
+     "corrects_wrong_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "keeps_right_solver": {
+      "k": 84,
+      "n": 84,
+      "text": "84 of 84",
+      "wilson": [
+       0.95626827092561,
+       0.9999999999999999
+      ]
+     },
+     "keeps_wrong_solver": {
+      "k": 0,
+      "n": 0,
+      "text": "0 of 0",
+      "wilson": null
+     },
+     "reply_names_tool": {
+      "k": 3,
+      "n": 84,
+      "text": "3 of 84",
+      "wilson": [
+       0.012219669136271434,
+       0.09981693643280493
+      ]
+     },
+     "no_letter": 0
+    }
+   }
+  }
+ },
+ "reviewer_vs_answer_only": {
+  "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_private": {
+   "measure": "corrects_wrong_bad_lookups",
+   "reviewer": "mistral-small-3.2-24b",
+   "variant": "plus_private",
+   "items": 25,
+   "variant_k": 63,
+   "variant_n": 73,
+   "answer_only_k": 49,
+   "answer_only_n": 73,
+   "diff": 0.1917808219178082,
+   "interval": [
+    0.09722222222222221,
+    0.29729729729729737
+   ]
+  },
+  "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_tool_log": {
+   "measure": "corrects_wrong_bad_lookups",
+   "reviewer": "mistral-small-3.2-24b",
+   "variant": "plus_tool_log",
+   "items": 25,
+   "variant_k": 63,
+   "variant_n": 73,
+   "answer_only_k": 49,
+   "answer_only_n": 73,
+   "diff": 0.1917808219178082,
+   "interval": [
+    0.09459459459459452,
+    0.3055555555555556
+   ]
+  },
+  "keeps_right_good_lookups | mistral-small-3.2-24b | plus_private": {
+   "measure": "keeps_right_good_lookups",
+   "reviewer": "mistral-small-3.2-24b",
+   "variant": "plus_private",
+   "items": 28,
+   "variant_k": 84,
+   "variant_n": 84,
+   "answer_only_k": 47,
+   "answer_only_n": 84,
+   "diff": 0.44047619047619047,
+   "interval": [
+    0.2857142857142857,
+    0.5952380952380952
+   ]
+  },
+  "keeps_right_good_lookups | mistral-small-3.2-24b | plus_tool_log": {
+   "measure": "keeps_right_good_lookups",
+   "reviewer": "mistral-small-3.2-24b",
+   "variant": "plus_tool_log",
+   "items": 28,
+   "variant_k": 84,
+   "variant_n": 84,
+   "answer_only_k": 47,
+   "answer_only_n": 84,
+   "diff": 0.44047619047619047,
+   "interval": [
+    0.2857142857142857,
+    0.5952380952380952
+   ]
+  }
+ },
+ "vs_original_prompt": {},
+ "original_log": [
+  "team_c4"
+ ],
+ "by_kind": {
+  "matched": {
+   "by_team_model_variant": {
+    "tool | mistral-small-3.2-24b | answer_only": {
+     "reviews": 87,
+     "items": 29,
+     "wrong_reached_final": {
+      "k": 13,
+      "n": 87,
+      "text": "13 of 87",
+      "wilson": [
+       0.08945443214727794,
+       0.23904600420403954
+      ]
+     },
+     "caught": {
+      "k": 49,
+      "n": 49,
+      "text": "49 of 49",
+      "wilson": [
+       0.9273021797160157,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 13,
+      "n": 38,
+      "text": "13 of 38",
+      "wilson": [
+       0.21212415096187742,
+       0.5010789657352738
+      ]
+     },
+     "undetermined": 0,
+     "escalated": 49,
+     "tokens": 61395,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 43,
+       "n": 49,
+       "text": "43 of 49",
+       "wilson": [
+        0.757556025924438,
+        0.9426517424325533
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 25,
+       "n": 38,
+       "text": "25 of 38",
+       "wilson": [
+        0.4989210342647263,
+        0.7878758490381226
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 2,
+       "n": 49,
+       "text": "2 of 49",
+       "wilson": [
+        0.01126563326469128,
+        0.1371303241389677
+       ]
+      },
+      "reply_names_tool": {
+       "k": 0,
+       "n": 87,
+       "text": "0 of 87",
+       "wilson": [
+        0.0,
+        0.04228750758302656
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 51,
+      "items": 17,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 51,
+       "text": "0 of 51",
+       "wilson": [
+        0.0,
+        0.07004662092616488
+       ]
+      },
+      "caught": {
+       "k": 49,
+       "n": 49,
+       "text": "49 of 49",
+       "wilson": [
+        0.9273021797160157,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 2,
+       "text": "0 of 2",
+       "wilson": [
+        0.0,
+        0.6576197760453506
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 49,
+      "tokens": 37038,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 43,
+        "n": 49,
+        "text": "43 of 49",
+        "wilson": [
+         0.757556025924438,
+         0.9426517424325533
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 2,
+        "n": 2,
+        "text": "2 of 2",
+        "wilson": [
+         0.3423802239546494,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 2,
+        "n": 49,
+        "text": "2 of 49",
+        "wilson": [
+         0.01126563326469128,
+         0.1371303241389677
+        ]
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 51,
+        "text": "0 of 51",
+        "wilson": [
+         0.0,
+         0.07004662092616488
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 36,
+      "items": 12,
+      "wrong_reached_final": {
+       "k": 13,
+       "n": 36,
+       "text": "13 of 36",
+       "wilson": [
+        0.22475592858021476,
+        0.5242492464111406
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 13,
+       "n": 36,
+       "text": "13 of 36",
+       "wilson": [
+        0.22475592858021476,
+        0.5242492464111406
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 24357,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 23,
+        "n": 36,
+        "text": "23 of 36",
+        "wilson": [
+         0.4757507535888593,
+         0.7752440714197851
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 36,
+        "text": "0 of 36",
+        "wilson": [
+         0.0,
+         0.09641862996887933
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    },
+    "tool | mistral-small-3.2-24b | plus_private": {
+     "reviews": 87,
+     "items": 29,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 87,
+      "text": "0 of 87",
+      "wilson": [
+       0.0,
+       0.04228750758302656
+      ]
+     },
+     "caught": {
+      "k": 49,
+      "n": 49,
+      "text": "49 of 49",
+      "wilson": [
+       0.9273021797160157,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 38,
+      "text": "0 of 38",
+      "wilson": [
+       0.0,
+       0.09180986954097846
+      ]
+     },
+     "undetermined": 0,
+     "escalated": 49,
+     "tokens": 352595,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 49,
+       "n": 49,
+       "text": "49 of 49",
+       "wilson": [
+        0.9273021797160157,
+        1.0
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 38,
+       "n": 38,
+       "text": "38 of 38",
+       "wilson": [
+        0.9081901304590217,
+        1.0
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 0,
+       "n": 49,
+       "text": "0 of 49",
+       "wilson": [
+        0.0,
+        0.07269782028398425
+       ]
+      },
+      "reply_names_tool": {
+       "k": 9,
+       "n": 87,
+       "text": "9 of 87",
+       "wilson": [
+        0.05538511006871372,
+        0.18504980973851423
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 51,
+      "items": 17,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 51,
+       "text": "0 of 51",
+       "wilson": [
+        0.0,
+        0.07004662092616488
+       ]
+      },
+      "caught": {
+       "k": 49,
+       "n": 49,
+       "text": "49 of 49",
+       "wilson": [
+        0.9273021797160157,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 2,
+       "text": "0 of 2",
+       "wilson": [
+        0.0,
+        0.6576197760453506
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 49,
+      "tokens": 299453,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 49,
+        "n": 49,
+        "text": "49 of 49",
+        "wilson": [
+         0.9273021797160157,
+         1.0
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 2,
+        "n": 2,
+        "text": "2 of 2",
+        "wilson": [
+         0.3423802239546494,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 49,
+        "text": "0 of 49",
+        "wilson": [
+         0.0,
+         0.07269782028398425
+        ]
+       },
+       "reply_names_tool": {
+        "k": 8,
+        "n": 51,
+        "text": "8 of 51",
+        "wilson": [
+         0.0816922317826782,
+         0.2801044688529251
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 36,
+      "items": 12,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 36,
+       "text": "0 of 36",
+       "wilson": [
+        0.0,
+        0.09641862996887933
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 36,
+       "text": "0 of 36",
+       "wilson": [
+        0.0,
+        0.09641862996887933
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 53142,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 36,
+        "n": 36,
+        "text": "36 of 36",
+        "wilson": [
+         0.9035813700311206,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 1,
+        "n": 36,
+        "text": "1 of 36",
+        "wilson": [
+         0.004920407085360526,
+         0.1416971878852477
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    },
+    "tool | mistral-small-3.2-24b | plus_tool_log": {
+     "reviews": 87,
+     "items": 29,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 87,
+      "text": "0 of 87",
+      "wilson": [
+       0.0,
+       0.04228750758302656
+      ]
+     },
+     "caught": {
+      "k": 49,
+      "n": 49,
+      "text": "49 of 49",
+      "wilson": [
+       0.9273021797160157,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 38,
+      "text": "0 of 38",
+      "wilson": [
+       0.0,
+       0.09180986954097846
+      ]
+     },
+     "undetermined": 0,
+     "escalated": 49,
+     "tokens": 357096,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 49,
+       "n": 49,
+       "text": "49 of 49",
+       "wilson": [
+        0.9273021797160157,
+        1.0
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 38,
+       "n": 38,
+       "text": "38 of 38",
+       "wilson": [
+        0.9081901304590217,
+        1.0
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 0,
+       "n": 49,
+       "text": "0 of 49",
+       "wilson": [
+        0.0,
+        0.07269782028398425
+       ]
+      },
+      "reply_names_tool": {
+       "k": 10,
+       "n": 87,
+       "text": "10 of 87",
+       "wilson": [
+        0.0636454776623902,
+        0.1988058212808601
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 51,
+      "items": 17,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 51,
+       "text": "0 of 51",
+       "wilson": [
+        0.0,
+        0.07004662092616488
+       ]
+      },
+      "caught": {
+       "k": 49,
+       "n": 49,
+       "text": "49 of 49",
+       "wilson": [
+        0.9273021797160157,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 2,
+       "text": "0 of 2",
+       "wilson": [
+        0.0,
+        0.6576197760453506
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 49,
+      "tokens": 301636,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 49,
+        "n": 49,
+        "text": "49 of 49",
+        "wilson": [
+         0.9273021797160157,
+         1.0
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 2,
+        "n": 2,
+        "text": "2 of 2",
+        "wilson": [
+         0.3423802239546494,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 49,
+        "text": "0 of 49",
+        "wilson": [
+         0.0,
+         0.07269782028398425
+        ]
+       },
+       "reply_names_tool": {
+        "k": 10,
+        "n": 51,
+        "text": "10 of 51",
+        "wilson": [
+         0.11015342461952897,
+         0.324580795943434
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 36,
+      "items": 12,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 36,
+       "text": "0 of 36",
+       "wilson": [
+        0.0,
+        0.09641862996887933
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 36,
+       "text": "0 of 36",
+       "wilson": [
+        0.0,
+        0.09641862996887933
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 55460,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 36,
+        "n": 36,
+        "text": "36 of 36",
+        "wilson": [
+         0.9035813700311206,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 36,
+        "text": "0 of 36",
+        "wilson": [
+         0.0,
+         0.09641862996887933
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    }
+   },
+   "reviewer_vs_answer_only": {
+    "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_private": {
+     "measure": "corrects_wrong_bad_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_private",
+     "items": 17,
+     "variant_k": 49,
+     "variant_n": 49,
+     "answer_only_k": 43,
+     "answer_only_n": 49,
+     "diff": 0.12244897959183676,
+     "interval": [
+      0.04255319148936165,
+      0.19999999999999996
+     ]
+    },
+    "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_tool_log": {
+     "measure": "corrects_wrong_bad_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_tool_log",
+     "items": 17,
+     "variant_k": 49,
+     "variant_n": 49,
+     "answer_only_k": 43,
+     "answer_only_n": 49,
+     "diff": 0.12244897959183676,
+     "interval": [
+      0.04255319148936165,
+      0.19999999999999996
+     ]
+    },
+    "keeps_right_good_lookups | mistral-small-3.2-24b | plus_private": {
+     "measure": "keeps_right_good_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_private",
+     "items": 12,
+     "variant_k": 36,
+     "variant_n": 36,
+     "answer_only_k": 23,
+     "answer_only_n": 36,
+     "diff": 0.36111111111111116,
+     "interval": [
+      0.13888888888888884,
+      0.5833333333333333
+     ]
+    },
+    "keeps_right_good_lookups | mistral-small-3.2-24b | plus_tool_log": {
+     "measure": "keeps_right_good_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_tool_log",
+     "items": 12,
+     "variant_k": 36,
+     "variant_n": 36,
+     "answer_only_k": 23,
+     "answer_only_n": 36,
+     "diff": 0.36111111111111116,
+     "interval": [
+      0.13888888888888884,
+      0.5833333333333333
+     ]
+    }
+   },
+   "vs_original_prompt": {}
+  },
+  "steered": {
+   "by_team_model_variant": {
+    "tool | mistral-small-3.2-24b | answer_only": {
+     "reviews": 72,
+     "items": 24,
+     "wrong_reached_final": {
+      "k": 19,
+      "n": 72,
+      "text": "19 of 72",
+      "wilson": [
+       0.17593776601789957,
+       0.37575862139976035
+      ]
+     },
+     "caught": {
+      "k": 24,
+      "n": 24,
+      "text": "24 of 24",
+      "wilson": [
+       0.862023793448672,
+       0.9999999999999999
+      ]
+     },
+     "false_alarms": {
+      "k": 26,
+      "n": 48,
+      "text": "26 of 48",
+      "wilson": [
+       0.4029107444200485,
+       0.6742475780175782
+      ]
+     },
+     "undetermined": 4,
+     "escalated": 31,
+     "tokens": 48318,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 6,
+       "n": 24,
+       "text": "6 of 24",
+       "wilson": [
+        0.11999366158732966,
+        0.4489944416883343
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 24,
+       "n": 48,
+       "text": "24 of 48",
+       "wilson": [
+        0.36389330403275494,
+        0.636106695967245
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 3,
+       "n": 24,
+       "text": "3 of 24",
+       "wilson": [
+        0.04344334046194118,
+        0.3100388144515548
+       ]
+      },
+      "reply_names_tool": {
+       "k": 1,
+       "n": 72,
+       "text": "1 of 72",
+       "wilson": [
+        0.0024559518557579277,
+        0.07456602223942418
+       ]
+      },
+      "no_letter": 1
+     },
+     "bad_lookups": {
+      "reviews": 24,
+      "items": 8,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 24,
+       "text": "0 of 24",
+       "wilson": [
+        0.0,
+        0.13797620655132792
+       ]
+      },
+      "caught": {
+       "k": 24,
+       "n": 24,
+       "text": "24 of 24",
+       "wilson": [
+        0.862023793448672,
+        0.9999999999999999
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 24,
+      "tokens": 15420,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 6,
+        "n": 24,
+        "text": "6 of 24",
+        "wilson": [
+         0.11999366158732966,
+         0.4489944416883343
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 3,
+        "n": 24,
+        "text": "3 of 24",
+        "wilson": [
+         0.04344334046194118,
+         0.3100388144515548
+        ]
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 24,
+        "text": "0 of 24",
+        "wilson": [
+         0.0,
+         0.13797620655132792
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 48,
+      "items": 16,
+      "wrong_reached_final": {
+       "k": 19,
+       "n": 48,
+       "text": "19 of 48",
+       "wilson": [
+        0.270208277741536,
+        0.5368959161643975
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 26,
+       "n": 48,
+       "text": "26 of 48",
+       "wilson": [
+        0.4029107444200485,
+        0.6742475780175782
+       ]
+      },
+      "undetermined": 4,
+      "escalated": 7,
+      "tokens": 32898,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 24,
+        "n": 48,
+        "text": "24 of 48",
+        "wilson": [
+         0.36389330403275494,
+         0.636106695967245
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 1,
+        "n": 48,
+        "text": "1 of 48",
+        "wilson": [
+         0.003687110936731193,
+         0.10899218103056246
+        ]
+       },
+       "no_letter": 1
+      }
+     }
+    },
+    "tool | mistral-small-3.2-24b | plus_private": {
+     "reviews": 72,
+     "items": 24,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 72,
+      "text": "0 of 72",
+      "wilson": [
+       0.0,
+       0.05065117335504446
+      ]
+     },
+     "caught": {
+      "k": 24,
+      "n": 24,
+      "text": "24 of 24",
+      "wilson": [
+       0.862023793448672,
+       0.9999999999999999
+      ]
+     },
+     "false_alarms": {
+      "k": 7,
+      "n": 48,
+      "text": "7 of 48",
+      "wilson": [
+       0.07248249287149067,
+       0.27167176640868296
+      ]
+     },
+     "undetermined": 4,
+     "escalated": 31,
+     "tokens": 161475,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 14,
+       "n": 24,
+       "text": "14 of 24",
+       "wilson": [
+        0.38834665724338885,
+        0.7553239749980565
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 48,
+       "n": 48,
+       "text": "48 of 48",
+       "wilson": [
+        0.9258998692515198,
+        1.0
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 6,
+       "n": 24,
+       "text": "6 of 24",
+       "wilson": [
+        0.11999366158732966,
+        0.4489944416883343
+       ]
+      },
+      "reply_names_tool": {
+       "k": 4,
+       "n": 72,
+       "text": "4 of 72",
+       "wilson": [
+        0.02181421582976354,
+        0.13432016048583154
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 24,
+      "items": 8,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 24,
+       "text": "0 of 24",
+       "wilson": [
+        0.0,
+        0.13797620655132792
+       ]
+      },
+      "caught": {
+       "k": 24,
+       "n": 24,
+       "text": "24 of 24",
+       "wilson": [
+        0.862023793448672,
+        0.9999999999999999
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 24,
+      "tokens": 74211,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 14,
+        "n": 24,
+        "text": "14 of 24",
+        "wilson": [
+         0.38834665724338885,
+         0.7553239749980565
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 6,
+        "n": 24,
+        "text": "6 of 24",
+        "wilson": [
+         0.11999366158732966,
+         0.4489944416883343
+        ]
+       },
+       "reply_names_tool": {
+        "k": 2,
+        "n": 24,
+        "text": "2 of 24",
+        "wilson": [
+         0.023158815087796644,
+         0.2584880237049766
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 48,
+      "items": 16,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 48,
+       "text": "0 of 48",
+       "wilson": [
+        0.0,
+        0.07410013074848033
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 7,
+       "n": 48,
+       "text": "7 of 48",
+       "wilson": [
+        0.07248249287149067,
+        0.27167176640868296
+       ]
+      },
+      "undetermined": 4,
+      "escalated": 7,
+      "tokens": 87264,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 48,
+        "n": 48,
+        "text": "48 of 48",
+        "wilson": [
+         0.9258998692515198,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 2,
+        "n": 48,
+        "text": "2 of 48",
+        "wilson": [
+         0.011501893385757703,
+         0.1397565598003493
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    },
+    "tool | mistral-small-3.2-24b | plus_tool_log": {
+     "reviews": 72,
+     "items": 24,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 72,
+      "text": "0 of 72",
+      "wilson": [
+       0.0,
+       0.05065117335504446
+      ]
+     },
+     "caught": {
+      "k": 24,
+      "n": 24,
+      "text": "24 of 24",
+      "wilson": [
+       0.862023793448672,
+       0.9999999999999999
+      ]
+     },
+     "false_alarms": {
+      "k": 7,
+      "n": 48,
+      "text": "7 of 48",
+      "wilson": [
+       0.07248249287149067,
+       0.27167176640868296
+      ]
+     },
+     "undetermined": 4,
+     "escalated": 31,
+     "tokens": 165685,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 14,
+       "n": 24,
+       "text": "14 of 24",
+       "wilson": [
+        0.38834665724338885,
+        0.7553239749980565
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 48,
+       "n": 48,
+       "text": "48 of 48",
+       "wilson": [
+        0.9258998692515198,
+        1.0
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 4,
+       "n": 24,
+       "text": "4 of 24",
+       "wilson": [
+        0.06678676282131818,
+        0.3585307082129004
+       ]
+      },
+      "reply_names_tool": {
+       "k": 6,
+       "n": 72,
+       "text": "6 of 72",
+       "wilson": [
+        0.038752424730373825,
+        0.17012355306549654
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 24,
+      "items": 8,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 24,
+       "text": "0 of 24",
+       "wilson": [
+        0.0,
+        0.13797620655132792
+       ]
+      },
+      "caught": {
+       "k": 24,
+       "n": 24,
+       "text": "24 of 24",
+       "wilson": [
+        0.862023793448672,
+        0.9999999999999999
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 24,
+      "tokens": 75669,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 14,
+        "n": 24,
+        "text": "14 of 24",
+        "wilson": [
+         0.38834665724338885,
+         0.7553239749980565
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 4,
+        "n": 24,
+        "text": "4 of 24",
+        "wilson": [
+         0.06678676282131818,
+         0.3585307082129004
+        ]
+       },
+       "reply_names_tool": {
+        "k": 3,
+        "n": 24,
+        "text": "3 of 24",
+        "wilson": [
+         0.04344334046194118,
+         0.3100388144515548
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 48,
+      "items": 16,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 48,
+       "text": "0 of 48",
+       "wilson": [
+        0.0,
+        0.07410013074848033
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 7,
+       "n": 48,
+       "text": "7 of 48",
+       "wilson": [
+        0.07248249287149067,
+        0.27167176640868296
+       ]
+      },
+      "undetermined": 4,
+      "escalated": 7,
+      "tokens": 90016,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 48,
+        "n": 48,
+        "text": "48 of 48",
+        "wilson": [
+         0.9258998692515198,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 3,
+        "n": 48,
+        "text": "3 of 48",
+        "wilson": [
+         0.02148323274107221,
+         0.16835438166384809
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    }
+   },
+   "reviewer_vs_answer_only": {
+    "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_private": {
+     "measure": "corrects_wrong_bad_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_private",
+     "items": 8,
+     "variant_k": 14,
+     "variant_n": 24,
+     "answer_only_k": 6,
+     "answer_only_n": 24,
+     "diff": 0.33333333333333337,
+     "interval": [
+      0.125,
+      0.5833333333333333
+     ]
+    },
+    "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_tool_log": {
+     "measure": "corrects_wrong_bad_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_tool_log",
+     "items": 8,
+     "variant_k": 14,
+     "variant_n": 24,
+     "answer_only_k": 6,
+     "answer_only_n": 24,
+     "diff": 0.33333333333333337,
+     "interval": [
+      0.08333333333333334,
+      0.5833333333333334
+     ]
+    },
+    "keeps_right_good_lookups | mistral-small-3.2-24b | plus_private": {
+     "measure": "keeps_right_good_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_private",
+     "items": 16,
+     "variant_k": 48,
+     "variant_n": 48,
+     "answer_only_k": 24,
+     "answer_only_n": 48,
+     "diff": 0.5,
+     "interval": [
+      0.29166666666666663,
+      0.7083333333333333
+     ]
+    },
+    "keeps_right_good_lookups | mistral-small-3.2-24b | plus_tool_log": {
+     "measure": "keeps_right_good_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_tool_log",
+     "items": 16,
+     "variant_k": 48,
+     "variant_n": 48,
+     "answer_only_k": 24,
+     "answer_only_n": 48,
+     "diff": 0.5,
+     "interval": [
+      0.29166666666666663,
+      0.7083333333333333
+     ]
+    }
+   },
+   "vs_original_prompt": {}
+  }
+ },
+ "by_kind_and_set": {
+  "matched | mmlupro_30": {
+   "by_team_model_variant": {
+    "tool | mistral-small-3.2-24b | answer_only": {
+     "reviews": 15,
+     "items": 5,
+     "wrong_reached_final": {
+      "k": 6,
+      "n": 15,
+      "text": "6 of 15",
+      "wilson": [
+       0.19824496026274246,
+       0.6425317004565552
+      ]
+     },
+     "caught": {
+      "k": 6,
+      "n": 6,
+      "text": "6 of 6",
+      "wilson": [
+       0.6096657083436265,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 6,
+      "n": 9,
+      "text": "6 of 9",
+      "wilson": [
+       0.35420213352505864,
+       0.8794161825659264
+      ]
+     },
+     "undetermined": 0,
+     "escalated": 6,
+     "tokens": 11955,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 5,
+       "n": 6,
+       "text": "5 of 6",
+       "wilson": [
+        0.4364971749742326,
+        0.969946630588185
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 3,
+       "n": 9,
+       "text": "3 of 9",
+       "wilson": [
+        0.12058381743407343,
+        0.6457978664749412
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 0,
+       "n": 6,
+       "text": "0 of 6",
+       "wilson": [
+        0.0,
+        0.39033429165637346
+       ]
+      },
+      "reply_names_tool": {
+       "k": 0,
+       "n": 15,
+       "text": "0 of 15",
+       "wilson": [
+        0.0,
+        0.20388330359648707
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 6,
+      "items": 2,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 6,
+       "text": "0 of 6",
+       "wilson": [
+        0.0,
+        0.39033429165637346
+       ]
+      },
+      "caught": {
+       "k": 6,
+       "n": 6,
+       "text": "6 of 6",
+       "wilson": [
+        0.6096657083436265,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 6,
+      "tokens": 5692,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 5,
+        "n": 6,
+        "text": "5 of 6",
+        "wilson": [
+         0.4364971749742326,
+         0.969946630588185
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 6,
+        "text": "0 of 6",
+        "wilson": [
+         0.0,
+         0.39033429165637346
+        ]
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 6,
+        "text": "0 of 6",
+        "wilson": [
+         0.0,
+         0.39033429165637346
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 9,
+      "items": 3,
+      "wrong_reached_final": {
+       "k": 6,
+       "n": 9,
+       "text": "6 of 9",
+       "wilson": [
+        0.35420213352505864,
+        0.8794161825659264
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 6,
+       "n": 9,
+       "text": "6 of 9",
+       "wilson": [
+        0.35420213352505864,
+        0.8794161825659264
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 6263,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 3,
+        "n": 9,
+        "text": "3 of 9",
+        "wilson": [
+         0.12058381743407343,
+         0.6457978664749412
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 9,
+        "text": "0 of 9",
+        "wilson": [
+         0.0,
+         0.299145051727044
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    },
+    "tool | mistral-small-3.2-24b | plus_private": {
+     "reviews": 15,
+     "items": 5,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 15,
+      "text": "0 of 15",
+      "wilson": [
+       0.0,
+       0.20388330359648707
+      ]
+     },
+     "caught": {
+      "k": 6,
+      "n": 6,
+      "text": "6 of 6",
+      "wilson": [
+       0.6096657083436265,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 9,
+      "text": "0 of 9",
+      "wilson": [
+       0.0,
+       0.299145051727044
+      ]
+     },
+     "undetermined": 0,
+     "escalated": 6,
+     "tokens": 55961,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 6,
+       "n": 6,
+       "text": "6 of 6",
+       "wilson": [
+        0.6096657083436265,
+        1.0
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 9,
+       "n": 9,
+       "text": "9 of 9",
+       "wilson": [
+        0.700854948272956,
+        1.0
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 0,
+       "n": 6,
+       "text": "0 of 6",
+       "wilson": [
+        0.0,
+        0.39033429165637346
+       ]
+      },
+      "reply_names_tool": {
+       "k": 0,
+       "n": 15,
+       "text": "0 of 15",
+       "wilson": [
+        0.0,
+        0.20388330359648707
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 6,
+      "items": 2,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 6,
+       "text": "0 of 6",
+       "wilson": [
+        0.0,
+        0.39033429165637346
+       ]
+      },
+      "caught": {
+       "k": 6,
+       "n": 6,
+       "text": "6 of 6",
+       "wilson": [
+        0.6096657083436265,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 6,
+      "tokens": 44582,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 6,
+        "n": 6,
+        "text": "6 of 6",
+        "wilson": [
+         0.6096657083436265,
+         1.0
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 6,
+        "text": "0 of 6",
+        "wilson": [
+         0.0,
+         0.39033429165637346
+        ]
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 6,
+        "text": "0 of 6",
+        "wilson": [
+         0.0,
+         0.39033429165637346
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 9,
+      "items": 3,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 9,
+       "text": "0 of 9",
+       "wilson": [
+        0.0,
+        0.299145051727044
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 9,
+       "text": "0 of 9",
+       "wilson": [
+        0.0,
+        0.299145051727044
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 11379,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 9,
+        "n": 9,
+        "text": "9 of 9",
+        "wilson": [
+         0.700854948272956,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 9,
+        "text": "0 of 9",
+        "wilson": [
+         0.0,
+         0.299145051727044
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    },
+    "tool | mistral-small-3.2-24b | plus_tool_log": {
+     "reviews": 15,
+     "items": 5,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 15,
+      "text": "0 of 15",
+      "wilson": [
+       0.0,
+       0.20388330359648707
+      ]
+     },
+     "caught": {
+      "k": 6,
+      "n": 6,
+      "text": "6 of 6",
+      "wilson": [
+       0.6096657083436265,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 9,
+      "text": "0 of 9",
+      "wilson": [
+       0.0,
+       0.299145051727044
+      ]
+     },
+     "undetermined": 0,
+     "escalated": 6,
+     "tokens": 57006,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 6,
+       "n": 6,
+       "text": "6 of 6",
+       "wilson": [
+        0.6096657083436265,
+        1.0
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 9,
+       "n": 9,
+       "text": "9 of 9",
+       "wilson": [
+        0.700854948272956,
+        1.0
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 0,
+       "n": 6,
+       "text": "0 of 6",
+       "wilson": [
+        0.0,
+        0.39033429165637346
+       ]
+      },
+      "reply_names_tool": {
+       "k": 1,
+       "n": 15,
+       "text": "1 of 15",
+       "wilson": [
+        0.01186689536153232,
+        0.2981653010887565
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 6,
+      "items": 2,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 6,
+       "text": "0 of 6",
+       "wilson": [
+        0.0,
+        0.39033429165637346
+       ]
+      },
+      "caught": {
+       "k": 6,
+       "n": 6,
+       "text": "6 of 6",
+       "wilson": [
+        0.6096657083436265,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 6,
+      "tokens": 44985,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 6,
+        "n": 6,
+        "text": "6 of 6",
+        "wilson": [
+         0.6096657083436265,
+         1.0
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 6,
+        "text": "0 of 6",
+        "wilson": [
+         0.0,
+         0.39033429165637346
+        ]
+       },
+       "reply_names_tool": {
+        "k": 1,
+        "n": 6,
+        "text": "1 of 6",
+        "wilson": [
+         0.030053369411815023,
+         0.5635028250257673
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 9,
+      "items": 3,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 9,
+       "text": "0 of 9",
+       "wilson": [
+        0.0,
+        0.299145051727044
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 9,
+       "text": "0 of 9",
+       "wilson": [
+        0.0,
+        0.299145051727044
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 12021,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 9,
+        "n": 9,
+        "text": "9 of 9",
+        "wilson": [
+         0.700854948272956,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 9,
+        "text": "0 of 9",
+        "wilson": [
+         0.0,
+         0.299145051727044
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    }
+   },
+   "reviewer_vs_answer_only": {
+    "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_private": {
+     "measure": "corrects_wrong_bad_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_private",
+     "items": 2,
+     "variant_k": 6,
+     "variant_n": 6,
+     "answer_only_k": 5,
+     "answer_only_n": 6,
+     "diff": null,
+     "interval": "too few questions"
+    },
+    "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_tool_log": {
+     "measure": "corrects_wrong_bad_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_tool_log",
+     "items": 2,
+     "variant_k": 6,
+     "variant_n": 6,
+     "answer_only_k": 5,
+     "answer_only_n": 6,
+     "diff": null,
+     "interval": "too few questions"
+    },
+    "keeps_right_good_lookups | mistral-small-3.2-24b | plus_private": {
+     "measure": "keeps_right_good_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_private",
+     "items": 3,
+     "variant_k": 9,
+     "variant_n": 9,
+     "answer_only_k": 3,
+     "answer_only_n": 9,
+     "diff": null,
+     "interval": "too few questions"
+    },
+    "keeps_right_good_lookups | mistral-small-3.2-24b | plus_tool_log": {
+     "measure": "keeps_right_good_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_tool_log",
+     "items": 3,
+     "variant_k": 9,
+     "variant_n": 9,
+     "answer_only_k": 3,
+     "answer_only_n": 9,
+     "diff": null,
+     "interval": "too few questions"
+    }
+   },
+   "vs_original_prompt": {}
+  },
+  "matched | pilot_puzzles": {
+   "by_team_model_variant": {
+    "tool | mistral-small-3.2-24b | answer_only": {
+     "reviews": 72,
+     "items": 24,
+     "wrong_reached_final": {
+      "k": 7,
+      "n": 72,
+      "text": "7 of 72",
+      "wilson": [
+       0.04789631971235882,
+       0.1873504588236492
+      ]
+     },
+     "caught": {
+      "k": 43,
+      "n": 43,
+      "text": "43 of 43",
+      "wilson": [
+       0.9179901955865446,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 7,
+      "n": 29,
+      "text": "7 of 29",
+      "wilson": [
+       0.1221842237630329,
+       0.4210760176830966
+      ]
+     },
+     "undetermined": 0,
+     "escalated": 43,
+     "tokens": 49440,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 38,
+       "n": 43,
+       "text": "38 of 43",
+       "wilson": [
+        0.7552083806668636,
+        0.9492957229228102
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 22,
+       "n": 29,
+       "text": "22 of 29",
+       "wilson": [
+        0.5789239823169033,
+        0.877815776236967
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 2,
+       "n": 43,
+       "text": "2 of 43",
+       "wilson": [
+        0.012849259978574556,
+        0.1545549812336292
+       ]
+      },
+      "reply_names_tool": {
+       "k": 0,
+       "n": 72,
+       "text": "0 of 72",
+       "wilson": [
+        0.0,
+        0.05065117335504446
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 45,
+      "items": 15,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 45,
+       "text": "0 of 45",
+       "wilson": [
+        0.0,
+        0.07865159987608598
+       ]
+      },
+      "caught": {
+       "k": 43,
+       "n": 43,
+       "text": "43 of 43",
+       "wilson": [
+        0.9179901955865446,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 2,
+       "text": "0 of 2",
+       "wilson": [
+        0.0,
+        0.6576197760453506
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 43,
+      "tokens": 31346,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 38,
+        "n": 43,
+        "text": "38 of 43",
+        "wilson": [
+         0.7552083806668636,
+         0.9492957229228102
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 2,
+        "n": 2,
+        "text": "2 of 2",
+        "wilson": [
+         0.3423802239546494,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 2,
+        "n": 43,
+        "text": "2 of 43",
+        "wilson": [
+         0.012849259978574556,
+         0.1545549812336292
+        ]
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 45,
+        "text": "0 of 45",
+        "wilson": [
+         0.0,
+         0.07865159987608598
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 27,
+      "items": 9,
+      "wrong_reached_final": {
+       "k": 7,
+       "n": 27,
+       "text": "7 of 27",
+       "wilson": [
+        0.13170374490590095,
+        0.44678571468694817
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 7,
+       "n": 27,
+       "text": "7 of 27",
+       "wilson": [
+        0.13170374490590095,
+        0.44678571468694817
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 18094,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 20,
+        "n": 27,
+        "text": "20 of 27",
+        "wilson": [
+         0.5532142853130517,
+         0.8682962550940991
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 27,
+        "text": "0 of 27",
+        "wilson": [
+         0.0,
+         0.12455503146207125
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    },
+    "tool | mistral-small-3.2-24b | plus_private": {
+     "reviews": 72,
+     "items": 24,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 72,
+      "text": "0 of 72",
+      "wilson": [
+       0.0,
+       0.05065117335504446
+      ]
+     },
+     "caught": {
+      "k": 43,
+      "n": 43,
+      "text": "43 of 43",
+      "wilson": [
+       0.9179901955865446,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 29,
+      "text": "0 of 29",
+      "wilson": [
+       0.0,
+       0.11696980012918376
+      ]
+     },
+     "undetermined": 0,
+     "escalated": 43,
+     "tokens": 296634,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 43,
+       "n": 43,
+       "text": "43 of 43",
+       "wilson": [
+        0.9179901955865446,
+        1.0
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 29,
+       "n": 29,
+       "text": "29 of 29",
+       "wilson": [
+        0.8830301998708162,
+        0.9999999999999999
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 0,
+       "n": 43,
+       "text": "0 of 43",
+       "wilson": [
+        0.0,
+        0.08200980441345543
+       ]
+      },
+      "reply_names_tool": {
+       "k": 9,
+       "n": 72,
+       "text": "9 of 72",
+       "wilson": [
+        0.06717784187980784,
+        0.2208105381364755
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 45,
+      "items": 15,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 45,
+       "text": "0 of 45",
+       "wilson": [
+        0.0,
+        0.07865159987608598
+       ]
+      },
+      "caught": {
+       "k": 43,
+       "n": 43,
+       "text": "43 of 43",
+       "wilson": [
+        0.9179901955865446,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 2,
+       "text": "0 of 2",
+       "wilson": [
+        0.0,
+        0.6576197760453506
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 43,
+      "tokens": 254871,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 43,
+        "n": 43,
+        "text": "43 of 43",
+        "wilson": [
+         0.9179901955865446,
+         1.0
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 2,
+        "n": 2,
+        "text": "2 of 2",
+        "wilson": [
+         0.3423802239546494,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 43,
+        "text": "0 of 43",
+        "wilson": [
+         0.0,
+         0.08200980441345543
+        ]
+       },
+       "reply_names_tool": {
+        "k": 8,
+        "n": 45,
+        "text": "8 of 45",
+        "wilson": [
+         0.09294389466632881,
+         0.3132982474760377
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 27,
+      "items": 9,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 27,
+       "text": "0 of 27",
+       "wilson": [
+        0.0,
+        0.12455503146207125
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 27,
+       "text": "0 of 27",
+       "wilson": [
+        0.0,
+        0.12455503146207125
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 41763,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 27,
+        "n": 27,
+        "text": "27 of 27",
+        "wilson": [
+         0.8754449685379289,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 1,
+        "n": 27,
+        "text": "1 of 27",
+        "wilson": [
+         0.006568145908046982,
+         0.18283466100127826
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    },
+    "tool | mistral-small-3.2-24b | plus_tool_log": {
+     "reviews": 72,
+     "items": 24,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 72,
+      "text": "0 of 72",
+      "wilson": [
+       0.0,
+       0.05065117335504446
+      ]
+     },
+     "caught": {
+      "k": 43,
+      "n": 43,
+      "text": "43 of 43",
+      "wilson": [
+       0.9179901955865446,
+       1.0
+      ]
+     },
+     "false_alarms": {
+      "k": 0,
+      "n": 29,
+      "text": "0 of 29",
+      "wilson": [
+       0.0,
+       0.11696980012918376
+      ]
+     },
+     "undetermined": 0,
+     "escalated": 43,
+     "tokens": 300090,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 43,
+       "n": 43,
+       "text": "43 of 43",
+       "wilson": [
+        0.9179901955865446,
+        1.0
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 29,
+       "n": 29,
+       "text": "29 of 29",
+       "wilson": [
+        0.8830301998708162,
+        0.9999999999999999
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 0,
+       "n": 43,
+       "text": "0 of 43",
+       "wilson": [
+        0.0,
+        0.08200980441345543
+       ]
+      },
+      "reply_names_tool": {
+       "k": 9,
+       "n": 72,
+       "text": "9 of 72",
+       "wilson": [
+        0.06717784187980784,
+        0.2208105381364755
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 45,
+      "items": 15,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 45,
+       "text": "0 of 45",
+       "wilson": [
+        0.0,
+        0.07865159987608598
+       ]
+      },
+      "caught": {
+       "k": 43,
+       "n": 43,
+       "text": "43 of 43",
+       "wilson": [
+        0.9179901955865446,
+        1.0
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 2,
+       "text": "0 of 2",
+       "wilson": [
+        0.0,
+        0.6576197760453506
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 43,
+      "tokens": 256651,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 43,
+        "n": 43,
+        "text": "43 of 43",
+        "wilson": [
+         0.9179901955865446,
+         1.0
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 2,
+        "n": 2,
+        "text": "2 of 2",
+        "wilson": [
+         0.3423802239546494,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 43,
+        "text": "0 of 43",
+        "wilson": [
+         0.0,
+         0.08200980441345543
+        ]
+       },
+       "reply_names_tool": {
+        "k": 9,
+        "n": 45,
+        "text": "9 of 45",
+        "wilson": [
+         0.10896126755287432,
+         0.3382296923727772
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 27,
+      "items": 9,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 27,
+       "text": "0 of 27",
+       "wilson": [
+        0.0,
+        0.12455503146207125
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 27,
+       "text": "0 of 27",
+       "wilson": [
+        0.0,
+        0.12455503146207125
+       ]
+      },
+      "undetermined": 0,
+      "escalated": 0,
+      "tokens": 43439,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 27,
+        "n": 27,
+        "text": "27 of 27",
+        "wilson": [
+         0.8754449685379289,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 27,
+        "text": "0 of 27",
+        "wilson": [
+         0.0,
+         0.12455503146207125
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    }
+   },
+   "reviewer_vs_answer_only": {
+    "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_private": {
+     "measure": "corrects_wrong_bad_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_private",
+     "items": 15,
+     "variant_k": 43,
+     "variant_n": 43,
+     "answer_only_k": 38,
+     "answer_only_n": 43,
+     "diff": 0.11627906976744184,
+     "interval": [
+      0.045454545454545414,
+      0.20454545454545459
+     ]
+    },
+    "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_tool_log": {
+     "measure": "corrects_wrong_bad_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_tool_log",
+     "items": 15,
+     "variant_k": 43,
+     "variant_n": 43,
+     "answer_only_k": 38,
+     "answer_only_n": 43,
+     "diff": 0.11627906976744184,
+     "interval": [
+      0.045454545454545414,
+      0.20454545454545459
+     ]
+    },
+    "keeps_right_good_lookups | mistral-small-3.2-24b | plus_private": {
+     "measure": "keeps_right_good_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_private",
+     "items": 9,
+     "variant_k": 27,
+     "variant_n": 27,
+     "answer_only_k": 20,
+     "answer_only_n": 27,
+     "diff": 0.2592592592592593,
+     "interval": [
+      0.07407407407407407,
+      0.4814814814814815
+     ]
+    },
+    "keeps_right_good_lookups | mistral-small-3.2-24b | plus_tool_log": {
+     "measure": "keeps_right_good_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_tool_log",
+     "items": 9,
+     "variant_k": 27,
+     "variant_n": 27,
+     "answer_only_k": 20,
+     "answer_only_n": 27,
+     "diff": 0.2592592592592593,
+     "interval": [
+      0.07407407407407407,
+      0.4814814814814815
+     ]
+    }
+   },
+   "vs_original_prompt": {}
+  },
+  "steered | mmlupro_30": {
+   "by_team_model_variant": {
+    "tool | mistral-small-3.2-24b | answer_only": {
+     "reviews": 72,
+     "items": 24,
+     "wrong_reached_final": {
+      "k": 19,
+      "n": 72,
+      "text": "19 of 72",
+      "wilson": [
+       0.17593776601789957,
+       0.37575862139976035
+      ]
+     },
+     "caught": {
+      "k": 24,
+      "n": 24,
+      "text": "24 of 24",
+      "wilson": [
+       0.862023793448672,
+       0.9999999999999999
+      ]
+     },
+     "false_alarms": {
+      "k": 26,
+      "n": 48,
+      "text": "26 of 48",
+      "wilson": [
+       0.4029107444200485,
+       0.6742475780175782
+      ]
+     },
+     "undetermined": 4,
+     "escalated": 31,
+     "tokens": 48318,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 6,
+       "n": 24,
+       "text": "6 of 24",
+       "wilson": [
+        0.11999366158732966,
+        0.4489944416883343
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 24,
+       "n": 48,
+       "text": "24 of 48",
+       "wilson": [
+        0.36389330403275494,
+        0.636106695967245
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 3,
+       "n": 24,
+       "text": "3 of 24",
+       "wilson": [
+        0.04344334046194118,
+        0.3100388144515548
+       ]
+      },
+      "reply_names_tool": {
+       "k": 1,
+       "n": 72,
+       "text": "1 of 72",
+       "wilson": [
+        0.0024559518557579277,
+        0.07456602223942418
+       ]
+      },
+      "no_letter": 1
+     },
+     "bad_lookups": {
+      "reviews": 24,
+      "items": 8,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 24,
+       "text": "0 of 24",
+       "wilson": [
+        0.0,
+        0.13797620655132792
+       ]
+      },
+      "caught": {
+       "k": 24,
+       "n": 24,
+       "text": "24 of 24",
+       "wilson": [
+        0.862023793448672,
+        0.9999999999999999
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 24,
+      "tokens": 15420,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 6,
+        "n": 24,
+        "text": "6 of 24",
+        "wilson": [
+         0.11999366158732966,
+         0.4489944416883343
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 3,
+        "n": 24,
+        "text": "3 of 24",
+        "wilson": [
+         0.04344334046194118,
+         0.3100388144515548
+        ]
+       },
+       "reply_names_tool": {
+        "k": 0,
+        "n": 24,
+        "text": "0 of 24",
+        "wilson": [
+         0.0,
+         0.13797620655132792
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 48,
+      "items": 16,
+      "wrong_reached_final": {
+       "k": 19,
+       "n": 48,
+       "text": "19 of 48",
+       "wilson": [
+        0.270208277741536,
+        0.5368959161643975
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 26,
+       "n": 48,
+       "text": "26 of 48",
+       "wilson": [
+        0.4029107444200485,
+        0.6742475780175782
+       ]
+      },
+      "undetermined": 4,
+      "escalated": 7,
+      "tokens": 32898,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 24,
+        "n": 48,
+        "text": "24 of 48",
+        "wilson": [
+         0.36389330403275494,
+         0.636106695967245
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 1,
+        "n": 48,
+        "text": "1 of 48",
+        "wilson": [
+         0.003687110936731193,
+         0.10899218103056246
+        ]
+       },
+       "no_letter": 1
+      }
+     }
+    },
+    "tool | mistral-small-3.2-24b | plus_private": {
+     "reviews": 72,
+     "items": 24,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 72,
+      "text": "0 of 72",
+      "wilson": [
+       0.0,
+       0.05065117335504446
+      ]
+     },
+     "caught": {
+      "k": 24,
+      "n": 24,
+      "text": "24 of 24",
+      "wilson": [
+       0.862023793448672,
+       0.9999999999999999
+      ]
+     },
+     "false_alarms": {
+      "k": 7,
+      "n": 48,
+      "text": "7 of 48",
+      "wilson": [
+       0.07248249287149067,
+       0.27167176640868296
+      ]
+     },
+     "undetermined": 4,
+     "escalated": 31,
+     "tokens": 161475,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 14,
+       "n": 24,
+       "text": "14 of 24",
+       "wilson": [
+        0.38834665724338885,
+        0.7553239749980565
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 48,
+       "n": 48,
+       "text": "48 of 48",
+       "wilson": [
+        0.9258998692515198,
+        1.0
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 6,
+       "n": 24,
+       "text": "6 of 24",
+       "wilson": [
+        0.11999366158732966,
+        0.4489944416883343
+       ]
+      },
+      "reply_names_tool": {
+       "k": 4,
+       "n": 72,
+       "text": "4 of 72",
+       "wilson": [
+        0.02181421582976354,
+        0.13432016048583154
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 24,
+      "items": 8,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 24,
+       "text": "0 of 24",
+       "wilson": [
+        0.0,
+        0.13797620655132792
+       ]
+      },
+      "caught": {
+       "k": 24,
+       "n": 24,
+       "text": "24 of 24",
+       "wilson": [
+        0.862023793448672,
+        0.9999999999999999
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 24,
+      "tokens": 74211,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 14,
+        "n": 24,
+        "text": "14 of 24",
+        "wilson": [
+         0.38834665724338885,
+         0.7553239749980565
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 6,
+        "n": 24,
+        "text": "6 of 24",
+        "wilson": [
+         0.11999366158732966,
+         0.4489944416883343
+        ]
+       },
+       "reply_names_tool": {
+        "k": 2,
+        "n": 24,
+        "text": "2 of 24",
+        "wilson": [
+         0.023158815087796644,
+         0.2584880237049766
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 48,
+      "items": 16,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 48,
+       "text": "0 of 48",
+       "wilson": [
+        0.0,
+        0.07410013074848033
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 7,
+       "n": 48,
+       "text": "7 of 48",
+       "wilson": [
+        0.07248249287149067,
+        0.27167176640868296
+       ]
+      },
+      "undetermined": 4,
+      "escalated": 7,
+      "tokens": 87264,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 48,
+        "n": 48,
+        "text": "48 of 48",
+        "wilson": [
+         0.9258998692515198,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 2,
+        "n": 48,
+        "text": "2 of 48",
+        "wilson": [
+         0.011501893385757703,
+         0.1397565598003493
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    },
+    "tool | mistral-small-3.2-24b | plus_tool_log": {
+     "reviews": 72,
+     "items": 24,
+     "wrong_reached_final": {
+      "k": 0,
+      "n": 72,
+      "text": "0 of 72",
+      "wilson": [
+       0.0,
+       0.05065117335504446
+      ]
+     },
+     "caught": {
+      "k": 24,
+      "n": 24,
+      "text": "24 of 24",
+      "wilson": [
+       0.862023793448672,
+       0.9999999999999999
+      ]
+     },
+     "false_alarms": {
+      "k": 7,
+      "n": 48,
+      "text": "7 of 48",
+      "wilson": [
+       0.07248249287149067,
+       0.27167176640868296
+      ]
+     },
+     "undetermined": 4,
+     "escalated": 31,
+     "tokens": 165685,
+     "reviewer_alone": {
+      "corrects_wrong_solver": {
+       "k": 14,
+       "n": 24,
+       "text": "14 of 24",
+       "wilson": [
+        0.38834665724338885,
+        0.7553239749980565
+       ]
+      },
+      "keeps_right_solver": {
+       "k": 48,
+       "n": 48,
+       "text": "48 of 48",
+       "wilson": [
+        0.9258998692515198,
+        1.0
+       ]
+      },
+      "keeps_wrong_solver": {
+       "k": 4,
+       "n": 24,
+       "text": "4 of 24",
+       "wilson": [
+        0.06678676282131818,
+        0.3585307082129004
+       ]
+      },
+      "reply_names_tool": {
+       "k": 6,
+       "n": 72,
+       "text": "6 of 72",
+       "wilson": [
+        0.038752424730373825,
+        0.17012355306549654
+       ]
+      },
+      "no_letter": 0
+     },
+     "bad_lookups": {
+      "reviews": 24,
+      "items": 8,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 24,
+       "text": "0 of 24",
+       "wilson": [
+        0.0,
+        0.13797620655132792
+       ]
+      },
+      "caught": {
+       "k": 24,
+       "n": 24,
+       "text": "24 of 24",
+       "wilson": [
+        0.862023793448672,
+        0.9999999999999999
+       ]
+      },
+      "false_alarms": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "undetermined": 0,
+      "escalated": 24,
+      "tokens": 75669,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 14,
+        "n": 24,
+        "text": "14 of 24",
+        "wilson": [
+         0.38834665724338885,
+         0.7553239749980565
+        ]
+       },
+       "keeps_right_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_wrong_solver": {
+        "k": 4,
+        "n": 24,
+        "text": "4 of 24",
+        "wilson": [
+         0.06678676282131818,
+         0.3585307082129004
+        ]
+       },
+       "reply_names_tool": {
+        "k": 3,
+        "n": 24,
+        "text": "3 of 24",
+        "wilson": [
+         0.04344334046194118,
+         0.3100388144515548
+        ]
+       },
+       "no_letter": 0
+      }
+     },
+     "good_lookups": {
+      "reviews": 48,
+      "items": 16,
+      "wrong_reached_final": {
+       "k": 0,
+       "n": 48,
+       "text": "0 of 48",
+       "wilson": [
+        0.0,
+        0.07410013074848033
+       ]
+      },
+      "caught": {
+       "k": 0,
+       "n": 0,
+       "text": "0 of 0",
+       "wilson": null
+      },
+      "false_alarms": {
+       "k": 7,
+       "n": 48,
+       "text": "7 of 48",
+       "wilson": [
+        0.07248249287149067,
+        0.27167176640868296
+       ]
+      },
+      "undetermined": 4,
+      "escalated": 7,
+      "tokens": 90016,
+      "reviewer_alone": {
+       "corrects_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "keeps_right_solver": {
+        "k": 48,
+        "n": 48,
+        "text": "48 of 48",
+        "wilson": [
+         0.9258998692515198,
+         1.0
+        ]
+       },
+       "keeps_wrong_solver": {
+        "k": 0,
+        "n": 0,
+        "text": "0 of 0",
+        "wilson": null
+       },
+       "reply_names_tool": {
+        "k": 3,
+        "n": 48,
+        "text": "3 of 48",
+        "wilson": [
+         0.02148323274107221,
+         0.16835438166384809
+        ]
+       },
+       "no_letter": 0
+      }
+     }
+    }
+   },
+   "reviewer_vs_answer_only": {
+    "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_private": {
+     "measure": "corrects_wrong_bad_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_private",
+     "items": 8,
+     "variant_k": 14,
+     "variant_n": 24,
+     "answer_only_k": 6,
+     "answer_only_n": 24,
+     "diff": 0.33333333333333337,
+     "interval": [
+      0.125,
+      0.5833333333333333
+     ]
+    },
+    "corrects_wrong_bad_lookups | mistral-small-3.2-24b | plus_tool_log": {
+     "measure": "corrects_wrong_bad_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_tool_log",
+     "items": 8,
+     "variant_k": 14,
+     "variant_n": 24,
+     "answer_only_k": 6,
+     "answer_only_n": 24,
+     "diff": 0.33333333333333337,
+     "interval": [
+      0.08333333333333334,
+      0.5833333333333334
+     ]
+    },
+    "keeps_right_good_lookups | mistral-small-3.2-24b | plus_private": {
+     "measure": "keeps_right_good_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_private",
+     "items": 16,
+     "variant_k": 48,
+     "variant_n": 48,
+     "answer_only_k": 24,
+     "answer_only_n": 48,
+     "diff": 0.5,
+     "interval": [
+      0.29166666666666663,
+      0.7083333333333333
+     ]
+    },
+    "keeps_right_good_lookups | mistral-small-3.2-24b | plus_tool_log": {
+     "measure": "keeps_right_good_lookups",
+     "reviewer": "mistral-small-3.2-24b",
+     "variant": "plus_tool_log",
+     "items": 16,
+     "variant_k": 48,
+     "variant_n": 48,
+     "answer_only_k": 24,
+     "answer_only_n": 48,
+     "diff": 0.5,
+     "interval": [
+      0.29166666666666663,
+      0.7083333333333333
+     ]
+    }
+   },
+   "vs_original_prompt": {}
+  }
+ }
+}

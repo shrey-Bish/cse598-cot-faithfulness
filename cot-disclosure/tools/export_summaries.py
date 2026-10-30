@@ -54,6 +54,20 @@ GPU = {                  # copied back from Sol to results/trackA/gpu/ (numbers 
     "gpu/val_loss.json": "S7: validation loss by part, base and both epochs of each version (tokens and mean loss)",
     "gpu/val_loss_examples.jsonl": "S7: per system and example, tokens and loss sum per part (record ids only)",
 }
+KEEP_PATH = {             # under results/trackA/ -> under results/summaries/ (subfolders kept: set A's Step 10 has
+                         # Test 2's file names)
+    "setA/step10_patching.json": "trackA/setA/step10_patching.json",        # set A, Step 10 (F26)
+    "setA/step10_handoff.json": "trackA/setA/step10_handoff.json",          # patching.py --handoff (F26)
+    "setA/step10_handoff.png": "trackA/setA/step10_handoff.png",
+    "setA/step10_handoff.svg": "trackA/setA/step10_handoff.svg",
+    "setA/step9_attention.json": "trackA/setA/step9_attention.json",        # set A, Step 9 (back, unread)
+    "setA/provenance_forced.json": "trackA/setA/provenance_forced.json",    # B1's forced answers and alpha (F27)
+    "gpu/eval/eval_report.json": "trackA/gpu/eval/eval_report.json",        # batch 3 (F28)
+    "gpu/eval/gate3.json": "trackA/gpu/eval/gate3.json",                    # finetune/gate3.py
+    "gpu/eval/gate3_table.md": "trackA/gpu/eval/gate3_table.md",
+    **{f"gpu/eval/figures/{f}.{x}": f"trackA/gpu/eval/figures/{f}.{x}"
+       for f in ("gate3_following", "gate3_vs_base") for x in ("png", "svg", "csv")},
+}
 LATER = ["nohint_train_runs.jsonl", "targets_runs.jsonl", "target_samples_runs.jsonl", "targets_prefill_runs.jsonl",
          "target_samples_prefill_runs.jsonl"]                    # Steps 6-7: after the run finishes
 OTHER = {                # Tracks B and C: numbers-only reports their scripts write (copied as they are)
@@ -72,6 +86,12 @@ OTHER = {                # Tracks B and C: numbers-only reports their scripts wr
     "results/trackC/c15_summary.json": "trackC/c15_summary.json",                                # C15 (agents/c15.py)
     "results/trackC/team_c15_summary.json": "trackC/team_c15_summary.json",                      # C15's reviews (--log team_c15)
     "results/trackC/team_c15_solve_summary.json": "trackC/team_c15_solve_summary.json",          # C15's solver and checker
+    "results/trackC/team_c13_granite_summary.json": "trackC/team_c13_granite_summary.json",      # C13 (Sol; F30)
+    "results/trackC/team_c13_mistral_summary.json": "trackC/team_c13_mistral_summary.json",
+    "results/trackC/c16_summary.json": "trackC/c16_summary.json",                                # C16 (agents/c16.py)
+    "results/trackC/team_c16_summary.json": "trackC/team_c16_summary.json",
+    "results/trackC/team_c16_control_summary.json": "trackC/team_c16_control_summary.json",
+    "results/trackC/team_c16_solve_summary.json": "trackC/team_c16_solve_summary.json",
 }
 RUNNING = "finetune/run_steps67.py"
 DATA = CODE / "finetune" / "data"
@@ -176,6 +196,7 @@ def plan():
     """[(source or None, destination, writer)]: copies, plus derived numbers-only files."""
     out = [(TRACK_A / name, SUMMARIES / "trackA" / name, None) for name in TRACK_A_FILES if (TRACK_A / name).exists()]
     out += [(TRACK_A / name, SUMMARIES / "trackA" / Path(name).name, None) for name in GPU if (TRACK_A / name).exists()]
+    out += [(TRACK_A / src, SUMMARIES / dst, None) for src, dst in KEEP_PATH.items() if (TRACK_A / src).exists()]
     out += [(DATA / name, SUMMARIES / "trackA" / "data" / name, None) for name in DATA_FILES if (DATA / name).exists()]
     out += [(CODE / src, SUMMARIES / dst, None) for src, dst in OTHER.items() if (CODE / src).exists()]
     if not still_running():
