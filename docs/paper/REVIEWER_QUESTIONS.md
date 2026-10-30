@@ -67,7 +67,8 @@ The runs of Oct 28–29:
    - **Answered in part by C12 (F23):** with the tool's letter redacted, Olmo corrects 23 and 24 of 73 (C4: 6 and 3;
      answer only 59). The letter is part of the cue, not most of it.
    - By set, the gain was on the matched puzzles: **hypothesis H23** (re-solvable items), tested in **C15** on fresh
-     items, split by the reviewer's own answer_only result. `[restoration where it re-solves ___, where it doesn't ___]`
+     items, split by the reviewer's own answer_only result. **C15 (F24):** restoration 0.28 where it re-solves, 0.14
+     where it doesn't, +14 [−13, +37]: not supported; on fresh items redaction restores on MMLU-Pro too (+25 overall).
 3. **Is the deference just reasonable trust in an answer key?**
    - Partly. On good lookups it helps (67 → 84 of 84).
    - Our point is that the independent check disappears: "as good as the tool" (F18: 92 and 89 of
@@ -83,9 +84,10 @@ The runs of Oct 28–29:
      reported. Items the solver gets wrong without the tool are still the open test.
    - **Is there a cheaper check?** C14 (exploratory): escalating when the answer_only and trace-seeing reviews
      disagree never beat the checker's pipeline on catches; with a non-deferring reviewer it matched it at about a
-     third of the tokens, with a deferring one it added false alarms. **C15 (c)** tests that on fresh items.
+     third of the tokens, with a deferring one it added false alarms. **C15 (c), F24: no.** On fresh items it shipped
+     4 and 7 wrong answers of 53 where the checker shipped none.
 6. **Does any of it hold on new items?**
-   - **Answered by C15 (a):** F18's comparison on 100 fresh items, C11's rule. `[Olmo ___; Qwen3 ___]`
+   - **Answered by C15 (a), F24: yes.** Olmo −55 [−70, −38] (defers), Qwen3 −6 [−15, +4] (doesn't).
 7. **One solver, one tool format?**
    - Yes (Qwen3 30B Thinking; the answer key's JSON).
    - Not answered tonight. Next: Track B's other models as solvers (steered cases exist for all

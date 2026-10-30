@@ -421,7 +421,9 @@ reviews, 0.6–1.5 A100 h); pre-registered in the Oct 29 16:45 session log.
 - C15 (Oct 29, running on Voyager; pre-registered in the 23:00 log): 100 fresh items (60 MMLU-Pro from the
   categories evaluation doesn't use, 40 puzzles), C4's team, 1 repeat, Olmo 3.1 32B and Qwen3 30B Instruct reviewing
   answer_only, plus_tool_log and plus_tool_log_redacted: (a) does F18 replicate, (b) H23 split by the reviewer's own
-  answer_only result, (c) C14's rule against the checker.
+  answer_only result, (c) C14's rule against the checker. **Done Oct 30 00:45 (F24):** F18 replicates (Olmo −55,
+  Qwen3 −6), redaction again restores part of Olmo's check (+25), H23 is not supported, and C14's rule ships 4 and 7
+  wrong answers of 53 where the checker ships none.
 
 **This week (decided Oct 27), in order:** the append-only log in `results/trackC/` (C6); the
 no-tool team (C2); a second reviewer model (C3); an input-file option; the live team on 5 items

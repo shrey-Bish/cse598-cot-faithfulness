@@ -113,7 +113,8 @@ without making the model ignore correct tools.**
 - **Settles it:**
   - C13 (Sol, queued): IBM Granite 4.1 30B and Mistral Small 3.2 24B. Does family still predict it?
     `[Granite ___; Mistral ___]`
-  - C15 (Voyager, running): F18's comparison on 100 fresh items (C11's rule). `[Olmo ___; Qwen3 ___]`
+  - C15 (F24, done): on 100 fresh items Olmo 3.1 32B defers again (39 → 10 of 53, −55 [−70, −38]) and Qwen3 30B
+    Instruct doesn't (−6 [−15, +4]): *confirmed* on fresh items.
 
 **2.2 It becomes as good as the tool, no longer a second opinion.**
 - **Evidence:** F18. Right in 128 of 159 from the answer, 92 and 89 with the trace; the tool
@@ -139,8 +140,9 @@ without making the model ignore correct tools.**
   23 and 24 of 73 (unredacted 6 and 3: +23 [+13, +34], +29 [+16, +41]; answer only 59: −49, −48). No harm to Qwen3.
 - **Status:** *confirmed* as partial: the letter is part of the cue, the source (knowing it came from a key) the
   rest. The split by set (the gain on puzzles) is **H23**, a hypothesis.
-- **Settles it:** C15 (b): restoration where the reviewer's own answer_only review corrects vs where it doesn't, on
-  fresh items. `[___ vs ___]`
+- **C15 (F24):** on fresh items redaction restores part of Olmo's check again (10 → 23 of 53, +25 [+11, +38]), on
+  MMLU-Pro as well as puzzles; H23 (where the reviewer can re-solve) is not supported (+14 [−13, +37]). The split by
+  set is dropped from the claim.
 
 **2.5 The check that never sees the tool works.**
 - **Evidence:** F18. The re-ask checker flagged 73 of 75 bad lookups. False alarms on good lookups
@@ -155,10 +157,9 @@ without making the model ignore correct tools.**
 - **Evidence:** C14 (exploratory: chosen on C4's cases as reviewed in C4 and C9–C12). Against the checker's
   pipeline with the same reviewer: catches 56–73 of 73 against 73; with Qwen3 reviewers about the same false
   alarms (+1 [−6, +8]) at ~30–45% of the checker's tokens; with Olmo reviewers 12–21 points more false alarms.
-- **Status:** *waiting* (C15 (c), pre-registered: (c1) Olmo's extra false alarms; (c2) Qwen3 within 10 points of
-  the checker).
-- **Strongest objection:** it only works with a reviewer that doesn't defer, which is what we can't assume.
-- **Settles it:** C15 (c); then a reviewer family that defers on other items.
+- **Status:** *refuted* as a replacement for the checker (C15, F24): on fresh items neither pre-registered claim
+  held, and it shipped 4 (Olmo) and 7 (Qwen3) wrong answers of 53 where the checker's pipeline shipped none. Keep as a
+  cautionary result: chosen on C4's cases, it failed on fresh ones.
 
 ## Supporting (Track B)
 

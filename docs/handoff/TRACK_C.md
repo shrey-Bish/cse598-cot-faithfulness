@@ -73,8 +73,8 @@ log), and how often does the checker catch it or raise a false alarm?
   (Oct 29, 636 reviews; F23).
 - **C13: queued on Sol** (Oct 29 21:56): get_c13 66954063 (the two snapshots, CPU) running; c13 66954278 waits for
   set A's three jobs and the download. Pre-registered in the Oct 29 16:45 session log.
-- **C14: done** (Oct 29 22:30, no calls; exploratory). **C15: running** on Voyager since Oct 29 22:48
-  (pre-registered in the Oct 29 23:00 session log).
+- **C14: done** (Oct 29 22:30, no calls; exploratory). **C15: done** (Oct 29 22:48 – Oct 30 00:45, 0 errors;
+  pre-registered in the Oct 29 23:00 session log; FINDINGS F24).
 
 ## 2. Results so far
 
@@ -154,9 +154,12 @@ log), and how often does the checker catch it or raise a false alarm?
     84, +12 [+1, +24]); with the Qwen3 reviewers it is about the same as the checker (+1 [−6, +8]);
   - it costs ~30–45% of the checker's tokens (the added answer_only review against the solver's re-ask).
   - The rule is frozen for C15, which confirms or refutes it.
-- **C15** (running; pre-registered): 100 fresh items, C4's team, 1 repeat; (a) does F18 replicate (C11's rule),
-  (b) H23 (redaction's restoration where the reviewer's own answer_only review corrects vs where it doesn't),
-  (c) C14's rule against the checker: (c1) Olmo's extra false alarms, (c2) Qwen3 within 10 points of the checker.
+- **C15** (FINDINGS F24; 100 fresh items, C4's team, 1 repeat):
+  - (a) F18 replicates: Olmo 3.1 32B 39 → 10 of 53 (−55 [−70, −38], defers); Qwen3 30B Instruct −6 [−15, +4].
+  - Redaction restores part of Olmo's check again (+25 [+11, +38]), on both sets; (b) H23 is not supported
+    (+14 [−13, +37]).
+  - (c) C14's rule: neither claim confirmed; it ships 4 and 7 wrong of 53 where the checker's pipeline ships none.
+  - The checker flagged 53 of 55 bad lookups, at the floor on good ones (+4 [−7, +16]); F15's bare letter holds.
 - Related Track B/A findings ([`docs/FINDINGS.md`](../FINDINGS.md)): F1 (tool hints move thinking
   models more than user hints), F3 (the final answer rarely names the hint), which is why a
   reviewer that only sees the final answer is expected to miss it.
@@ -207,7 +210,7 @@ team_c13_granite --cases results/trackB/steered_cases.jsonl --table`.
 | C12 | The tool's letter redacted | done Oct 29 (F23): partly; H23 to test |
 | C13 | A third and fourth family on Sol (IBM Granite 4.1 30B, Mistral Small 3.2 24B) | queued (66954278), after set A and the download |
 | C14 | Disagreement as a signal, on saved data | done Oct 29 (exploratory); the rule frozen for C15 |
-| C15 | Fresh-case replication: F18, H23, C14's rule | running on Voyager (Oct 29 22:48) |
+| C15 | Fresh-case replication: F18, H23, C14's rule | done Oct 30 00:45 (F24) |
 
 ## 5. Decisions you inherit
 

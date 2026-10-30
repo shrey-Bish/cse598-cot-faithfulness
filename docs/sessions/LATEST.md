@@ -1,106 +1,67 @@
-# Session log: Gate 3 in one command, B2's bias log, the rater guide, the handoffs (2026-10-29 23:30 MST)
+# Session log: C15 done; the pre-registered readings (2026-10-30 01:10 MST)
 
-Project: CSE 598 Group 10. This covers Ritik's items 4–6 of 22:20 (no calls, no Sol), done while C15 runs on
-Voyager. The decisions, C14 and the pre-registrations of C15 and B15 are in the 23:00 log.
+Project: CSE 598 Group 10, Track C. C15 replicates C4's team on 100 fresh items. It was pre-registered in the Oct 29
+23:00 log before any call, and is read here by that log's rules. FINDINGS F24 has the full entry.
 
 ## 1. Header
 
-- **Time:** Oct 29, 23:00–23:30. **Tracks:** A, B, C. **By:** Ritik.
-- **Branch:** `trackA-nosol`, local commits only.
-- **Tests:** 524 pass (CPU, no network).
-- **Calls:** none. C15's solver phase is running beside this work (section 5).
+- **Time:**
+  - the solver and checker, Oct 29 22:48–23:57 (200 of 200 cases);
+  - the reviews, Oct 29 23:57 – Oct 30 00:45 (100 of 100 cases, 600 calls), beside B15.
+- **Errors:** 0. **By:** Ritik. **Branch:** `trackA-nosol`, local commits.
+- **Power:** on the charger until about 23:50, then on battery (97% → 88% at 00:45); the guard didn't pause.
 
-## 2. Track A, ready for the morning
+## 2. The three pre-registered readings
 
-**Gate 3 in one command** (`finetune/gate3.py --out results/trackA/gpu/eval`): runs eval.py's report, then writes:
-- `gate3.json`, each trained version's verdict:
-  - passes, fails (naming the criterion), waiting, or too few questions;
-  - Gate 3 is "met" if one version passes, "not met (negative result)" once all four have failed, else waiting;
-- `gate3_table.md`, the table: following, no-hint accuracy, hiding and false disclosure, each against base; the
-  inserted-vs-pasted prediction; the verdict;
-- `figures/gate3_following` and `figures/gate3_vs_base` (PNG, SVG, CSV): wrong-hint following per system and
-  channel, and each system minus base with the ±5-point band on accuracy.
+**(a) Does F18 replicate? Yes.** plus_tool_log minus answer_only on correcting a wrong answer after a bad lookup
+(53 items), by C11's rule:
+- **Olmo 3.1 32B Instruct:** 39 → 10 of 53, **−55 [−70, −38]**: defers. It defers on both sets: MMLU-Pro −48
+  [−68, −29], puzzles −64 [−86, −36].
+- **Qwen3 30B Instruct:** 43 → 40 of 53, −6 [−15, +4]: doesn't defer.
 
-**The rule is the one PLAN states and eval.report() has applied since Oct 25**, unchanged:
-- following minus base has a clustered 95% interval below 0;
-- no-hint accuracy is within 5 points (the point difference);
-- hiding minus base has an interval that reaches 0 or below.
+**(b) H23 is not supported.** For the Olmo reviewer, redaction's restoration where its own answer_only review
+corrects (0.28, 39 items) minus where it doesn't (0.14, 14 items) is **+14 [−13, +37]**. That is H23's direction,
+but the interval includes 0. Qwen3, with no reading drawn: +15 [−2, +39].
 
-**Tested** on synthetic files of the real shape (eval.jobs()'s 930 runs per system in two part files). In the
-test:
-- a version that follows less with the same accuracy passes;
-- one that also loses accuracy fails on that criterion;
-- a missing system waits;
-- with no base, everything waits;
-- all four failing is a negative result.
+**(c) C14's rule, frozen: neither claim is confirmed.** Against the checker's pipeline with the same reviewer:
+- **(c1) Olmo:** false alarms 8 against 7 of 45, **+2 [−9, +13]**: not confirmed (C14 had +12).
+- **(c2) Qwen3:** caught 46 against 53 of 53, **−13 [−23, −6]**, and false alarms +2 [−11, +16]. Not confirmed:
+  the lower bound is below −10, and the upper bound is above +10.
+- **The rule ships wrong answers** (4 with Olmo, 7 with Qwen3, of 53) where both reviews agree on the wrong letter.
+  The checker's pipeline ships none: it caught 53 of 53 with both reviewers.
 
-I looked at both figures from a synthetic run: no label collisions.
+## 3. Also reported (no decision)
 
-**B1's alpha rule is fixed in advance.** It is in `provenance_job.py` and `choose_alpha`, from commit `0bd2241`
-(Oct 29 00:31): before set A's runs existed and before the forced job was queued (23:00 log, section 8).
+- **Redaction, as in C12:** Olmo 10 → 23 of 53 (+25 [+11, +38]), still −30 [−47, −13] below answer only. The
+  restoration is on both sets: MMLU-Pro 6 → 14 of 31, puzzles 4 → 9 of 22. Qwen3: +2 [−8, +11].
+- **Good lookups:** with the tool log, Olmo keeps the right answer in 45 of 45 (alone: 37; +18 [+7, +29]), and
+  Qwen3 in 43 of 45 (36; +16 [+7, +27]).
+- **The checker:** it flagged 53 of 55 bad lookups and 7 of 45 good ones. The no-tool floor was 7 of 100 [3, 14%],
+  so good − floor is +4 [−7, +16].
+- **The solver's final answer after a lookup** (F15 on fresh items): bare in 50 of 55 (bad) and 43 of 45 (good),
+  against 0 of 100 with no tool. Good − bad is +5 [−5, +15].
+- **Tokens per case:** the rule's added answer_only review takes 1,050–1,206; the checker's re-ask 3,545.
 
-**B2's bias log** (Ritik approved LR_GATE 1e-2):
-- `train.py` writes every learned bias at every optimizer step (`train_log.jsonl`, "gates").
-- After each epoch it checks them against Adam's applied bound (`gate_drift`). The export writes
-  `final/gate_drift.json` for the chosen epoch.
-- **Ruling:** the bound is the learning rates actually applied, summed: 1.31 over 260 steps with the warmup and
-  linear decay. Ritik's lr × steps (2.6) is logged beside it. No bias can reach 2.6, so a check at 2.6 could never
-  fire.
-- A bias within 10% of the bound is reported with a rerun at 3e-2 proposed, and the run is left as it is.
-- Tested on the tiny model.
+## 4. What changes
 
-## 3. Labels: the one-page rater guide
+- **FINDINGS F24 added.**
+- **Story step 4:** the deference and the partial restoration replicate on fresh items.
+- **F23's H23:** "tested in C15: not supported".
+- **CLAIMS:**
+  - 2.1 is now *confirmed* on fresh items for the Olmo reviewer;
+  - 2.4's split by set is dropped;
+  - 2.6 (a cheaper check) is refuted as a replacement for the checker.
+- **For deployment:** F18's point is stronger. The check that never sees the tool held on every wrong answer, in C4
+  and here.
+- **Process:** C14's favourable reading for Qwen3 came from the cases that chose the rule, and it didn't survive
+  fresh items. That is the reason C15 was pre-registered.
 
-`docs/progress/RATER_GUIDE.md`, linked from LABELING_GUIDE.md. It gives:
-- **the order:** L3's 101 rows, then L5's 171;
-- **time per row:** L3 3–4 h; L5 group 1 ~2 h, group 2 ~1.5 h, group 3 ~30 min;
-- **the five labels and their rules;**
-- **what not to do:** no talking before both sheets are in, and no AI tools: the labels must be human, and the
-  text stays in the sheet;
-- **sending sheets back:** CSV, a file-name pattern, sent to Ritik directly, never through GitHub;
-- **how kappa is computed:** p_o, p_e, kappa per text and channel; under 0.6, settle, tighten the guide, and
-  label a fresh batch.
+## 5. Source
 
-No labeling was done here.
-
-## 4. Handoffs and the paper pack
-
-- **`docs/handoff/TRACK_C.md`** (for Shrey, Nov 3) has:
-  - the code since Oct 28 (`--first-from`, `--no-check-tool`, `--bad-first`, the redacted variants, `sol_c13.py`,
-    `disagreement.py`, `fresh_items.py`, `--solve-only`, `c15.py`);
-  - C11 and C12's results, C14, C15's design;
-  - the commands, the open items, the decisions (C11's rule, C13's models and temperature, H23 on fresh cases,
-    C14's frozen rule) and three new traps.
-- **`docs/handoff/TRACK_B.md`** (for Arsha, Nov 3) has:
-  - Qwen3-8B back on vLLM (FlashInfer's sampler, the pinned tokenizer, the import race), queued as 66954217, and
-    how its numbers-only files come back;
-  - B15's design and commands;
-  - the rater guide;
-  - two traps: Sol's clone origin, and B15's older "before" runs.
-- **Data bundles:** `make_handoff_bundle.py` takes the whole `results/trackB/` and `results/trackC/` folders, so
-  C15 and B15 are included once they end. A bundle is never overwritten, so both are built after the runs finish
-  (dry runs now: B 10 files, 22.6 MB; C 29 files, 22.3 MB).
-- **`docs/paper/CLAIMS.md`:**
-  - 2.1 now rests on two Olmo reviewers (C11), with C13 and C15 as what settles it;
-  - 2.4 is filled in from C12 (partial; H23 to test);
-  - new 2.6: C14's cheaper check, waiting on C15;
-  - B15 under the Track B supporting claims;
-  - set A's Voyager numbers under 1.3.
-- **`docs/paper/REVIEWER_QUESTIONS.md`:**
-  - C11 and C12 answer thread 2's first two questions in part;
-  - new: "Couldn't you just ask the model to say where its answer came from?" (B15) and "Does any of it hold on
-    new items?" (C15);
-  - C14 is under the checker's question.
-
-## 5. Running now
-
-- **The guard** (started 22:48):
-  - C15's solver phase: 23 of 200 cases at 22:56, 0 errors.
-  - Then, together on the 4 slots: C15's reviews (600 calls) and B15 (1,620 runs).
-- **To stop:** `touch cot-disclosure/logs/stop_guard`.
+- `cot-disclosure/results/summaries/trackC/c15_summary.json`, `team_c15_summary.json`, `team_c15_solve_summary.json`.
+- Recomputed with `python agents/c15.py` (no calls).
 
 ## 6. Next
 
-- C15's readings (`agents/c15.py`) and B15's (`progress/run_b15.py --report`), each with its own session log.
-- The bundles once both end.
-- The 07:00 daily with the morning Sol lines.
+- **B15:** running; its readings and log when it ends.
+- **The 07:00 daily.**

@@ -1,0 +1,836 @@
+{
+ "by_team_model_variant": {},
+ "checker_flag_rate": {
+  "tool, bad lookup": {
+   "k": 53,
+   "n": 55,
+   "text": "53 of 55",
+   "wilson": [
+    0.8767653592704914,
+    0.9899704588009981
+   ],
+   "undetermined": 0
+  },
+  "tool, good lookup": {
+   "k": 7,
+   "n": 45,
+   "text": "7 of 45",
+   "wilson": [
+    0.07745423442616176,
+    0.2878390899329196
+   ],
+   "undetermined": 0
+  },
+  "notool": {
+   "k": 7,
+   "n": 100,
+   "text": "7 of 100",
+   "wilson": [
+    0.0343192608798127,
+    0.13749514806152413
+   ],
+   "undetermined": 0
+  }
+ },
+ "c5_checker_vs_floor": {
+  "run_to_run": {
+   "rate": null,
+   "items": 0
+  },
+  "floor": {
+   "rate": 0.07,
+   "interval": [
+    0.03,
+    0.12
+   ],
+   "items": 100
+  },
+  "bad_lookup": {
+   "rate": 0.9636363636363636,
+   "interval": [
+    0.9090909090909091,
+    1.0
+   ],
+   "items": 55
+  },
+  "good_lookup": {
+   "rate": 0.15555555555555556,
+   "interval": [
+    0.06666666666666667,
+    0.26666666666666666
+   ],
+   "items": 45
+  },
+  "bad_minus_floor": {
+   "diff": 0.9272727272727272,
+   "interval": [
+    0.8545454545454545,
+    0.9818181818181818
+   ],
+   "items": 55
+  },
+  "good_minus_floor": {
+   "diff": 0.04444444444444445,
+   "interval": [
+    -0.06666666666666667,
+    0.15555555555555556
+   ],
+   "items": 45
+  }
+ },
+ "reviewer_vs_answer_only": {},
+ "solver_replies": {
+  "arms": {
+   "tool, bad lookup": {
+    "items": 55,
+    "median_chars": 11,
+    "bare": {
+     "k": 50,
+     "n": 55,
+     "text": "50 of 55",
+     "wilson": [
+      0.8042250531228354,
+      0.9605418451755379
+     ]
+    },
+    "names_tool": {
+     "k": 5,
+     "n": 55,
+     "text": "5 of 55",
+     "wilson": [
+      0.039458154824462244,
+      0.1957749468771647
+     ]
+    }
+   },
+   "tool, good lookup": {
+    "items": 45,
+    "median_chars": 11,
+    "bare": {
+     "k": 43,
+     "n": 45,
+     "text": "43 of 45",
+     "wilson": [
+      0.8517248911534567,
+      0.987725873403887
+     ]
+    },
+    "names_tool": {
+     "k": 1,
+     "n": 45,
+     "text": "1 of 45",
+     "wilson": [
+      0.003933598839322983,
+      0.11566681882004808
+     ]
+    }
+   },
+   "notool": {
+    "items": 100,
+    "median_chars": 1873,
+    "bare": {
+     "k": 0,
+     "n": 100,
+     "text": "0 of 100",
+     "wilson": [
+      0.0,
+      0.03699349876899627
+     ]
+    },
+    "names_tool": {
+     "k": 3,
+     "n": 100,
+     "text": "3 of 100",
+     "wilson": [
+      0.010254523944281516,
+      0.08451936489857499
+     ]
+    }
+   }
+  },
+  "differences": {
+   "bare: good minus bad lookup": {
+    "diff": 0.04646464646464654,
+    "interval": [
+     -0.04999999999999993,
+     0.14510128152128976
+    ],
+    "items": 100,
+    "paired": false
+   },
+   "bare: good lookup minus notool": {
+    "diff": 0.9555555555555556,
+    "interval": [
+     0.8888888888888888,
+     1.0
+    ],
+    "items": 45,
+    "paired": true
+   },
+   "bare: bad lookup minus notool": {
+    "diff": 0.9090909090909091,
+    "interval": [
+     0.8181818181818182,
+     0.9818181818181818
+    ],
+    "items": 55,
+    "paired": true
+   },
+   "names_tool: good minus bad lookup": {
+    "diff": -0.06868686868686869,
+    "interval": [
+     -0.1595959595959596,
+     0.01762820512820513
+    ],
+    "items": 100,
+    "paired": false
+   },
+   "names_tool: good lookup minus notool": {
+    "diff": 0.0,
+    "interval": [
+     -0.06666666666666667,
+     0.06666666666666667
+    ],
+    "items": 45,
+    "paired": true
+   },
+   "names_tool: bad lookup minus notool": {
+    "diff": 0.05454545454545455,
+    "interval": [
+     -0.03636363636363636,
+     0.14545454545454545
+    ],
+    "items": 55,
+    "paired": true
+   }
+  }
+ },
+ "by_kind": {
+  "fresh": {
+   "by_team_model_variant": {},
+   "checker_flag_rate": {
+    "tool, bad lookup": {
+     "k": 53,
+     "n": 55,
+     "text": "53 of 55",
+     "wilson": [
+      0.8767653592704914,
+      0.9899704588009981
+     ],
+     "undetermined": 0
+    },
+    "tool, good lookup": {
+     "k": 7,
+     "n": 45,
+     "text": "7 of 45",
+     "wilson": [
+      0.07745423442616176,
+      0.2878390899329196
+     ],
+     "undetermined": 0
+    },
+    "notool": {
+     "k": 7,
+     "n": 100,
+     "text": "7 of 100",
+     "wilson": [
+      0.0343192608798127,
+      0.13749514806152413
+     ],
+     "undetermined": 0
+    }
+   },
+   "c5_checker_vs_floor": {
+    "run_to_run": {
+     "rate": null,
+     "items": 0
+    },
+    "floor": {
+     "rate": 0.07,
+     "interval": [
+      0.03,
+      0.12
+     ],
+     "items": 100
+    },
+    "bad_lookup": {
+     "rate": 0.9636363636363636,
+     "interval": [
+      0.9090909090909091,
+      1.0
+     ],
+     "items": 55
+    },
+    "good_lookup": {
+     "rate": 0.15555555555555556,
+     "interval": [
+      0.06666666666666667,
+      0.26666666666666666
+     ],
+     "items": 45
+    },
+    "bad_minus_floor": {
+     "diff": 0.9272727272727272,
+     "interval": [
+      0.8545454545454545,
+      0.9818181818181818
+     ],
+     "items": 55
+    },
+    "good_minus_floor": {
+     "diff": 0.04444444444444445,
+     "interval": [
+      -0.06666666666666667,
+      0.15555555555555556
+     ],
+     "items": 45
+    }
+   },
+   "reviewer_vs_answer_only": {},
+   "solver_replies": {
+    "arms": {
+     "tool, bad lookup": {
+      "items": 55,
+      "median_chars": 11,
+      "bare": {
+       "k": 50,
+       "n": 55,
+       "text": "50 of 55",
+       "wilson": [
+        0.8042250531228354,
+        0.9605418451755379
+       ]
+      },
+      "names_tool": {
+       "k": 5,
+       "n": 55,
+       "text": "5 of 55",
+       "wilson": [
+        0.039458154824462244,
+        0.1957749468771647
+       ]
+      }
+     },
+     "tool, good lookup": {
+      "items": 45,
+      "median_chars": 11,
+      "bare": {
+       "k": 43,
+       "n": 45,
+       "text": "43 of 45",
+       "wilson": [
+        0.8517248911534567,
+        0.987725873403887
+       ]
+      },
+      "names_tool": {
+       "k": 1,
+       "n": 45,
+       "text": "1 of 45",
+       "wilson": [
+        0.003933598839322983,
+        0.11566681882004808
+       ]
+      }
+     },
+     "notool": {
+      "items": 100,
+      "median_chars": 1873,
+      "bare": {
+       "k": 0,
+       "n": 100,
+       "text": "0 of 100",
+       "wilson": [
+        0.0,
+        0.03699349876899627
+       ]
+      },
+      "names_tool": {
+       "k": 3,
+       "n": 100,
+       "text": "3 of 100",
+       "wilson": [
+        0.010254523944281516,
+        0.08451936489857499
+       ]
+      }
+     }
+    },
+    "differences": {
+     "bare: good minus bad lookup": {
+      "diff": 0.04646464646464654,
+      "interval": [
+       -0.04999999999999993,
+       0.14510128152128976
+      ],
+      "items": 100,
+      "paired": false
+     },
+     "bare: good lookup minus notool": {
+      "diff": 0.9555555555555556,
+      "interval": [
+       0.8888888888888888,
+       1.0
+      ],
+      "items": 45,
+      "paired": true
+     },
+     "bare: bad lookup minus notool": {
+      "diff": 0.9090909090909091,
+      "interval": [
+       0.8181818181818182,
+       0.9818181818181818
+      ],
+      "items": 55,
+      "paired": true
+     },
+     "names_tool: good minus bad lookup": {
+      "diff": -0.06868686868686869,
+      "interval": [
+       -0.1595959595959596,
+       0.01762820512820513
+      ],
+      "items": 100,
+      "paired": false
+     },
+     "names_tool: good lookup minus notool": {
+      "diff": 0.0,
+      "interval": [
+       -0.06666666666666667,
+       0.06666666666666667
+      ],
+      "items": 45,
+      "paired": true
+     },
+     "names_tool: bad lookup minus notool": {
+      "diff": 0.05454545454545455,
+      "interval": [
+       -0.03636363636363636,
+       0.14545454545454545
+      ],
+      "items": 55,
+      "paired": true
+     }
+    }
+   }
+  }
+ },
+ "by_kind_and_set": {
+  "fresh | mmlupro_c15": {
+   "by_team_model_variant": {},
+   "checker_flag_rate": {
+    "tool, bad lookup": {
+     "k": 31,
+     "n": 32,
+     "text": "31 of 32",
+     "wilson": [
+      0.8425573603233156,
+      0.9944621398972968
+     ],
+     "undetermined": 0
+    },
+    "tool, good lookup": {
+     "k": 7,
+     "n": 28,
+     "text": "7 of 28",
+     "wilson": [
+      0.12676494850621306,
+      0.4335567047135223
+     ],
+     "undetermined": 0
+    },
+    "notool": {
+     "k": 6,
+     "n": 60,
+     "text": "6 of 60",
+     "wilson": [
+      0.04664283420129568,
+      0.2014946482260861
+     ],
+     "undetermined": 0
+    }
+   },
+   "c5_checker_vs_floor": {
+    "run_to_run": {
+     "rate": null,
+     "items": 0
+    },
+    "floor": {
+     "rate": 0.1,
+     "interval": [
+      0.03333333333333333,
+      0.18333333333333332
+     ],
+     "items": 60
+    },
+    "bad_lookup": {
+     "rate": 0.96875,
+     "interval": [
+      0.90625,
+      1.0
+     ],
+     "items": 32
+    },
+    "good_lookup": {
+     "rate": 0.25,
+     "interval": [
+      0.10714285714285714,
+      0.42857142857142855
+     ],
+     "items": 28
+    },
+    "bad_minus_floor": {
+     "diff": 0.9375,
+     "interval": [
+      0.84375,
+      1.0
+     ],
+     "items": 32
+    },
+    "good_minus_floor": {
+     "diff": 0.07142857142857142,
+     "interval": [
+      -0.10714285714285712,
+      0.25
+     ],
+     "items": 28
+    }
+   },
+   "reviewer_vs_answer_only": {},
+   "solver_replies": {
+    "arms": {
+     "tool, bad lookup": {
+      "items": 32,
+      "median_chars": 11,
+      "bare": {
+       "k": 28,
+       "n": 32,
+       "text": "28 of 32",
+       "wilson": [
+        0.7193169437055493,
+        0.9502986564709404
+       ]
+      },
+      "names_tool": {
+       "k": 4,
+       "n": 32,
+       "text": "4 of 32",
+       "wilson": [
+        0.04970134352905961,
+        0.2806830562944507
+       ]
+      }
+     },
+     "tool, good lookup": {
+      "items": 28,
+      "median_chars": 11,
+      "bare": {
+       "k": 26,
+       "n": 28,
+       "text": "26 of 28",
+       "wilson": [
+        0.7735463727026133,
+        0.9801879360635548
+       ]
+      },
+      "names_tool": {
+       "k": 1,
+       "n": 28,
+       "text": "1 of 28",
+       "wilson": [
+        0.0063325197789164955,
+        0.17712197905773489
+       ]
+      }
+     },
+     "notool": {
+      "items": 60,
+      "median_chars": 1869,
+      "bare": {
+       "k": 0,
+       "n": 60,
+       "text": "0 of 60",
+       "wilson": [
+        0.0,
+        0.060171853034227174
+       ]
+      },
+      "names_tool": {
+       "k": 3,
+       "n": 60,
+       "text": "3 of 60",
+       "wilson": [
+        0.01714950203090107,
+        0.1370051656999034
+       ]
+      }
+     }
+    },
+    "differences": {
+     "bare: good minus bad lookup": {
+      "diff": 0.0535714285714286,
+      "interval": [
+       -0.09722222222222221,
+       0.20571428571428574
+      ],
+      "items": 60,
+      "paired": false
+     },
+     "bare: good lookup minus notool": {
+      "diff": 0.9285714285714286,
+      "interval": [
+       0.8214285714285714,
+       1.0
+      ],
+      "items": 28,
+      "paired": true
+     },
+     "bare: bad lookup minus notool": {
+      "diff": 0.875,
+      "interval": [
+       0.75,
+       0.96875
+      ],
+      "items": 32,
+      "paired": true
+     },
+     "names_tool: good minus bad lookup": {
+      "diff": -0.08928571428571429,
+      "interval": [
+       -0.22727272727272727,
+       0.040178571428571425
+      ],
+      "items": 60,
+      "paired": false
+     },
+     "names_tool: good lookup minus notool": {
+      "diff": 0.0,
+      "interval": [
+       -0.10714285714285714,
+       0.10714285714285714
+      ],
+      "items": 28,
+      "paired": true
+     },
+     "names_tool: bad lookup minus notool": {
+      "diff": 0.0625,
+      "interval": [
+       -0.09375,
+       0.21875
+      ],
+      "items": 32,
+      "paired": true
+     }
+    }
+   }
+  },
+  "fresh | puzzles_c15": {
+   "by_team_model_variant": {},
+   "checker_flag_rate": {
+    "tool, bad lookup": {
+     "k": 22,
+     "n": 23,
+     "text": "22 of 23",
+     "wilson": [
+      0.7900884474454931,
+      0.9922833339420488
+     ],
+     "undetermined": 0
+    },
+    "tool, good lookup": {
+     "k": 0,
+     "n": 17,
+     "text": "0 of 17",
+     "wilson": [
+      0.0,
+      0.18431813738065556
+     ],
+     "undetermined": 0
+    },
+    "notool": {
+     "k": 1,
+     "n": 40,
+     "text": "1 of 40",
+     "wilson": [
+      0.004426831453704344,
+      0.12881369088183614
+     ],
+     "undetermined": 0
+    }
+   },
+   "c5_checker_vs_floor": {
+    "run_to_run": {
+     "rate": null,
+     "items": 0
+    },
+    "floor": {
+     "rate": 0.025,
+     "interval": [
+      0.0,
+      0.075
+     ],
+     "items": 40
+    },
+    "bad_lookup": {
+     "rate": 0.9565217391304348,
+     "interval": [
+      0.8695652173913043,
+      1.0
+     ],
+     "items": 23
+    },
+    "good_lookup": {
+     "rate": 0.0,
+     "interval": [
+      0.0,
+      0.0
+     ],
+     "items": 17
+    },
+    "bad_minus_floor": {
+     "diff": 0.9130434782608696,
+     "interval": [
+      0.7826086956521738,
+      1.0
+     ],
+     "items": 23
+    },
+    "good_minus_floor": {
+     "diff": 0.0,
+     "interval": [
+      0.0,
+      0.0
+     ],
+     "items": 17
+    }
+   },
+   "reviewer_vs_answer_only": {},
+   "solver_replies": {
+    "arms": {
+     "tool, bad lookup": {
+      "items": 23,
+      "median_chars": 11,
+      "bare": {
+       "k": 22,
+       "n": 23,
+       "text": "22 of 23",
+       "wilson": [
+        0.7900884474454931,
+        0.9922833339420488
+       ]
+      },
+      "names_tool": {
+       "k": 1,
+       "n": 23,
+       "text": "1 of 23",
+       "wilson": [
+        0.007716666057951335,
+        0.2099115525545071
+       ]
+      }
+     },
+     "tool, good lookup": {
+      "items": 17,
+      "median_chars": 11,
+      "bare": {
+       "k": 17,
+       "n": 17,
+       "text": "17 of 17",
+       "wilson": [
+        0.8156818626193445,
+        1.0
+       ]
+      },
+      "names_tool": {
+       "k": 0,
+       "n": 17,
+       "text": "0 of 17",
+       "wilson": [
+        0.0,
+        0.18431813738065556
+       ]
+      }
+     },
+     "notool": {
+      "items": 40,
+      "median_chars": 1911,
+      "bare": {
+       "k": 0,
+       "n": 40,
+       "text": "0 of 40",
+       "wilson": [
+        0.0,
+        0.08762160245846368
+       ]
+      },
+      "names_tool": {
+       "k": 0,
+       "n": 40,
+       "text": "0 of 40",
+       "wilson": [
+        0.0,
+        0.08762160245846368
+       ]
+      }
+     }
+    },
+    "differences": {
+     "bare: good minus bad lookup": {
+      "diff": 0.04347826086956519,
+      "interval": [
+       0.0,
+       0.1428571428571429
+      ],
+      "items": 40,
+      "paired": false
+     },
+     "bare: good lookup minus notool": {
+      "diff": 1.0,
+      "interval": [
+       1.0,
+       1.0
+      ],
+      "items": 17,
+      "paired": true
+     },
+     "bare: bad lookup minus notool": {
+      "diff": 0.9565217391304348,
+      "interval": [
+       0.8695652173913043,
+       1.0
+      ],
+      "items": 23,
+      "paired": true
+     },
+     "names_tool: good minus bad lookup": {
+      "diff": -0.043478260869565216,
+      "interval": [
+       -0.14285714285714285,
+       0.0
+      ],
+      "items": 40,
+      "paired": false
+     },
+     "names_tool: good lookup minus notool": {
+      "diff": 0.0,
+      "interval": [
+       0.0,
+       0.0
+      ],
+      "items": 17,
+      "paired": true
+     },
+     "names_tool: bad lookup minus notool": {
+      "diff": 0.043478260869565216,
+      "interval": [
+       0.0,
+       0.13043478260869565
+      ],
+      "items": 23,
+      "paired": true
+     }
+    }
+   }
+  }
+ }
+}

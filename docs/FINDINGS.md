@@ -1,7 +1,9 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-29 16:45 (F23's split by set restated as hypothesis H23, to test;
+status. Started 2026-10-26; last updated 2026-10-30 01:10 (F24, C15 on 100 fresh items: F18 replicates, redaction
+restores part of the check again, H23 not supported, C14's cheaper check fails; earlier Oct 29 16:45 F23's split by set
+restated as hypothesis H23, to test;
 Oct 29 10:55 F23: redacting the tool's letter restores part of the check;
 F22: the reviewer's deference follows the model family; Oct 28 23:25
 F21: committing first doesn't protect the reviewer's check;
@@ -39,7 +41,9 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    thinking (F22; *confirmed* per model, the family reading *tentative*). Redacting the tool's
    letter from what the Olmo 32B reviewer sees restores part of its check (6 → 23 and 3 → 24 of
    73), not most of it (alone: 59): it defers to the source as well as to the letter (F23,
-   *confirmed* as partial).
+   *confirmed* as partial). On 100 fresh items (C15, F24), both replicate (−55; redaction +25), the
+   split by the reviewer's own ability (H23) isn't supported, and a cheaper check built from two
+   reviews ships wrong answers (4 and 7 of 53) where the checker stops all 53.
 5. **The fix:** Track A trains Olmo 3 7B Think (LoRA, source tags) to follow fewer wrong hints
    without losing accuracy. The four trained versions learned the taught tokens on held-out
    questions: LoRA cuts their loss by 58% against base, and by 40% without the fixed opener, twice
@@ -1220,6 +1224,84 @@ and settings, on C4's 159 saved tool-team cases (bad lookups first). Two new var
   - *tentative*: the two-part reading.
   - *hypothesis, to test*: the split by set (H23; 8 steered items). Restated Oct 29 at Ritik's
     request: the 10:55 log's "all of it on matched puzzles" is an observation on these cases.
+    **Tested in C15 (F24): not supported** (+14 [−13, +37]); on fresh items the restoration is on
+    MMLU-Pro as well as puzzles.
+
+## F24. Track C (C15): on 100 fresh items the deference replicates, redaction again restores part of it, H23 isn't supported, and a cheaper check (C14) ships wrong answers the checker stops
+
+**Setup.** Oct 29 22:48 – Oct 30 00:45; 200 solver-and-checker cases, then 600 reviews, 0 errors. Pre-registered in the
+Oct 29 23:00 session log before any call.
+- **Items:** 100 fresh items (`agents/fresh_items.py`, seed `c15-20261029`): 60 MMLU-Pro from the 10 categories
+  evaluation doesn't use, 40 puzzles over the training pool's normal and hard levels. None is in Track B's 54, the 30
+  evaluation questions, or Track A's 1,600-question pool.
+- **The team, as C4:** Qwen3 30B Thinking forced to look up (C4's oracle: 55 bad lookups, 45 good), the re-ask
+  checker, tool and no-tool teams; 1 repeat.
+- **Reviewers:** Olmo 3.1 32B Instruct and Qwen3 30B Instruct, with C4's prompt: answer_only, plus_tool_log, and
+  plus_tool_log with the tool's letter redacted (C12's).
+- **"Corrects":** on the 53 bad lookups whose solver answer is wrong (53 items), the review's letter is right.
+
+**(a) F18 replicates** (C11's rule; plus_tool_log minus answer_only, paired by item):
+
+| reviewer | answer only | + tool log | minus answer only | rule |
+|---|---|---|---|---|
+| Olmo 3.1 32B Instruct | 39 of 53 [60, 84%] | 10 of 53 [11, 31%] | **−55 [−70, −38]** | defers |
+| Qwen3 30B Instruct | 43 of 53 [69, 89%] | 40 of 53 [62, 85%] | −6 [−15, +4] | doesn't defer |
+
+- Olmo defers on both sets: MMLU-Pro −48 [−68, −29] (31 items), puzzles −64 [−86, −36] (22 items).
+- **The other side, again:** on good lookups Olmo keeps the right answer in 45 of 45 with the tool log against 37
+  of 45 alone (+18 [+7, +29]); Qwen3 43 against 36 (+16 [+7, +27]).
+
+**F23 replicates; H23 is not supported:**
+- **Redacting the tool's letter** restores part of Olmo's check: 10 → 23 of 53 (+25 [+11, +38]), still below
+  answer only (−30 [−47, −13]). Partly, as in C12. Qwen3: 40 → 41 (+2 [−8, +11]).
+- **Both sets:** the restoration is on MMLU-Pro (6 → 14 of 31) as well as on the puzzles (4 → 9 of 22). C12 saw
+  none on 8 steered MMLU-Pro items, but those were items a hint had moved the solver on in Track B; fresh MMLU-Pro
+  items are not that.
+- **(b) H23** (restoration where the reviewer's own answer_only review corrects, minus where it doesn't):
+  - Olmo: 0.28 (39 items) against 0.14 (14 items), difference **+14 [−13, +37]**: **not supported**. The direction
+    is H23's, the interval includes 0.
+  - Qwen3: +0.05 against −0.10, +15 [−2, +39] (no reading drawn; it doesn't defer).
+
+**(c) C14's rule, frozen** (answer_only against plus_tool_log of the same reviewer), against the checker's pipeline
+with plus_tool_log, paired by item:
+
+| reviewer | caught (rule / checker) | caught minus checker | shipped wrong (rule / checker) | false alarms (rule / checker) | false alarms minus checker | reading |
+|---|---|---|---|---|---|---|
+| Olmo 3.1 32B | 49 / 53 of 53 | −8 [−15, −2] | 4 / 0 | 8 / 7 of 45 | +2 [−9, +13] | (c1) more false alarms: **not confirmed** |
+| Qwen3 30B Instruct | 46 / 53 of 53 | −13 [−23, −6] | 7 / 0 | 9 / 8 of 45 | +2 [−11, +16] | (c2) within 10 points: **not confirmed** |
+
+- **The checker's pipeline caught every wrong solver answer (53 of 53) with both reviewers.** The rule shipped 4 and
+  7, where both reviews agreed on the wrong letter.
+- **C14's favourable reading for the Qwen3 reviewer** (it matched the checker at a third of the tokens) was chosen
+  on C4's cases and doesn't hold on fresh ones.
+- Its added review costs 1,050–1,206 tokens per case against the checker's 3,545: cheaper, but it lets wrong
+  answers through.
+
+**Also reported (no decision):**
+- **The checker:** it flagged 53 of 55 bad lookups and 7 of 45 good ones. The no-tool floor was 7 of 100 [3, 14%].
+  Good minus floor is +4 [−7, +16]: at the floor, as in C4.
+- **F15's bare letter, on fresh items:** after a lookup the solver's final answer is bare in 50 of 55 (bad) and 43 of
+  45 (good), against 0 of 100 without the tool. Good − bad is +5 [−5, +15].
+
+**Reading.**
+- On new items and new question sources, the Olmo reviewer defers as in C4: −55 here against −77 there.
+- Hiding the tool's letter restores about a third of its check here as in C12, on both sets. So C12's split by set
+  doesn't carry over, and the split by the reviewer's own ability (H23) isn't supported either.
+- For deployment, F18's point gets stronger: the check that never sees the tool (the checker) is the one that held,
+  53 of 53. A cheaper check built from two reviews held on the cases it was chosen on and failed on fresh ones.
+
+**Source.**
+- `cot-disclosure/results/summaries/trackC/c15_summary.json`: `a_replication`, `b_h23`, `c_frozen_rule`,
+  `checker_flag_rate`, `c5_checker_vs_floor`, `solver_replies`. Also `team_c15_summary.json` and
+  `team_c15_solve_summary.json`.
+- Recomputed with `python agents/c15.py` (Mac, no calls).
+
+**Status.**
+- *confirmed*: F18's deference on fresh items (Olmo defers, Qwen3 doesn't).
+- *confirmed*: redaction restores part of Olmo's check (+25 [+11, +38]).
+- *not supported*: H23 (+14 [−13, +37]).
+- *refuted as a replacement for the checker*: C14's disagreement rule. Both pre-registered claims are not
+  confirmed, and it shipped 4 and 7 wrong answers where the checker shipped none.
 
 ## Measurement traps we hit and fixed
 
