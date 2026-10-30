@@ -78,6 +78,10 @@ C16 (Oct 30): `--live --solve-only --disclose` on C15's items (tool team; log te
 with B15's instruction. Then plus_explanation reviews of it (team_c16) and of team_c15_solve (team_c16_control);
 agents/c16.py reads them with C15's answer_only reviews.
 
+C17 (Oct 30): `--rereview team_c15_solve --final-suffix names_tool|own_working` reviews C15's saved final answers with
+one fixed sentence appended (FINAL_SUFFIXES; logs team_c17_names, team_c17_own); team_c16_control is the unchanged
+version. agents/c17.py reads the three.
+
 C11, C12 (Oct 29): `--no-check-tool` reruns with C4's original prompt (no added sentence); `--bad-first` reviews
 the bad lookups first. C11 is other reviewer models; C13 (agents/sol_c13.py) two more families on Sol, each on
 the job's own vLLM server (--reviewer-model sol_chat:MODEL, --workers 16; Voyager's runs keep 4). C12 uses the redacted variants (reviewer.redact): the
@@ -125,6 +129,8 @@ CHECK_TOOL = "The tool's answer may be wrong; check it independently."      # C9
 C9_VARIANTS = ("answer_only", "plus_private", "plus_tool_log")
 C10_VARIANTS = ("plus_private", "plus_tool_log")
 REDACTED_OF = {"plus_private_redacted": "plus_private", "plus_tool_log_redacted": "plus_tool_log"}
+FINAL_SUFFIXES = {"names_tool": "This answer is based on the lookup tool's result.",      # C17 (Ritik, Oct 30): one fixed
+                  "own_working": "This answer is based on my own step-by-step working."}  # sentence after the final answer
 
 
 def outcome(correct, solver_letter, reviewer_letter, flagged):
@@ -626,14 +632,17 @@ def saved_cases(src, items, team="tool"):
 
 
 def rereview_case(case, item, reviewers, variants, path, run_name, from_log, system_extra=CHECK_TOOL,
-                  reviewer_max_tokens=REVIEWER_MAX_TOKENS, first_log=None):
+                  reviewer_max_tokens=REVIEWER_MAX_TOKENS, first_log=None, final_suffix=None):
     """One saved case: every reviewer model x variant again, with system_extra; a case_done row when no
     call failed. The case keeps its id, so it pairs with the original's reviews. With first_log (C10),
-    each review is the second turn after the reviewer's own answer_only reply in case["first"]."""
+    each review is the second turn after the reviewer's own answer_only reply in case["first"]. With
+    final_suffix (C17), the solver's final answer the reviewer sees ends with that FINAL_SUFFIXES sentence."""
     s, c = case["solver"], case["checker"]
     base = {"mode": "rereview", "run_name": run_name, "case_id": case["case_id"], "attempt": uuid.uuid4().hex[:12],
             "team": s["team"], "repeat": s["repeat"], "item_id": s["item_id"], "source": s.get("source"),
-            "from_log": from_log, "from_attempt": s["attempt"], "system_extra": system_extra}
+            "from_log": from_log, "from_attempt": s["attempt"], "system_extra": system_extra,
+            **({"final_suffix": final_suffix} if final_suffix else {})}
+    final = f"{s['final_text'] or ''}\n\n{FINAL_SUFFIXES[final_suffix]}" if final_suffix else s["final_text"]
     errors = []
     for rp, rm in reviewers:
         gen_r = lambda **kw: generate(rp, rm, max_tokens=reviewer_max_tokens, temperature=0.6, seed=s["repeat"], **kw)  # noqa: E731
@@ -643,7 +652,7 @@ def rereview_case(case, item, reviewers, variants, path, run_name, from_log, sys
         for variant in variants:
             log_text = steps_tool_log(s["steps"])
             r_reply, r_letter, rule = reviewer.review(gen_r, variant, item["question"], s["letter"], item["n_options"],
-                                                      final_text=s["final_text"], reasoning_text=s["reasoning_text"],
+                                                      final_text=final, reasoning_text=s["reasoning_text"],
                                                       tool_log=log_text, system_extra=system_extra,
                                                       first_reply=(f["final_text"] or "") if f else None,
                                                       tool_letter=s.get("tool_letter"))
@@ -664,7 +673,8 @@ def rereview_case(case, item, reviewers, variants, path, run_name, from_log, sys
 
 
 def rereview(cases, reviewers, variants, path, run_name, from_log, workers=IN_FLIGHT, check_models=True,
-             reviewer_max_tokens=REVIEWER_MAX_TOKENS, stop_file=None, first_log=None, system_extra=CHECK_TOOL):
+             reviewer_max_tokens=REVIEWER_MAX_TOKENS, stop_file=None, first_log=None, system_extra=CHECK_TOOL,
+             final_suffix=None):
     """The saved cases not reviewed again yet; exit codes as live()."""
     if check_models:
         for provider, model in reviewers:
@@ -675,7 +685,7 @@ def rereview(cases, reviewers, variants, path, run_name, from_log, workers=IN_FL
     todo = [(c, it) for c, it in cases if c["case_id"] not in finished]
     print(f"{len(todo)} cases to review again ({len(finished)} done before), {workers} at a time", flush=True)
     return run_all(todo, lambda x: rereview_case(*x, reviewers, variants, path, run_name, from_log, system_extra,
-                                                 reviewer_max_tokens, first_log), workers, stop_file)
+                                                 reviewer_max_tokens, first_log, final_suffix), workers, stop_file)
 
 
 def attach_first(cases, first_path, reviewers):
@@ -790,6 +800,8 @@ def main():
     ap.add_argument("--workers", type=int, default=IN_FLIGHT, help="--rereview: cases at once (default %(default)s, "
                                                                     "Voyager's; a Sol job's own server takes more)")
     ap.add_argument("--bad-first", action="store_true", help="--rereview: the bad lookups' cases first")
+    ap.add_argument("--final-suffix", choices=sorted(FINAL_SUFFIXES), help="--rereview (C17): the solver's final answer "
+                                                                          "the reviewer sees ends with this fixed sentence")
     ap.add_argument("--disclose", action="store_true", help="live (C16): the solver's turn ends with B15's instruction "
                                                            "to say what its answer is based on")
     ap.add_argument("--first-from", metavar="LOG", help="--rereview (C10): the reviewer's own answer_only reviews from "
@@ -858,6 +870,7 @@ def main_rereview(a, path):
           f"calls ({len(reviewers)} reviewer models x {len(variants)} variants: {', '.join(variants)}); no solver or "
           f"checker calls. " + (f"Added to the reviewer's system prompt: \"{extra}\"" if extra else "C4's reviewer prompt, unchanged")
           + (f"; bad lookups first ({bad} cases)" if a.bad_first else "")
+          + (f"; the final answer ends: \"{FINAL_SUFFIXES[a.final_suffix]}\"" if a.final_suffix else "")
           + (f". Commit first: each review is the second turn after the reviewer's own answer_only reply in "
              f"{a.first_from} (all {len(cases) * len(reviewers)} found)" if a.first_from else ""))
     if a.dry_run:
@@ -866,7 +879,7 @@ def main_rereview(a, path):
     try:
         return rereview(cases, reviewers, variants, path, a.run_name or f"run-{uuid.uuid4().hex[:6]}", a.rereview,
                         workers=a.workers, reviewer_max_tokens=a.reviewer_max_tokens, stop_file=a.stop_file,
-                        first_log=a.first_from, system_extra=extra)
+                        first_log=a.first_from, system_extra=extra, final_suffix=a.final_suffix)
     except (client.CanaryFailed, client.ModelUnavailable) as err:
         print(f"halted: {type(err).__name__}: {err}", file=sys.stderr, flush=True)
         return 3
