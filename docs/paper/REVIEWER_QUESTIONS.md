@@ -1,7 +1,7 @@
 # Questions a reviewer would ask that we can't answer yet
 
-Each question: why it matters, and which runs answer it. Updated Oct 29 23:15: C11 and C12 are in (F22, F23);
-added C13 (Sol), C14 (exploratory), C15 (fresh items, running) and B15 (a disclosure instruction, running).
+Each question: why it matters, and which runs answer it. Updated Oct 30 04:00: C15 (F24) and B15 (F25) are in;
+Oct 29 23:15: C11 and C12 (F22, F23); added C13 (Sol), C14 (exploratory).
 The runs of Oct 28–29:
 - **A:** set A localization replication (Voyager runs and probes tonight; Steps 9/10 on Sol).
 - **B1:** provenance-scaled attention (code tonight, Sol jobs).
@@ -52,9 +52,12 @@ The runs of Oct 28–29:
      (`docs/progress/RATER_GUIDE.md`).
 10. **Couldn't you just ask the model to say where its answer came from?** (F15: after a tool call the final answer
     is a bare letter.)
-    - **Answered by B15:** one added instruction; does naming the tool after a call rise (Thinking: 3 of 54 before),
-      does the bare letter fall, and at what cost to correct-tool acceptance and no-hint accuracy?
-    - `[Thinking: names the tool after a call ___ of ___ (before 3 of 54); bare ___; Instruct: ___ (before 35 of 162)]`
+    - **Answered by B15 (F25): yes, for disclosure; no, for following.** After a call, Thinking names the tool in 33
+      of 63 (before 3 of 54; +47 [+30, +64]) and is bare in 30 of 63 (before 51 of 54); Instruct names it in 149 of
+      162 (before 35; +70 [+59, +81]) and is bare in 12 (before 111).
+    - Following doesn't change (Thinking +6 [−2, +14], Instruct −1 [−7, +6] on the real call), and neither do
+      correct-tool acceptance or no-hint accuracy. The answer says it took the tool's wrong letter, and takes it.
+    - Still open: does a final answer that names the tool help a reviewer catch it, or give it more to defer to?
 
 ## Thread 2: automation bias in reviewers
 

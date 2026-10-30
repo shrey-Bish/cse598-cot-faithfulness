@@ -1,7 +1,7 @@
 # Plan: weeks 11–16 (CSE 598, Group 10)
 
-Last updated: 2026-10-29 23:00 MST (Ritik's decisions of 22:20: the order of the 10 unsubmitted Sol jobs, B2's LR_GATE
-1e-2 approved, H23 tested on C15; C14 done, C15 and B15 pre-registered and running on Voyager; the Gate 3 command;
+Last updated: 2026-10-30 04:00 MST (B15 done, F25; C15 done, F24; Oct 29 23:00 Ritik's decisions of 22:20: the order of the 10 unsubmitted Sol jobs, B2's LR_GATE
+1e-2 approved, H23 tested on C15; C14 done, C15 and B15 pre-registered and run on Voyager; the Gate 3 command;
 earlier: C11–C13; week 11; the plan for Oct 27–Nov 3 moved everything as early
 as it can go; Oct 28: Ollama replaced by Qwen3-8B on Sol, training batch 2, the class QoS only; Track
 B's Voyager runs and C4 done; S7, the validation loss by taught tokens, on all four versions; the labeling order;
@@ -338,12 +338,15 @@ final answer is bare whether the lookup was right or wrong (Track C's C4 is the 
 Qwen3-8B on Sol once vllm_check passes; the Track B labeling batch after the queue. No keys; no
 GPQA.
 
-**B15 (Oct 29, running on Voyager after C15's solver; pre-registered in the 23:00 log):** can one instruction
+**B15 (Oct 29, pre-registered in the 23:00 log; done Oct 30 03:44, F25):** can one instruction
 ("In your final answer, say what your answer is based on, including any tool result you used.") bring the tool
 back into the final answer? Qwen3 30B Thinking and Instruct, Track B's 54 questions, 3 runs; tool_real with the
 wrong and the right letter, the pasted block, no hint, and a right-letter arm without the instruction
 (`progress/run_b15.py`, 1,620 runs, its own records files). Pre-registered: naming the tool after a call rises
 (Thinking: 3 of 54 before), the bare letter falls, following changes or not; side effects reported.
+**Result:** naming rises (Thinking 33 of 63, +47 [+30, +64]; Instruct 149 of 162, +70 [+59, +81]), the bare
+letter falls (−47, −61), following doesn't change and nor do acceptance or no-hint accuracy: F15's bare letter
+is a default, and the instruction makes the deference visible without reducing it.
 
 **This week (decided Oct 27).** Gate 1's fallback: Voyager and our own Sol server only; paid calls wait for
 keys and "go"; GPQA waits until Ritik has accepted its terms on Hugging Face.
@@ -418,7 +421,7 @@ reviews, 0.6–1.5 A100 h); pre-registered in the Oct 29 16:45 session log.
   trace-seeing review disagree never beat the checker's pipeline on C4's cases (catches 56–73 of 73 against 73);
   with Olmo reviewers it adds 12–21 points of false alarms, with Qwen3 ones it matches the checker at about a third
   of the tokens. The rule is frozen for C15.
-- C15 (Oct 29, running on Voyager; pre-registered in the 23:00 log): 100 fresh items (60 MMLU-Pro from the
+- C15 (Oct 29, pre-registered in the 23:00 log): 100 fresh items (60 MMLU-Pro from the
   categories evaluation doesn't use, 40 puzzles), C4's team, 1 repeat, Olmo 3.1 32B and Qwen3 30B Instruct reviewing
   answer_only, plus_tool_log and plus_tool_log_redacted: (a) does F18 replicate, (b) H23 split by the reviewer's own
   answer_only result, (c) C14's rule against the checker. **Done Oct 30 00:45 (F24):** F18 replicates (Olmo −55,

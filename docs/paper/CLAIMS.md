@@ -1,7 +1,7 @@
 # Candidate claims: evidence, status, objection, what settles it
 
-Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md) (Oct 29; updated 23:15 with C11–C15 and
-B15). Status words as in
+Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md) (Oct 29; updated 23:15 with C11–C14, Oct
+30 01:10 with C15 and 04:00 with B15). Status words as in
 FINDINGS: *confirmed* (measured as stated, the interval excludes no effect), *tentative* (direction
 there, interval includes 0 or a confound remains), *waiting* (the run is going or planned).
 `[TONIGHT: ...]` marks a number tonight's runs fill in.
@@ -168,9 +168,13 @@ without making the model ignore correct tools.**
   *tentative*.
 - **F16:** Instruct calls the tool every time and takes its letter (147 of 162); Thinking − Instruct
   on the real call −57 [−70, −43].
-- **B15 (running, pre-registered):** can one instruction ("say what your answer is based on, including any tool
-  result you used") bring the tool back into the final answer? Thinking names it after 3 of 54 calls today; the
-  bare letter is 51 of 54. *Waiting.* If it works, F15 is a default, not a limit; if not, it is harder to fix than a
-  prompt.
+- **B15 (F25, pre-registered):** one instruction ("say what your answer is based on, including any tool result you
+  used") brings the tool back into the final answer. After a call, Thinking names it in 33 of 63 against 3 of 54
+  (+47 [+30, +64]) and Instruct in 149 against 35 of 162 (+70 [+59, +81]); the bare letter falls (−47, −61).
+  *Confirmed as keyword counts*: F15 is a default, not a limit. Following doesn't change (all four intervals include
+  0), nor do correct-tool acceptance or no-hint accuracy: the answer now says it took the tool's wrong letter, and
+  still takes it.
+  - **Objection:** keyword counts. With no hint the final names the tool in 0 of 162 per model, so the instruction's
+    own words aren't counted; hand labels would settle it.
 - **F17:** Gate 2 clear for a third model and family. The system-turn confound for bare answers
   is *tentative*.
