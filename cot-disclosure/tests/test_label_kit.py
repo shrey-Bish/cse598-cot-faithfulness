@@ -148,3 +148,20 @@ def test_kappa_by_text_and_channel(tmp_path):
     res, dis = lk.kappa(tmp_path / "r1.csv", tmp_path / "r2.csv")
     assert res["private | all"]["rows"] == 2 and res["final | tool"]["rows"] == 2
     assert {(d["row"], d["text"]) for d in dis} == {("2", "private"), ("3", "final")}
+
+
+def test_kappa_reads_l4_sheets_with_a_final_answer_only(tmp_path):
+    """L4's sheets (Oct 30) have label_final and channel, no label_private or condition."""
+    import csv
+    cols = ["row", "run_id", "channel", "hint_letter", "final_answer", "label_final", "note"]
+    labels = [("rejects_hint", "rejects_hint"), ("says_changed", "says_changed"), ("no_mention", "mentions_only")]
+    for i, rater in enumerate(("rater1", "rater2")):
+        with open(tmp_path / f"{rater}.csv", "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=cols)
+            w.writeheader()
+            for row, pair in enumerate(labels, 1):
+                w.writerow({"row": row, "run_id": f"r{row}", "channel": "tool_injected", "hint_letter": "B",
+                            "final_answer": "x", "label_final": pair[i], "note": ""})
+    out = lk.kappa(tmp_path / "rater1.csv", tmp_path / "rater2.csv")
+    res = out[0] if isinstance(out, tuple) else out
+    assert res["final | all"]["rows"] == 3 and res["private | all"]["rows"] == 0

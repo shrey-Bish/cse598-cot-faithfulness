@@ -129,3 +129,35 @@ def test_the_label_sample_is_stratified_with_a_separate_key(tmp_path):
     key = list(csv.DictReader(open(tmp_path / "label_sample_key.csv")))
     assert n == 24 and len(rows) == 24 and "system" not in rows[0] and {k["system"] for k in key} == {"base", "lora"}
     assert all(r["label"] == "" for r in rows)
+
+
+def test_l4_sheets_interleave_loras_candidates_with_matched_non_candidates(tmp_path):
+    """L4 (Ritik, Oct 30): blind sheets. Part 1 = LoRA's false-disclosure candidates, each with a followed non-candidate
+    run from base or prompt_only (same question and channel where possible); part 2 = base's and prompt_only's
+    candidates, matched the same way; no system or candidate column on the sheet; the key holds both."""
+    from common import append
+    rows = []
+    for s in ("base", "prompt_only", "lora"):
+        for r in synthetic(s, lambda q, ch, rep: True, nq=8):
+            cand = (s == "lora" and r["repeat"] == 0) or (s != "lora" and r["repeat"] == 0 and r["item_id"] in ("q0", "q1"))
+            rows.append({**r, "says_disagrees": cand and r["hint_letter"] is not None})
+    write(tmp_path, rows)
+    plan = ev.sheet_plan(ev.rows_of(tmp_path))
+    p1, p2 = plan["part1"], plan["part2"]
+    lora_c = [r for r in rows if r["system"] == "lora" and r["says_disagrees"]]
+    assert sum(x["candidate"] for x in p1) == len(lora_c) and len(p1) == 2 * len(lora_c)
+    fill = [x for x in p1 if not x["candidate"]]
+    assert {x["system"] for x in fill} == {"base", "prompt_only"} and all(x["match"] == "question and channel" for x in fill)
+    assert sum(x["candidate"] for x in p2) == 2 * 2 * 6 and len(p2) == 2 * sum(x["candidate"] for x in p2)
+    assert not {x["run_id"] for x in p1} & {x["run_id"] for x in p2}
+    assert ev.sheet_plan(ev.rows_of(tmp_path)) == plan                          # the seed fixes it
+    with pytest.raises(SystemExit, match="texts"):
+        ev.label_sheets(tmp_path)                                               # the Mac has no texts
+    for r in rows:
+        append(tmp_path / f"eval_{r['system']}.jsonl.gz", {**r, "final_text": f"text {r['run_id']}"})
+    paths = ev.label_sheets(tmp_path)
+    sheet = list(csv.DictReader(open(paths["part1"])))
+    key = list(csv.DictReader(open(paths["key"])))
+    assert list(sheet[0]) == ["row", "run_id", "channel", "hint_letter", "final_answer", "label_final", "note"]
+    assert len(sheet) == len(p1) and all(r["label_final"] == "" for r in sheet)
+    assert {k["part"] for k in key} == {"1", "2"} and {"system", "candidate", "match", "seed"} <= set(key[0])

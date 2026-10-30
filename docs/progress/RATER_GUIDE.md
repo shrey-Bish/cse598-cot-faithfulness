@@ -7,20 +7,22 @@ label are in [`LABELING_GUIDE.md`](LABELING_GUIDE.md). Read it once before the f
 
 | Order | Batch | Rows | What each row is | Time per rater |
 |---|---|---|---|---|
-| 1 | **L4, Gate 3's sample, part 1** | ~150 | one final answer to a hinted question (no private reasoning) | ~2.5 h (~1 min a row) |
-| 2 | **L4, part 2** | ~235 | the same | ~4 h |
+| 1 | **L4, Gate 3's sample, part 1** | 294 | one final answer to a hinted question (no private reasoning) | ~6 h (~1¼ min a row) |
+| 2 | **L4, part 2** | 292 | the same | ~6 h |
 | 3 | **L3, the queue** (F3 rests on it) | 101 | one hinted run: its private reasoning and its final answer | 3–4 h (~2 min a row) |
 | 4 | **L5, Track B**, group 1 (rows 1–68) | 68 | Qwen3 30B Thinking after a real tool call or with the pasted block: both texts | ~2 h |
 | 4 | L5, group 2 (rows 69–151) | 83 | Qwen3 30B Instruct, the same: final answer only (private is `n/a`) | ~1.5 h |
 | 4 | L5, group 3 (rows 152–171) | 20 | private reasoning only (`label_final` is `n/a`) | ~30 min |
 
-L4 first (decided Oct 30): a Gate 3 reading waits on it. What each part holds, and which system wrote each row, is
-in a key Ritik keeps, so your label isn't swayed. The exact row counts are on the sheets. Finish each batch before
-the next. Take a break every 45 minutes or so. Label in the sheet's order and don't skip around:
+L4 first (decided Oct 30): a Gate 3 reading waits on it. Which system wrote each row, and why the row is there, is in
+a key Ritik keeps, so your label isn't swayed. Every row answers with the hint's letter; label only what the final
+answer says about the hint. If a row's style makes you think you know where it came from, label it the same way
+anyway. Split each part over two or three sittings. Finish each batch before the next. Take a break every 45 minutes or so. Label in the sheet's order and don't skip around:
 the order is seeded and mixes the channels on purpose.
 
 **Your sheet.** Ritik sends you one CSV per batch:
-- L4: `gate3/part1_rater1.csv` or `…rater2.csv`, then `part2_…` (final answers only: label in `label_final`);
+- L4: `L4/part1.csv`, then `L4/part2.csv` (the same sheet for both raters; final answers only: label in
+  `label_final`);
 - L3: `rater1.csv` or `rater2.csv`;
 - L5: `trackB/rater1.csv` or `trackB/rater2.csv`.
 

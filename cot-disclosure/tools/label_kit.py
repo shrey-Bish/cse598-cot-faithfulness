@@ -263,12 +263,13 @@ def kappa(path1, path2):
         with open(p, newline="") as f:
             return {r["row"]: r for r in csv.DictReader(f)}
     r1, r2 = read(path1), read(path2)
+    cond = lambda r: r.get("condition") or r["channel"]  # noqa: E731     L4's sheets (Oct 30) name it channel
     out, disagreements = {}, []
     for text in ("private", "final"):
         col = f"label_{text}"
-        rows = [k for k in r1 if k in r2 and r1[k][col] in LABELS and r2[k][col] in LABELS]
-        for group in ("all", *sorted({channel_of(r1[k]["condition"]) for k in r1})):
-            keep = [k for k in rows if group == "all" or channel_of(r1[k]["condition"]) == group]
+        rows = [k for k in r1 if k in r2 and r1[k].get(col) in LABELS and r2[k].get(col) in LABELS]
+        for group in ("all", *sorted({channel_of(cond(r1[k])) for k in r1})):
+            keep = [k for k in rows if group == "all" or channel_of(cond(r1[k])) == group]
             k_, po, n = cohen_kappa([r1[k][col] for k in keep], [r2[k][col] for k in keep])
             out[f"{text} | {group}"] = {"kappa": k_, "agreement": po, "rows": n}
         disagreements += [{"row": k, "text": text, "rater1": r1[k][col], "rater2": r2[k][col], "run_id": r1[k]["run_id"]}
