@@ -174,7 +174,8 @@ without making the model ignore correct tools.**
   *Confirmed as keyword counts*: F15 is a default, not a limit. Following doesn't change (all four intervals include
   0), nor do correct-tool acceptance or no-hint accuracy: the answer now says it took the tool's wrong letter, and
   still takes it.
-  - **Objection:** keyword counts. With no hint the final names the tool in 0 of 162 per model, so the instruction's
-    own words aren't counted; hand labels would settle it.
+  - **Objection:** keyword counts, and the instruction adds a little noise: with no hint the final matches the tool
+    keyword in 4 and 17 of 162 (Track B: 2 and 8), some of them echoing the instruction. That is far below the rise
+    after a call; hand labels would settle it.
 - **F17:** Gate 2 clear for a third model and family. The system-turn confound for bare answers
   is *tentative*.

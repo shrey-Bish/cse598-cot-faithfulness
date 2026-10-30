@@ -146,7 +146,8 @@ questions", no interval):
       +6 [0, +13] only just);
     - side effects: correct-tool acceptance and no-hint accuracy within 1 point; the pasted final names the tool
       more (+13, +33).
-    - With no hint the final names the tool in 0 of 162 per model, so the keyword isn't counting the instruction.
+    - The keyword's floor: with no hint the final matches it in 4 and 17 of 162 (Track B: 2 and 8), some echoing
+      the instruction. Count it from `final_text`: the report's `mention_final` is empty without a hint.
     - **Reading:** F15's bare letter is a default; the instruction makes the deference visible and doesn't reduce
       it. Open: does a named source help a reviewer, or give it more to defer to?
 
@@ -169,7 +170,9 @@ back `results/trackB/sol_vllm_{runs,flags}.jsonl` from the Sol clone, then `trac
 
 **Your data:** produced data is gitignored, so it won't come with GitHub. Ritik shares the bundle
 (`tools/make_handoff_bundle.py --track B`: `results/trackB/` and the canary log, with a sha256
-manifest); unpack it into `cot-disclosure/` and check it with `--verify`.
+manifest); unpack it into `cot-disclosure/` and check it with `--verify`. The current one is
+`trackB_20261030.tar.gz` (Oct 30 03:55, 12 files, 25.4 MB, B15 included, no GPQA); Qwen3-8B's Sol files go in a
+later one once they are back.
 
 ## 4. Open items (docs/TODO.md, Track B)
 

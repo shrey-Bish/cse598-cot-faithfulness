@@ -124,6 +124,11 @@ def vs_base_rows(rep):
     return rows
 
 
+def whisker(r):
+    """A rate's interval in points; the rate itself where there is none (a bound of 0 is a bound)."""
+    return tuple((r["rate"] if r[k] is None else r[k]) * 100 for k in ("low", "high"))
+
+
 def figures(rep, out):
     from tools import paper_figures as pf
     plt = pf.style()
@@ -135,7 +140,7 @@ def figures(rep, out):
         fig, ax = plt.subplots(figsize=(9, 3.4))
         pf.grouped(ax, cats, [n for _, n in CHANNELS],
                    lambda c, s: at[(c, s)]["rate"] * 100 if (c, s) in at and at[(c, s)]["rate"] is not None else None,
-                   lambda c, s: ((at[(c, s)]["low"] or at[(c, s)]["rate"]) * 100, (at[(c, s)]["high"] or at[(c, s)]["rate"]) * 100),
+                   lambda c, s: whisker(at[(c, s)]),
                    pf.SERIES)
         ax.set_ylim(0, 100)
         ax.set_ylabel("follows the wrong hint (%)")

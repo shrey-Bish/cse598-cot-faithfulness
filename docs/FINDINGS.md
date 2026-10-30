@@ -1349,8 +1349,11 @@ The Thinking model's calling runs are 63 of 162 with the instruction, over 33 qu
   157 against 104 (+33 [+23, +43]).
 
 **Checked after the readings (descriptive):**
-- **The keyword doesn't count the instruction:** with no hint, the final answer names the tool in 0 of 162 for each
-  model.
+- **The keyword's floor with no hint:** with the instruction, the final answer matches cue_tool in 4 of 162 (Thinking)
+  and 17 of 162 (Instruct), against 2 and 8 in Track B. Some are other uses of "expected" or "tool"; some echo the
+  instruction ("Tool result: Legal research confirms…"). That floor is far below the +47 and +70 after a call.
+  (Corrected Oct 30 04:15: this line first said 0 of 162, read from a flag the report leaves empty without a hint;
+  found by the review of the night's code.)
 - **Disclosure, not correction:** after a wrong-letter call Thinking takes the tool's letter in 62 of 63 (32 name the
   tool, 30 are bare). Instruct takes it in 146 of 162 (133 name it). The named answers quote the tool and say it
   decided ("the tool's result takes precedence").

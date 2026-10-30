@@ -69,3 +69,8 @@ def test_no_version_passing_is_a_negative_result(tmp_path):
     for s in ev.TRAINED:
         write_system(tmp_path, s, lambda ch: 0.5, 0.9, seed=1)
     assert gate3.run(tmp_path)[1]["gate3"] == "not met (negative result)"
+
+
+def test_a_lower_bound_of_zero_is_drawn_at_zero_not_at_the_rate():
+    assert gate3.whisker({"rate": 0.02, "low": 0.0, "high": 0.06}) == (0.0, 6.0)
+    assert gate3.whisker({"rate": 0.5, "low": None, "high": None}) == (50.0, 50.0)

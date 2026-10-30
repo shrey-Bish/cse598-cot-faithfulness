@@ -47,8 +47,10 @@ called the tool (unpaired: the calling runs differ). Following is paired by ques
 
 ## 4. Checked after the readings (descriptive, not pre-registered)
 
-- **The keyword isn't counting the instruction.** With no hint, the final answer names the tool in 0 of 162 for
-  each model.
+- **The keyword's floor with no hint** (corrected 04:15; it first said 0 of 162, read from a flag the report leaves
+  empty without a hint). With the instruction, the final answer matches cue_tool in 4 of 162 (Thinking) and 17 of 162
+  (Instruct), against 2 and 8 in Track B. Some are other uses of "expected" or "tool"; some echo the instruction
+  ("Tool result: Legal research confirms…"). It is far below the +47 and +70 after a call.
 - **What a named answer says.** I read six of Thinking's finals after a wrong-letter call. The named ones quote the
   tool and say it decided the answer ("the tool's result takes precedence"). The others were "Answer: (X)".
 - **Disclosure, not correction.** After a wrong-letter call:

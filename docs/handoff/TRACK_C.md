@@ -194,7 +194,8 @@ team_c13_granite --cases results/trackB/steered_cases.jsonl --table`.
 
 **Your data:** gitignored, shared by Ritik as a bundle (`tools/make_handoff_bundle.py --track C`:
 `results/trackC/`, Track B's `steered_cases.jsonl`, the labeling kit; sha256 manifest; check with
-`--verify`).
+`--verify`). The current one is `trackC_20261030.tar.gz` (Oct 30 03:55, 33 files, 4.4 MB, C14 and C15 included);
+C13's two logs go in a later one once they are back from Sol.
 
 ## 4. Open items (docs/TODO.md, Track C)
 
