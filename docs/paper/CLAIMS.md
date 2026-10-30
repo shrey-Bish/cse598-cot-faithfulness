@@ -112,7 +112,8 @@ without making the model ignore correct tools.**
 
 ## Thread 2: automation bias in LLM reviewers
 
-**2.1 A reviewer shown the solver's tool trace defers to the tool.**
+**2.1 Deference to the solver's tool trace is family-specific: Olmo reviewers defer (2 of 6 reviewers, 4
+families); prompt fixes don't help the deferring family (2.3); the blind checker holds for all (2.5).**
 - **Evidence:** F18 (C4, 53 items, 318 cases).
   - Olmo 3.1 32B Instruct corrects 59 of 73 wrong answers from the answer alone, 6 with the
     private reasoning (−73 [−86, −58]) and 3 with the tool log (−77 [−91, −61]). It keeps the
@@ -125,8 +126,11 @@ without making the model ignore correct tools.**
 - **Strongest objection:** one family of two, one solver's cases. It could be prompt-specific. Deferring to an
   answer key can be reasonable.
 - **Settles it:**
+  - C16 (F31): the deferring family defers to a named source in the final answer too: Olmo 3.1 32B corrects 25
+    against 36 of 53 when the solver's answer names the lookup (−21 [−34, −8]); Qwen3 unchanged.
   - C13 (F30, done): neither Granite nor Mistral defers; the pre-registered reading is "Olmo-specific". Granite's
-    own check is weak (27 of 73 alone), so its test has less room.
+    interval is wide (−5 [−26, +15]: it reaches −26, past the −20 line; "doesn't defer" because it includes 0), and
+    its own check is weak (27 of 73 alone), so its test has less room.
   - C15 (F24, done): on 100 fresh items Olmo 3.1 32B defers again (39 → 10 of 53, −55 [−70, −38]) and Qwen3 30B
     Instruct doesn't (−6 [−15, +4]): *confirmed* on fresh items.
 
@@ -138,7 +142,7 @@ without making the model ignore correct tools.**
 - **Settles it:** report both sides at the observed bad-lookup rate (here 75 of 159) and say what
   a lower rate would show.
 
-**2.3 Prompt fixes don't restore the check.**
+**2.3 Prompt fixes don't restore the deferring family's check.**
 - **Evidence:**
   - F19: a warning ("The tool's answer may be wrong; check it independently") gives 6 → 8 and
     3 → 4 of 73 (+3 [−4, +9], +1 [−3, +6]).
@@ -193,8 +197,9 @@ without making the model ignore correct tools.**
     after a call; hand labels would settle it.
   - **Objection:** the "before" is not an interleaved control. It is Track B's runs from one to two days earlier
     (same route, canary passed); only the right-letter arm without the instruction ran beside B15.
-- **Headline:** disclosure can be prompted, but it doesn't reduce deference to the tool. C16 (running) asks
-  whether a final answer that names the tool changes a reviewer's check.
+- **Headline:** disclosure can be prompted, but it doesn't reduce deference to the tool. Downstream (C16, F31), a
+  final answer that names the tool makes the Olmo reviewer correct fewer wrong answers (−21 [−34, −8]; unclear by
+  the 20-point rule) and leaves Qwen3 unchanged.
 - **F29 (Qwen3-8B, thinking on and off, the same weights):** thinking on calls the tool in 145 of 162 runs against
   35, and so follows the real call's wrong letter far more (+64 [+51, +75]); the pasted block and the user hint
   don't move (+4, −2). After a call with thinking on the final answer is bare (138 of 145) and names the tool in 0

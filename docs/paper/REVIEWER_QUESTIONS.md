@@ -66,7 +66,8 @@ The runs of Oct 28–29:
     - Following doesn't change (Thinking +6 [−2, +14], Instruct −1 [−7, +6] on the real call), and neither do
       correct-tool acceptance or no-hint accuracy. The answer says it took the tool's wrong letter, and takes it.
     - Still open: does a final answer that names the tool help a reviewer catch it, or give it more to defer to?
-      **C16** (pre-registered Oct 30 08:50, running): `[Olmo ___; Qwen3 ___]`
+      **C16 (F31): it doesn't help.** Olmo 3.1 32B corrects 25 against 36 of 53 when the answer names the tool
+      (−21 [−34, −8], unclear by the 20-point rule); Qwen3 30B Instruct 44 against 44.
     - B15's "before" is Track B's runs from one to two days earlier, not an interleaved control; C16's control runs
       the same day.
 

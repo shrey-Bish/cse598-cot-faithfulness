@@ -1,6 +1,6 @@
 # Track C handoff: the agent team (for Shrey, from Nov 3)
 
-Last updated: 2026-10-30 09:30 MST (C13 done, F30; C16 running). A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-30 10:30 MST (C16 done, F31; C13 done, F30). A working draft, kept current every day and final on Nov 3,
 when Track C goes back to you. Until then Ritik runs it.
 
 **The question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
@@ -75,7 +75,7 @@ log), and how often does the checker catch it or raise a false alarm?
   family defers: Granite 4.1 30B −5 [−26, +15] (its own check is weak: 27 of 73 alone), Mistral Small 3.2 24B +19
   [+10, +30]. Over six reviewers and four families only the two Olmo models defer ("Olmo-specific", as
   pre-registered). The logs are in `results/trackC/team_c13_{granite,mistral}.jsonl`.
-- **C16: running** (Oct 30, pre-registered in the 08:50 log; `run_team.py --disclose`, `agents/c16.py`): C15's items
+- **C16: done** (09:33; F31: Olmo −21 [−34, −8], unclear by the rule; Qwen3 no change; log 10:30) (Oct 30, pre-registered in the 08:50 log; `run_team.py --disclose`, `agents/c16.py`): C15's items
   with the solver told B15's instruction; plus_explanation reviews against a same-day control on C15's solver
   answers (`team_c16_control`). In this code answer_only shows only the proposed letter; plus_explanation adds the
   final answer (the ruling is in the log).
@@ -216,7 +216,7 @@ C13's two logs go in a later one once they are back from Sol.
 | C11 | Two more reviewer models (Olmo 3 7B Instruct, Qwen3 30B Thinking) | done Oct 29 (F22): the family reading |
 | C12 | The tool's letter redacted | done Oct 29 (F23): partly; H23 to test |
 | C13 | A third and fourth family on Sol (IBM Granite 4.1 30B, Mistral Small 3.2 24B) | done Oct 30 (F30): neither defers |
-| C16 | Does a final answer that names the tool change the reviewer's check? | running on Voyager (Oct 30); pre-registered |
+| C16 | Does a final answer that names the tool change the reviewer's check? | done Oct 30 (F31) |
 | C14 | Disagreement as a signal, on saved data | done Oct 29 (exploratory); the rule frozen for C15 |
 | C15 | Fresh-case replication: F18, H23, C14's rule | done Oct 30 00:45 (F24) |
 
