@@ -1,59 +1,64 @@
-# Session log: set A's Step 9: F12's three heads separate followed from resisted runs again (2026-10-30 10:35 MST)
+# Session log: C17: a sentence naming the tool doesn't cause the Olmo reviewer's drop (2026-10-30 11:00 MST)
 
-Project: CSE 598 Group 10, Track A. Read by the rule pre-registered in the 10:10 log (commit `e4e1b1f`) before the
-per-run file was on the Mac. FINDINGS F32. **By:** Ritik.
+Project: CSE 598 Group 10, Track C. C17 assigns the naming that C16 couldn't: the same saved final answers, with one
+fixed sentence naming the lookup tool or one naming the solver's own working. Pre-registered in the 10:25 log
+(commit `e2576ff`) before any call. FINDINGS F33. **By:** Ritik.
 
 ## 1. What ran
 
-- **Sol (Ritik, ~10:10):** `attn_to_hint.py --followup --out /scratch/ragarw68/trackA/setA` on the login node. It
-  wrote `step9_reduced.npz`, 201 runs, 3.3 MB, sha256 `825fae1e…`. As expected, the takeover-aligned part skipped
-  all 201 runs ("not in Step 3's rows"), and isn't read.
-- **Mac:** `python finetune/look/attn_to_hint.py --fixed-heads results/trackA/setA/step9_reduced.npz`, which writes
-  `step9_fixed_heads.json`.
+- **Voyager, 10:28–10:53, under the power guard on the charger:** 400 reviews, 0 errors.
+- **Answers:** C15's 100 saved solver final answers (`team_c15_solve`).
+- **Versions:**
+  - + "This answer is based on the lookup tool's result." (`team_c17_names`);
+  - + "This answer is based on my own step-by-step working." (`team_c17_own`);
+  - unchanged: C16's control (`team_c16_control`, 08:50–09:13).
+- **Reviewers:** Olmo 3.1 32B and Qwen3 30B Instruct, `plus_explanation`, C4's prompt.
+- **Read:** `python agents/c17.py`.
 
-## 2. The pre-registered reading
+## 2. The pre-registered readings
 
-**Rule:** at the answer position, the mean over F12's three heads (L19H31, L23H17, L15H31) of the hint's mass minus
-the control span's; followed minus resisted, all channels, paired by question, with a 95% bootstrap clustered by
-question. Replicates if the interval lies above 0.
+Bad lookups with a wrong solver answer (53 items); the review corrects. Paired by item, two-sided, C11's 20-point
+margin.
 
-**Result: replicates.** **+0.068 [+0.044, +0.088]**, over 15 questions with both outcomes (56 followed and 145
-resisted runs; means 0.120 against 0.051). Test 2: +0.084 [+0.062, +0.105].
+| reviewer | names the tool | own working | unchanged | (b) names − own (main) | (a) names − unchanged |
+|---|---|---|---|---|---|
+| Olmo 3.1 32B | 37 of 53 | 37 of 53 | 36 of 53 | **+0 [−11, +11]: no change** | +2 [−9, +13]: no change |
+| Qwen3 30B Instruct | 43 of 53 | 44 of 53 | 44 of 53 | −2 [−8, +4]: no change | −2 [−9, +4]: no change |
 
-## 3. Also reported (no decision)
+**Naming the tool in a fixed sentence doesn't cause the drop.** The Olmo reviewer corrects as often when the
+answer says it is based on the lookup tool's result as when it says it is based on its own working, or says
+nothing.
 
-| | set A | Test 2 (reference) |
-|---|---|---|
-| hint mass alone (not minus control) | +0.066 [+0.040, +0.089] | +0.084 [+0.062, +0.104] |
-| L19H31 | +0.080 [+0.047, +0.109] | +0.115 [+0.077, +0.150] |
-| L23H17 | +0.084 [+0.062, +0.106] | +0.086 [+0.062, +0.111] |
-| L15H31 | +0.040 [+0.008, +0.071] | +0.051 [+0.023, +0.076] |
-| pasted block | +0.087 [+0.070, +0.106] (8 questions) | +0.097 [+0.059, +0.139] |
-| inserted + declared | **+0.031 [+0.008, +0.052]** (9 questions) | +0.028 [−0.002, +0.058] |
+## 3. Side effect (no decision)
 
-- **Every head is above 0 on its own.** The order is a little different: L23H17 and L19H31 are about equal here.
-- **Inserted + declared:** the interval lies above 0 on set A. On Test 2 it included 0, so F12's "not for inserted
-  + declared" is now mixed. The two point estimates are nearly the same (+0.031, +0.028).
-- **These three are not set A's top heads by attention mass.** The follow-up's own ranking puts L23H20, L7H3, L27H5,
-  L19H2 and L15H1 first, and L15H31 is 10th by hint minus control. The heads that look most at the hint aren't the
-  ones that separate the outcomes; F12's heads were fixed in advance and do separate them. Re-ranking on set A
-  would have chosen other heads, which is why the rule fixed them.
+Keeping a right answer on good lookups (45 items):
+- **names − unchanged:** Olmo +0 [−11, +13], Qwen3 +4 [−7, +16];
+- **names − own:** Olmo +4 [−7, +18], Qwen3 −7 [−18, +2];
+- **own − unchanged:** Olmo −4 [−13, +4], Qwen3 +11 [+2, +20].
 
 ## 4. Reading
 
-- On 15 questions not used to find them, the three heads F12 named attend more to the hint when the model follows
-  it.
-- With Step 10 on set A (F26: 0.90 of the drop at 15, 19 and 23), both methods replicate on separate questions:
-  where the hint is read, and which heads separate the outcomes.
-- One model; attention isn't causation, and Step 10 is the causal half.
+- **C16's drop and C17's null can both stand.** In C16 the Olmo reviewer corrected 21 points fewer wrong answers
+  when the solver, told to disclose, wrote its own final answers. Here a one-line mention of the tool, added to the
+  same bare answers, changes nothing.
+- **So the mention isn't what the deferring reviewer responds to.** What came with the drop is what the solver
+  wrote when it disclosed. On bad lookups C16's final answers have a median of 353 characters (34 of 55 over 200),
+  against C15's 11 (a bare "Answer: (X)"). Those are explanations that justify the tool's letter ("the tool's
+  result takes precedence", "the tool response confirms the expected answer is E").
+- **What in them does it is open:** the length, the argument for the letter, or citing the key's authority. That's
+  hypothesis **H33**, untested.
+- **For deployment:** a short provenance note doesn't by itself make a deferring reviewer defer more. A solver that
+  explains why it took the tool's answer does go with fewer corrections (C16).
 
 ## 5. What changes
 
-- **FINDINGS F32.** Story step 3 (both Step 9 and Step 10 replicate). F12's status gets a set A line.
-- **CLAIMS 1.4.** **REVIEWER_QUESTIONS** thread 1, question 1. **TODO A32.**
-- **Exported:** `results/summaries/trackA/setA/step9_fixed_heads.json`.
+- **FINDINGS F33.** F31's reading is refined: the drop isn't caused by naming the source as such.
+- **Story step 4.**
+- **CLAIMS** 2.1 and B15's headline.
+- **REVIEWER_QUESTIONS** thread 1, question 10.
+- **TODO C17:** done. **PLAN; TRACK_C.**
+- **Exported:** `c17_summary.json`, `team_c17_names_summary.json`, `team_c17_own_summary.json`.
 
 ## 6. Source
 
-`cot-disclosure/results/summaries/trackA/setA/step9_fixed_heads.json` (numbers only); the reference is Test 2's
-`results/trackA/gpu/step9_reduced.npz` with the same function.
+`cot-disclosure/results/summaries/trackC/c17_summary.json`. Recomputed with `python agents/c17.py`.

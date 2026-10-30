@@ -1,0 +1,171 @@
+{
+ "a_names_minus_unchanged": {
+  "olmo3-32b-instruct": {
+   "items": 53,
+   "variant_k": 37,
+   "variant_n": 53,
+   "answer_only_k": 36,
+   "answer_only_n": 53,
+   "diff": 0.018867924528301883,
+   "interval": [
+    -0.09433962264150941,
+    0.13207547169811318
+   ],
+   "reading": "no change"
+  },
+  "qwen3-30b-a3b-instruct-2507": {
+   "items": 53,
+   "variant_k": 43,
+   "variant_n": 53,
+   "answer_only_k": 44,
+   "answer_only_n": 53,
+   "diff": -0.018867924528301883,
+   "interval": [
+    -0.09433962264150941,
+    0.037735849056603765
+   ],
+   "reading": "no change"
+  }
+ },
+ "b_names_minus_own": {
+  "olmo3-32b-instruct": {
+   "items": 53,
+   "variant_k": 37,
+   "variant_n": 53,
+   "answer_only_k": 37,
+   "answer_only_n": 53,
+   "diff": 0.0,
+   "interval": [
+    -0.1132075471698114,
+    0.1132075471698114
+   ],
+   "reading": "no change"
+  },
+  "qwen3-30b-a3b-instruct-2507": {
+   "items": 53,
+   "variant_k": 43,
+   "variant_n": 53,
+   "answer_only_k": 44,
+   "answer_only_n": 53,
+   "diff": -0.018867924528301883,
+   "interval": [
+    -0.07547169811320764,
+    0.037735849056603765
+   ],
+   "reading": "no change"
+  }
+ },
+ "own_minus_unchanged": {
+  "olmo3-32b-instruct": {
+   "items": 53,
+   "variant_k": 37,
+   "variant_n": 53,
+   "answer_only_k": 36,
+   "answer_only_n": 53,
+   "diff": 0.018867924528301883,
+   "interval": [
+    -0.07547169811320764,
+    0.1132075471698114
+   ],
+   "reading": "no change"
+  },
+  "qwen3-30b-a3b-instruct-2507": {
+   "items": 53,
+   "variant_k": 44,
+   "variant_n": 53,
+   "answer_only_k": 44,
+   "answer_only_n": 53,
+   "diff": 0.0,
+   "interval": [
+    -0.07547169811320753,
+    0.07547169811320753
+   ],
+   "reading": "no change"
+  }
+ },
+ "side_effect_keeps": {
+  "names_minus_unchanged": {
+   "olmo3-32b-instruct": {
+    "items": 45,
+    "variant_k": 40,
+    "variant_n": 45,
+    "answer_only_k": 40,
+    "answer_only_n": 45,
+    "diff": 0.0,
+    "interval": [
+     -0.11111111111111116,
+     0.1333333333333333
+    ]
+   },
+   "qwen3-30b-a3b-instruct-2507": {
+    "items": 45,
+    "variant_k": 37,
+    "variant_n": 45,
+    "answer_only_k": 35,
+    "answer_only_n": 45,
+    "diff": 0.0444444444444444,
+    "interval": [
+     -0.06666666666666676,
+     0.15555555555555556
+    ]
+   }
+  },
+  "names_minus_own": {
+   "olmo3-32b-instruct": {
+    "items": 45,
+    "variant_k": 40,
+    "variant_n": 45,
+    "answer_only_k": 38,
+    "answer_only_n": 45,
+    "diff": 0.0444444444444444,
+    "interval": [
+     -0.06666666666666676,
+     0.1777777777777777
+    ]
+   },
+   "qwen3-30b-a3b-instruct-2507": {
+    "items": 45,
+    "variant_k": 37,
+    "variant_n": 45,
+    "answer_only_k": 40,
+    "answer_only_n": 45,
+    "diff": -0.06666666666666665,
+    "interval": [
+     -0.1777777777777777,
+     0.022222222222222254
+    ]
+   }
+  },
+  "own_minus_unchanged": {
+   "olmo3-32b-instruct": {
+    "items": 45,
+    "variant_k": 38,
+    "variant_n": 45,
+    "answer_only_k": 40,
+    "answer_only_n": 45,
+    "diff": -0.0444444444444444,
+    "interval": [
+     -0.1333333333333333,
+     0.0444444444444444
+    ]
+   },
+   "qwen3-30b-a3b-instruct-2507": {
+    "items": 45,
+    "variant_k": 40,
+    "variant_n": 45,
+    "answer_only_k": 35,
+    "answer_only_n": 45,
+    "diff": 0.11111111111111105,
+    "interval": [
+     0.022222222222222254,
+     0.20000000000000007
+    ]
+   }
+  }
+ },
+ "cases": {
+  "unchanged": 100,
+  "names_tool": 100,
+  "own_working": 100
+ }
+}

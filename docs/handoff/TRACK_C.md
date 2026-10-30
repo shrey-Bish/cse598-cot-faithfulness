@@ -1,6 +1,6 @@
 # Track C handoff: the agent team (for Shrey, from Nov 3)
 
-Last updated: 2026-10-30 10:30 MST (C16 done, F31; C13 done, F30). A working draft, kept current every day and final on Nov 3,
+Last updated: 2026-10-30 11:00 MST (C17 done, F33; C16 done, F31; C13 done, F30). A working draft, kept current every day and final on Nov 3,
 when Track C goes back to you. Until then Ritik runs it.
 
 **The question.** When the solver's lookup tool returns a wrong answer, does it reach the team's final
@@ -217,6 +217,7 @@ C13's two logs go in a later one once they are back from Sol.
 | C12 | The tool's letter redacted | done Oct 29 (F23): partly; H23 to test |
 | C13 | A third and fourth family on Sol (IBM Granite 4.1 30B, Mistral Small 3.2 24B) | done Oct 30 (F30): neither defers |
 | C16 | Does a final answer that names the tool change the reviewer's check? | done Oct 30 (F31) |
+| C17 | Does naming the source cause it? (a fixed sentence, assigned) | done Oct 30 (F33): no change |
 | C14 | Disagreement as a signal, on saved data | done Oct 29 (exploratory); the rule frozen for C15 |
 | C15 | Fresh-case replication: F18, H23, C14's rule | done Oct 30 00:45 (F24) |
 

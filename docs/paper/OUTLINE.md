@@ -92,6 +92,8 @@ Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
    - C12 and C15: redacting the tool's letter restores part of the check (F23, F24).
    - C16 (F31): a final answer that names the tool makes the Olmo reviewer correct fewer wrong answers
      (−21 [−34, −8]); Qwen3 unchanged. Disclosure without independence doesn't help.
+   - C17 (F33): a fixed sentence naming the tool doesn't do it (+0 [−11, +11] against own working); the drop
+     went with the solver's explanations (H33).
 6. **What works**
    - The blind re-ask checker (73 of 75; false alarms at the floor), with every reviewer (C13) and on
      fresh items (53 of 53, C15).

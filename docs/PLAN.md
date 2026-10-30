@@ -439,6 +439,9 @@ reviews, 0.6–1.5 A100 h); pre-registered in the Oct 29 16:45 session log. **Do
   do reviewers that see a final answer naming the tool correct it more or less often than the same reviews of C15's
   solver (same-day control)? Two-sided, C11's margin (`agents/c16.py`). **Done 09:33 (F31):** Olmo −21 [−34, −8] (unclear by
   the rule), Qwen3 no change.
+- C17 (Oct 30, Ritik; pre-registered in the 10:25 log): the naming assigned, a fixed sentence naming the tool vs own
+  working on C15's saved answers. **Done 10:53 (F33):** no change for either reviewer; C16's drop went with the
+  solver's explanations, not the mention (H33).
 
 **This week (decided Oct 27), in order:** the append-only log in `results/trackC/` (C6); the
 no-tool team (C2); a second reviewer model (C3); an input-file option; the live team on 5 items

@@ -93,6 +93,9 @@ OTHER = {                # Tracks B and C: numbers-only reports their scripts wr
     "results/trackC/team_c16_summary.json": "trackC/team_c16_summary.json",
     "results/trackC/team_c16_control_summary.json": "trackC/team_c16_control_summary.json",
     "results/trackC/team_c16_solve_summary.json": "trackC/team_c16_solve_summary.json",
+    "results/trackC/c17_summary.json": "trackC/c17_summary.json",                                # C17 (agents/c17.py)
+    "results/trackC/team_c17_names_summary.json": "trackC/team_c17_names_summary.json",
+    "results/trackC/team_c17_own_summary.json": "trackC/team_c17_own_summary.json",
 }
 RUNNING = "finetune/run_steps67.py"
 DATA = CODE / "finetune" / "data"

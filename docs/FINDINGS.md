@@ -1,7 +1,8 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-30 10:35 (F32: set A's Step 9 replicates F12's three heads; at 10:30 F31 C16: the Olmo reviewer corrects fewer wrong answers
+status. Started 2026-10-26; last updated 2026-10-30 11:00 (F33 C17: a sentence naming the tool doesn't cause the
+drop; at 10:35 F32: set A's Step 9 replicates F12's three heads; at 10:30 F31 C16: the Olmo reviewer corrects fewer wrong answers
 when the final answer names the tool, unclear by the rule; Qwen3 unchanged; F28 corrected at 10:00: the guide note
 isn't what the targets were made with; the title-question reading of F29; at 09:30 F26 set A: the readout at 15/19/23 replicates; F27 B1's
 alpha 0.25 / 0.5; F28 Gate 3 interim: LoRA passes, the note does as well in the prompt, false disclosure rises; F29
@@ -59,7 +60,9 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    families, only Olmo's two do. When the solver's final answer names the tool (B15's instruction; C16,
    F31), the Olmo reviewer corrects fewer wrong answers (25 against 36 of 53, −21 [−34, −8]; unclear
    by the 20-point rule) and Qwen3 doesn't change: disclosure without independence doesn't help the
-   deferring family.
+   deferring family. A fixed sentence naming the tool, added to bare answers, changes nothing (C17, F33:
+   +0 [−11, +11] against one naming the solver's own working). So the drop came with the solver's own
+   explanations of why the tool's letter wins, not with the mention (H33, untested).
 5. **The title question, in the same weights (Qwen3-8B, F29).** Switching thinking on puts the tool in the
    private reasoning (it names the tool after 141 of 145 calls) and not in the final answer (0 of 143 followed
    runs name it), and it raises the call rate (145 against 35 of 162 runs), so the model takes the tool's wrong
@@ -1654,6 +1657,41 @@ finetune/look/attn_to_hint.py --fixed-heads results/trackA/setA/step9_reduced.np
 
 **Status.** *confirmed* on a second question set (one model). With F26, both Step 9's heads and Step 10's layers
 replicate on questions not used to find them.
+
+## F33. Track C (C17): a sentence naming the tool doesn't cause the Olmo reviewer's drop; C16's came with the solver's own explanations
+
+**Setup.**
+- Pre-registered Oct 30 10:25; run 10:28–10:53, 400 reviews, 0 errors.
+- **Answers:** C15's 100 saved solver final answers (bare in 50 of 55 bad lookups).
+- **Versions:**
+  - + "This answer is based on the lookup tool's result.";
+  - + "This answer is based on my own step-by-step working.";
+  - unchanged (C16's same-day control).
+- **Reviewers:** Olmo 3.1 32B and Qwen3 30B Instruct, plus_explanation, C4's prompt.
+- **Reading:** two-sided with C11's 20-point margin.
+
+**Result** (correcting a wrong answer after a bad lookup, 53 items, paired):
+
+| reviewer | (b) names − own working (main) | (a) names − unchanged |
+|---|---|---|
+| Olmo 3.1 32B | 37 vs 37 of 53, **+0 [−11, +11]: no change** | 37 vs 36, +2 [−9, +13]: no change |
+| Qwen3 30B Instruct | 43 vs 44, −2 [−8, +4]: no change | 43 vs 44, −2 [−9, +4]: no change |
+
+- **Good lookups (no decision):** names − unchanged: Olmo +0 [−11, +13], Qwen3 +4 [−7, +16].
+
+**Reading.**
+- Naming the tool in a fixed line doesn't cause the deferring reviewer's drop.
+- C16's drop (−21 [−34, −8]) came with the solver's own disclosures. Those are explanations that justify the tool's
+  letter, median 353 characters on bad lookups against C15's bare 11.
+- **H33 (untested):** the deferring reviewer responds to an argument for the tool's letter, or to its length or
+  authority, not to the mention.
+
+**Source.** `cot-disclosure/results/summaries/trackC/c17_summary.json`, `team_c17_names_summary.json`,
+`team_c17_own_summary.json`; `python agents/c17.py`.
+
+**Status.**
+- *confirmed*: no change from a fixed naming sentence, both reviewers (one wording each).
+- The cause of C16's drop is open (H33).
 
 ## Measurement traps we hit and fixed
 

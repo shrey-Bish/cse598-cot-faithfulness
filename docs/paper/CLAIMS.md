@@ -128,8 +128,10 @@ families); prompt fixes don't help the deferring family (2.3); the blind checker
 - **Strongest objection:** one family of two, one solver's cases. It could be prompt-specific. Deferring to an
   answer key can be reasonable.
 - **Settles it:**
-  - C16 (F31): the deferring family defers to a named source in the final answer too: Olmo 3.1 32B corrects 25
-    against 36 of 53 when the solver's answer names the lookup (−21 [−34, −8]); Qwen3 unchanged.
+  - C16 (F31): Olmo 3.1 32B corrects 25 against 36 of 53 when the solver, told to disclose, writes answers that
+    name the lookup (−21 [−34, −8]); Qwen3 unchanged. C17 (F33): a fixed sentence naming the tool, added to bare
+    answers, changes nothing (+0 [−11, +11] against own working), so it's the solver's explanations that go with the
+    drop, not the mention (H33).
   - C13 (F30, done): neither Granite nor Mistral defers; the pre-registered reading is "Olmo-specific". Granite's
     interval is wide (−5 [−26, +15]: it reaches −26, past the −20 line; "doesn't defer" because it includes 0), and
     its own check is weak (27 of 73 alone), so its test has less room.
@@ -201,7 +203,8 @@ families); prompt fixes don't help the deferring family (2.3); the blind checker
     (same route, canary passed); only the right-letter arm without the instruction ran beside B15.
 - **Headline:** disclosure can be prompted, but it doesn't reduce deference to the tool. Downstream (C16, F31), a
   final answer that names the tool makes the Olmo reviewer correct fewer wrong answers (−21 [−34, −8]; unclear by
-  the 20-point rule) and leaves Qwen3 unchanged.
+  the 20-point rule) and leaves Qwen3 unchanged. A fixed naming sentence alone doesn't (C17, F33): the drop goes with
+  the solver's explanations of why the tool's letter wins.
 - **F29 (Qwen3-8B, thinking on and off, the same weights):** thinking on calls the tool in 145 of 162 runs against
   35, and so follows the real call's wrong letter far more (+64 [+51, +75]); the pasted block and the user hint
   don't move (+4, −2). After a call with thinking on the final answer is bare (138 of 145) and names the tool in 0
