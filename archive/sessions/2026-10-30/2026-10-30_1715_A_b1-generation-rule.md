@@ -99,3 +99,19 @@ the two engines are equivalent, the stricter path:
   - the no-answer count.
 
   No letter has been compared with a hint, and no measure of §1–§2 has been computed.
+
+## 5. The first engine's runs, counted at the end of 3/4 and 4/4 (Oct 31, 16:40)
+
+Parts 3/4 and 4/4 (66989506, 66989507) ended in TIMEOUT at 6:00, so the first engine's runs are now final. They
+were counted from run IDs and status only. No other field was looked at, and nothing in §4's list was added to.
+
+| configuration | p1 | p2 | p3 | p4 | runs | use (§4) |
+|---|---|---|---|---|---|---|
+| `prov-a1` | 56 | 23 | 49 | 49 | **177** | the robustness check's old side (item 3) |
+| `prov-deployable-a0.25` | 2 | — | 12 | 3 | **17** | set aside, counts only (item 4) |
+| `prov-oracle-a0.5` | — | — | — | — | 0 | — |
+
+- Every record has status `ok` and none has an `engine_tag`, so all of them are the first engine's.
+- The budget check above used the 10:40 copy: 174 runs, which were 172 at alpha = 1 (4/4 then had 44) and 2
+  deployable. Since then, on the same engine: 5 more alpha = 1 runs (4/4) and 15 deployable runs (3/4 and 4/4).
+  `report` takes all of the first engine's `prov-a1` files, 177 runs.

@@ -1,6 +1,6 @@
 # Questions a reviewer would ask that we can't answer yet
 
-Each question: why it matters, and which runs answer it. Updated Oct 30 09:30: set A (F26), B1's alpha (F27), Gate 3
+Each question: why it matters, and which runs answer it. Updated Oct 31 16:40: Gate 3 final (F28). Oct 30 09:30: set A (F26), B1's alpha (F27), Gate 3
 interim (F28), Qwen3-8B (F29) and C13 (F30) are in; C16 running. Oct 30 04:00: C15 (F24) and B15 (F25);
 Oct 29 23:15: C11 and C12 (F22, F23); added C13 (Sol), C14 (exploratory).
 The runs of Oct 28–29:
@@ -49,10 +49,10 @@ The runs of Oct 28–29:
      read.
    - **Answered by B2's training** (loss by part as in S7, then behavior), not tonight.
 7. **Does training change behavior, not just loss?**
-   - **Answered in part (F28, interim):** LoRA follows 10 points fewer wrong hints [−16, −4] with the same no-hint
-     accuracy (Gate 3 met by the rule). But an independent one-line instruction in the prompt does as well (LoRA minus
-     prompt_only +3 [−1, +8]), and LoRA's false-disclosure candidates rise (+10 [+2, +18]) while the instruction's
-     fall (−9). Candidate cautionary claim, waiting on labels: fine-tuning for disclosure reduced hint-following no
+   - **Answered in part (F28, final):** all four trained versions follow fewer wrong hints with no-hint accuracy
+     within 3 points (Gate 3 met by the rule; LoRA −10 [−16, −4]). But an independent one-line instruction in the
+     prompt does as well or better (each version minus prompt_only +3 to +7, not pre-registered), and the LoRA
+     versions' false-disclosure candidates rise (+10 [+2, +18], +10 [+2, +19]) while the instruction's fall (−9). Candidate cautionary claim, waiting on labels: fine-tuning for disclosure reduced hint-following no
      more than an instruction, and may have taught the model to claim checks it didn't do.
 8. **One model?**
    - The mechanism is Olmo 3 7B Think only. Behavior (Gate 2) holds for 3 models.

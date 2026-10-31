@@ -48,12 +48,13 @@ Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
        accuracy.
      - Deployable vs oracle spans.
    - B2: a learned per-head bias.
-   - **Gate 3, interim (F28):** LoRA passes by the rule, and doesn't beat a one-line instruction (+3
-     [−1, +8]), and its false-disclosure candidates rise (+10 [+2, +18]) while the instruction's fall.
+   - **Gate 3, final (F28):** all four trained versions pass by the rule, none beats a one-line instruction
+     (each minus it +3 to +7, not pre-registered), the tags prediction isn't borne out, and the LoRA versions'
+     false-disclosure candidates rise (+10 [+2, +18], +10 [+2, +19]) while the instruction's fall.
      Candidate cautionary claim: fine-tuning for disclosure reduced hint-following no more than an
      instruction, and may have taught the model to claim checks it didn't do.
    - B1's alpha from set A (F27): 0.25 deployable, 0.5 oracle.
-   - **Missing:** the false-disclosure labels; three trained versions; B1's generation; B2 training.
+   - **Missing:** the false-disclosure labels; B1's generation; B2 training.
 7. **Related work** ([`RELATED_WORK.md`](RELATED_WORK.md)): CoT faithfulness; patching; ITI and PASTA;
    instruction hierarchy, ISE, StruQ and SecAlign; knowledge conflicts.
 8. **Limitations**

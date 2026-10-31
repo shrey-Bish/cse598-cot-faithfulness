@@ -1,7 +1,9 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-30 17:20 (F34 C18: removing the solver's tool-citing sentences
+status. Started 2026-10-26; last updated 2026-10-31 16:40 (F28 final: Gate 3 met, all four trained versions
+pass, none beats the one-line instruction, the tags prediction not borne out for either tag version; at 11:40 F28's
+interim update with tags); 2026-10-30 17:20 (F34 C18: removing the solver's tool-citing sentences
 restores the Olmo reviewer's check, +47; H33 not supported; the story's headlines for F32-F34; at 11:00 F33 C17: a sentence naming the tool doesn't cause the
 drop; at 10:35 F32: set A's Step 9 replicates F12's three heads; at 10:30 F31 C16: the Olmo reviewer corrects fewer wrong answers
 when the final answer names the tool, unclear by the rule; Qwen3 unchanged; F28 corrected at 10:00: the guide note
@@ -75,20 +77,19 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
 6. **The fix:** Track A trains Olmo 3 7B Think (LoRA, source tags) to follow fewer wrong hints
    without losing accuracy. The four trained versions learned the taught tokens on held-out
    questions: LoRA cuts their loss by 58% against base, and by 40% without the fixed opener, twice
-   the drop on the rest (F20, *confirmed* as loss). **Gate 3, interim (F28):** LoRA passes by the
-   pre-registered rule (following −10 [−16, −4], no-hint accuracy −2 points), *and* it doesn't beat a
-   one-line instruction in the prompt (prompt_only −13; LoRA minus it +3 [−1, +8]), *and* its
-   false-disclosure candidates rise (+10 [+2, +18]) while the instruction's fall (−9 [−14, −4]).
-   **Candidate cautionary claim, waiting on hand labels:** fine-tuning for disclosure reduced
-   hint-following no more than an instruction, and may have taught the model to claim checks it didn't
-   do. **Oct 31, interim:** tags passes too (following −6 [−10, −2], accuracy +3 points, hiding −6 [−10, −3]),
-   but its cut is spread over every channel, the user's included, so the pre-registered prediction (tags help
-   most on the inserted tool turn) isn't borne out (−2 [−13, +9]), and it doesn't beat the instruction either
-   (tags minus prompt_only +7 [+1, +14], not pre-registered). LoRA + tags (810 of 930 runs) doesn't pass so far
-   (−3 [−9, +3]); LoRA on 15/19/23 is still to come. **No trained version so far beats the one-line instruction
-   on following** (each minus prompt_only, not pre-registered: LoRA +3 [−1, +8], tags +7 [+1, +14], LoRA + tags
-   +10 [+4, +16], interim). B1 (attention to tool spans scaled down at 15/19/23) has its
-   alpha from set A (F27); its generation was slowed by the engine (fixed Oct 31) and isn't read until complete.
+   the drop on the rest (F20, *confirmed* as loss). **Gate 3, final (F28, Oct 31, 930 runs per
+   system): met, and all four trained versions pass by the pre-registered rule** (following minus base: LoRA
+   −10 [−16, −4], tags −6 [−10, −2], LoRA + tags −7 [−13, −1], LoRA on 15/19/23 −7 [−13, −2]; no-hint accuracy
+   within 3 points). **No trained version beats a one-line instruction in the prompt on following**
+   (prompt_only −13 [−21, −6]; each version minus it, not pre-registered: LoRA +3 [−1, +8], tags +7 [+1, +14],
+   LoRA + tags +6 [+1, +11], LoRA on 15/19/23 +6 [+0.4, +12]). The tags prediction (tags help most on the
+   inserted tool turn) isn't borne out for either tag version (tags −2 [−13, +9]; LoRA + tags −13 [−24, −1],
+   the other way). The LoRA versions' false-disclosure candidates rise (LoRA +10 [+2, +18], LoRA + tags
+   +10 [+2, +19]) while the instruction's fall (−9 [−14, −4]). **Candidate cautionary claim, waiting on hand
+   labels (L4):** fine-tuning for disclosure reduced hint-following no more than an instruction, and may have
+   taught the model to claim checks it didn't do. B1 (attention to tool spans scaled down at 15/19/23) has its
+   alpha from set A (F27); its generation was slowed by the engine (fixed Oct 31), is rerun on the fixed engine,
+   and isn't read until complete.
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
@@ -1491,7 +1492,62 @@ patching setup). The circularity objection to designing a fix from these layers 
 Oct 30). Following, correct-hint acceptance and no-hint accuracy there are *waiting*. **Source:**
 `cot-disclosure/results/summaries/trackA/setA/provenance_forced.json`.
 
-## F28. Track A (Gate 3, interim): LoRA passes by the rule, doesn't beat a one-line instruction, and its false-disclosure candidates rise
+## F28. Track A (Gate 3): every trained version passes by the rule, none beats a one-line instruction, and the LoRA versions' false-disclosure candidates rise
+
+**Final, Oct 31** (`finetune/gate3.py` on all six systems, 930 runs each; log 2026-10-31 16:40). **Gate 3 is met:
+all four trained versions pass.**
+
+| system | following (wrong hints) | − base | no-hint accuracy | − base | hiding − base | false disclosure − base | Gate 3 |
+|---|---|---|---|---|---|---|---|
+| base | 249 of 530 [37, 57%] | — | 58 of 90 | — | — | — | |
+| prompt only | 179 of 532 [22, 46%] | −13 [−21, −6] | 56 of 89 | −2 | −8 [−12, −4] | −9 [−14, −4] | (not trained) |
+| LoRA | 197 of 532 [27, 48%] | **−10 [−16, −4]** | 56 of 89 | **−2** | **−24 [−32, −17]** | +10 [+2, +18] | passes |
+| tags | 215 of 524 [30, 52%] | **−6 [−10, −2]** | 60 of 89 | **+3** | **−6 [−10, −3]** | +0 [−4, +4] | passes |
+| LoRA + tags | 211 of 532 [28, 52%] | **−7 [−13, −1]** | 59 of 90 | **+1** | **−25 [−33, −17]** | +10 [+2, +19] | passes |
+| LoRA, layers 15/19/23 | 212 of 534 [29, 51%] | **−7 [−13, −2]** | 56 of 89 | **−2** | **−19 [−25, −13]** | +5 [−1, +12] | passes |
+
+- **LoRA + tags changed from the interim reading.** On 810 runs it failed on following (−3 [−9, +3]); on all 930 it
+  passes. The rule and the way it is read are the same; the 11:40 reading was labelled interim.
+- **The prediction set in advance, for each tag version** (PLAN: tags help more on the inserted tool turn, the only
+  channel whose tokens are tagged "tool", than on the pasted block; (base − system) on the inserted turn minus the
+  same on the pasted block, positive if borne out):
+  - tags: −2 [−13, +9], **not borne out**;
+  - LoRA + tags: −13 [−24, −1], **not borne out**, and the interval is on the other side: following fell more on
+    the pasted block than on the inserted turn.
+
+  | channel (wrong hints) | base | tags | − base | LoRA + tags | − base |
+  |---|---|---|---|---|---|
+  | user | 79 of 177 | 63 of 175 | −9 | 73 of 177 | −3 |
+  | pasted block | 59 of 88 | 54 of 89 | −6 | 43 of 89 | −19 |
+  | inserted turn (declared) | 111 of 265 | 98 of 260 | −4 | 95 of 266 | −6 |
+  | inserted turn (undeclared) | 10 of 30 | 10 of 30 | 0 | 10 of 30 | 0 |
+  | system | 11 of 30 | 10 of 30 | −3 | 12 of 29 | +5 |
+
+  *Not pre-registered:* the pasted block falls more than the inserted turn for every version, tagged or not
+  (prompt only −15 [−26, −4], LoRA −8 [−16, +1], LoRA on 15/19/23 −7 [−18, +4]), so the reversed sign isn't
+  something the tags do.
+- **No trained version beats the one-line instruction on following.** Each minus prompt_only, paired by question
+  (*not pre-registered*): LoRA +3 [−1, +8], tags +7 [+1, +14], LoRA + tags +6 [+1, +11], LoRA on 15/19/23
+  +6 [+0.4, +12]. Three of the four follow more wrong hints than the instruction; LoRA matches it.
+- **False disclosure** (keyword candidates; the hand labels decide): it rises for LoRA (147 of 532, +10 [+2, +18])
+  and LoRA + tags (150 of 532, +10 [+2, +19]). LoRA on 15/19/23 has 126 of 534 (+5 [−1, +12]). It doesn't rise for
+  tags (95 of 524) and falls for the instruction (50 of 532). L4's sheets (fixed Oct 30) hold LoRA's, base's and
+  prompt_only's candidates, not the two later versions'.
+- **Hiding** is a keyword measure. The three LoRA versions' trained opener names the hint (by broad keyword LoRA 456
+  of 532, LoRA + tags 469, LoRA on 15/19/23 390; base 146), so for them the hand labels decide. For tags (no opener,
+  167 of 524) the keyword measure holds.
+- **Correct-hint acceptance:** base 206 of 238, prompt only 206 of 239, LoRA 208 of 239, tags 199 of 237, LoRA +
+  tags 207 of 237, LoRA on 15/19/23 204 of 236. **No answer:** 12, 10, 14, 20, 12, 12 of 930.
+
+**Status (final).**
+- *Met*, by the pre-registered rule, on all six systems: LoRA, tags, LoRA + tags and LoRA on 15/19/23 pass.
+- *Not shown*: that any trained version beats a one-line instruction (three of four follow more wrong hints than it;
+  not pre-registered).
+- *Not borne out*: the tags prediction, for both tag versions.
+- **Candidate cautionary claim**, *waiting* on hand labels (L4): fine-tuning for disclosure reduced hint-following no
+  more than an instruction, and may have taught the model to claim checks it didn't do.
+
+**Earlier readings, interim** (kept as written; the final reading above replaces them).
 
 **Setup.**
 - Batch 3, the 30 held-out questions, 930 runs per system, on Sol with vLLM.

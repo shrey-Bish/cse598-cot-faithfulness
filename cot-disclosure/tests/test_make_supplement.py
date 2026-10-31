@@ -374,3 +374,28 @@ def test_gate3_table_takes_a_system_with_too_few_questions(tmp_path):
     row = next(r for r in md if r[0] == "LoRA, layers 15/19/23")
     assert row[1] == "2 of 7 (too few questions)" and row[2] == "+10 (too few questions)" and row[-1] == "too few questions"
     assert next(r for r in rows if r["system"] == "LoRA, layers 15/19/23")["following_minus_base_low"] is None
+
+
+def test_gate3_table_is_interim_only_while_a_system_is_short(tmp_path):
+    """Oct 31 16:40: the title said interim after all six systems had their 930 runs; it now follows the data."""
+    d = tmp_path / "trackA" / "gpu" / "eval"
+    d.mkdir(parents=True)
+    r = {"k": 3, "n": 9, "rate": 0.33, "wilson": [0.12, 0.65], "clustered": [0.2, 0.5], "questions": 30}
+    diff = {"diff": -0.1, "interval": [-0.16, -0.04], "questions": 30}
+    system = {"runs": 930, "no_answer": 0, "following": r, "following_by_channel": {"user": r}, "nohint_accuracy": r,
+              "hiding": {"of_wrong_hint_runs": r}, "false_disclosure_candidates": r, "correct_hint_agreement": r,
+              "vs_base": {k: diff for k in ("following_vs_base", "nohint_accuracy_vs_base", "hiding_vs_base",
+                                            "false_disclosure_vs_base")}}
+    names = ("base", "prompt_only", "lora", "tags", "lora_tags", "lora_attn3")
+    titles = []
+
+    class T:
+        def write(self, name, title, *args, **kwargs):
+            if name == "gate3":
+                titles.append(title)
+    for systems in ({s: system for s in names}, {**{s: system for s in names}, "lora_tags": {**system, "runs": 810}},
+                    {s: system for s in names[:3]}):
+        (d / "eval_report.json").write_text(json.dumps({"systems": systems}))
+        (d / "gate3.json").write_text(json.dumps({"gate3": "met", "rule": "r", "versions": {}}))
+        ms.table_gate3(T(), tmp_path)
+    assert titles == ["Track A, Gate 3", "Track A, Gate 3 (interim)", "Track A, Gate 3 (interim)"]

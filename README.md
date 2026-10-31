@@ -1,6 +1,6 @@
 # Do Thinking Modes Make Chain-of-Thought More Honest?
 
-CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-10-30.
+CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-10-31.
 
 We slip a wrong hint into a multiple-choice question, from the user or from a tool, and ask two things: does the hint
 change the model's answer, and does the model say so? Thinking models return their private reasoning and their final
@@ -23,10 +23,10 @@ Details, numbers and status for each line are in [`docs/FINDINGS.md`](docs/FINDI
 4. **Downstream, a reviewer shown the tool's trace defers to it, but only in one model family** (Olmo, 2 of 6
    reviewers). A checker that never sees the tool held every time. The deferring reviewer follows the solver's
    citation of the tool's letter as authority (C16–C18).
-5. **The fix, so far:** fine-tuning passes Gate 3 by its rule (LoRA; and source tags, whose cut isn't specific to
-   the tool's tokens), but no trained version so far beats a one-line instruction on following, and LoRA's
-   false-disclosure candidates rise (hand labels pending; F28). Inference-time attention scaling (B1) and a second model's mechanism (Qwen3-8B) are under
-   way.
+5. **The fix, so far:** all four fine-tuned versions pass Gate 3 by its rule, but none beats a one-line
+   instruction on following, the source tags don't act where the tool's tokens are, and the LoRA versions'
+   false-disclosure candidates rise (hand labels pending; F28). Inference-time attention scaling (B1) and a second
+   model's mechanism (Qwen3-8B) are under way.
 
 ## Where to start
 

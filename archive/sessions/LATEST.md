@@ -1,116 +1,169 @@
-# Session log: B1's stricter path, the bench as the gate, and the push (2026-10-31 12:40 MST)
+# Session log: Gate 3 final on all six systems; B1's first-engine runs counted (2026-10-31 16:40 MST)
 
-Project: CSE 598 Group 10, Track A (B1). **By:** Ritik. No calls and no GPU. Ritik's decisions on the 11:50 log, item
-by item.
+Project: CSE 598 Group 10, Track A. **By:** Ritik. No calls and no GPU. This ran on the Mac, on the runs files Ritik
+copied back from Sol.
 
-## 1. Pushed
+## 1. Pushed (Ritik's OK on the 12:40 log)
 
-`c6f4d31` was pushed, and `main`, `trackB-main` and `trackC-main` were fast-forwarded to it and pushed:
-`a752db5..c6f4d31` on all four.
+`4222ff6` is on `trackA-nosol`, `main`, `trackB-main` and `trackC-main` (`c6f4d31..4222ff6` on all four).
 - Checks:
-  - the full test suite, 648 passed;
-  - the pre-push check passed (and passed again as the hook);
-  - author and committer Ritik, no attribution lines;
-  - the three branches were ancestors of `c6f4d31`.
-- Sol can update now (11:50 log §g, step 1): the L4 sheets, the bench and Qwen3-8B.
-- **Not the B1 resubmits** (§5 below).
+  - the full test suite on `4222ff6`: 649 passed;
+  - the pre-push check passed, by hand and again as the hook;
+  - author and committer are Ritik, with no attribution lines;
+  - the three other branches were ancestors of `4222ff6`.
+- Sol updates once, straight to `4222ff6`. Beyond `c6f4d31` it changes no `.sh`, `.sbatch` or `.conf` file, so the
+  11:50 review still holds. The lines are the 11:50 log's §g with `4222ff6` as the expected commit.
 
-## 2. The stricter path, written into B1's rule log before any result was read
+## 2. What Ritik reported (Sol, `sacct` since 06:00)
 
-**The check Ritik asked for first** (the runs files, numbers only): the first engine gave every run the full
-32,768-token budget, prompt and reply.
-- Each run's budget is `CAP_TOTAL − prompt tokens` (`finetune/continuation.py`). The old `Batched` generated
-  `max(max_tokens)` new tokens. Its `reserve=16000` only decided which requests could share a batch.
-- In the runs: 41 of 174 runs went past 16,000 tokens, 8 past 24,000, the longest 32,127. The one run that hit the
-  cap ended at prompt 641 + reply 32,127 = 32,768.
-- No answer: **1 of 174**, that run (`hit the token cap`).
+| job | what | state | elapsed |
+|---|---|---|---|
+| 66989506, 66989507 | provenance_gen 3/4, 4/4 | TIMEOUT | 6:00:11, 6:00:28 |
+| 66989534 | eval lora_tags 2/2 | COMPLETED | 3:09:12 |
+| 66989537, 66989539 | eval lora_attn3 1/2, 2/2 | COMPLETED | 3:17:06, 3:13:45 |
+| 122956 | provenance_bench | PENDING | — |
+| 123022 | qwen8b_step3 | PENDING | — |
 
-**The deviation**, appended as §4 to `archive/sessions/2026-10-30/2026-10-30_1715_A_b1-generation-rule.md`:
-1. **Every configuration is rerun on the fixed engine under its own name:** `prov-a1-v2`,
-   `prov-deployable-a0.25-v2`, `prov-oracle-a0.5-v2`. All 210 alpha = 1 runs are included.
-2. **The primary comparison uses those runs only;** §1–§2 of the rule are unchanged, with `prov-a1-v2` as alpha = 1.
-3. **The robustness check, labelled so:** the first engine's alpha = 1 runs against `prov-a1-v2` on following,
-   acceptance and no-hint accuracy. Old minus new, paired by question; expected no difference.
-4. **Set aside:** the first engine's deployable runs (counts only).
-5. **The gate** (§3 below).
+Copied to the Mac: every `eval_*_runs.jsonl`, and the first engine's `eval_prov-*_runs.jsonl`.
 
-The deviation also says what has been looked at so far:
-- run and token counts;
-- times;
-- finish reasons;
-- the no-answer count.
+## 3. What ran
 
-No letter has been compared with a hint. The supplement lists it among the curated deviations, checked against the
-log's text.
+```bash
+cd cot-disclosure
+../.venv/bin/python finetune/gate3.py --out results/trackA/gpu/eval
+../.venv/bin/python tools/export_summaries.py && ../.venv/bin/python tools/export_summaries.py --check   # numbers-only
+```
 
-**The code** (`finetune/gpu/provenance_job.py`):
-- `configs()` adds the engine's tag: `ENGINE_TAG = "v2"`, so names are `prov-a1-v2` etc.; `tag=None` gives the
-  first engine's plain names.
-  - The file names can't collide: `runs_files("prov-a1")` globs `eval_prov-a1_p*of*`, which `eval_prov-a1-v2_…`
-    doesn't match.
-  - Records carry `engine_tag` and the batching settings.
-- `report()` reads the `-v2` configurations only, against `prov-a1-v2`. Beside them:
-  - `robustness_engine_check`: the three measures, old, new and old − new, with its label;
-  - `set_aside`: the first engine's other runs, by count.
-- B2's gate versions, when they run, are `-v2` too.
+`results/trackA/gpu/eval/`: 12 part files of 465 runs each, so 930 runs for each of the six systems.
 
-**Tests:** the generate/report test uses the `-v2` file names and fields. The report test has old and new systems
-and checks the split, the label and the set-aside counts. The alpha-rule test checks the names.
+## 4. Gate 3, final (`gate3_table.md`)
 
-## 3. The bench is the gate
+| system | following (wrong hints) | − base | no-hint accuracy | − base | hiding − base | false disclosure − base | inserted − pasted (base − system) | Gate 3 |
+|---|---|---|---|---|---|---|---|---|
+| base | 249 of 530 [37, 57%] | — | 58 of 90 | — | — | — | — | |
+| prompt only | 179 of 532 [22, 46%] | −13 [−21, −6] | 56 of 89 | −2 | −8 [−12, −4] | −9 [−14, −4] | −15 [−26, −4] | (not trained) |
+| LoRA | 197 of 532 [27, 48%] | −10 [−16, −4] | 56 of 89 | −2 | −24 [−32, −17] | +10 [+2, +18] | −8 [−16, +1] | passes |
+| tags | 215 of 524 [30, 52%] | −6 [−10, −2] | 60 of 89 | +3 | −6 [−10, −3] | +0 [−4, +4] | −2 [−13, +9] | passes |
+| LoRA + tags | 211 of 532 [28, 52%] | −7 [−13, −1] | 59 of 90 | +1 | −25 [−33, −17] | +10 [+2, +19] | −13 [−24, −1] | passes |
+| LoRA, layers 15/19/23 | 212 of 534 [29, 51%] | −7 [−13, −2] | 56 of 89 | −2 | −19 [−25, −13] | +5 [−1, +12] | −7 [−18, +4] | passes |
 
-- **`GATE = 1.5`.** `bench_gate(res)` takes the bench's measured tokens/s, after over before, at alpha 1 and at the
-  deployable alpha. It passes when the smaller ratio is at least 1.5.
-- **`plan` prints no lines unless the gate passed.** Without a bench it stops ("the bench is the gate"). With a
-  failed gate it stops with "stop and report before any resubmit". `--no-gate` is a preview only.
-- **The bench run from `c6f4d31` already writes everything the gate needs,** since `plan` recomputes it from
-  bench.json's `engines`. The bench in this commit also prints it in its line.
-- Tested: no bench → stop; 2.50x and 1.48x → stop; 1.50x → lines; one alpha only → not passed.
+The rule was fixed before any result (PLAN; `eval.report()` since Oct 25; `finetune/gate3.py`). A trained version
+passes when three things hold:
+- its following minus base has a 95% interval (clustered by question) below 0;
+- its no-hint accuracy is within 5 points of base;
+- its hiding minus base has an interval reaching 0 or below.
 
-**What the gate measures:** the bench's before/after runs, 16 set A runs capped at 1,024 tokens. These show the
-batching (the old scheduler's batches of ~1–2 against batches of up to 8) more than the long-reply effect. The
-full-length gain is in the bench's projection, which `plan` uses as its rate.
+Gate 3 is met if at least one version passes.
 
-## 4. The plan, with the alpha = 1 rerun (a preview; the real one after the bench)
+## 5. The reading, by the rule
 
-A preview on the Mac's copies, at the projected 60 tokens/s, without the gate (`--no-gate`):
-- **630 runs**: 3 configurations × 210, alpha = 1 rerun included;
-- mean reply 12,175 tokens (the finished runs' mean × 1.15);
-- **10 parts of 63 runs, ~3.7 h each** (submit.sh's limit 5:00);
-- **~37 GPU-h** (against ~27 without the alpha = 1 rerun).
+1. **Gate 3 is met: all four trained versions pass all three criteria.**
+2. **LoRA + tags changed from the interim reading.** At 11:40, on 810 runs, it failed on following (−3 [−9, +3]).
+   On all 930 runs it passes (−7 [−13, −1]). The rule and how it is read are unchanged; the 11:40 reading was
+   labelled interim.
+3. **The prediction set in advance, for each tag version.** PLAN predicted that tags help more on the inserted tool
+   turn (the only channel whose tokens are tagged "tool") than on the pasted block. The statistic is (base − system)
+   on the inserted turn minus the same on the pasted block, bootstrapped over questions; it is positive if the
+   prediction is borne out.
+   - tags: −2 [−13, +9], **not borne out**;
+   - LoRA + tags: −13 [−24, −1], **not borne out**, with the interval on the other side: following fell more on the
+     pasted block.
 
-The real lines come from `plan` on Sol, which needs three things first:
-- this commit pulled;
-- the bench done;
-- 3/4 and 4/4 stopped.
+   | channel (wrong hints) | base | tags | − base (points) | LoRA + tags | − base (points) |
+   |---|---|---|---|---|---|
+   | user | 79 of 177 | 63 of 175 | −9 | 73 of 177 | −3 |
+   | pasted block | 59 of 88 | 54 of 89 | −6 | 43 of 89 | −19 |
+   | inserted turn (declared) | 111 of 265 | 98 of 260 | −4 | 95 of 266 | −6 |
+   | inserted turn (undeclared) | 10 of 30 | 10 of 30 | 0 | 10 of 30 | 0 |
+   | system | 11 of 30 | 10 of 30 | −3 | 12 of 29 | +5 |
 
-`plan` then uses the bench's rate and its gate.
+   *Not pre-registered:* the pasted block falls more than the inserted turn for every version, tagged or not:
+   - prompt only −15 [−26, −4] (pasted 36 of 90, −27 points);
+   - LoRA −8 [−16, +1] (pasted 43 of 89, −19);
+   - LoRA on 15/19/23 −7 [−18, +4] (pasted 45 of 87, −15).
 
-## 5. Sol: the order changes in one place
+   So the reversed sign isn't something the tags do.
+4. **No trained version beats the one-line instruction on following.** Each minus prompt_only, paired by question,
+   `eval.diff`; *not pre-registered*:
 
-- **Steps 1–4 of the 11:50 log stand,** from `c6f4d31`: the update, L4's sheets, the bench, Qwen3-8B.
-- **Don't submit `provenance_gen` from `c6f4d31`.** It has the fixed engine but not the `-v2` names, so its runs
-  would go into the first engine's files.
-- **Before step 5, pull this commit:**
-  ```bash
-  cd /scratch/ragarw68/cse598-cot-faithfulness
-  git pull --ff-only origin trackA-nosol && git log -1 --format='%h %s' | cut -c1-80   # expect this commit
-  ```
-- **Then step 5:**
-  ```bash
-  "$TRACKA_PY" cot-disclosure/finetune/gpu/provenance_job.py plan --out /scratch/ragarw68/trackA --alpha-from $F
-  ```
-  If the gate fails, it prints the ratios and stops. Then send them to me; nothing is submitted.
+   | version | minus prompt_only |
+   |---|---|
+   | LoRA | +3 [−1, +8] |
+   | tags | +7 [+1, +14] |
+   | LoRA + tags | +6 [+1, +11] (interim at 11:40: +10 [+4, +16]) |
+   | LoRA on 15/19/23 | +6 [+0.4, +12] |
 
-## 6. Gate 3's story line
+   Three of the four follow more wrong hints than the instruction; LoRA matches it.
+5. **False disclosure** (keyword candidates; the hand labels decide):
+   - it rises for LoRA (147 of 532, +10 [+2, +18]) and LoRA + tags (150 of 532, +10 [+2, +19]);
+   - LoRA on 15/19/23 has 126 of 534 (+5 [−1, +12]);
+   - it doesn't rise for tags (95 of 524, +0 [−4, +4]);
+   - it falls for the instruction (50 of 532, −9 [−14, −4]).
+6. **Hiding** is a keyword measure. The LoRA versions' trained opener names the hint (by broad keyword: LoRA 456 of
+   532, LoRA + tags 469, LoRA on 15/19/23 390; base 146), so for them the hand labels decide. For tags, which has no
+   opener (167 of 524), the keyword measure holds.
+7. **Correct-hint acceptance:** base 206 of 238, prompt only 206 of 239, LoRA 208 of 239, tags 199 of 237, LoRA +
+   tags 207 of 237, LoRA on 15/19/23 204 of 236.
+8. **No answer:** base 12, prompt only 10, LoRA 14, tags 20, LoRA + tags 12, LoRA on 15/19/23 12, each of 930.
 
-FINDINGS story item 6 and the root README now say: **no trained version so far beats the one-line instruction on
-following**. Each minus prompt_only, not pre-registered:
-- LoRA +3 [−1, +8];
-- tags +7 [+1, +14];
-- LoRA + tags +10 [+4, +16], interim.
+## 6. B1: the first engine's runs, counted (run IDs and status only; nothing read)
 
-## 7. Checks and commit
+Parts 3/4 and 4/4 ended in TIMEOUT at 6:00, so the first engine's runs are now final:
 
-Listed in the commit message: the tests, the link check, the supplement, the Gantt. Committed as Ritik. **Pushing
-waits for Ritik's OK;** Sol's B1 resubmits need it.
+| configuration | p1 | p2 | p3 | p4 | runs | use (rule log §4) |
+|---|---|---|---|---|---|---|
+| `prov-a1` | 56 | 23 | 49 | 49 | **177** | the robustness check's old side |
+| `prov-deployable-a0.25` | 2 | — | 12 | 3 | **17** | set aside, counts only |
+| `prov-oracle-a0.5` | — | — | — | — | 0 | — |
+
+- Every record has status `ok` and none has an `engine_tag`.
+- These counts are appended to B1's rule log as §5 (`archive/sessions/2026-10-30/2026-10-30_1715_A_b1-generation-rule.md`).
+- `report` takes all 177 alpha = 1 runs.
+
+## 7. Corrections
+
+- **"The 174 alpha = 1 runs."** This phrase was in Ritik's 12:40 decision text and in my 12:40 reply, TODO A30 and
+  the supplement's DEVIATIONS line. The budget check's 174 runs were 172 at alpha = 1 and 2 deployable. The budget
+  check's own numbers (41 of 174 past 16,000; no answer 1 of 174) were stated as runs and stand.
+  - The alpha = 1 count is now 177.
+  - TODO and DEVIATIONS are fixed.
+  - The rule log's §5 says so.
+- **The 11:40 log's channel table:** the system row said −1, which is the change in count. In points it is −3
+  (11 → 10 of 30). It is fixed in that log, with a note. FINDINGS never carried that row.
+
+## 8. What changed
+
+- **FINDINGS F28:**
+  - a new title, and the final block first (table, prediction per tag version, each minus prompt_only, false
+    disclosure, hiding, acceptance, status);
+  - the earlier interim blocks kept as written, under "Earlier readings, interim";
+  - story item 6 and the header updated.
+- **README:** story line 5.
+- **PLAN:** E3–E6 and an Oct 31 line.
+- **Paper docs:** CLAIMS 1.5, OUTLINE (Gate 3; "three trained versions" dropped from Missing), REVIEWER_QUESTIONS 7.
+- **TODO:** A16 and A19 done; A30 (the counts), A36, G3 (done: met, final); L4 (the open question below).
+- **`tools/make_supplement.py`:**
+  - the Gate 3 table is called interim only when a system is missing or has fewer than 930 runs;
+  - its note now covers each version minus prompt_only;
+  - the tags-prediction, Gate 3 and false-disclosure entries are updated, and read this log.
+- **Regenerated:** `results/summaries/trackA/gpu/eval/*`, the supplement, STATUS, the Gantt.
+
+## 9. Open for Ritik
+
+- **L4's sheets** (fixed Oct 30) hold LoRA's, base's and prompt_only's false-disclosure candidates. They don't hold
+  LoRA + tags' 150 or LoRA on 15/19/23's 126. The cautionary claim now has two LoRA versions whose candidates rise.
+  Whether to label LoRA + tags' candidates too, as a third sheet, is your call.
+- **Qwen3-8B Step 10** isn't in the `sacct` list. The 11:50 log's step 4 submits it after Step 3:
+  `$S qwen8b_step10 --estimate 4.3 --dependency=afterok:123022`.
+- **B1:** waiting on the bench (122956), then `plan` (the gate inside it).
+
+## 10. Checks and commit
+
+- **Tests:** the full suite, 650 passed. One test is new: the Gate 3 table is called interim only while a system is
+  missing or short. It fails on the committed code.
+- **The tools:**
+  - `check_links`: 0 broken links;
+  - `make_supplement --check`: numbers-only; 23 pre-registrations, none unverified; the same 3 mismatches and 12
+    source problems as before;
+  - `export_summaries --check`: numbers-only.
+- **Commit:** as Ritik. **Not pushed:** pushing waits for Ritik's OK.

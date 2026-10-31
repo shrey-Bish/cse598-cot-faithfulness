@@ -1,6 +1,7 @@
 # Plan: weeks 11–16 (CSE 598, Group 10)
 
-Last updated: 2026-10-30 09:30 MST (Sol's night all done: set A replicates F26, B1's alpha 0.25 / 0.5 F27, Gate 3
+Last updated: 2026-10-31 16:40 MST (batch 3 complete, Gate 3 final F28: all four trained versions pass, none beats
+the one-line instruction on following); 2026-10-30 09:30 (Sol's night all done: set A replicates F26, B1's alpha 0.25 / 0.5 F27, Gate 3
 interim met by LoRA F28, Qwen3-8B F29, C13 F30; the 10 jobs submitted in Ritik's order; C16 pre-registered and
 running; the QoS re-checked; 04:00 B15 done, F25; C15 done, F24; Oct 29 23:00 Ritik's decisions of 22:20: the order of the 10 unsubmitted Sol jobs, B2's LR_GATE
 1e-2 approved, H23 tested on C15; C14 done, C15 and B15 pre-registered and run on Voyager; the Gate 3 command;
@@ -281,12 +282,12 @@ replaces these estimates with measured ones.
 | S5 | Train LoRA + tags: job 66759772 failed (no version reached run.sh); 66862721 done Oct 28 in 3:25:40; epoch 2, validation loss 0.18723 → 0.18598 | 3.65 (3.56–3.74) | 5:00 | S6 | after S3 | S1 |
 | E1 | Evaluate base, 930 generations: done Oct 29 on vLLM (66932942/44, 2 parts of 465 runs, 3:22 each, ~470 tokens/s) | 6.7 measured | 5:30 | E2 | Oct 29 | code (A10) |
 | E2 | Evaluate prompt-only: done Oct 29 night (vLLM, 66932945/46, 2:54 and 3:02) | ~7 | 5:30 | E1, E3 | Oct 29 | A10 |
-| E3 | Evaluate LoRA only: done Oct 30 (vLLM, merged; 66932947/48, 2:59 and 3:16); Gate 3 met by it, interim (F28) | ~7 | 5:30 | E2, E4 | after E1 | S3 |
-| E4 | Evaluate LoRA + tags (vLLM, the tag folded, prompts as embeddings; submitted Oct 30, Ritik's order) | ~7 | 5:30 | E3, E5 | after E2 | S5 |
-| E5 | Evaluate tags only (same; submitted Oct 30, Ritik's order) | ~7 | 5:30 | E4 | after E3 | S4 |
+| E3 | Evaluate LoRA only: done Oct 30 (vLLM, merged; 66932947/48, 2:59 and 3:16); passes Gate 3 (F28, final Oct 31) | ~7 | 5:30 | E2, E4 | after E1 | S3 |
+| E4 | Evaluate LoRA + tags (vLLM, the tag folded, prompts as embeddings): done Oct 31 (66989508/534; part 2 3:09); passes Gate 3 (F28) | ~7 | 5:30 | E3, E5 | after E2 | S5 |
+| E5 | Evaluate tags only (same): done Oct 30 (66989495/501); passes Gate 3 (F28) | ~7 | 5:30 | E4 | after E3 | S4 |
 | L1 | Look inside the best version: Step 3 probes (vLLM), Step 9, Step 10 | 4–10 (1–2 jobs) | 8:00 | S6 | after E1–E5 | E1–E5 |
 | S6 | The fourth version: train (LoRA on the attention of layers 15, 19, 23): job 66759822 failed like S5; 66862726 done Oct 28 in 2:44:43; epoch 2, validation loss 0.19654 → 0.19278; evaluated last | 2.99 (2.92–3.07) | 4:00 | S5 | after S4 | S1 |
-| E6 | Evaluate the fourth version (vLLM; submitted Oct 30, Ritik's order) | ~7 | 5:30 | — | after S6 | S6 |
+| E6 | Evaluate the fourth version (vLLM): done Oct 31 (66989537/539, 3:17 and 3:14); passes Gate 3 (F28) | ~7 | 5:30 | — | after S6 | S6 |
 | S7 | Validation loss by part (Oct 28, Ritik): base + both epochs of all four versions (decided Oct 28 21:30) on the 156 validation examples, each split into the taught tokens (80,010 of 1,243,692: 6.4%) and the rest; no vLLM (`finetune/val_loss.py`). 66865939 done Oct 28 in 0:37:09 (all four versions) | 0.62 measured (0.75–1.3 inferred) | 2:00 | any | after S5, S6 | S3–S6 |
 | B-Q8 | Track B: Qwen3-8B (replaces Ollama), 1,620 runs, core cells first. get_qwen8b 66879245 done (1:31); trackb_qwen8b 66879362 failed in vLLM's start (Oct 29, 13:39); now Hugging Face (`--engine hf`, the default), ~6.7M tokens at ~120–190 tokens/s | 10–15 (2 jobs) | 8:00 | any | Oct 29 | the snapshot |
 | S9A | Set A, Step 9 (attention to the hint) on set A's runs (Oct 29: questions not used to find the readout; `--runs-from`, `--items-from`, `--step3-from`) | ≤1 | as Step 9 | any | after set A's runs (Voyager, Oct 29) | set A |
@@ -306,6 +307,8 @@ summary; if both spans come out at alpha = 1, raise it first. When batch 3's fil
 **Oct 30:** every Oct 29 job ended with exit 0; alpha came out 0.25 (deployable) and 0.5 (oracle), not 1, so all 10
 went in at once in this order (the queue was empty; 2 run at a time). Gate 3, interim, on base, prompt_only and LoRA:
 met by LoRA (F28), with the guide note doing as well in the prompt and LoRA's false-disclosure candidates up.
+**Oct 31:** batch 3 complete (930 runs per system). Gate 3, final: met, all four trained versions pass; none beats the
+one-line instruction on following (not pre-registered); the tags prediction isn't borne out for either tag version (F28).
 
 With two jobs at a time the running time is about half the GPU hours. On Hugging Face (Oct 29),
 E1–E6 are 163–359 GPU h (mid 230): 3.5–7.5 days of both slots, plus Qwen3-8B (10–15), set A's

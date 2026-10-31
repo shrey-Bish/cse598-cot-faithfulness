@@ -1,7 +1,8 @@
 # Candidate claims: evidence, status, objection, what settles it
 
 Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md) (Oct 29; updated 23:15 with C11–C14, Oct
-30 01:10 with C15, 04:00 with B15, 09:30 with set A, B1's alpha, Gate 3 interim, Qwen3-8B and C13). Status words as in
+30 01:10 with C15, 04:00 with B15, 09:30 with set A, B1's alpha, Gate 3 interim, Qwen3-8B and C13; Oct 31 16:40 with
+Gate 3 final). Status words as in
 FINDINGS: *confirmed* (measured as stated, the interval excludes no effect), *tentative* (direction
 there, interval includes 0 or a confound remains), *waiting* (the run is going or planned).
 `[TONIGHT: ...]` marks a number tonight's runs fill in.
@@ -70,13 +71,17 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
     [−0.1527, −0.1176] (−40%); the rest −19%.
   - LoRA on the attention of layers 15/19/23 only (1.6 M parameters, 3.9% of full LoRA's) reaches
     85–90% of that drop.
-- **Status:** *confirmed* as teacher-forced loss on held-out questions. **Behavior, interim (F28): Gate 3 is met
-  by LoRA** (following −10 [−16, −4], no-hint accuracy −2 points, hiding −24). LoRA on 15/19/23 is still running.
+- **Status:** *confirmed* as teacher-forced loss on held-out questions. **Behavior, final (F28, Oct 31): Gate 3 is
+  met, and all four trained versions pass** (following − base: LoRA −10 [−16, −4], tags −6 [−10, −2], LoRA + tags
+  −7 [−13, −1], LoRA on 15/19/23 −7 [−13, −2]; no-hint accuracy within 3 points).
 - **Strongest objection:** loss is not behavior. Half the taught drop is a memorized opener. Now also, from Gate 3
   (F28):
-  - LoRA passes by the pre-registered rule, *and* it doesn't beat an independent one-line instruction in the prompt
-    (prompt_only −13; LoRA minus it +3 [−1, +8]);
-  - *and* its false-disclosure candidates rise (+10 [+2, +18]) while the instruction's fall (−9 [−14, −4]).
+  - every version passes by the pre-registered rule, *and* none beats an independent one-line instruction in the
+    prompt (prompt_only −13; each minus it, not pre-registered: LoRA +3 [−1, +8], tags +7 [+1, +14], LoRA + tags
+    +6 [+1, +11], LoRA on 15/19/23 +6 [+0.4, +12]);
+  - *and* the LoRA versions' false-disclosure candidates rise (LoRA +10 [+2, +18], LoRA + tags +10 [+2, +19]) while
+    the instruction's fall (−9 [−14, −4]);
+  - *and* the tags prediction (more help on the inserted tool turn) isn't borne out for either tag version.
 - **Candidate cautionary claim (waiting on hand labels):** fine-tuning for disclosure reduced hint-following no more
   than an instruction, and may have taught the model to claim checks it didn't do. The labels of LoRA's
   false-disclosure candidates go first in the queue.
