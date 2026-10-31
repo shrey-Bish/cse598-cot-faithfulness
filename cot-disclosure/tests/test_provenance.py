@@ -217,6 +217,7 @@ def test_a_stop_ends_the_batch_after_its_round(tiny):
     assert gen.rounds == 1 and done["finish"] == "length" and done["usage"]["completion_tokens"] == 2
     assert cut["finish"] == "error" and pj.Batched.STOPPED in cut["error"]
 
+
 def test_the_alpha_rule():
     from finetune.gpu import provenance_job as pj
 
@@ -227,9 +228,10 @@ def test_the_alpha_rule():
     c = pj.choose_alpha(entry)
     assert c["alpha"] == 0.25 and 0.0 not in c["eligible"]                  # 0 loses the correct hint; tie -> milder
     assert pj.choose_alpha({"by_alpha": {"0.5": e(-0.1, -0.01, 0.0)}})["alpha"] == 1.0
-    assert pj.configs({"deployable": 0.25, "oracle": 0.1}) == [("prov-a1", "deployable", 1.0),
-                                                               ("prov-deployable-a0.25", "deployable", 0.25),
-                                                               ("prov-oracle-a0.1", "oracle", 0.1)]
+    assert pj.configs({"deployable": 0.25, "oracle": 0.1}) == [("prov-a1-v2", "deployable", 1.0),       # Oct 31: the fixed
+                                                               ("prov-deployable-a0.25-v2", "deployable", 0.25),  # engine
+                                                               ("prov-oracle-a0.1-v2", "oracle", 0.1)]
+    assert [c[0] for c in pj.configs({"deployable": 0.25}, tag=None)] == ["prov-a1", "prov-deployable-a0.25"]
 
 
 # ---------------------------------------------------------------- B2: the gate versions

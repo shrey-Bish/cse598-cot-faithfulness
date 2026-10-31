@@ -14,12 +14,15 @@ generate   Generation on the held-out 30 MMLU-Pro questions (finetune/eval.py's 
            (inserted_study_guide). Batched Hugging Face generation: batches of up to 8 that fit the
            key/value cache at full length, and finished rows leave the batch every 512 tokens (Oct 31).
 report     generate's measures per configuration and against alpha = 1 (paired by question), the
-           trade-off figure (wrong-hint following against correct-hint acceptance across alpha).
+           trade-off figure (wrong-hint following against correct-hint acceptance across alpha). Oct 31: on the
+           fixed engine's configurations only (prov-a1-v2, ...); the first engine's alpha = 1 runs (prov-a1) are
+           a robustness check beside it, old minus new, labelled so; its other runs are set aside.
 bench      Speed only, on set A's questions (never the 30): decode time per step by batch and context, and
            the engine before (Batched as of BEFORE, from git) and after, at alpha = 1 and the deployable
            alpha, on capped runs; then a full-length projection for the runs left. No answer is read.
-plan       The resubmit lines: the runs left per configuration, split by question into parts that each fit
-           the time limit at the bench's projected rate.
+plan       The resubmit lines: the runs left per configuration (alpha = 1 rerun included), split by question
+           into parts that each fit the time limit at the bench's projected rate; none unless the bench's gate
+           passed (the new engine at least GATE x the old one's tokens/s).
 
 The rule for alpha (written Oct 29, before any set A number exists), per span, at cut (ii):
   dW(a) = mean over cuts of P_a(W) - P_1(W) on the hinted prompt; dO(a) = the same for P(O);
@@ -78,6 +81,9 @@ KV_GIB = 48.0                        # a batch's key/value cache at full length:
 SHRINK_EVERY = 512                   # tokens between a batch's checks for rows that ended
 PREFILL_CHUNK = 4096                 # bench: long contexts are prefilled in chunks (the grid only)
 BEFORE = "a752db5"                   # the bench's "before": Batched as it ran on Sol, Oct 30-31
+ENGINE_TAG = "v2"                    # Oct 31 (Ritik): every configuration rerun on the fixed engine under its own name,
+                                     # prov-a1-v2 etc.; the first engine's files (plain names) are never appended to
+GATE = 1.5                           # Oct 31 (Ritik): no resubmit unless the bench's new engine is >= 1.5x the old one
 ELIGIBLE_DC = -0.05
 TIE = 0.01
 _stop = {"asked": False}
@@ -539,12 +545,14 @@ def gen_jobs(part=None, wordings=GEN_WORDINGS, wrong_runs=WRONG_RUNS, qs=None):
     return jobs, pasted
 
 
-def configs(chosen, extra_alphas=()):
-    """[(system name, span, alpha)]: alpha = 1 once, then each span at its chosen alpha (and any extras)."""
-    out = [("prov-a1", "deployable", 1.0)]
+def configs(chosen, extra_alphas=(), tag=ENGINE_TAG):
+    """[(system name, span, alpha)]: alpha = 1 once, then each span at its chosen alpha (and any extras). tag: the
+    engine's suffix (prov-a1-v2, ...); None gives the first engine's plain names."""
+    sfx = f"-{tag}" if tag else ""
+    out = [(f"prov-a1{sfx}", "deployable", 1.0)]
     for span in SPANS:
         for a in sorted({chosen.get(span, 1.0), *extra_alphas} - {1.0}, reverse=True):
-            out.append((f"prov-{span}-a{a:g}", span, a))
+            out.append((f"prov-{span}-a{a:g}{sfx}", span, a))
     return out
 
 
@@ -567,7 +575,7 @@ def generate(out, alphas=None, alpha_from=None, part=None, model=None, device="a
              dry_run=False, limit=None, max_new=None, kv_gib=KV_GIB, shrink_every=SHRINK_EVERY):
     from finetune import eval as ev
     if version is not None:
-        cfgs = [(f"prov-{version}", "deployable", None)]           # the learned gates, on tool-tagged keys
+        cfgs = [(f"prov-{version}-{ENGINE_TAG}", "deployable", None)]   # the learned gates, on tool-tagged keys
     else:
         chosen = json.loads(Path(alpha_from).read_text())["chosen"] if alpha_from else {}
         chosen = {k: (v["alpha"] if isinstance(v, dict) else v) for k, v in chosen.items()}
@@ -613,7 +621,8 @@ def generate(out, alphas=None, alpha_from=None, part=None, model=None, device="a
                 if rec is None or Batched.STOPPED in (rec.get("error_type") or ""):     # not run, or cut short: redone
                     continue
                 rec.update({"span": span, "alpha": alpha, "layers": list(layers), "heads": heads, "version": version,
-                            "snapshot_commit": commit})
+                            "snapshot_commit": commit, "engine_tag": ENGINE_TAG,
+                            "batching": {"max_batch": max_batch, "kv_gib": kv_gib, "shrink_every": shrink_every}})
                 ev.save(d, rec, part)
                 n_tok += rec.get("completion_tokens") or 0
                 if i % 20 == 0 or i == len(todo):
@@ -763,6 +772,18 @@ def chosen_of(alpha_from):
     return {k: (v["alpha"] if isinstance(v, dict) else v) for k, v in chosen.items()}
 
 
+def bench_gate(res):
+    """(passed, text): the bench's after / before tokens/s at each alpha; passed if the smallest is >= GATE."""
+    by = {(e["engine"], e["alpha"]): e["tokens_per_s"] for e in res.get("engines", [])}
+    ratios = {a: by[("after", a)] / by[("before", a)] for a in res.get("alphas", [])
+              if by.get(("before", a)) and by.get(("after", a)) is not None}
+    if not ratios:
+        return False, "gate: no before/after pair on the bench, so it can't be checked"
+    passed = min(ratios.values()) >= GATE
+    return passed, (f"gate (after / before tokens/s at least {GATE:g}x): "
+                    + ", ".join(f"alpha {a:g} {r:.2f}x" for a, r in ratios.items()) + (": passed" if passed else ": NOT passed"))
+
+
 def run_engine(name, alpha, eng, jobs, max_batch):
     """Every job through eng, never saved and never scored: tokens per second, batch sizes, memory."""
     import torch
@@ -855,7 +876,9 @@ def bench(out, items_from, alpha_from=None, model=None, device="auto", layers=pv
     res["projection"] = proj
     eng_txt = "; ".join(f"alpha {a:g}: " + ", ".join(f"{e['engine']} {e['tokens_per_s']} tokens/s (batches {e['mean_batch']})"
                                                      for e in res["engines"] if e["alpha"] == a) for a in alphas)
-    res["line"] = (f"B1 bench, {len(jobs)} set A runs capped at {max_new} tokens: {eng_txt}. Decode: {sm['a_ms']:.1f} ms + rows x "
+    passed, gate_txt = bench_gate(res)
+    res["gate"] = {"passed": passed, "text": gate_txt, "at_least": GATE}
+    res["line"] = (f"B1 bench, {len(jobs)} set A runs capped at {max_new} tokens: {eng_txt}; {gate_txt}. Decode: {sm['a_ms']:.1f} ms + rows x "
                    f"({sm['c_ms']:.2f} ms + {sm['d_ms_per_token'] * 1000:.2f} us x context); peak "
                    f"{max((c['peak_gib'] or 0) for c in res['decode']):g} GiB at {max(batches)} rows x {max(contexts):,}. "
                    + (f"Full length: {proj['first_engine_full_batches_tokens_per_s']} -> {proj['new_tokens_per_s']} tokens/s; "
@@ -866,19 +889,32 @@ def bench(out, items_from, alpha_from=None, model=None, device="auto", layers=pv
     return res
 
 
-def plan(out, alpha_from=None, rate=None, hours=4.5, max_parts=12, alpha_path=None):
+def plan(out, alpha_from=None, rate=None, hours=4.5, max_parts=12, alpha_path=None, gate=True):
     """The resubmit lines (module docstring): the fewest parts, by question, whose largest has an estimate
-    (runs left x the mean reply x LENGTH_MARGIN / rate, plus LOAD_HOURS) within `hours`. rate: the bench's
-    projection unless given. submit.sh's limit is the estimate x 1.3, so 4.5 hours fits a 6-hour limit."""
+    (runs left x the mean reply x LENGTH_MARGIN / rate, plus LOAD_HOURS) within `hours`, for every configuration
+    of the fixed engine (ENGINE_TAG: alpha = 1 included, rerun). rate: the bench's full-length projection (from its
+    measured decode times) unless given. submit.sh's limit is the estimate x 1.3, so 4.5 hours fits a 6-hour limit.
+    The bench is the gate (Ritik, Oct 31): no lines unless its new engine is >= GATE x the old one's tokens/s;
+    gate=False only for a preview, never to submit."""
     from finetune import eval as ev
     cfgs = configs(chosen_of(alpha_from))
     lengths = reply_lengths(out)
     mean = (statistics.mean(lengths) if lengths else REPLY_TOKENS) * LENGTH_MARGIN
+    b = Path(out) / "provenance_bench" / "bench.json"
+    bench_res = json.loads(b.read_text()) if b.exists() else None
+    if gate:
+        if bench_res is None:
+            raise SystemExit("no bench (provenance_bench/bench.json): the bench is the gate; run it first")
+        passed, gate_txt = bench_gate(bench_res)
+        print(gate_txt)
+        if not passed:
+            raise SystemExit("the bench's gate is not passed: stop and report before any resubmit (no lines printed)")
+    else:
+        print("preview only: the bench's gate is not checked; these lines are not for submitting")
     if rate is None:
-        b = Path(out) / "provenance_bench" / "bench.json"
-        rate = json.loads(b.read_text())["projection"].get("new_tokens_per_s") if b.exists() else None
+        rate = (bench_res or {}).get("projection", {}).get("new_tokens_per_s")
     if not rate:
-        raise SystemExit("no rate: run bench first (provenance_bench), or give --rate")
+        raise SystemExit("no rate: the bench has no projection; give --rate")
     done = {s: done_ids(out, s) for s, _, _ in cfgs}
     for n in range(1, max_parts + 1):
         parts = []
@@ -923,15 +959,43 @@ MEASURES = {
 }
 
 
-def report(out, base_system="prov-a1"):
-    """Per configuration: the three measures (pooled and per channel), each minus alpha = 1 paired by
-    question; no answer counts as not following and not accepting (and is counted)."""
+def _minus(a_rows, b_rows, outcome):
+    """a - b, paired by question (clustered bootstrap), on the questions both have."""
+    a, b = _by_item(a_rows, outcome), _by_item(b_rows, outcome)
+    both = set(a) & set(b)
+    if too_few({q: a[q] for q in both}):
+        return {"diff": None, "interval": "too few questions", "questions": len(both)}
+    dd, lo, hi = boot_diff({q: a[q] for q in both}, {q: b[q] for q in both})
+    return {"diff": dd, "interval": [lo, hi], "questions": len(both)}
+
+
+def report(out, tag=ENGINE_TAG):
+    """Per configuration of the engine `tag` (the primary comparison: its runs only): the three measures (pooled
+    and per channel), each minus that engine's alpha = 1, paired by question; no answer counts as not following
+    and not accepting (and is counted). Beside it, labelled: the robustness check of the engine, the first
+    engine's alpha = 1 runs (prov-a1) against the new engine's, old minus new, expected no difference; and the
+    first engine's other runs, set aside (counts only)."""
     d = Path(out)
-    systems = defaultdict(list)                                  # whole and part files (finetune/eval.py stem)
+    sfx = f"-{tag}" if tag else ""
+    base_system = f"prov-a1{sfx}"
+    every = defaultdict(list)                                    # whole and part files (finetune/eval.py stem)
     for r in latest([r for p in sorted(d.glob("eval_prov-*_runs.jsonl")) for r in load(p)]):
         if r["status"] == "ok":
-            systems[r["system"]].append(r)
-    res = {"systems": {}, "bootstrap": "paired by question (clustered), 20,000 resamples, seed 0"}
+            every[r["system"]].append(r)
+    mine = (lambda s: s.endswith(sfx)) if tag else (lambda s: not s.endswith(f"-{ENGINE_TAG}"))
+    systems = {s: rows for s, rows in every.items() if mine(s)}
+    res = {"engine": tag or "first", "base": base_system, "systems": {},
+           "bootstrap": "paired by question (clustered), 20,000 resamples, seed 0",
+           "set_aside": {s: len(rows) for s, rows in every.items() if not mine(s) and s != "prov-a1"}}
+    if tag and "prov-a1" in every and base_system in every:
+        old, new = every["prov-a1"], every[base_system]
+        res["robustness_engine_check"] = {
+            "label": "robustness check, not B1's rule: the first engine's alpha = 1 runs against the new engine's, "
+                     "old minus new, paired by question; expected no difference (log 2026-10-30 17:15, deviation of Oct 31)",
+            "runs": {"old": len(old), "new": len(new)},
+            **{m: {"old": _rate([r for r in old if sel(r)], outcome), "new": _rate([r for r in new if sel(r)], outcome),
+                   "old_minus_new": _minus([r for r in old if sel(r)], [r for r in new if sel(r)], outcome)}
+               for m, (sel, outcome) in MEASURES.items()}}
     for name, rows in systems.items():
         e = {"span": rows[0].get("span"), "alpha": rows[0].get("alpha"), "runs": len(rows),
              "no_answer": sum(r["parsed_letter"] is None for r in rows)}
@@ -943,13 +1007,7 @@ def report(out, base_system="prov-a1"):
                 cell = _rate(sub, outcome)
                 base = [r for r in systems.get(base_system, []) if sel(r) and (ch == "all" or r["channel"] == ch)]
                 if name != base_system and base:
-                    a, b = _by_item(sub, outcome), _by_item(base, outcome)
-                    both = set(a) & set(b)
-                    if too_few({q: a[q] for q in both}):
-                        cell["minus_alpha1"] = {"diff": None, "interval": "too few questions", "questions": len(both)}
-                    else:
-                        dd, lo, hi = boot_diff({q: a[q] for q in both}, {q: b[q] for q in both})
-                        cell["minus_alpha1"] = {"diff": dd, "interval": [lo, hi], "questions": len(both)}
+                    cell["minus_alpha1"] = _minus(sub, base, outcome)
                 e[f"{mname} | {ch}"] = cell
         res["systems"][name] = e
     kit.write_json(d / "provenance_gen_report.json", res)
@@ -964,7 +1022,7 @@ def plot(res, stem):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(5, 4))
-    base = res["systems"].get("prov-a1")
+    base = res["systems"].get(res.get("base", "prov-a1"))
     for span, color in (("deployable", "#2a6fb0"), ("oracle", "#c0562b")):
         pts = [(e["alpha"], e) for e in res["systems"].values() if e.get("span") == span and e.get("alpha") not in (None, 1.0)]
         if base:
@@ -1042,6 +1100,7 @@ def main(argv=None):
     pl.add_argument("--hours", type=float, default=4.5, help="each part's estimate at most (submit.sh's limit: x 1.3)")
     pl.add_argument("--max-parts", type=int, default=12)
     pl.add_argument("--alpha-path", help="the --alpha-from path to print in the lines (default as given)")
+    pl.add_argument("--no-gate", action="store_true", help="a preview without the bench's gate (never to submit)")
     c = sub.add_parser("choose")
     c.add_argument("summary")
     r = sub.add_parser("report")
@@ -1057,7 +1116,7 @@ def main(argv=None):
         print(json.dumps(res, indent=1))
         return res
     if a.cmd == "plan":
-        return plan(a.out, a.alpha_from, a.rate, a.hours, a.max_parts, a.alpha_path)
+        return plan(a.out, a.alpha_from, a.rate, a.hours, a.max_parts, a.alpha_path, gate=not a.no_gate)
     if a.cmd == "bench":
         return bench(a.out, a.items_from, a.alpha_from, a.model, a.device, tuple(int(x) for x in a.layers.split(",") if x),
                      a.before, tuple(int(x) for x in a.batches.split(",")), tuple(int(x) for x in a.contexts.split(",")),

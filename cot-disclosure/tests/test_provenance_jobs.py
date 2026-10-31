@@ -159,17 +159,18 @@ def test_generate_runs_each_configuration_and_the_report(tmp_path, monkeypatch):
     out = pj.generate(tmp_path / "out", alpha_from=summary, part=(1, 30), model=str(d), device="cpu", layers=(1, 3),
                       max_batch=3, limit=3, max_new=4)
     files = sorted(p.name for p in out.glob("eval_prov-*_runs.jsonl"))
-    assert files == ["eval_prov-a1_p1of30_runs.jsonl", "eval_prov-deployable-a0.25_p1of30_runs.jsonl",
-                     "eval_prov-oracle-a0.1_p1of30_runs.jsonl"]                          # a part writes its own files
+    assert files == ["eval_prov-a1-v2_p1of30_runs.jsonl", "eval_prov-deployable-a0.25-v2_p1of30_runs.jsonl",
+                     "eval_prov-oracle-a0.1-v2_p1of30_runs.jsonl"]                       # a part writes its own files
     rows = [r for f in files for r in load(out / f)]
-    assert len(rows) == 9 and {r["alpha"] for r in rows} == {1.0, 0.25, 0.1}
+    assert len(rows) == 9 and {r["alpha"] for r in rows} == {1.0, 0.25, 0.1} and {r["engine_tag"] for r in rows} == {"v2"}
+    assert rows[0]["batching"] == {"max_batch": 3, "kv_gib": pj.KV_GIB, "shrink_every": pj.SHRINK_EVERY}
     assert not any("final_text" in r or "reasoning_text" in r for r in rows)            # numbers only
-    assert (out / "eval_prov-a1_p1of30.jsonl.gz").exists()                             # texts beside them (stay on Sol)
+    assert (out / "eval_prov-a1-v2_p1of30.jsonl.gz").exists()                          # texts beside them (stay on Sol)
     again = pj.generate(tmp_path / "out", alpha_from=summary, part=(1, 30), model=str(d), device="cpu", layers=(1, 3),
                         max_batch=3, limit=3, max_new=4)
     assert sum(1 for f in files for _ in load(again / f)) == 9                          # resumes
     res = pj.report(out)
-    assert set(res["systems"]) == {"prov-a1", "prov-deployable-a0.25", "prov-oracle-a0.1"}
+    assert set(res["systems"]) == {"prov-a1-v2", "prov-deployable-a0.25-v2", "prov-oracle-a0.1-v2"}
     assert (out / "provenance_tradeoff.png").exists() and (out / "provenance_tradeoff.svg").exists()
 
 
@@ -181,15 +182,21 @@ def test_the_report_against_alpha_one_paired_by_question(tmp_path):
                 "hint_correct": None if channel == "none" else correct, "correct_letter": "A", "parsed_letter": letter,
                 "timestamp_utc": "t"}
     for q in range(6):
-        for system, alpha, span, follow in (("prov-a1", 1.0, "deployable", True), ("prov-oracle-a0.1", 0.1, "oracle", q < 2)):
+        for system, alpha, span, follow in (("prov-a1-v2", 1.0, "deployable", True), ("prov-oracle-a0.1-v2", 0.1, "oracle", q < 2),
+                                            ("prov-a1", 1.0, "deployable", True), ("prov-oracle-a0.1", 0.1, "oracle", True)):
             f = tmp_path / f"eval_{system}_p{q % 2 + 1}of2_runs.jsonl"                     # one system over two parts
             for ch in ("tool_pasted", "tool_injected"):
                 append(f, row(system, alpha, span, q, ch, False, "B" if follow else "A"))
                 append(f, row(system, alpha, span, q, ch, True, "A"))
             append(f, row(system, alpha, span, q, "none", None, "A"))
     res = pj.report(tmp_path)
-    e = res["systems"]["prov-oracle-a0.1"]
-    assert e["wrong_hint_following | all"]["text"] == "4 of 12" and res["systems"]["prov-a1"]["wrong_hint_following | all"]["text"] == "12 of 12"
+    assert set(res["systems"]) == {"prov-a1-v2", "prov-oracle-a0.1-v2"} and res["base"] == "prov-a1-v2"   # new engine only
+    assert res["set_aside"] == {"prov-oracle-a0.1": 30}                                   # the first engine's other runs
+    rob = res["robustness_engine_check"]                                                  # its alpha = 1, labelled
+    assert rob["label"].startswith("robustness check, not B1's rule") and rob["runs"] == {"old": 30, "new": 30}
+    assert rob["wrong_hint_following"]["old_minus_new"]["diff"] == 0 and rob["no_hint_accuracy"]["old"]["text"] == "6 of 6"
+    e = res["systems"]["prov-oracle-a0.1-v2"]
+    assert e["wrong_hint_following | all"]["text"] == "4 of 12" and res["systems"]["prov-a1-v2"]["wrong_hint_following | all"]["text"] == "12 of 12"
     m = e["wrong_hint_following | all"]["minus_alpha1"]
     assert abs(m["diff"] - (4 / 12 - 1)) < 1e-9 and m["questions"] == 6 and m["interval"][1] < 0
     assert e["correct_hint_acceptance | all"]["minus_alpha1"]["diff"] == 0 and e["no_hint_accuracy | all"]["text"] == "6 of 6"
@@ -274,9 +281,35 @@ def test_bench_measures_before_and_after_on_set_a_and_plan_splits_what_is_left(t
     assert [(e["engine"], e["alpha"]) for e in res["engines"]] == [("before", 1.0), ("before", 0.25), ("after", 1.0),
                                                                   ("after", 0.25)]
     assert all(e["runs"] == 3 and e["errors"] == 0 and e["tokens"] > 0 for e in res["engines"])
-    assert res["projection"]["runs_left"] == 3 * 210 - 20 and res["projection"]["finished_runs"] == 20
+    assert res["projection"]["runs_left"] == 3 * 210 and res["projection"]["finished_runs"] == 20   # alpha = 1 rerun too
     assert res["line"].startswith("B1 bench, 3 set A runs capped at 4 tokens") and (out / "provenance_bench" / "bench.json").exists()
-    p = pj.plan(out, summary, rate=150.0, hours=4.5)
-    assert p["runs_left"] == 610 and all(j["hours"] <= 4.5 for j in p["jobs"]) and len(p["lines"]) == len(p["jobs"])
+    assert "gate (after / before tokens/s at least 1.5x)" in res["line"] and set(res["gate"]) == {"passed", "text", "at_least"}
+    p = pj.plan(out, summary, rate=150.0, hours=4.5, gate=False)                 # a preview: the tiny bench's gate is noise
+    assert p["runs_left"] == 630 and all(j["hours"] <= 4.5 for j in p["jobs"]) and len(p["lines"]) == len(p["jobs"])
     assert all(f"--alpha-from {summary} --part " in line and "--estimate" in line for line in p["lines"])
-    assert sum(j["runs"] for j in p["jobs"]) == 610
+    assert sum(j["runs"] for j in p["jobs"]) == 630
+
+
+def test_the_bench_is_the_gate_for_the_resubmit_lines(tmp_path, capsys):
+    """Ritik, Oct 31: no resubmit unless the bench's new engine is at least 1.5x the old one's tokens/s, at each alpha."""
+    summary = tmp_path / "forced.json"
+    summary.write_text(json.dumps({"chosen": {"deployable": {"alpha": 0.25}, "oracle": {"alpha": 0.5}}}))
+    (tmp_path / "provenance_gen").mkdir()
+    with pytest.raises(SystemExit, match="the bench is the gate"):
+        pj.plan(tmp_path, summary, rate=60.0)                                        # no bench yet
+    b = tmp_path / "provenance_bench"
+    b.mkdir()
+
+    def bench(after_025):
+        res = {"alphas": [1.0, 0.25], "projection": {"new_tokens_per_s": 60.0},
+               "engines": [{"engine": "before", "alpha": 1.0, "tokens_per_s": 40.0}, {"engine": "before", "alpha": 0.25, "tokens_per_s": 40.0},
+                           {"engine": "after", "alpha": 1.0, "tokens_per_s": 100.0}, {"engine": "after", "alpha": 0.25, "tokens_per_s": after_025}]}
+        (b / "bench.json").write_text(json.dumps(res))
+        return res
+    assert pj.bench_gate(bench(59.0)) == (False, "gate (after / before tokens/s at least 1.5x): alpha 1 2.50x, alpha 0.25 1.48x: NOT passed")
+    with pytest.raises(SystemExit, match="gate is not passed"):
+        pj.plan(tmp_path, summary)
+    assert pj.bench_gate(bench(60.0))[0]
+    p = pj.plan(tmp_path, summary)                                                   # the bench's projected rate
+    assert p["runs_left"] == 630 and "alpha 0.25 1.50x: passed" in capsys.readouterr().out
+    assert pj.bench_gate({"alphas": [1.0], "engines": [{"engine": "after", "alpha": 1.0, "tokens_per_s": 9}]})[0] is False

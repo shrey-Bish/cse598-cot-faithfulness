@@ -1107,6 +1107,11 @@ DEVIATIONS = [
     ("2026-10-29 to 10-30", "same-minute starts", "for C15-C18 the commit that fixed the rule and the run's start fall "
      "in the same minute: the commit ran first in the same shell command, then the guard started", [log_rel("2026-10-30_1800_ALL_supplement.md")],
      ["the commit ran first"]),
+    ("2026-10-31 12:40", "B1's generation engine", "the first engine ran at 21-35 tokens/s; fixed, and every configuration "
+     "rerun on it under new names (prov-a1-v2, ...): the primary comparison uses its runs only, the first engine's 174 "
+     "alpha = 1 runs are a robustness check (old minus new), its deployable runs are set aside; written before any B1 "
+     "result was read", [log_rel("2026-10-30_1715_A_b1-generation-rule.md")],
+     ["Deviation (Oct 31, 12:40, before any B1 result was read)", "All 210 alpha = 1 runs are rerun"]),
 ]
 DEV_WORDS = re.compile(r"\bCorrected\b|\b[Cc]orrected (?:Oct|\d{1,2}:\d{2})|\bCorrection\b|\b[Rr]efuted\b|"
                        r"\b[Ss]uperseded\b|\b[Dd]ropped\b|\bnot supported\b|\b[Rr]estated\b|\b[Rr]evises\b|"

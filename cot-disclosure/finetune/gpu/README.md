@@ -570,6 +570,13 @@ to 8 are taken in arrival order when their key/value cache fits 48 GiB at full l
 3. At Slurm's warning a job ends its batch after the current round and exits; the runs it cut short are redone by
    the next job, which skips every finished run.
 
+**The stricter path (Ritik, Oct 31; the deviation in B1's rule log, 2026-10-30 17:15 §4).** Every configuration
+runs again on the fixed engine under its own name (`prov-a1-v2`, `prov-deployable-a0.25-v2`,
+`prov-oracle-a0.5-v2`), so the first engine's files are never appended to. `report` reads the `-v2` runs only, with
+the first engine's alpha = 1 runs beside them as a labelled robustness check; its other runs are set aside. **The
+bench is the gate:** `plan` prints no lines unless the new engine reached at least 1.5x the old one's tokens/s on
+the bench at both alphas (`--no-gate` is a preview, never for submitting).
+
 ## C13: two more reviewer families on vLLM (Track C, Oct 29)
 
 Reviewer only, on C4's 159 saved tool-team cases with C4's prompt (`agents/run_team.py --rereview

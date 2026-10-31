@@ -24,8 +24,8 @@ Details, numbers and status for each line are in [`docs/FINDINGS.md`](docs/FINDI
    reviewers). A checker that never sees the tool held every time. The deferring reviewer follows the solver's
    citation of the tool's letter as authority (C16–C18).
 5. **The fix, so far:** fine-tuning passes Gate 3 by its rule (LoRA; and source tags, whose cut isn't specific to
-   the tool's tokens), but neither beats a one-line instruction, and LoRA's false-disclosure candidates rise (hand
-   labels pending; F28). Inference-time attention scaling (B1) and a second model's mechanism (Qwen3-8B) are under
+   the tool's tokens), but no trained version so far beats a one-line instruction on following, and LoRA's
+   false-disclosure candidates rise (hand labels pending; F28). Inference-time attention scaling (B1) and a second model's mechanism (Qwen3-8B) are under
    way.
 
 ## Where to start

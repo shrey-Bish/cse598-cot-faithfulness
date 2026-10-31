@@ -85,7 +85,9 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    but its cut is spread over every channel, the user's included, so the pre-registered prediction (tags help
    most on the inserted tool turn) isn't borne out (−2 [−13, +9]), and it doesn't beat the instruction either
    (tags minus prompt_only +7 [+1, +14], not pre-registered). LoRA + tags (810 of 930 runs) doesn't pass so far
-   (−3 [−9, +3]); LoRA on 15/19/23 is still to come. B1 (attention to tool spans scaled down at 15/19/23) has its
+   (−3 [−9, +3]); LoRA on 15/19/23 is still to come. **No trained version so far beats the one-line instruction
+   on following** (each minus prompt_only, not pre-registered: LoRA +3 [−1, +8], tags +7 [+1, +14], LoRA + tags
+   +10 [+4, +16], interim). B1 (attention to tool spans scaled down at 15/19/23) has its
    alpha from set A (F27); its generation was slowed by the engine (fixed Oct 31) and isn't read until complete.
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
