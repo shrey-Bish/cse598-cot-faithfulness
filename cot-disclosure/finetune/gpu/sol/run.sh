@@ -15,7 +15,7 @@
 #   cot-disclosure/finetune/gpu/sol/run.sh get_c13                  # their snapshots (no GPU; online)
 #   cot-disclosure/finetune/gpu/sol/run.sh qwen8b_step3 [args]      # Qwen3-8B Step 3 on Track B's runs (finetune/look/qwen8b_mech.py)
 #   cot-disclosure/finetune/gpu/sol/run.sh qwen8b_step10 [args]     # Qwen3-8B Step 10 on its cases; Hugging Face only
-# Output: $TRACKA_OUT/<step>/ (/scratch/ragarw68/trackA/<step>/), plus a log of the console there.
+# Output: $TRACKA_OUT/<step>/ (/scratch/$USER/trackA/<step>/), plus a log of the console there.
 # Every step starts with the import check (finetune/gpu/import_check.py): a broken environment stops the
 # job in seconds, before any model loads.
 # Slurm's warning before the time limit (sbatch --signal=B:USR1@300) is passed on to Python: training

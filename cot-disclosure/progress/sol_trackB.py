@@ -14,7 +14,7 @@ Thinking on/off goes in each request (enable_thinking, providers/sol_vllm.py). E
 engine ("engine": hf-continuous, hf-static or vllm).
 
   # once, a job without a GPU and the only one with the network: the pinned snapshot into $HF_HOME
-  # (/scratch/ragarw68/hf) unless it is cached, checked against the Hub's sha256 of every file
+  # (/scratch/$USER/hf) unless it is cached, checked against the Hub's sha256 of every file
   cot-disclosure/finetune/gpu/sol/submit.sh get_qwen8b          # -> $TRACKA_OUT/trackb_qwen8b/snapshot.json
   # the job: 1 A100, offline, resumable (finished runs are skipped); limit = estimate x 1.3. --engine hf:
   # 1,620 runs, ~6.7M generated tokens (Voyager's Qwen3 30B lengths: ~6,200 a run thinking, ~2,000 not)
@@ -39,6 +39,7 @@ tokens; no text) are written to results/trackB/sol_vllm_flags.jsonl; trackB_repo
 them where the records themselves (with text) stay on Sol.
 """
 import argparse
+import getpass
 import json
 import os
 import signal
@@ -272,7 +273,7 @@ def main():
     ap.add_argument("--limit", type=int, help="at most N runs (a smoke test)")
     ap.add_argument("--engine", choices=["hf", "vllm"], default="hf",
                     help="hf: Hugging Face generation in this process (default, Oct 29); vllm: our vLLM server")
-    ap.add_argument("--log-dir", default=os.environ.get("TRACKA_OUT", "/scratch/ragarw68/trackA") + "/trackb_qwen8b")
+    ap.add_argument("--log-dir", default=os.environ.get("TRACKA_OUT", f"/scratch/{getpass.getuser()}/trackA") + "/trackb_qwen8b")
     a = ap.parse_args()
     if a.download:
         Path(a.log_dir).mkdir(parents=True, exist_ok=True)

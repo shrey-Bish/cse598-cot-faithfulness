@@ -7,7 +7,7 @@
 #SBATCH --mem=64G
 #SBATCH -t 0-05:00:00
 #SBATCH -J qwen8b-step10
-#SBATCH -o /scratch/ragarw68/trackA/slurm/%x-%j.out
+#SBATCH -o /scratch/%u/trackA/slurm/%x-%j.out
 #SBATCH --signal=B:USR1@300
 # Thread 1 on Qwen3-8B, Step 10 (finetune/look/qwen8b_mech.py step10): activation patching at cuts (i) and (ii) of
 # Step 3's cases, the puzzles' tool_real cases first (localization), then MMLU-Pro's (replication), then the

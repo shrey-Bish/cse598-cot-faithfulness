@@ -5,6 +5,9 @@
 # accounts.conf, or TRACKA_SUBMIT_ACCOUNT if it names another listed one (-A on the sbatch command
 # line beats SBATCH_ACCOUNT and the script). An account option among the extras, or a script that
 # names an account not listed there, is refused. Inside the job, run.sh checks the account again.
+# Another Sol user (Oct 30) lists their own accounts in accounts.d/<their user>.conf, the same columns,
+# which then replaces accounts.conf for them (guard.sh); the job scripts keep accounts.conf's -A, which
+# the -A here replaces, and a partition and QoS their account doesn't list become its first row's.
 #
 # The class QoS (accounts.conf) counts each running job's remaining time x GPUs against 960
 # GPU-minutes, the requested time is what counts, and DenyOnLimit rejects at submission any job whose
@@ -81,7 +84,9 @@ if [ "$job" = val_loss ]; then              # versions only (none: lora tags); t
 fi
 
 accounts=$(grep -E '^#SBATCH[[:space:]]+(-A|--account)' "$script" | sed -E 's/^#SBATCH[[:space:]]+(-A[[:space:]]*|--account[=[:space:]]+)//')
-if [ "$(printf '%s\n' "$accounts" | grep -c .)" -ne 1 ] || ! tracka_account_allowed "$accounts"; then
+kit_accounts=$(awk '!/^[[:space:]]*(#|$)/ {print $1}' "$HERE/accounts.conf")   # the scripts' -A (replaced by ours)
+if [ "$(printf '%s\n' "$accounts" | grep -c .)" -ne 1 ] \
+   || ! { tracka_account_allowed "$accounts" || printf '%s\n' "$kit_accounts" | grep -qx -- "$accounts"; }; then
     echo "refusing: $script must set exactly one -A, an account listed in accounts.conf (it sets: ${accounts:-nothing})" >&2
     exit 1
 fi
@@ -91,13 +96,13 @@ script_qos=$(opt '(-q|--qos)' "$script")
 script_part=$(opt '(-p|--partition)' "$script")
 row=$(printf '%s\n' "$rows" | awk -v p="$script_part" -v q="$script_qos" '$1 == p && $2 == q' | head -1)
 override=()
-if [ -z "$row" ] && [ -n "${TRACKA_SUBMIT_ACCOUNT:-}" ]; then
+if [ -z "$row" ] && { [ -n "${TRACKA_SUBMIT_ACCOUNT:-}" ] || [ "$ACCOUNT" != "$accounts" ]; }; then
     row=$(printf '%s\n' "$rows" | head -1)                  # another listed account: its own partition and QoS
     override=(-p "${row%% *}" -q "$(echo "$row" | awk '{print $2}')")
 fi
 if [ -z "$row" ]; then
     echo "refusing: $job.sbatch asks for partition '${script_part:-none}' and QoS '${script_qos:-none}'," \
-         "which accounts.conf doesn't list for $ACCOUNT (listed: $(printf '%s\n' "$rows" | awk '{printf "%s-p %s -q %s", (NR > 1 ? "; " : ""), $1, $2}'))." \
+         "which $TRACKA_ACCOUNTS_NAME doesn't list for $ACCOUNT (listed: $(printf '%s\n' "$rows" | awk '{printf "%s-p %s -q %s", (NR > 1 ? "; " : ""), $1, $2}'))." \
          "sbatch would reject it (Invalid qos specification); nothing was submitted." >&2
     exit 1
 fi
@@ -193,7 +198,7 @@ if [ -n "$deps" ]; then
 fi
 
 unset SBATCH_ACCOUNT SLURM_ACCOUNT
-mkdir -p "${TRACKA_SLURM_LOGS:-/scratch/ragarw68/trackA/slurm}"   # the scripts' -o directory
+mkdir -p "${TRACKA_SLURM_LOGS:-/scratch/${USER:-$(id -un)}/trackA/slurm}"   # the scripts' -o directory (/scratch/%u/...)
 cd "$REPO"                                   # the job starts here ($SLURM_SUBMIT_DIR)
 trap - ERR
 if ! out=$(sbatch -A "$ACCOUNT" ${override[@]+"${override[@]}"} -t "$limit" ${sb[@]+"${sb[@]}"} "$script" \

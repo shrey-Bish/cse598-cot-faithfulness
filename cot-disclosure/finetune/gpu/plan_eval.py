@@ -35,6 +35,7 @@ queue (sacct's SubmitLine): a system with parts queued keeps their N and gets on
 plan made again never runs a part twice.
 """
 import argparse
+import getpass
 import json
 import math
 import os
@@ -63,7 +64,7 @@ TAGGED = ("tags", "lora_tags")
 
 
 def out_root():
-    return Path(os.environ.get("TRACKA_OUT", "/scratch/ragarw68/trackA"))
+    return Path(os.environ.get("TRACKA_OUT", f"/scratch/{getpass.getuser()}/trackA"))
 
 
 def step2b_lengths(path=STEP2B):

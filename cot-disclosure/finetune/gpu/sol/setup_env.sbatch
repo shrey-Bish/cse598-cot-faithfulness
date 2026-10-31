@@ -6,7 +6,7 @@
 #SBATCH --mem=16G
 #SBATCH -t 0-01:00:00
 #SBATCH -J trackA-setup
-#SBATCH -o /scratch/ragarw68/trackA/slurm/%x-%j.out
+#SBATCH -o /scratch/%u/trackA/slurm/%x-%j.out
 # setup_env.sh as a job without a GPU (public partition, class QoS: the course account's only QoS). Submit only through submit.sh:
 #   cot-disclosure/finetune/gpu/sol/submit.sh setup_env
 cd "$SLURM_SUBMIT_DIR"

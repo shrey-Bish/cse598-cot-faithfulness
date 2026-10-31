@@ -7,7 +7,7 @@
 #SBATCH --mem=64G
 #SBATCH -t 0-01:00:00
 #SBATCH -J trackA-prov-forced
-#SBATCH -o /scratch/ragarw68/trackA/slurm/%x-%j.out
+#SBATCH -o /scratch/%u/trackA/slurm/%x-%j.out
 #SBATCH --signal=B:USR1@300
 # Track A, B1's cheap test on set A (finetune/gpu/provenance_job.py forced): the forced answer at Step 10's cuts of
 # set A's cases, per alpha and span (deployable, oracle); the chosen alpha per span by the written rule.

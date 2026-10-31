@@ -1,27 +1,29 @@
 # Track A GPU kit: ASU Sol
 
-Last updated: 2026-10-29 16:45 MST (vLLM back, the import check, C13). The look-inside steps that need the weights (Steps 8–10, done
+Last updated: 2026-10-30 17:15 MST (another user: every path from `$USER`, accounts per user). The look-inside steps that need the weights (Steps 8–10, done
 Oct 26–27), the Sol plumbing every GPU step reuses, and the jobs of Steps 11–13 (code done Oct 27,
 not run yet). The job plan is in `docs/PLAN.md` (Track A) and the status in `docs/TODO.md`. The Sol commands below run from the clone's root
-(`/scratch/ragarw68/cse598-cot-faithfulness`); the scripts move into `cot-disclosure/` and the
-project environment `/scratch/ragarw68/envs/olmo` (Python 3.11) themselves. Never use the system
+(`/scratch/$USER/cse598-cot-faithfulness`); the scripts move into `cot-disclosure/` and the
+project environment `/scratch/$USER/envs/olmo` (Python 3.11) themselves. Never use the system
 `python3` (3.6.8). The Mac commands run from `cot-disclosure/` with the repo's `.venv`.
 
 | Item | Script | Reads | Output on Sol | One A100 80GB |
 |---|---|---|---|---|
-| 1. environment + smoke | `sol/setup_env.sh`, `smoke.py` | the cached model | `/scratch/ragarw68/trackA/smoke/smoke.json` | setup 5–15 min (downloads); smoke 2–5 min |
-| 2. Step 8: checkpoint check | `checkpoint_check.py` | Step 1, Oct 21 and canary echoes | `/scratch/ragarw68/trackA/step8/step8_checkpoint.json` | 5–10 min |
-| 3. Step 9: attention to the hint | `../look/attn_to_hint.py` | the 199 hinted, answered Step 2b runs | `/scratch/ragarw68/trackA/step9/step9_attention.json` | 15–40 min |
-| 4. Step 10: activation patching | `../look/patching.py` | Step 4's 21 cases (Steps 3–4) | `/scratch/ragarw68/trackA/step10/step10_patching.json` | 1–2 h |
+| 1. environment + smoke | `sol/setup_env.sh`, `smoke.py` | the cached model | `/scratch/$USER/trackA/smoke/smoke.json` | setup 5–15 min (downloads); smoke 2–5 min |
+| 2. Step 8: checkpoint check | `checkpoint_check.py` | Step 1, Oct 21 and canary echoes | `/scratch/$USER/trackA/step8/step8_checkpoint.json` | 5–10 min |
+| 3. Step 9: attention to the hint | `../look/attn_to_hint.py` | the 199 hinted, answered Step 2b runs | `/scratch/$USER/trackA/step9/step9_attention.json` | 15–40 min |
+| 4. Step 10: activation patching | `../look/patching.py` | Step 4's 21 cases (Steps 3–4) | `/scratch/$USER/trackA/step10/step10_patching.json` | 1–2 h |
 
 Smoke and Steps 8–10 ran in the Oct 26 interactive session; Step 9's follow-up (CPU only) on Oct
 26–27. Each step resumes where it stopped, so a batch job picks up what a session didn't finish.
 
 ## Rules every script follows
 
-- **Account.** Every job runs under `class_cse59888883fall2026` (the CSE 598 section), never the
-  lab's `grp_hdavulcu`. `sol/submit.sh` always passes `-A class_cse59888883fall2026` itself and
-  refuses a job script that names another account, or any account option you add. Inside a job,
+- **Account.** Every job runs under a course account listed in `sol/accounts.conf`
+  (`class_cse59888883fall2026`, the CSE 598 section) or, for another user, in their own
+  `sol/accounts.d/<user>.conf` ("Another user" below); never the lab's `grp_hdavulcu`. `sol/submit.sh`
+  always passes `-A <that account>` itself and refuses a job script that names an account listed in
+  neither, or any account option you add. Inside a job,
   `sol/run.sh` checks `$SLURM_JOB_ACCOUNT` and stops under any other account, and also stops
   outside a Slurm job (login nodes). Don't call `sbatch` directly.
 - **Where.** `-p public -q class -G a100:1`. Quick script tests and setup
@@ -48,30 +50,51 @@ Smoke and Steps 8–10 ran in the Oct 26 interactive session; Step 9's follow-up
   checks `submit.sh` makes before submitting (TODO A12, done Oct 27): refuse a job over 960
   GPU-minutes; add its GPU-minutes to the remaining GPU-minutes of your running and pending jobs
   (`squeue`), warn if the total is over 960, and say when the second slot frees up; accounts,
-  partitions and QoS come from one config file, and only the accounts listed there are allowed.
+  partitions and QoS come from one config file per user (`accounts.conf`, or `accounts.d/<user>.conf`),
+  and only the accounts listed there are allowed.
 - **Python.** Always the project environment's, by full path: `sol/env.sh` sets
-  `TRACKA_PY=/scratch/ragarw68/envs/olmo/bin/python`, checks it is Python 3.11 in that prefix, and
+  `TRACKA_PY=/scratch/$USER/envs/olmo/bin/python`, checks it is Python 3.11 in that prefix, and
   every script calls `"$TRACKA_PY"`, never a bare `python` (after an rsync or a changed PATH that
   can be the system 3.6.8; a test refuses a bare call).
-- **Model.** `allenai/Olmo-3-7B-Think` from `HF_HOME=/scratch/ragarw68/hf`, offline
+- **Model.** `allenai/Olmo-3-7B-Think` from `HF_HOME=/scratch/$USER/hf`, offline
   (`HF_HUB_OFFLINE=1`). Every output records the snapshot's commit hash and whether it is
   `d97e442`, the revision our template came from. If it isn't, the kit says whether its files,
   and at least its weights, equal d97e442's. It checks this offline: the cache names each file by
   its hash, and `olmo3_7b_think_d97e442.json` lists d97e442's hashes. On Oct 26, `main` was
   d97e442, and the weights were the same in 24 of the repo's 25 revisions (all but the first).
-- **Outputs.** `$TRACKA_OUT/<step>/` = `/scratch/ragarw68/trackA/<step>/`, plus a console log
+- **Outputs.** `$TRACKA_OUT/<step>/` = `/scratch/$USER/trackA/<step>/`, plus a console log
   there. Only the small summary file of each step comes back to the Mac, into the gitignored
   `cot-disclosure/results/trackA/gpu/`; `tools/export_summaries.py` copies the numbers-only ones
   into the tracked `results/summaries/trackA/`.
 - **No API keys on Sol.** Anything compared with Voyager uses values already saved on the Mac
   (the result files below).
 
+### Another user (Oct 30)
+
+The kit runs for any Sol user, under their own scratch; the steps for a new user are in
+`docs/handoff/SOL_SETUP.md`.
+- **Paths.** `sol/env.sh` derives every path from `$USER`: `TRACKA_SCRATCH=/scratch/$USER` (or
+  `TRACKA_SCRATCH` if set), then `envs/olmo`, `envs/olmo-vllm`, `HF_HOME=$TRACKA_SCRATCH/hf` and
+  `TRACKA_OUT=$TRACKA_SCRATCH/trackA`; the clone is `/scratch/$USER/cse598-cot-faithfulness`. Each user
+  builds their own environments and cache.
+- **Slurm logs.** `#SBATCH` lines read no variable, so every job script logs to
+  `/scratch/%u/trackA/slurm/%x-%j.out` (`%u` = the user name), and `submit.sh` makes that directory for
+  whoever submits.
+- **Accounts.** `sol/guard.sh` reads `sol/accounts.d/<user>.conf` if it exists (the same columns as
+  `accounts.conf`, one row per account with its partition, QoS and limits), else `accounts.conf`. A new
+  user adds their own file and never edits `accounts.conf`. The job scripts keep `accounts.conf`'s `-A`;
+  `submit.sh`'s own `-A` replaces it, and if the user's row lists another partition or QoS than the
+  script's, the row's are passed instead. Inside the job, `run.sh` accepts only the user's own accounts.
+- **Mac lines.** The rsync lines below use `$SOL_USER`, your Sol user name: put
+  `export SOL_USER=<your Sol user>` in your Mac shell profile (e.g. `export SOL_USER=ragarw68` for Ritik).
+  On Sol, `$USER` is already that name.
+
 ## 0. Code and data onto Sol
 
 **The repo is public and stays public. Produced files never go to GitHub** (decided Oct 26).
 - Runs, probes, replies, caches, checkpoints and Sol outputs live in gitignored folders:
   `results/trackA/`, `results/trackB/`, `results/trackC/`, `finetune/data/`, and
-  `/scratch/ragarw68/trackA/` on Sol.
+  `/scratch/$USER/trackA/` on Sol.
 - Numbers-only summaries and figures go in `results/summaries/` (tracked;
   `tools/export_summaries.py` checks that they hold no question or reply text).
 - A pre-push hook (`tools/prepush_check.py`, installed in `.git/hooks/pre-push` on the Mac)
@@ -86,15 +109,15 @@ commits without moving any file on disk, and the hook checks it. Then:
 ```bash
 git push origin trackA-nosol                                         # Mac; the hook checks it
 git clone -b trackA-nosol https://github.com/shrey-Bish/cse598-cot-faithfulness.git \
-    /scratch/ragarw68/cse598-cot-faithfulness                        # Sol, once
-cd /scratch/ragarw68/cse598-cot-faithfulness && git pull              # Sol, after each push
+    /scratch/$USER/cse598-cot-faithfulness                           # Sol, once
+cd /scratch/$USER/cse598-cot-faithfulness && git pull                 # Sol, after each push
 ```
 
 Until then, the code also goes by rsync (tracked files only):
 
 ```bash
 cd ~/Documents/Projects/ODL/cse598-cot-faithfulness
-git ls-files | rsync -av --files-from=- ./ ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/
+git ls-files | rsync -av --files-from=- ./ $SOL_USER@login.sol.rc.asu.edu:/scratch/$SOL_USER/cse598-cot-faithfulness/
 ```
 
 Sol's clone was made from the Oct 26 bundle, so its `origin` was the bundle and `git pull` said
@@ -133,17 +156,17 @@ gitignored, so only rsync brings them; the other three are tracked.
 ```bash
 cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure
 rsync -av --files-from=finetune/gpu/sol/inputs.txt ./ \
-    ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/
+    $SOL_USER@login.sol.rc.asu.edu:/scratch/$SOL_USER/cse598-cot-faithfulness/cot-disclosure/
 ```
 
 ### Results back
 
-Sol outputs stay in `/scratch/ragarw68/trackA/`. Only each step's summary comes back, into the
+Sol outputs stay in `/scratch/$USER/trackA/`. Only each step's summary comes back, into the
 gitignored `results/trackA/gpu/` on the Mac:
 
 ```bash
 cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure && mkdir -p results/trackA/gpu
-S=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA
+S=$SOL_USER@login.sol.rc.asu.edu:/scratch/$SOL_USER/trackA
 rsync -av $S/smoke/smoke.json $S/step8/step8_checkpoint.json $S/step9/step9_attention.json \
     $S/step10/step10_patching.json results/trackA/gpu/
 rsync -av $S/step9/step9_followup.json $S/step9/step9_aligned.png $S/step9/step9_aligned.svg \
@@ -193,14 +216,14 @@ key/value heads, hidden size, max positions, sliding-window settings, tie_word_e
 **In your session** (from the clone):
 
 ```bash
-cd /scratch/ragarw68/cse598-cot-faithfulness
+cd /scratch/$USER/cse598-cot-faithfulness
 bash cot-disclosure/finetune/gpu/sol/setup_env.sh        # 5-15 min, once
 cot-disclosure/finetune/gpu/sol/run.sh smoke              # 2-5 min
 ```
 
 **Batch:** `cot-disclosure/finetune/gpu/sol/submit.sh setup_env` (no GPU), then
 `cot-disclosure/finetune/gpu/sol/submit.sh smoke` (15 min). Log:
-`/scratch/ragarw68/trackA/slurm/trackA-smoke-<job>.out`.
+`/scratch/$USER/trackA/slurm/trackA-smoke-<job>.out`.
 
 **CPU test (Mac):** `python -m pytest tests/test_trackA_gpu_kit.py` (a tiny random Olmo 3 with the
 real tokenizer; the offline snapshot check; the account guards), and
@@ -210,7 +233,7 @@ the model needs ~15.6 GiB).
 **Look for:** `snapshot d97e442… matches d97e442`, `renders our prompt exactly`, the A100 and
 CUDA 13.0 in the versions, and a sensible start of reasoning in `generated:`.
 
-**Back to the Mac:** `/scratch/ragarw68/trackA/smoke/smoke.json` (a few KB; see "Results back").
+**Back to the Mac:** `/scratch/$USER/trackA/smoke/smoke.json` (a few KB; see "Results back").
 
 ## 2. Step 8: checkpoint check
 
@@ -255,15 +278,15 @@ JSON show where. Per-position differences are in `step8_positions.npz`.
 weights on Sol are d97e442's by sha256 (docs/FINDINGS.md, F9). Since then, the snapshot check
 hashes regular files: Sol's snapshot holds copies, not cache links, and the first run reported
 `weights_same: false` without hashing. Each file is hashed once, and the result is kept in
-`/scratch/ragarw68/trackA/file_hashes.json`. The first run after this change reads the 15 GB of
+`/scratch/$USER/trackA/file_hashes.json`. The first run after this change reads the 15 GB of
 weights, about a minute. To check by hand:
 
 ```bash
-cd /scratch/ragarw68/hf/hub/models--allenai--Olmo-3-7B-Think/snapshots/d97e442d7cc678210054dbcc9b440894d62c89a4
+cd /scratch/$USER/hf/hub/models--allenai--Olmo-3-7B-Think/snapshots/d97e442d7cc678210054dbcc9b440894d62c89a4
 sha256sum model-0000*-of-00003.safetensors     # paste into results/trackA/gpu/weights_sha256.txt on the Mac
 ```
 
-**Back to the Mac:** `/scratch/ragarw68/trackA/step8/step8_checkpoint.json` (tens of KB).
+**Back to the Mac:** `/scratch/$USER/trackA/step8/step8_checkpoint.json` (tens of KB).
 
 ## 3. Step 9: attention to the hint
 
@@ -317,7 +340,7 @@ keys, for user, pasted and inserted prompts built the Step 2b way. The test also
 capture leaves the logits unchanged, and runs the script plus its report on the 2 shortest real
 Step 2b runs. `python finetune/look/attn_to_hint.py --dry-run` gives the runs, tokens and estimate.
 
-**Outputs** in `/scratch/ragarw68/trackA/step9/`:
+**Outputs** in `/scratch/$USER/trackA/step9/`:
 - `runs/<run_id>.npz`: answer [3 spans × 32 layers × 32 heads]; sentences [3 × sentences × 32 ×
   32] (fp16)
 - `step9_runs.jsonl`: per run, the spans, channel, outcome, Step 3's takeover point, the forced
@@ -417,7 +440,7 @@ It also checks the cuts on the real cases (21 cases, 19 with cut (i)), and runs 
 report on the 2 shortest real cuts with a tiny random Olmo 3.
 `python finetune/look/patching.py --dry-run` lists every cut with its tokens.
 
-**Outputs** in `/scratch/ragarw68/trackA/step10/`:
+**Outputs** in `/scratch/$USER/trackA/step10/`:
 - `cuts/<run>_<cut>.json`: per cut, the LDs per group and layer, both baselines, letter
   probabilities, the sanity checks and the snapshot hash
 - `step10_restoration.png` and `.svg`
@@ -431,16 +454,16 @@ is rebuilt with the tokenizer alone).
 
 **Two environments (decided Oct 27).** Hugging Face work (Steps 8–10, the timing run, training, the
 evaluation driver, the check's references) runs in the project environment
-`/scratch/ragarw68/envs/olmo`, which stays exactly as Steps 8–10 used it. vLLM pins its own torch
+`/scratch/$USER/envs/olmo`, which stays exactly as Steps 8–10 used it. vLLM pins its own torch
 (0.31.0: torch 2.13.0, transformers < 5.18), so its server runs from its own environment,
-`/scratch/ragarw68/envs/olmo-vllm` (`sol/setup_vllm.sh`, which refuses to install into `olmo`). A
+`/scratch/$USER/envs/olmo-vllm` (`sol/setup_vllm.sh`, which refuses to install into `olmo`). A
 vLLM job (the check, evaluation) runs its driver in `olmo` and starts `$TRACKA_VLLM serve` from
 `olmo-vllm`. Every output records both (`environments`: each prefix and its versions; the vLLM
 server's version).
 
-| Job | `submit.sh` line | Limit (estimate × 1.3) | Output (`/scratch/ragarw68/trackA/`) |
+| Job | `submit.sh` line | Limit (estimate × 1.3) | Output (`/scratch/$USER/trackA/`) |
 |---|---|---|---|
-| setup_vllm (no GPU, class QoS) | `submit.sh setup_vllm` | 1:00 (the script's) | `/scratch/ragarw68/envs/olmo-vllm`; the installed version and the server commands checked against the committed option list |
+| setup_vllm (no GPU, class QoS) | `submit.sh setup_vllm` | 1:00 (the script's) | `/scratch/$USER/envs/olmo-vllm`; the installed version and the server commands checked against the committed option list |
 | S1 timing | `submit.sh timing --estimate 0.5` | 1:00 | `timing/timing.jsonl`: per version, 12 examples spread over the lengths, peak memory, seconds per token, predicted hours |
 | S2 vLLM check | `submit.sh vllm_check --estimate 1 --dependency=afterok:<setup job>` | 1:30 | `vllm_check/vllm_check.json`: served vs Hugging Face, plain and tagged; `pass` |
 | S3–S6 train (batch 2, Oct 28) | `plan_training.py <S1 timing.jsonl>` prints the 4 lines: lora and tags at once, lora_tags `--dependency=afterany:<lora job>`, lora_attn3 `afterany:<tags job>` | the refit's high end × 1.3, ≤ 8:00 | `train/<version>/` (resumes; `epoch<k>/` after each epoch; `final/` at the end) |
@@ -466,7 +489,7 @@ gone, a value outside the node's choices, or a flag that now takes a value (or t
 difference is a warning in the job's log (Oct 28: S2 66862780 was refused on sg018 because
 `--mm-processor-device`, which no command uses, has a `cuda` choice on a GPU; the committed list is
 now sg018's). Either way the node's list is saved as
-`/scratch/ragarw68/trackA/vllm_serve_options_node.txt` to copy back; and a CPU test checks the exact
+`/scratch/$USER/trackA/vllm_serve_options_node.txt` to copy back; and a CPU test checks the exact
 commands against the list (`vllm_options.py`).
 If a server exits, the job's error gives this start's error lines first (a server log is appended to
 across jobs; each start writes a `=== server start` line), then the last 30 lines. S2 starts the plain
@@ -521,7 +544,7 @@ a bias on the attention logits to the tool's tokens in layers 15, 19 and 23. B1 
 inference (training-free); B2 learns one per head (`train.py` versions `gate3`, `lora_attn3_gate`).
 Hugging Face only: vLLM can't apply it, so `submit.sh eval` refuses the gate versions.
 
-| Job | `submit.sh` line | Limit | Output (`/scratch/ragarw68/trackA/`) |
+| Job | `submit.sh` line | Limit | Output (`/scratch/$USER/trackA/`) |
 |---|---|---|---|
 | B1 forced, set A only | `submit.sh provenance_forced --estimate 0.5 -- --cases-from C --runs-from R --items-from I` | 1:00 | `provenance_forced/cuts/*.json`, `provenance_forced.json` (P(W), P(O), the correct-hint P(O) per span and alpha; the chosen alpha) |
 | B1 generation, the held-out 30 | `submit.sh provenance_gen --estimate 4.5 --dependency=afterok:<forced> -- --alpha-from …/provenance_forced.json --part K/4` | 6:00 | `provenance_gen/eval_prov-*_runs.jsonl` (numbers), texts beside them (stay on Sol) |
@@ -543,7 +566,7 @@ gated; Mistral in its own format). Inputs by rsync (they hold text):
 
 | Job | `submit.sh` line | Limit | Output |
 |---|---|---|---|
-| snapshots (no GPU, online) | `submit.sh get_c13` | 3:00 (the script's) | `/scratch/ragarw68/hf`; `c13/snapshot_<model>.json` (every file checked against the Hub, and the model's generation config) |
+| snapshots (no GPU, online) | `submit.sh get_c13` | 3:00 (the script's) | `/scratch/$USER/hf`; `c13/snapshot_<model>.json` (every file checked against the Hub, and the model's generation config) |
 | C13 | `submit.sh c13 --estimate 1.5 --dependency=afterany:<set A's jobs>` | 2:00 | `results/trackC/team_c13_granite.jsonl`, `team_c13_mistral.jsonl` in the clone; `c13/vllm_<model>.log` |
 
 Back on the Mac: both logs into `results/trackC/`, then `python agents/run_team.py --summary --log
@@ -568,7 +591,7 @@ token count.
   channels; one file per cut, so a rerun resumes. At the end: the summary, the localization (the 3 layers with the
   largest drop on the puzzles) and the replication verdict.
 
-| Job | `submit.sh` line | Limit | Output (`/scratch/ragarw68/trackA/`) |
+| Job | `submit.sh` line | Limit | Output (`/scratch/$USER/trackA/`) |
 |---|---|---|---|
 | Step 3 | `submit.sh qwen8b_step3 --estimate 1.2` | 2:00 | `qwen8b_step3/`: `probes.jsonl.gz` (per-probe letter probabilities), `takeover_runs.jsonl`, `cases.jsonl`, `qwen8b_step3.json` |
 | Step 10 | `submit.sh qwen8b_step10 --estimate 4.3 --dependency=afterok:<Step 3>` | 6:00 | `qwen8b_step10/`: `cuts/*.json`, `qwen8b_step10_patching.json`, `qwen8b_readout.json` |
@@ -583,7 +606,7 @@ Back to the Mac, numbers only (no prompt or reasoning text in any of them), one 
 
 ```bash
 cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure && mkdir -p results/trackB/qwen8b_mech
-S=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA
+S=$SOL_USER@login.sol.rc.asu.edu:/scratch/$SOL_USER/trackA
 rsync -av $S/qwen8b_step3/qwen8b_step3.json results/trackB/qwen8b_mech/
 rsync -av $S/qwen8b_step3/takeover_runs.jsonl results/trackB/qwen8b_mech/
 rsync -av $S/qwen8b_step3/cases.jsonl results/trackB/qwen8b_mech/

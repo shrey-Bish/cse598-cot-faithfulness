@@ -1,6 +1,6 @@
 """Track A on Sol: refit S1's timing and plan the training jobs (no GPU, no model: a login node or the Mac).
 
-  "$TRACKA_PY" finetune/gpu/plan_training.py /scratch/ragarw68/trackA/timing/timing.jsonl
+  "$TRACKA_PY" finetune/gpu/plan_training.py /scratch/$USER/trackA/timing/timing.jsonl
 
 S1 (finetune/train.py --timing) fit seconds = fixed + per_token x tokens, and the fixed part came out
 negative (Oct 28): the cost per token grows with the length (attention over the whole prefix, again

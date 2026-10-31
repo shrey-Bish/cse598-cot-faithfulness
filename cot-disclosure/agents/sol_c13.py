@@ -26,6 +26,7 @@ its reviews are saved, so the next job redoes the rest. Exit: the largest runner
 """
 import argparse
 import fnmatch
+import getpass
 import json
 import os
 import signal
@@ -200,7 +201,7 @@ def main():
     mode.add_argument("--run", action="store_true", help="the GPU job: each model's server + the runner")
     mode.add_argument("--dry-run", action="store_true", help="models, server commands, calls and the GPU estimate")
     ap.add_argument("--model", action="append", choices=list(MODELS), help="only this model (repeatable)")
-    ap.add_argument("--log-dir", default=os.environ.get("TRACKA_OUT", "/scratch/ragarw68/trackA") + "/c13")
+    ap.add_argument("--log-dir", default=os.environ.get("TRACKA_OUT", f"/scratch/{getpass.getuser()}/trackA") + "/c13")
     a = ap.parse_args()
     names = a.model or list(MODELS)
     if a.download:

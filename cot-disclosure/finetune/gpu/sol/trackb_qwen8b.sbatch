@@ -7,7 +7,7 @@
 #SBATCH --mem=64G
 #SBATCH -t 0-02:00:00
 #SBATCH -J trackB-qwen3-8b
-#SBATCH -o /scratch/ragarw68/trackA/slurm/%x-%j.out
+#SBATCH -o /scratch/%u/trackA/slurm/%x-%j.out
 #SBATCH --signal=B:USR1@300
 # Track B's Qwen3-8B on one A100 (progress/sol_trackB.py): the Track B runner on Hugging Face generation
 # (--engine hf, the default since Oct 29) or our vLLM server (-- --engine vllm), core cells first,

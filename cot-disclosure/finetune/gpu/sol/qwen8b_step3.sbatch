@@ -7,7 +7,7 @@
 #SBATCH --mem=64G
 #SBATCH -t 0-02:00:00
 #SBATCH -J qwen8b-step3
-#SBATCH -o /scratch/ragarw68/trackA/slurm/%x-%j.out
+#SBATCH -o /scratch/%u/trackA/slurm/%x-%j.out
 #SBATCH --signal=B:USR1@300
 # Thread 1 on Qwen3-8B, Step 3 (finetune/look/qwen8b_mech.py step3): forced-answer probes after every sentence of
 # Track B's followed thinking-on runs (results/trackB/sol_vllm.jsonl.gz in the clone), takeover points, and the

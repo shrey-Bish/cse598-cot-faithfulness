@@ -1,6 +1,6 @@
 """Track A GPU kit: what every GPU script shares (Steps 8-10 on ASU Sol; small jobs anywhere).
 
-- Outputs: --out BASE, else $TRACKA_OUT (finetune/gpu/sol/env.sh sets /scratch/ragarw68/trackA);
+- Outputs: --out BASE, else $TRACKA_OUT (finetune/gpu/sol/env.sh sets /scratch/$USER/trackA);
   each step writes to BASE/<step>/. A small summary file per step is copied back to the Mac and
   committed in results/trackA/gpu/.
 - The model: allenai/Olmo-3-7B-Think from the local Hugging Face cache, never downloaded at run

@@ -65,6 +65,7 @@ On Sol: submit.sh qwen8b_step3 / qwen8b_step10 (finetune/gpu/README.md, "Qwen3-8
 Every output ($TRACKA_OUT/qwen8b_step3/, qwen8b_step10/) is numbers only: no prompt or reasoning text.
 """
 import argparse
+import getpass
 import hashlib
 import json
 import os
@@ -359,7 +360,7 @@ def model_and_template(model=None, log_dir=None):
     if model:
         path, commit = kit.snapshot(model)
     else:
-        log_dir = log_dir or os.path.join(os.environ.get("TRACKA_OUT", "/scratch/ragarw68/trackA"), "trackb_qwen8b")
+        log_dir = log_dir or os.path.join(os.environ.get("TRACKA_OUT", f"/scratch/{getpass.getuser()}/trackA"), "trackb_qwen8b")
         path = st.checked_snapshot(log_dir)
         commit = path.name
     template = st.chat_template(path)

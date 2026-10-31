@@ -11,10 +11,10 @@ finetune/hf_engine.py: continuous batching with a paged key/value cache, after a
 Each record says which engine ran it (engine: continuous / static); eval_jobs.jsonl has the sampling,
 the engine, and why (the self-check's result).
 
-  python finetune/gpu/eval_job.py --system base --part 1/4 --out /scratch/ragarw68/trackA/eval
+  python finetune/gpu/eval_job.py --system base --part 1/4 --out /scratch/$USER/trackA/eval
 
 Engine vllm (optional, for later): a job prepares the system's model, starts a vLLM server on it (its own
-environment, $TRACKA_VLLM = /scratch/ragarw68/envs/olmo-vllm/bin/vllm, since vLLM pins its own torch; its log
+environment, $TRACKA_VLLM = /scratch/$USER/envs/olmo-vllm/bin/vllm, since vLLM pins its own torch; its log
 OUT/vllm_<system>_p<k>of<n>.log, one per part), runs finetune/eval.py's runs against it, and stops it. Models
 (under $TRACKA_OUT/models/, made once, each in the making job's own directory and then renamed into place,
 so two parts starting together never write the same files):
@@ -25,8 +25,8 @@ so two parts starting together never write the same files):
 Tag versions get tagged prompt embeddings (--enable-prompt-embeds). Merging first means no system
 needs vLLM's prompt embeddings together with LoRA.
 
-  python finetune/gpu/eval_job.py --engine vllm --system base --part 1/2 --out /scratch/ragarw68/trackA/eval
-  python finetune/gpu/eval_job.py --check --out /scratch/ragarw68/trackA/vllm_check     # S2
+  python finetune/gpu/eval_job.py --engine vllm --system base --part 1/2 --out /scratch/$USER/trackA/eval
+  python finetune/gpu/eval_job.py --check --out /scratch/$USER/trackA/vllm_check     # S2
 
 The check (S2): a synthetic tag table and LoRA adapter (seeded), the served versions against the
 Hugging Face reference on 3 held-out prompts, greedy, 48 tokens: base served vs HF base (the bf16
@@ -42,6 +42,7 @@ node stops the job before any model load or merge; any other difference is a war
 """
 import argparse
 import gc
+import getpass
 import json
 import os
 import signal
@@ -64,7 +65,7 @@ CHECK_TOKENS = 48
 
 
 def out_root():
-    return Path(os.environ.get("TRACKA_OUT", "/scratch/ragarw68/trackA"))
+    return Path(os.environ.get("TRACKA_OUT", f"/scratch/{getpass.getuser()}/trackA"))
 
 
 def merge_lora(base_dir, adapter_dir, out_dir):

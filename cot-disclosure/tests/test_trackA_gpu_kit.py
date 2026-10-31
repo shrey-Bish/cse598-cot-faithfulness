@@ -14,6 +14,7 @@ CODE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CODE))
 SOL = CODE / "finetune" / "gpu" / "sol"
 ACCOUNT = "class_cse59888883fall2026"
+RITIK = "ragarw68"            # Ritik's Sol user: accounts.conf is his (there is no accounts.d/ragarw68.conf)
 
 from finetune.gpu import kit  # noqa: E402
 from _tiny_olmo import tiny_model_dir  # noqa: E402
@@ -177,7 +178,7 @@ def fake_sbatch(tmp_path):
     (bin_dir / "sbatch").write_text(f'#!/bin/bash\necho "$@" > {log}\necho "Submitted batch job 1"\n')
     (bin_dir / "sbatch").chmod(0o755)
     env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}", "TRACKA_SLURM_LOGS": str(tmp_path / "logs"),
-           "SBATCH_ACCOUNT": "grp_hdavulcu"}
+           "SBATCH_ACCOUNT": "grp_hdavulcu", "USER": RITIK}
     return env, log
 
 
@@ -390,7 +391,7 @@ def test_only_listed_accounts(tmp_path):
                                          ({"SLURM_JOB_ID": "5", "SLURM_JOB_ACCOUNT": "grp_hdavulcu"}, False),
                                          ({}, False)])
 def test_runs_only_inside_a_job_under_the_course_account(env_vars, ok):
-    env = {k: v for k, v in os.environ.items() if not k.startswith("SLURM_")}
+    env = {**{k: v for k, v in os.environ.items() if not k.startswith("SLURM_")}, "USER": RITIK}
     r = subprocess.run(["bash", "-c", f"source {SOL / 'guard.sh'} && tracka_require_job"], env={**env, **env_vars},
                        capture_output=True, text=True)
     assert (r.returncode == 0) is ok, r.stderr
@@ -461,7 +462,7 @@ def test_a_failed_import_check_stops_the_job_before_its_step(tmp_path):
 
 def test_vllm_gets_its_own_environment_and_outputs_name_it():
     env = (SOL / "env.sh").read_text()
-    assert "TRACKA_VLLM_ENV=/scratch/ragarw68/envs/olmo-vllm " in env and "TRACKA_ENV=/scratch/ragarw68/envs/olmo " in env
+    assert "TRACKA_VLLM_ENV=$TRACKA_SCRATCH/envs/olmo-vllm " in env and "TRACKA_ENV=$TRACKA_SCRATCH/envs/olmo " in env
     setup = (SOL / "setup_vllm.sh").read_text()
     assert '"$TRACKA_PY" -m pip' not in setup and '"$TRACKA_VLLM_PY" -m pip install' in setup
     assert "refusing: the vLLM environment must not be the project environment" in setup
@@ -676,7 +677,7 @@ def test_sol_scripts_call_the_env_python_by_full_path():
     system 3.6.8): Python is always "$TRACKA_PY", the project environment's own."""
     import re
     assert "TRACKA_PY=$TRACKA_ENV/bin/python\n" in (SOL / "env.sh").read_text()
-    assert "TRACKA_ENV=/scratch/ragarw68/envs/olmo " in (SOL / "env.sh").read_text()
+    assert "TRACKA_ENV=$TRACKA_SCRATCH/envs/olmo " in (SOL / "env.sh").read_text()     # /scratch/$USER (Oct 30)
     bare = re.compile(r'(?<![\w/$"{.-])python3?(?![\w.-])')
     for f in list(SOL.glob("*.sh")) + list(SOL.glob("*.sbatch")):
         for i, line in enumerate(f.read_text().splitlines(), 1):

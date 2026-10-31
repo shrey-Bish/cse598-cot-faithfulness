@@ -1,6 +1,6 @@
 #!/bin/bash
 # Install Track A's GPU packages into the existing project environment on Sol
-# (/scratch/ragarw68/envs/olmo, Python 3.11). No vLLM: that comes with Steps 12-13.
+# ($TRACKA_ENV = /scratch/$USER/envs/olmo, Python 3.11). No vLLM: that comes with Steps 12-13.
 #   bash cot-disclosure/finetune/gpu/sol/setup_env.sh            # in your session (a few minutes)
 #   cot-disclosure/finetune/gpu/sol/submit.sh setup_env          # or as a job without a GPU (public, class QoS)
 # torch 2.14.1 comes from PyTorch's CUDA 13.0 index: the driver reports CUDA 13.4, and a driver

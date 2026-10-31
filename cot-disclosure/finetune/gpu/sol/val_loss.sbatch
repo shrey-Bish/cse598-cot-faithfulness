@@ -7,7 +7,7 @@
 #SBATCH --mem=64G
 #SBATCH -t 0-01:00:00
 #SBATCH -J trackA-val-loss
-#SBATCH -o /scratch/ragarw68/trackA/slurm/%x-%j.out
+#SBATCH -o /scratch/%u/trackA/slurm/%x-%j.out
 #SBATCH --signal=B:USR1@300
 # Track A: the validation loss by part (finetune/val_loss.py), the base model and both epochs of each
 # version given (default lora tags); Hugging Face only, no vLLM; a rerun skips the systems done.
