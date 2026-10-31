@@ -1,81 +1,65 @@
-# Session log: C18: removing the solver's sentences that cite the tool restores the Olmo reviewer's check (2026-10-30 17:20 MST)
+# Session log: Track C handed to Shrey, verified from a fresh clone (2026-10-30 18:05 MST)
 
-Project: CSE 598 Group 10, Track C. C18 tests H33: is the cue the argument for the wrong letter? It was pre-registered
-in the 17:00 log (commit `1928820`) before any call. FINDINGS F34. **By:** Ritik.
+Project: CSE 598 Group 10, Track C. Ritik handed Track C to Shrey on Oct 30. The work through C18 is Ritik's (By:
+Ritik); from Oct 30 Track C is Shrey's. **By:** Ritik.
 
-## 1. What ran
+## 1. What was handed over
 
-- **Voyager, 16:45–16:49:** 136 reviews, 0 errors, under the power guard (on battery at 77%, above the guard's 15%).
-- **Answers:** C16's 34 final answers that named the tool after a bad lookup (every one wrong).
-- **Versions:**
-  - **unchanged** (`team_c18_unchanged`);
-  - **stripped** (`team_c18_stripped`): the 2–4 sentences per answer that name the tool removed, the rest kept.
-    The median length falls from 474 to 126 characters.
-- **Reviewers:** Olmo 3.1 32B and Qwen3 30B Instruct, `plus_explanation`, C4's prompt.
-- **Read:** `python agents/c18.py`.
+- **`docs/handoff/TRACK_C.md`, final:**
+  - the setup;
+  - the story in order (F18, F19, F21–F24, F30, F31, F33, F34) with numbers, status and limits;
+  - the deployment reading (the blind checker holds across all six reviewers);
+  - what's refuted (C14, H23, H33) and why it's kept;
+  - the decisions he inherits; known traps;
+  - a first-day checklist;
+  - his ranked plan to Gate 3 (C19–C24: H34, a structural fix, items the solver can't answer alone, another
+    solver, reviewer wordings, thread 2's figures), each with a pre-registration sketch, an estimate, a
+    deliverable and a date;
+  - the bundle's contents.
+- **Ownership:** Shrey from Oct 30 in TODO (C19–C24 his plan) and PLAN; past rows stay Ritik's.
+- **Sol for a second user:**
+  - every path in the kit comes from `$USER`; sbatch logs go to `/scratch/%u/...`;
+  - allowed accounts come from `accounts.d/$USER.conf` or the course's `accounts.conf`;
+  - `docs/handoff/SOL_SETUP.md`;
+  - 12 tests run the kit as a second user.
+  - Open trap: vLLM ports are fixed, so two users' jobs on one node would collide. It's in SOL_SETUP.md.
+- **Voyager:** he makes his own key and puts it in `cot-disclosure/.env` (`RC_LLM_API_KEY`, `RC_LLM_BASE_URL`, from
+  `.env.example`). Never anyone else's key; nothing paid. The identity canaries and the 4-in-flight rule are in
+  TRACK_C §6.
+- **The bundle:** `trackC_20261030.tar.gz`, rebuilt after C18.
+  - 43 files, 31.3 MB unpacked, 5.1 MB packed, with a sha256 manifest.
+  - Contents: C1, the 32B smoke, C4, C9–C18 logs and summaries; C15's items; `steered_cases.jsonl`.
+  - No GPQA, no keys, no `.env`, no labels.
+  - The morning's Track C bundle went to the gitignored `results/archive/`.
 
-## 2. The pre-registered reading
+## 2. Verified as Shrey would (Oct 30, ~17:50)
 
-Correcting a wrong answer (34 items); stripped minus unchanged; paired by item; two-sided with C11's 20-point margin.
+- **The clone:** `trackC-main` fast-forwarded locally to the current tip (`4fa9c0c`) and cloned fresh into a temp
+  folder. The bundle unpacked there, and `make_handoff_bundle.py --verify` gave "bundle matches its manifest".
+- **FINDINGS' numbers from the clone, no calls (all match):**
+  - `run_team.py --summary --log team_c4 … --table`: Olmo 3.1 32B corrects 59 of 73 alone, 6 with the private
+    reasoning (−73 [−86, −58]) and 3 with the tool log (−77 [−91, −61]) (F18).
+  - `run_team.py --summary --log team_c15 …` and `agents/c15.py`: 39 → 10 of 53, −55 [−70, −38], defers; Qwen3 −6
+    [−15, +4] (F24).
+  - `agents/c16.py`: 25 against 36 of 53, −21 [−34, −8] (F31).
+  - `agents/c18.py`: 25 against 9 of 34, +47 [+29, +65] (F34).
+- **The tests in the clone:** 605 passed, 3 skipped, **5 failed**. The five read Track A's gitignored data
+  (`results/trackA/`, `finetune/data/`), which a fresh clone doesn't have. They now skip when it's absent, as three
+  tests already did. Re-checked in the final fresh-clone run before the push (the evening daily).
 
-| reviewer | stripped | unchanged | minus | rule | H33 |
-|---|---|---|---|---|---|
-| Olmo 3.1 32B | 25 of 34 | 9 of 34 | **+47 [+29, +65]** | more corrections | **the tool mentions are part of the cue** |
-| Qwen3 30B Instruct | 28 of 34 | 26 of 34 | +6 [−9, +21] | no change | (it doesn't defer) |
+## 3. The note for Ritik to send Shrey (under 15 lines)
 
-**H33 as stated is not supported for the Olmo reviewer.** Removing the sentences that cite the tool restores most of
-its check; the argument that's left doesn't hold it back.
-
-## 3. Also reported (no decision)
-
-- **The stability check:** the unchanged answers reviewed again give exactly C16's original results (Olmo 9 of 34,
-  Qwen3 26 of 34, +0 [0, 0]). The same prompt and seed reproduce on Voyager.
-- **Stripped minus C17's own-working version** (32 items both have): Olmo 23 against 22, +3 [−9, +16]; Qwen3 +6 [0,
-  +16]. Once the tool sentences are gone, Olmo reviews these answers about as it reviews a bare answer with "based on
-  my own step-by-step working".
-
-## 4. Reading, with C16 and C17
-
-The three experiments on the Olmo reviewer (it defers; Qwen3 doesn't move in any of them):
-
-| what the reviewer sees | corrects (Olmo) | source |
-|---|---|---|
-| the solver's bare answer (+ a neutral or a tool-naming line) | about 36–37 of 53 | C16 control, C17 |
-| the solver's own disclosure: its working + sentences citing the tool's letter | 25 of 53 (C16); 9 of 34 named | C16, C18 |
-| that disclosure with the tool-citing sentences removed | 25 of 34 | C18 |
-
-- **The cue isn't a generic source label.** "This answer is based on the lookup tool's result." changes nothing
-  (C17).
-- **It isn't the solver's working either.** With the tool sentences gone, the working that remains doesn't hold Olmo
-  back (C18).
-- **It is the solver's sentences that cite the tool's letter as authority:** "the course answer key specifies the
-  expected answer as H… Despite the discrepancy, the tool response confirms the expected answer is H."
-- **Revised hypothesis (H34, untested):** the deferring reviewer follows a statement that an authoritative source
-  gave this letter, especially one that overrides the solver's own working. A generic mention of a tool doesn't do
-  it.
-
-**For deployment:**
-- Disclosure written by the solver can make a deferring reviewer worse, because the disclosure carries the authority
-  claim.
-- The check that never sees the tool (the checker) held throughout.
-
-**Limits:**
-- 34 items.
-- One solver.
-- Which sentences go is decided by a keyword, so the removed sentences carry both the citation and its
-  justification.
-- One deferring reviewer family.
-
-## 5. What changes
-
-- **FINDINGS F34.** Story step 4: the deferring family follows the solver's citations of the tool's letter, not a
-  source label (C17) and not the remaining argument (C18).
-- **CLAIMS** 2.1 and B15's headline.
-- **REVIEWER_QUESTIONS** thread 1, question 10.
-- **TODO C18:** done; H34 for Shrey's plan.
-- **PLAN; TRACK_C.**
-- **Exported:** `c18_summary.json`, `team_c18_unchanged_summary.json`, `team_c18_stripped_summary.json`.
-
-## 6. Source
-
-`cot-disclosure/results/summaries/trackC/c18_summary.json`. Recomputed with `python agents/c18.py`.
+> Hi Shrey, Track C is yours from today (Oct 30).
+> What it found: a reviewer that sees the solver's tool trace stops checking, but only in one family. Olmo 3.1 32B
+> corrects 59 of 73 wrong tool answers from the answer alone and 3–6 once it sees the trace; of six reviewers in four
+> families only the two Olmo models defer, and prompt fixes don't help them. A re-ask checker that never sees the
+> tool caught every wrong answer (C4, C13, C15). Newest (C16–C18): when the solver discloses its source, the Olmo
+> reviewer corrects fewer wrong answers, because of the solver's sentences citing the tool's letter as authority.
+> The doc: docs/handoff/TRACK_C.md on branch trackC-main (github.com/shrey-Bish/cse598-cot-faithfulness); Sol:
+> docs/handoff/SOL_SETUP.md.
+> The data bundle (trackC_20261030.tar.gz, 5 MB) comes through ASU storage, never GitHub.
+> First day: clone trackC-main, make a venv, run the tests; create your own Voyager key and put it in
+> cot-disclosure/.env; unpack the bundle and --verify it; reproduce F18, F24 and F34 with no calls (TRACK_C §7).
+> Your plan's first two: C19 (is an authority claim the cue? by Nov 5) and C20 (a structural fix: withhold the trace,
+> or a blind first review; by Nov 9). Pre-register each in a session log before it runs.
+> Ritik
