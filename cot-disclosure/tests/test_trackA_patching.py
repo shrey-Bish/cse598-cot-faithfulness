@@ -20,6 +20,9 @@ from finetune.look import hint_spans as hs  # noqa: E402
 from finetune.look import patching as pt  # noqa: E402
 from tools.answer_key import build  # noqa: E402
 from _tiny_olmo import tiny_model_dir  # noqa: E402
+TRACK_A_DATA = (CODE / "results" / "trackA" / "base_format.jsonl.gz").exists()   # gitignored: a fresh clone has none
+needs_track_a = pytest.mark.skipif(not TRACK_A_DATA, reason="needs results/trackA (gitignored; Track A's produced data)")
+
 
 
 def source(condition="tool_pasted", letter="G", qid=1344):
@@ -79,6 +82,7 @@ def test_patching_identities(tmp_path):
     assert ld == pytest.approx(res["ld_clean"], abs=1e-4)
 
 
+@needs_track_a
 def test_cuts_on_the_real_cases():
     cases, steps, items, step4 = pt.inputs()
     assert len(cases) == 21 and len(step4) == 19
@@ -94,6 +98,7 @@ def test_cuts_on_the_real_cases():
     assert n_i == 19
 
 
+@needs_track_a
 def test_run_and_report_on_the_shortest_real_cuts(tmp_path):
     d = tiny_model_dir(tmp_path, kv_heads=2, window=64)
     pt.run(model=str(d), device="cpu", out=str(tmp_path / "out"), limit=2)

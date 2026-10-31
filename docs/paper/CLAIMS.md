@@ -66,8 +66,8 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
 
 **1.5 Training learns the taught text; most of LoRA's gain is reachable from the three layers alone.**
 - **Evidence:** F20.
-  - LoRA's taught tokens −58% [−67, −51] against base; without the fixed opener −40% [−46, −36];
-    the rest −19%.
+  - LoRA's taught tokens −0.2740 nats [−0.3132, −0.2401] against base (−58%); without the fixed opener −0.1328
+    [−0.1527, −0.1176] (−40%); the rest −19%.
   - LoRA on the attention of layers 15/19/23 only (1.6 M parameters, 3.9% of full LoRA's) reaches
     85–90% of that drop.
 - **Status:** *confirmed* as teacher-forced loss on held-out questions. **Behavior, interim (F28): Gate 3 is met
@@ -114,7 +114,7 @@ without making the model ignore correct tools.**
 
 ## Thread 2: automation bias in LLM reviewers
 
-**2.1 Deference to the solver's tool trace is family-specific: Olmo reviewers defer (2 of 6 reviewers, 4
+**2.1 Deference to the solver's tool trace is family-specific: Olmo reviewers defer (two of six reviewers, four
 families); prompt fixes don't help the deferring family (2.3); the blind checker holds for all (2.5).**
 - **Evidence:** F18 (C4, 53 items, 318 cases).
   - Olmo 3.1 32B Instruct corrects 59 of 73 wrong answers from the answer alone, 6 with the
@@ -134,7 +134,7 @@ families); prompt fixes don't help the deferring family (2.3); the blind checker
     sentences restores the check (25 against 9 of 34, +47 [+29, +65]). The deferring family follows the solver's
     citation of the tool's letter as authority, not a source label and not the remaining argument.
   - C13 (F30, done): neither Granite nor Mistral defers; the pre-registered reading is "Olmo-specific". Granite's
-    interval is wide (−5 [−26, +15]: it reaches −26, past the −20 line; "doesn't defer" because it includes 0), and
+    interval is wide (−5 [−26, +15]: it reaches −26, past C11's −20 line (F22); "doesn't defer" because it includes 0), and
     its own check is weak (27 of 73 alone), so its test has less room.
   - C15 (F24, done): on 100 fresh items Olmo 3.1 32B defers again (39 → 10 of 53, −55 [−70, −38]) and Qwen3 30B
     Instruct doesn't (−6 [−15, +4]): *confirmed* on fresh items.
@@ -144,7 +144,7 @@ families); prompt fixes don't help the deferring family (2.3); the blind checker
   itself 84 of 159. Good lookups 67 → 84 of 84 (+20 [+8, +35]).
 - **Status:** *confirmed* (Olmo).
 - **Objection:** on a mix with more good lookups, deferring would look like a gain.
-- **Settles it:** report both sides at the observed bad-lookup rate (here 75 of 159) and say what
+- **Settles it:** report both sides at the observed bad-lookup rate (here 75 bad and 84 good lookups) and say what
   a lower rate would show.
 
 **2.3 Prompt fixes don't restore the deferring family's check.**
@@ -177,7 +177,8 @@ families); prompt fixes don't help the deferring family (2.3); the blind checker
 - **Settles it:** items the model can't answer without the tool, and the cost in escalations.
 
 **2.6 A cheaper check: escalate when a blind review and a trace-seeing review disagree.**
-- **Evidence:** C14 (exploratory: chosen on C4's cases as reviewed in C4 and C9–C12). Against the checker's
+- **Evidence:** C14 (exploratory, no F entry: log 2026-10-29 23:00, `results/summaries/trackC/c14_disagreement.json`;
+  chosen on C4's cases as reviewed in C4 and C9–C12). Against the checker's
   pipeline with the same reviewer: catches 56–73 of 73 against 73; with Qwen3 reviewers about the same false
   alarms (+1 [−6, +8]) at ~30–45% of the checker's tokens; with Olmo reviewers 12–21 points more false alarms.
 - **Status:** *refuted* as a replacement for the checker (C15, F24): on fresh items neither pre-registered claim

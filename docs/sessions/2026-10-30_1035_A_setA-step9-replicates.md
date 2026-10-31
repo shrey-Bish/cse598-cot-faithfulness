@@ -29,7 +29,7 @@ resisted runs; means 0.120 against 0.051). Test 2: +0.084 [+0.062, +0.105].
 | L23H17 | +0.084 [+0.062, +0.106] | +0.086 [+0.062, +0.111] |
 | L15H31 | +0.040 [+0.008, +0.071] | +0.051 [+0.023, +0.076] |
 | pasted block | +0.087 [+0.070, +0.106] (8 questions) | +0.097 [+0.059, +0.139] |
-| inserted + declared | **+0.031 [+0.008, +0.052]** (9 questions) | +0.028 [−0.002, +0.058] |
+| inserted + declared | **+0.031 [+0.008, +0.051]** (9 questions) | +0.028 [−0.002, +0.058] |
 
 - **Every head is above 0 on its own.** The order is a little different: L23H17 and L19H31 are about equal here.
 - **Inserted + declared:** the interval lies above 0 on set A. On Test 2 it included 0, so F12's "not for inserted

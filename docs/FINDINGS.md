@@ -428,7 +428,7 @@ clean answer, so the information hasn't left those tokens yet. It then falls in 
   these heads pooled over channels and for the inserted and pasted channels. Not for inserted +
   declared.
 - **Set A (F32, Oct 30):** the three heads, fixed in advance, replicate on 15 questions not used to find them
-  (+0.068 [+0.044, +0.088]); there inserted + declared is above 0 too (+0.031 [+0.008, +0.052]).
+  (+0.068 [+0.044, +0.088]); there inserted + declared is above 0 too (+0.031 [+0.008, +0.051]).
 
 ## Mechanism, in one paragraph (Steps 8–10, tentative as a whole)
 
@@ -1427,7 +1427,8 @@ The Thinking model's calling runs are 63 of 162 with the instruction, over 33 qu
 
 **Setup.**
 - **Set A:** the training data's 34 validation questions (in neither training nor the 30 evaluation questions).
-  Runs on Voyager (Oct 29), then Step 10 on Sol (66953953, Oct 29 night).
+  Runs on Voyager (Oct 29: 204 runs; followed 30 of 100 pasted and 26 of 101 inserted runs; 39 late takeovers on 16
+  sure questions), then Step 10 on Sol (66953953, Oct 29 night).
 - **Cases:** 34 followed runs with a late takeover on sure questions, 16 questions. 66 cuts: 34 at the takeover
   (ii), 32 before the first mention (i).
 - **Rule** (Oct 29 00:20 log, before set A's runs), at cut (ii):
@@ -1546,7 +1547,8 @@ Oct 30). Following, correct-hint acceptance and no-hint accuracy there are *wait
   - **real tool call 143 against 40 of 162: +64 [+51, +75]**;
   - system note 45 against 29: +10 [+2, +19].
 - **The call rate:** on 145 of 162, off 35 of 162. When it calls, it takes the letter (143 of 145; 33 of 35).
-- **Gate 2 is clear in both modes:** pasted − user +19 (on) and +13 (off); real − user +78 and +13.
+- **Gate 2 is clear in both modes:** pasted − user +19 [+10, +29] (on) and +13 [+7, +21] (off); real − user +78
+  [+69, +86] and +13 [+3, +23].
 - **After a call with thinking on:** the final answer is bare in 138 of 145, and it names the tool in 0 of 143
   followed runs. The private reasoning names it in 141 of 145.
 - **No-hint accuracy:** 137 against 122 of 162.
@@ -1650,7 +1652,7 @@ the per-run file was on the Mac:
 **Result: replicates.** +0.068 [+0.044, +0.088], 15 questions (56 followed, 145 resisted runs). Test 2: +0.084
 [+0.062, +0.105].
 - **Per head:** L19H31 +0.080 [+0.047, +0.109], L23H17 +0.084 [+0.062, +0.106], L15H31 +0.040 [+0.008, +0.071].
-- **By channel:** pasted +0.087 [+0.070, +0.106]; inserted + declared +0.031 [+0.008, +0.052]. On Test 2 the latter
+- **By channel:** pasted +0.087 [+0.070, +0.106]; inserted + declared +0.031 [+0.008, +0.051]. On Test 2 the latter
   included 0 (+0.028 [−0.002, +0.058]); the points are close.
 - **Not set A's top heads by mass:** set A's own ranking puts L23H20, L7H3, L27H5, L19H2 and L15H1 first. The heads
   that look most at the hint aren't the ones that separate the outcomes.

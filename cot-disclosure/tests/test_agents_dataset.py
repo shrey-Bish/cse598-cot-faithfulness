@@ -1,5 +1,7 @@
 """Track C pipeline scoring and replay; Track A dataset hold-out rules."""
 import json
+
+import pytest
 import sys
 from pathlib import Path
 
@@ -46,6 +48,8 @@ def test_replay_runs_on_saved_experiment_a(tmp_path):
     assert sum(1 for _ in open(tmp_path / "team.jsonl")) == len(rows)
 
 
+@pytest.mark.skipif(not (CODE / "finetune" / "data" / "train.jsonl").exists(),
+                    reason="needs finetune/data (gitignored; Track A's produced data)")
 def test_dataset_holds_out_wordings_and_question_sets():
     """The written dataset (Step 5): training may be empty until Step 6's no-hint runs exist, and it
     has correct-hint records on purpose; the held-out set and wordings never reach it."""

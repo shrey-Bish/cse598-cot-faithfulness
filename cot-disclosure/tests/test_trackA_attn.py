@@ -23,6 +23,9 @@ from tools.answer_key import build  # noqa: E402
 from _tiny_olmo import tiny_config, tiny_model_dir  # noqa: E402
 
 TOL = 1e-3
+TRACK_A_DATA = (CODE / "results" / "trackA" / "base_format.jsonl.gz").exists()   # gitignored: a fresh clone has none
+needs_track_a = pytest.mark.skipif(not TRACK_A_DATA, reason="needs results/trackA (gitignored; Track A's produced data)")
+
 
 
 def small_model(seed=0, **cfg):
@@ -123,6 +126,7 @@ def test_measure_on_a_run_matches_eager(tmp_path, condition):
     assert set(res["forced_probs"]) == set("ABCD")
 
 
+@needs_track_a
 def test_run_and_report_on_saved_step2b_runs(tmp_path):
     d = tiny_model_dir(tmp_path, kv_heads=2, window=64)
     ah.run(model=str(d), device="cpu", out=str(tmp_path / "out"), limit=2)
@@ -137,6 +141,7 @@ def test_run_and_report_on_saved_step2b_runs(tmp_path):
     assert json.loads((step / "step9_attention.json").read_text())["runs"] == 2
 
 
+@needs_track_a
 def test_followup_on_saved_runs(tmp_path):
     """The Oct 26 follow-up (no model): full-attention layers only, the runs within reach in the
     sliding layers apart, hint - control and per token, top heads, the aligned curve."""
