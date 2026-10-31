@@ -539,7 +539,7 @@ The order, hours and dates: `docs/PLAN.md` (Track A). Results back by rsync, sum
 
 ## B1 and B2: provenance-scaled attention (Oct 29)
 
-The method, the decision rule for alpha and the full Sol lines: `finetune/PROVENANCE.md`. In short:
+The method, the decision rule for alpha and the full Sol lines: [`docs/TRACK_A_PROVENANCE.md`](../../../docs/TRACK_A_PROVENANCE.md). In short:
 a bias on the attention logits to the tool's tokens in layers 15, 19 and 23. B1 sets it from alpha at
 inference (training-free); B2 learns one per head (`train.py` versions `gate3`, `lora_attn3_gate`).
 Hugging Face only: vLLM can't apply it, so `submit.sh eval` refuses the gate versions.

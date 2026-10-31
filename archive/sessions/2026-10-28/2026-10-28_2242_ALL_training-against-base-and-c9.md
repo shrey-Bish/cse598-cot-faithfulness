@@ -95,7 +95,7 @@ git push origin main trackA-nosol trackB-main trackC-main
 git ls-files | rsync -av --files-from=- ./ ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/
 ```
 The morning commands (the four remaining eval parts, the copy-backs) are in
-[DAILY_2026-10-29.md](DAILY_2026-10-29.md).
+[DAILY_2026-10-29.md](../2026-10-29/DAILY_2026-10-29.md).
 
 ## 6. For review
 

@@ -3,7 +3,7 @@
   python cot-disclosure/progress/extract_slides.py
   python cot-disclosure/progress/extract_slides.py --deck path/to/deck.pptx
 
-Default deck: the presented one, presentation/CSE598_Group10_progress_Presentation_v3.pptx.
+Default deck: the presented one, archive/progress-round/presentation/CSE598_Group10_progress_Presentation_v3.pptx.
 The output is regenerated on demand and is not kept in git.
 """
 import argparse
@@ -12,8 +12,8 @@ from pathlib import Path
 from pptx import Presentation
 
 REPO = Path(__file__).resolve().parents[2]
-FINAL = REPO / "presentation" / "CSE598_Group10_progress_Presentation_v3.pptx"
-FALLBACK = REPO / "presentation" / "CSE598_Group10_progress_Presentation_v2.pptx"
+FINAL = REPO / "archive" / "progress-round" / "presentation" / "CSE598_Group10_progress_Presentation_v3.pptx"
+FALLBACK = REPO / "archive" / "progress-round" / "presentation" / "CSE598_Group10_progress_Presentation_v2.pptx"
 OUT = REPO / "docs" / "progress" / "SLIDE_POINTS.md"
 NOTES = []  # v3 matches docs/PLAN.md (track letters, models, "hint" wording)
 

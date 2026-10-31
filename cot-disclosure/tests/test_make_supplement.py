@@ -111,13 +111,18 @@ def repo(tmp_path):
     write("cot-disclosure/progress/report.py", "")
     write("cot-disclosure/detect.py", "")
     c1 = commit("F1", "2026-10-26T13:31:00-07:00")
-    write(f"{ms.SESSIONS_REL}/2026-10-29_0020_A_x-prereg.md", PREREG_LOG)
+    write(f"{ms.OLD_SESSIONS_REL}/2026-10-29_0020_A_x-prereg.md", PREREG_LOG)       # the logs' first folder
     c2 = commit("X's rule", "2026-10-29T00:25:00-07:00")
     write(ms.FINDINGS_REL, FINDINGS)
-    write(f"{ms.SESSIONS_REL}/2026-10-30_0900_A_x-results.md", RESULTS_LOG)
+    write(f"{ms.OLD_SESSIONS_REL}/2026-10-30_0900_A_x-results.md", RESULTS_LOG)
     c3 = commit("F2 and X's results", "2026-10-30T09:03:00-07:00")
-    write(f"{ms.SESSIONS_REL}/2026-10-30_1000_C_y-prereg.md", OTHER_PREREG)
+    write(f"{ms.OLD_SESSIONS_REL}/2026-10-30_1000_C_y-prereg.md", OTHER_PREREG)
     commit("Y's rule", "2026-10-30T10:00:00-07:00")
+    for old in sorted((root / ms.OLD_SESSIONS_REL).glob("*.md")):                # Oct 30's move into the archive
+        new = root / ms.log_rel(old.name)
+        new.parent.mkdir(parents=True, exist_ok=True)
+        old.rename(new)
+    commit("the logs into archive/sessions/<date>/", "2026-10-30T22:00:00-07:00")
     return {"root": root, "c1": c1, "c2": c2, "c3": c3}
 
 
@@ -207,7 +212,7 @@ def test_the_real_ledger_resolves_every_rule_and_flags_the_after_the_fact_readin
                              ms.tracked_files(ms.REPO))
     by = {r["id"]: r for r in rows}
     for r in rows:
-        if r["kind"] != "none" and not (r.get("rule_log") and not (ms.REPO / ms.SESSIONS_REL / r["rule_log"]).exists()):
+        if r["kind"] != "none" and not (r.get("rule_log") and not (ms.REPO / ms.log_rel(r["rule_log"])).exists()):
             assert all(len(c) > 1 for _, c in r["fixed"]), r["id"]                       # a commit and a date each
         if not r["waiting"]:
             assert r["checked"] == "yes", (r["id"], r["checked"])

@@ -287,7 +287,7 @@ def run(model=None, device="auto", dtypes=("bf16", "fp32"), out=None, dry_run=Fa
                                 for name, r in res.items()} for dt, res in results.items()},
                "for_scale": "Oct 21, Voyager old vs new route on the Step 1 text: strict part max 0.0003; beyond: mean "
                             "0.006, max 0.19, 24 mismatches, all near-ties. Instruct vs Think: 654 mismatches, mean 0.32, "
-                            "max 20.7 (docs/OVERVIEW.md §5)",
+                            "max 20.7 (archive/superseded/OVERVIEW_2026-10-27.md §5)",
                "peak_gib": round(torch.cuda.max_memory_allocated() / kit.GiB, 2) if dev.type == "cuda" else None}
     from finetune.gpu import step8_verdict
     summary["decision"] = step8_verdict.decide(summary)

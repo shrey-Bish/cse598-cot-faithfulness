@@ -1,7 +1,7 @@
 # cot-disclosure: the code
 
 Last updated: 2026-10-27 15:00 MST. Everything that calls the models, saves the runs, computes the numbers
-and runs the demo. What the project did is in [`../docs/OVERVIEW.md`](../docs/OVERVIEW.md), what it
+and runs the demo. What the project did is in [`../docs/OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), what it
 found in [`../docs/FINDINGS.md`](../docs/FINDINGS.md), what comes next in
 [`../docs/PLAN.md`](../docs/PLAN.md), and how to run each step in
 [`../docs/RUNBOOK.md`](../docs/RUNBOOK.md).
@@ -49,7 +49,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q              # 340 tests, 
 **The demo app:**
 
 ```bash
-python3 cot-disclosure/ui/app.py                                   # http://127.0.0.1:8765; see ui/README.md
+python3 cot-disclosure/ui/app.py                                   # http://127.0.0.1:8765; guide: archive/progress-round/ui_demo_README.md
 ```
 
 **The tracks:**
@@ -107,11 +107,11 @@ rerun with the same seed reuses them. Delete `cache/` for fresh calls.
 | `tools/export_summaries.py`, `prepush_check.py`, `untrack_produced.py` | Numbers-only summaries (no question or reply text); the pre-push check; the history rewrite (`--not-in`, `--backup`) |
 | `tools/label_kit.py`, `make_handoff_bundle.py` | The labeling kit and Cohen's kappa; per-track data bundles with a sha256 manifest |
 | `agents/` | Track C: `solver.py`, `reviewer.py`, `checker.py`, `run_team.py` (tool and no-tool teams, reviewer models, `--cases`, `--summary`) |
-| `finetune/` | Track A: Steps 1–10, the dataset, source tags, Steps 11–13 (`train.py`, `generate.py`, `eval.py`), the Sol kit ([README](finetune/README.md), [GPU kit](finetune/gpu/README.md)) |
+| `finetune/` | Track A: Steps 1–10, the dataset, source tags, Steps 11–13 (`train.py`, `generate.py`, `eval.py`), the Sol kit (design: [docs/TRACK_A.md](../docs/TRACK_A.md); B1/B2: [docs/TRACK_A_PROVENANCE.md](../docs/TRACK_A_PROVENANCE.md); [the GPU kit](finetune/gpu/README.md)) |
 | `configs/` | `models.yaml` (provider facts, Voyager IDs), `canary/` (identity references), `prices.yaml`, `trackB.yaml` |
-| `ui/` | The demo app ([README](ui/README.md)) |
+| `ui/` | The progress round's demo app (its guide: [archive/progress-round/ui_demo_README.md](../archive/progress-round/ui_demo_README.md)) |
 | `data/progress/mmlupro_30.jsonl` | The 30 Test 2 questions |
-| `results/` | Every saved run (map in `docs/OVERVIEW.md` §10); `results/summaries/` is the tracked, numbers-only part |
+| `results/` | Every saved run (map in `archive/superseded/OVERVIEW_2026-10-27.md` §10); `results/summaries/` is the tracked, numbers-only part |
 
 ## Voyager facts that matter for new code
 

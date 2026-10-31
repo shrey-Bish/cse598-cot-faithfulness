@@ -1,5 +1,5 @@
 """Track C, C18 (Oct 30): H33, is the cue the argument for the wrong letter? The pre-registered readings (no calls).
-Pre-registered in docs/sessions/2026-10-30_1700_C_c18-prereg.md.
+Pre-registered in archive/sessions/2026-10-30/2026-10-30_1700_C_c18-prereg.md.
 
   python agents/c18.py                    # -> results/trackC/c18_summary.json; prints the readings
 

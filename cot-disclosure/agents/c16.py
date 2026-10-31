@@ -1,6 +1,6 @@
 """Track C, C16 (Oct 30): when the solver's final answer names the tool, does a reviewer that sees that answer correct
 a wrong one more or less often? The pre-registered readings (no calls). Pre-registered in
-docs/sessions/2026-10-30_0850_C_c16-prereg.md.
+archive/sessions/2026-10-30/2026-10-30_0850_C_c16-prereg.md.
 
   python agents/c16.py                    # -> results/trackC/c16_summary.json; prints the readings
 

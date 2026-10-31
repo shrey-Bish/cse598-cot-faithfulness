@@ -1,22 +1,31 @@
-"""Project tracking from the repo's own records: a Gantt workbook, a one-page chart for slides and a status page.
+"""Project tracking from the repo's own records: a Gantt workbook, a one-page chart for slides, a printable
+chart with a page per track, and a status page.
 
 Everything is read from what the repo already holds, so it can be made again any day (no calls, no network):
-  - git log of the current branch (read-only): each commit's date, hash, files and subject
+  - git log of the current branch (read-only): each commit's date, hash, files and subject; whether the
+    branch's remote-tracking ref holds HEAD (the push done, as of the last fetch or push)
   - docs/TODO.md: every task table (each section's own header): status, dependency, owner, time
   - docs/PLAN.md: the gates, the timeline (windows for later work, the presentations and the report), the
-    handoffs, and the date by which all evaluation is done
-  - docs/OVERVIEW.md: what was done before the session logs began (the progress round, Track A's Steps 1-10)
-  - docs/sessions/INDEX.md, the session logs and the dailies (from Oct 27): each day's work and compute
-  - docs/FINDINGS.md: the F-numbers, each dated by the commit that added it
+    handoffs, the date by which all evaluation is done, and the deliverables
+  - archive/superseded/OVERVIEW_<date>.md (docs/OVERVIEW.md until Oct 30): what was done before the session logs
+    began (the progress round, Track A's Steps 1-10)
+  - archive/sessions/INDEX.md and the session logs and dailies in archive/sessions/<YYYY-MM-DD>/ (from Oct 27;
+    docs/sessions/ until Oct 30, still read if it is there): each day's work and compute
+  - docs/FINDINGS.md: the F-numbers, each dated by the commit that added it, with its title and first interval
   - the progress-presentation kit at the repo root, if one is there: the week of the progress talk
 
-  python tools/make_gantt.py                      # -> docs/progress/GANTT.xlsx, gantt.png, STATUS.md
+  python tools/make_gantt.py                      # -> docs/GANTT.xlsx, gantt.png, gantt.pdf, STATUS.md
   python tools/make_gantt.py --today 2026-11-02   # the "today" column and line, and what "next 7 days" means
   python tools/make_gantt.py --dry-run            # print the Progress sheet, write nothing
 
-Sheets: Gantt (every task by track and phase, a cell per day from Oct 1 to Dec 12, filled by status), Daily (each
-day per track: the work, the runs and compute as logged, the findings added, the commits), Changes (every commit),
-Progress (per track: done of total, weighted by TODO's time, remaining hours), Remaining (every open task by due).
+Sheets: Gantt (a row and a bar per task by track and phase: ID, a short label, owner, start, end or due, status,
+the date basis; a cell per day from Oct 1 to Dec 12, filled by status), To do (every open task by due: the next
+action, estimate, blocker, the milestone it feeds; a row per milestone with what it needs; it replaces the old
+Remaining sheet), Done (every finished task by date: what it delivered, with its finding and key number, and the
+evidence: F-numbers, session logs, commits), Progress (per track: done of total, weighted by TODO's time, remaining
+hours), Daily (each day per track: the work, the runs and compute as logged, the findings added, the commits),
+Changes (every commit). gantt.png is the one-page overview (16:9, a bar per phase); gantt.pdf is that page, then
+a page per track (A, B, C, the labels, the repo and handoffs with the progress round) with a bar per task.
 
 Dates. A date read from a doc where it is stated (TODO, PLAN, OVERVIEW, a session log) is used as it is. A date is
 marked "inferred" when it is derived: from a commit date (a commit isn't the work), from a vague phrase ("Oct 29
@@ -29,8 +38,15 @@ first clause with no "not started / run / trained" after it) is done; "blocked" 
 status word decides: running / submitted / queued / pending / draft / kept current
 -> in progress; not started / not run / not trained / decided / planned / prepared / plan fixed / ready -> planned;
 waiting for / asking -> blocked. A planned item whose "Blocked by" names an outside step (the push, a rater, keys, a
-decision, terms) is blocked. Standing duties are in progress. A row with no status word is read as in progress and
-listed in the Progress sheet's notes.
+decision, terms) is blocked; the push no longer counts once the remote-tracking ref holds HEAD. Standing duties are
+in progress. A row with no status word is read as in progress and listed in the Progress sheet's notes.
+
+The next action (To do) is put together from TODO's own words: for an item under way, its latest status clause; for
+a blocked one, what it waits for; for a planned one, "pre-register, then run" where the row says so, after its open
+dependencies. What a milestone needs: the gate's "Blocked by" in TODO and what those items wait on (done or not);
+a handoff that falls before the gate on a track it needs, open items due by the gate on its track, and done items
+named for the gate that still have a rerun to do (inferred); for a report or presentation window, the other clauses
+of PLAN's timeline row and PLAN's deliverables, each with its track's open items (inferred).
 
 Owners (the rule): past work is Ritik's; an open Track B item is Arsha's from Nov 3; an open Track C item is
 Shrey's from Oct 30; Track A, the labels, the repo and the report are Ritik's. TODO's own owner text is kept in a
@@ -46,6 +62,9 @@ from pathlib import Path
 
 CODE = Path(__file__).resolve().parents[1]
 ROOT = CODE.parent
+# where the session logs live (a folder per date since Oct 30; before, one flat folder) and the superseded overview
+SESSIONS = ("archive/sessions", "docs/sessions")
+OVERVIEWS = ("archive/superseded/OVERVIEW_*.md", "docs/OVERVIEW.md")
 FIRST, LAST = date(2026, 10, 1), date(2026, 12, 12)
 STATUSES = ("done", "in progress", "planned", "blocked")
 # status colors: good / a neutral blue for work under way / a light neutral / critical (status steps, not series)
@@ -69,6 +88,9 @@ HASH = re.compile(r"`([0-9a-f]{7,12})`")
 FREF = re.compile(r"\bF(\d{1,3})\b")
 LOGREF = re.compile(r"\blog (?:(20\d\d-\d\d-\d\d) )?(\d\d):(\d\d)\b|\b(\d\d):(\d\d) (?:session )?log\b")
 ID = re.compile(r"\b([ABC])(\d{1,2})\b")
+TASKREF = re.compile(r"\b[ABCLHRD]\d{1,2}\b")
+NUM = r"[+−-]?\d[\d,.]*%?"
+INTERVAL = re.compile(rf"(?:\b([A-Z][a-z]\w*) )?({NUM} \[{NUM}, {NUM}\])")      # "Olmo +47 [+29, +65]"
 CREDIT = re.compile(r"\bcredited to (?!Ritik|Arsha|Shrey)[A-Z][\w-]*(?: [A-Z][\w-]*)*")
 # a phase per TODO row, by the first rule its item text matches (lowercased); Track A in this order
 PHASES = {
@@ -79,7 +101,8 @@ PHASES = {
           (r"history rewrite|^merge ", "Repo: history rewrite, merge"),
           (r"\bsteps? (?:10|[1-9])\b|step ?9|figure|checkpoint report|assemble", "Steps 1–10"),
           (r"first sol jobs|^train the|fourth version|training settings", "Training (S1–S6)"),
-          (r"step 1[123]\b|sol job|qos|vllm|sol scripts|hugging face", "Steps 11–13: code and Sol kit")],
+          (r"step 1[123]\b|sol job|qos|vllm|sol scripts|hugging face", "Steps 11–13: code and Sol kit"),
+          (r"identity", "Voyager model checks")],
     "B": [(r"qwen3-8b", "Qwen3-8B, thinking on and off"), (r"closed|\bkeys?\b|gpqa|haiku", "Closed models, GPQA")],
     "C": [(r"^run_team\.py|^no-tool team|^second reviewer model|^input-file", "Team code")],
 }
@@ -111,6 +134,41 @@ def clean(text):
 def short(text, n=120):
     text = plain(text)
     return text if len(text) <= n else text[:n - 1].rstrip() + "…"
+
+
+def clauses(text, sep=";"):
+    """Split at sep outside parentheses and brackets."""
+    out, depth, cur = [], 0, ""
+    for ch in text:
+        depth += (ch in "([") - (ch in ")]")
+        if ch == sep and depth <= 0:
+            out.append(cur.strip())
+            cur = ""
+        else:
+            cur += ch
+    return [c for c in out + [cur.strip()] if c]
+
+
+def unparen(text):
+    for _ in range(3):
+        text = re.sub(r"\s*\([^()]*\)", "", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def label(name, n=60):
+    """A short label for a task: TODO's item text without code ticks or parentheses, cut after its question, else at
+    the last clause end (':' or ';' after 12 characters) that fits, else at a comma, else shortened."""
+    s = unparen(plain(name))
+    q = s.find("? ")
+    if 12 <= q < n:
+        return s[:q + 1]
+    if len(s) <= n:
+        return s
+    fit = [m.start() for m in re.finditer(r": |; ", s) if 12 <= m.start() <= n]
+    if fit:
+        return s[:max(fit)].rstrip(" ,")
+    commas = [m.start() for m in re.finditer(r", ", s) if 20 <= m.start() <= n]
+    return s[:max(commas)] if commas else short(s, n)
 
 
 def dates_in(text, year):
@@ -210,9 +268,23 @@ def head_commit(root):
         return "no commit"
 
 
+def pushed(root):
+    """The remote-tracking ref of the current branch (as of the last fetch or push), if it holds HEAD; else None."""
+    def git(*args):
+        return subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True,
+                              check=True).stdout.strip()
+    try:
+        upstream = git("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
+        git("merge-base", "--is-ancestor", "HEAD", upstream)
+        return upstream
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
 def finding_dates(root, today):
-    """{n: (date, title, commit or None, track)}: each F-number dated by the commit that first added its heading;
-    one in the working tree but in no commit yet is dated today (inferred)."""
+    """{n: (date, title, commit or None, track, key)}: each F-number dated by the commit that first added its
+    heading (one in the working tree but in no commit yet is dated today, inferred), and its key number: the first
+    bold interval in its text, else None."""
     out = {}
     try:
         log = subprocess.run(["git", "-C", str(root), "log", "--reverse", "-p", "--format=\x1e%h %aI", "--",
@@ -230,7 +302,9 @@ def finding_dates(root, today):
     for n, body in zip(parts[1::2], parts[2::2]):
         title, _, rest = body.partition("\n")
         d, h = out.get(int(n), (today, None))
-        res[int(n)] = (d, clean(title.strip()), h, finding_track(title, rest[:2500]))
+        key = next((m.group(2) for b in re.findall(r"\*\*([^*]+)\*\*", rest) for m in [INTERVAL.search(b)] if m),
+                   None)
+        res[int(n)] = (d, clean(title.strip()), h, finding_track(title, rest[:2500]), key)
     return res
 
 
@@ -272,42 +346,66 @@ def commit_track(c, round_end):
 
 
 # ---------------------------------------------------------------- sessions
+def session_files(root):
+    """{name: path} of every session log and daily: in archive/sessions/<YYYY-MM-DD>/ (since Oct 30), else in the
+    old flat docs/sessions/ (a name in both is read from archive/)."""
+    out = {}
+    for folder in SESSIONS:
+        for f in sorted((Path(root) / folder).rglob("*.md")):
+            if f.name not in ("INDEX.md", "LATEST.md"):
+                out.setdefault(f.name, f)
+    return out
+
+
+def overview_path(root):
+    """The overview of the work before the session logs: the newest archived copy, else docs/OVERVIEW.md."""
+    for pattern in OVERVIEWS:
+        found = sorted(Path(root).glob(pattern))
+        if found:
+            return found[-1]
+    return Path(root) / OVERVIEWS[-1]
+
+
 def session_logs(root):
-    """[{date, time, track, file, what, daily}] from INDEX.md, plus any log on disk that INDEX doesn't list yet (its
-    first heading as the summary)."""
-    sess = Path(root) / "docs" / "sessions"
+    """[{date, time, track, file, path, what, daily}] from INDEX.md, plus any log on disk that INDEX doesn't list yet
+    (its first heading as the summary). A log is named by its file name wherever INDEX's link points."""
+    files = session_files(root)
+    index = next((Path(root) / f / "INDEX.md" for f in SESSIONS if (Path(root) / f / "INDEX.md").exists()), None)
     out, listed = [], set()
-    for _, header, rows in md_tables(read(sess / "INDEX.md")):
+    for _, header, rows in md_tables(read(index) if index else ""):
         if column(header, "log") is None:
             continue
         for r in rows:
             when, log, what = r[column(header, "when (mst)", "when")], r[column(header, "log")], r[-1]
-            m = re.search(r"\(([^)]+\.md)\)", log) or re.search(r"([\w-]+\.md)", log)
-            name = m.group(1) if m else plain(log)
+            m = re.search(r"\(([^)]+\.md)\)", log) or re.search(r"([\w/-]+\.md)", log)
+            name = Path(m.group(1)).name if m else plain(log)
             listed.add(name)
-            out.append(log_row(name, when, what))
-    for f in sorted(sess.glob("*.md")):
-        if f.name not in listed and f.name not in ("INDEX.md", "LATEST.md"):
+            out.append(log_row(name, when, what, files.get(name), root))
+    for name, f in sorted(files.items()):
+        if name not in listed:
             first = next((plain(line.lstrip("#")) for line in read(f).splitlines() if line.startswith("#")), f.stem)
-            out.append(log_row(f.name, "", re.sub(r"^(Session log|Daily log):\s*", "", first)))
+            out.append(log_row(name, "", re.sub(r"^(Session log|Daily log):\s*", "", first), f, root))
     return sorted([r for r in out if r["date"]], key=lambda r: (r["date"], r["time"] or "99:99"))
 
 
-def log_row(name, when, what):
+def log_row(name, when, what, path=None, root=None):
     m = re.match(r"(\d{4}-\d\d-\d\d)_(\d\d)(\d\d)_(?:(A|B|C|ALL)_)?", name)
     d = ISO.search(when) or FILEDATE.search(name)
     t = re.search(r"\b(\d\d):(\d\d)\b", when)
     time = f"{t.group(1)}:{t.group(2)}" if t else (f"{m.group(2)}:{m.group(3)}" if m else None)
     daily = name.startswith("DAILY_")
+    rel = path.relative_to(root).as_posix() if path and root and Path(path).is_relative_to(root) else None
     return {"date": date(*map(int, d.groups())) if d else None, "time": None if daily else time, "file": name,
-            "track": "ALL" if daily or not m or not m.group(4) else m.group(4), "what": clean(plain(what)),
-            "daily": daily}
+            "path": rel, "track": "ALL" if daily or not m or not m.group(4) else m.group(4),
+            "what": clean(plain(what)), "daily": daily}
 
 
 def compute_lines(root):
     """{date: [line]}: each daily's "Compute used" bullets, else its Voyager / Sol / Mac bullets from the brief."""
     out = {}
-    for f in sorted((Path(root) / "docs" / "sessions").glob("DAILY_*.md")):
+    for name, f in sorted(session_files(root).items()):
+        if not name.startswith("DAILY_"):
+            continue
         d = FILEDATE.search(f.name)
         secs = sections(read(f))
         lines = [b for h, body in secs if re.search(r"compute used", h, re.I) for b in bullets(body)]
@@ -329,7 +427,7 @@ def run_phrases(text):
 
 
 # ---------------------------------------------------------------- statuses, hours, owners
-def classify(status, blocked_by=""):
+def classify(status, blocked_by="", is_pushed=False):
     """(status, note): one of STATUSES from TODO's status text (rules in the module docstring)."""
     raw = status.replace("\\|", "|")
     s = plain(raw).lower()
@@ -352,7 +450,8 @@ def classify(status, blocked_by=""):
     if not hits:
         return "in progress", "no status word"
     st = min(hits)[1]
-    if st == "planned" and OUTSIDE.search(blocked_by or ""):
+    outside = re.sub(r"(?:the )?push(?: and a pull)?", "", blocked_by or "") if is_pushed else blocked_by or ""
+    if st == "planned" and OUTSIDE.search(outside):
         return "blocked", "waits on an outside step"
     return st, ""
 
@@ -426,7 +525,8 @@ def task(**kw):
     t = {"id": "", "name": "", "track": "", "phase": "", "status": "planned", "note": "", "status_text": "",
          "start": None, "start_basis": "not in the repo", "start_inferred": False, "end": None,
          "end_basis": "not in the repo", "end_inferred": False, "depends": "", "owner": "", "owner_todo": "",
-         "needs": "", "time": "", "hours": None, "source": "", "kind": "task", "counted": False, "from": ""}
+         "needs": "", "time": "", "hours": None, "source": "", "kind": "task", "counted": False, "from": "",
+         "raw_status": "", "log_files": []}
     t.update(kw)
     return t
 
@@ -439,7 +539,7 @@ def phase_of(track, name):
     return DEFAULT_PHASE.get(track, "Other")
 
 
-def todo_tasks(root):
+def todo_tasks(root, is_pushed=False):
     """Every row of every TODO task table (any header that has # and Status)."""
     out = []
     for heading, header, rows in md_tables(read(Path(root) / "docs" / "TODO.md")):
@@ -458,7 +558,7 @@ def todo_tasks(root):
             tid = plain(r[ci])
             if not tid:
                 continue
-            st, note = classify(r[cs], get("dep"))
+            st, note = classify(r[cs], get("dep"), is_pushed)
             kind = "gate" if track == "Repo" and re.match(r"G\d", tid) else "task"
             name = clean(plain(get("name")))
             out.append(task(id=tid, name=name, track="Milestones" if kind == "gate" else track,
@@ -475,15 +575,19 @@ def todo_tasks(root):
 def overview_tasks(root, year, today):
     """The progress round and Track A's Steps 1-10 from OVERVIEW: "What was done, in order" for the dates, the
     Track A section's bullets for the names, "Status at a glance" for done."""
-    text = read(Path(root) / "docs" / "OVERVIEW.md")
+    text = read(overview_path(root))
     secs = sections(text)
     rnd = next(((h, b) for h, b in secs if re.search(r"progress round", h, re.I)), ("", ""))
     rd = [d for d, _, _ in dates_in(rnd[0], year)]
     round_end = max(rd) if rd else None
-    names = {}
+    names, summary = {}, {}
     for h, body in secs:
         for m in re.finditer(r"^- \*\*(Steps? [\d–]+b?), ([^*:]+?):?\*\*", body, re.M):
             names[m.group(1).replace("Steps", "Step").replace("Step ", "")] = m.group(2).strip()
+        for b in bullets(body):
+            m = re.match(r"(Steps? [\d–]+b?), ", b)
+            if m:
+                summary[m.group(1).replace("Steps", "Step").replace("Step ", "")] = clean(b)
     done_upto = 0
     for _, header, rows in md_tables(text):
         if column(header, "done") is not None:
@@ -503,6 +607,7 @@ def overview_tasks(root, year, today):
             if round_end and max(ds) <= round_end:
                 out.append(task(id=f"P{len(out) + 1}", name=short(clean(work), 110), track="Setup",
                                 phase="The progress round", status="done", start=min(ds), end=max(ds),
+                                status_text=clean(plain(work)),
                                 start_basis="OVERVIEW", end_basis="OVERVIEW", source="OVERVIEW", owner="Ritik"))
                 continue
             for m in re.finditer(r"Steps? ((?:\d+b?)(?:\s*(?:–|,|and)\s*\d+b?)*)", work):
@@ -513,11 +618,11 @@ def overview_tasks(root, year, today):
                     steps[u] = (min(lo, min(ds)), max(hi, max(ds)))
     for u, (lo, hi) in sorted(steps.items(), key=lambda kv: (int(re.match(r"\d+", kv[0]).group()), kv[0])):
         n = int(re.match(r"\d+", u).group())
-        label = f"Steps {u}" if "–" in u else f"Step {u}"
+        sid = f"Steps {u}" if "–" in u else f"Step {u}"
         st = "done" if n <= done_upto else ("in progress" if lo <= today else "planned")
-        out.append(task(id=label, name=f"{label}: {names.get(u, '')}".rstrip(": "), track="A", phase="Steps 1–10",
+        out.append(task(id=sid, name=f"{sid}: {names.get(u, '')}".rstrip(": "), track="A", phase="Steps 1–10",
                         status=st, start=lo, end=hi, start_basis="OVERVIEW", end_basis="OVERVIEW",
-                        source="OVERVIEW", owner="Ritik"))
+                        source="OVERVIEW", owner="Ritik", status_text=summary.get(u, "")))
     return out, round_end
 
 
@@ -545,7 +650,10 @@ def plan_facts(root, year):
                         windows.append({"start": min(ds), "end": max(ds), "column": header[ci], "clause": c})
     m = re.search(rf"all evaluation done by ({MONTHS}) (\d{{1,2}})", text)
     eval_by = date(year, MON[m.group(1)], int(m.group(2))) if m else None
-    return {"gates": gates, "handoffs": handoffs, "windows": windows, "eval_by": eval_by}
+    body = next((b for h, b in sections(text) if h.lower().startswith("deliverables")), "")
+    deliverables = [plain(m.group(1)).rstrip(":") for m in re.finditer(r"^\d+\. \*\*([^*]+)\*\*", body, re.M)]
+    return {"gates": gates, "handoffs": handoffs, "windows": windows, "eval_by": eval_by,
+            "deliverables": deliverables}
 
 
 def words(text):
@@ -624,11 +732,11 @@ def todo_dates(tasks, logs, by_hash, findings, gates, year, today):
     by_time = defaultdict(list)
     for r in logs:
         if r["time"]:
-            by_time[r["time"]].append(r["date"])
+            by_time[r["time"]].append(r)
     for t in tasks:
         if t["source"] != "TODO":
             continue
-        frm, raw = t["from"], t.pop("raw_status", "")
+        frm, raw = t["from"], t.get("raw_status", "")
         found = dates_in(frm, year)
         fd = [(d, v) for d, _, v in found]
         fd += [(gd, True) for g, gd in gates.items() if re.search(rf"\bGate {g}\b", frm)]
@@ -644,13 +752,17 @@ def todo_dates(tasks, logs, by_hash, findings, gates, year, today):
         sd = [(d, v) for d, _, v in dates_in(s, year) if d <= today]
         logs_named = []
         for lm in LOGREF.finditer(s):
+            hh = f"{lm.group(2) or lm.group(4)}:{lm.group(3) or lm.group(5)}"
             if lm.group(1):
-                logs_named.append(date(*map(int, lm.group(1).split("-"))))
+                d = date(*map(int, lm.group(1).split("-")))
+                logs_named.append(d)
+                t["log_files"] += [r["file"] for r in by_time.get(hh, []) if r["date"] == d]
             else:
-                hh = f"{lm.group(2) or lm.group(4)}:{lm.group(3) or lm.group(5)}"
-                cands = [d for d in by_time.get(hh, []) if not t["start"] or d >= t["start"]]
+                cands = [r for r in by_time.get(hh, []) if not t["start"] or r["date"] >= t["start"]]
                 if cands:
-                    logs_named.append(min(cands))
+                    first = min(cands, key=lambda r: r["date"])
+                    logs_named.append(first["date"])
+                    t["log_files"].append(first["file"])
         hashes = [by_hash[h[:7]] for h in HASH.findall(raw) if h[:7] in by_hash]
         frefs = [findings[int(n)][0] for n in FREF.findall(s) if int(n) in findings]
         if m:
@@ -716,7 +828,7 @@ def due_dates(tasks, facts, today, year):
         for t in tasks:
             if not t["end"] or t["status"] == "done":
                 continue
-            for dep in re.findall(r"\b[ABCLHR]\d{1,2}\b", t["depends"]):
+            for dep in TASKREF.findall(t["depends"]):
                 d = ids.get(dep)
                 if d and d["status"] != "done" and d["kind"] == "task" and (not d["end"] or d["end"] > t["end"]):
                     d["end"], d["end_basis"], d["end_inferred"] = t["end"], f"before {t['id']} (it waits on it)", True
@@ -764,6 +876,234 @@ def milestones(facts, kit, today):
     return out
 
 
+# ---------------------------------------------------------------- what was delivered, what comes next
+def own_finding(t, findings):
+    """The finding a done task delivered: one whose title names the task (same track), else the first F-number its
+    status names that isn't cited as a comparison ("tested against F1", "C15 refuted it (F24)"). A status naming
+    three or more answers a question across findings (B9's gap, per model): no one of them is its delivery."""
+    for n, f in sorted(findings.items()):
+        m = re.match(r"Track ([ABC])\b[^:]*\(([^)]*)\)", f[1])
+        if m and m.group(1) == t["track"] and re.search(rf"\b{re.escape(t['id'])}\b", m.group(2)):
+            return n
+    named = []
+    for c in clauses(t["status_text"]):
+        for m in FREF.finditer(c):
+            if int(m.group(1)) in findings and not re.search(r"refuted", c) and not re.search(
+                    r"against|tested|reworded", c[max(0, m.start() - 30):m.start()]):
+                named.append(int(m.group(1)))
+    return named[0] if named and len(set(named)) < 3 else None
+
+
+def delivered(t, findings):
+    """One line: the finding and its key number (the first interval in TODO's status, else the finding's), else the
+    task's label and what its status says it produced (no hashes, log references or the word "done")."""
+    lab = label(t["name"], 70)
+    if t.get("finding"):
+        _, title, _, _, fkey = findings[t["finding"]]
+        clause = label(clauses(re.sub(r"^Track [ABC]\b[^:]*:\s*", "", title))[0], 110)
+        m = INTERVAL.search(t["status_text"])
+        if m:
+            key = f"{m.group(1)} {m.group(2)}" if m.group(1) and m.group(1) not in clause else m.group(2)
+        else:       # the finding's own first interval, if it is a difference and the title gives no number
+            key = fkey if fkey and fkey[0] in "+−-" and not re.search(r"\d", clause) else None
+        return f"F{t['finding']}: {clause}" + (f", {key}" if key and key not in clause else "")
+    if t["source"] != "TODO":
+        return short(t["status_text"] or t["name"], 220)
+    s = t["raw_status"] or t["status_text"]
+    for _ in range(3):              # a hash at either end of parentheses goes; one inside a sentence stays
+        s = re.sub(r"(?<=\()\s*`[0-9a-f]{7,12}`\s*[,:;]?\s*|\s*[,;]?\s*`[0-9a-f]{7,12}`\s*(?=\))", "", s)
+    s = LOGREF.sub("", clean(plain(s)))
+    m = re.search(rf"\b(?:done|final)\b(?: for [^:;(]+?)?(?: (?:on )?(?:{MONTHS}) \d{{1,2}}[^:;(]{{0,12}})?"
+                  r"(?: \([^)]*\))?: (.+)", s, re.I)
+    if m:
+        rest = m.group(1)
+    else:
+        rest = re.sub(rf"^\s*(?:done|final)\b(?: (?:for [^:;(]+|about|on))?"
+                      rf"(?: (?:{MONTHS}) \d{{1,2}}(?: ~?\d\d:\d\d)?)?\s*[:,.;]?\s*", "", s, flags=re.I)
+    rest = re.sub(r"\(\s*\)", "", rest).strip(" ,;:")
+    rest = clauses(rest)[0] if rest else ""
+    if re.fullmatch(r"\([^()]*\)", rest):
+        rest = rest[1:-1]
+    if set(re.findall(r"[a-z0-9]+", rest.lower())) <= set(re.findall(r"[a-z0-9]+", lab.lower())):
+        rest = ""                   # the status only repeats the label
+    return lab + (("; " if ":" in lab else ": ") + short(rest, 160) if rest else "")
+
+
+def evidence(t, data):
+    """(findings, session logs, commits) for a done task: the F-numbers its status names (with the commit that added
+    each), the logs it names (else a log on its done date named for it), the hashes it names (else a commit on its
+    done date or the next whose subject names it)."""
+    findings, tid = data["findings"], t["id"]
+    fs = sorted({int(n) for n in FREF.findall(t["status_text"]) if int(n) in findings} | (
+        {t["finding"]} if t.get("finding") else set()))
+    fcol = ", ".join(f"F{n}" + (f" ({findings[n][2]})" if findings[n][2] else " (not committed yet)") for n in fs)
+    near = (lambda d: t["end"] and t["end"] <= d <= t["end"] + timedelta(1))
+    logs = list(dict.fromkeys(t["log_files"])) or [
+        r["file"] for r in data["logs"] if near(r["date"]) and not r["daily"] and (
+            re.search(rf"[_-]{tid}[_-]", r["file"], re.I) or re.match(rf"{tid}\b", r["what"]))][:2]
+    hashes = [h[:7] for h in HASH.findall(t["raw_status"])] or [
+        c["short"] for c in data["commits"] if near(c["when"].date()) and (
+            re.match(rf"{tid}\b", c["subject"]) or (len(tid) > 2 and re.search(rf"\b{tid}\b", c["subject"])))][:2]
+    if t["source"] == "OVERVIEW":
+        logs = [overview_path(data["root"]).relative_to(data["root"]).as_posix()]
+    return fcol, ", ".join(logs), ", ".join(dict.fromkeys(hashes))
+
+
+def span_text(lo, hi):
+    """'Nov 23–29', 'Nov 30–Dec 6', 'Nov 8'."""
+    if lo == hi:
+        return f"{lo:%b} {lo.day}"
+    return f"{lo:%b} {lo.day}–" + (f"{hi.day}" if (lo.year, lo.month) == (hi.year, hi.month) else f"{hi:%b} {hi.day}")
+
+
+def latest_clause(status):
+    """The newest update in a status: its first clause that starts with a date, else its first clause."""
+    cl = clauses(plain(status))
+    return next((c for c in cl if re.match(rf"(?:{MONTHS}) \d{{1,2}}\b", c)), cl[0] if cl else "")
+
+
+def waiting_for(t):
+    """What a blocked task waits for: the status clause that says so (no leading date), else its Blocked by."""
+    for c in clauses(t["status_text"]):
+        if re.search(r"\b(waiting for|waits? (?:on|for)|asking|blocked by)\b", c):
+            return re.sub(rf"^(?:{MONTHS}) \d{{1,2}}[^:]*:\s*", "", c)
+    return t["depends"] if t["depends"] not in ("", "—", "-") else "not said in TODO"
+
+
+def next_action(t, by_id):
+    """The next concrete step for an open task, in TODO's own words (rules in the module docstring)."""
+    item = short(unparen(t["name"]), 130)
+    stop = (lambda s: s if s.endswith((".", "?", "!", "…")) else s + ".")
+    if t["status"] == "in progress":
+        latest = latest_clause(t["status_text"])
+        return f"Finish: {stop(label(t['name'], 80))}" + (f" Latest: {short(latest, 150)}" if latest else "")
+    if t["status"] == "blocked":
+        return f"Waiting: {stop(short(waiting_for(t), 120))} Then: {item}"
+    deps = [d for d in TASKREF.findall(t["depends"]) if d in by_id and by_id[d]["status"] != "done"]
+    step = "Pre-register, then run" if re.search(r"pre-regist", t["status_text"]) else "Start"
+    return (f"After {', '.join(deps)}: {step.lower()}: " if deps else f"{step}: ") + item
+
+
+def milestone_needs(data):
+    """{milestone id: [need]}, each need {id, text, status, owner, due, basis, inferred} for the milestones ahead
+    (rules in the module docstring)."""
+    tasks, today, facts = data["tasks"], data["today"], data["facts"]
+    by_id = {t["id"]: t for t in tasks if t["kind"] == "task"}
+    ahead = sorted((t for t in tasks if t["kind"] in ("milestone", "window") and t["start"] and t["end"] >= today),
+                   key=lambda t: t["start"])
+    gates = [m for m in ahead if m["phase"] == "Gates"]
+    out = {}
+    for m in ahead:
+        got, seen = [], set()
+
+        def add(t, basis, inferred=False, text=None):
+            if t is not None and t["id"] in seen:
+                return
+            if t is not None:
+                seen.add(t["id"])
+            got.append({"id": t["id"] if t else "", "text": text or label(t["name"]), "status": t["status"] if t
+                        else "", "owner": t["owner"] if t else "", "due": t["end"] if t else None, "basis": basis,
+                        "inferred": inferred})
+        if m["phase"] == "Gates":
+            gid = m["id"].replace("Gate ", "G")
+            direct = [d for d in TASKREF.findall(m["depends"]) if d in by_id]
+            queue = [(d, f"TODO {gid}: Blocked by", 0) for d in direct]
+            while queue:                    # what those wait on: done ones one step down, open ones all the way
+                d, why, depth = queue.pop(0)
+                if d not in seen and (depth <= 1 or by_id[d]["status"] != "done"):
+                    add(by_id[d], why)
+                    queue += [(x, f"{d} waits on it (TODO)", depth + 1) for x in TASKREF.findall(by_id[d]["depends"])
+                              if x in by_id]
+            tracks = {by_id[d]["track"] for d in direct}
+            for h in ahead:
+                if h["phase"] == "Handoffs" and h["start"] <= m["start"] and h["id"][-1] in tracks:
+                    add(None, f"Track {h['id'][-1]} is needed by {m['id']} (the owner rule)", True,
+                        f"{h['name']}, {h['start']:%b} {h['start'].day}")
+                    for t in tasks:
+                        if t["kind"] == "task" and t["status"] != "done" and re.search(rf"\bfor {h['owner']}\b",
+                                                                                         t["name"]):
+                            add(t, f"the handoff to {h['owner']}", True)
+            for t in sorted(tasks, key=lambda t: (t["end"] or date.max, id_key(t))):
+                if (t["kind"] == "task" and t["status"] != "done" and t["note"] != "standing" and t["track"] in tracks
+                        and t["end"] and t["end"] <= m["start"]):
+                    add(t, f"due by {m['id']}: {t['end_basis']}", True)
+            for t in tasks:
+                if t["status"] == "done" and re.search(rf"\b{m['id']}\b", t["name"]):
+                    rerun = next((c for c in clauses(t["status_text"]) if re.search(r"\brerun", c)), None)
+                    if rerun:
+                        add(None, f"{t['id']} is done; its status says it reruns (TODO)", True,
+                            f"{t['id']} again: {short(rerun, 90)}")
+        elif m["phase"] == "Handoffs":
+            for t in tasks:
+                if t["kind"] == "task" and t["status"] != "done" and re.search(rf"\bfor {m['owner']}\b", t["name"]):
+                    add(t, f"its item names {m['owner']}")
+            for w in facts["windows"]:
+                if w["end"] == m["start"] and re.search(r"handoff|bundle", w["clause"], re.I) and \
+                        not re.search(r"handoff to", w["clause"], re.I):
+                    add(None, f"PLAN timeline ({span_text(w['start'], w['end'])})", False, w["clause"])
+            moving = [t["id"] for t in sorted(tasks, key=id_key) if t["kind"] == "task" and t["track"] == m["id"][-1]
+                      and t["status"] != "done" and t["note"] != "standing"]
+            if moving:
+                add(None, "the owner rule", False, f"open Track {m['id'][-1]} items move to {m['owner']}: "
+                                                   + ", ".join(moving))
+        else:
+            row = [w for w in facts["windows"] if (w["start"], w["end"]) == (m["start"], m["end"])]
+            for w in row:
+                hits = [t for t in tasks if t["kind"] == "task" and w["clause"][:40] in t["end_basis"]]
+                for t in hits:
+                    add(t, f"PLAN timeline ({span_text(w['start'], w['end'])}): {short(w['clause'], 50)}")
+                if not hits and not re.search(r"presentation|report", w["clause"], re.I):
+                    add(None, f"PLAN timeline, {w['column']} ({span_text(w['start'], w['end'])})", False,
+                        f"{w['clause']} ({w['column']})")
+            if re.search(r"draft", m["id"], re.I):
+                before = [g for g in gates if g["start"] <= m["start"]]
+                if before:
+                    g = before[-1]
+                    add(None, "PLAN gates (the gate before this window)", True,
+                        f"{g['id']}'s result, {g['start']:%b} {g['start'].day}")
+                for t in sorted(tasks, key=lambda t: (t["end"] or date.max, id_key(t))):
+                    earlier = {n["id"] for v in out.values() for n in v}
+                    if (t["kind"] == "task" and t["status"] != "done" and t["note"] != "standing" and t["end"]
+                            and t["end"] <= m["end"] and t["id"] not in earlier):
+                        add(t, "a result due before the draft report", True)
+            else:
+                prev = [w for w in ahead if w["kind"] == "window" and w["end"] < m["start"]]
+                if prev:
+                    add(None, "PLAN timeline (the window before)", True,
+                        f"{prev[-1]['id']}, {span_text(prev[-1]['start'], prev[-1]['end'])}")
+                for i, d in enumerate(facts["deliverables"], 1):
+                    tr = next((x for x, p in (("A", r"Track A"), ("B", r"Track B"), ("C", r"Track C"),
+                                              ("Labels", r"label"), ("Repo", r"code|github")) if re.search(p, d, re.I)),
+                              None)
+                    ts = [t for t in tasks if t["counted"] and t["track"] == tr]
+                    left = [t["id"] for t in sorted(ts, key=id_key) if t["status"] != "done"]
+                    state = (f"{len(ts) - len(left)} of {len(ts)} of its track's tasks done" +
+                             (f"; open: {', '.join(left)}" if left else "")) if ts else "no task rows"
+                    add(None, f"PLAN deliverable {i} (its track's tasks)", True, f"{d}: {state}")
+        out[m["id"]] = got
+    return out
+
+
+def annotate(data):
+    """Each done task's finding, delivery line and evidence; each open task's next action and the milestone it
+    feeds; what each milestone needs."""
+    by_id = {t["id"]: t for t in data["tasks"] if t["kind"] == "task"}
+    for t in data["tasks"]:
+        if t["kind"] != "task":
+            continue
+        if t["status"] == "done":
+            t["finding"] = own_finding(t, data["findings"]) if t["source"] == "TODO" else None
+            t["delivered"] = delivered(t, data["findings"])
+            t["evidence"] = evidence(t, data)
+        elif t["note"] != "standing":
+            t["next"] = next_action(t, by_id)
+    data["needs"] = milestone_needs(data)
+    for mid, needs in data["needs"].items():
+        for n in needs:
+            if n["id"] in by_id:
+                by_id[n["id"]].setdefault("feeds", mid)
+
+
 # ---------------------------------------------------------------- the model
 def collect(root, today, year=FIRST.year):
     """Every task, milestone and record the sheets are made from (dates without a year are in the project's year)."""
@@ -772,7 +1112,8 @@ def collect(root, today, year=FIRST.year):
     logs = session_logs(root)
     findings = finding_dates(root, today)
     facts = plan_facts(root, year)
-    todo = todo_tasks(root)
+    upstream = pushed(root)
+    todo = todo_tasks(root, bool(upstream))
     hist, round_end = overview_tasks(root, year, today)
     hashes = {h for t in todo for h in HASH.findall(t.get("raw_status", ""))}
     todo_dates(todo, logs, commit_dates(root, hashes, commits), findings, facts["gates"], year, today)
@@ -788,14 +1129,17 @@ def collect(root, today, year=FIRST.year):
         g = gate_rows.get(m["id"].replace("Gate ", "G"))
         if g:
             m["status_text"] = g["status_text"]
-            m["name"] = f"{m['name']}: {short(re.sub(r'^Gate \d \([^)]*\):?\s*', '', g['name']), 90)}"
+            m["name"] = f"{m['name']}: {short(clauses(re.sub(r'^Gate \d \([^)]*\):?\s*', '', g['name']))[0], 90)}"
             m["status"] = "done" if g["status_text"].lower().startswith("missed") else m["status"]
             m["depends"] = g["depends"]
     tasks = [t for t in tasks if t["kind"] != "gate"] + ms
     for c in commits:
         c["track"] = commit_track(c, round_end)
-    return {"tasks": tasks, "commits": commits, "logs": logs, "findings": findings, "facts": facts,
-            "compute": compute_lines(root), "round_end": round_end, "today": today, "head": head_commit(root)}
+    data = {"tasks": tasks, "commits": commits, "logs": logs, "findings": findings, "facts": facts, "root": root,
+            "compute": compute_lines(root), "round_end": round_end, "today": today, "head": head_commit(root),
+            "pushed": upstream}
+    annotate(data)
+    return data
 
 
 def days(first=FIRST, last=LAST):
@@ -848,10 +1192,16 @@ def id_key(t):
     return (re.sub(r"s?\s*\d.*", "", t["id"]), int(m.group(1)) if m else 0, t["id"])
 
 
+def task_order(t):
+    """A Gantt's order: by start (else end), undated last, then by ID."""
+    return (t["start"] or t["end"] or date.max, id_key(t))
+
+
 def gantt_sheet(data, span):
-    """Rows by track, phase, task: the left columns and the per-day status."""
+    """Rows by track, phase, task (a phase's tasks by start): the left columns and the per-day status."""
     today, rows = data["today"], []
-    left = ["ID", "Task", "Status", "Owner", "Start", "End / due", "Dates (basis)", "Depends on", "Source"]
+    left = ["ID", "Task", "Owner", "Start", "End / due", "Status", "Date basis", "Depends on", "Details (TODO's item)",
+            "Source"]
     by = defaultdict(lambda: defaultdict(list))
     for t in data["tasks"]:
         by[t["track"]][t["phase"]].append(t)
@@ -861,15 +1211,15 @@ def gantt_sheet(data, span):
         rows.append({"kind": "track", "values": [TRACK_NAME[track]] + [""] * (len(left) - 1), "days": {}})
         phases = sorted(by[track], key=lambda p: min((t["start"] or LAST) for t in by[track][p]))
         for ph in phases:
-            ts = sorted(by[track][ph], key=lambda t: (t["source"] != "OVERVIEW", id_key(t)))
+            ts = sorted(by[track][ph], key=task_order)
             done = sum(t["status"] == "done" for t in ts)
             rows.append({"kind": "phase", "values": [f"{ph} ({done} of {len(ts)} done)"] + [""] * (len(left) - 1),
                          "days": {}})
             for t in ts:
                 status = t["status"] + (f" ({t['note']})" if t["note"] in ("missed", "standing") else "")
                 rows.append({"kind": t["kind"], "status": t["status"], "values": [
-                    t["id"], short(t["name"], 160), status, t["owner"], iso(t["start"]), iso(t["end"]), basis(t),
-                    t["depends"] if t["depends"] not in ("—", "-") else "", t["source"]],
+                    t["id"], label(t["name"]), t["owner"], iso(t["start"]), iso(t["end"]), status, basis(t),
+                    t["depends"] if t["depends"] not in ("—", "-") else "", short(t["name"], 300), t["source"]],
                     "days": {d.isoformat(): v for d, v in day_cells(t, today, span).items()}})
     marks = {t["start"].isoformat(): t["id"] for t in data["tasks"] if t["kind"] == "milestone" and t["start"]}
     return {"columns": left + [d.isoformat() for d in span], "left": len(left), "rows": rows, "milestones": marks}
@@ -885,7 +1235,7 @@ def daily_sheet(data):
         srcs[key].append(r["file"])
     for d, lines in data["compute"].items():
         runs[(d, "ALL")] += ["compute (daily): " + "; ".join(lines)] if lines else []
-    for n, (d, title, h, tr) in data["findings"].items():
+    for n, (d, title, h, tr, _) in data["findings"].items():
         fnd[(d, tr)].append(f"F{n}" + ("" if h else " (not committed yet)"))
     first_log = min((r["date"] for r in data["logs"]), default=None)
     for c in data["commits"]:
@@ -972,15 +1322,82 @@ def progress_sheet(data):
     return {"columns": cols, "rows": vals, "notes": notes}
 
 
-def remaining_sheet(data):
-    open_ = [t for t in data["tasks"] if t["status"] != "done" and t["note"] != "standing"]
-    open_.sort(key=lambda t: (t["end"] or date.max, t["start"] or date.max, TRACKS.index(t["track"]), id_key(t)))
-    rows = [[iso(t["end"]), t["id"], short(t["name"], 160), TRACK_NAME[t["track"]], t["owner"], iso(t["start"]),
-             t["time"] if t["time"] and t["time"] != "—" else "", round(sum(t["hours"].values()), 2) if t["hours"]
-             else "", t["depends"] if t["depends"] not in ("—", "-") else "", t["status"], t["end_basis"]
-             + (" (inferred)" if t["end"] and t["end_inferred"] else ""), t["kind"]] for t in open_]
-    return {"columns": ["Due", "ID", "Task", "Track", "Owner", "Start", "Estimate (TODO)", "Hours", "Depends on",
-                        "Status", "Due date from", "Kind"], "rows": rows}
+def need_text(n):
+    """One need of a milestone: "L3 Label the queue… (blocked)", "(inferred)" where it was derived."""
+    head = f"{n['id']} {n['text']}" if n["id"] else n["text"]
+    return head + (f" ({n['status']})" if n["status"] else "") + (" (inferred)" if n["inferred"] else "")
+
+
+def todo_sheet(data):
+    """Every open task by due date, with its next action, and a row per milestone ahead with what it needs (it
+    sorts after the tasks due the same day). It replaces the old Remaining sheet."""
+    open_ = [t for t in data["tasks"] if t["kind"] == "task" and t["status"] != "done" and t["note"] != "standing"]
+    ms = [m for m in data["tasks"] if m["id"] in data["needs"] and m["status"] != "done"]
+    rows = []
+    for t in sorted(open_ + ms, key=lambda t: (t["end"] or date.max, t["kind"] != "task", t["start"] or date.max,
+                                               TRACKS.index(t["track"]), id_key(t))):
+        due_from = t["end_basis"] + (" (inferred)" if t["end"] and t["end_inferred"] else "")
+        if t["kind"] == "task":
+            rows.append([iso(t["end"]), t["id"], label(t["name"]), TRACK_NAME[t["track"]], t["owner"], t["next"],
+                         t["status"], t["time"] if t["time"] and t["time"] != "—" else "",
+                         round(sum(t["hours"].values()), 2) if t["hours"] else "",
+                         t["depends"] if t["depends"] not in ("—", "-") else "", t.get("feeds", ""), due_from, "task"])
+        else:
+            needs = data["needs"][t["id"]]
+            rows.append([iso(t["end"]), t["id"], label(t["name"], 80), TRACK_NAME["Milestones"], t["owner"],
+                         "Needs: " + "; ".join(need_text(n) for n in needs) if needs else "nothing named in the repo",
+                         t["status"], "", "", ", ".join(n["id"] for n in needs if n["id"]), "", due_from, t["kind"]])
+    return {"columns": ["Due", "ID", "Task", "Track", "Owner", "Next action", "Status", "Estimate (TODO)", "Hours",
+                        "Blocked by / depends on", "Feeds (the first milestone that needs it)", "Due date from",
+                        "Kind"], "rows": rows, "notes": todo_checks(data)}
+
+
+def done_sheet(data):
+    """Every finished task by its done date: what it delivered and the evidence."""
+    done = [t for t in data["tasks"] if t["kind"] == "task" and t["status"] == "done"]
+    rows = []
+    for t in sorted(done, key=lambda t: (t["end"] or date.max, TRACKS.index(t["track"]), id_key(t))):
+        f, logs, commits = t["evidence"]
+        rows.append([iso(t["end"]), t["id"], label(t["name"]), TRACK_NAME[t["track"]], t["phase"], t["owner"],
+                     t["delivered"], f, logs, commits,
+                     t["end_basis"] + (" (inferred)" if t["end"] and t["end_inferred"] else "")])
+    return {"columns": ["Done", "ID", "Task", "Track", "Phase", "Owner", "What it delivered", "Findings (commit)",
+                        "Session logs", "Commits", "Done date from"], "rows": rows}
+
+
+def todo_checks(data):
+    """TODO rows worth a second look: no status word; blocked by a push that is done; a Sol job that one row calls
+    pending or queued and a row calls failed, done, passed, cancelled or removed; a done row that still says it
+    waits, is pending, queued, running or unread."""
+    rows = [t for t in data["tasks"] if t["source"] == "TODO" and t["kind"] == "task"]
+    out = []
+    word = [t["id"] for t in rows if t["note"] == "no status word"]
+    if word:
+        out.append("No status word (read as in progress): " + ", ".join(word) + ".")
+    if data.get("pushed"):
+        push = [t["id"] for t in rows if t["status"] != "done" and re.search(r"\bpush\b", t["depends"])]
+        if push:
+            out.append(f"'Blocked by' names the push, but {data['pushed']} already holds HEAD: "
+                       + ", ".join(push) + ".")
+    pending, closed = defaultdict(set), defaultdict(set)
+    for t in rows:
+        for c in clauses(t["name"] + "; " + plain(t["raw_status"])):
+            for part in re.split(r"(?<=[a-z)])\. ", c):
+                for m in re.finditer(r"\b(6\d{7})\b(?:/\d+)?\s*\(?(pending|queued)\b", part):
+                    pending[m.group(1)].add(t["id"])
+                if re.search(r"\b(fail\w*|done|passed|cancel\w*|removed)\b", part):
+                    for j in re.findall(r"\b6\d{7}\b", part):
+                        closed[j].add(t["id"])
+    for j in sorted(pending):
+        if closed.get(j):
+            out.append(f"Sol job {j}: pending or queued in {', '.join(sorted(pending[j]))}; failed, done or passed in "
+                       f"{', '.join(sorted(closed[j]))}.")
+    stale = [t["id"] for t in rows if t["status"] == "done" and re.search(
+        r"\b(unread|pending|queued|running|waits? (?:on|for)|waiting for|needs [^;]* from Sol)\b", t["status_text"])]
+    if stale:
+        out.append("Done, but the status still says it waits, is pending, queued, running or unread: "
+                   + ", ".join(stale) + ".")
+    return out or ["none"]
 
 
 def inferred_count(tasks):
@@ -988,12 +1405,12 @@ def inferred_count(tasks):
 
 
 def build(root=ROOT, today=None, first=FIRST, last=LAST):
-    """The workbook model: {"meta", "sheets": {Gantt, Daily, Changes, Progress, Remaining}}, plus the data."""
+    """The workbook model: {"meta", "sheets": {Gantt, To do, Done, Progress, Daily, Changes}}, plus the data."""
     today = today or date.today()
     data = collect(root, today, first.year)
     span = days(first, last)
-    sheets = {"Gantt": gantt_sheet(data, span), "Daily": daily_sheet(data), "Changes": changes_sheet(data),
-              "Progress": progress_sheet(data), "Remaining": remaining_sheet(data)}
+    sheets = {"Gantt": gantt_sheet(data, span), "To do": todo_sheet(data), "Done": done_sheet(data),
+              "Progress": progress_sheet(data), "Daily": daily_sheet(data), "Changes": changes_sheet(data)}
     meta = {"today": today, "commit": data["head"], "generated": today.isoformat(), "first": first, "last": last,
             "inferred": inferred_count(data["tasks"]),
             "daily_inferred": sum("(inferred)" in r[-1] for r in sheets["Daily"]["rows"])}
@@ -1014,7 +1431,7 @@ def write_xlsx(model, path):
         "title": {"bold": True, "font_size": 12}, "track": {"bold": True, "font_size": 10, "bg_color": "#d9e6f5"},
         "phase": {"bold": True, "italic": True, "bg_color": "#f1f0ec"}, "note": {"italic": True, "font_color": MUTED,
                                                                                  "text_wrap": True},
-        "flat": {"italic": True, "font_color": MUTED}}.items()}
+        "flat": {"italic": True, "font_color": MUTED}, "line": {}, "bold": {"bold": True}}.items()}
     cache = {}
 
     def cell(fill=None, today=False, mark=False, head=False):
@@ -1041,8 +1458,8 @@ def write_xlsx(model, path):
                    f"{meta['last'].year}: generated by tools/make_gantt.py on {meta['generated']} from {meta['commit']}; "
                    f"today = {today} (red column)", fmt["title"])
     ws.write(1, 0, "Legend:", fmt["head"])
-    ws.write(1, 1, "◆ milestone; red border = today; 'inferred' in the Dates column marks a derived date; "
-                   "+/- at the left folds a track or phase", fmt["flat"])
+    ws.write(1, 1, "◆ milestone; red border = today; 'inferred' in the Date basis column marks a derived date; "
+                   "+/- at the left folds a track or phase; the item in full: the Details column", fmt["flat"])
     for i, st in enumerate(STATUSES):
         ws.write(1, nl + 9 * i, "", cell(st))
         ws.write(1, nl + 9 * i + 1, st, fmt["flat"])
@@ -1050,11 +1467,11 @@ def write_xlsx(model, path):
     for j, d in enumerate(span):
         months[d[:7]].append(j)
     for ym, js in months.items():
-        label = datetime.strptime(ym, "%Y-%m").strftime("%B %Y")
+        month = datetime.strptime(ym, "%Y-%m").strftime("%B %Y")
         if len(js) > 1:
-            ws.merge_range(2, nl + js[0], 2, nl + js[-1], label, fmt["head"])
+            ws.merge_range(2, nl + js[0], 2, nl + js[-1], month, fmt["head"])
         else:
-            ws.write(2, nl + js[0], label, fmt["head"])
+            ws.write(2, nl + js[0], month, fmt["head"])
     for j, h in enumerate(g["columns"][:nl]):
         ws.write(4, j, h, fmt["head"])
     for j, d in enumerate(span):
@@ -1076,14 +1493,14 @@ def write_xlsx(model, path):
                 ws.write_blank(r, j, None, fmt[row["kind"]])
         else:
             for j, v in enumerate(row["values"]):
-                ws.write(r, j, v, fmt["text"])
+                ws.write(r, j, v, fmt["bold" if j == 0 else "line"])
         for j, d in enumerate(span):
             v = row["days"].get(d)
             if v == "milestone":
                 ws.write(r, nl + j, "◆", cell(today=d == today, mark=True))
             elif v or d == today:
                 ws.write(r, nl + j, "", cell(v, today=d == today))
-    for j, w in enumerate((10, 46, 11, 14, 10, 10, 30, 12, 12)):
+    for j, w in enumerate((9, 42, 16, 10, 10, 11, 40, 12, 60, 10)):
         ws.set_column(j, j, w)
     ws.set_column(nl, nl + len(span) - 1, 2.6)
     ws.freeze_panes(r0, 2)
@@ -1110,31 +1527,96 @@ def write_xlsx(model, path):
             w.set_row(k, 30)
         return w
 
+    table("To do", sh["To do"], (11, 9, 34, 20, 17, 70, 10, 18, 7, 16, 12, 30, 9),
+          ["Checks on TODO (rows worth a second look): " + n for n in sh["To do"]["notes"]])
+    table("Done", sh["Done"], (11, 9, 34, 20, 18, 9, 80, 22, 34, 16, 26))
+    table("Progress", sh["Progress"], (26,) + (11,) * 16, sh["Progress"]["notes"])
     table("Daily", sh["Daily"], (11, 5, 20, 90, 60, 14, 8, 30, 40))
     table("Changes", sh["Changes"], (11, 8, 9, 22, 100, 6))
-    table("Progress", sh["Progress"], (26,) + (11,) * 16, sh["Progress"]["notes"])
-    table("Remaining", sh["Remaining"], (11, 9, 60, 22, 18, 11, 22, 8, 16, 11, 34, 10))
     wb.close()
     return path
 
 
-def write_png(model, path):
-    """One page (16:9) for slides: a bar per track and phase, colored by its tasks' status; milestones (diamonds),
-    the presentation and report windows, and today."""
+def plotting():
+    """matplotlib (no display) with the charts' style; (plt, mdates, Line2D, Patch)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.dates as mdates
     import matplotlib.pyplot as plt
     from matplotlib.lines import Line2D
     from matplotlib.patches import Patch
-
-    data, meta = model["data"], model["meta"]
-    today, first, last = meta["today"], meta["first"], meta["last"]
-    span = days(first, last)
     plt.rcParams.update({"figure.facecolor": SURFACE, "axes.facecolor": SURFACE, "savefig.facecolor": SURFACE,
                          "font.size": 8, "axes.edgecolor": "#a3a29c", "text.color": INK, "xtick.color": MUTED,
                          "ytick.color": INK, "axes.spines.top": False, "axes.spines.right": False,
                          "hatch.color": SURFACE, "hatch.linewidth": 1.0})
+    return plt, mdates, Line2D, Patch
+
+
+def status_bars(ax, t, y, today, span, height, mdates):
+    """A task's days as bars, one run per status (blocked hatched), with a thin surface gap between runs."""
+    for st in ("planned", "done", "in progress", "blocked"):
+        ds = sorted(d for d, v in day_cells(t, today, span).items() if v == st)
+        for lo, hi in runs_of(ds):
+            ax.barh(y, (hi - lo).days + 1, left=mdates.date2num(lo), height=height, color=FILL[st],
+                    edgecolor=SURFACE, linewidth=0.6, hatch="////" if st == "blocked" else None)
+
+
+def milestone_labels(ax, fig, ms, y, first, last, fontsize, step=0.4):
+    """Each milestone's diamond and label, its label on the lowest level (step apart, in data units) where it
+    overlaps no other label (widths estimated from the characters); the number of levels used."""
+    import matplotlib.dates as mdates
+    pos = ax.get_position()
+    per_day = fig.get_figwidth() * pos.width / ((last - first).days + 1)        # inches per day
+    ends, used = [], 0
+    for t in sorted(ms, key=lambda t: t["start"]):
+        x = mdates.date2num(t["start"]) + 0.5
+        text = (f"Track {t['id'][-1]} to {t['owner']}" if t["phase"] == "Handoffs" else t["id"]) + \
+            f", {t['start']:%b} {t['start'].day}"
+        half = len(text) * fontsize * 0.55 / 72 / per_day / 2 + 0.8
+        level = next((i for i, e in enumerate(ends) if x - half > e), len(ends))
+        if level == len(ends):
+            ends.append(0)
+        ends[level] = x + half
+        used = max(used, level + 1)
+        ax.plot(x, y, marker="D", markersize=6.5, color=INK if t["status"] == "done" else FILL["in progress"],
+                markeredgecolor=SURFACE, zorder=5)
+        ax.text(x, y + step * (1.05 + level), text, ha="center", va="bottom", fontsize=fontsize, color=INK, zorder=6,
+                bbox={"facecolor": SURFACE, "edgecolor": "none", "pad": 0.4})
+    return used
+
+
+def window_bars(ax, fig, ws, y, height, first, last, fontsize):
+    """The presentation and report windows as gray bars, each named inside it (on two lines when one is too wide)."""
+    import matplotlib.dates as mdates
+    per_day = fig.get_figwidth() * ax.get_position().width / ((last - first).days + 1)
+    for t in ws:
+        lo, width = mdates.date2num(t["start"]), (t["end"] - t["start"]).days + 1
+        ax.barh(y, width, left=lo, height=height, color="#c9c8c3", edgecolor=SURFACE, linewidth=0.8)
+        name = re.sub(r"\s*\(.*", "", t["name"])
+        fits = (lambda s: len(s) * fontsize * 0.55 / 72 <= width * per_day - 0.04)
+        if not fits(name):
+            name = name.replace(" ", "\n", 1)
+        size = fontsize if all(fits(s) for s in name.split("\n")) else fontsize * 0.82
+        ax.text(lo + width / 2, y, name, ha="center", va="center", fontsize=size, color=INK, linespacing=0.95)
+
+
+def legend_handles(Line2D, Patch):
+    handles = [Patch(facecolor=FILL[s], label=s, hatch="////" if s == "blocked" else None) for s in STATUSES]
+    return handles + [Line2D([], [], marker="D", color="w", markerfacecolor=INK, markersize=7,
+                             label="milestone, passed"),
+                      Line2D([], [], marker="D", color="w", markerfacecolor=FILL["in progress"], markersize=7,
+                             label="milestone, ahead"),
+                      Patch(facecolor="#c9c8c3", label="window (no exact day in the repo)"),
+                      Line2D([], [], color=FILL["blocked"], linestyle="--", label="today")]
+
+
+def overview_figure(model, size=(13.33, 7.5)):
+    """The one-page overview: a bar per track and phase, colored by its tasks' status; milestones (diamonds), the
+    presentation and report windows, and today."""
+    plt, mdates, Line2D, Patch = plotting()
+    data, meta = model["data"], model["meta"]
+    today, first, last = meta["today"], meta["first"], meta["last"]
+    span = days(first, last)
     groups = []
     for track in TRACKS[:-1]:
         ph = defaultdict(list)
@@ -1143,18 +1625,14 @@ def write_png(model, path):
                 ph[t["phase"]].append(t)
         for p in sorted(ph, key=lambda p: min((t["start"] or last) for t in ph[p])):
             groups.append((track, p, ph[p]))
-    fig, ax = plt.subplots(figsize=(13.33, 7.5))
+    fig, ax = plt.subplots(figsize=size)
+    fig.subplots_adjust(left=0.175, right=0.955, top=0.875, bottom=0.115)
     n = len(groups)
     y_win, y_ms = n + 0.4, n + 1.5
-    x0 = mdates.date2num(first)
     for i, (track, p, ts) in enumerate(groups):
         y = n - 1 - i
-        for st in ("planned", "done", "in progress", "blocked"):
-            for t in ts:
-                ds = sorted(d for d, v in day_cells(t, today, span).items() if v == st)
-                for lo, hi in runs_of(ds):
-                    ax.barh(y, (hi - lo).days + 1, left=mdates.date2num(lo), height=0.62, color=FILL[st],
-                            edgecolor=SURFACE, linewidth=0.6, hatch="////" if st == "blocked" else None)
+        for t in ts:
+            status_bars(ax, t, y, today, span, 0.62, mdates)
         done = sum(t["status"] == "done" for t in ts)
         ax.text(mdates.date2num(last) + 1.6, y, f"{done}/{len(ts)}", va="center", fontsize=7.5, color=MUTED)
     labels = [f"{tr} · {p}" for tr, p, _ in groups]
@@ -1166,47 +1644,164 @@ def write_png(model, path):
             ax.axhline(n - 0.5 - i, color=GRID, linewidth=0.8)
         prev = tr
     ax.axhline(n - 0.45, color="#a3a29c", linewidth=0.8)
-    level = 0
-    for t in sorted((t for t in data["tasks"] if t["kind"] == "milestone" and t["start"]), key=lambda t: t["start"]):
-        x = mdates.date2num(t["start"]) + 0.5
-        ax.plot(x, y_ms, marker="D", markersize=7, color=INK if t["status"] == "done" else FILL["in progress"],
-                markeredgecolor=SURFACE, zorder=5)
-        label = (f"Track {t['id'][-1]} to {t['owner']}" if t["phase"] == "Handoffs" else t["id"]) + \
-            f", {t['start']:%b} {t['start'].day}"
-        ax.text(x, y_ms + 0.38 + 0.36 * level, label, ha="center", fontsize=6.8, color=INK, zorder=5)
-        level = 1 - level
-    for t in (t for t in data["tasks"] if t["kind"] == "window" and t["start"]):
-        lo = mdates.date2num(t["start"])
-        width = (t["end"] - t["start"]).days + 1
-        ax.barh(y_win, width, left=lo, height=0.5, color="#c9c8c3", edgecolor=SURFACE, linewidth=0.8)
-        ax.text(lo + width / 2, y_win, re.sub(r"\s*\(.*", "", t["name"]), ha="center", va="center", fontsize=6.5,
-                color=INK)
+    levels = milestone_labels(ax, fig, [t for t in data["tasks"] if t["kind"] == "milestone" and t["start"]], y_ms,
+                              first, last, 6.8)
+    window_bars(ax, fig, [t for t in data["tasks"] if t["kind"] == "window" and t["start"]], y_win, 0.5, first, last,
+                6.5)
     tx = mdates.date2num(today) + 0.5
     ax.axvline(tx, color=FILL["blocked"], linewidth=1.2, linestyle="--", zorder=4)
     ax.text(tx, -1.05, f"today, {today:%b} {today.day}", color=FILL["blocked"], ha="center", fontsize=7.5)
-    ax.set_xlim(x0, mdates.date2num(last) + 1)
-    ax.set_ylim(-1.3, y_ms + 1.3)
+    ax.set_xlim(mdates.date2num(first), mdates.date2num(last) + 1)
+    ax.set_ylim(-1.3, y_ms + 0.4 * (levels + 1.05) + 0.45)
     ax.xaxis.set_major_locator(mdates.WeekdayLocator(byweekday=mdates.MO))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %-d"))
     ax.grid(axis="x", color=GRID, linewidth=0.6)
     ax.set_axisbelow(True)
-    handles = [Patch(facecolor=FILL[s], label=s, hatch="////" if s == "blocked" else None) for s in STATUSES]
-    handles += [Line2D([], [], marker="D", color="w", markerfacecolor=INK, markersize=7, label="milestone, passed"),
-                Line2D([], [], marker="D", color="w", markerfacecolor=FILL["in progress"], markersize=7,
-                       label="milestone, ahead"),
-                Patch(facecolor="#c9c8c3", label="window (no exact day in the repo)"),
-                Line2D([], [], color=FILL["blocked"], linestyle="--", label="today")]
-    ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.45, -0.06), ncol=8, fontsize=7.5, frameon=False)
+    ax.legend(handles=legend_handles(Line2D, Patch), loc="upper center", bbox_to_anchor=(0.45, -0.06), ncol=8,
+              fontsize=7.5, frameon=False)
     fig.suptitle(f"Group 10: project Gantt, {first:%b} {first.day} to {last:%b} {last.day}, {last.year}", x=0.01,
                  ha="left", fontsize=12, color=INK)
-    fig.text(0.01, 0.935, "Each row is a phase; its bars are its tasks by status; n/N at the right = tasks done. "
+    fig.text(0.01, 0.935, "Each row is a phase; its bars are its tasks by status; n/N at the right = tasks done; "
+                          "a page per track with a bar per task: gantt.pdf. "
                           f"Generated by tools/make_gantt.py on {meta['generated']} from {meta['commit']}.",
              fontsize=7.5, color=MUTED)
-    fig.subplots_adjust(left=0.175, right=0.955, top=0.875, bottom=0.115)
+    return fig
+
+
+def write_png(model, path):
+    """The overview as one 16:9 page for slides."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    fig = overview_figure(model)
     fig.savefig(path, dpi=150)
+    import matplotlib.pyplot as plt
     plt.close(fig)
+    return path
+
+
+PAGES = (("A",), ("B",), ("C",), ("Labels",), ("Repo", "Setup"))      # a page each; the progress round with the repo
+PAGE = (11, 8.5)                                        # US Letter, landscape
+
+
+def page_rows(data, tracks):
+    """[(kind, phase or task)] for a track page: each phase (by its first start) and its tasks (by start)."""
+    rows = []
+    for track in tracks:
+        ph = defaultdict(list)
+        for t in data["tasks"]:
+            if t["track"] == track and t["kind"] == "task":
+                ph[t["phase"]].append(t)
+        for p in sorted(ph, key=lambda p: min(task_order(t) for t in ph[p])):
+            rows.append(("phase", f"{TRACK_NAME[track]}: {p}" if len(tracks) > 1 else p))
+            rows += [("task", t) for t in sorted(ph[p], key=task_order)]
+    return rows
+
+
+def track_figure(model, tracks, page, pages):
+    """A page per track (US Letter, landscape): a bar per task with its ID and label at the left and its status,
+    owner and date at the right, phases as headers; above, the milestones and the report and presentation windows;
+    gates and handoffs as dotted lines through the tasks; today."""
+    plt, mdates, Line2D, Patch = plotting()
+    data, meta = model["data"], model["meta"]
+    today, first, last = meta["today"], meta["first"], meta["last"]
+    span = days(first, last)
+    rows = page_rows(data, tracks)
+    units = max(sum(0.85 if k == "phase" else 1 for k, _ in rows), 24)       # a short page keeps rows of a usual height
+    fig = plt.figure(figsize=PAGE)
+    left, right, top, bottom, head = 0.30, 0.815, 0.79, 0.075, 1.0 / PAGE[1]
+    ax = fig.add_axes((left, bottom, right - left, top - bottom))
+    hx = fig.add_axes((left, top + 0.004, right - left, head), sharex=ax)
+    fs = max(5.5, min(7.6, PAGE[1] * (top - bottom) * 72 / max(units, 1) * 0.74))
+    trans = ax.get_yaxis_transform()
+    x_id, x_label = -left / (right - left) + 0.02 / (right - left), -left / (right - left) + 0.075 / (right - left)
+    y = 0.0
+    for kind, item in rows:
+        h = 0.85 if kind == "phase" else 1
+        yc = -(y + h / 2)
+        if kind == "phase":
+            ax.axhspan(yc - h / 2, yc + h / 2, color="#f1f0ec", zorder=0, linewidth=0)
+            ax.text(x_id, yc, item, transform=trans, ha="left", va="center", fontsize=fs, fontweight="bold",
+                    style="italic", clip_on=False)
+        else:
+            t = item
+            status_bars(ax, t, yc, today, span, 0.64, mdates)
+            ax.text(x_id, yc, t["id"], transform=trans, ha="left", va="center", fontsize=fs, fontweight="bold",
+                    clip_on=False)
+            fit = int((left - 0.083) * PAGE[0] * 72 / (fs * 0.53))         # characters that fit the label column
+            ax.text(x_label, yc, label(t["name"], fit), transform=trans, ha="left", va="center", fontsize=fs,
+                    clip_on=False)
+            when = (f"done {md_day(t['end'])}" if t["status"] == "done" and t["end"] else "done, no date"
+                    if t["status"] == "done" else due_md(t).replace("no due date in the repo", "no due date"))
+            star = "*" if t["end"] and t["end_inferred"] and "*" not in when else ""
+            st = "standing duty" if t["note"] == "standing" else t["status"]
+            ax.text(1.012, yc, f"{st} · {t['owner'].split()[0]}" + ("" if t["note"] == "standing" else
+                                                                     f" · {when}{star}"), transform=trans,
+                    ha="left", va="center", fontsize=min(fs, 7.2), color=MUTED if t["status"] == "done" else INK,
+                    clip_on=False)
+        y += h
+    ms = [t for t in data["tasks"] if t["kind"] == "milestone" and t["start"]]
+    ws = [t for t in data["tasks"] if t["kind"] == "window" and t["start"]]
+    for t in ms:
+        ax.axvline(mdates.date2num(t["start"]) + 0.5, color=INK if t["status"] == "done" else FILL["in progress"],
+                   linewidth=0.7, linestyle=(0, (1, 2)), zorder=1)
+    for t in ws:
+        ax.axvspan(mdates.date2num(t["start"]), mdates.date2num(t["end"]) + 1, color="#c9c8c3", alpha=0.22, zorder=0,
+                   linewidth=0)
+    tx = mdates.date2num(today) + 0.5
+    for a in (ax, hx):
+        a.axvline(tx, color=FILL["blocked"], linewidth=1.1, linestyle="--", zorder=4)
+        a.grid(axis="x", color=GRID, linewidth=0.6)
+        a.set_axisbelow(True)
+        a.set_yticks([])
+    ax.set_xlim(mdates.date2num(first), mdates.date2num(last) + 1)
+    ax.set_ylim(-units - 0.2, 0.2)
+    window_bars(hx, fig, ws, 0.65, 1.0, first, last, 6.2)
+    hx.set_ylim(0, 1.75 + 0.8 * (1.05 + milestone_labels(hx, fig, ms, 1.75, first, last, 6.6, step=0.8)) + 0.4)
+    hx.spines["bottom"].set_visible(False)
+    hx.spines["left"].set_visible(False)
+    hx.tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+    ax.xaxis.set_major_locator(mdates.WeekdayLocator(byweekday=mdates.MO))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %-d"))
+    ax.tick_params(axis="x", labelsize=7)
+    hx.text(-0.005, 1.75, "Milestones", transform=hx.get_yaxis_transform(), ha="right", va="center", fontsize=6.8,
+            color=MUTED)
+    hx.text(-0.005, 0.65, "Talks, report", transform=hx.get_yaxis_transform(), ha="right", va="center", fontsize=6.8,
+            color=MUTED)
+    counted = [t for t in data["tasks"] if t["counted"] and t["track"] in tracks]
+    done = sum(t["status"] == "done" for t in counted)
+    who = "; ".join(dict.fromkeys(f"{TAKEOVER[tr][0]} from {md_day(TAKEOVER[tr][1])} (the work before, Ritik's)"
+                                  if tr in TAKEOVER else OWNER[tr] for tr in tracks))
+    fig.text(0.02, 0.966, "; ".join(TRACK_NAME[t] for t in tracks), fontsize=12.5, color=INK)
+    fig.text(0.02, 0.943, (f"{done} of {len(counted)} tasks done ({100 * done / len(counted):.0f}%). "
+                           if counted else "") + f"Owner: {who}.", fontsize=8, color=INK)
+    fig.text(0.02, 0.925, "A bar per task, by status; * = an inferred date (the Gantt sheet's Date basis says from "
+                          "what); dotted lines: gates and handoffs; shaded: the report and presentation windows.",
+             fontsize=7, color=MUTED)
+    ax.legend(handles=legend_handles(Line2D, Patch)[:4] + legend_handles(Line2D, Patch)[-1:], loc="upper left",
+              bbox_to_anchor=(-left / (right - left) + 0.02 / (right - left), -0.022), ncol=5, fontsize=7,
+              frameon=False, handlelength=2.2)
+    fig.text(0.98, 0.012, f"Page {page} of {pages}. Generated by tools/make_gantt.py on {meta['generated']} from "
+                          f"{meta['commit']}.", ha="right", fontsize=6.5, color=MUTED)
+    return fig
+
+
+def write_pdf(model, path):
+    """gantt.pdf: page 1 the overview, then a page per track (A, B, C, the labels, the repo with the progress
+    round), US Letter, landscape."""
+    from matplotlib.backends.backend_pdf import PdfPages
+    import matplotlib.pyplot as plt
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    pages = [tr for tr in PAGES if page_rows(model["data"], tr)]
+    with PdfPages(path, metadata={"Title": "Group 10: project Gantt", "Creator": "tools/make_gantt.py"}) as pdf:
+        fig = overview_figure(model, PAGE)
+        fig.text(0.98, 0.015, f"Page 1 of {len(pages) + 1}.", ha="right", fontsize=6.5, color=MUTED)
+        pdf.savefig(fig)
+        plt.close(fig)
+        for i, tracks in enumerate(pages, 2):
+            fig = track_figure(model, tracks, i, len(pages) + 1)
+            pdf.savefig(fig)
+            plt.close(fig)
     return path
 
 
@@ -1225,16 +1820,37 @@ def md_day(d):
     return f"{d:%b} {d.day}" if d else "no date in the repo"
 
 
+def due_md(t):
+    """'due Nov 9*' (inferred), 'due Nov 8', 'no due date in the repo'."""
+    return f"due {md_day(t['end'])}{'*' if t['end_inferred'] else ''}" if t["end"] else "no due date in the repo"
+
+
+def who_md(owner_text):
+    """'Arsha (from Nov 3)' -> 'Arsha, from Nov 3' (inside parentheses)."""
+    return re.sub(r" \(from ([^)]*)\)$", r", from \1", owner_text)
+
+
+def owner_note(t):
+    """TODO's own owner text where the owner rule names someone else (the raters, a teammate)."""
+    first = t["owner"].split()[0]
+    return f" (TODO: {t['owner_todo']})" if t["owner_todo"] and first not in t["owner_todo"] else ""
+
+
 def status_md(model):
+    """Per track: done of total; done since the session logs began, the next steps, what is blocked; per owner; the
+    milestones and what each needs; the next 7 days."""
     meta, data = model["meta"], model["data"]
     today = meta["today"]
     soon = today + timedelta(7)
+    since = data["logs"][0]["date"] if data["logs"] else today
     tasks = [t for t in data["tasks"] if t["kind"] == "task" and t["note"] != "standing"]
+    by_id = {t["id"]: t for t in tasks}
     open_ = sorted((t for t in tasks if t["status"] != "done"), key=lambda t: (t["end"] or date.max, id_key(t)))
     lines = [f"# Project status, {today:%b} {today.day}, {today.year}", "",
-             f"Generated by tools/make_gantt.py on {meta['generated']} from {meta['commit']}; do not edit by hand. "
-             "Tables and every task: `GANTT.xlsx` (Gantt, Daily, Changes, Progress, Remaining); one page for slides: "
-             "`gantt.png`.", "", "## Done, per track", "",
+             f"Generated by tools/make_gantt.py on {meta['generated']} from {meta['commit']}; do not edit by hand.", "",
+             "Every task: `GANTT.xlsx` (Gantt, To do, Done, Progress, Daily, Changes); one page for slides: "
+             "`gantt.png`; to print, the overview and a page per track: `gantt.pdf`. A date with * is inferred (the "
+             "Gantt sheet's Date basis column says from what).", "", "## Done, per track", "",
              "| Track | Tasks done | Done % | Done % by time | Hours left (work / GPU / Voyager) |",
              "|---|---|---|---|---|"]
     for r in progress_rows(data):
@@ -1242,32 +1858,61 @@ def status_md(model):
         lines.append(f"| {r['track']} | {r['done']} of {r['tasks']} | {r['percent']}% | {w} | {r['remaining_hours']:g} "
                      f"({r['remaining_work']:g} / {r['remaining_gpu']:g} / {r['remaining_voyager']:g}) |")
     lines += ["", "By time: weighted by TODO's time column, over the tasks that have one. "
-                  f"{meta['inferred']} task dates are inferred (the Gantt's Dates column says from what), and "
-                  f"{meta['daily_inferred']} Daily rows from before the session logs come from commits only.", "",
-              f"## The next 7 days ({md_day(today)} to {md_day(soon)})", ""]
-
-    def item(t):
-        return f"- **{t['id']}** {short(t['name'], 100)} ({t['status']}; {t['owner']}; due {md_day(t['end'])})"
-
-    due = [t for t in open_ if t["end"] and t["end"] <= soon]
-    going = [t for t in open_ if t not in due and t["status"] in ("in progress", "blocked")]
-    starting = [t for t in open_ if t not in due and t["status"] == "planned" and t["start"]
-                and today < t["start"] <= soon]
-    for title, group in (("Due", due), ("Under way or blocked", going), ("Starting", starting)):
-        lines += [f"{title}:", ""] + ([item(t) for t in group] or ["- none"]) + [""]
+                  f"{meta['inferred']} task dates are inferred, and {meta['daily_inferred']} Daily rows from before "
+                  "the session logs come from commits only.", ""]
+    for tr in ("A", "B", "C", "Labels", "Repo"):
+        ts = [t for t in tasks if t["track"] == tr]
+        if not ts:
+            continue
+        who = f"{TAKEOVER[tr][0]} from {md_day(TAKEOVER[tr][1])}; the work before, Ritik" if tr in TAKEOVER else \
+            OWNER[tr]
+        done = sorted((t for t in ts if t["status"] == "done" and t["end"] and t["end"] >= since),
+                      key=lambda t: (t["end"], id_key(t)))
+        nxt = [t for t in open_ if t["track"] == tr]
+        lines += [f"## {TRACK_NAME[tr]} ({who})", "", f"### Done since {md_day(since)} ({len(done)})", ""]
+        lines += [f"- {md_day(t['end'])}{'*' if t['end_inferred'] else ''}: **{t['id']}** "
+                  + (f"{label(t['name'])}: {t['delivered']}" if t.get("finding") else t["delivered"])
+                  for t in done] or ["- none"]
+        lines += ["", "### Next", ""] + ([f"{i}. **{t['id']}** ({who_md(t['owner'])}; {due_md(t)}): {t['next']}"
+                                          for i, t in enumerate(nxt, 1)] or ["- nothing open"])
+        blocked = [t for t in nxt if t["status"] == "blocked"]
+        lines += ["", "### Blocked on", ""] + ([f"- **{t['id']}** {label(t['name'])}: {waiting_for(t)}"
+                                                 for t in blocked] or ["- nothing"]) + [""]
+    lines += ["## Per owner", ""]
+    people = [("Ritik", "Track A, the labels, the repo and the report")] + [
+        (who, f"Track {tr} from {md_day(when)}") for tr, (who, when) in TAKEOVER.items()]
     ms = [t for t in data["tasks"] if t["kind"] in ("milestone", "window")]
-    lines += ["Milestones:", ""] + ([f"- {md_day(t['start'])}: {t['name']}" for t in sorted(
-        (t for t in ms if t["start"] and today <= t["start"] <= soon), key=lambda t: t["start"])] or ["- none"])
-    lines += ["", "## Milestones", ""]
+    for who, what in people:
+        mine = [t for t in open_ if t["owner"].split()[0] == who]
+        lines += [f"### {who} ({what})", ""]
+        lines += [f"- **{t['id']}** {label(t['name'])} ({t['status']}; {due_md(t)}){owner_note(t)}" for t in mine]
+        lines += [f"- {t['name'].split(' (')[0]}: {span_text(t['start'], t['end'])}" for t in ms
+                  if t["owner"] == who and t["start"] and t["end"] >= today and t["status"] != "done"]
+        lines += [""]
+    lines += ["## Milestones and what each needs", ""]
     for t in sorted(ms, key=lambda t: t["start"] or date.max):
         name = re.sub(r"\s*\((?:exact day )?(?:v3 presented; )?(?:date )?not in the repo\)", "", t["name"])
         if t["kind"] == "milestone":
             when = md_day(t["start"])
         elif t["start"]:
-            when = f"{md_day(t['start'])} to {md_day(t['end'])} (a window; the exact day is not in the repo)"
+            when = f"{span_text(t['start'], t['end'])} (a window; the exact day is not in the repo)"
         else:
             when = "date not in the repo"
-        lines.append(f"- {when}: {name}{' (passed)' if t['end'] and t['end'] < today else ''}")
+        state = " (passed)" if t["end"] and t["end"] < today else (" (today)" if t["start"] == today else "")
+        needs = data["needs"].get(t["id"], []) if not state else []
+        lines.append(f"- **{when}: {name}**{state}" + (". Needs:" if needs else ""))
+        for n in needs:
+            x = by_id.get(n["id"])
+            head = f"**{n['id']}** {n['text']}" if x else n["text"]
+            st = f": {x['status']} ({who_md(x['owner'])}; " + (f"{due_md(x)})" if x["status"] != "done" else
+                                                               f"done {md_day(x['end'])})") if x else ""
+            lines.append(f"  - {head}{st} ({'inferred: ' if n['inferred'] else ''}{n['basis']})")
+    lines += ["", f"## The next 7 days ({md_day(today)} to {md_day(soon)})", ""]
+    due = [t for t in open_ if t["end"] and t["end"] <= soon]
+    lines += [f"- **{t['id']}** {label(t['name'])} ({t['status']}; {who_md(t['owner'])}; {due_md(t)})"
+              for t in due] or ["- nothing due"]
+    lines += [f"- {md_day(t['start'])}: {t['name']}" for t in sorted(
+        (t for t in ms if t["start"] and today < t["start"] <= soon), key=lambda t: t["start"])]
     nodue = [t["id"] for t in open_ if not t["end"]]
     lines += ["", f"Open tasks with no due date in the repo: {', '.join(nodue) or 'none'}."]
     return "\n".join(lines) + "\n"
@@ -1284,7 +1929,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--today", type=date.fromisoformat, help="the run date (YYYY-MM-DD); default: the clock")
     ap.add_argument("--root", type=Path, default=ROOT, help="the repo (default: this one)")
-    ap.add_argument("--out", type=Path, default=None, help="output folder (default: <root>/docs/progress)")
+    ap.add_argument("--out", type=Path, default=None, help="output folder (default: <root>/docs)")
     ap.add_argument("--dry-run", action="store_true", help="print the Progress sheet; write nothing")
     a = ap.parse_args(argv)
     model = build(a.root, a.today)
@@ -1295,9 +1940,9 @@ def main(argv=None):
           f"only; {len(model['data']['tasks'])} rows; {len(model['data']['commits'])} commits")
     if a.dry_run:
         return True
-    out = a.out or a.root / "docs" / "progress"
+    out = a.out or a.root / "docs"
     for p in (write_xlsx(model, out / "GANTT.xlsx"), write_png(model, out / "gantt.png"),
-              write_status(model, out / "STATUS.md")):
+              write_pdf(model, out / "gantt.pdf"), write_status(model, out / "STATUS.md")):
         print(f"wrote {p}")
     return True
 

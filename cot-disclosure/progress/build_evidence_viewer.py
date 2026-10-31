@@ -1,4 +1,4 @@
-"""Build presentation/progress/evidence_viewer.html from saved results only.
+"""Build archive/progress-round/presentation/progress/evidence_viewer.html from saved results only.
 
   python cot-disclosure/progress/build_evidence_viewer.py
 

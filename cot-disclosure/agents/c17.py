@@ -1,6 +1,6 @@
 """Track C, C17 (Oct 30): does naming the source cause the deferring reviewer's drop? C16's split couldn't tell,
 because the solver chose when to name the tool; C17 assigns it. The pre-registered readings (no calls).
-Pre-registered in docs/sessions/2026-10-30_1025_C_c17-prereg.md.
+Pre-registered in archive/sessions/2026-10-30/2026-10-30_1025_C_c17-prereg.md.
 
   python agents/c17.py                    # -> results/trackC/c17_summary.json; prints the readings
 

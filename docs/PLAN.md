@@ -8,7 +8,8 @@ earlier: C11–C13; week 11; the plan for Oct 27–Nov 3 moved everything as ear
 as it can go; Oct 28: Ollama replaced by Qwen3-8B on Sol, training batch 2, the class QoS only; Track
 B's Voyager runs and C4 done; S7, the validation loss by taught tokens, on all four versions; the labeling order;
 the vLLM preflight's rule; C9). What's left, by track: the timeline, the gates, the Sol hours and the risks. What
-is done is in [`OVERVIEW.md`](OVERVIEW.md); each result, with its numbers, source and status, is in
+was done by Oct 27 is in the [Oct 27 overview](../archive/superseded/OVERVIEW_2026-10-27.md) (archived), and
+progress since then in [`STATUS.md`](STATUS.md); each result, with its numbers, source and status, is in
 [`FINDINGS.md`](FINDINGS.md). Every open item, with its owner and status, is in
 [`TODO.md`](TODO.md); how to run each step is in [`RUNBOOK.md`](RUNBOOK.md).
 

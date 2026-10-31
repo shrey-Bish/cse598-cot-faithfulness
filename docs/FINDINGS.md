@@ -20,7 +20,7 @@ reviewer's check; F20: training against base on the taught tokens; at 21:50 the 
 of the reviewer's deference, automation bias, the deployment reading; at 18:23 F17 Olmo 3 7B Think in Track B and F18
 Track C's C4 added, F15 reworded: after a tool call the final answer is bare whether the lookup was right or wrong;
 earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limitations section). Design and plans:
-[`OVERVIEW.md`](OVERVIEW.md), [`PLAN.md`](PLAN.md).
+[`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
 **The story so far (Oct 28; updated Oct 30).**
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
@@ -164,7 +164,7 @@ confound the comparison: the token budget and the run counts.
 - **Caveat.** The private keyword also fires with no hint (22 of 72 Olmo 3 7B Think no-hint runs:
   "the user asks…"), so 208 is an upper bound.
 - **Source.** `docs/progress/RESULTS_SUMMARY.json` (`pilot.mentions.<model>.private_mentions_hinted`
-  and `final_mentions_hinted`); `docs/OVERVIEW.md` §6; `base_format.py --report`.
+  and `final_mentions_hinted`); `archive/superseded/OVERVIEW_2026-10-27.md` §6; `base_format.py --report`.
 - **Status.** *confirmed* as keyword counts. Hand labels (two raters, Cohen's kappa) *waiting*.
 
 ## F4. Known answers are overridden, mostly late in the reasoning, on a few questions
@@ -1768,7 +1768,7 @@ Each one would have changed a reported number.
   - the Instruct model gave 654 mismatches
 - *Fix.* One name → (ID, effort) map. A Think model sent without an effort is refused, and the
   catalog is checked at the start of each run.
-- *Source.* `docs/OVERVIEW.md` §5; commit `280bd12`.
+- *Source.* `archive/superseded/OVERVIEW_2026-10-27.md` §5; commit `280bd12`.
 
 **T4. Parser forms.**
 - *What.* "**Answer**: D" and "the **answer** is E" weren't read. Found in a Step 4 continuation.
@@ -1864,8 +1864,8 @@ Each one would have changed a reported number.
 
 | # | Story beat | Figure | Status |
 |---|---|---|---|
-| 1 | The failure: tool hints move the answer more than user hints | Test 2 by channel, served (`presentation/progress/figures/F9_expB_cue_by_channel.png`) next to Step 2b per channel, pinned (`results/summaries/trackA/figures/fig1_pinned_by_channel.png`) (F1, F2) | both **exist** (pinned panel drawn Oct 27) |
-| 2 | It's hidden: the reasoning names the hint, the final answer doesn't | `presentation/progress/figures/F2_pilot_mentions_by_channel.png` (F3) | **exists** |
+| 1 | The failure: tool hints move the answer more than user hints | Test 2 by channel, served (`archive/progress-round/presentation/progress/figures/F9_expB_cue_by_channel.png`) next to Step 2b per channel, pinned (`results/summaries/trackA/figures/fig1_pinned_by_channel.png`) (F1, F2) | both **exist** (pinned panel drawn Oct 27) |
+| 2 | It's hidden: the reasoning names the hint, the final answer doesn't | `archive/progress-round/presentation/progress/figures/F2_pilot_mentions_by_channel.png` (F3) | **exists** |
 | 3 | Where it takes over: the hint starts ahead, swings, and wins late on known answers | `results/summaries/trackA/figures/takeover_mean_curves.png` and `takeover_points.png` (F4–F6) | **exists** |
 | 4 | Is the repetition causal? Deletion vs control vs unedited: the answer at the cut, continuations, re-mentions | `results/summaries/trackA/figures/fig4_deletion.png`, from `deletion_runs.jsonl` + `deletion_remention.jsonl` (F7) | **exists** (drawn Oct 27; `finetune/look/plot_figures.py`) |
 | 5 | Inside the model: the handoff. Per cut, hint-token and answer restoration by layer, with the full-attention layers drawn and 15, 19, 23 marked (F11, F12). Beside it: the hint wins the lead at the moments the model looks back at it (F14, hint − control panel) | `results/summaries/trackA/figures/step10_handoff.png`; `results/summaries/trackA/step9_onsets.png` (left panel) | both **exist**. The per-token panel goes in the appendix. `step9_aligned.png` is not used (closest-approach anchor, T9) |

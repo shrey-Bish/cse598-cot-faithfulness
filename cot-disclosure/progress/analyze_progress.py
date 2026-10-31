@@ -3,7 +3,7 @@
   python cot-disclosure/progress/analyze_progress.py
 
 Writes docs/progress/RESULTS_SUMMARY.json and the figures F1 to F9 in
-presentation/progress/figures/ (PNG at 200 dpi and SVG). Makes no API calls.
+archive/progress-round/presentation/progress/figures/ (PNG at 200 dpi and SVG). Makes no API calls.
 Each metric records its numerator, denominator, source files and the function
 that computed it. Pilot intervals: puzzle-level percentile bootstrap (20,000
 resamples, seed 20261005). Experiments A and B: Wilson 95% intervals.
@@ -917,7 +917,7 @@ def finish(fig, name, title, sources, top=0.84, bottom=0.14, left=None, right=No
     fig.savefig(FIGS / f"{name}.png", dpi=200, metadata={"Software": None})
     fig.savefig(FIGS / f"{name}.svg", metadata={"Date": None, "Creator": None})
     plt.close(fig)
-    return f"presentation/progress/figures/{name}.png"
+    return f"archive/progress-round/presentation/progress/figures/{name}.png"
 
 
 def short(m):

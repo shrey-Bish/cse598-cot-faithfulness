@@ -18,6 +18,14 @@ def tracked_md(root=ROOT):
     return [root / f for f in out if f]
 
 
+KEPT_AS_IS = "archive/merged-docs/"     # each merged doc's original, unchanged: its links point where it used to be
+
+
+def checked(root, files):
+    """The files whose links are checked: all but the merged originals."""
+    return [f for f in files if not str(Path(f).relative_to(root)).startswith(KEPT_AS_IS)]
+
+
 def broken_links(root, files):
     """[(file, target)] for every relative link whose target doesn't exist (anchors ignored)."""
     out = []
@@ -42,7 +50,7 @@ def missing_scripts(root, runbook):
 
 
 def main():
-    broken = broken_links(ROOT, tracked_md())
+    broken = broken_links(ROOT, checked(ROOT, tracked_md()))
     for f, t in broken:
         print(f"broken link: {f.relative_to(ROOT)} -> {t}")
     missing = missing_scripts(ROOT, ROOT / "docs" / "RUNBOOK.md")

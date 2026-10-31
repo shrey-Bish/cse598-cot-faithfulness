@@ -2,7 +2,7 @@
 every walkthrough scene (after its animation), at 1920x1080 and 1280x720.
 
   python cot-disclosure/ui/app.py &          # the demo must be running
-  python cot-disclosure/ui/screenshots.py    # -> presentation/progress/ui_screenshots/
+  python cot-disclosure/ui/screenshots.py    # -> archive/progress-round/presentation/progress/ui_screenshots/
 """
 import argparse
 import json
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-OUT = Path(__file__).resolve().parents[2] / "presentation" / "progress" / "ui_screenshots"
+OUT = Path(__file__).resolve().parents[2] / "archive" / "progress-round" / "presentation" / "progress" / "ui_screenshots"
 NAMES = ["1_question_and_hint", "2_fell_for_it", "3_kept_right_answer", "4_numbers", "5_live"]
 
 

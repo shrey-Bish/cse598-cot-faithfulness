@@ -1,5 +1,5 @@
 """Track B, B15 (Oct 29): can one instruction bring the tool back into the final answer? Pre-registered in
-docs/sessions/2026-10-29_2300_ALL_c14-c15-b15-prereg.md.
+archive/sessions/2026-10-29/2026-10-29_2300_ALL_c14-c15-b15-prereg.md.
 
   python progress/run_b15.py --dry-run           # jobs, calls, hours
   python progress/run_b15.py --run               # resumable; results/trackB/b15_voyager.jsonl.gz (gitignored)

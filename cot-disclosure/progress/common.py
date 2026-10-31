@@ -33,7 +33,7 @@ OUT = RESULTS / "progress"
 DATA = CODE / "data" / "progress"
 LOGS = CODE / "logs"
 DOCS = REPO / "docs" / "progress"
-PRES = REPO / "presentation" / "progress"
+PRES = REPO / "archive" / "progress-round" / "presentation" / "progress"   # moved Oct 30 (docs/MOVES.md)
 FIGS = PRES / "figures"
 SHOTS = PRES / "screenshots"
 for _d in (OUT, DATA, LOGS):

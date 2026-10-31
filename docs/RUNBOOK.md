@@ -474,9 +474,9 @@ It refuses a push that adds anything under a produced-data folder, any file with
 
 - **What:** after every run (a Voyager batch, a Sol job, an analysis that changes a reported number)
   and at every stop, Ritik (until Nov 3; then each track's owner) writes
-  `docs/sessions/YYYY-MM-DD_HHMM_<A|B|C|ALL>_<name>.md` (Arizona
-  time), copies it to `docs/sessions/LATEST.md` and adds a line to `docs/sessions/INDEX.md`; and at
-  the end of each day `docs/sessions/DAILY_YYYY-MM-DD.md` (per track: what ran, what's in flight, key
+  `archive/sessions/YYYY-MM-DD/YYYY-MM-DD_HHMM_<A|B|C|ALL>_<name>.md` (Arizona
+  time), copies it to `archive/sessions/LATEST.md` and adds a line to `archive/sessions/INDEX.md`; and at
+  the end of each day `archive/sessions/YYYY-MM-DD/DAILY_YYYY-MM-DD.md` (per track: what ran, what's in flight, key
   numbers, decisions waiting, tomorrow's plan).
 - **Content:** header (times, branch, commits, tests, runs in flight), what ran, results, files,
   problems, points for review, decisions needed, open work, next commands. Numbers and paths only;

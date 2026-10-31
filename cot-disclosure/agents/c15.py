@@ -1,5 +1,5 @@
 """Track C, C15: the pre-registered readings on fresh items (no calls), from the reviews (team_c15) and the solver
-and checker log (team_c15_solve). Pre-registered in docs/sessions/2026-10-29_2300_ALL_c14-c15-b15-prereg.md.
+and checker log (team_c15_solve). Pre-registered in archive/sessions/2026-10-29/2026-10-29_2300_ALL_c14-c15-b15-prereg.md.
 
   python agents/c15.py                    # -> results/trackC/c15_summary.json; prints the readings
 

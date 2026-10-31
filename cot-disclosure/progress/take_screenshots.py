@@ -3,7 +3,7 @@
   python cot-disclosure/progress/take_screenshots.py                     # headless
   python cot-disclosure/progress/take_screenshots.py --headed --slow-mo 300   # watch the browser
 
-Writes presentation/progress/screenshots/NN_<card-id>.png, full_page.png, and
+Writes archive/progress-round/presentation/progress/screenshots/NN_<card-id>.png, full_page.png, and
 fig_<name>.png. Needs: pip install playwright && python -m playwright install chromium
 """
 import argparse
@@ -13,7 +13,7 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-PRES = Path(__file__).resolve().parents[2] / "presentation" / "progress"
+PRES = Path(__file__).resolve().parents[2] / "archive" / "progress-round" / "presentation" / "progress"
 VIEWER = PRES / "evidence_viewer.html"
 SHOTS = PRES / "screenshots"
 FIGS = PRES / "figures"

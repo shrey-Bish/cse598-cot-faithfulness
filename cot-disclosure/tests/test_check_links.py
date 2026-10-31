@@ -20,3 +20,13 @@ def test_broken_links_and_missing_runbook_scripts(tmp_path):
     broken = cl.broken_links(tmp_path, [tmp_path / "docs" / "A.md", tmp_path / "docs" / "B.md"])
     assert sorted(t for _, t in broken) == ["fig.png", "missing.md"]
     assert cl.missing_scripts(tmp_path, tmp_path / "docs" / "RUNBOOK.md") == ["tools/gone.py"]
+
+
+def test_merged_originals_are_not_checked(tmp_path):
+    """archive/merged-docs/ keeps each merged doc's original unchanged (Oct 30): its links point where it used to be."""
+    (tmp_path / "archive" / "merged-docs").mkdir(parents=True)
+    (tmp_path / "archive" / "merged-docs" / "paper_README.md").write_text("[gone](CLAIMS.md)\n")
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "A.md").write_text("[gone](missing.md)\n")
+    files = [tmp_path / "archive" / "merged-docs" / "paper_README.md", tmp_path / "docs" / "A.md"]
+    assert [t for _, t in cl.broken_links(tmp_path, cl.checked(tmp_path, files))] == ["missing.md"]

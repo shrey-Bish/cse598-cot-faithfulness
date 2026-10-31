@@ -3,7 +3,7 @@
   python cot-disclosure/progress/make_bundle.py
 
 Writes progress_bundle_<YYYYMMDD>.zip at the repo root (gitignored by the root
-.gitignore's `/*` rule) with docs/progress/, presentation/progress/, a sanitized
+.gitignore's `/*` rule) with docs/progress/, archive/progress-round/presentation/progress/, a sanitized
 copy of the session log, and results/progress/*.jsonl when they total under 25 MB
 (otherwise the first 20 lines of each file plus a note).
 """
@@ -43,7 +43,7 @@ def main():
     jsonl = sorted(OUT.glob("*.jsonl"))
     total = sum(f.stat().st_size for f in jsonl)
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
-        for root in (REPO / "docs" / "progress", REPO / "presentation" / "progress"):
+        for root in (REPO / "docs" / "progress", REPO / "archive" / "progress-round" / "presentation" / "progress"):
             for f in sorted(root.rglob("*")):
                 if f.is_file() and f.name != ".DS_Store":
                     z.write(f, f.relative_to(REPO))
