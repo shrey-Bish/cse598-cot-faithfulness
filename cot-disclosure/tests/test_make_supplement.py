@@ -334,3 +334,10 @@ def test_check_mode_writes_nothing(tmp_path, monkeypatch):
     out = tmp_path / "never"
     monkeypatch.setattr(ms, "OUT", out)
     assert ms.main(["--check"]) is True and not out.exists()
+
+
+def test_copied_lines_keep_a_links_text_not_its_target():
+    """A line copied from a session log keeps its links' text only: their targets are relative to another folder."""
+    assert ms.clean("see [the log](2026-10-27_1355_A_steps67-final.md) and [F2](../FINDINGS.md#f2)") == "see the log and F2"
+    assert ms.source_link("results/summaries/trackA/gpu/eval/figures/gate3_*") == "`results/summaries/trackA/gpu/eval/figures/gate3_*`"
+    assert ms.source_link("results/summaries/trackC/c18_summary.json").startswith("[`results/summaries/trackC/c18_summary.json`](")

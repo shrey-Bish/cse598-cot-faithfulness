@@ -164,10 +164,15 @@ def norm(s):
 def clean(s, limit=None, quotes=True):
     """A line copied from the docs: single spaces, every quote of QUOTE_MIN or more characters as "[quote]" (it may be
     model output; quotes=False for text written in this file), cut at `limit` characters."""
-    s = re.sub(r"\s+", " ", s or "").strip()
-    if quotes:
+    s = re.sub(r"\s+", " ", re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", s or "")).strip()   # a link's target is relative
+    if quotes:                                                                             # to the file it came from
         s = QUOTED.sub(lambda m: m.group(0) if len(m.group(0)) - 2 < QUOTE_MIN else '"[quote]"', s)
     return s[:limit - 1].rstrip() + "\u2026" if limit and len(s) > limit else s
+
+
+def source_link(path):
+    """A source path as a link from the supplement; a glob (figures/gate3_*) as code: it names several files."""
+    return f"`{path}`" if "*" in path else f"[`{path}`]({LINK_CODE}{path})"
 
 
 def ours(s):
@@ -533,7 +538,7 @@ def evidence(root, files, head):
         if not commits.get(f["n"]):
             problems.append(f"F{f['n']}: no commit adds its heading yet (uncommitted?)")
         for key, label in (("summaries", "Summary files"), ("others", "Other sources")):
-            items = [f"[`{r['path']}`]({LINK_CODE}{r['path']}) ({r['status']}"
+            items = [f"{source_link(r['path'])} ({r['status']}"
                      + (f"; also named: {', '.join(r['also'])}" if r["also"] else "") + ")" for r in src[key]]
             lines.append(f"- **{label}:** " + ("; ".join(items) if items else "none named"))
             problems += [f"F{f['n']}: {r['given']} -> {r['path']}: {r['status']}" for r in src[key]
