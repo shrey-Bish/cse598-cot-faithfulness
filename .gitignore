@@ -1,9 +1,9 @@
-# Track only the project code, results, notes and deck; course handouts and drafts stay local.
+# Track only the project code, results, docs and the archive; course handouts and drafts stay local.
 /*
 !/.gitignore
 !/README.md
 !/cot-disclosure/
-!/presentation/
+!/archive/
 !/docs/
 
 # secrets
@@ -16,8 +16,8 @@ __pycache__/
 *.pyc
 cot-disclosure/cache/
 cot-disclosure/logs/
-presentation/slide-*.jpg
-presentation/*.pdf
+archive/progress-round/presentation/slide-*.jpg
+archive/progress-round/presentation/*.pdf
 *.bak
 .DS_Store
 
