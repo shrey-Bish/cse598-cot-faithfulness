@@ -11,6 +11,7 @@
 #   cot-disclosure/finetune/gpu/sol/run.sh get_qwen8b                # its snapshot (no GPU; the only step online)
 #   cot-disclosure/finetune/gpu/sol/run.sh provenance_forced --cases-from C --runs-from R [--items-from I]   # B1 on set A
 #   cot-disclosure/finetune/gpu/sol/run.sh provenance_gen [--alpha-from S | --version V --checkpoint D] [--part K/N]
+#   cot-disclosure/finetune/gpu/sol/run.sh provenance_bench --items-from SETA_ITEMS [--alpha-from S]   # B1's speed check
 #   cot-disclosure/finetune/gpu/sol/run.sh c13 [--model M]          # Track C: two more reviewer families (agents/sol_c13.py)
 #   cot-disclosure/finetune/gpu/sol/run.sh get_c13                  # their snapshots (no GPU; online)
 #   cot-disclosure/finetune/gpu/sol/run.sh qwen8b_step3 [args]      # Qwen3-8B Step 3 on Track B's runs (finetune/look/qwen8b_mech.py)
@@ -24,7 +25,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/env.sh" || exit 1
 set -euo pipefail
 tracka_require_job
 
-step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|val_loss|trackb_qwen8b|get_qwen8b|provenance_forced|provenance_gen|c13|get_c13|qwen8b_step3|qwen8b_step10 [args]}
+step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|val_loss|trackb_qwen8b|get_qwen8b|provenance_forced|provenance_gen|provenance_bench|c13|get_c13|qwen8b_step3|qwen8b_step10 [args]}
 shift
 args=("$@")
 case "$step" in
@@ -53,7 +54,11 @@ case "$step" in
     provenance_forced) script=finetune/gpu/provenance_job.py      # B1 on set A; Hugging Face only
             args=(forced --out "$TRACKA_OUT" "$@") ;;
     provenance_gen) script=finetune/gpu/provenance_job.py         # B1 / B2 generation; Hugging Face only
+            export PYTORCH_CUDA_ALLOC_CONF=${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}   # Oct 31: growing caches
             args=(generate --out "$TRACKA_OUT" "$@") ;;
+    provenance_bench) script=finetune/gpu/provenance_job.py       # B1's speed check (Oct 31); Hugging Face only
+            export PYTORCH_CUDA_ALLOC_CONF=${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}
+            args=(bench --out "$TRACKA_OUT" "$@") ;;
     c13)    script=agents/sol_c13.py                              # Track C: reviewers on our vLLM, one after the other
             args=(--run --log-dir "$TRACKA_OUT/c13" "$@") ;;
     get_c13) script=agents/sol_c13.py                             # their snapshots: online, like get_qwen8b
@@ -63,7 +68,7 @@ case "$step" in
             args=(step3 --out "$TRACKA_OUT" "$@") ;;
     qwen8b_step10) script=finetune/look/qwen8b_mech.py
             args=(step10 --out "$TRACKA_OUT" "$@") ;;
-    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, val_loss, trackb_qwen8b, get_qwen8b, provenance_forced, provenance_gen, c13, get_c13, qwen8b_step3, qwen8b_step10)" >&2; exit 2 ;;
+    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, val_loss, trackb_qwen8b, get_qwen8b, provenance_forced, provenance_gen, provenance_bench, c13, get_c13, qwen8b_step3, qwen8b_step10)" >&2; exit 2 ;;
 esac
 mkdir -p "$TRACKA_OUT/$step"
 log="$TRACKA_OUT/$step/console_$(date +%Y%m%d_%H%M%S)_${SLURM_JOB_ID}.log"

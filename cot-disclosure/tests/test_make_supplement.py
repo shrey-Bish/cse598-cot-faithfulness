@@ -346,3 +346,31 @@ def test_copied_lines_keep_a_links_text_not_its_target():
     assert ms.clean("see [the log](2026-10-27_1355_A_steps67-final.md) and [F2](../FINDINGS.md#f2)") == "see the log and F2"
     assert ms.source_link("results/summaries/trackA/gpu/eval/figures/gate3_*") == "`results/summaries/trackA/gpu/eval/figures/gate3_*`"
     assert ms.source_link("results/summaries/trackC/c18_summary.json").startswith("[`results/summaries/trackC/c18_summary.json`](")
+
+
+def test_gate3_table_takes_a_system_with_too_few_questions(tmp_path):
+    """Oct 31: LoRA on 15/19/23 had 7 runs on one question; its intervals are the string "too few questions"."""
+    d = tmp_path / "trackA" / "gpu" / "eval"
+    d.mkdir(parents=True)
+    rate = {"k": 2, "n": 7, "rate": 0.29, "wilson": [0.08, 0.64], "clustered": None, "questions": 1}
+    few = {"diff": 0.1, "interval": "too few questions", "questions": 1}
+    full = {"k": 3, "n": 9, "rate": 0.33, "wilson": [0.12, 0.65], "clustered": [0.2, 0.5], "questions": 30}
+    system = {"runs": 7, "no_answer": 0, "following": rate, "following_by_channel": {"user": rate},
+              "nohint_accuracy": {"k": 0, "n": 0}, "hiding": {"of_wrong_hint_runs": rate},
+              "false_disclosure_candidates": rate, "correct_hint_agreement": rate,
+              "vs_base": {k: few for k in ("following_vs_base", "nohint_accuracy_vs_base", "hiding_vs_base",
+                                            "false_disclosure_vs_base")}}
+    base = {**system, "runs": 930, "following": full, "vs_base": {}}
+    (d / "eval_report.json").write_text(json.dumps({"systems": {"base": base, "lora_attn3": system}}))
+    (d / "gate3.json").write_text(json.dumps({"gate3": "met", "rule": "r",
+                                              "versions": {"lora_attn3": {"verdict": "too few questions"}}}))
+    written = {}
+
+    class T:
+        def write(self, name, title, text, headers, md, rows, notes=()):
+            written[name] = (md, rows)
+    ms.table_gate3(T(), tmp_path)
+    md, rows = written["gate3"]
+    row = next(r for r in md if r[0] == "LoRA, layers 15/19/23")
+    assert row[1] == "2 of 7 (too few questions)" and row[2] == "+10 (too few questions)" and row[-1] == "too few questions"
+    assert next(r for r in rows if r["system"] == "LoRA, layers 15/19/23")["following_minus_base_low"] is None

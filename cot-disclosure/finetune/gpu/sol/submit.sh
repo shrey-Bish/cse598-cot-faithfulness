@@ -161,7 +161,7 @@ depends_on() {          # the job kinds each job may wait for (plain case: works
         eval) echo "setup_vllm vllm_check train" ;;
         train) echo "timing train" ;;
         val_loss) echo "train" ;;
-        provenance_gen) echo "provenance_forced train" ;;
+        provenance_gen) echo "provenance_forced provenance_bench train" ;;
         trackb_qwen8b) echo "setup_vllm get_qwen8b trackb_qwen8b" ;;
         c13) echo "get_c13 step10 step9 provenance_forced c13" ;;     # after set A's jobs (Oct 29)
         qwen8b_step10) echo "qwen8b_step3" ;;                        # Qwen3-8B Step 10 reads Step 3's cases (Oct 30)

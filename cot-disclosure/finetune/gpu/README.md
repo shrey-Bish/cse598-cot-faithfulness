@@ -547,13 +547,28 @@ Hugging Face only: vLLM can't apply it, so `submit.sh eval` refuses the gate ver
 | Job | `submit.sh` line | Limit | Output (`/scratch/$USER/trackA/`) |
 |---|---|---|---|
 | B1 forced, set A only | `submit.sh provenance_forced --estimate 0.5 -- --cases-from C --runs-from R --items-from I` | 1:00 | `provenance_forced/cuts/*.json`, `provenance_forced.json` (P(W), P(O), the correct-hint P(O) per span and alpha; the chosen alpha) |
-| B1 generation, the held-out 30 | `submit.sh provenance_gen --estimate 4.5 --dependency=afterok:<forced> -- --alpha-from …/provenance_forced.json --part K/4` | 6:00 | `provenance_gen/eval_prov-*_runs.jsonl` (numbers), texts beside them (stay on Sol) |
+| B1 speed check, set A only (Oct 31) | `submit.sh provenance_bench -- --items-from /scratch/$USER/trackA/setA/items.jsonl --alpha-from …/provenance_forced.json` | 1:00 | `provenance_bench/bench.json`; its last console line is the summary |
+| B1 generation, the held-out 30 | the lines `provenance_job.py plan` prints (parts that fit 6:00 at the bench's rate; a rerun resumes) | 6:00 | `provenance_gen/eval_prov-*_runs.jsonl` (numbers), texts beside them (stay on Sol) |
 | B2 train | `submit.sh train --estimate 3.07 -- gate3` (and `lora_attn3_gate`) | 4:00 | `train/<version>/` as the other versions; `final/gate.pt`, `gate.json` |
 | B2 generation | `submit.sh provenance_gen --estimate 4.5 -- --version gate3 --checkpoint …/train/gate3/epoch<k> --part K/2` | 6:00 | as B1's, system `prov-gate3` |
 
 Back on the Mac: `provenance_forced.json` and the `eval_prov-*_runs.jsonl` files (numbers only), then
 `python finetune/gpu/provenance_job.py report --out <dir>`: the measures against alpha = 1, paired by
 question, and the trade-off figure.
+
+**The generation engine (Oct 31).** The first B1 jobs ran at 21–35 generated tokens/s and timed out: the batch
+scheduler never put requests it had set aside back together, so batches fell to 1–2 runs, and each batch ran until
+its longest reply (up to 32,768 tokens) ended. The "memory allocation failed with OOM" lines in their logs were the
+allocator freeing its cache and retrying (no batch failed), as the cache grew by a copy every step. Now batches of up
+to 8 are taken in arrival order when their key/value cache fits 48 GiB at full length (the 24 sliding layers hold
+4,095 tokens), the rows that ended leave the batch every 512 tokens (each step the same decode, cache and hook), and
+`run.sh` sets `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` for B1's jobs. The steps:
+1. `provenance_bench` (1 h): decode time per step by rows and context, the engine before (a752db5's) and after at
+   alpha 1 and 0.25 on capped set A runs, and the projection for the runs left. Nothing is read on the 30.
+2. On a login node: `"$TRACKA_PY" cot-disclosure/finetune/gpu/provenance_job.py plan --out /scratch/$USER/trackA --alpha-from …/provenance_forced.json`
+   prints the parts and their `submit.sh` lines (each estimate within 4.5 h, so the limit is 6:00).
+3. At Slurm's warning a job ends its batch after the current round and exits; the runs it cut short are redone by
+   the next job, which skips every finished run.
 
 ## C13: two more reviewer families on vLLM (Track C, Oct 29)
 

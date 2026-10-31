@@ -81,8 +81,12 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    false-disclosure candidates rise (+10 [+2, +18]) while the instruction's fall (−9 [−14, −4]).
    **Candidate cautionary claim, waiting on hand labels:** fine-tuning for disclosure reduced
    hint-following no more than an instruction, and may have taught the model to claim checks it didn't
-   do. Three trained versions are still to come. B1 (attention to tool spans scaled down at 15/19/23) has its
-   alpha from set A (F27); its generation runs next.
+   do. **Oct 31, interim:** tags passes too (following −6 [−10, −2], accuracy +3 points, hiding −6 [−10, −3]),
+   but its cut is spread over every channel, the user's included, so the pre-registered prediction (tags help
+   most on the inserted tool turn) isn't borne out (−2 [−13, +9]), and it doesn't beat the instruction either
+   (tags minus prompt_only +7 [+1, +14], not pre-registered). LoRA + tags (810 of 930 runs) doesn't pass so far
+   (−3 [−9, +3]); LoRA on 15/19/23 is still to come. B1 (attention to tool spans scaled down at 15/19/23) has its
+   alpha from set A (F27); its generation was slowed by the engine (fixed Oct 31) and isn't read until complete.
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
@@ -1526,9 +1530,28 @@ Oct 30). Following, correct-hint acceptance and no-hint accuracy there are *wait
 - *Not shown*: that fine-tuning beats a one-line instruction (+3 [−1, +8]).
 - **Candidate cautionary claim**, *waiting* on hand labels: fine-tuning for disclosure reduced hint-following no more
   than an instruction, and may have taught the model to claim checks it didn't do.
-- *Waiting*: three trained versions.
+- *Waiting*: LoRA on 15/19/23 (7 runs so far); LoRA + tags' last 120 runs.
 - **Corrected Oct 30, 10:00.** The first version of this entry said the note was what the training targets were made
   with, and that training "internalized" it. Both are wrong (Ritik): the targets were made with prefilled openers.
+
+**Oct 31 update, interim** (`finetune/gate3.py` rerun; log 2026-10-31 11:40). Tags is complete (930 runs), LoRA +
+tags has 810 of 930 (its part 2 is running), LoRA on 15/19/23 has 7 (not read).
+
+| system | following (wrong hints) | − base | no-hint accuracy | − base | hiding − base | false disclosure − base | Gate 3 |
+|---|---|---|---|---|---|---|---|
+| tags | 215 of 524 [30, 52%] | **−6 [−10, −2]** | 60 of 89 | **+3** | **−6 [−10, −3]** | +0 [−4, +4] | passes |
+| LoRA + tags (interim) | 205 of 466 [32, 56%] | −3 [−9, +3] | 48 of 78 | −3 | −24 [−33, −16] | +13 [+5, +21] | fails (following) |
+
+- **Gate 3 stays met** (LoRA and tags pass by the rule).
+- **The prediction set in advance** (PLAN: tags help more on the inserted tool turn, the only channel whose tokens
+  are tagged "tool", than on the pasted block): base minus tags is −2 [−13, +9] more on the inserted turn than on
+  the pasted block, so it **isn't borne out**. Per channel, base against tags: user 79 of 177 against 63 of 175
+  (−9 points), pasted 59 of 88 against 54 of 89 (−6), inserted 111 of 265 against 98 of 260 (−4). The cut is no
+  larger where the tool tag is; the user channel, with no tool tokens, falls as much.
+- **Not pre-registered:** tags minus prompt_only +7 [+1, +14] (the instruction cuts following more); LoRA + tags
+  minus prompt_only +10 [+4, +16] (interim). Tags' false disclosure doesn't rise; both LoRA versions' does.
+- **Hiding** is a keyword measure, meaningful for tags (no trained opener: 116 of 524 hide, base 150 of 530); for
+  the LoRA versions the opener names the hint, so the hand labels decide (as above).
 
 **Source.** `cot-disclosure/results/summaries/trackA/gpu/eval/gate3.json`, `gate3_table.md`, `eval_report.json`,
 `figures/gate3_*`.

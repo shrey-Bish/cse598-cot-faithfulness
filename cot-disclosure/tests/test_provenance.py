@@ -169,6 +169,54 @@ def test_batched_generation_equals_one_at_a_time(tiny):
     assert all(r["usage"]["completion_tokens"] == 4 and r["finish"] == "length" for r in a)
 
 
+
+def _threads(gen, prompts, caps, temperature=0.0):
+    res = [None] * len(prompts)
+
+    def one(i):
+        res[i] = gen("m", prompts[i], max_tokens=caps[i], temperature=temperature, seed=0)
+    ts = [threading.Thread(target=one, args=(i,)) for i in range(len(prompts))]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join()
+    gen.close()
+    return res
+
+
+def test_rows_leave_the_batch_and_every_row_keeps_its_tokens(tiny):
+    """shrink_every (Oct 31): the batch continues from its own cache every 2 tokens and the rows that reached
+    their cap leave it; greedy, with left padding and the oracle span marked at alpha 0.1, each row's tokens
+    are one whole-batch generate's."""
+    from finetune import olmo_format
+    from finetune.gpu import provenance_job as pj
+    tok = kit.load_tokenizer(tiny)
+    m = model_of(tiny)
+    hook = pv.attach(m, layers=(1, 3), alpha=0.1)
+    jobs, pasted = pj.gen_jobs(part=(1, 30))
+    prompts = [olmo_format.render(j["messages"], tools=j["tools"]) for j in jobs[:2] + jobs[-2:-1]]
+    caps = [3, 7, 5]
+    whole = pj.Batched(m, tok, hook, "oracle", extra_ranges=pasted, max_batch=3, wait_s=1.0)
+    rounds = pj.Batched(m, tok, hook, "oracle", extra_ranges=pasted, max_batch=3, wait_s=1.0, shrink_every=2)
+    a, b = _threads(whole, prompts, caps), _threads(rounds, prompts, caps)
+    assert whole.batches == rounds.batches == [3] and (whole.rounds, rounds.rounds) == (1, 4)    # 3 rows, 2, 2, 1
+    assert [r["content"] for r in a] == [r["content"] for r in b]
+    assert [r["usage"]["completion_tokens"] for r in b] == caps and all(r["finish"] == "length" for r in b)
+
+
+def test_a_stop_ends_the_batch_after_its_round(tiny):
+    from finetune import olmo_format
+    from finetune.gpu import provenance_job as pj
+    tok = kit.load_tokenizer(tiny)
+    m = model_of(tiny)
+    jobs, pasted = pj.gen_jobs(part=(1, 30))
+    prompts = [olmo_format.render(j["messages"], tools=j["tools"]) for j in jobs[:2]]
+    gen = pj.Batched(m, tok, pv.attach(m, layers=(1, 3)), "deployable", max_batch=2, wait_s=1.0, shrink_every=2,
+                     stop=lambda: True)
+    done, cut = _threads(gen, prompts, [2, 6])
+    assert gen.rounds == 1 and done["finish"] == "length" and done["usage"]["completion_tokens"] == 2
+    assert cut["finish"] == "error" and pj.Batched.STOPPED in cut["error"]
+
 def test_the_alpha_rule():
     from finetune.gpu import provenance_job as pj
 

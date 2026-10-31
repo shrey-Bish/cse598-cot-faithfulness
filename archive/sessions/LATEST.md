@@ -1,216 +1,300 @@
-# Session log: the repository reorganization, APPLIED (2026-10-30 22:30 MST)
+# Session log: B1's generation engine diagnosed and fixed; Sol's update reviewed (2026-10-31 11:50 MST)
 
-Project: CSE 598 Group 10, all tracks. Step 2 of the reorganization, after Ritik's "go" on the proposal
-([`2026-10-30_2141_ALL_reorg-proposal.md`](2026-10-30/2026-10-30_2141_ALL_reorg-proposal.md)). Also in this session: Track C's
-handoff shortened before Shrey receives it, and the Gantt reworked to say what is done and what is left. **By:**
-Ritik. Nothing is pushed: main, trackB-main and trackC-main are brought to the new tip locally only.
+Project: CSE 598 Group 10, Track A (B1) and the Sol kit. **By:** Ritik. No calls and no GPU from the Mac. Nothing
+was started on Sol; the lines below are for Ritik.
 
-Rules (Ritik's, unchanged from step 1):
-- move with `git mv`, never delete;
-- every moved, merged or archived file goes in [`docs/MOVES.md`](../../docs/MOVES.md): old path, new path, why;
-- merge only real duplicates; each original is kept unchanged in `archive/merged-docs/`, and the merged doc keeps
-  every non-duplicate fact;
-- no code, tests, configs, sbatch files or anything a Sol job reads moves;
-- produced data (results/trackA|B|C, finetune/data, labels, logs) is never moved or touched;
-- numbers-only summaries that code or tests read stay where they are.
+## a. What Ritik reported (Sol, ~10:40)
 
-## a. What moved (131 files, all with `git mv`)
+- **provenance_gen:**
+  - 1/4 66989478 and 2/4 66989491 TIMEOUT at 6:00;
+  - 3/4 66989506 and 4/4 66989507 running, until their limit at ~12:15–12:25.
+- **Eval:**
+  - tags 1/2 and 2/2, and lora_tags 1/2: COMPLETED;
+  - lora_tags 2/2 66989534 and lora_attn3 1/2 66989537: running;
+  - lora_attn3 2/2 66989539: pending.
+- **Four jobs ran at once,** although `sacctmgr` says MaxJobsPU 2. Noted; not a problem.
+- **B1's runs files so far:**
+  - alpha 1: p1 56 of 56, p2 23 of 56, p3 49 of 49, p4 44 of 49;
+  - deployable 0.25: p1 2 of 56;
+  - oracle: 0.
+  That is 174 of 630 runs, and none is read. B1's rule (log 2026-10-30 17:15) waits until every configuration is
+  complete.
+- **The Slurm logs:** many "memory allocation failed with OOM" lines; 22–31 generated tokens/s; batches of 2.0–2.8.
 
-| files | from | to | why |
-|---|---|---|---|
-| 54 | `docs/sessions/` | `archive/sessions/<date>/` (INDEX.md and LATEST.md at `archive/sessions/`) | history: logs and dailies, a folder per date |
-| 66 | `presentation/` | `archive/progress-round/presentation/` | the October progress deck and its assets |
-| 3 | `cot-disclosure/results/pilot_stdout.txt`, `pilot_stdout_v2.txt`, `progress_log.txt` | `archive/progress-round/results/` | progress-round console logs no code reads |
-| 3 | `docs/progress/STATUS.md`, `GANTT.xlsx`, `gantt.png` | `docs/` | living status, beside FINDINGS, PLAN and TODO |
-| 1 | `docs/OVERVIEW.md` | `archive/superseded/OVERVIEW_2026-10-27.md` | the Oct 27 snapshot; its content lives on in FINDINGS, PLAN, STATUS and the code guide |
-| 1 | `docs/paper/README.md` | `archive/merged-docs/paper_README.md` | merged into the root README (below) |
-| 1 | `cot-disclosure/ui/README.md` | `archive/progress-round/ui_demo_README.md` | the demo's guide; the ui/ code stays |
-| 1 | `cot-disclosure/finetune/README.md` | `docs/TRACK_A.md` | Track A's design doc, with the living docs |
-| 1 | `cot-disclosure/finetune/PROVENANCE.md` | `docs/TRACK_A_PROVENANCE.md` | B1/B2's method doc, beside it |
+## b. Diagnosis
 
-The moves are their own commit, with every file's content unchanged, so `git log --follow <new path>` shows each
-file's whole history. The edits (links, paths, the regenerated status files) are the next commit.
+### Where the time went: the batches (reconstructed from the runs files)
 
-**The merge:** `docs/paper/README.md`, a 14-line index of the paper pack, went into the root README's folder map,
-which lists every file it listed with the same descriptions. Its original is byte-identical at
-`archive/merged-docs/paper_README.md`. **Dropped as duplicates:** none.
+Runs ending in the same second came from one `generate` call. The batches run one after another (one worker
+thread), so a batch's duration is the gap between consecutive end times.
 
-**Rewritten in place, the earlier version kept:**
-- `README.md`: now the front door (the question, the story in five lines, where to start for each reader, the
-  folders, quick start). The Oct 27 version is at `archive/superseded/README_2026-10-27.md`.
-- `docs/handoff/TRACK_C.md`: 186 → 160 lines (below). The long version is at
-  `archive/superseded/TRACK_C_2026-10-30_long.md`.
-- Both kept versions are word for word the same as before. Only their link targets changed, so the links resolve
-  from the new folder. Checked: 0 differing lines once link targets are blanked.
+| part | runs | batches | runs per batch | tokens/s (saved runs' tokens over the part's time) |
+|---|---|---|---|---|
+| 1/4 | 56 | 28 | 2.0 | 30.5 |
+| 2/4 | 23 | 13 | 1.8 | 20.9 |
+| 3/4 | 49 | 24 | 2.0 | 35.3 |
+| 4/4 (so far) | 44 | 27 | 1.6 | 31.5 |
 
-**Not moved:** all code, tests, configs, sbatch files, `results/summaries/`, `docs/progress/LABEL_QUEUE.csv` and
-`RESULTS_SUMMARY.json` (code reads them), and all produced data.
-
-**The tree after:**
+**Every part's first batch had 6 runs. After that, batches fell to 1–2.** In part 3, the oldest request rides along
+in each batch (its `seconds` counts from 13:15:47, the job's start), and only 4, then 3, then 2 fresh requests join:
 
 ```
-/ (2 files)          README.md, .gitignore (now `!/archive/` instead of `!/presentation/`)
-cot-disclosure/ 379  code, configs, tests, summaries (6 docs and logs moved out)
-docs/            77  11 living docs at the top; handoff 3; paper 59; progress 4
-archive/        130  sessions 56; progress-round 70; superseded 3; merged-docs 1
+13:53:14  6 runs   (all waiting since the start)
+14:05:15  5 runs   (1 from the start + 4 fresh)
+14:13:01  4 runs   (1 + 3)
+14:38:46  3 runs   (1 + 2)   ... then 2, 2, 1, 1
 ```
 
-## b. Links and paths
-
-- `fix_links.py` (scratchpad) rewrote every relative markdown link to a moved file, and every link inside a moved
-  file, from the move table.
-- `fix_copies.py` did the same for the two kept versions.
-- By hand: path mentions in plain text, in FINDINGS, PLAN, RUNBOOK §20, TODO (D2, D3, the header), the code guide,
-  the GPU kit's README, and the Track A docs' moved-from notes.
-- The tools:
-  - `tools/make_supplement.py` reads logs from `archive/sessions/<date>/`. It finds each log's first commit under
-    either folder, since git's rename detection hides the add under the new path.
-  - `tools/check_links.py` skips `archive/merged-docs/`. Those originals are kept unchanged, so their links point
-    where they used to be.
-  - `tools/make_gantt.py` (§d).
-  - Each has its tests.
-- **Progress-round scripts:** `analyze_progress.py`, `build_evidence_viewer.py`, `common.py`, `extract_slides.py`,
-  `make_bundle.py`, `take_screenshots.py` and `ui/screenshots.py` point to `archive/progress-round/presentation/`.
-- **Docstrings and messages:** `agents/c15.py`–`c18.py`, `progress/run_b15.py`, `finetune/__init__.py`,
-  `finetune/source_tags.py`, `finetune/gpu/checkpoint_check.py`.
-
-## c. Nothing went missing (the script and its output)
-
-`scratchpad/reorg/nothing_missing.py`, run from the repo root with the file list saved before the first move
-(`git ls-files` at `50076f2`):
+### Cause 1: the scheduler (`Batched._work`, as at a752db5)
 
 ```python
-before = Path(sys.argv[1]).read_text().split()
-now = set(subprocess.run(["git", "ls-files"], capture_output=True, text=True).stdout.split())
-moves = dict(re.findall(r"^\| \d+ \| `([^`]+)` \| `([^`]+)` \|", Path("docs/MOVES.md").read_text(), re.M))
-same = [f for f in before if f in now]
-moved = [f for f in before if f not in now and moves.get(f) in now]
-missing = [f for f in before if f not in now and moves.get(f) not in now]
-listed_wrong = [o for o, n in moves.items() if n not in now or o not in before]
+first = held.pop(0) if held else self.q.get()
+...                                   # then only *fresh* queue arrivals join, within 2 s:
+if r["key"] == first["key"] and used + c <= self.budget: batch.append(r)
+else: held.append(r)
 ```
 
-```
-before: 582 tracked files; now: 587
-at the same path: 451; moved and listed in MOVES.md: 131; missing: 0
-MOVES.md rows whose new path isn't tracked or old path wasn't: 0
-```
+A request set aside once (`held`) could only lead a later batch; it never joined one. The key is (temperature,
+stop strings). Runs with the inserted tool turn have a stop string (`</function_calls>`); the others don't. So
+about 3 of every 7 arrivals were set aside behind the other kind. Each batch took 1 request out of `held` and put
+more in. `held` came to hold most of the 16 runs in flight, and batches came down to "the oldest held one +
+whatever had just arrived".
 
-The 5 new files: the two kept versions, `docs/MOVES.md`, `docs/gantt.pdf` and the proposal log. This log makes 588.
+### Cause 2: static batches wait for their longest reply
 
-## d. The Gantt, reworked (`tools/make_gantt.py`)
+`generate` ends a batch when its last row ends. Replies here run from ~1K to 32K tokens (finished runs: mean 10,587,
+median 8,921, longest 32,127). The finished rows keep producing padding until then, at the batch's step cost. The
+batches of 6: 31, 27, 67 and 49 tokens/s, depending on how long their longest reply was.
 
-It reads the new paths, and still reads `docs/sessions/` if a clone has it. It checks whether `origin/trackA-nosol`
-holds HEAD, so a task blocked only by "the push" is no longer blocked once the push is done.
+### The "OOM" lines: allocator retries, not failures
 
-- **`docs/GANTT.xlsx`:**
-  - **Gantt:** a row per task, milestone and window, with ID, label, owner, start, end or due, status, the basis
-    for each date (inferred dates flagged), dependencies, the full item text and the source.
-  - **To do** (replaces Remaining): each open task with its next action, estimate, blocker and the milestone it
-    feeds; each milestone with what it needs. The sheet's notes run checks on TODO.
-  - **Done:** every finished task by date, with a one-line delivery (the finding and its key number) and its
-    evidence (findings with their commit, session logs, commits).
-  - Progress, Daily and Changes, as before.
-- **`docs/STATUS.md`:** per track, "Done since Oct 27", "Next" (ordered, owner, due) and "Blocked on". Then each
-  owner's list (Ritik; Arsha, Track B from Nov 3; Shrey, Track C from Oct 30), each milestone with what it needs,
-  and the next 7 days.
-- **`docs/gantt.pdf`** (new): an overview, then a page per track with a bar per task.
-- **`docs/gantt.png`:** the milestone labels no longer collide.
-- **One more rule, tested:** a task whose status cites three or more findings, none of which names it, gets no
-  single finding as its delivery. Before, B9 (the Gate 2 question, answered across F15–F17 and F29) showed F29's
-  title, and B14 (the table) showed F15's.
-- Gantt tests: 36 → 46.
+- **No batch failed.** An out-of-memory exception would have sent a batch back one run at a time. The batches
+  counter would then show extra entries, and it doesn't: part 3, 49 runs over 24 `generate` calls, is the
+  logged "batches 2.0 on average".
+- **The lines are PyTorch's caching allocator:** an allocation failed, it freed its cached blocks, and it retried
+  (`CUDACachingAllocator.cpp:3934`).
+- **The failed size grows smoothly within a phase:** 92 MB → 860 MB over 06:19–06:52 in part 3; 904 MB → 1.33 GB
+  over 10:28–10:44, both in each phase's first, 6-row batch. 1.33 GB is one full-attention layer's keys for
+  6 rows × ~27K tokens (× 8 KiB a token). `DynamicCache` grows each full layer by `torch.cat` at every step, so
+  each step allocates a slightly larger block than the one it frees. The cache fragments until the allocator
+  must empty itself.
+- **They happen in the big first batch** because the old budget allowed 6 rows, counting each at prompt +
+  16,000 tokens, and replies ran to 25–32K.
 
-**Stale TODO statuses fixed (the Gantt's checks found them):**
-- **A13:** done Oct 29; S2 passed as vllm_check 66928369.
-- **A19:** in progress; trained Oct 28 as lora_attn3, evaluation in A16.
-- **A29:** Step 9 was read (A32, F32).
-- **A30:** forced done; the old queue clause dropped.
-- **A32:** the "needs step9_reduced.npz" tail dropped.
-- **A37:** rule fixed in `fd1a679`; ready to submit as places free.
-- **A6:** `main` settled by A7.
-- **A16:** the Oct 29 order marked as carried out.
-- **B9:** done, clear for all four models, Qwen3-8B's gap added from F29.
-- **B14:** Qwen3-8B is in the summary.
-- **C13:** queue lines folded.
-- **G2:** in progress, half met.
-- **H1:** on GitHub since Oct 30.
-- **L3:** after L4, before L5.
-- **L4:** waits on a pull on Sol, not the push.
-- **PLAN's header:** points to the archived Oct 27 overview as what was done by Oct 27, and to STATUS for progress
-  since.
+### The hypotheses Ritik listed, checked against the code (transformers 5.18.0, torch 2.14.1: the Mac's `.venv` has Sol's versions)
 
-**Progress now:**
-
-| track | done |
+| hypothesis | finding |
 |---|---|
-| A | 29 of 37 |
-| B | 11 of 15 |
-| C | 17 of 23 |
-| Labels | 2 of 5 |
-| Repo | 4 of 6 |
-| **All** | **63 of 86 (73.3%)** |
+| full-length KV kept for the 24 sliding layers | **no.** `generate` builds `DynamicCache(config=…)` (`generation/utils.py`: `dynamic_cache_kwargs = {"config": …}`), which makes `DynamicSlidingWindowLayer` for the sliding layers: 4,095 tokens each. The observed sizes rule it out too: at 0.5 MiB a token, 6 × 27K tokens would be 81 GB of cache. |
+| DynamicCache growing by concatenation, fragmenting | **yes** (above): the source of the allocator retries, and a full copy of each full layer's cache per step (part of the per-token cost below) |
+| the padded head dimension pushing sdpa onto the math kernel | **not a memory risk.** 128 + 8 = 136 is a multiple of 8, so the efficient kernels accept it. A decode step has one query, so the scores are rows × 32 × 1 × context: megabytes, even on the math kernel. Prefill is the prompt only (≤ ~1K tokens; one of 6.5K). The augmented layers do copy their keys and values each step (3 of the 8 full layers). |
+| the batch budget (0.5 MiB/token) | **wrong both ways.** 0.5 MiB/token assumed all 32 layers at full length; the true cost is 128 KiB a token (8 full layers) + 1.5 GiB a row (24 sliding layers at 4,095). And `reserve=16000` counted each reply as at most 16,000 tokens, when they run to 32,768. |
 
-## e. Track C's handoff, cleaned before Shrey receives it
+### The cost of one decode step, fitted to the 88 old batches (R² 0.86)
 
-`docs/handoff/TRACK_C.md` is now a front page and a reference part:
-1. The answer in five lines.
-2. The results table, C4–C18, with the checker, what's refuted and the limits.
-3. Deployment.
-4. The first day.
-5. His plan, C19–C24.
-6. Reference: the team, the files, the decisions he inherits, the traps.
-7. The bundle (43 files).
+**ms per step = 35.7 + rows × (2.54 + 0.000500 × context)**
+- 35.7 ms: the fixed part (weights, Python);
+- 2.54 ms a row: the sliding windows;
+- 0.5 µs a row per token of context: the full layers' keys and values, read and copied.
 
-Every number in it is from FINDINGS. Every path in it exists after the moves.
+### What each change buys (simulated with that cost, 456 runs drawn from the finished runs' lengths)
 
-## f. Sol: a `git pull` changes no code path the queued jobs use
+| batches | finished rows leave | tokens/s | 456 runs, GPU-h (lengths × 1, × 1.15) |
+|---|---|---|---|
+| 6, all rows to the end (the scheduler fixed only) | no | 36 | 37, 45 |
+| 8, all rows to the end | no | 37 | 36, 44 |
+| **8** | **every 512 tokens** | **62** | **21.5, 25.5** |
+| 12 | every 512 | 74 | 18, 21.5 (doesn't fit at full length) |
+| 16 | every 512 | 82 | 16, 19 (doesn't fit) |
 
-What a pull brings into the code Sol runs (`finetune/`, `finetune/gpu/`, `agents/`, `providers/`, `configs/`):
-- three changed lines, all docstrings or a printed message:
-  - `finetune/__init__.py`'s docstring;
-  - `finetune/source_tags.py`'s docstring;
-  - a message string in `finetune/gpu/checkpoint_check.py`;
-- two docs moved out of `finetune/` (README.md, PROVENANCE.md), which no code opens.
+Fixing the scheduler alone barely helps (36–37 against 21–35): static batches still wait for their longest reply.
+Letting finished rows leave is what doubles it. 8 rows is the most that fits if every row reaches 32,768 tokens
+(8 × 5.6 GiB = 45 GiB of cache, beside 13.6 GiB of weights and the per-step copies).
 
-**Checked:**
-- `grep` finds no reference to a moved path in any code file under those folders.
-- `progress/common.py`'s `PRES` constant changed, but no Sol job imports `progress/`. Only the Mac-side
-  `finetune/voyager_capabilities.py` uses `progress.common`, and the module makes no folder at import.
-- No sbatch file, `env.sh`, `submit.sh`, `guard.sh`, config or job script changed.
+## c. The fix (`finetune/gpu/provenance_job.py`, `Batched`; `run.sh`)
 
-Ritik pulls only after the current queue is done anyway.
+1. **The scheduler:** one first-come list. A batch is the oldest pending request plus each later one with its
+   key, while the batch fits. Held requests now batch together. Tested: the case that gave 4, 1, 1, … gives 4, 4,
+   2, 2.
+2. **The budget at full length** (`--kv-gib 48`, the default for `generate`): a batch's key/value cache if every
+   row reached its `max_tokens`, padded to the longest prompt (`hf_engine.kv_bytes_per_request`, sliding layers
+   at their window). Tested on the real config: 8 rows of 1,000 + 31,768 tokens fit, 9 don't. No mid-batch
+   out-of-memory by construction.
+3. **Finished rows leave** (`--shrink-every 512`): `generate` runs 512 tokens at a time, continuing from the
+   batch's own `DynamicCache`. The rows that ended (an end id, a stop string, their cap) leave it
+   (`cache.batch_select_indices`). Every step is still `generate`'s one-token decode with the same cache class,
+   the same hook and the same sampling. Tested on CPU: greedy, left-padded, oracle span at alpha 0.1, rows
+   leaving at 3, 5 and 7 tokens give exactly one whole-batch `generate`'s tokens.
+4. **`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`** for `provenance_gen` and `provenance_bench` only
+   (`run.sh`; tested). The cache's growth no longer fragments the allocator. vLLM jobs are untouched.
+5. **The time limit:** at Slurm's warning, a batch ends after its current round (512 tokens, under a minute) and
+   the job exits. The runs it cut short aren't saved, and the next job redoes them; before, a running batch was
+   killed at the limit. Tested.
 
-## g. Checks
+**Not used, and why:**
+- **A static (preallocated) cache:** it attends over the whole preallocated buffer and changes the cache class,
+  a different code path from the 174 runs done.
+- **Length-sorted batches:** a reply's length isn't known before it runs, and the prompts are all ~300–1,000 tokens.
+- **A lower budget:** fewer rows, slower.
+- **Re-prefilled continuous batching:** it changes the decode path.
 
-All run on the final tree, on this Mac (Track A's data present):
+**Ruling (Ritik's to accept): "the same code path".** alpha = 1 and the chosen alphas stay on one code path:
+- every remaining run (alpha 1's 36 and the chosen alphas' 420) goes through the new engine;
+- every step of every run, old or new, is `generate`'s one-token decode with `DynamicCache`, the hook and the
+  same sampling;
+- what changed is which rows share a batch over time, which always varied (1–6 rows).
 
-| check | result |
-|---|---|
-| the tests (`python -m pytest -q`) | 639 passed, 0 failed (4:17) |
-| `tools/check_links.py` | 0 broken links, 0 missing RUNBOOK scripts |
-| `tools/make_supplement.py --check` | all generated files numbers-only. Its 3 CLAIMS mismatches (2.6's C14 numbers, log only) and 12 source problems are the same as at `50076f2` (diffed) |
-| `tools/make_gantt.py --dry-run` | 86 tasks, 63 done; 112 rows; 183 commits |
-| `tools/make_handoff_bundle.py --track B --dry-run` | 14 files, 31.6 MB |
-| `tools/make_handoff_bundle.py --track C --dry-run` | 43 files, 31.3 MB |
-| nothing missing (§c) | 0 missing, 0 bad MOVES rows |
-| TRACK_C.md's numbers against FINDINGS and CLAIMS | 14 intervals and 11 "X of Y" counts, all found |
-| the pre-push check (`tools/prepush_check.py --rev`) | "nothing produced, GPQA or over 50 MB in the push" (exit 0) |
-| commit metadata | author and committer Ritik on both commits; no attribution lines |
+The 174 runs done stay. *The stricter alternative:* rerun all 210 alpha = 1 runs on the new engine, +174 runs,
+about +10 GPU-h.
 
-**The commits:**
-1. The 131 moves alone, each file's content as at `50076f2`, plus the new `.gitignore`. Built in a separate
-   index (`scratchpad/reorg/commit_moves.py`), so git pairs every rename at 100%.
-2. Everything else: links, paths, docs, tools, tests, the regenerated status and supplement files, this log.
+**Tests added:**
+- 6 in `tests/test_provenance.py` and `tests/test_provenance_jobs.py`: rows leave with the same tokens; a stop ends
+  the batch after its round; held requests batch together; the budget, padded; 8 full-length rows fit 48 GiB on
+  the real config; bench and plan on a tiny model;
+- run.sh's step and allocator setting, and submit.sh's new kind and dependency.
 
-`main`, `trackB-main` and `trackC-main` were fast-forwarded to the new tip locally. **Not pushed**; that waits
-for Ritik.
+The provenance, engine and kit tests: 128 passed. The full suite is in §h.
 
-## h. The note for Shrey
+## d. The benchmark job (`provenance_bench`, limit 1:00)
 
-Track C hasn't gone to Shrey yet, so nothing he was given has moved. The note to send with the link:
+```bash
+cot-disclosure/finetune/gpu/sol/submit.sh provenance_bench -- --items-from /scratch/ragarw68/trackA/setA/items.jsonl \
+    --alpha-from /scratch/ragarw68/trackA/provenance_forced/provenance_forced.json
+```
 
-> Shrey: Track C is yours from today. Start at `docs/handoff/TRACK_C.md` on `trackC-main`: the answer in five
-> lines, the results, your first day and your plan (C19–C24). For GPUs: `docs/handoff/SOL_SETUP.md`. The repo was
-> reorganized tonight. Old session logs are in `archive/sessions/<date>/`, and `docs/MOVES.md` lists every file
-> that moved. The data bundle (`trackC_20261030.tar.gz`) comes through ASU storage, never GitHub. Create your own
-> Voyager key; never use anyone else's.
+It runs on **set A's questions, never the 30**, and reads no answer:
+1. **Decode grid:** ms per step and peak memory for 1, 4 and 8 rows at 8,192 and 30,000 tokens of context (a real
+   set A prompt with its marked tool turn, repeated; prefilled in chunks), at alpha 1 and 0.25. The fit
+   a + rows × (c + d × context) comes from these cells.
+2. **Before and after:** 16 set A runs (B1's own job types), capped at 1,024 tokens. The **before** is a752db5's
+   `Batched`, loaded from git; the **after** is the new one. Each runs at alpha 1 and 0.25 and reports tokens/s,
+   mean batch size, peak memory and allocator retries. The cap shortens runs, so these numbers show the batching
+   (sizes), not the full-length gain.
+3. **Projection:** the new and the old engine at full length, simulated with the grid's cost and the finished
+   runs' lengths, for the runs left, in GPU-h.
+
+**Its line** is the last console line, also in `/scratch/ragarw68/trackA/provenance_bench/bench.json` ("line"). It
+starts with `B1 bench, 16 set A runs capped at 1024 tokens:`. Send it to me before the resubmits.
+
+## e. The re-plan
+
+`provenance_job.py plan` reads the runs files and the bench's projected rate, and prints the fewest parts by
+question whose largest estimate fits 4.5 h. submit.sh's limit is the estimate × 1.3, so each part gets 6:00. A part
+skips every run already finished, so the parts resume.
+
+On the Mac's copies, at the projected 60 tokens/s, with the finished runs' mean reply × 1.15 (the runs cut short
+were the long ones):
+- 456 runs left;
+- 7 parts, of 56–77 runs and 3.3–4.5 h each;
+- **26.8 GPU-h** (21.5–25.5 by the simulation's range).
+
+The plan run on Sol after 3/4 and 4/4 end, with the bench's measured rate, gives the lines to submit.
+
+## f. Sol's update: the review
+
+**The earlier "safe to pull" (log 2026-10-30 22:30 §f) compared the wrong starting point.** It compared `50076f2`
+with `a752db5`. Sol's clone is at `427f39e` with rsync copies on top. Ritik's
+`results/sol_tree_vs_a752db5.diff` compares Sol's actual files with a752db5:
+- 39 files, all under `cot-disclosure/finetune/`;
+- `-` lines are what a pull brings; `+` lines are what Sol has now.
+
+**The Sol kit, for user ragarw68** (`$USER` = `id -un` = ragarw68, no `accounts.d/ragarw68.conf`,
+`TRACKA_SCRATCH` unset):
+
+| file | change | for ragarw68 |
+|---|---|---|
+| `env.sh` | paths from `TRACKA_SCRATCH=${TRACKA_SCRATCH:-/scratch/${USER:-$(id -un)}}` instead of `/scratch/ragarw68` | the same: `envs/olmo`, `envs/olmo-vllm`, `HF_HOME=/scratch/ragarw68/hf`, `TRACKA_OUT=/scratch/ragarw68/trackA` |
+| `guard.sh` | `accounts.d/$USER.conf` if it exists, else `accounts.conf`; messages name the file | the same: no `accounts.d/` exists, so accounts.conf; the same account check |
+| `accounts.conf` | comment lines only | the same row: `class_cse59888883fall2026 public class 960 2 10 24 4` |
+| `submit.sh` | accepts accounts.conf's account as the scripts' `-A`; overrides partition and QoS only for another user's account; `mkdir` of `/scratch/${USER:-$(id -un)}/trackA/slurm` | the same: the default account is the scripts' `-A`, its partition and QoS are listed, and nothing is overridden |
+| `run.sh` | a comment (`/scratch/$USER/...`) | the same |
+| every `.sbatch` | `-o /scratch/%u/trackA/slurm/%x-%j.out` instead of `/scratch/ragarw68/...` | the same: `%u` is ragarw68 |
+| `qwen8b_step3.sbatch`, `qwen8b_step10.sbatch` | not on Sol | arrive with the pull (Sol's `run.sh` already names the steps) |
+
+**Code:**
+- `eval_job.py` and `plan_eval.py`: `out_root()` falls back to `/scratch/{getpass.getuser()}/trackA` (the same),
+  and docstrings.
+- `kit.py`, `plan_training.py`, `source_tags.py`, `__init__.py`, `checkpoint_check.py`: docstrings or a message.
+- `eval.py`: only `label_sheets` (the `guess_trained` column and rows running on from part 1 into part 2). **Sol
+  doesn't have it yet,** so L4's sheets need the update.
+- `gate3.py`, `look/qwen8b_mech.py`: not on Sol; they arrive with the pull.
+- `finetune/README.md`, `finetune/PROVENANCE.md`: moved to `docs/` on Oct 30. No code opens them.
+
+**Since a752db5** (this session's commit): `provenance_job.py` (B1's engine, bench, plan), `run.sh` (the
+`provenance_bench` step, the allocator setting for B1's two kinds), `submit.sh` (provenance_gen may wait for
+provenance_bench), and the new `provenance_bench.sbatch`. The eval path is untouched.
+
+**The pending job 66989539** (eval lora_attn3 2/2, vLLM):
+- Slurm stored its batch script at submission, but `run.sh`, `env.sh`, `guard.sh` and the Python code are read
+  from the clone when it starts.
+- After the pull, each resolves to the same paths and account, and its code path (eval_job.py with
+  `--engine vllm`, eval.py's runs, hf_engine) is unchanged. **Safe.**
+
+**The running jobs:**
+- **Python:** has its modules in memory.
+- **bash:** git replaces a changed file by unlinking it and writing a new one, and the stash and checkout do the
+  same. A running `run.sh` keeps reading its old copy.
+- **Inputs:** everything the jobs read in the clone is gitignored (`results/trackA|B|C/`, `finetune/data/`,
+  `logs/`; checked with `git check-ignore`), so `git stash -u` doesn't touch it.
+- **Safe.**
+
+**B1's resubmits** need the update: they run the new engine and the bench.
+
+**Decision: update now** (once this session's commit is on GitHub):
+- every job still to start needs it: L4's guess column, Qwen3-8B's script and job files, B1's engine and bench;
+- nothing queued or running changes behavior.
+
+From then on, Sol updates by `git pull --ff-only` only, no rsync of code.
+
+## g. The Sol lines, in one order
+
+```bash
+# ---- 1. Sol login node: the update (after Ritik pushes this session's commit)
+cd /scratch/ragarw68/cse598-cot-faithfulness
+git branch --show-current                     # expect trackA-nosol
+git log -1 --format=%h                        # expect 427f39e
+git status --porcelain --untracked-files=all | grep '^??' | head -40   # untracked files the stash will set aside (results/ is gitignored, untouched)
+git fetch origin
+git diff --stat origin/trackA-nosol -- . ':(exclude)cot-disclosure/finetune' | tail -15   # outside finetune/: expect agents/, progress/, tools/, tests/, docs; no .sh/.sbatch/.conf
+git stash push --include-untracked -m "Sol's rsync copies before the Oct 31 pull"
+git pull --ff-only origin trackA-nosol
+git log -1 --format='%h %s' | cut -c1-90      # expect the hash Ritik pushed
+git status --short | head                     # expect nothing
+git stash list | head -3                      # keep it until the queue has run clean; then: git stash drop
+
+# ---- 2. L4's sheets (login node, no GPU; the texts are on Sol), then to the Mac
+source cot-disclosure/finetune/gpu/sol/env.sh
+"$TRACKA_PY" cot-disclosure/finetune/eval.py --label-sheets --dry-run --out /scratch/ragarw68/trackA/eval   # expect 294 and 292
+"$TRACKA_PY" cot-disclosure/finetune/eval.py --label-sheets --out /scratch/ragarw68/trackA/eval
+head -1 /scratch/ragarw68/trackA/eval/label_L4/part1.csv  # expect ...,label_final,guess_trained,note
+#   Mac, from cot-disclosure/:  rsync -av ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA/eval/label_L4/ results/labels/gate3/L4/
+
+# ---- 3. B1's speed check (1:00; starts when a GPU frees, e.g. when 3/4 and 4/4 end ~12:20)
+S=cot-disclosure/finetune/gpu/sol/submit.sh
+F=/scratch/ragarw68/trackA/provenance_forced/provenance_forced.json
+$S provenance_bench -- --items-from /scratch/ragarw68/trackA/setA/items.jsonl --alpha-from $F
+
+# ---- 4. Qwen3-8B, its rule fixed Oct 30 (fd1a679): Step 3, then Step 10 after it
+(cd cot-disclosure && "$TRACKA_PY" finetune/look/qwen8b_mech.py step3 --dry-run)
+$S qwen8b_step3 --estimate 1.2                                            # limit 2:00
+$S qwen8b_step10 --estimate 4.3 --dependency=afterok:<the qwen8b_step3 job id>   # limit 6:00
+
+# ---- 5. After the bench ends and 3/4, 4/4 have stopped: the plan, then its lines as places free (MaxSubmitPU 10)
+tail -1 /scratch/ragarw68/trackA/provenance_bench/console_*.log      # the bench's line: send it to Ritik's session
+"$TRACKA_PY" cot-disclosure/finetune/gpu/provenance_job.py plan --out /scratch/ragarw68/trackA --alpha-from $F
+#   then each printed line, e.g.  $S provenance_gen --estimate 4.4 -- --alpha-from $F --part 1/7
+```
+
+**The queue:**
+- **Now:** 5 jobs (3/4, 4/4, lora_tags 2/2, lora_attn3 1/2 running; lora_attn3 2/2 pending).
+- **Steps 3–4:** add 3 (the bench, Qwen Step 3, Qwen Step 10), making 8 of 10.
+- **When 3/4 and 4/4 end:** 6. The plan's 7 B1 parts go in as places free.
+- **The GPU limit** (960 GPU-minutes of remaining time across running jobs) allows about two 6-hour jobs at once.
+  At 2 at a time: ~27 GPU-h of B1 + ~5.5 of Qwen3-8B, about 17 hours of wall clock.
+
+## h. Checks and commit
+
+- **The full test suite:** 648 passed, 0 failed. A first full run had 2 failures: make_supplement crashed on LoRA on 15/19/23's "too few questions" intervals. That is fixed and tested; the test fails on the old code.
+- **The tools:** `tools/check_links.py`, `tools/make_supplement.py --check`, `tools/make_gantt.py`.
+- **Commit:** as Ritik. **Not pushed:** pushing waits for Ritik's OK, and Sol's update needs that push.
+- **Mac-only file:** `results/sol_tree_vs_a752db5.diff` stays untracked.

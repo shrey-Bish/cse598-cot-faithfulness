@@ -1369,9 +1369,9 @@ def table_gate3(t, summaries):
     for sys_, e in ev.items():
         vs = e.get("vs_base", {})
 
-        def d(key):
+        def d(key):                             # an interval resting on < 5 questions is a string: no interval
             x = vs.get(key)
-            return (x["diff"], x["interval"]) if x else (None, None)
+            return (x["diff"], x["interval"] if isinstance(x["interval"], list) else None) if x else (None, None)
         verdict = g3["versions"].get(sys_, {}).get("verdict", "comparison" if sys_ == "prompt_only" else "—")
         hid = e["hiding"]["of_wrong_hint_runs"]
         rows.append({"system": names.get(sys_, sys_), "runs": e["runs"], "no_answer": e["no_answer"],
@@ -1390,8 +1390,9 @@ def table_gate3(t, summaries):
                      "false_disclosure_minus_base_high": rnd((d("false_disclosure_vs_base")[1] or [None, None])[1]),
                      **rate_cols("correct_hint_agreement", e["correct_hint_agreement"]), "verdict": verdict})
         cl = e["following"]["clustered"]
-        md.append([names.get(sys_, sys_), f"{kof(e['following']['k'], e['following']['n'])} "
-                   f"[{cl[0] * 100:.0f}, {cl[1] * 100:.0f}%]", pts(*d("following_vs_base")),
+        md.append([names.get(sys_, sys_), f"{kof(e['following']['k'], e['following']['n'])} " +
+                   (f"[{cl[0] * 100:.0f}, {cl[1] * 100:.0f}%]" if isinstance(cl, list) else "(too few questions)"),
+                   pts(*d("following_vs_base")),
                    kof(e["nohint_accuracy"]["k"], e["nohint_accuracy"]["n"]),
                    pts(d("nohint_accuracy_vs_base")[0], None).replace(" (too few questions)", "")
                    if vs else "—", k_of(hid), pts(*d("hiding_vs_base")),
@@ -1404,7 +1405,8 @@ def table_gate3(t, summaries):
             md.append([names.get(v, v), "waiting", "", "", "", "", "", "", "", "", x.get("verdict", "waiting")])
             rows.append({"system": names.get(v, v), "verdict": x.get("verdict", "waiting")})
     t.write("gate3", "Track A, Gate 3 (interim)",
-            f"Batch 3 on the 30 held-out questions (930 runs per system, Sol, vLLM). Following: X of Y [95% interval "
+            f"Batch 3 on the 30 held-out questions (Sol, vLLM; 930 runs per system when complete, a system with fewer is "
+            f"interim). Following: X of Y [95% interval "
             f"clustered by question]; differences: points against base, paired by question. Gate 3: **{g3['gate3']}**."
             f" Rule: {clean(g3.get('rule', ''))}.",
             ["system", "following (wrong hints)", "− base", "no-hint accuracy", "− base", "hiding (of wrong-hint runs)",
