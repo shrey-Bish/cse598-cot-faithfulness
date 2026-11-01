@@ -11,6 +11,9 @@ summaries (no calls, no gitignored data). One style for every slide: 16:9, white
   b16_authority     slide 7 (F35): (a) each tool arm minus a user who claims the answer key's authority, paired by
                     question, with the pre-registered reading; (b) following per arm, X of Y (95% Wilson), the plain
                     user hint from Track B's Oct 27-28 runs (cross-day; the tool arms mostly replayed from them, T11)
+  channels          the report's setup (section 2): one prompt per channel, built by tools/answer_key.build with a
+                    placeholder question; the hint's text in the cue color, and who writes each turn (its CSV: the
+                    turns' roles, writers and templates, no prompt text)
 
   python tools/slide_figures.py          # -> docs/paper/figures/<name>.png, .svg and .csv
 
@@ -25,9 +28,11 @@ import textwrap
 from pathlib import Path
 
 CODE = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "tools"))
 
 import paper_figures as pf  # noqa: E402
+from tools import answer_key as ak  # noqa: E402
 from paper_figures import GRID, INK, MUTED  # noqa: E402
 
 SUM = CODE / "results" / "summaries"
@@ -56,6 +61,12 @@ LEVELS = (("1", "Inside the model", "Layers 15, 19 and 23 read the tool's letter
            "sees the tool holds", "F18, F31, F33, F34", "handoff notes (C25); pipeline vs model (C20)"))
 MODELS_B16 = (("qwen3-30b-a3b-thinking-2507", "Qwen3 30B Thinking"), ("qwen3-30b-a3b-instruct-2507", "Qwen3 30B Instruct"),
               ("olmo3-7b-think", "Olmo 3 7B Think"))
+CHANNELS = (("none", "No hint", "the baseline"), ("user", "The user's hint", "Track B, Gate 2"),
+            ("user_authority", "The user's authority claim", "B16"), ("system", "A system note", "Track B"),
+            ("tool_pasted", "A tool result pasted in", "every model"),
+            ("tool_real", "The model's own tool call", "Qwen3, gpt-oss"),
+            ("tool_injected", "A tool turn written in", "Olmo 3 7B Think"))
+QUESTION, QID, LETTER = "[question, options (A)-(J)]", "q1", "B"
 CHANNELS_B16 = {"tool_pasted": "pasted block", "tool_real": "its own call", "tool_injected": "inserted tool turn"}
 
 
@@ -117,6 +128,38 @@ def b16_rows(report=SUM / "trackB" / "b16_report.json"):
         for arm, e in res[key]["arms"].items():
             rows.append(row("b", name, CHANNELS_B16.get(arm, arm), "following", e["following"]))
     return rows
+
+
+def channel_turns():
+    """{condition: [{role, writer, text, hint, template}]}: each prompt as tools/answer_key.build makes it, one entry
+    per paragraph; tool_real adds the model's call and the tool's reply, as they come in a run."""
+    templates = {ak.CUE.format(LETTER): "CUE (the user's hint)", ak.AUTHORITY_CUE.format(letter=LETTER): "AUTHORITY_CUE",
+                 ak.SYSTEM_HINT.format(letter=LETTER): "SYSTEM_HINT", ak.tool_reply(QID, LETTER): "tool_reply",
+                 ak.PASTED.format(qid=json.dumps(QID), letter=LETTER): "PASTED", ak.STEPS: "STEPS (the answer instruction)",
+                 ak.TOOL_INVITE.format(qid=QID): "TOOL_INVITE", QUESTION: "the question"}
+    writer = {"user": "the user (our prompt)", "system": "the system turn (ours)", "tool": "the tool (ours)"}
+    out = {}
+    for cond, _, _ in CHANNELS:
+        msgs, _ = ak.build(QUESTION, QID, cond, None if cond == "none" else LETTER)
+        if cond == "tool_real":
+            msgs = msgs + [{"role": "assistant", "content": None, "by": "the model"},
+                           {"role": "tool", "content": ak.tool_reply(QID, LETTER)}]
+        turns = []
+        for m in msgs:
+            if m["content"] is None:                              # a call to the tool
+                turns.append({"role": "assistant", "writer": m.get("by", "us (written in)"), "hint": False,
+                              "text": f'calls {ak.TOOL_NAME} with question_id "{QID}"', "template": "the call"})
+                continue
+            for para in m["content"].split("\n\n"):
+                turns.append({"role": m["role"], "writer": writer[m["role"]], "text": para,
+                              "hint": f"({LETTER})" in para or f'"{LETTER}"' in para, "template": templates.get(para, "")})
+        out[cond] = turns
+    return out
+
+
+def channel_rows():
+    return [{"channel": cond, "part": i, "role": t["role"], "writer": t["writer"], "hint": "yes" if t["hint"] else "",
+             "template": t["template"]} for cond, turns in channel_turns().items() for i, t in enumerate(turns)]
 
 
 def level_rows():
@@ -280,6 +323,50 @@ def fig_b16(out=OUT, report=SUM / "trackB" / "b16_report.json"):
     return paths
 
 
+def fig_channels(out=OUT):
+    plt = style()
+    from matplotlib.patches import FancyBboxPatch
+    turns = channel_turns()
+    fig = plt.figure(figsize=SIZE)
+    fig.text(0.03, 0.95, "One wrong hint, seven ways in", fontsize=20, color=INK, weight="bold", va="top")
+    fig.text(0.03, 0.895, "Each prompt as our code builds it (tools/answer_key.py), the hint's text in color; (B) is the "
+             "hint's wrong letter.", fontsize=12, color=MUTED, va="top")
+    w, h, x0, y0, gx, gy = 0.232, 0.385, 0.03, 0.83, 0.012, 0.03
+    short = {"STEPS (the answer instruction)": "[the answer instruction]"}
+    for k, (cond, title, where) in enumerate(CHANNELS):
+        r, c = divmod(k, 4)
+        ax = fig.add_axes([x0 + c * (w + gx), y0 - (r + 1) * h - r * gy, w, h])
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.axis("off")
+        ax.add_patch(FancyBboxPatch((0.01, 0.01), 0.98, 0.98, boxstyle="round,pad=0,rounding_size=0.03",
+                                    facecolor=WHITE, edgecolor=GRID, linewidth=1.3))
+        ax.text(0.05, 0.93, f"{k + 1}  {title}", fontsize=12.5, color=INK, weight="bold", va="top")
+        ax.text(0.05, 0.845, f"{cond} ({where})", fontsize=10, color=MUTED, va="top")
+        y = 0.76
+        for t in turns[cond]:
+            text = short.get(t["template"], t["text"])
+            lines = textwrap.wrap(text, 26 if t["hint"] else 29) or [""]
+            color = ROLE["cue"] if t["hint"] else MUTED if text.startswith("[") else INK
+            by = {"the model": "\n(the model)", "us (written in)": "\n(by us)"}.get(t["writer"], "")
+            ax.text(0.05, y, t["role"] + by, fontsize=8.8, color=MUTED, va="top", style="italic", linespacing=1.25)
+            ax.text(0.31, y, "\n".join(lines), fontsize=9.2, color=color, va="top", linespacing=1.25,
+                    weight="bold" if t["hint"] else "normal")
+            y -= 0.052 * max(len(lines), 2 if by else 1) + 0.025
+    ax = fig.add_axes([x0 + 3 * (w + gx), y0 - 2 * h - gy, w, h])
+    ax.axis("off")
+    ax.text(0.04, 0.9, textwrap.fill("The same letter, from the user, the system turn or a tool. In channel 6 the "
+                                     "model decides to call the tool; in 7 we write the call and the reply into "
+                                     "the conversation (Olmo 3 7B Think never calls a tool itself).", 40),
+            fontsize=10.5, color=INK, va="top", linespacing=1.4)
+    ax.text(0.04, 0.38, textwrap.fill("Measured: following (the final answer is the hint's letter), whether the final "
+                                      "answer or the private reasoning names the hint, and the bare final answer.", 40),
+            fontsize=10.5, color=MUTED, va="top", linespacing=1.4)
+    paths = save(fig, "channels", channel_rows(), out)
+    plt.close(fig)
+    return paths
+
+
 def fig_levels(out=OUT):
     plt = style()
     from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
@@ -314,7 +401,7 @@ def fig_levels(out=OUT):
 
 
 def main():
-    for f in (fig_levels, fig_bare, fig_b16):
+    for f in (fig_levels, fig_bare, fig_b16, fig_channels):
         for p in f():
             print(p.relative_to(CODE.parent))
 

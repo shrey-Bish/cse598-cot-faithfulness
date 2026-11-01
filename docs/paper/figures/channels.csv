@@ -1,0 +1,24 @@
+channel,part,role,writer,hint,template
+none,0,user,the user (our prompt),,the question
+none,1,user,the user (our prompt),,STEPS (the answer instruction)
+user,0,user,the user (our prompt),,the question
+user,1,user,the user (our prompt),yes,CUE (the user's hint)
+user,2,user,the user (our prompt),,STEPS (the answer instruction)
+user_authority,0,user,the user (our prompt),,the question
+user_authority,1,user,the user (our prompt),yes,AUTHORITY_CUE
+user_authority,2,user,the user (our prompt),,STEPS (the answer instruction)
+system,0,system,the system turn (ours),yes,SYSTEM_HINT
+system,1,user,the user (our prompt),,the question
+system,2,user,the user (our prompt),,STEPS (the answer instruction)
+tool_pasted,0,user,the user (our prompt),,the question
+tool_pasted,1,user,the user (our prompt),yes,PASTED
+tool_pasted,2,user,the user (our prompt),,STEPS (the answer instruction)
+tool_real,0,user,the user (our prompt),,the question
+tool_real,1,user,the user (our prompt),,TOOL_INVITE
+tool_real,2,user,the user (our prompt),,STEPS (the answer instruction)
+tool_real,3,assistant,the model,,the call
+tool_real,4,tool,the tool (ours),yes,tool_reply
+tool_injected,0,user,the user (our prompt),,the question
+tool_injected,1,user,the user (our prompt),,STEPS (the answer instruction)
+tool_injected,2,assistant,us (written in),,the call
+tool_injected,3,tool,the tool (ours),yes,tool_reply

@@ -57,7 +57,7 @@ def png_size(path):
 
 
 def test_each_figure_writes_png_svg_and_its_table_at_16_9(tmp_path):
-    for f in (sf.fig_bare, sf.fig_levels, sf.fig_b16):
+    for f in (sf.fig_bare, sf.fig_levels, sf.fig_b16, sf.fig_channels):
         paths = f(out=tmp_path)
         assert [p.suffix for p in paths] == [".png", ".svg", ".csv"] and all(p.stat().st_size > 0 for p in paths)
         w, h = png_size(paths[0])
@@ -90,3 +90,25 @@ def test_b16_rows_are_the_pre_registered_readings():
     b = by([r for r in rows if r["panel"] == "b"], "model", "arm")
     assert (b[("Olmo 3 7B Think", "plain user hint")]["k"], b[("Olmo 3 7B Think", "user_authority")]["k"]) == (13, 69)
     assert b[("Qwen3 30B Thinking", "plain user hint")]["measure"].endswith("(Oct 27–28)")
+
+
+def test_channel_turns_come_from_the_prompt_builder():
+    """The report's setup figure (channels, Nov 1): one prompt per channel, built by tools/answer_key.build, the hint
+    in exactly one turn (none for the no-hint baseline), and who writes each turn."""
+    from tools import answer_key as ak
+    turns = sf.channel_turns()
+    assert [c for c, _, _ in sf.CHANNELS] == ["none", "user", "user_authority", "system", "tool_pasted", "tool_real",
+                                              "tool_injected"]
+    hint = {c: [t for t in ts if t["hint"]] for c, ts in turns.items()}
+    assert hint["none"] == [] and all(len(v) == 1 for c, v in hint.items() if c != "none")
+    where = {c: v[0]["role"] for c, v in hint.items() if v}
+    assert where == {"user": "user", "user_authority": "user", "system": "system", "tool_pasted": "user",
+                     "tool_real": "tool", "tool_injected": "tool"}
+    assert hint["user_authority"][0]["text"] == ak.AUTHORITY_CUE.format(letter="B")
+    assert hint["system"][0]["text"] == ak.SYSTEM_HINT.format(letter="B")
+    assert hint["tool_real"][0]["text"] == hint["tool_injected"][0]["text"] == ak.tool_reply("q1", "B")
+    real = [t["writer"] for t in turns["tool_real"]]
+    injected = [t["writer"] for t in turns["tool_injected"]]
+    assert "the model" in real and "the model" not in injected      # the call: the model's own, or written in by us
+    rows = sf.channel_rows()
+    assert all(len(str(v)) <= 80 for r in rows for v in r.values())  # labels only, no prompt text in the CSV

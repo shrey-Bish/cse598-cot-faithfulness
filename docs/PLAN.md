@@ -191,7 +191,8 @@ outlines and [`docs/paper/CLAIMS.md`](paper/CLAIMS.md) the claims.
    - the five channels and the authority hint;
    - the questions;
    - the statistics: X of Y; a bootstrap clustered by question; at least 5 questions.
-   - Figure: one prompt per channel (`channels.svg`, to make).
+   - Figure: one prompt per channel, `docs/paper/figures/channels.svg` (made Nov 1, `tools/slide_figures.py`, from
+     `tools/answer_key.py` itself).
 3. **The failure:** tools pull harder (Gate 2); tool or authority (B16); thinking dose (B17).
    - Figure: `trackB_following.png`, final.
 4. **Level 1, inside the model:** the readout at 15/19/23; set A; Qwen3-8B; the heads.
