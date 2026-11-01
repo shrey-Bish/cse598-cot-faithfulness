@@ -622,7 +622,7 @@ next to the catches) and tokens, as "X of Y" with intervals, against the no-tool
 - **The queue** (`docs/labeling/LABEL_QUEUE.csv`, 101 rows; 10 have no text yet and are replaced,
   with no calls, by the original rule: random hinted pilot runs with saved text, seed recorded,
   marked as replacements in the queue and in the guide; decided Oct 27). Two raters label
-  the private reasoning and the final answer with [`progress/LABELING_GUIDE.md`](labeling/LABELING_GUIDE.md):
+  the private reasoning and the final answer with [`labeling/LABELING_GUIDE.md`](labeling/LABELING_GUIDE.md):
   no mention / mentions only / rejects the hint / says the hint changed the answer / unclear.
   Cohen's kappa per channel; under 0.6, tighten the guide and label a fresh batch. No
   acknowledgment claim goes in the report before this is done (Gate 2).

@@ -359,7 +359,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
 
 - **What:** two raters label what the text says about the hint, for the private reasoning and the
   final answer: no mention / mentions only / rejects the hint / says the hint changed the answer /
-  unclear ([`progress/LABELING_GUIDE.md`](labeling/LABELING_GUIDE.md)).
+  unclear ([`labeling/LABELING_GUIDE.md`](labeling/LABELING_GUIDE.md)).
 - **Where:** anywhere, no calls. **Status:** the kit is built (Oct 27); the rater packets for L3 and L4 part 1 are
   built (Oct 31; `tools/rater_packets.py`); labeling not started.
 - **Commands** (from `cot-disclosure/`):

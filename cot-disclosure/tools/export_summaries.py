@@ -76,6 +76,7 @@ OTHER = {                # Tracks B and C: numbers-only reports their scripts wr
     "results/trackB/template_check.jsonl": "trackB/template_check.jsonl",        # progress/voyager_template_check.py
     "results/trackB/b15_report.json": "trackB/b15_report.json",                  # B15 (progress/run_b15.py --report)
     "results/trackB/b16_report.json": "trackB/b16_report.json",                  # B16 (progress/run_b16.py --report)
+    "results/trackB/b17/b17_report.json": "trackB/b17_report.json",              # B17 (progress/run_b17.py --report), once back
     "results/trackC/team_live_summary.json": "trackC/team_live_summary.json",    # agents/run_team.py --summary
     "results/trackC/team_replay_summary.json": "trackC/team_replay_summary.json",
     "results/trackC/team_smoke_olmo32b_summary.json": "trackC/team_smoke_olmo32b_summary.json",   # Oct 28, the 32B reviewer
@@ -94,6 +95,10 @@ OTHER = {                # Tracks B and C: numbers-only reports their scripts wr
     "results/trackC/team_c16_summary.json": "trackC/team_c16_summary.json",
     "results/trackC/team_c16_control_summary.json": "trackC/team_c16_control_summary.json",
     "results/trackC/team_c16_solve_summary.json": "trackC/team_c16_solve_summary.json",
+    "results/trackC/c19_summary.json": "trackC/c19_summary.json",                            # C19 (agents/c19.py), once run
+    "results/trackC/c20_summary.json": "trackC/c20_summary.json",                            # C20 (agents/c20.py), once run
+    "results/trackC/c25_summary.json": "trackC/c25_summary.json",                            # C25 (agents/c25.py), once run
+    "results/trackC/c26_summary.json": "trackC/c26_summary.json",                            # C26 (agents/c26.py), once run
     "results/trackC/c17_summary.json": "trackC/c17_summary.json",                                # C17 (agents/c17.py)
     "results/trackC/team_c17_names_summary.json": "trackC/team_c17_names_summary.json",
     "results/trackC/team_c17_own_summary.json": "trackC/team_c17_own_summary.json",
