@@ -2000,6 +2000,8 @@ Each one would have changed a reported number.
   tool runs that were not replays.
 - *Fix.* Reported as cross-day (F35), with the canary's record that the served models were unchanged. C16's
   same-day control is not affected: none of its 200 reviews repeats an earlier request.
+- *Seen before.* Track C met the same thing on Oct 30 (C18's re-review matched C16's exactly; TRACK_C's known traps:
+  "repeats need new seeds"): an identical request is answered from the cache. B16's design didn't carry that over.
 - *Rule.* A rerun meant as a same-day control sends a new seed or bypasses the cache (`use_cache=False`), and its
   pre-registration says which.
 - *Source.* `cot-disclosure/client.py` (`_request`, the cache), the Nov 1 10:45 session log.

@@ -1275,6 +1275,20 @@ def bullets(sec):
     return out
 
 
+def handoff_traps(text):
+    """A handoff's known traps: its "## 6. Known traps" section (TRACK_B), else the list after a "**Known traps:**"
+    label (TRACK_C keeps it in its reference section since Oct 30), up to the next label or heading."""
+    sec = section(text, "6. Known traps")
+    if sec:
+        return bullets(sec)
+    m = re.search(r"^\*\*Known traps:\*\*[ \t]*\n", text, re.M)
+    if not m:
+        return []
+    rest = text[m.end():]
+    end = re.search(r"^(?:#|\*\*[^*\n]+:\*\*)", rest, re.M)
+    return bullets(rest[:end.start()] if end else rest)
+
+
 def traps_md(root, texts, head):
     ts, extra = traps((root / FINDINGS_REL).read_text())
     out = ["# Measurement traps we hit and fixed", "", head, "",
@@ -1293,7 +1307,7 @@ def traps_md(root, texts, head):
         p = root / rel
         if not p.exists():
             continue
-        items = bullets(section(p.read_text(), "6. Known traps"))
+        items = handoff_traps(p.read_text())
         n_handoff += len(items)
         out += [f"### [`{rel}`]({LINK_CODE}{rel})", ""]
         for b in items:

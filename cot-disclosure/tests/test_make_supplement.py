@@ -399,3 +399,15 @@ def test_gate3_table_is_interim_only_while_a_system_is_short(tmp_path):
         (d / "gate3.json").write_text(json.dumps({"gate3": "met", "rule": "r", "versions": {}}))
         ms.table_gate3(T(), tmp_path)
     assert titles == ["Track A, Gate 3", "Track A, Gate 3 (interim)", "Track A, Gate 3 (interim)"]
+
+
+def test_handoff_traps_from_a_section_or_a_labelled_list():
+    """Nov 1: TRACK_C keeps its known traps as a "**Known traps:**" list inside its reference section (since Oct 30),
+    TRACK_B as a "## 6. Known traps" section; both reach the supplement's traps page."""
+    sec = "# T\n\n## 6. Known traps\n\n- one\n  more\n- two\n\n## 7. Next\n\n- not a trap\n"
+    assert ms.handoff_traps(sec) == ["one more", "two"]
+    lab = "## 6. Reference\n\n**Before:**\n- not a trap\n\n**Known traps:**\n- a\n  b\n- c\n\n## 7. The data bundle\n\n- no\n"
+    assert ms.handoff_traps(lab) == ["a b", "c"]
+    assert ms.handoff_traps("## 1. Nothing here\n- x\n") == []
+    real = (ms.REPO / "docs" / "tracks" / "TRACK_C.md").read_text()
+    assert len(ms.handoff_traps(real)) == 8
