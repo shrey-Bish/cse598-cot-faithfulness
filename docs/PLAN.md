@@ -68,7 +68,7 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 |---|---|---|---|---|---|
 | 1 inside | A37 | Qwen3-8B, Steps 3 and 10: the readout on a second model; verdict by its rule | Ritik | Nov 3 | on Sol: Step 3 123022, Step 10 123025 |
 | 1 inside | A30 | B1, provenance-scaled attention: the bench gate, the plan, the verdict by its rule | Ritik | Nov 4 | bench 122956 pending |
-| 1 inside | A18 | Inside the fixed model: Steps 9 and 10 on LoRA's evaluation runs. Does training stop the readout at 15/19/23, or act after it? | Ritik | Nov 10 | prepared |
+| 1 inside | A18 | Inside the fixed model: Steps 9 and 10 on LoRA's evaluation runs. Does training stop the readout at 15/19/23, or act after it? Tool-hint cases only in the primary, user hints apart (amended Nov 1) | Ritik | Nov 10 | prepared |
 | 1 inside | A38 | STRETCH, only if B1 "works": prompt_only's note + B1 deployable, against each alone, same HF stack | Ritik | Nov 14 | prepared; waits for B1's verdict |
 | control | B16 | Tool or authority? The answer key's authority in the user's hint, against the tool channels | Ritik; Arsha, from Nov 3 | Nov 3 | running on Voyager |
 | 2 words | B17 | Thinking dose: gpt-oss-20b on Sol at reasoning effort low, medium, high | Ritik submits; Arsha, from Nov 3 | Nov 12 | prepared; dropped if it can't run cleanly within one day |

@@ -866,11 +866,13 @@ PREREG = [
      "result_glob": ["*b17-results*"], "verdict": "waiting: prepared, not submitted", "verdict_check": []},
     {"id": "a18", "track": "A", "experiment": "A18: inside the fixed model, does training stop the readout at "
                                               "15/19/23 or act after it?", "kind": "pre",
-     "rule": "on base's takeover cases, LoRA's layers swapped in by set (0–14, 15/19/23, 0–23, 24–31): stops the "
+     "rule": "on base's takeover cases with a tool hint (pasted or inserted; user-hint cases reported apart, amended "
+             "Nov 1 before anything ran), LoRA's layers swapped in by set (0–14, 15/19/23, 0–23, 24–31): stops the "
              "readout / acts after the readout / either half suffices / acts in the reasoning / unclear, by the share "
              "of LoRA's reduction each swap recovers",
      "rule_log": "2026-10-31_2244_A_a18-prereg.md", "rule_check": ["stops the readout", "acts in the reasoning"],
-     "f_title": r"\(A18\)", "result_glob": ["*a18-results*"], "verdict": "waiting: prepared, not submitted",
+     "f_title": r"\(A18\)", "result_glob": ["*a18-results*"],
+     "verdict": "waiting: prepared, amended Nov 1 (tool hints only in the primary), not submitted",
      "verdict_check": []},
     {"id": "a38", "track": "A", "experiment": "A38 (stretch): the one-line note and B1 deployable together, against "
                                               "each alone", "kind": "pre",

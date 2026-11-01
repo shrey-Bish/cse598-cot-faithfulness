@@ -16,7 +16,8 @@ Step 3 (step3 --system S): early answering on every followed run of S on a sure 
 answered and correct). Dense: the forced answer "</think>\\n\\nAnswer: (" after every sentence, the whole reasoning
 run once and its key/value cache reused (a cache without sliding layers, so a cut can go back; checked against a
 fresh forward at two probes a run). Takeover point, "late" (at or after half the reasoning) as in Step 3. Cases:
-followed runs with a late takeover on sure questions, at most 3 per question chosen by seed (deletion.choose).
+followed runs with a late takeover on sure questions, at most 3 per question chosen by seed (deletion.choose),
+chosen apart among the tool-hint cases (pasted and inserted) and among the user-hint cases (amended Nov 1, below).
 Step 10 (step10 --cases C --weights W): Step 10's patching at cut (ii) (the takeover) of C's cases, under W's
 weights: base's cases under base (the reference), base's cases under LoRA (the same tokens), LoRA's own cases under
 LoRA. Cut (i) is left out: no rule here reads it. Rows as patching.py writes them; its report and handoff after.
@@ -48,6 +49,11 @@ The rules (pre-registered: A18's log, Oct 31 22:44):
        reversed / doesn't replicate / too few.
   Reported, no decision: F12's heads under LoRA minus base on the same tokens (do they still look?); the readout's
   share under LoRA on base's cases beside base's; how often LoRA's forced answer at base's cut is still W.
+  Amended Nov 1 (Ritik, before anything ran; the log's amendment): every reading above (the primary, a, b and the
+  numbers reported beside them) uses the tool-hint cases and runs only, pasted and inserted, the channels F11, F26
+  and F32 were found on. The user-hint cases are chosen by the same rule on their own and get the same numbers,
+  reported apart under "secondary: user hints (reported apart)", never pooled. Step 10's user-hint cuts go to
+  step10_<weights>_on_<cases>_user/; each swap row says its group.
 
   python finetune/look/a18.py plan [--eval-dir results/trackA/gpu/eval]       # Mac: counts, GPU hours, the Sol lines
   python finetune/look/a18.py step3 --system base|lora --out OUT [--dry-run]  # Sol, GPU (sources made first)
@@ -93,6 +99,11 @@ TOK_PER_S = pt.TOK_PER_S         # 9,000: an A100 bf16 forward
 CUT_SHARE = 0.75                 # of the reasoning at the takeover (late: at or after half)
 LOAD_H = 0.1
 SWAPS = ("before", "readout", "through", "after")
+# Amended Nov 1 (Ritik, before anything ran): every reading that tests F11, F26 and F32 uses tool-hint cases only
+# (pasted and inserted, the channels those were found on); user-hint cases are chosen by the same rule apart and
+# reported apart, never pooled.
+GROUPS = {"tool": ("tool_pasted", "tool_injected"), "user": ("user",)}
+SECONDARY = "secondary: user hints (reported apart)"
 _stop = {"asked": False}
 
 
@@ -120,6 +131,17 @@ def kept(r):
 
 def followed(r):
     return r["wording"] != "none" and bool(r.get("parsed_letter")) and r["parsed_letter"] == r["hint_letter"]
+
+
+def group_of(r):
+    """"tool" (pasted or inserted: the primary's) or "user" (apart), from a run's or a case's condition or channel."""
+    c = r.get("condition") or r.get("channel")
+    return next((g for g, cs in GROUPS.items() if c in cs), None)
+
+
+def split(rows):
+    """(tool-hint rows, user-hint rows): the primary's and the secondary's, never pooled."""
+    return [r for r in rows if group_of(r) == "tool"], [r for r in rows if group_of(r) == "user"]
 
 
 def sure_questions(rows):
@@ -370,18 +392,21 @@ def cases_from_probes(d, sources):
     tk.save_cases(cases, d / "cases.jsonl",
                   rule="A18: followed wrong-hint runs (6 main wordings, no tool call in the final answer) whose takeover "
                        "comes at or after half the reasoning, on questions whose 3 no-hint runs were all answered and "
-                       "correct", use="A18's Step 10 and swap (at most 3 per question by deletion.choose)")
+                       "correct", use="A18's Step 10 and swap (at most 3 per question by deletion.choose, among the "
+                                      "tool-hint cases for the primary and among the user-hint cases apart; Nov 1)")
     print(f"{len(cases)} cases of {len(rows)} probed runs ({len({c['item_id'] for c in cases})} questions) -> "
           f"{d / 'cases.jsonl'}", flush=True)
     return cases
 
 
-def chosen_cases(out, system):
+def chosen_cases(out, system, group):
+    """Step 10's choice (at most 3 per question by seed, deletion.choose) among one group's cases: the tool-hint
+    cases (the primary) or the user-hint cases (apart), each group chosen on its own."""
     from finetune.look import deletion as dl
     saved = load(step3_dir(out, system) / "cases.jsonl")
     if not saved:
         raise SystemExit(f"no cases for {system}: run step3 --system {system} first")
-    return dl.choose(saved[-1]["cases"])
+    return dl.choose([c for c in saved[-1]["cases"] if group_of(c) == group])
 
 
 def cut_ii(case, src):
@@ -393,39 +418,51 @@ def cut_ii(case, src):
 
 
 # ---------------------------------------------------------------- Step 10 at cut (ii)
-def step10_dir(out, cases_of, weights):
-    return base_dir(out) / f"step10_{weights}_on_{cases_of}"
+def step10_name(cases_of, weights, group="tool"):
+    """The tool-hint cases (the primary) keep the plain name; the user-hint cases go apart (_user)."""
+    return f"step10_{weights}_on_{cases_of}" + ("" if group == "tool" else f"_{group}")
+
+
+def step10_dir(out, cases_of, weights, group="tool"):
+    return base_dir(out) / step10_name(cases_of, weights, group)
 
 
 def step10(cases_of, weights, out, model=None, device="auto", limit=None, dry_run=False):
+    """Step 10 at cut (ii) on cases_of's cases under weights' weights, each group into its own folder (its cuts,
+    report and handoff): the tool-hint cases (the primary) and the user-hint cases (apart). Returns the first."""
     sources = ensure_sources(out, cases_of)
     its = {it["question_id"]: it for it in load(items_path(out))}
-    cases = chosen_cases(out, cases_of)
     tok = kit.load_tokenizer(tokenizer_dir())
-    jobs = []
-    for c in cases:
-        src = sources[c["source_run_id"]]
-        if src["timestamp_utc"] != c["source_timestamp_utc"]:
-            raise SystemExit(f"case {c['source_run_id']}: its source changed since the cases were saved")
-        kept_n, text, first = cut_ii(c, src)
-        jobs.append((c, src, kept_n, text, first, len(hs.tokenize(tok, probe_text(src, text))[0])))
-    jobs.sort(key=lambda j: (j[5], j[0]["source_run_id"]))
-    if limit:
-        jobs = jobs[:limit]
-    toks = [j[5] for j in jobs]
-    print(f"step10, {weights} weights on {cases_of}'s cases: {len(jobs)} cuts at (ii) over "
-          f"{len({j[0]['item_id'] for j in jobs})} questions; tokens median {statistics.median(toks) if toks else 0:,.0f}; "
-          f"~{(3 * 32 + 4) * sum(toks) / TOK_PER_S / 60:.0f} min on an A100", flush=True)
-    d = step10_dir(out, cases_of, weights)
-    (d / "cuts").mkdir(parents=True, exist_ok=True)
-    todo = [j for j in jobs if not (d / "cuts" / f"{j[0]['source_run_id']}_ii.json").exists()]
+    by_group = {}
+    for g in GROUPS:
+        jobs = []
+        for c in chosen_cases(out, cases_of, g):
+            src = sources[c["source_run_id"]]
+            if src["timestamp_utc"] != c["source_timestamp_utc"]:
+                raise SystemExit(f"case {c['source_run_id']}: its source changed since the cases were saved")
+            kept_n, text, first = cut_ii(c, src)
+            jobs.append((c, src, kept_n, text, first, len(hs.tokenize(tok, probe_text(src, text))[0])))
+        jobs.sort(key=lambda j: (j[5], j[0]["source_run_id"]))
+        if limit:
+            jobs = jobs[:limit]
+        toks = [j[5] for j in jobs]
+        print(f"step10, {weights} weights on {cases_of}'s {g}-hint cases: {len(jobs)} cuts at (ii) over "
+              f"{len({j[0]['item_id'] for j in jobs})} questions; tokens median "
+              f"{statistics.median(toks) if toks else 0:,.0f}; ~{(3 * 32 + 4) * sum(toks) / TOK_PER_S / 60:.0f} min on "
+              f"an A100", flush=True)
+        by_group[g] = jobs
     if dry_run:
         return None
-    if todo:
-        path = Path(model) if model else model_dir(weights, out)
-        dev = kit.pick_device(device)
-        m = kit.load_model(path, "bf16" if dev.type != "cpu" else "fp32", dev)
-        commit = kit.snapshot(path)[1]
+    m = None
+    for g, jobs in by_group.items():
+        d = step10_dir(out, cases_of, weights, g)
+        (d / "cuts").mkdir(parents=True, exist_ok=True)
+        todo = [j for j in jobs if not (d / "cuts" / f"{j[0]['source_run_id']}_ii.json").exists()]
+        if todo and m is None:
+            path = Path(model) if model else model_dir(weights, out)
+            dev = kit.pick_device(device)
+            m = kit.load_model(path, "bf16" if dev.type != "cpu" else "fp32", dev)
+            commit = kit.snapshot(path)[1]
         for i, (c, src, kept_n, text, first, n) in enumerate(todo, 1):
             if _stop["asked"]:
                 raise SystemExit("stopped by a signal; the cuts saved so far count, a rerun does the rest")
@@ -438,13 +475,14 @@ def step10(cases_of, weights, out, model=None, device="auto", limit=None, dry_ru
                    "cut": "ii", "sentences_kept": kept_n, "n_sentences": c["n_sentences"], "takeover_k": c["takeover_k"],
                    "first_mention": first, "tokens": len(lay["ids"]), "hint_letter": w, "own_letter": own,
                    "clean": clean_kind, "step4_forced_after_deleting_mentions": None, "weights": weights,
-                   "cases_of": cases_of, **res, "snapshot_commit": commit, "timestamp_utc": kit.now()}
+                   "cases_of": cases_of, "group": g, **res, "snapshot_commit": commit, "timestamp_utc": kit.now()}
             kit.write_json(d / "cuts" / f"{row['job']}.json", row)
             print(f"  {i}/{len(todo)} {row['job']}: LD hinted {res['ld_hinted']:+.2f} ({res['top_hinted']}), clean "
                   f"{res['ld_clean']:+.2f}; sanity {'ok' if res['sanity']['ok'] else 'OFF'}", flush=True)
-    summary = pt.report(d=d)
-    kit.write_json(d / "step10_handoff.json", pt.handoff(summary, full=kit.full_attention_layers(model)))
-    return d
+        if any((d / "cuts").glob("*.json")):
+            summary = pt.report(d=d)
+            kit.write_json(d / "step10_handoff.json", pt.handoff(summary, full=kit.full_attention_layers(model)))
+    return step10_dir(out, cases_of, weights, "tool")
 
 
 # ---------------------------------------------------------------- the swap
@@ -502,7 +540,7 @@ def swap(out, base_model=None, lora_model=None, device="auto", limit=None, dry_r
     heads = heads or at.F12_HEADS
     sources = ensure_sources(out, "base")
     its = {it["question_id"]: it for it in load(items_path(out))}
-    cases = chosen_cases(out, "base")
+    cases = [c for g in GROUPS for c in chosen_cases(out, "base", g)]      # each row says its group; read apart
     tok = kit.load_tokenizer(tokenizer_dir())
     d = base_dir(out) / "swap"
     d.mkdir(parents=True, exist_ok=True)
@@ -546,14 +584,16 @@ def swap(out, base_model=None, lora_model=None, device="auto", limit=None, dry_r
                 top[f"base+lora_{name}"] = max(probs, key=probs.get)
                 ld[f"base+lora_{name}"] = {"hinted": h, "clean": pt.forward(hy, clean, w, o, letters)[0]}
         row = {"job": f"{c['source_run_id']}_ii", "source_run_id": c["source_run_id"], "item_id": c["item_id"],
-               "wording": src["wording"], "condition": c["condition"], "arm": c.get("arm"), "repeat": c["repeat"],
-               "tokens": len(lay["ids"]), "sentences_kept": kept_n, "hint_letter": w_letter, "own_letter": own,
+               "wording": src["wording"], "condition": c["condition"], "group": group_of(c), "arm": c.get("arm"),
+               "repeat": c["repeat"], "tokens": len(lay["ids"]), "sentences_kept": kept_n, "hint_letter": w_letter,
+               "own_letter": own,
                "clean": clean_kind, "ld": ld, "te": {k: v["hinted"] - v["clean"] for k, v in ld.items()},
                "top_hinted": top, "heads": masses, "layer_sets": sets, "timestamp_utc": kit.now()}
         append(d / "swap_rows.jsonl", row)
         print(f"  {i}/{len(todo)} {row['job']}: TE base {row['te']['base']:+.2f}, lora {row['te']['lora']:+.2f}, "
               + ", ".join(f"{k[10:]} {row['te'][k]:+.2f}" for k in row["te"] if k.startswith("base+lora_")), flush=True)
-    kit.write_json(d / "swap_primary.json", primary(load(d / "swap_rows.jsonl")))
+    tool, user = split(load(d / "swap_rows.jsonl"))
+    kit.write_json(d / "swap_primary.json", {"primary (tool hints)": primary(tool), SECONDARY: primary(user)})
     return d
 
 
@@ -672,25 +712,33 @@ def readout_rule(handoff, readout=READOUT, full=None):
 
 
 def readout(d):
-    """Every reading from the numbers-only files copied back into d (a18/ as on Sol)."""
+    """Every reading from the numbers-only files copied back into d (a18/ as on Sol): each rule on the tool-hint
+    cases and runs, and the same numbers on the user-hint ones under SECONDARY, apart (amended Nov 1)."""
     from finetune.look import attn_to_hint as at
     d = Path(d)
-    out = {}
+    out, sec = {}, {}
     rows = load(d / "swap" / "swap_rows.jsonl")
     if rows:
-        out["primary"] = primary(rows)
-        out["heads_same_tokens"] = heads_same_tokens(rows)
+        tool, user = split(rows)
+        out["primary"] = primary(tool)
+        out["heads_same_tokens"] = heads_same_tokens(tool)
+        sec["swap"] = primary(user)
+        sec["heads_same_tokens"] = heads_same_tokens(user)
     for w, c in (("lora", "lora"), ("lora", "base"), ("base", "base")):
-        p = d / f"step10_{w}_on_{c}" / "step10_handoff.json"
-        if p.exists():
-            h = json.loads(p.read_text())
-            key = f"step10 {w} weights on {c}'s cases"
-            out[key] = {"rule": readout_rule(h)} if (w, c) == ("lora", "lora") else {
-                "share_at_readout (no decision)": h["by_cut_type"]["ii"]["all"].get("drop_share_readout")}
+        for g, into in (("tool", out), ("user", sec)):
+            p = d / step10_name(c, w, g) / "step10_handoff.json"
+            if p.exists():
+                h = json.loads(p.read_text())
+                key = f"step10 {w} weights on {c}'s cases"
+                into[key] = {"rule": readout_rule(h)} if (w, c) == ("lora", "lora") else {
+                    "share_at_readout (no decision)": h["by_cut_type"]["ii"]["all"].get("drop_share_readout")}
     for s in SYSTEMS:
         p = d / f"step9_{s}" / "step9" / at.REDUCED
         if p.exists():
-            out[f"step9 {s}, F32's rule"] = at.fixed_heads(at.load_reduced(p)[0])
+            tool, user = split(at.load_reduced(p)[0])
+            out[f"step9 {s}, F32's rule"] = at.fixed_heads(tool)
+            sec[f"step9 {s}, F32's rule"] = at.fixed_heads(user)
+    out[SECONDARY] = sec
     kit.write_json(d / "a18_readout.json", out)
     return out
 
@@ -710,24 +758,28 @@ def plan(eval_dir=EVAL_DIR):
         answered = [r for r in keep if r["wording"] != "none" and r.get("parsed_letter")]
         tok = lambda r: (r.get("prompt_tokens") or 0) + (r.get("completion_tokens") or 0)  # noqa: E731
         by_q = Counter(r["item_id"] for r in probe)
-        cases = [sum(min(3, round(n * s)) for n in by_q.values()) for s in LATE_SHARE]
+        by_q_group = {g: Counter(r["item_id"] for r in probe if group_of(r) == g) for g in GROUPS}
+        cases = {g: [sum(min(3, round(n * s)) for n in c.values()) for s in LATE_SHARE] for g, c in by_q_group.items()}
+        total = [sum(cases[g][i] for g in GROUPS) for i in range(len(LATE_SHARE))]
         mean_tok = statistics.mean(tok(r) for r in probe) if probe else 0
         cut_tok = statistics.mean((r.get("prompt_tokens") or 0) + CUT_SHARE * (r.get("completion_tokens") or 0)
                                   for r in probe) if probe else 0
         h3 = sum(tok(r) / TOK_PER_S + (r.get("completion_tokens") or 0) / TOKENS_PER_SENTENCE * PROBE_S
                  for r in probe) / 3600 + LOAD_H
-        h10 = [n * (3 * 32 + 4) * cut_tok / TOK_PER_S / 3600 + LOAD_H for n in cases]
+        h10 = [n * (3 * 32 + 4) * cut_tok / TOK_PER_S / 3600 + LOAD_H for n in total]
         h9 = at.estimate([tok(r) for r in answered]) / 3600 + LOAD_H if answered else 0
         res["systems"][system] = {
             "wrong_hint_main_runs": len(hinted), "kept_hinted": sum(r["wording"] != "none" for r in keep),
             "left_out_tool_call_in_final": sum(1 for r in hinted if r["status"] == "ok" and r.get("tool_calls_by_model")),
             "answered_hinted": len(answered), "sure_questions": sum(sure.values()),
             "followed_on_sure_to_probe": len(probe), "by_channel": dict(Counter(r["channel"] for r in probe)),
-            "questions_with_a_run_to_probe": len(by_q), "expected_cases": cases,
+            "by_group": {g: sum(c.values()) for g, c in by_q_group.items()},
+            "questions_by_group": {g: len(c) for g, c in by_q_group.items()},
+            "questions_with_a_run_to_probe": len(by_q), "expected_cases": cases, "expected_cases_total": total,
             "mean_tokens_probed": round(mean_tok), "mean_tokens_at_cut_ii": round(cut_tok),
             "gpu_h": {"step3": round(h3, 2), "step10 (own cases)": [round(x, 2) for x in h10], "step9": round(h9, 2)}}
         hours[system] = (h3, h10, h9)
-    bc = res["systems"]["base"]["expected_cases"]
+    bc = res["systems"]["base"]["expected_cases_total"]
     cut_b = res["systems"]["base"]["mean_tokens_at_cut_ii"]
     hs_ = [n * 2 * (2 + len(SWAPS)) * cut_b / TOK_PER_S / 3600 + 2 * LOAD_H for n in bc]
     est = lambda x: math.ceil(max(x) * 10) / 10 if isinstance(x, (list, tuple)) else math.ceil(x * 10) / 10  # noqa: E731
@@ -748,7 +800,10 @@ def show_plan(res):
                      f"({e['left_out_tool_call_in_final']} left out: a tool call in the final answer); answered "
                      f"{e['answered_hinted']}; sure questions {e['sure_questions']}; followed on a sure question "
                      f"{e['followed_on_sure_to_probe']} over {e['questions_with_a_run_to_probe']} questions "
-                     f"{e['by_channel']}; expected cases {e['expected_cases'][0]}-{e['expected_cases'][1]}; tokens "
+                     f"{e['by_channel']}; expected cases: tool hints (the primary) {e['expected_cases']['tool'][0]}-"
+                     f"{e['expected_cases']['tool'][1]} over {e['questions_by_group']['tool']} questions, user hints "
+                     f"(apart) {e['expected_cases']['user'][0]}-{e['expected_cases']['user'][1]} over "
+                     f"{e['questions_by_group']['user']} questions; tokens "
                      f"{e['mean_tokens_probed']:,} a run, {e['mean_tokens_at_cut_ii']:,} at cut (ii); GPU h {e['gpu_h']}")
     lines.append(f"Sol, in order (each after the one before it; {res['gpu_h_total']} GPU-h at most):")
     lines += [f"  {j['line']}" for j in res["jobs"]]

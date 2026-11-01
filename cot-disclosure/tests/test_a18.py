@@ -174,15 +174,29 @@ def test_step3_step10_swap_and_step9_on_tiny_models(tmp_path, monkeypatch):
     planted = [{**{k: p[k] for k in ("source_run_id", "source_timestamp_utc", "item_id", "condition", "arm", "repeat",
                                      "hint_letter", "n_sentences")}, "takeover_k": p["n_sentences"], "takeover_frac": 1.0,
                 "mention_just_before": True} for p in probes]
+    from finetune.look import takeover as tk
+    user_src = next(s for s in a18.ensure_sources(out, "base").values() if s["condition"] == "user"
+                    and s["parsed_letter"] == s["cue_letter"])
+    n = len(tk.sentence_ends(user_src["reasoning_text"]))
+    planted.append({"source_run_id": user_src["run_id"], "source_timestamp_utc": user_src["timestamp_utc"],
+                    "item_id": user_src["item_id"], "condition": "user", "arm": None, "repeat": user_src["repeat"],
+                    "hint_letter": user_src["cue_letter"], "n_sentences": n, "takeover_k": n, "takeover_frac": 1.0,
+                    "mention_just_before": True})
     with open(out / "a18" / "step3_base" / "cases.jsonl", "a") as f:
         f.write(json.dumps({"rule": "planted for the test", "cases": planted}) + "\n")
     d = a18.step10("base", "lora", out, device="cpu")
     rows = [json.loads(p.read_text()) for p in (d / "cuts").glob("*.json")]
     assert len(rows) == 2 and all(r["cut"] == "ii" and r["sanity"]["ok"] and r["weights"] == "lora" for r in rows)
+    assert all(r["condition"] != "user" for r in rows)                             # the primary: tool hints only
     assert (d / "step10_patching.json").exists() and (d / "step10_handoff.json").exists()
+    du = a18.step10_dir(out, "base", "lora", "user")                                # user hints: apart (Nov 1)
+    urows = [json.loads(p.read_text()) for p in (du / "cuts").glob("*.json")]
+    assert du != d and [r["condition"] for r in urows] == ["user"] and (du / "step10_handoff.json").exists()
     sw = a18.swap(out, device="cpu", readout=(1, 2), heads=((1, 0), (2, 1), (3, 1)))
     srows = [json.loads(x) for x in (sw / "swap_rows.jsonl").read_text().splitlines()]
-    assert len(srows) == 2
+    assert len(srows) == 3 and sorted(r["group"] for r in srows) == ["tool", "tool", "user"]
+    res = a18.readout(out / "a18")
+    assert res["primary"]["cases"] == 2 and res["secondary: user hints (reported apart)"]["swap"]["cases"] == 1
     for r in srows:
         assert set(r["te"]) == {"base", "lora"} | {f"base+lora_{s}" for s in a18.SWAPS}
         assert r["te"]["base"] != pytest.approx(r["te"]["lora"], abs=1e-6)          # the layers do differ
@@ -266,8 +280,43 @@ def test_plan_counts_from_the_numbers_only_rows(tmp_path):
     b, lo = res["systems"]["base"], res["systems"]["lora"]
     assert b["wrong_hint_main_runs"] == 36 and b["left_out_tool_call_in_final"] == 1 and b["sure_questions"] == 2
     assert b["followed_on_sure_to_probe"] == 35 and lo["followed_on_sure_to_probe"] < 35
+    # Nov 1 (Ritik): the primary's cases are tool hints only; user hints are chosen and reported apart
+    assert b["by_group"] == {"tool": 23, "user": 12}
+    assert b["expected_cases"] == {"tool": [6, 6], "user": [6, 6]}               # at most 3 per question in each
+    assert sum(lo["by_group"].values()) == lo["followed_on_sure_to_probe"]
     assert [j["job"] for j in res["jobs"]][:2] == ["step3 --system base", "step3 --system lora"]
     assert all(j["line"].startswith("cot-disclosure/finetune/gpu/sol/submit.sh a18 --estimate ") for j in res["jobs"])
+
+
+def test_cases_are_chosen_apart_for_tool_and_user_hints(tmp_path):
+    """Nov 1 (Ritik, before anything ran): the primary uses tool-hint cases only (pasted and inserted), as F11 and
+    F26 were found on; user-hint cases are a secondary, chosen by the same rule and reported apart."""
+    def case(q, cond, rep):
+        return {"source_run_id": f"{q}-{cond}-{rep}", "item_id": q, "condition": cond, "arm": None, "repeat": rep}
+    cases = ([case("q1", "tool_pasted", r) for r in range(2)] + [case("q1", "tool_injected", r) for r in range(3)]
+             + [case("q1", "user", r) for r in range(2)] + [case("q2", "user", 0)])
+    d = a18.step3_dir(tmp_path, "base")
+    d.mkdir(parents=True)
+    (d / "cases.jsonl").write_text(json.dumps({"rule": "test", "cases": cases}) + "\n")
+    tool, user = a18.chosen_cases(tmp_path, "base", "tool"), a18.chosen_cases(tmp_path, "base", "user")
+    assert len(tool) == 3 and {c["condition"] for c in tool} <= {"tool_pasted", "tool_injected"}
+    assert [(c["item_id"], c["condition"]) for c in user] == [("q1", "user"), ("q1", "user"), ("q2", "user")]
+    assert a18.GROUPS == {"tool": ("tool_pasted", "tool_injected"), "user": ("user",)}
+
+
+def test_the_readout_reads_tool_hints_and_reports_user_hints_apart(tmp_path):
+    tool = [{**row(f"q{i}", 4.0 + 0.1 * (i % 3), 1.0 + 0.1 * (i % 2), before=4.0, readout=1.2, through=1.1, after=3.9),
+             "condition": "tool_pasted" if i % 2 else "tool_injected"} for i in range(8)]
+    user = [{**row(f"q{i}", 4.0 + 0.1 * (i % 3), 1.0 + 0.1 * (i % 2), before=4.0, readout=4.0, through=3.9, after=1.2),
+             "condition": "user"} for i in range(8)]
+    (tmp_path / "swap").mkdir()
+    (tmp_path / "swap" / "swap_rows.jsonl").write_text("".join(json.dumps(r) + "\n" for r in tool + user))
+    res = a18.readout(tmp_path)
+    assert res["primary"]["cases"] == 8 and res["primary"]["reading"] == "stops the readout"
+    sec = res["secondary: user hints (reported apart)"]
+    assert sec["swap"]["cases"] == 8 and sec["swap"]["reading"] == "acts after the readout"
+    assert res["heads_same_tokens"]["mean over the three heads"]["questions"] == 8
+    assert json.loads((tmp_path / "a18_readout.json").read_text())["primary"]["reading"] == "stops the readout"
 
 
 def test_run_sh_builds_the_a18_steps(tmp_path):

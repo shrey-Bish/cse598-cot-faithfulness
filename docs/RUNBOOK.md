@@ -324,15 +324,18 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
 - **The look-inside rerun** works on a trained version: Steps 9 and 10 take `--model DIR`,
   `--runs-from` and (Step 10) `--cases-from`, with their own `--out`.
 
-- **A18, inside the fixed model** (Oct 31; pre-registered in the 2026-10-31 22:44 log): Steps 3, 9 and 10 and a layer
-  swap on batch 3's runs of base and LoRA, cases by Step 10's rule. 8 jobs, 6.6 GPU h at most, after a push and a pull
-  (`a18` is a new job kind). From the Sol clone, `S=cot-disclosure/finetune/gpu/sol/submit.sh`:
+- **A18, inside the fixed model** (Oct 31; pre-registered in the 2026-10-31 22:44 log, amended Nov 1 before anything
+  ran, its §8): Steps 3, 9 and 10 and a layer swap on batch 3's runs of base and LoRA, cases by Step 10's rule,
+  chosen apart for tool hints (pasted and inserted: the primary, as F11 and F26) and user hints (reported apart).
+  Expected cases: base 30–31 tool (14 questions) and 20–21 user; LoRA 17–18 tool (12 questions) and 16–17 user.
+  8 jobs, 7.8 GPU h at most, after a push and a pull (`a18` is a new job kind). From the Sol clone,
+  `S=cot-disclosure/finetune/gpu/sol/submit.sh`:
   ```bash
   $S a18 --estimate 1   -- step3 --system base                                   # job A
   $S a18 --estimate 0.6 -- step3 --system lora                                   # job B
-  $S a18 --estimate 1.2 --dependency=afterok:A -- step10 --cases base --weights base
-  $S a18 --estimate 1.2 --dependency=afterok:A -- step10 --cases base --weights lora
-  $S a18 --estimate 0.9 --dependency=afterok:B -- step10 --cases lora --weights lora
+  $S a18 --estimate 1.7 --dependency=afterok:A -- step10 --cases base --weights base
+  $S a18 --estimate 1.7 --dependency=afterok:A -- step10 --cases base --weights lora
+  $S a18 --estimate 1.1 --dependency=afterok:B -- step10 --cases lora --weights lora
   $S a18 --estimate 0.5 --dependency=afterok:A -- swap
   $S a18 --estimate 0.6 --dependency=afterok:A -- step9 --system base
   $S a18 --estimate 0.6 --dependency=afterok:B -- step9 --system lora
