@@ -40,6 +40,7 @@ TODO = """# Open work
 | B1 | Closed-provider keys | Oct 5 | blocked | keys | Ritik; Arsha, from Nov 3 | — | — |
 | B2 | Voyager runs, 3 per question | Oct 27 | done Oct 28 03:11 (810 runs) | — | Ritik; Arsha, from Nov 3 | Voyager | ~15 h (notes) |
 | B3 | The Gate 2 question: is the gap clear? | PLAN | Qwen3 Thinking: clear (+35) | B2 | Ritik; Arsha, from Nov 3 | no calls | — |
+| B4 | Is the closed model still served? | PLAN | **dropped (scope, Oct 31)**; was not started | B1 | Ritik; Arsha, from Nov 3 | no calls | 15 min |
 
 ## Track C (Ritik until Nov 3, then Shrey)
 
@@ -240,6 +241,7 @@ def test_statuses(model):
     ("**Oct 30 ~09:50:** tags submitted (2 at a time); wait for free submission slots", "—", "in progress"),
     ("decided; not started", "A16", "planned"), ("**final Oct 30** (handed over early)", "—", "done"),
     ("missed", "—", "done"), ("standing", "—", "in progress"), ("blocked", "keys", "blocked"),
+    ("**dropped (scope, Oct 31)**; was planned, due Nov 13", "—", "dropped"),
 ])
 def test_classify(text, blocked, want):
     assert mg.classify(text, blocked)[0] == want
@@ -519,6 +521,15 @@ def test_status_page(model, repo):
     assert "  - **B2** Voyager runs, 3 per question: done (Ritik; done Oct 28) (B3 waits on it (TODO))" in ms
     assert "- **Oct 30: Track C to Shrey** (today)" in ms and "Nov 8: Gate 2" in md
     assert not re.search(r"Acme|Claude|assistant|\bAI\b", md)
+
+
+def test_a_dropped_item_is_closed_and_listed_apart(model):
+    """Ritik, Oct 31: dropped items are marked "dropped (scope, Oct 31)" in TODO, never deleted; they are neither
+    done nor open, and the status page lists them in a section of their own."""
+    assert "B4" not in by_id(model) and [t["id"] for t in model["data"]["dropped"]] == ["B4"]
+    md = mg.status_md(model)
+    assert "**B4**" not in md[:md.index("## Dropped")]
+    assert "## Dropped (scope)\n\n- **B4** Is the closed model still served? (Track B): dropped (scope, Oct 31)" in md
 
 
 def test_main_writes_four_files(repo, tmp_path):

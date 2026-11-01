@@ -83,6 +83,8 @@ models:
   # --- open models via Ollama (local)
   "qwen3:8b":                   {provider: ollama, thinking: toggle, toggle: "think true/false", note: "hybrid Qwen3; use for a clean thinking on/off comparison"}
   "qwen3:30b":                  {provider: ollama, thinking: always, note: "tag points to qwen3:30b-a3b-thinking-2507 (registry digests); think=false behaviour unverified"}
+  # --- open models on our own vLLM server in a Sol job (B17, checked 2026-10-31: the Hub's files and vLLM 0.31.0's source)
+  gpt-oss-20b:                  {provider: sol_vllm, repo: openai/gpt-oss-20b, revision: 6cee5e81ee83917806bbde320786a8fb61efebee, license: apache-2.0, gated: false, thinking: always, efforts: [low, medium, high], visibility: full, note: "harmony format: vLLM renders it itself (reasoning_effort in the request; a leading system message becomes the developer message's instructions, as in the chat template); MXFP4 experts; progress/sol_b17.py"}
   # --- closed models (smallest reasoning model first)
   gpt-6-luna:                   {provider: openai, thinking: toggle, efforts: [none, low, medium, high, xhigh, max], off_effort: "none", visibility: summary}
   gpt-6-astra:                  {provider: openai, thinking: always, efforts: [low, medium, high, xhigh, max], visibility: summary, note: "effort none returns HTTP 400"}

@@ -832,7 +832,7 @@ PREREG = [
      "rule_log": "2026-10-30_1145_A_qwen8b-mech-prereg.md", "rule_extra": [("the rule's choices", "fd1a679")],
      "rule_check": ["T = 0.5"], "f_title": r"Qwen3-8B.*(Step 3|Step 10|readout)",
      "result_glob": ["*qwen8b-mech-result*", "*qwen8b*readout*"],
-     "verdict": "waiting: prepared, not submitted", "verdict_check": []},
+     "verdict": "waiting: Step 3 123022 and Step 10 123025 queued on Sol (Oct 31)", "verdict_check": []},
     {"id": "c18", "track": "C", "experiment": "C18: H33, is the cue the argument for the wrong letter?", "kind": "pre",
      "rule": "stripped − unchanged (34 items), C16's two-sided rule: above 0 = the tool mentions are part of the cue; no "
              "change = the argument is the cue (H33); below 0 = removing them lowers corrections",
@@ -851,6 +851,63 @@ PREREG = [
      "rule_log": "2026-10-30_1715_A_b1-generation-rule.md", "rule_check": ["ignores tools"],
      "f_title": r"B1.*generation", "result_glob": ["*b1-generation-result*", "*provenance-gen*"],
      "verdict": "waiting: provenance_gen running on Sol", "verdict_check": []},
+    {"id": "b16", "track": "B", "experiment": "B16: tool or authority? The answer key's authority from the user, "
+                                              "against the tool channels", "kind": "pre",
+     "rule": "each tool arm minus user_authority, today's runs, paired by question: above 0 = tool beyond authority; "
+             "below 0 = authority moves it more; else no difference detected; per model and tool channel, at the "
+             "run's own budget (the 16,000 cut beside it)",
+     "rule_log": "2026-10-31_2220_B_b16-prereg.md", "rule_check": ["tool beyond authority"], "f_title": r"\(B16\)",
+     "result_glob": ["*b16-results*"], "verdict": "waiting: running on Voyager (Oct 31 22:25)", "verdict_check": []},
+    {"id": "b17", "track": "B", "experiment": "B17: does more thinking change real-call following and the bare final "
+                                              "answer? (gpt-oss-20b, effort low/medium/high)", "kind": "pre",
+     "rule": "high minus low effort, paired by question, on following on tool_real and on the bare final answer after "
+             "a call: rises / falls / no change detected; dropped if the smoke isn't clean within a day",
+     "rule_log": "2026-10-31_2237_B_b17-prereg.md", "rule_check": ["rises with effort"], "f_title": r"\(B17\)",
+     "result_glob": ["*b17-results*"], "verdict": "waiting: prepared, not submitted", "verdict_check": []},
+    {"id": "a18", "track": "A", "experiment": "A18: inside the fixed model, does training stop the readout at "
+                                              "15/19/23 or act after it?", "kind": "pre",
+     "rule": "on base's takeover cases, LoRA's layers swapped in by set (0–14, 15/19/23, 0–23, 24–31): stops the "
+             "readout / acts after the readout / either half suffices / acts in the reasoning / unclear, by the share "
+             "of LoRA's reduction each swap recovers",
+     "rule_log": "2026-10-31_2244_A_a18-prereg.md", "rule_check": ["stops the readout", "acts in the reasoning"],
+     "f_title": r"\(A18\)", "result_glob": ["*a18-results*"], "verdict": "waiting: prepared, not submitted",
+     "verdict_check": []},
+    {"id": "a38", "track": "A", "experiment": "A38 (stretch): the one-line note and B1 deployable together, against "
+                                              "each alone", "kind": "pre",
+     "rule": "the combination minus each alone, paired by question, the inserted tool turn: adds to both / adds, costs "
+             "acceptance / adds, costs accuracy / worse than one alone / no better than the better one alone; runs "
+             "only if B1 reads \"works\"",
+     "rule_log": "2026-10-31_2245_A_a38-prereg.md", "rule_check": ["adds to both", "only if B1"],
+     "f_title": r"\(A38\)", "result_glob": ["*a38-results*"], "verdict": "waiting: runs only if B1 works",
+     "verdict_check": []},
+    {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
+     "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "
+             "H34 supported by fewer corrections (or a smaller drop), not supported by no change",
+     "rule_log": "2026-10-31_2231_C_c19-prereg.md", "rule_check": ["fewer corrections"], "f_title": r"\(C19\)",
+     "result_glob": ["*c19-results*"], "verdict": "waiting: prepared for Shrey (from about Nov 4)",
+     "verdict_check": []},
+    {"id": "c25", "track": "C", "experiment": "C25: across agents, does the source survive a handoff note, and does "
+                                              "a decider accept the wrong answer more without it?", "kind": "pre",
+     "rule": "the source at each hop (the share of notes naming the tool); the decider on the stripped note minus the "
+             "kept note on accepting the wrong answer, paired by item, two-sided ±20; a 20-row blind hand spot check",
+     "rule_log": "2026-10-31_2233_C_c25-prereg.md", "rule_check": ["keep_stripped", "spot check"],
+     "f_title": r"\(C25\)", "result_glob": ["*c25-results*"],
+     "verdict": "waiting: prepared for Shrey (from about Nov 4)", "verdict_check": []},
+    {"id": "c20", "track": "C", "experiment": "C20: pipeline vs model, can a tag the system attaches carry the "
+                                              "source?", "kind": "pre",
+     "rule": "the tagged review minus the blind review on catches (two-sided ±20) and on false alarms; the tag "
+             "matches the checker within 10 points of catches and of false alarms; the tag minus the solver's own "
+             "disclosure",
+     "rule_log": "2026-10-31_2232_C_c20-prereg.md", "rule_check": ["answer_tagged", "matches the checker"],
+     "f_title": r"\(C20\)", "result_glob": ["*c20-results*"],
+     "verdict": "waiting: prepared for Shrey (from about Nov 4)", "verdict_check": []},
+    {"id": "c26", "track": "C", "experiment": "C26 (SHOULD): does deference survive without the authority label?",
+     "kind": "pre",
+     "rule": "a retrieval passage from the chosen option's text, no letter: the solver's following against C15 and the "
+             "no-tool floor; the Olmo reviewer's plus_tool_log minus answer_only by C11's rule",
+     "rule_log": "2026-10-31_2234_C_c26-prereg.md", "rule_check": ["search_passages"], "f_title": r"\(C26\)",
+     "result_glob": ["*c26-results*"], "verdict": "waiting: prepared for Shrey (from about Nov 4)",
+     "verdict_check": []},
 ]
 AFTER_WORDS = re.compile(r"after the fact|not pre-registered|[Dd]escriptive|no decision|exploratory|[Cc]hecked after")
 

@@ -1,6 +1,6 @@
 # Runbook: how to run every step
 
-Last updated: 2026-10-28 22:40 MST. One page per step: what it does, where it runs, the commands in order,
+Last updated: 2026-10-31 22:50 MST (B16; the 20-day program's experiments: §14, §18, §19). One page per step: what it does, where it runs, the commands in order,
 inputs and outputs, how long it takes, and what to check. Written so anyone in the group can run a
 step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md); open work in
 [`TODO.md`](TODO.md).
@@ -324,6 +324,28 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
 - **The look-inside rerun** works on a trained version: Steps 9 and 10 take `--model DIR`,
   `--runs-from` and (Step 10) `--cases-from`, with their own `--out`.
 
+- **A18, inside the fixed model** (Oct 31; pre-registered in the 2026-10-31 22:44 log): Steps 3, 9 and 10 and a layer
+  swap on batch 3's runs of base and LoRA, cases by Step 10's rule. 8 jobs, 6.6 GPU h at most, after a push and a pull
+  (`a18` is a new job kind). From the Sol clone, `S=cot-disclosure/finetune/gpu/sol/submit.sh`:
+  ```bash
+  $S a18 --estimate 1   -- step3 --system base                                   # job A
+  $S a18 --estimate 0.6 -- step3 --system lora                                   # job B
+  $S a18 --estimate 1.2 --dependency=afterok:A -- step10 --cases base --weights base
+  $S a18 --estimate 1.2 --dependency=afterok:A -- step10 --cases base --weights lora
+  $S a18 --estimate 0.9 --dependency=afterok:B -- step10 --cases lora --weights lora
+  $S a18 --estimate 0.5 --dependency=afterok:A -- swap
+  $S a18 --estimate 0.6 --dependency=afterok:A -- step9 --system base
+  $S a18 --estimate 0.6 --dependency=afterok:B -- step9 --system lora
+  ```
+  The cases without any calls: `../.venv/bin/python finetune/look/a18.py plan` (Mac). The reading:
+  `finetune/look/a18.py readout`.
+- **A38, the note + B1 (stretch)** (Oct 31; pre-registered in the 2026-10-31 22:45 log): only after B1's verdict reads
+  "works". `plan --note` refuses otherwise and prints no lines.
+  ```bash
+  "$TRACKA_PY" cot-disclosure/finetune/gpu/provenance_job.py plan --out "$TRACKA_OUT" \
+    --alpha-from "$TRACKA_OUT/provenance_forced/provenance_forced.json" --note     # ~4 provenance_gen ... --note lines
+  ```
+
 ## 15. Labels
 
 - **What:** two raters label what the text says about the hint, for the private reasoning and the
@@ -432,6 +454,34 @@ It refuses a push that adds anything under a produced-data folder, any file with
         cot-disclosure/results/trackB/
   ```
 
+- **B16, tool or authority** (Oct 31; pre-registered in the 2026-10-31 22:20 log). The user's hint with the answer
+  key's authority (`user_authority`) and the tool arms again, the same day, on the three Voyager models: 1,458 runs,
+  ~8.4 h at 4 in flight. Its own records (`b16_voyager.jsonl.gz`), never in Track B's table.
+  ```bash
+  ../.venv/bin/python progress/run_b16.py --dry-run                 # jobs, calls, hours
+  ../.venv/bin/python progress/run_b16.py --run --limit 9           # smoke: question 1, every arm and model
+  nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
+    --job "voyager:b16=progress/run_b16.py --run" >> logs/guard.log 2>&1 &
+  ../.venv/bin/python progress/run_b16.py --report                  # once all 1,458 are done -> b16_report.json
+  ```
+
+- **B17, the thinking dose** (Oct 31; pre-registered in the 2026-10-31 22:37 log): gpt-oss-20b at reasoning effort
+  low, medium and high on our vLLM server in a Sol job; 2,430 runs, ~4–6 GPU h. Records stay on Sol, and the
+  numbers-only flags come back.
+  ```bash
+  # Mac, no calls: the jobs and hours
+  ../.venv/bin/python progress/run_b17.py --dry-run
+  # Sol, after a pull: the snapshot (online), the smoke job (template check + 15 runs), then the runs
+  cot-disclosure/finetune/gpu/sol/submit.sh get_gptoss                                              # -> job G
+  cot-disclosure/finetune/gpu/sol/submit.sh b17 --estimate 0.75 --dependency=afterok:G -- --smoke    # -> job S
+  cot-disclosure/finetune/gpu/sol/submit.sh b17 --estimate 6 --dependency=afterok:S                 # resumable
+  # Mac: numbers only, then the checks
+  S=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/results/trackB
+  rsync -av $S/b17/ cot-disclosure/results/trackB/b17/ && rsync -av $S/b17_sol_vllm_runs.jsonl cot-disclosure/results/trackB/
+  ../.venv/bin/python progress/run_b17.py --smoke-check
+  ../.venv/bin/python progress/run_b17.py --report        # when all 2,430 runs are back
+  ```
+
 ## 19. Track C: the agent team
 
 - **What:** solver (Qwen3 30B Thinking; the tool team gets the lookup tool, bad or good by a seeded
@@ -477,6 +527,11 @@ It refuses a push that adds anything under a produced-data folder, any file with
   `case_done` row), `team_live_summary.json`, `team_replay.jsonl` (all gitignored; `results/scope/`
   keeps the Oct 4 runs). **Time:** about 11 calls per tool-team case and 9 per no-tool case with two
   reviewer models. **Check:** the dry run's call count; the summary's case counts; undetermined checks.
+
+- **Prepared Oct 31 (the 20-day program), for Shrey from about Nov 4:** C19 (H34), C25 (across agents), C20
+  (pipeline vs model), C26 (a retrieval tool, SHOULD). Each one's lines, in order, and its reading command are in
+  [`handoff/TRACK_C.md`](handoff/TRACK_C.md) §5a, and its pre-registration in `archive/sessions/2026-10-31/` (22:31–22:34).
+  Add `--dry-run` to any `run_team.py` line first.
 
 ## 20. Session logs
 

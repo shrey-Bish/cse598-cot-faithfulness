@@ -15,6 +15,12 @@ URL: $TRACKB_VLLM_URL (default http://localhost:8012/v1). No key.
 With progress/sol_trackB.py --engine hf (the default since Oct 29) there is no server: the job installs a
 Hugging Face engine and every request goes to providers/sol_hf.py, which renders and parses as this server
 did; the provider name, run ids and records stay the same, and each record names its engine.
+
+B17 (Oct 31, progress/sol_b17.py): gpt-oss-20b on the same kind of server, vLLM only. Its reasoning effort goes in
+each request (reasoning_effort: low / medium / high; vLLM renders gpt-oss's harmony system message with it), its
+sampling is its own (SAMPLING: top_p 1.0, no top_k; the temperature is still the caller's), and the private
+reasoning before a tool call goes back with that call in the next request (PASS_REASONING; vLLM puts it in the
+analysis channel, as gpt-oss expects between calls). Qwen3-8B's requests are unchanged.
 """
 import os
 import time
@@ -26,6 +32,26 @@ NAME = "sol_vllm"
 TIMEOUT_S = 3600         # one long thinking reply at a busy server's per-sequence speed
 PORT = 8012
 TOP_P, TOP_K = 0.95, 20  # with thinking on and off alike (Qwen's thinking-mode values)
+SAMPLING = {"gpt-oss-20b": {"top_p": 1.0}}   # B17: OpenAI's top_p for gpt-oss, no top_k (its generation config sets none)
+PASS_REASONING = {"gpt-oss-20b"}             # B17: the reasoning before a call goes back with it (harmony)
+
+
+def sampling(model):
+    """top_p and top_k sent for this model: Qwen3-8B's TOP_P and TOP_K, or its own (SAMPLING)."""
+    return SAMPLING.get(model, {"top_p": TOP_P, "top_k": TOP_K})
+
+
+def with_reasoning(model, messages):
+    """For PASS_REASONING models: an assistant turn that called a tool carries the reasoning this server returned
+    before the call (assistant_tool_message keeps it under _native) as the message's "reasoning" field."""
+    if model not in PASS_REASONING:
+        return messages
+    out = []
+    for m in messages:
+        native = m.get("_native") or {}
+        items = native.get("items") if native.get("provider") == NAME else None
+        out.append({**m, "reasoning": items["reasoning"]} if items and items.get("reasoning") else m)
+    return out
 
 
 def url():
@@ -33,15 +59,17 @@ def url():
 
 
 def build_request(model, messages, *, max_tokens, tools=None, thinking=None, temperature=0.6, seed=None,
-                  tool_choice=None):
+                  tool_choice=None, reasoning_effort=None):
     if not max_tokens or max_tokens < 1:
         raise ValueError(f"max_tokens must be the budget left (32,768 minus the prompt and replies so far), not {max_tokens!r}")
-    req = {"model": model, "messages": plain(messages), "max_tokens": max_tokens, "temperature": temperature,
-           "top_p": TOP_P, "top_k": TOP_K}
+    req = {"model": model, "messages": plain(with_reasoning(model, messages)), "max_tokens": max_tokens,
+           "temperature": temperature, **sampling(model)}
     if seed is not None:
         req["seed"] = seed
     if thinking is not None:
         req["chat_template_kwargs"] = {"enable_thinking": bool(thinking)}
+    if reasoning_effort is not None:
+        req["reasoning_effort"] = reasoning_effort
     if tools:
         req["tools"] = tools
         if tool_choice is not None:
@@ -60,13 +88,16 @@ def parse_response(body):
 
 
 def generate(model, messages, *, max_tokens, tools=None, thinking=None, temperature=0.6, seed=None,
-             tool_choice=None):
+             tool_choice=None, reasoning_effort=None):
     if sol_hf.active():                                              # --engine hf: no server, the same rules
+        if reasoning_effort is not None:                             # B17 runs on vLLM only
+            return Reply(provider=NAME, model=model, error="the hf engine has no reasoning effort (B17: vLLM only)",
+                         finish_reason="error")
         return sol_hf.generate(model, messages, max_tokens=max_tokens, tools=tools, thinking=thinking,
                                temperature=temperature, seed=seed, tool_choice=tool_choice)
     temperature = 0.6 if temperature is None else temperature  # pilot setting
     req = build_request(model, messages, tools=tools, thinking=thinking, max_tokens=max_tokens,
-                        temperature=temperature, seed=seed, tool_choice=tool_choice)
+                        temperature=temperature, seed=seed, tool_choice=tool_choice, reasoning_effort=reasoning_effort)
     start = time.monotonic()
     try:
         status, body = post_json(url(), {}, req, timeout=TIMEOUT_S)
@@ -78,9 +109,12 @@ def generate(model, messages, *, max_tokens, tools=None, thinking=None, temperat
         return Reply(provider=NAME, model=model, error=f"HTTP {status}: {str(body.get('message') or body)[:200]}",
                      finish_reason="error", latency_s=latency)
     text, reasoning, calls, finish, usage = parse_response(body)
+    native = {"reasoning": reasoning} if calls and reasoning and model in PASS_REASONING else None
     return Reply(provider=NAME, model=model, final_text=text, reasoning_text=reasoning,
                  reasoning_visibility="full" if reasoning else "none", tool_calls=calls, finish_reason=finish,
                  usage=usage, latency_s=latency, cost_usd=0.0,
                  raw={"enable_thinking": req.get("chat_template_kwargs", {}).get("enable_thinking"),
-                      "served_model": body.get("model"), "top_p": TOP_P, "top_k": TOP_K,
-                      "chat_template_sha256": os.environ.get("TRACKB_CHAT_TEMPLATE_SHA256"), "engine": "vllm"})
+                      "reasoning_effort": req.get("reasoning_effort"),
+                      "served_model": body.get("model"), "top_p": req.get("top_p"), "top_k": req.get("top_k"),
+                      "chat_template_sha256": os.environ.get("TRACKB_CHAT_TEMPLATE_SHA256"), "engine": "vllm",
+                      **({"native_items": native} if native else {})})

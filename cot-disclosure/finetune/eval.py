@@ -125,7 +125,7 @@ def job_id(system, j):
 
 
 def renderer(system):
-    if system == "prompt_only":
+    if system == "prompt_only" or system.startswith("prov-note"):    # A38 (Oct 31): B1's runs with the note
         from finetune.make_targets import with_note
         return lambda msgs, tools: with_note(olmo_format.render(msgs, tools=tools), NOTE)
     return lambda msgs, tools: olmo_format.render(msgs, tools=tools)

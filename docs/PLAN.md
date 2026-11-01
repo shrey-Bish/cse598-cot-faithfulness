@@ -1,78 +1,214 @@
-# Plan: weeks 11–16 (CSE 598, Group 10)
+# Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-10-31 16:40 MST (batch 3 complete, Gate 3 final F28: all four trained versions pass, none beats
-the one-line instruction on following); 2026-10-30 09:30 (Sol's night all done: set A replicates F26, B1's alpha 0.25 / 0.5 F27, Gate 3
-interim met by LoRA F28, Qwen3-8B F29, C13 F30; the 10 jobs submitted in Ritik's order; C16 pre-registered and
-running; the QoS re-checked; 04:00 B15 done, F25; C15 done, F24; Oct 29 23:00 Ritik's decisions of 22:20: the order of the 10 unsubmitted Sol jobs, B2's LR_GATE
-1e-2 approved, H23 tested on C15; C14 done, C15 and B15 pre-registered and run on Voyager; the Gate 3 command;
-earlier: C11–C13; week 11; the plan for Oct 27–Nov 3 moved everything as early
-as it can go; Oct 28: Ollama replaced by Qwen3-8B on Sol, training batch 2, the class QoS only; Track
-B's Voyager runs and C4 done; S7, the validation loss by taught tokens, on all four versions; the labeling order;
-the vLLM preflight's rule; C9). What's left, by track: the timeline, the gates, the Sol hours and the risks. What
-was done by Oct 27 is in the [Oct 27 overview](../archive/superseded/OVERVIEW_2026-10-27.md) (archived), and
-progress since then in [`STATUS.md`](STATUS.md); each result, with its numbers, source and status, is in
-[`FINDINGS.md`](FINDINGS.md). Every open item, with its owner and status, is in
-[`TODO.md`](TODO.md); how to run each step is in [`RUNBOOK.md`](RUNBOOK.md).
+Last updated: 2026-10-31 22:50 MST (the 20-day program, set by Ritik on Oct 31. It replaces the planning reset and
+the Oct 27 timeline: the story, every experiment on its map, owners and dates, the final dates, the final
+presentation map and the report outline. B16 running on Voyager since 22:25.) The version before this one is kept
+word for word in [`archive/superseded/PLAN_2026-10-31.md`](../archive/superseded/PLAN_2026-10-31.md); the sections
+below the gates are unchanged from it apart from their dates. Where things are:
+- progress: [`STATUS.md`](STATUS.md);
+- each result, with its numbers and source: [`FINDINGS.md`](FINDINGS.md);
+- every open item, with owner and due date: [`TODO.md`](TODO.md);
+- how to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 
-**Who runs what.** Ritik ran all three tracks through Oct 30. Track C went to Shrey on Oct 30 (early); Track B goes
-back to Arsha on Nov 3. Each has a handoff doc
-(`docs/handoff/TRACK_B.md`, `TRACK_C.md`) and a data bundle (`tools/make_handoff_bundle.py`;
-produced data is gitignored, so it doesn't come with GitHub).
+**Who runs what.**
+- **Track A:** Ritik, to the end.
+- **Track C:** Shrey's since Oct 30. Its experiments below are prepared now (code, CPU tests, a pre-registration log
+  and a dry run each), and Shrey runs them on Voyager from about Nov 4.
+- **Track B:** back to Arsha on Nov 3. B16 runs before then; B17 is prepared.
+- **Sol:** Ritik submits every job.
+- **Pre-registration:** before any run, as always.
 
-## The failure, what we now know about it, the fix
+## The story: "Where did that answer come from?"
 
-- **Failure.** A wrong hint changes the answer, most of all when it comes from a tool, and the
-  final answer hides it. Test 2 (served format): thinking models followed the tool hint on 17 of 31
-  questions, the user hint on 2 of 31 (F1). Test 1: the private reasoning names the hint in 208 of
-  216 hinted runs, the final answer in 8 (F3).
-- **What Track A found inside Olmo 3 7B Think** (Steps 3–10, FINDINGS F4–F14):
-  - The hint letter is the starting answer, the lead swings many times, and on known answers it
-    wins late, on a few questions (F4, F5).
-  - Three full-attention layers, 15, 19 and 23, read the hint's letter straight from the prompt:
-    0.90 [0.85, 0.96] of the drop in hint-token restoration at the takeover (F11). The reasoning's
-    own repetition carries it in a minority of cases (F7, F13).
-  - Tool hints get *less* attention at the answer than user hints yet move it more (F10); heads
-    L19H31, L23H17 and L15H31 look at the hint more when the model follows it (F12). So the extra
-    trust in tools lies in what is read at the hint, not in how much it is attended to.
-- **The fix.** Fine-tune Olmo 3 7B Think with LoRA plus **source tags** (a learned vector added to
-  every token, marking whether it came from the system, the user, a tool or the model), on examples
-  that see the hint, say so, check it and keep the no-hint answer. Judge by behavior.
+**A tool's influence loses its source at three levels.**
 
-## Timeline (set Oct 27: everything as early as it can go)
+1. **Inside the model: the readout layers read the tool's letter directly.**
+   - Known:
+     - In Olmo 3 7B Think, three full-attention layers, 15, 19 and 23, carry 0.90 [0.85, 0.96] of the drop in
+       hint-token restoration at the takeover (F11).
+     - Replicated on separate questions: 0.90 [0.76, 1.06] (set A, F26).
+     - Heads L19H31, L23H17 and L15H31 look at the hint more when the model follows it (F12; set A, F32).
+   - Open: does training stop that readout, or act after it (A18)? Does a second model read it the same way (A37)?
+     Does scaling the tool's attention at inference help (B1, A30; with the one-line note, A38)?
+2. **In the model's words: after a tool call, the answer stops naming its source.**
+   - Known:
+     - The private reasoning names the hint in 208 of 216 runs, the final answer in 8 (F3, keyword counts).
+     - After a real call, Qwen3 30B Thinking's final answer is a bare `Answer: (X)` in 51 of 54, whether the lookup
+       was wrong or right (F15, with C4's control).
+     - With the same weights and thinking on, Qwen3-8B's is bare in 138 of 145 (F29).
+     - One instruction brings the source back and doesn't reduce the deference (F25).
+     - Training cuts following, but none of the four trained versions beats a one-line instruction, and the LoRA
+       versions' false-disclosure candidates rise (F28).
+   - Open:
+     - Is the pull the tool, or the answer key's authority (B16)?
+     - Does more thinking change it (B17)?
+     - Do two raters agree on what the texts say (L3)?
+     - Does training teach the model to claim checks it doesn't do (L4)?
+3. **Between agents: downstream agents can't tell a tool's claim from a colleague's conclusion.**
+   - Known:
+     - A reviewer that sees the solver's trace stops correcting wrong answers: Olmo 3.1 32B, 59 of 73 → 6 (F18).
+     - It replicates on 100 fresh items (F24), in one model family of four (F22, F30).
+     - When the solver cites the answer key, the deferring reviewer gets worse (F31). Removing the citing sentences
+       restores the check (F34).
+     - The checker that never sees the tool caught every wrong answer (C4, C15).
+   - Open:
+     - Is the authority claim the cue (C19)?
+     - Does a handoff note keep the source, and does a decider that never sees the tool accept the wrong answer more
+       when the source is gone (C25)?
+     - Does a tag the pipeline attaches beat the model's own disclosure (C20)?
+     - Does deference survive a realistic tool with no authority label (C26)?
 
-Day by day to the Nov 3 handoff, then by week. Sol work starts the day its code is ready, not on
-the old week-14 schedule. A date is the earliest start; Sol queue waits move it.
+## Every experiment on the map
 
-| When | Track A | Track B | Track C | Labels, repo, handoff |
+MUST unless marked. Each new experiment has code with CPU tests, a pre-registration session log (question,
+comparison, rule, what counts as each outcome, cost) and a dry run before it runs.
+
+| level | # | question | owner | due | state (Oct 31) |
+|---|---|---|---|---|---|
+| 1 inside | A37 | Qwen3-8B, Steps 3 and 10: the readout on a second model; verdict by its rule | Ritik | Nov 3 | on Sol: Step 3 123022, Step 10 123025 |
+| 1 inside | A30 | B1, provenance-scaled attention: the bench gate, the plan, the verdict by its rule | Ritik | Nov 4 | bench 122956 pending |
+| 1 inside | A18 | Inside the fixed model: Steps 9 and 10 on LoRA's evaluation runs. Does training stop the readout at 15/19/23, or act after it? | Ritik | Nov 10 | prepared |
+| 1 inside | A38 | STRETCH, only if B1 "works": prompt_only's note + B1 deployable, against each alone, same HF stack | Ritik | Nov 14 | prepared; waits for B1's verdict |
+| control | B16 | Tool or authority? The answer key's authority in the user's hint, against the tool channels | Ritik; Arsha, from Nov 3 | Nov 3 | running on Voyager |
+| 2 words | B17 | Thinking dose: gpt-oss-20b on Sol at reasoning effort low, medium, high | Ritik submits; Arsha, from Nov 3 | Nov 12 | prepared; dropped if it can't run cleanly within one day |
+| 2 words | L3 | Gate 2's hand labels (F3 rests on them): kappa per channel | Ritik and Shrey | Nov 6 | packets ready |
+| 2 words | L4 part 1 | Does training teach the model to claim checks it doesn't do? | Ritik and Shrey | Nov 14 | packets ready |
+| 2 words | B18 | The final Track B table and one figure | Ritik; Arsha, from Nov 3 | Nov 18 | — |
+| 3 agents | C19 | Is an authority claim the cue (H34)? | Shrey | Nov 7 | prepared |
+| 3 agents | C25 | Across agents (the centerpiece): solver with tool → a writer's handoff note → a decider that never sees the tool | Shrey | Nov 12 | prepared |
+| 3 agents | C20 | Pipeline vs model: a blind reviewer; a tag the system attaches; the solver's own disclosure; the checker | Shrey | Nov 15 | prepared |
+| 3 agents | C26 | SHOULD: a realistic tool, a retrieval passage from the wrong option's text, with no letter and no "answer key" | Shrey | Nov 15 | prepared |
+| 3 agents | C22 | STRETCH: a second solver | Shrey | — | not prepared |
+| 3 agents | C24 | Track C's figures and tables | Shrey | Nov 19 | — |
+| labels | L4 part 2, L5 | SHOULD | two raters | — | built |
+| dropped | B2 (A31), C21, C23 | dropped (scope, Oct 31) | — | — | — |
+
+## The calendar
+
+| when | Track A (Ritik) | Track B | Track C | labels, repo, report |
 |---|---|---|---|---|
-| Tue Oct 27 **(now)** | Steps 6–7 end; assemble train / validation; final counts | `tool_injected` for Olmo 3 Think, a model flag, the `steered_cases.jsonl` format; served-template checks, canary references, smoke tests; then the Voyager runs start: Qwen3 30B Thinking | — | History rewrite with its safeguards; merge into `main`; push commands for Ritik |
-| Wed Oct 28 | Steps 11–13 code (`train.py`, tagged generation, `eval.py`, Sol scripts) and the kit's QoS checks, CPU tests | Qwen3 30B Instruct, then Olmo 3 7B Think (Voyager, in the background); Qwen3-8B on Sol: code and CPU tests (runs on "go") | Append-only log in `results/trackC/`, no-tool team, second reviewer, input file; then the live team on 5 items | Labeling kit; the 10 replacement rows |
-| Thu Oct 29 | **First Sol jobs** (on "go"): timing run and vLLM tag check, then training | Olmo 3 runs finish; the first Track B table; the Gate 2 question answered as soon as the data allows | The team on Qwen3 Thinking's steered cases, 3 repeats, tool and no-tool teams | Labeling starts (two raters) |
-| Fri Oct 30–Sun Nov 1 | Training done; evaluation of base, prompt-only and the 3 versions (E1–E5) | Analysis; gaps filled | Steered cases continue; the Track C table | Labels; kappa as rows come in |
-| Mon Nov 2–Tue Nov 3 | E1–E5 continue | **Handoff to Arsha, Nov 3** | Shrey (Track C since Oct 30) | Handoff docs and bundles final |
-| Nov 4–9 | E1–E5 done; look inside the best version (L1); the fourth version last (S6, E6), dropped if E1–E5 aren't done by Nov 9 | Arsha | Shrey | **Gate 2, Nov 8** |
-| Nov 10–20 | Step 13 analysis; reruns; all evaluation done by Nov 20 at the latest | | | Phase 6 sample labeled |
-| Nov 22 | **Gate 3** | | | |
-| Nov 23–29 | Hand the best version to B and C | Run it through B's conditions | Run it as the solver | Draft report |
-| Nov 30–Dec 6 | | | | Final presentation (week 16) |
-| Dec 7–12 | | | | Final report |
+| Oct 31–Nov 2 | A37 on Sol; the B1 bench, then its plan | B16 on Voyager; B17's download, smoke test and template check on Sol (one day) | C19, C25, C20, C26 prepared and dry-run | L3 starts |
+| Nov 3 | A37's verdict | **Handoff to Arsha, Nov 3** | — | — |
+| Nov 4–7 | B1's verdict (Nov 4); A18 on Sol | B17's runs, if its smoke test is clean | C19 (Nov 7) | L3 by Nov 6 |
+| Nov 8–12 | A18's verdict (Nov 10) | B17's verdict (Nov 12) | C25 (Nov 12) | **Gate 2 (Nov 8)**; L4 part 1 |
+| Nov 13–18 | A38, only if B1 works (Nov 14) | the final table and figure (Nov 18) | C20 and C26 (Nov 15) | L4 part 1 by Nov 14 |
+| Nov 18 | results freeze: all evaluation done by Nov 18, no new runs after it | | | |
+| Nov 19–20 | final verdicts, figures, supplement and STATUS; Gate 3's final statement | | C24 (Nov 19) | |
+| Nov 21–22 | | | | report draft |
+| Nov 23 | | | | rehearsal of the final presentation |
+| Nov 24 | | | | final presentation and report |
 
 ## Gates
 
-- **Gate 1 (Oct 25): missed** (recorded Oct 27; TODO, G1). It needed real tool calls on 2+
-  providers (Voyager only so far), closed-model smoke tests (no keys) and the agents on 5 items
-  (2 so far). The fallback written for this applies: **Track B narrows to the providers that work
-  (Voyager, and Qwen3-8B on Sol in place of Ollama since Oct 28), and Track C runs on Voyager only.** Paid calls wait for keys and Ritik's
-  "go".
-- **Gate 2 (Nov 8).** Is the tool-vs-user gap still clear with 3 runs per question and more models
-  (Track B)? Answered as soon as the data allows, not on Nov 8. And are the hand labels in, with
-  Cohen's kappa per channel? If the gap isn't clear, the headline becomes the private-vs-final
-  gap, the mechanism (Track A) and the agent results.
-- **Gate 3 (Nov 22).** Does a trained version follow fewer wrong hints on held-out questions
-  without losing accuracy? Success: the 95% bootstrap difference against the base model,
-  clustered by question, excludes 0; no-hint accuracy stays within 5 points; the hiding check
-  doesn't rise. Otherwise a negative result with the analysis. All systems run on the same Sol
-  stack (F9).
+- **Gate 1 (Oct 25): missed** (recorded Oct 27; TODO, G1). It needed real tool calls on 2+ providers (Voyager only so
+  far), closed-model smoke tests (no keys) and the agents on 5 items (2 so far). The fallback written for this
+  applies: **Track B narrows to the providers that work (Voyager, and Qwen3-8B on Sol in place of Ollama since Oct
+  28), and Track C runs on Voyager only.** Paid calls wait for keys and Ritik's "go".
+- **Gate 2 (Nov 8).** Is the tool-vs-user gap still clear with 3 runs per question and more models (Track B)?
+  Answered: clear for all four models (B9). And are the hand labels in, with Cohen's kappa per channel? L3 is due
+  Nov 6. If the gap isn't clear, the headline becomes the private-vs-final gap, the mechanism (Track A) and the agent
+  results.
+- **Gate 3 (Nov 20), its final statement.** Does a trained version follow fewer wrong hints on held-out questions
+  without losing accuracy? Success:
+  - the 95% bootstrap difference against the base model, clustered by question, excludes 0;
+  - no-hint accuracy stays within 5 points;
+  - the hiding check doesn't rise.
+
+  Otherwise a negative result with the analysis. All systems run on the same Sol stack (F9).
+  - **Met on Oct 31** (F28): all four trained versions pass.
+  - The final statement moves to Nov 20, after L4 part 1's labels (false disclosure, Nov 14) and A18 (Nov 10). It
+    was due Nov 22.
+
+## Final presentation map (about 12 slides)
+
+Bullets only; the team writes the prose and the speaker notes. Figure paths are from the repo root. "To make" marks a
+figure that doesn't exist yet: `tools/paper_figures.py` makes it from the numbers-only summaries.
+
+1. **Where did that answer come from?** The question and the three levels.
+   - Figure: `docs/paper/figures/three_levels.svg` (to make; a diagram, no data).
+   - Status: to make. Owner: Ritik.
+2. **Tools pull harder than users.** Gate 2 on four models (F1, F15–F17, F29).
+   - Figure: `docs/paper/supplement/figures/trackB_following.png`.
+   - Status: done; the final version (Nov 18) adds B16 and B17. Owner: Arsha.
+3. **Level 1: three layers read the tool's letter.** F11, replicated on set A (F26); the heads (F12, F32).
+   - Figure: `docs/paper/figures/readout_by_layer.png` and `docs/paper/supplement/figures/readout_setA_vs_test2.png`.
+   - Status: done. Owner: Ritik.
+4. **Level 1 on a second model.** Qwen3-8B (A37).
+   - Figure: `docs/paper/figures/readout_qwen8b.png` (to make).
+   - Status: due Nov 3. Owner: Ritik.
+5. **Level 2: the private reasoning names it, the final answer doesn't** (F3, with L3's kappa).
+   - Figure: `docs/paper/supplement/figures/cue_experiments.png`.
+   - Status: the labels are due Nov 6. Owner: Ritik and Shrey.
+6. **Level 2: after a tool call, the answer goes bare.** F15, C4's control, F29; one instruction brings the source
+   back without reducing deference (F25).
+   - Figure: `docs/paper/figures/bare_after_call.png` (to make).
+   - Status: the data is done. Owner: Arsha.
+7. **Tool or authority?** (B16)
+   - Figure: `docs/paper/figures/b16_authority.png` (to make).
+   - Status: running, due Nov 3. Owner: Ritik, then Arsha.
+8. **Thinking dose** (B17; the slide goes if B17 is dropped).
+   - Figure: `docs/paper/figures/b17_effort.png` (to make).
+   - Status: due Nov 12. Owner: Arsha.
+9. **The fix: training cuts following, but none beats one line** (F28, Gate 3).
+   - Figure: `cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png`.
+   - Status: done; false disclosure from L4 part 1 (Nov 14); the final statement Nov 20. Owner: Ritik.
+10. **Inside the fixed model.** Does training stop the readout or act after it (A18)? And B1 (A30).
+    - Figure: `docs/paper/figures/readout_lora_vs_base.png` (to make).
+    - Status: due Nov 10. Owner: Ritik.
+11. **Level 3: reviewers defer to the trace, and the citation is the cue.** F18, F22, F24, F30, F31, F33, F34, C19.
+    - Figure: `docs/paper/supplement/figures/trackC_reviewers.png` and `docs/paper/figures/reviewer_by_prompt.png`.
+    - Status: done; C19 due Nov 7. Owner: Shrey.
+12. **Across agents, and what holds.** The handoff note loses the source (C25); pipeline vs model (C20); a
+    realistic tool (C26); the checker.
+    - Figure: `docs/paper/figures/c25_hops.png` (to make).
+    - Status: due Nov 12–15. Owner: Shrey.
+13. **What to do about it, and the limits.**
+    - Figure: none.
+    - Status: Nov 21–22. Owner: everyone.
+
+## Report outline (sections, one figure each)
+
+Bullets only; the team writes the prose. [`docs/paper/OUTLINE.md`](paper/OUTLINE.md) has the threads' detailed
+outlines and [`docs/paper/CLAIMS.md`](paper/CLAIMS.md) the claims.
+
+1. **Introduction:** the question, the three levels, the contributions.
+   - Figure: `three_levels.svg`.
+2. **Setup:**
+   - the models (Olmo 3 7B Think, Qwen3 30B Thinking and Instruct, Qwen3-8B, gpt-oss-20b if B17 runs);
+   - the five channels and the authority hint;
+   - the questions;
+   - the statistics: X of Y; a bootstrap clustered by question; at least 5 questions.
+   - Figure: one prompt per channel (`channels.svg`, to make).
+3. **The failure:** tools pull harder (Gate 2); tool or authority (B16); thinking dose (B17).
+   - Figure: `trackB_following.png`, final.
+4. **Level 1, inside the model:** the readout at 15/19/23; set A; Qwen3-8B; the heads.
+   - Figure: `readout_by_layer.png`.
+5. **Level 2, in the words:**
+   - private vs final, with L3's kappa;
+   - the bare answer after a call, and the good-lookup control;
+   - the instruction (F25).
+   - Figure: `bare_after_call.png`.
+6. **Fixing it:**
+   - the four trained versions and the one-line instruction (Gate 3);
+   - false disclosure (L4);
+   - inside the fixed model (A18);
+   - B1 at inference (A30, A38).
+   - Figure: `gate3_vs_base.png`.
+7. **Level 3, between agents:** reviewer deference by family; the citation as the cue (C16–C19).
+   - Figure: `trackC_reviewers.png`.
+8. **Across agents, and the pipeline:**
+   - the handoff note (C25);
+   - pipeline vs model (C20);
+   - a realistic tool (C26);
+   - the checker's record.
+   - Figure: `c25_hops.png`.
+9. **Limits and threats:** one tool format; one solver; keyword counts where the labels aren't in; the 30 evaluation
+   questions; cross-day comparisons. Figure: none.
+10. **Related work:** [`RELATED_WORK.md`](paper/RELATED_WORK.md). Figure: none.
+11. **Conclusion and deployment:** the check that never sees the tool held; disclosure needs the source, not the
+    authority. Figure: none.
+
+**The supplement** is made by `tools/make_supplement.py`: pre-registrations, deviations, evidence and traps.
 
 ---
 
@@ -295,7 +431,7 @@ replaces these estimates with measured ones.
 | P1 | B1 forced answer at set A's takeover cuts, alpha in {1, 0.5, 0.25, 0.1, 0}, deployable and oracle spans; chooses alpha on set A (`provenance_forced`) | 0.25–0.5 | 1:00 | any | after set A's cases | set A |
 | P2 | B1 generation on the held-out 30 MMLU-Pro: wrong, correct and no tool hint, pasted and inserted, at alpha = 1 and the chosen alphas (`provenance_gen`, 4 parts; 630 runs) | 11–23 (speed a guess) | 6:00 each | any | after P1 | P1 |
 | G1 | B2 train gate3 and lora_attn3_gate (a learned per-head bias on tool keys in 15/19/23) + their val_loss. LR_GATE 1e-2 approved (Ritik, Oct 29); every bias logged at every step, and after each epoch checked against Adam's applied bound (1.31 over 260 steps with the warmup and decay; Ritik's lr × steps is 2.6): a bias at the bound is reported with a rerun at 3e-2 proposed, the run left as it is | ~2.75 each + 0.3 | 4:00 | each other | after batch 3's order | S1 |
-| — | Buffer for queue waits and reruns; all evaluation done | | | | by Nov 20 | |
+| — | Buffer for queue waits and reruns; all evaluation done (results freeze, Oct 31 program) | | | | by Nov 18 | |
 
 **Order of the 10 unsubmitted jobs (Ritik, Oct 29 22:20), as slots free:** B1 provenance_gen 1/4 and 2/4; tags
 1/2 and 2/2; provenance_gen 3/4 and 4/4; lora_tags 1/2 and 2/2; lora_attn3 1/2 and 2/2. The exact lines are in the
@@ -313,7 +449,7 @@ one-line instruction on following (not pre-registered); the tags prediction isn'
 With two jobs at a time the running time is about half the GPU hours. On Hugging Face (Oct 29),
 E1–E6 are 163–359 GPU h (mid 230): 3.5–7.5 days of both slots, plus Qwen3-8B (10–15), set A's
 Steps 9–10, P1–P2 and G1. Starting Oct 29, E1–E5 end between about Nov 2 and Nov 6 if the queue is
-free; Nov 9 is the cutoff for the fourth version, Nov 20 for everything. A working vLLM (planned at
+free; Nov 9 is the cutoff for the fourth version, Nov 18 for everything (the results freeze, Oct 31). A working vLLM (planned at
 500–1,500 tokens/s) would bring E1–E6 to 15–50 GPU h. Ritik submits every job; nothing runs without "go".
 
 **Batch 3 (evaluation), "go" Oct 28; on Hugging Face since Oct 29:** base and prompt-only first, then
@@ -326,7 +462,7 @@ already saved and parts already queued, and uses the measured rate once a part h
 |---|---|
 | Training teaches the model to hide the hint, or to describe checking without doing it | Behavior first; the hiding and false-disclosure checks; held-out wordings |
 | Training is slower than estimated at 32,768 tokens | The timing run first; one setting before any grid |
-| Sol queue waits, or the 960 GPU-minute cap | Limits of estimate × 1.3; jobs of at most 8 h that resume; `submit.sh` checks the cap before submitting; start Oct 29, done by Nov 20 |
+| Sol queue waits, or the 960 GPU-minute cap | Limits of estimate × 1.3; jobs of at most 8 h that resume; `submit.sh` checks the cap before submitting; start Oct 29, done by Nov 18 (the results freeze) |
 | The fourth version delays the main ones | Scheduled last; dropped if E1–E5 aren't done by Nov 9 |
 | vLLM can't serve the tag versions | Own decoding loop (+8–19 GPU h), still inside the budget |
 | vLLM doesn't start on Sol (Oct 29), and Hugging Face generation is 4–20× slower | Batch 3 on Hugging Face (163–359 GPU h); the first part measures the rate; the vLLM root cause from its log; if E1–E5 can't end by Nov 9, Ritik picks the scope (fewer runs per question, or systems) |
@@ -517,7 +653,7 @@ next to the catches) and tokens, as "X of Y" with intervals, against the no-tool
 4. **Track A:** the look-inside analysis (FINDINGS F4–F14); the trained adapters and tags; the
    behavior-based evaluation; the mechanism check on the best version.
 5. **Code and configs** on GitHub; produced data stays local (gitignored) with numbers-only
-   summaries tracked. Final talk (week 16); report (Dec 7–12).
+   summaries tracked. Final presentation and report on Nov 24 (rehearsal Nov 23; the Oct 31 program).
 
 ## Risks (all tracks)
 

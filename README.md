@@ -14,6 +14,11 @@ answer separately, so we can check which of the two admits the hint. Three track
 
 Details, numbers and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The story so far").
 
+**The theme for the final report (Oct 31): "Where did that answer come from?"** A tool's influence loses its source at
+three levels: inside the model (line 3), in the model's words (line 2) and between agents (line 4).
+[`docs/PLAN.md`](docs/PLAN.md) places every remaining experiment on that map. Results freeze on Nov 18; the final
+presentation and report are on Nov 24.
+
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than from the user,
    in all four models tested (Gate 2).
 2. **After a tool call, the final answer stops explaining.** It becomes a bare letter while the private reasoning

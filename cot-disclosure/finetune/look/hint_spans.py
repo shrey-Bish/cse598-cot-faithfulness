@@ -21,15 +21,29 @@ from pathlib import Path
 
 CODE = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(CODE))
+sys.path.insert(0, str(CODE / "progress"))
 
 from experiments import CUE  # noqa: E402
 from tools.answer_key import INJECTED, PASTED, tool_reply  # noqa: E402
 
 FORCE = "</think>\n\nAnswer: ("
+EVAL_SOURCE = "trackA_eval_source"     # A18 (Oct 31): an evaluation run made into a Step 2b-style source (look/a18.py)
+
+
+def current_runs(rows):
+    """Step 2b-style sources Steps 9 and 10 read: A18's evaluation sources (no Voyager route; the newest record per
+    run), else Step 2b's or set A's runs through the current Voyager route (base_format.current)."""
+    from common import latest
+    from finetune import base_format as bf
+    mine = [r for r in latest(rows) if r.get("experiment") == EVAL_SOURCE]
+    return mine or bf.current(rows)
 
 
 def hint_text(rec):
-    """The hint as the model saw it, and the character offset of its letter inside it."""
+    """The hint as the model saw it, and the character offset of its letter inside it. An A18 source carries its
+    own (the evaluation's held-out wordings: hint_text, hint_letter_at)."""
+    if rec.get("hint_text") is not None:
+        return rec["hint_text"], rec["hint_letter_at"]
     qid, letter, cond = rec["item_id"], rec["cue_letter"], rec["condition"]
     if cond == "user":
         text = CUE.format(letter)

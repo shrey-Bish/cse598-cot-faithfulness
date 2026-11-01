@@ -33,7 +33,9 @@ night"), from TODO's From column when the row gives no done date, from a depende
 that waits on it), from the end of a PLAN window, or from the handoff it serves. Where the repo gives no date the
 cell says "not in the repo" and no marker is drawn.
 
-Status, from TODO's status text: "done ..." or "final ..." (or a bold "done" anywhere, "; done (", or "done" in the
+Status, from TODO's status text: "dropped ..." is dropped (Oct 31: an item dropped for scope stays in TODO, marked
+"dropped (scope, <date>)"; it is neither done nor open, has no bar and is listed apart on the status page); "done
+..." or "final ..." (or a bold "done" anywhere, "; done (", or "done" in the
 first clause with no "not started / run / trained" after it) is done; "blocked" is blocked; otherwise the first
 status word decides: running / submitted / queued / pending / draft / kept current
 -> in progress; not started / not run / not trained / decided / planned / prepared / plan fixed / ready -> planned;
@@ -432,6 +434,8 @@ def classify(status, blocked_by="", is_pushed=False):
     raw = status.replace("\\|", "|")
     s = plain(raw).lower()
     first, _, rest = s.partition(";")
+    if s.startswith("dropped"):
+        return "dropped", "scope"
     if re.match(r"(done|final)\b", s) or re.search(r"\*\*done\b", raw, re.I) or "; done (" in s or (
             re.search(r"\bdone\b", first) and not re.search(r"\bnot (started|run|trained)\b", rest)):
         return "done", ""
@@ -1114,11 +1118,12 @@ def collect(root, today, year=FIRST.year):
     facts = plan_facts(root, year)
     upstream = pushed(root)
     todo = todo_tasks(root, bool(upstream))
+    dropped = [t for t in todo if t["status"] == "dropped"]
     hist, round_end = overview_tasks(root, year, today)
     hashes = {h for t in todo for h in HASH.findall(t.get("raw_status", ""))}
     todo_dates(todo, logs, commit_dates(root, hashes, commits), findings, facts["gates"], year, today)
-    extra = extra_tasks(todo, logs, commits)
-    tasks = hist + todo + extra
+    extra = extra_tasks(todo, logs, commits)              # dropped items count as known: a log naming one adds nothing
+    tasks = hist + [t for t in todo if t["status"] != "dropped"] + extra
     for t in tasks:
         if not t["owner"]:
             t["owner"] = owner(t["track"], t["status"])
@@ -1137,7 +1142,7 @@ def collect(root, today, year=FIRST.year):
         c["track"] = commit_track(c, round_end)
     data = {"tasks": tasks, "commits": commits, "logs": logs, "findings": findings, "facts": facts, "root": root,
             "compute": compute_lines(root), "round_end": round_end, "today": today, "head": head_commit(root),
-            "pushed": upstream}
+            "pushed": upstream, "dropped": dropped}
     annotate(data)
     return data
 
@@ -1915,6 +1920,9 @@ def status_md(model):
         (t for t in ms if t["start"] and today < t["start"] <= soon), key=lambda t: t["start"])]
     nodue = [t["id"] for t in open_ if not t["end"]]
     lines += ["", f"Open tasks with no due date in the repo: {', '.join(nodue) or 'none'}."]
+    lines += ["", "## Dropped (scope)", ""] + ([f"- **{t['id']}** {label(t['name'])} (Track {t['track']}): "
+                                               f"{clauses(t['status_text'])[0]}" for t in data.get("dropped", [])]
+                                             or ["- none"])
     return "\n".join(lines) + "\n"
 
 

@@ -165,6 +165,8 @@ depends_on() {          # the job kinds each job may wait for (plain case: works
         trackb_qwen8b) echo "setup_vllm get_qwen8b trackb_qwen8b" ;;
         c13) echo "get_c13 step10 step9 provenance_forced c13" ;;     # after set A's jobs (Oct 29)
         qwen8b_step10) echo "qwen8b_step3" ;;                        # Qwen3-8B Step 10 reads Step 3's cases (Oct 30)
+        b17) echo "get_gptoss b17" ;;                                # B17: after its snapshot, or the smoke job (Oct 31)
+        a18) echo "a18" ;;                                           # A18: Step 10, the swap, Step 9 after Step 3 (Oct 31)
     esac
 }
 deps=""

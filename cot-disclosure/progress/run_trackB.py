@@ -38,6 +38,10 @@ Rows are appended once per model and never rewritten.
 B15 (progress/run_b15.py, Oct 29) reuses run_one with two job fields: letter_kind "correct" (the tool returns the right
 letter instead of the hint's) and instruction (the user turn's last instruction, in place of the pilot's). Its records
 go to b15_<provider>.jsonl.gz and b15_<provider>_runs.jsonl (experiment "b15"), never into Track B's table.
+
+B17 (progress/run_b17.py, Oct 31) reuses run_one for gpt-oss-20b on our Sol vLLM server with a model field, effort
+(low / medium / high): it goes in each request as reasoning_effort, into the run id (model_tag) and the record
+("effort"). Records: b17_sol_vllm.jsonl.gz and b17_sol_vllm_runs.jsonl (experiment "b17"), never in Track B's table.
 """
 import argparse
 import json
@@ -70,9 +74,10 @@ NOT_RUN_PASSES = 2                                           # extra passes for 
 CORE_SET, CORE_CONDITIONS = "mmlupro_30", ("none", "user", "tool_real")   # --order core-first (Oct 27)
 TOKENIZERS = {"qwen3-30b-a3b-thinking-2507": "Qwen/Qwen3-30B-A3B-Thinking-2507",   # prompt tokens for the budget
               "qwen3-30b-a3b-instruct-2507": "Qwen/Qwen3-30B-A3B-Instruct-2507", "qwen3:8b": "Qwen/Qwen3-8B",
-              "qwen3-8b": "Qwen/Qwen3-8B"}
+              "qwen3-8b": "Qwen/Qwen3-8B", "gpt-oss-20b": "openai/gpt-oss-20b"}
 # Oct 29: Sol's GPU nodes are offline and cache only sol_trackB's pinned revision, so "main" isn't found there
-TOKENIZER_REVISIONS = {"qwen3-8b": "b968826d9c46dd6066d109eabc6255188de91218"}
+TOKENIZER_REVISIONS = {"qwen3-8b": "b968826d9c46dd6066d109eabc6255188de91218",
+                       "gpt-oss-20b": "6cee5e81ee83917806bbde320786a8fb61efebee"}      # B17: sol_b17's pinned revision
 _TOK, _TOK_LOCK = {}, threading.Lock()
 TOOL_CHANNELS = ("tool_real", INJECTED, "tool_pasted")      # what makes a case "steered" for Track C
 FILE_PREFIX = {"trackB": "", "b15": "b15_", "b16": "b16_", "b17": "b17_"}   # each experiment's own records files
@@ -99,7 +104,8 @@ def load_questions(name, spec):
 
 
 def model_tag(m):
-    return f"{m['model']}|think={m.get('thinking')}"
+    """The model's part of a run id: name and thinking setting, and B17's reasoning effort where a model has one."""
+    return f"{m['model']}|think={m.get('thinking')}" + (f"|effort={m['effort']}" if m.get("effort") else "")
 
 
 def phase(j, order):
@@ -198,7 +204,7 @@ def base_record(j, m, item):
             "set": item["set"], "item_id": item["item_id"], "condition": j["condition"], "repeat": j["repeat"],
             "hint_letter": job_letter(j), "correct_letter": item["correct"], "n_options": item["n_options"],
             **({"arm": j["arm"], "letter_kind": j.get("letter_kind", "hint"), "instruction": j.get("instruction")}
-               if j.get("arm") else {})}
+               if j.get("arm") else {}), **({"effort": m["effort"]} if m.get("effort") else {})}
 
 
 def no_answer_if_cut(rec):
@@ -235,7 +241,7 @@ def run_one(cfg, j):
         cap_new = cfg["token_budget"] - prompt_n
     used = {"out": 0}
     kw = {"thinking": m.get("thinking"), "temperature": cfg["temperature"], "seed": j["repeat"],
-          "label": f"trackB:{j['run_id']}"}
+          "label": f"trackB:{j['run_id']}", **({"reasoning_effort": m["effort"]} if m.get("effort") else {})}
 
     def gen(**k):
         left = cap_new if paid else cap_new - used["out"]
@@ -306,7 +312,7 @@ def summary_row(rec):
             "chat_template_sha256", "engine", "experiment", "arm", "letter_kind")
     usage = rec.get("usage") or {}
     return {**{k: rec.get(k) for k in keys}, "input_tokens": usage.get("input_tokens"),
-            "output_tokens": usage.get("output_tokens")}
+            "output_tokens": usage.get("output_tokens"), **({"effort": rec["effort"]} if rec.get("effort") else {})}
 
 
 def records_path(provider, experiment="trackB"):

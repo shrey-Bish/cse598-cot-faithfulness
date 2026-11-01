@@ -187,7 +187,7 @@ def inputs(runs_from=None, items_from=None, step3_from=None):
     from finetune.look import takeover as tk
     if runs_from is None:
         kit.check_inputs("step9")
-    rows = bf.current(load(runs_from or bf.OUT))
+    rows = hs.current_runs(load(runs_from or bf.OUT))          # A18's evaluation sources too (Oct 31)
     runs, _ = tk.runs_to_probe(rows)
     hinted = [r for r in runs if r["condition"] != "none"]
     step3 = {}

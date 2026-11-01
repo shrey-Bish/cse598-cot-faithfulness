@@ -89,11 +89,11 @@ def chat_template(snap):
     return tpl
 
 
-def write_template(snap, log_dir):
-    """The template as the file the server is given, and its sha256."""
+def write_template(snap, log_dir, name="qwen3_8b_chat_template.jinja"):
+    """The template as the file the server is given (B17: the file the local counts use), and its sha256."""
     import hashlib
     text = chat_template(snap)
-    path = Path(log_dir) / "qwen3_8b_chat_template.jinja"
+    path = Path(log_dir) / name
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text)
     return path, hashlib.sha256(text.encode()).hexdigest()
@@ -119,6 +119,22 @@ def download(log_dir):
         cached = False
     if not cached:
         snap = snapshot(local_only=False)              # fetches only what is missing
+    files, bad = check_files(snap, wanted)
+    if bad:
+        sys.exit(f"refusing: the {REPO}@{REVISION[:8]} snapshot doesn't match the Hub:\n  " + "\n  ".join(bad))
+    _, tpl_sha = write_template(snap, log_dir)
+    rec = {"repo": REPO, "revision": REVISION, "hub_sha": info.sha, "path": str(snap), "was_cached": cached,
+           "files": files, "chat_template_sha256": tpl_sha, "checked_utc": kit.now()}
+    snapshot_record(log_dir).write_text(json.dumps(rec, indent=1) + "\n")
+    print(f"{REPO}@{REVISION[:8]}: {'already cached' if cached else 'downloaded'} at {snap}; {len(files)} files match "
+          f"the Hub's sha256; chat template {tpl_sha[:12]}; -> {snapshot_record(log_dir)}", flush=True)
+    return rec
+
+
+def check_files(snap, wanted):
+    """(files, problems): every wanted Hub file (a sibling with files_metadata) on disk under snap, checked against
+    the Hub (sha256 for the large files, the git blob id for the small ones). Also B17's (progress/sol_b17.py)."""
+    from finetune.gpu import kit
     files, bad = [], []
     for s in wanted:
         local = snap / s.rfilename
@@ -134,26 +150,18 @@ def download(log_dir):
         if want and digest != want:
             bad.append(f"{s.rfilename}: {kind} {digest[:12]} but the Hub has {want[:12]}")
         files.append({"file": s.rfilename, "bytes": local.stat().st_size, kind: digest, "hub": want})
-    if bad:
-        sys.exit(f"refusing: the {REPO}@{REVISION[:8]} snapshot doesn't match the Hub:\n  " + "\n  ".join(bad))
-    _, tpl_sha = write_template(snap, log_dir)
-    rec = {"repo": REPO, "revision": REVISION, "hub_sha": info.sha, "path": str(snap), "was_cached": cached,
-           "files": files, "chat_template_sha256": tpl_sha, "checked_utc": kit.now()}
-    snapshot_record(log_dir).write_text(json.dumps(rec, indent=1) + "\n")
-    print(f"{REPO}@{REVISION[:8]}: {'already cached' if cached else 'downloaded'} at {snap}; {len(files)} files match "
-          f"the Hub's sha256; chat template {tpl_sha[:12]}; -> {snapshot_record(log_dir)}", flush=True)
-    return rec
+    return files, bad
 
 
-def check_snapshot(snap, log_dir):
+def check_snapshot(snap, log_dir, revision=REVISION, job="get_qwen8b"):
     """In the GPU job (offline): the download job's record exists and every file still has its size."""
     path = snapshot_record(log_dir)
     if not path.exists():
-        sys.exit(f"no {path}: run the download job first (submit.sh get_qwen8b)")
+        sys.exit(f"no {path}: run the download job first (submit.sh {job})")
     rec = json.loads(path.read_text())
     off = [f["file"] for f in rec["files"] if not (Path(snap) / f["file"]).exists()
            or (Path(snap) / f["file"]).stat().st_size != f["bytes"]]
-    if rec["revision"] != REVISION or off:
+    if rec["revision"] != revision or off:
         sys.exit(f"refusing: the snapshot differs from {path} (revision {rec['revision'][:8]}; files {off})")
     return rec
 
