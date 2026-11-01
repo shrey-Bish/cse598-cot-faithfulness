@@ -75,7 +75,7 @@ TOKENIZERS = {"qwen3-30b-a3b-thinking-2507": "Qwen/Qwen3-30B-A3B-Thinking-2507",
 TOKENIZER_REVISIONS = {"qwen3-8b": "b968826d9c46dd6066d109eabc6255188de91218"}
 _TOK, _TOK_LOCK = {}, threading.Lock()
 TOOL_CHANNELS = ("tool_real", INJECTED, "tool_pasted")      # what makes a case "steered" for Track C
-FILE_PREFIX = {"trackB": "", "b15": "b15_"}                 # each experiment's own records files
+FILE_PREFIX = {"trackB": "", "b15": "b15_", "b16": "b16_", "b17": "b17_"}   # each experiment's own records files
 log = get_logger("trackB")
 
 
