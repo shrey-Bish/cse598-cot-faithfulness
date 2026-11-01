@@ -8,7 +8,7 @@
   /walkthrough.html the earlier 45-second scripted walkthrough
 
 Everything shown comes from saved replies (results/progress/*.jsonl, results/progress.jsonl,
-docs/progress/RESULTS_SUMMARY.json) or from live calls made through the repo's own code
+docs/labeling/RESULTS_SUMMARY.json) or from live calls made through the repo's own code
 (client.chat_live, parse, detect, progress/common). Live calls are appended to
 results/ui_runs.jsonl. Works offline except for live reruns.
 """
@@ -409,7 +409,7 @@ def nocue_correct(nocue, model, ex):
 
 
 # ---------------------------------------------------------------- charts: the presentation's numbers
-SUMMARY = CODE.parent / "docs" / "progress" / "RESULTS_SUMMARY.json"
+SUMMARY = CODE.parent / "docs" / "labeling" / "RESULTS_SUMMARY.json"
 TEST2_MODELS = ["olmo3-7b-instruct", "olmo3-7b-think", "qwen3-30b-a3b-thinking-2507"]
 
 
@@ -461,7 +461,7 @@ def charts_data():
                   "runs_without": len(nocue), "runs_with": len(cued),
                   "per_question": {"none": t2_none, "user": t2_hint["cue_user"], "tool": t2_hint["cue_tool"]}},
     }
-    return {"summary": "docs/progress/RESULTS_SUMMARY.json", "generated_by": s["generated_by"], "inputs_unchanged": check,
+    return {"summary": "docs/labeling/RESULTS_SUMMARY.json", "generated_by": s["generated_by"], "inputs_unchanged": check,
             "protocol": protocol, "test1": test1, "test2": test2, "mentions": mentions,
             "mention_totals": {"private": _kn(pilot_["private_mentions_all_thinking"]),
                                "final": _kn(pilot_["final_mentions_all_thinking"])},

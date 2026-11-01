@@ -1,13 +1,13 @@
 # Track A: explain and fix Olmo 3 7B Think's hint following
 
-*Moved here from `cot-disclosure/finetune/README.md` on Oct 30 (docs/MOVES.md). File names below are in
+*Moved here from `cot-disclosure/finetune/README.md` on Oct 30 (archive/MOVES.md). File names below are in
 `cot-disclosure/finetune/` unless a path says otherwise.*
 
 Owner: Ritik. Last updated: 2026-10-27 12:30 MST. Steps 1–5 and 8–10 are done; Steps 6–7
 (training data) finish Oct 27; Steps 11–13 (train, generate, evaluate) run on ASU Sol as soon as
 their code is ready: the first jobs from Oct 29, evaluation from Oct 30, all done by Nov 20, Gate 3
 on Nov 22. Findings: `docs/FINDINGS.md` (F1–F14). Commands for
-every step: `docs/RUNBOOK.md`. The Sol kit: [`gpu/README.md`](../cot-disclosure/finetune/gpu/README.md).
+every step: `docs/RUNBOOK.md`. The Sol kit: [`gpu/README.md`](../../cot-disclosure/finetune/gpu/README.md).
 
 ## The pipeline
 

@@ -1,13 +1,14 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-10-31 22:50 MST (the 20-day program, set by Ritik on Oct 31. It replaces the planning reset and
+Last updated: 2026-11-01 (Nov 1: the docs' new folders, the submission folder's date, A18's and B17's
+amendments; before that, 2026-10-31 22:50 MST: the 20-day program, set by Ritik on Oct 31. It replaces the planning reset and
 the Oct 27 timeline: the story, every experiment on its map, owners and dates, the final dates, the final
 presentation map and the report outline. B16 running on Voyager since 22:25.) The version before this one is kept
 word for word in [`archive/superseded/PLAN_2026-10-31.md`](../archive/superseded/PLAN_2026-10-31.md); the sections
 below the gates are unchanged from it apart from their dates. Where things are:
-- progress: [`STATUS.md`](STATUS.md);
+- progress: [`STATUS.md`](status/STATUS.md);
 - each result, with its numbers and source: [`FINDINGS.md`](FINDINGS.md);
-- every open item, with owner and due date: [`TODO.md`](TODO.md);
+- every open item, with owner and due date: [`TODO.md`](status/TODO.md);
 - how to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 
 **Who runs what.**
@@ -97,6 +98,10 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | Nov 21–22 | | | | report draft |
 | Nov 23 | | | | rehearsal of the final presentation |
 | Nov 24 | | | | final presentation and report |
+
+- **No submission folder yet.** The folder for the report and the slides (the files handed in) is made on
+  Nov 19–21, from the final figures and the supplement. Until then the repo keeps the structure set on Nov 1
+  (README's folder map; every move in [`archive/MOVES.md`](../archive/MOVES.md)).
 
 ## Gates
 
@@ -606,10 +611,10 @@ next to the catches) and tokens, as "X of Y" with intervals, against the no-tool
 
 ## Everyone: hand labels
 
-- **The queue** (`docs/progress/LABEL_QUEUE.csv`, 101 rows; 10 have no text yet and are replaced,
+- **The queue** (`docs/labeling/LABEL_QUEUE.csv`, 101 rows; 10 have no text yet and are replaced,
   with no calls, by the original rule: random hinted pilot runs with saved text, seed recorded,
   marked as replacements in the queue and in the guide; decided Oct 27). Two raters label
-  the private reasoning and the final answer with [`progress/LABELING_GUIDE.md`](progress/LABELING_GUIDE.md):
+  the private reasoning and the final answer with [`progress/LABELING_GUIDE.md`](labeling/LABELING_GUIDE.md):
   no mention / mentions only / rejects the hint / says the hint changed the answer / unclear.
   Cohen's kappa per channel; under 0.6, tighten the guide and label a fresh batch. No
   acknowledgment claim goes in the report before this is done (Gate 2).

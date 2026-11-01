@@ -3,7 +3,7 @@
 Last updated: 2026-10-31 22:50 MST (B16; the 20-day program's experiments: §14, §18, §19). One page per step: what it does, where it runs, the commands in order,
 inputs and outputs, how long it takes, and what to check. Written so anyone in the group can run a
 step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md); open work in
-[`TODO.md`](TODO.md).
+[`TODO.md`](status/TODO.md).
 
 **Conventions.** Mac commands run from `cot-disclosure/` with the repo's virtual environment, written
 `../.venv/bin/python`. Sol commands run from the clone's root, `/scratch/ragarw68/cse598-cot-faithfulness`.
@@ -47,9 +47,9 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
 - **What:** every progress-round number (Test 1, Test 2, Experiment A) from the saved runs.
 - **Where:** Mac, no calls. **Status:** done; rerun after any parser change.
 - **Commands** (repo root): `.venv/bin/python cot-disclosure/progress/analyze_progress.py`
-- **In → out:** `results/progress*.jsonl` → `docs/progress/RESULTS_SUMMARY.json`, figures F1–F9,
-  `docs/progress/LABEL_QUEUE.csv`.
-- **Time:** under a minute. **Check:** `git diff docs/progress/` shows no number changes unless you
+- **In → out:** `results/progress*.jsonl` → `docs/labeling/RESULTS_SUMMARY.json`, figures F1–F9,
+  `docs/labeling/LABEL_QUEUE.csv`.
+- **Time:** under a minute. **Check:** `git diff docs/labeling/` shows no number changes unless you
   meant one.
 
 ## 2. Track A, Step 1 and the Voyager ID checks
@@ -350,7 +350,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
 
 - **What:** two raters label what the text says about the hint, for the private reasoning and the
   final answer: no mention / mentions only / rejects the hint / says the hint changed the answer /
-  unclear ([`progress/LABELING_GUIDE.md`](progress/LABELING_GUIDE.md)).
+  unclear ([`progress/LABELING_GUIDE.md`](labeling/LABELING_GUIDE.md)).
 - **Where:** anywhere, no calls. **Status:** the kit is built (Oct 27); the rater packets for L3 and L4 part 1 are
   built (Oct 31; `tools/rater_packets.py`); labeling not started.
 - **Commands** (from `cot-disclosure/`):
@@ -371,7 +371,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   ../.venv/bin/python tools/label_kit.py kappa results/labels/gate3/L4/L4_part1_RA.csv results/labels/gate3/L4/L4_part1_SB.csv
   # ^ kappa per channel (user, tool_pasted, tool_injected) and each rater's guess against key_L4.csv
   ```
-- **In → out:** `docs/progress/LABEL_QUEUE.csv` + saved runs → `results/labels/` (101 rows: 91 + 10
+- **In → out:** `docs/labeling/LABEL_QUEUE.csv` + saved runs → `results/labels/` (101 rows: 91 + 10
   replacements; sheets, key). `kappa` prints Cohen's kappa per text (private, final), overall and by
   user / tool hint, and every disagreement by row. Under 0.6: meet, tighten the guide, label a fresh batch.
 - **Time:** about 2 minutes per row per rater (101 rows: 3–4 hours). **Check:** every row has exactly
@@ -530,7 +530,7 @@ It refuses a push that adds anything under a produced-data folder, any file with
 
 - **Prepared Oct 31 (the 20-day program), for Shrey from about Nov 4:** C19 (H34), C25 (across agents), C20
   (pipeline vs model), C26 (a retrieval tool, SHOULD). Each one's lines, in order, and its reading command are in
-  [`handoff/TRACK_C.md`](handoff/TRACK_C.md) §5a, and its pre-registration in `archive/sessions/2026-10-31/` (22:31–22:34).
+  [`tracks/TRACK_C.md`](tracks/TRACK_C.md) §5a, and its pre-registration in `archive/sessions/2026-10-31/` (22:31–22:34).
   Add `--dry-run` to any `run_team.py` line first.
 
 ## 20. Session logs

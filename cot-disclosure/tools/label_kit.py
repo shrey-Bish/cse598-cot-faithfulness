@@ -1,11 +1,11 @@
-"""The hand-labeling kit (docs/progress/LABELING_GUIDE.md): the 10 replacement rows, two blank rater
+"""The hand-labeling kit (docs/labeling/LABELING_GUIDE.md): the 10 replacement rows, two blank rater
 sheets, and Cohen's kappa. No model calls; no labels are filled in here.
 
   python tools/label_kit.py build        # -> results/labels/ (gitignored: the sheets hold model text)
   python tools/label_kit.py kappa results/labels/rater1.csv results/labels/rater2.csv
 
 build:
-  - the queue (docs/progress/LABEL_QUEUE.csv) has 10 rows whose text was never saved (pilot runs of
+  - the queue (docs/labeling/LABEL_QUEUE.csv) has 10 rows whose text was never saved (pilot runs of
     Oct 1-2). They are replaced, with no calls (decided Oct 27), by a seeded random draw (SEED) of
     hinted runs with saved text that are not in the queue: first the pilot replay's wrong-hint runs
     (results/progress/pilot_replay.jsonl; only 7 exist outside the queue), then Test 2's hinted runs
@@ -50,7 +50,7 @@ sys.path.insert(0, str(CODE / "progress"))
 
 from common import latest, load  # noqa: E402
 
-QUEUE = CODE.parent / "docs" / "progress" / "LABEL_QUEUE.csv"
+QUEUE = CODE.parent / "docs" / "labeling" / "LABEL_QUEUE.csv"
 OUT = CODE / "results" / "labels"
 REPLAY = CODE / "results" / "progress" / "pilot_replay.jsonl"
 CUED = CODE / "results" / "progress" / "expB_cued.jsonl"

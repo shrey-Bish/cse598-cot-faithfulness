@@ -7,7 +7,7 @@ Ritik. Nothing is pushed: main, trackB-main and trackC-main are brought to the n
 
 Rules (Ritik's, unchanged from step 1):
 - move with `git mv`, never delete;
-- every moved, merged or archived file goes in [`docs/MOVES.md`](../../../docs/MOVES.md): old path, new path, why;
+- every moved, merged or archived file goes in [`docs/MOVES.md`](../../MOVES.md): old path, new path, why;
 - merge only real duplicates; each original is kept unchanged in `archive/merged-docs/`, and the merged doc keeps
   every non-duplicate fact;
 - no code, tests, configs, sbatch files or anything a Sol job reads moves;

@@ -1,11 +1,11 @@
 # Open work, every track
 
 Last updated: 2026-10-31 22:50 MST (the 20-day program: due dates on every open item; B16 running; A18, A38, B17, C19, C20, C25, C26 prepared; B18 and the end steps D4–D9 added; A21, A31, C21, C23 dropped (scope); L3's rules accepted, no third L4 sheet; D10, the Gantt after every prompt; 20:50 rater packets for L3 and L4 part 1: L3 due Nov 6, L4 part 1 Nov 14; 16:40 Gate 3 final, F28: all four trained versions pass; A16, A19 done, A36, G3; B1's
-first-engine runs counted, A30; 12:40 B1's stricter path: -v2 configurations, the gate; 12:00: B1's generation engine fixed, bench and plan; Gate 3 rerun with tags; Sol's update; 2026-10-30 22:30: the files reorganized, docs/MOVES.md; stale statuses fixed: A6, A13, A16, A19, A29, A30, A32, A37, B9, B14, C13, G2, H1, L3, L4; 10:30 C16 done F31; L4 labels first; set A Step 9 pre-registered; Sol's 10 jobs submitted; 09:30 set A replicates F26; B1's alpha F27; Gate 3 interim F28; Qwen3-8B F29; C13 F30; C16 running; second rater asked; 04:00 B15 done, F25; 01:10 C15 done, F24; Oct 29 23:00 Ritik's decisions of 22:20: the Sol order, LR_GATE approved, H23 on C15;
+first-engine runs counted, A30; 12:40 B1's stricter path: -v2 configurations, the gate; 12:00: B1's generation engine fixed, bench and plan; Gate 3 rerun with tags; Sol's update; 2026-10-30 22:30: the files reorganized, archive/MOVES.md; stale statuses fixed: A6, A13, A16, A19, A29, A30, A32, A37, B9, B14, C13, G2, H1, L3, L4; 10:30 C16 done F31; L4 labels first; set A Step 9 pre-registered; Sol's 10 jobs submitted; 09:30 set A replicates F26; B1's alpha F27; Gate 3 interim F28; Qwen3-8B F29; C13 F30; C16 running; second rater asked; 04:00 B15 done, F25; 01:10 C15 done, F24; Oct 29 23:00 Ritik's decisions of 22:20: the Sol order, LR_GATE approved, H23 on C15;
 A36 the Gate 3 command; B15, C14, C15; earlier: A34 done, A35, B4's race, C13, F23's H23). Rebuilt from the session transcripts (Oct 4–27),
-[`PLAN.md`](PLAN.md), [`FINDINGS.md`](FINDINGS.md), [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), the commit log
+[`PLAN.md`](../PLAN.md), [`FINDINGS.md`](../FINDINGS.md), [`OVERVIEW.md`](../../archive/superseded/OVERVIEW_2026-10-27.md), the commit log
 and every local and remote branch; updated with Ritik's decisions and the Oct 27–Nov 3 plan. How
-to run each step: [`RUNBOOK.md`](RUNBOOK.md).
+to run each step: [`RUNBOOK.md`](../RUNBOOK.md).
 
 - **Status:** done / in progress / not started / blocked.
 - **Needs:** Voyager (ASU's API), Ollama (local), Sol (GPU jobs), paid (closed-model API), or no
@@ -13,7 +13,7 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
   accepted its terms on Hugging Face.
 - **Times** are working time for code and docs, and GPU or Voyager time for runs.
 - **Owners:** Ritik did the work so far in all three tracks. Track C is Shrey's from Oct 30 (handed over with
-  `docs/handoff/TRACK_C.md`, final). Track B goes to Arsha on Nov 3. "Shrey, from Oct 30" or "Arsha, from Nov 3" in
+  `docs/tracks/TRACK_C.md`, final). Track B goes to Arsha on Nov 3. "Shrey, from Oct 30" or "Arsha, from Nov 3" in
   the owner column says who takes an open item over, never who did past work. "Ritik submits" marks a Sol job
   Ritik submits.
   The repo has no commits by Arsha and none by Shrey after Oct 4, so their local work can't be
@@ -130,8 +130,8 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 | # | Item | From | Status | Blocked by | Owner | Needs | Time |
 |---|---|---|---|---|---|---|---|
 | H1 | Start `trackB-main` and `trackC-main` from `main` | Oct 27, Oct 28 | done Oct 28 (from `main`; on GitHub since Oct 30); kept at `main` until Nov 3 | — | Ritik | no calls | 10 min |
-| H2 | `docs/handoff/TRACK_B.md`, for Arsha: what's done, results (FINDINGS links), how to run each step (RUNBOOK), open items, inherited decisions, traps; current all week, final by Nov 3 | Oct 27 | draft, kept current | — | Ritik | no calls | 2 h |
-| H3 | `docs/handoff/TRACK_C.md`, for Shrey: the same | Oct 27 | **final Oct 30** (handed over early: Shrey owns Track C from Oct 30; bundle `trackC_20261030.tar.gz` rebuilt after C18) | — | Ritik | no calls | 2 h |
+| H2 | `docs/tracks/TRACK_B.md`, for Arsha: what's done, results (FINDINGS links), how to run each step (RUNBOOK), open items, inherited decisions, traps; current all week, final by Nov 3 | Oct 27 | draft, kept current | — | Ritik | no calls | 2 h |
+| H3 | `docs/tracks/TRACK_C.md`, for Shrey: the same | Oct 27 | **final Oct 30** (handed over early: Shrey owns Track C from Oct 30; bundle `trackC_20261030.tar.gz` rebuilt after C18) | — | Ritik | no calls | 2 h |
 | H4 | `tools/make_handoff_bundle.py`: a tar.gz per track of its gitignored results, with a sha256 manifest; GPQA files never inside unless Ritik says so | Oct 27 | done (`87f3357`; `--verify` checks a bundle) | — | Ritik | no calls | 1 h |
 | H5 | Teammates' work on GitHub: check before every merge; never overwrite; report it in a log; merge only on Ritik's say | Oct 27 | standing | — | Ritik | no calls | — |
 | D1 | Docs kept in line with the code and results; each says when it was last updated | Oct 27 | standing | — | Ritik | no calls | — |
@@ -149,6 +149,9 @@ to run each step: [`RUNBOOK.md`](RUNBOOK.md).
 | D7 | Report draft from PLAN's outline (the team writes the prose) | Oct 31 | planned; due Nov 22 | D6 | everyone | no calls | 2 days |
 | D8 | Rehearsal of the final presentation (PLAN's presentation map) | Oct 31 | planned; due Nov 23 | D7 | everyone | no calls | — |
 | D9 | Final presentation and report | Oct 31 | planned; due Nov 24 | D8 | everyone | no calls | — |
+| D11 | The repo's structure (Ritik, Nov 1): docs in `tracks/`, `labeling/`, `status/` and `paper/`; the README the front door; `cot-disclosure/README.md` the code map (folder, track, what it holds, entry points; older scripts marked historical); every move in `archive/MOVES.md`; dead code removed only by the four checks | Nov 1 | in progress (Nov 1; moves `d48660e`) | — | Ritik | no calls | 3 h |
+| D12 | Three files still name the old doc paths because B16 and Sol's queued jobs load them: the docstrings of `finetune/__init__.py` and `finetune/source_tags.py` (`docs/TRACK_A.md`) and `progress/common.py`'s `DOCS` (`docs/progress`; no code reads through it). Update them once B16 and Sol's 122956, 123022 and 123025 have finished | Nov 1 | open; due Nov 4 | A37 | Ritik | no calls | 10 min |
+| D13 | The submission folder for the report and the slides (PLAN, the calendar) | Nov 1 | planned; due Nov 21 | D6 | Ritik | no calls | 1 h |
 
 ## Notes
 

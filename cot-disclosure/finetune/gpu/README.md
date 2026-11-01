@@ -2,7 +2,7 @@
 
 Last updated: 2026-10-30 17:15 MST (another user: every path from `$USER`, accounts per user). The look-inside steps that need the weights (Steps 8–10, done
 Oct 26–27), the Sol plumbing every GPU step reuses, and the jobs of Steps 11–13 (code done Oct 27,
-not run yet). The job plan is in `docs/PLAN.md` (Track A) and the status in `docs/TODO.md`. The Sol commands below run from the clone's root
+not run yet). The job plan is in `docs/PLAN.md` (Track A) and the status in `docs/status/TODO.md`. The Sol commands below run from the clone's root
 (`/scratch/$USER/cse598-cot-faithfulness`); the scripts move into `cot-disclosure/` and the
 project environment `/scratch/$USER/envs/olmo` (Python 3.11) themselves. Never use the system
 `python3` (3.6.8). The Mac commands run from `cot-disclosure/` with the repo's `.venv`.
@@ -72,7 +72,7 @@ Smoke and Steps 8–10 ran in the Oct 26 interactive session; Step 9's follow-up
 ### Another user (Oct 30)
 
 The kit runs for any Sol user, under their own scratch; the steps for a new user are in
-`docs/handoff/SOL_SETUP.md`.
+`docs/tracks/SOL_SETUP.md`.
 - **Paths.** `sol/env.sh` derives every path from `$USER`: `TRACKA_SCRATCH=/scratch/$USER` (or
   `TRACKA_SCRATCH` if set), then `envs/olmo`, `envs/olmo-vllm`, `HF_HOME=$TRACKA_SCRATCH/hf` and
   `TRACKA_OUT=$TRACKA_SCRATCH/trackA`; the clone is `/scratch/$USER/cse598-cot-faithfulness`. Each user
@@ -539,7 +539,7 @@ The order, hours and dates: `docs/PLAN.md` (Track A). Results back by rsync, sum
 
 ## B1 and B2: provenance-scaled attention (Oct 29)
 
-The method, the decision rule for alpha and the full Sol lines: [`docs/TRACK_A_PROVENANCE.md`](../../../docs/TRACK_A_PROVENANCE.md). In short:
+The method, the decision rule for alpha and the full Sol lines: [`docs/tracks/TRACK_A_FIX.md`](../../../docs/tracks/TRACK_A_FIX.md). In short:
 a bias on the attention logits to the tool's tokens in layers 15, 19 and 23. B1 sets it from alpha at
 inference (training-free); B2 learns one per head (`train.py` versions `gate3`, `lora_attn3_gate`).
 Hugging Face only: vLLM can't apply it, so `submit.sh eval` refuses the gate versions.

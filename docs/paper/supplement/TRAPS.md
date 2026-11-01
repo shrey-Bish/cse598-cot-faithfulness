@@ -90,7 +90,7 @@ From [`docs/FINDINGS.md`](../../FINDINGS.md) ("Measurement traps we hit and fixe
 
 ## 2. The handoffs' known traps
 
-### [`docs/handoff/TRACK_B.md`](../../../docs/handoff/TRACK_B.md)
+### [`docs/handoff/TRACK_B.md`](../../tracks/TRACK_B.md)
 
 - **Wrong template** (FINDINGS T1, T2): Voyager rendered Olmo 3 7B Think with the Instruct template; check every new model's served template by prompt-token counts before trusting its runs. (FINDINGS T1, T2)
 - **Model-ID routing** (T3): Voyager changed its IDs on Oct 21; `client.py` maps our names to the family ID and `reasoning_effort` (`configs/models.yaml`). Run from a branch with this fix. (FINDINGS T3)
@@ -104,7 +104,7 @@ From [`docs/FINDINGS.md`](../../FINDINGS.md) ("Measurement traps we hit and fixe
 - **B15's "before" is a day or two older** than its runs (the same Voyager route, checked by the identity canary); the right-letter control runs beside it.
 - Olmo 3 7B Instruct (Track C's second reviewer): the served default system prompt differs from the current Hugging Face template's; with a system message the counts match.
 
-### [`docs/handoff/TRACK_C.md`](../../../docs/handoff/TRACK_C.md)
+### [`docs/handoff/TRACK_C.md`](../../tracks/TRACK_C.md)
 
 
 ## 3. Trap notes in the session logs (parsed, unreviewed)

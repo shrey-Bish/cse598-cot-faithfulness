@@ -51,9 +51,9 @@ from common import MIN_QUESTIONS, load, wilson  # noqa: E402
 SUM_REL = "cot-disclosure/results/summaries"
 FINDINGS_REL = "docs/FINDINGS.md"
 CLAIMS_REL = "docs/paper/CLAIMS.md"
-SESSIONS_REL = "archive/sessions"     # moved from docs/sessions/ on Oct 30, one folder per date (docs/MOVES.md)
+SESSIONS_REL = "archive/sessions"     # moved from docs/sessions/ on Oct 30, one folder per date (archive/MOVES.md)
 OLD_SESSIONS_REL = "docs/sessions"    # where the logs were first committed: their adding commits are found there
-HANDOFFS = ("docs/handoff/TRACK_B.md", "docs/handoff/TRACK_C.md")
+HANDOFFS = ("docs/tracks/TRACK_B.md", "docs/tracks/TRACK_C.md")
 OUT = REPO / "docs" / "paper" / "supplement"
 SKIP_LOGS = {"LATEST.md"}            # a copy of the newest log
 MAX_CELL = 200                       # export_summaries.MAX_STRING
@@ -1106,7 +1106,7 @@ DEVIATIONS = [
     ("2026-10-27", "Gate 1 missed", "fallback: Track B narrows to the providers that work (Voyager; Qwen3-8B on Sol), "
      "Track C to Voyager; paid calls wait for keys", ["docs/PLAN.md"], ["Gate 1 (Oct 25): missed"]),
     ("2026-10-27 23:55", "Track C's second reviewer", "Olmo 3 32B Instruct (decision 5), which Voyager serves as Olmo "
-     "3.1 32B Instruct", ["docs/handoff/TRACK_C.md"], ["Olmo 3 32B Instruct on Voyager is 3.1"]),
+     "3.1 32B Instruct", ["docs/tracks/TRACK_C.md"], ["Olmo 3 32B Instruct on Voyager is 3.1"]),
     ("2026-10-28", "Ollama dropped for Qwen3-8B", "Ollama's default 4,096-token context silently dropped the question "
      "(T10); Qwen3-8B moved to our own vLLM server on Sol (bf16, one A100); the 2 full-context Ollama runs are "
      "reported apart", ["cot-disclosure/configs/trackB.yaml", FINDINGS_REL], ["replaces Ollama's qwen3:8b"]),

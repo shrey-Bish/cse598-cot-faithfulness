@@ -131,7 +131,7 @@ template, rendered by us (Track A, from Oct 21).
   - all tool channels: 98 of 180 [47, 62%]; tool − user **+19 points [−2, +40]**
   - the same letter with no hint: 2 of 40 [1, 17%]
 - **Source.**
-  - `docs/progress/RESULTS_SUMMARY.json` (`expB.cells`) and
+  - `docs/labeling/RESULTS_SUMMARY.json` (`expB.cells`) and
     `cot-disclosure/results/progress/expB_cued.jsonl` (on main)
   - `cot-disclosure/results/summaries/trackA/base_format_runs.jsonl`, via
     `python finetune/base_format.py --report`
@@ -154,7 +154,7 @@ confound the comparison: the token budget and the run counts.
 - **Fixed between the two:** the same checkpoint behind both (Oct 21 echo check, T3) and the same
   per-letter no-hint baseline, 2 of 40 in both.
 - **Source.** `cot-disclosure/results/summaries/trackA/base_format_runs.jsonl` (the "Test 2,
-  served format" column of `base_format.py --report`); `docs/progress/RESULTS_SUMMARY.json`.
+  served format" column of `base_format.py --report`); `docs/labeling/RESULTS_SUMMARY.json`.
 - **Status.** *tentative* (confounded). Not separable without rerunning the served format with
   continuation.
 
@@ -170,7 +170,7 @@ confound the comparison: the token budget and the run counts.
   12 of 60 [12, 32%], inserted + declared 17 of 60 [19, 41%], user 0 of 20 [0, 16%].
 - **Caveat.** The private keyword also fires with no hint (22 of 72 Olmo 3 7B Think no-hint runs:
   "the user asks…"), so 208 is an upper bound.
-- **Source.** `docs/progress/RESULTS_SUMMARY.json` (`pilot.mentions.<model>.private_mentions_hinted`
+- **Source.** `docs/labeling/RESULTS_SUMMARY.json` (`pilot.mentions.<model>.private_mentions_hinted`
   and `final_mentions_hinted`); `archive/superseded/OVERVIEW_2026-10-27.md` §6; `base_format.py --report`.
 - **Status.** *confirmed* as keyword counts. Hand labels (two raters, Cohen's kappa) *waiting*.
 

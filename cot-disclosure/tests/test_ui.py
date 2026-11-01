@@ -32,7 +32,7 @@ def test_mentions_use_detect_patterns():
 
 def test_headline_numbers_match_results_summary():
     f = app.findings()
-    s = json.load(open(CODE.parent / "docs" / "progress" / "RESULTS_SUMMARY.json"))
+    s = json.load(open(CODE.parent / "docs" / "labeling" / "RESULTS_SUMMARY.json"))
     p, t = s["pilot"], s["scope_numbers"]["test2_thinking_combined"]
     a = s["expA"]["arms"]
     assert (f["private"]["k"], f["private"]["n"]) == (p["private_mentions_all_thinking"]["num"], p["private_mentions_all_thinking"]["den"]) == (208, 216)

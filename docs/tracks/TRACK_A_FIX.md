@@ -1,6 +1,6 @@
 # Provenance-scaled attention: a fix where the mechanism lives (B1, B2)
 
-*Moved here from `cot-disclosure/finetune/PROVENANCE.md` on Oct 30 (docs/MOVES.md). Paths below are in
+*Moved here from `cot-disclosure/finetune/PROVENANCE.md` on Oct 30 (archive/MOVES.md). Paths below are in
 `cot-disclosure/`.*
 
 Track A, Oct 29. By: Ritik. Code: `finetune/provenance.py` (the mechanism), `finetune/gpu/provenance_job.py`

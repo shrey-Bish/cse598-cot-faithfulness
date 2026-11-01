@@ -214,7 +214,7 @@ manifest); unpack it into `cot-disclosure/` and check it with `--verify`. The cu
 `trackB_20261030.tar.gz` (Oct 30 03:55, 12 files, 25.4 MB, B15 included, no GPQA); Qwen3-8B's Sol files go in a
 later one once they are back.
 
-## 4. Open items (docs/TODO.md, Track B)
+## 4. Open items (docs/status/TODO.md, Track B)
 
 | # | Item | Status (Oct 27) |
 |---|---|---|
@@ -224,7 +224,7 @@ later one once they are back.
 | B8 | `steered_cases.jsonl` per model | done for all three (Oct 28) |
 | B14 | The Track B table: model × channel × thinking; following vs the per-letter no-hint baseline; sure and unsure questions; mention in reasoning and final answer; tool-call rate; the bare final answer | `trackB_report.py` (and `--by-set`); F15, F16, F17; Qwen3-8B when B4 runs |
 | B9 | The Gate 2 question: is the tool-vs-user gap still clear with 3 runs per question and more models? | clear for all three Voyager models (F15, F16, F17), at both cuts |
-| L5 | Track B labeling batch (`tools/label_kit.py trackb`) | built: 171 rows to label (bare replies by rule, 18 spot checks, and 20 rows of private reasoning checking F15's keyword count); after the progress-round queue (L3); the one-page rater guide is `docs/progress/RATER_GUIDE.md` |
+| L5 | Track B labeling batch (`tools/label_kit.py trackb`) | built: 171 rows to label (bare replies by rule, 18 spot checks, and 20 rows of private reasoning checking F15's keyword count); after the progress-round queue (L3); the one-page rater guide is `docs/labeling/RATER_GUIDE.md` |
 | B16 | Tool or authority? The answer key's authority in the user's hint, against the tool channels (Voyager) | running since Oct 31 22:25; due Nov 3 |
 | B17 | Thinking dose: gpt-oss-20b on Sol at effort low, medium, high | prepared Oct 31; due Nov 12; dropped if the smoke isn't clean within a day |
 | B18 | The final Track B table and one figure (with B16 and B17) | due Nov 18 (the results freeze) |

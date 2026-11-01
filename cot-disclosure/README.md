@@ -1,117 +1,49 @@
-# cot-disclosure: the code
+# cot-disclosure: the code map
 
-Last updated: 2026-10-27 15:00 MST. Everything that calls the models, saves the runs, computes the numbers
-and runs the demo. What the project did is in [`../docs/OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), what it
-found in [`../docs/FINDINGS.md`](../docs/FINDINGS.md), what comes next in
-[`../docs/PLAN.md`](../docs/PLAN.md), and how to run each step in
-[`../docs/RUNBOOK.md`](../docs/RUNBOOK.md).
+Last updated: 2026-11-01. Everything that calls the models, saves the runs, computes the numbers and makes the
+figures. What the project found is in [`../docs/FINDINGS.md`](../docs/FINDINGS.md), what comes next in
+[`../docs/PLAN.md`](../docs/PLAN.md), and the exact command for each step in [`../docs/RUNBOOK.md`](../docs/RUNBOOK.md).
+Folders and module names are fixed: tests, Sol job scripts, RUNBOOK lines and teammates' commands use these paths.
 
 ## Setup
 
-**Python.** The model client, parser, experiments and demo app use only the standard
-library (Python 3.9+, macOS or Linux: `progress/common.py` uses `fcntl`). The analysis,
-tests and Track A need a few packages:
-
 ```bash
 python3 -m venv ../.venv && ../.venv/bin/pip install -r requirements.txt
-../.venv/bin/playwright install chromium     # only for the screenshot tools
+cp .env.example .env                          # your own keys; gitignored, never printed
+../.venv/bin/python -m pytest -q               # all tests: CPU only, no network
 ```
 
-**Keys** go in `cot-disclosure/.env`, which is gitignored and never printed:
+`.env` holds `RC_LLM_API_KEY` (ASU Voyager: https://voyager.rc.asu.edu → LLM Access → Create Key) and
+`RC_LLM_BASE_URL` (default `https://openai.rc.asu.edu/v1`). The paid providers' keys (`OPENAI_API_KEY`,
+`ANTHROPIC_API_KEY`, `XAI_API_KEY`) and their caps (`*_CAP_USD`, default $5 each) are unused: the project makes no
+paid calls. Replies are cached in `cache/` (local, not in git), keyed by the exact request, so a rerun reuses them.
+Produced data stays off GitHub: `results/trackA/`, `results/trackB/`, `results/trackC/`, `results/labels/` and
+`finetune/data/` are gitignored; numbers-only summaries go in `results/summaries/` (`tools/export_summaries.py`).
 
-```bash
-cp .env.example .env
-```
+## The map
 
-| Variable | What it's for |
-|---|---|
-| `RC_LLM_API_KEY` | ASU Voyager (https://voyager.rc.asu.edu → LLM Access → Create Key) |
-| `RC_LLM_BASE_URL` | Defaults to `https://openai.rc.asu.edu/v1` |
-| `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `XAI_API_KEY` | Track B closed models. Must be real provider keys: the adapters refuse a key equal to the Voyager key. |
-| `OPENAI_CAP_USD`, `ANTHROPIC_CAP_USD`, `XAI_CAP_USD` | Spending caps; default $5 each |
+Track: A = inside one model and the fix; B = more models and channels; C = agents; all = shared. Files marked
+*historical* ran once and are kept as the evidence for the results named; nothing current depends on rerunning them.
 
-Only public benchmark questions go to outside providers.
+| Folder | Track | What it holds | Main entry points |
+|---|---|---|---|
+| `./` (top level) | all | The Voyager client (streaming, cache, the identity canary and the other guards), the answer parser, the keyword pre-sort. *Historical, evidence for the progress round (Test 1; its figures F1–F9):* `tasks.py` (the puzzles), `experiments.py`, `analyze.py`, `run.py` (the Oct 1–2 ladder), `audit.py` | `client.py`, `parse.py`, `detect.py` |
+| `progress/` | B, all | `common.py` (one record format, the 4-request limiter, run IDs, Wilson intervals) and `guard.py` (Ritik's power rules, restarts after sleep), used by every track. Track B's runner, report and its experiments B15, B16, B17; Sol's Track B (Qwen3-8B, gpt-oss-20b); the served-template check and canary references. *Historical, evidence for the progress round (Test 2, Experiment A; its figures F1–F9):* `mmlu_pro_probe.py` (Test 2), `reviewer_demo.py` (Experiment A), `truncation_sweep.py`, `timing_run.py`, `check_tool_support.py`, `rescore.py`, `analyze_progress.py` (every progress-round number → `docs/labeling/RESULTS_SUMMARY.json`, the label queue), and the presentation tools `build_evidence_viewer.py`, `take_screenshots.py`, `extract_slides.py`, `make_bundle.py` | `run_trackB.py`, `trackB_report.py`, `run_b15.py`, `run_b16.py`, `run_b17.py`, `sol_trackB.py`, `sol_b17.py`, `guard.py` |
+| `providers/` | B | One interface over Voyager, our own vLLM or Hugging Face on Sol, Ollama, OpenAI, Anthropic and xAI (`base.py`); `config.py` reads `configs/models.yaml`; `budget.py` caps spend (unused: no paid calls) | `voyager.py`, `sol_vllm.py`, `sol_hf.py` |
+| `agents/` | C | The pipeline: `solver.py` (a thinking model with the `lookup_answer_key` tool, or a retrieval tool), `reviewer.py`, `checker.py`, `run_team.py` (teams, reviewer models, handoff notes); one reading script per experiment, `c15.py`–`c20.py`, `c25.py`, `c26.py` (pre-registered readings, no calls); `fresh_items.py` (C15's items); `sol_c13.py` (reviewers on Sol). *Historical:* `disagreement.py` (C14, exploratory) | `run_team.py`, then `c19.py`, `c25.py`, `c20.py`, `c26.py` (TRACK_C §5a) |
+| `finetune/` | A | The pinned Olmo format (`olmo_format.py`), continuation, the dataset (Steps 5–7), source tags, training, generation, evaluation (Steps 11–13), Gate 3's table, provenance-scaled attention (B1). *Historical, evidence for Steps 1–2b:* `voyager_capabilities.py`, `voyager_ids_check.py`, `template_revisions.py`, `show_spans.py`, `smoke_2b.py`, `base_format.py`; *for Steps 5–7:* `length_audit.py`, `make_pool.py`, `run_nohint.py`, `make_targets.py`, `run_steps67.py`, `check_examples.py`; *for the training plan:* `gpu_estimate.py`, `move_to_gz.py` | `build_dataset.py`, `train.py`, `generate.py`, `eval.py`, `gate3.py`, `provenance.py`, `setA.py` |
+| `finetune/look/` | A | Looking inside: the takeover curve (Step 3), the deletion test (Step 4), attention to the hint (Step 9), activation patching (Step 10), the window check; the same on Qwen3-8B (`qwen8b_mech.py`) and on the trained model (`a18.py`); figures. *Historical, evidence for F4–F6 (Step 3):* `before_takeover.py`, `plot_takeover.py` | `takeover.py`, `patching.py`, `attn_to_hint.py`, `qwen8b_mech.py`, `a18.py`, `plot_figures.py` |
+| `finetune/gpu/` | A (B, C on Sol) | The Sol kit: what every GPU job shares (`kit.py`), job plans, the evaluation job, B1's jobs, the checks (import, checkpoint, vLLM options); `sol/`: one `.sbatch` per job kind, `run.sh` (the dispatcher), `submit.sh` (the only way to submit; accounts and estimates checked). *Historical:* `smoke.py`, `step8_verdict.py`, `plan_training.py` (Steps 8–11) | `sol/submit.sh <kind>`, `provenance_job.py`, `plan_eval.py`, `eval_job.py` ([its README](finetune/gpu/README.md)) |
+| `tools/` | all | The hint conditions and the tool (`answer_key.py`); labels (`label_kit.py`: queues, sheets, Cohen's kappa; `rater_packets.py`); the generated docs (`make_gantt.py`, `make_supplement.py`, `paper_figures.py`, `export_summaries.py`); repo checks (`check_links.py`, `prepush_check.py`); per-track data bundles (`make_handoff_bundle.py`). *Historical:* `untrack_produced.py` (the history rewrite decided Oct 26) | `make_gantt.py`, `make_supplement.py`, `paper_figures.py`, `label_kit.py`, `prepush_check.py` |
+| `configs/` | all | `models.yaml` (provider facts, Voyager IDs), `trackB.yaml` (Track B's design), `canary/` (identity references), `prices.yaml` | read by the code |
+| `data/progress/` | all | `mmlupro_30.jsonl`: the 30 evaluation questions. Nothing is ever chosen on them | read by the code |
+| `results/` | all | `summaries/` is tracked and numbers-only; everything else is produced data (gitignored) | `tools/export_summaries.py --check` |
+| `tests/` | all | CPU tests for every module above (no network, no calls) | `../.venv/bin/python -m pytest -q` |
+| `ui/` | all | *Historical, the progress round's demo* (its figures F1–F9): six examples and the charts page from saved runs; its guide is [archive/progress-round/ui_demo_README.md](../archive/progress-round/ui_demo_README.md) | `python3 ui/app.py` (http://127.0.0.1:8765) |
 
-## Commands
-
-Run from the repo root unless noted. Everything that calls a model is resumable and
-appends to `results/`. Nothing overwrites a saved run. Produced data stays off GitHub:
-`results/trackA/`, `results/trackB/`, `results/trackC/` and `finetune/data/` are gitignored, and
-numbers-only summaries go in `results/summaries/` (`tools/export_summaries.py`).
-
-**Recompute numbers (no API calls):**
-
-```bash
-.venv/bin/python cot-disclosure/progress/analyze_progress.py      # docs/progress/RESULTS_SUMMARY.json, figures F1-F9, LABEL_QUEUE.csv
-cd cot-disclosure && ../.venv/bin/python -m pytest -q              # 340 tests, no network
-```
-
-**The demo app:**
-
-```bash
-python3 cot-disclosure/ui/app.py                                   # http://127.0.0.1:8765; guide: archive/progress-round/ui_demo_README.md
-```
-
-**The tracks:**
-
-```bash
-.venv/bin/python cot-disclosure/progress/run_trackB.py --dry-run   # Track B: calls and cost per provider
-.venv/bin/python cot-disclosure/progress/run_trackB.py --run --only-provider voyager --limit 1
-.venv/bin/python cot-disclosure/agents/run_team.py --replay        # Track C on saved data, no calls
-.venv/bin/python cot-disclosure/agents/run_team.py --live --n 5    # Track C live on Voyager
-.venv/bin/python cot-disclosure/finetune/build_dataset.py          # Track A train / held-out records
-cd cot-disclosure && ../.venv/bin/python -m providers.budget --status   # spend so far, per provider
-```
-
-**The progress-round experiments** (already run; rerunning needs a Voyager key):
-
-```bash
-cd cot-disclosure
-python experiments.py run --workers 20        # Test 1: 24 puzzles x 6 models (1,056 calls)
-python analyze.py                             # Test 1 numbers -> results/summary.json
-../.venv/bin/python progress/timing_run.py
-../.venv/bin/python progress/mmlu_pro_probe.py select      # Test 2: pick 30 MMLU-Pro items
-../.venv/bin/python progress/mmlu_pro_probe.py nocue       # Test 2: no-hint runs
-../.venv/bin/python progress/mmlu_pro_probe.py cued        # Test 2: user and tool hints
-../.venv/bin/python progress/reviewer_demo.py all          # Experiment A
-../.venv/bin/python progress/truncation_sweep.py
-../.venv/bin/python progress/check_tool_support.py         # real tool calls on Voyager
-```
-
-Replies are cached in `cache/` (local, not in git), keyed by the exact request, so a
-rerun with the same seed reuses them. Delete `cache/` for fresh calls.
-
-## Files
-
-| Path | What it does |
-|---|---|
-| `client.py` | Calls Voyager: streaming, splits private reasoning from the final answer, caches replies, retries transport errors, passes tool calls; `chat_live` streams piece by piece to the UI |
-| `tasks.py` | Generates puzzles with one right answer (ball swaps, race order) |
-| `parse.py` | Finds the answer letter (A–J): `Answer: (X)`, `\boxed{X}`, "the answer is X", bold, trailing `(X)`; `parse_final` for the reviewer's `FINAL: X` |
-| `detect.py` | Keyword pre-sort: `cue` (user hint), `cue_tool` (tool hint), uncertainty, self-correction, acknowledgment |
-| `audit.py` | Shows each keyword match in its sentence, to check the keywords by eye |
-| `experiments.py`, `analyze.py` | Test 1 grid and prompts (`build_prompt` rebuilds any pilot prompt exactly); its numbers |
-| `run.py` | The Oct 1–2 difficulty ladder and first pilot |
-| `progress/common.py` | One record format for every call, the fair 4-request limiter (`slot`), run IDs, Wilson intervals |
-| `progress/mmlu_pro_probe.py` | Test 2 (Experiment B) |
-| `progress/reviewer_demo.py` | Experiment A (reviewer arms and guard) |
-| `progress/truncation_sweep.py`, `timing_run.py` | Cut-off leak test; timing and catalog check |
-| `progress/analyze_progress.py` | Every reported number → `docs/progress/RESULTS_SUMMARY.json`, figures, label queue |
-| `progress/check_tool_support.py` | Real tool calls on Voyager |
-| `progress/run_trackB.py` | Track B runner (`configs/trackB.yaml`): `--model`, `--thinking`, dry run with hours, budget guard, Olmo 3 7B Think in the pinned format, `--steered` for Track C |
-| `progress/trackB_report.py` | The Track B table and the Gate 2 gap, from the saved runs |
-| `progress/voyager_template_check.py`, `make_canary.py` | A model's served chat template against ours; identity-canary references |
-| `progress/build_evidence_viewer.py`, `take_screenshots.py`, `extract_slides.py`, `make_bundle.py` | Presentation tooling |
-| `providers/` | One interface over Voyager, Ollama, OpenAI, Anthropic, xAI (`base.py`); `budget.py` caps and logs spend |
-| `tools/answer_key.py` | Hint conditions (`none`, `user`, `tool_pasted`, `tool_real`, `tool_injected`, `system`) and the `lookup_answer_key` tool |
-| `tools/export_summaries.py`, `prepush_check.py`, `untrack_produced.py` | Numbers-only summaries (no question or reply text); the pre-push check; the history rewrite (`--not-in`, `--backup`) |
-| `tools/label_kit.py`, `rater_packets.py`, `make_handoff_bundle.py` | The labeling kit and Cohen's kappa; the raters' packets (gitignored), checked and zipped; per-track data bundles with a sha256 manifest |
-| `agents/` | Track C: `solver.py`, `reviewer.py`, `checker.py`, `run_team.py` (tool and no-tool teams, reviewer models, `--cases`, `--summary`) |
-| `finetune/` | Track A: Steps 1–10, the dataset, source tags, Steps 11–13 (`train.py`, `generate.py`, `eval.py`), the Sol kit (design: [docs/TRACK_A.md](../docs/TRACK_A.md); B1/B2: [docs/TRACK_A_PROVENANCE.md](../docs/TRACK_A_PROVENANCE.md); [the GPU kit](finetune/gpu/README.md)) |
-| `configs/` | `models.yaml` (provider facts, Voyager IDs), `canary/` (identity references), `prices.yaml`, `trackB.yaml` |
-| `ui/` | The progress round's demo app (its guide: [archive/progress-round/ui_demo_README.md](../archive/progress-round/ui_demo_README.md)) |
-| `data/progress/mmlupro_30.jsonl` | The 30 Test 2 questions |
-| `results/` | Every saved run (map in `archive/superseded/OVERVIEW_2026-10-27.md` §10); `results/summaries/` is the tracked, numbers-only part |
+Track A's design is in [`docs/tracks/TRACK_A.md`](../docs/tracks/TRACK_A.md), B1/B2's in
+[`docs/tracks/TRACK_A_FIX.md`](../docs/tracks/TRACK_A_FIX.md), Track B's and Track C's handoffs in
+[`docs/tracks/`](../docs/tracks/).
 
 ## Voyager facts that matter for new code
 
@@ -165,7 +97,7 @@ rerun with the same seed reuses them. Delete `cache/` for fresh calls.
 
 ## Limits
 
-- `detect.py` matches keywords only. Hand labels (`docs/progress/LABELING_GUIDE.md`)
+- `detect.py` matches keywords only. Hand labels (`docs/labeling/LABELING_GUIDE.md`)
   decide what a reply actually says.
 - The puzzles are generated (uncontaminated but narrow). MMLU-Pro is public and may be in
   the models' training data.

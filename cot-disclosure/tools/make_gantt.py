@@ -4,7 +4,8 @@ chart with a page per track, and a status page.
 Everything is read from what the repo already holds, so it can be made again any day (no calls, no network):
   - git log of the current branch (read-only): each commit's date, hash, files and subject; whether the
     branch's remote-tracking ref holds HEAD (the push done, as of the last fetch or push)
-  - docs/TODO.md: every task table (each section's own header): status, dependency, owner, time
+  - docs/status/TODO.md (docs/TODO.md until Nov 1, still read if it is there): every task table (each section's own
+    header): status, dependency, owner, time
   - docs/PLAN.md: the gates, the timeline (windows for later work, the presentations and the report), the
     handoffs, the date by which all evaluation is done, and the deliverables
   - archive/superseded/OVERVIEW_<date>.md (docs/OVERVIEW.md until Oct 30): what was done before the session logs
@@ -14,7 +15,7 @@ Everything is read from what the repo already holds, so it can be made again any
   - docs/FINDINGS.md: the F-numbers, each dated by the commit that added it, with its title and first interval
   - the progress-presentation kit at the repo root, if one is there: the week of the progress talk
 
-  python tools/make_gantt.py                      # -> docs/GANTT.xlsx, gantt.png, gantt.pdf, STATUS.md
+  python tools/make_gantt.py                      # -> docs/status/GANTT.xlsx, gantt.png, gantt.pdf, STATUS.md
   python tools/make_gantt.py --today 2026-11-02   # the "today" column and line, and what "next 7 days" means
   python tools/make_gantt.py --dry-run            # print the Progress sheet, write nothing
 
@@ -66,6 +67,7 @@ CODE = Path(__file__).resolve().parents[1]
 ROOT = CODE.parent
 # where the session logs live (a folder per date since Oct 30; before, one flat folder) and the superseded overview
 SESSIONS = ("archive/sessions", "docs/sessions")
+STATUS_DIR = "docs/status"                  # TODO (by hand), STATUS and the Gantt files (generated); docs/ until Nov 1
 OVERVIEWS = ("archive/superseded/OVERVIEW_*.md", "docs/OVERVIEW.md")
 FIRST, LAST = date(2026, 10, 1), date(2026, 12, 12)
 STATUSES = ("done", "in progress", "planned", "blocked")
@@ -332,9 +334,9 @@ def commit_track(c, round_end):
                      r"|_A_[\w-]+\.md$", f):
             votes.add("A")
         if re.search(r"summaries/trackB|progress/(run_trackB|trackB_report|sol_trackB|run_b15|voyager_template)"
-                     r"|tests/test_trackB|handoff/TRACK_B|_B_[\w-]+\.md$", f):
+                     r"|tests/test_trackB|(handoff|tracks)/TRACK_B|_B_[\w-]+\.md$", f):
             votes.add("B")
-        if re.search(r"summaries/trackC|cot-disclosure/agents/|tests/test_trackC|handoff/TRACK_C|_C_[\w-]+\.md$", f):
+        if re.search(r"summaries/trackC|cot-disclosure/agents/|tests/test_trackC|(handoff|tracks)/TRACK_C|_C_[\w-]+\.md$", f):
             votes.add("C")
         if re.search(r"label_kit|LABEL|RATER_GUIDE|tests/test_label", f):
             votes.add("Labels")
@@ -543,10 +545,16 @@ def phase_of(track, name):
     return DEFAULT_PHASE.get(track, "Other")
 
 
+def todo_path(root):
+    """docs/status/TODO.md; docs/TODO.md in a tree from before the Nov 1 move."""
+    p = Path(root) / STATUS_DIR / "TODO.md"
+    return p if p.exists() else Path(root) / "docs" / "TODO.md"
+
+
 def todo_tasks(root, is_pushed=False):
     """Every row of every TODO task table (any header that has # and Status)."""
     out = []
-    for heading, header, rows in md_tables(read(Path(root) / "docs" / "TODO.md")):
+    for heading, header, rows in md_tables(read(todo_path(root))):
         ci, cs = column(header, "#"), column(header, "status")
         if ci is None or cs is None:
             continue
@@ -1937,7 +1945,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--today", type=date.fromisoformat, help="the run date (YYYY-MM-DD); default: the clock")
     ap.add_argument("--root", type=Path, default=ROOT, help="the repo (default: this one)")
-    ap.add_argument("--out", type=Path, default=None, help="output folder (default: <root>/docs)")
+    ap.add_argument("--out", type=Path, default=None, help="output folder (default: <root>/docs/status)")
     ap.add_argument("--dry-run", action="store_true", help="print the Progress sheet; write nothing")
     a = ap.parse_args(argv)
     model = build(a.root, a.today)
@@ -1948,7 +1956,7 @@ def main(argv=None):
           f"only; {len(model['data']['tasks'])} rows; {len(model['data']['commits'])} commits")
     if a.dry_run:
         return True
-    out = a.out or a.root / "docs"
+    out = a.out or a.root / STATUS_DIR
     for p in (write_xlsx(model, out / "GANTT.xlsx"), write_png(model, out / "gantt.png"),
               write_pdf(model, out / "gantt.pdf"), write_status(model, out / "STATUS.md")):
         print(f"wrote {p}")

@@ -147,7 +147,7 @@ and how often does a checker that never sees the tool catch it, or raise a false
    - `../.venv/bin/python agents/c15.py` (F24: 39 → 10 of 53);
    - `../.venv/bin/python agents/c18.py` (F34: 25 against 9 of 34).
 6. **One dry run** (no calls): `../.venv/bin/python agents/run_team.py --live --n 5 --dry-run`.
-7. **Sol (when you need GPUs, for C13-style reviewers):** [`SOL_SETUP.md`](../../docs/handoff/SOL_SETUP.md). It covers your scratch,
+7. **Sol (when you need GPUs, for C13-style reviewers):** [`SOL_SETUP.md`](../../docs/tracks/SOL_SETUP.md). It covers your scratch,
    your environment, your HF cache, your course account, Duo, and the job kit's per-user paths.
 
 ## 8. Your plan (Shrey; ranked; up to Gate 3, Nov 22)

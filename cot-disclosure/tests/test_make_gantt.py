@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import sys
 import zipfile
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 import pytest
@@ -184,7 +184,7 @@ def repo(tmp_path):
     sess = "archive/sessions/"
     (r / sess / "2026-10-27").mkdir(parents=True)
     git(r, "mv", OLD_LOG, NEW_LOG)                              # the Oct 30 move, in the same commit as the rest
-    commit(r, {"docs/TODO.md": TODO.format(h2=h2), "docs/PLAN.md": PLAN,
+    commit(r, {"docs/status/TODO.md": TODO.format(h2=h2), "docs/PLAN.md": PLAN,
                "archive/superseded/OVERVIEW_2026-10-27.md": OVERVIEW, sess + "INDEX.md": INDEX,
                sess + "2026-10-28/DAILY_2026-10-28.md": DAILY,
                sess + "2026-10-30/2026-10-30_1700_C_c3-prereg.md": "# Session log: C3 pre-registered: is the cue the "
@@ -536,6 +536,24 @@ def test_main_writes_four_files(repo, tmp_path):
     out = tmp_path / "progress"
     assert mg.main(["--root", str(repo[0]), "--today", "2026-10-30", "--out", str(out)])
     assert sorted(p.name for p in out.iterdir()) == ["GANTT.xlsx", "STATUS.md", "gantt.pdf", "gantt.png"]
-    assert mg.main(["--root", str(repo[0]), "--today", "2026-10-30"])          # default: <root>/docs
-    assert {"GANTT.xlsx", "STATUS.md", "gantt.pdf", "gantt.png"} <= {p.name for p in (repo[0] / "docs").iterdir()}
+    assert mg.main(["--root", str(repo[0]), "--today", "2026-10-30"])          # default: <root>/docs/status (Nov 1)
+    assert {"GANTT.xlsx", "STATUS.md", "gantt.pdf", "gantt.png"} <= {p.name for p in (repo[0] / "docs" / "status").iterdir()}
     assert mg.main(["--root", str(repo[0]), "--today", "2026-11-02", "--dry-run"])
+
+
+def test_a_commit_to_a_track_doc_counts_for_its_track():
+    """Nov 1: the handoffs moved from docs/handoff/ to docs/tracks/; a commit to either counts for its track."""
+    when = datetime(2026, 11, 1, 1, 0)
+    for f, track in (("docs/handoff/TRACK_B.md", "B"), ("docs/tracks/TRACK_B.md", "B"),
+                     ("docs/tracks/TRACK_C.md", "C")):
+        assert mg.commit_track({"when": when, "files": [f], "subject": "a doc"}, None) == track
+
+
+def test_todo_is_read_from_status_or_from_the_old_place(tmp_path):
+    """Nov 1: TODO moved to docs/status/; a tree from before the move still has docs/TODO.md."""
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "TODO.md").write_text("old")
+    assert mg.todo_path(tmp_path) == tmp_path / "docs" / "TODO.md"
+    (tmp_path / "docs" / "status").mkdir()
+    (tmp_path / "docs" / "status" / "TODO.md").write_text("new")
+    assert mg.todo_path(tmp_path) == tmp_path / "docs" / "status" / "TODO.md"

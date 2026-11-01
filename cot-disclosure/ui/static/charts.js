@@ -1,5 +1,5 @@
 // Charts of the presentation's runs for all models. Every number comes from /api/charts, which
-// reads docs/progress/RESULTS_SUMMARY.json (written by progress/analyze_progress.py). Plain SVG.
+// reads docs/labeling/RESULTS_SUMMARY.json (written by progress/analyze_progress.py). Plain SVG.
 const $ = (id) => document.getElementById(id);
 const NS = "http://www.w3.org/2000/svg";
 const C = { user: "#8893A6", tool: "#C02F79", private: "#2F6FD6", final: "#E2622A" };

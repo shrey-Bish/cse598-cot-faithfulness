@@ -1,22 +1,70 @@
-# Moves: every file moved on Oct 30, 2026, and why
+# Moves: every file moved, and why
+
+Two reorganizations: Nov 1, 2026 (below) and Oct 30, 2026 (further down). Every move was a `git mv` in a commit of
+its own with the content unchanged, so `git log --follow <new path>` shows a file's whole history.
+
+## Nov 1, 2026
+
+By: Ritik; session log [`2026-11-01_0030_ALL_repo-structure.md`](sessions/2026-11-01/2026-11-01_0030_ALL_repo-structure.md).
+**Rules:**
+- docs and evidence were moved, never deleted; produced data was untouched;
+- no code folder or Python module was moved or renamed (tests, sbatch files, RUNBOOK lines and teammates' commands
+  use those paths);
+- nothing B16 (running on the Mac) or Sol's queued jobs (bench 122956, Qwen3-8B 123022 and 123025) load was changed;
+- dead code could be removed only if nothing imports it, no test, sbatch file, RUNBOOK line or pre-registration
+  command runs it, and no finding, summary or supplement entry cites it. **Removed: none.** Every candidate is
+  listed in the session log with the reason it stays.
+
+### Moved (15 files)
+
+| # | old path | new path | why |
+|---|---|---|---|
+| 1 | `docs/TRACK_A.md` | `docs/tracks/TRACK_A.md` | the track docs together: Track A's design doc |
+| 2 | `docs/TRACK_A_PROVENANCE.md` | `docs/tracks/TRACK_A_FIX.md` | the track docs together; renamed for what it is: Track A's fix (B1/B2, provenance steering) |
+| 3 | `docs/handoff/TRACK_B.md` | `docs/tracks/TRACK_B.md` | the track docs together (Arsha's handoff, Nov 3) |
+| 4 | `docs/handoff/TRACK_C.md` | `docs/tracks/TRACK_C.md` | the track docs together (Shrey's handoff) |
+| 5 | `docs/handoff/SOL_SETUP.md` | `docs/tracks/SOL_SETUP.md` | the track docs together (Sol setup for whoever runs a track there) |
+| 6 | `docs/progress/LABELING_GUIDE.md` | `docs/labeling/LABELING_GUIDE.md` | the labeling material together |
+| 7 | `docs/progress/RATER_GUIDE.md` | `docs/labeling/RATER_GUIDE.md` | the labeling material together |
+| 8 | `docs/progress/LABEL_QUEUE.csv` | `docs/labeling/LABEL_QUEUE.csv` | the labeling material together (tools/label_kit.py and progress/analyze_progress.py read it; paths updated) |
+| 9 | `docs/progress/RESULTS_SUMMARY.json` | `docs/labeling/RESULTS_SUMMARY.json` | beside the label queue, as asked (the progress round's numbers; ui/app.py, build_evidence_viewer.py and analyze_progress.py read it; paths updated) |
+| 10 | `docs/TODO.md` | `docs/status/TODO.md` | status together: the hand-edited task list |
+| 11 | `docs/STATUS.md` | `docs/status/STATUS.md` | status together (tools/make_gantt.py writes it) |
+| 12 | `docs/GANTT.xlsx` | `docs/status/GANTT.xlsx` | status together (tools/make_gantt.py writes it) |
+| 13 | `docs/gantt.png` | `docs/status/gantt.png` | status together (tools/make_gantt.py writes it) |
+| 14 | `docs/gantt.pdf` | `docs/status/gantt.pdf` | status together (tools/make_gantt.py writes it) |
+| 15 | `docs/MOVES.md` | `archive/MOVES.md` | history: the move record lives with the archive |
+
+**Links and paths:** every relative markdown link to a moved file, and every link inside one, was rewritten from
+this table (63 links in 16 files); path mentions in the living docs and the code were updated by hand, with
+`tools/make_gantt.py` (TODO read from `docs/status/`, the generated files written there), `tools/make_supplement.py`
+(the track docs), `tools/label_kit.py` and `ui/app.py` (the label queue and the results summary).
+
+**Left at the old path until the runs that load them finish** (TODO D12): the docstrings of
+`cot-disclosure/finetune/__init__.py` and `finetune/source_tags.py` (they name `docs/TRACK_A.md`) and
+`progress/common.py`'s `DOCS` constant (`docs/progress`), which B16 and Sol's queued jobs import. `analyze_progress.py`,
+`build_evidence_viewer.py` and `make_bundle.py` (progress round scripts in `progress/`) get the new paths once B16
+ends: nothing in `progress/` changes while it runs.
+
+## Oct 30, 2026
 
 The repository was reorganized on Oct 30, 2026 (By: Ritik; session log
-[`2026-10-30_2230_ALL_reorg-applied.md`](../archive/sessions/2026-10-30/2026-10-30_2230_ALL_reorg-applied.md); the proposal:
-[`2026-10-30_2141_ALL_reorg-proposal.md`](../archive/sessions/2026-10-30/2026-10-30_2141_ALL_reorg-proposal.md)).
+[`2026-10-30_2230_ALL_reorg-applied.md`](sessions/2026-10-30/2026-10-30_2230_ALL_reorg-applied.md); the proposal:
+[`2026-10-30_2141_ALL_reorg-proposal.md`](sessions/2026-10-30/2026-10-30_2141_ALL_reorg-proposal.md)).
 **Rules:**
 - every move was a `git mv`, so `git log --follow <new path>` shows a file's whole history; nothing was deleted;
 - no code, test, config or sbatch file moved, nor anything a Sol job reads;
 - produced data was untouched;
 - numbers-only summaries that code reads stayed where they were.
 
-## Merged
+### Merged
 
 - **`docs/paper/README.md`** (a 14-line index of the paper pack) was merged into the root `README.md`'s folder
   map, which lists every file it listed, with the same descriptions, the figures and the command that makes them.
   The original is kept unchanged at `archive/merged-docs/paper_README.md`. **Dropped as duplicates:** none; every
   line of it is in the root README.
 
-## Rewritten in place, with the earlier version kept
+### Rewritten in place, with the earlier version kept
 
 - **`README.md`** became the front door: what the project is, the story in five lines, where to start, the folders.
   The Oct 27 version is kept at `archive/superseded/README_2026-10-27.md`, word for word; only its link targets
@@ -27,7 +75,7 @@ The repository was reorganized on Oct 30, 2026 (By: Ritik; session log
   were changed, so they resolve from the new folder. Its story is in
   `docs/FINDINGS.md`, F18–F34.
 
-## Moved (131 files)
+### Moved (131 files)
 
 | # | old path | new path | why |
 |---|---|---|---|

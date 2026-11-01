@@ -59,7 +59,7 @@ The runs of Oct 28–29:
    - Not answered tonight. Next: Steps 9/10 on a second open model.
 9. **Are the mention counts real acknowledgments?**
    - Keyword counts until the hand labels (L3, L5). Not answered yet; the raters' one-page guide is ready
-     (`docs/progress/RATER_GUIDE.md`).
+     (`docs/labeling/RATER_GUIDE.md`).
 10. **Couldn't you just ask the model to say where its answer came from?** (F15: after a tool call the final answer
     is a bare letter.)
     - **Answered by B15 (F25): yes, for disclosure; no, for following.** After a call, Thinking names the tool in 33
