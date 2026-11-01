@@ -75,9 +75,20 @@ FINDINGS, `results/summaries/` and the supplement). 35 files pass all four. None
 **Removed: none.** The rule allows a removal only when all four checks hold, and asks for judgment on top; every file
 that passes them is either loaded by name or is the record of how a reported result was made.
 
-## 5. Untracked clutter
+## 5. After B16 ended (02:36), finished on Nov 1 at 10:40
 
-(Filled in after B16: §5 of the overnight log below.)
+- **Untracked clutter.** Deleted: Python's `__pycache__/` in every code folder, `.pytest_cache/` (two), `.ruff_cache/`,
+  and `.DS_Store` files outside the produced-data folders (those in `results/trackA/` and `results/labels/` were left,
+  as produced data is never touched). Moved, gitignored, same names: the Oct 30 Track B bundle and its manifest and
+  the Oct 29 chat handout to `results/archive/handoff/` (Arsha's Nov 3 bundle replaces it; Shrey's `trackC_20261030`
+  bundle stays, TRACK_C points to it); 51 logs of finished runs (Oct 4–30) to `results/archive/logs/`. `logs/` keeps
+  `SESSION`, `.slots`, `guard.log`, the shared session log and `guard_b16.log`. `cache/` is kept (§6, call 1).
+- **The progress-round scripts' paths.** `analyze_progress.py` (its own `LABELING` path in place of `common.DOCS`),
+  `build_evidence_viewer.py` and `make_bundle.py` name `docs/labeling/`; 22 tests pass (`test_progress_scoring`,
+  `test_ui`); both read the moved files. `extract_slides.py` (historical) was left: it writes a gitignored file and
+  would only recreate `docs/progress/` if run again.
+- **The full suite before these edits,** in a separate worktree at `99c8f87` while B16 ran: 704 passed, 8 skipped,
+  0 failed. The final run, in this tree after every change, is in the night's daily.
 
 ## 6. Judgment calls (for the morning)
 

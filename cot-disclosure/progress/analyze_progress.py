@@ -2,7 +2,7 @@
 
   python cot-disclosure/progress/analyze_progress.py
 
-Writes docs/progress/RESULTS_SUMMARY.json and the figures F1 to F9 in
+Writes docs/labeling/RESULTS_SUMMARY.json and the figures F1 to F9 in
 archive/progress-round/presentation/progress/figures/ (PNG at 200 dpi and SVG). Makes no API calls.
 Each metric records its numerator, denominator, source files and the function
 that computed it. Pilot intervals: puzzle-level percentile bootstrap (20,000
@@ -16,7 +16,7 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from common import CODE, DOCS, OUT, REPO, SEED, latest, load, wilson
+from common import CODE, OUT, REPO, SEED, latest, load, wilson
 
 sys.path.insert(0, str(CODE))
 import analyze as pilot_analyze  # noqa: E402  (the repo's own pilot analysis, reused)
@@ -34,7 +34,8 @@ CUED = OUT / "expB_cued.jsonl"
 PLAN = OUT / "expB_plan.json"
 TRUNC = OUT / "truncation_sweep.jsonl"
 ITEMS_B = CODE / "data" / "progress" / "mmlupro_30.jsonl"
-SUMMARY = DOCS / "RESULTS_SUMMARY.json"
+LABELING = REPO / "docs" / "labeling"          # docs/progress/ until Nov 1 (archive/MOVES.md)
+SUMMARY = LABELING / "RESULTS_SUMMARY.json"
 
 PAIRS = pilot_analyze.PAIRS
 MODELS = [m for p in PAIRS for m in p]
@@ -747,7 +748,7 @@ def label_queue():
     cols = ["source", "run_id", "model", "condition", "cue_letter", "answer", "followed_cue", "keyword_private",
             "keyword_final", "text_status", "private_excerpt", "final_excerpt",
             "rater1_private", "rater1_final", "rater2_private", "rater2_final"]
-    path = DOCS / "LABEL_QUEUE.csv"
+    path = LABELING / "LABEL_QUEUE.csv"
     with open(path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=cols)
         w.writeheader()

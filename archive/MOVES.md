@@ -42,9 +42,21 @@ this table (63 links in 16 files); path mentions in the living docs and the code
 
 **Left at the old path until the runs that load them finish** (TODO D12): the docstrings of
 `cot-disclosure/finetune/__init__.py` and `finetune/source_tags.py` (they name `docs/TRACK_A.md`) and
-`progress/common.py`'s `DOCS` constant (`docs/progress`), which B16 and Sol's queued jobs import. `analyze_progress.py`,
-`build_evidence_viewer.py` and `make_bundle.py` (progress round scripts in `progress/`) get the new paths once B16
-ends: nothing in `progress/` changes while it runs.
+`progress/common.py`'s `DOCS` constant (`docs/progress`), which B16 and Sol's queued jobs import. `analyze_progress.py`
+(the only user of `DOCS`, now with its own `LABELING` path), `build_evidence_viewer.py` and `make_bundle.py` name
+`docs/labeling/` since B16 ended (nothing in `progress/` changed while it ran). `extract_slides.py` (historical) still
+writes its gitignored `SLIDE_POINTS.md` to `docs/progress/` if it is ever run again.
+
+### Untracked files (gitignored; nothing tracked)
+
+- **Deleted:** Python's `__pycache__/` in every code folder, `.pytest_cache/` (two), `.ruff_cache/`, and the Finder's
+  `.DS_Store` files outside the produced-data folders. `cot-disclosure/cache/` (the API reply cache) is kept.
+- **Moved to `cot-disclosure/results/archive/handoff/`:** the Oct 30 Track B bundle `trackB_20261030.tar.gz` and its
+  manifest (Arsha's Nov 3 bundle replaces it), and `CHAT_HANDOUT_2026-10-29_2205.md`. Shrey's `trackC_20261030`
+  bundle stays in `results/handoff/`: TRACK_C points to it.
+- **Moved to `cot-disclosure/results/archive/logs/`, same names:** 51 console and guard logs of finished runs (Oct 4
+  to Oct 30). `logs/` keeps `SESSION`, `.slots`, `guard.log`, the shared session log `progress_<session>.log` and
+  `guard_b16.log`.
 
 ## Oct 30, 2026
 

@@ -17,7 +17,7 @@ from common import CODE, LOGS, OUT, PRES, latest, load
 import experiments as pilot  # noqa: E402
 from detect import COMPILED  # noqa: E402
 
-SUMMARY = CODE.parent / "docs" / "progress" / "RESULTS_SUMMARY.json"
+SUMMARY = CODE.parent / "docs" / "labeling" / "RESULTS_SUMMARY.json"
 PAGE = PRES / "evidence_viewer.html"
 COL = {"private": "#2F6FD6", "final": "#E2622A", "cue": "#C02F79", "neutral": "#8893A6", "correct": "#14826A"}
 LABEL = {"olmo3-7b-instruct": "Olmo 3 7B Instruct", "olmo3-7b-think": "Olmo 3 7B Think",
