@@ -1,7 +1,7 @@
 # Rater guide, one page: labeling L4, L3 and L5
 
-For the two raters (Ritik, plus Shrey or Arsha). Last updated 2026-10-31 20:50 (the rater packets; L3 first, due
-Nov 6; L4 part 1 due Nov 14; the returned files' names. Oct 30: the `guess_trained` column). The full definitions and one example per
+For the two raters (Ritik, plus Shrey or Arsha). Last updated 2026-11-01 (the packet's examples and practice answers
+reviewed and set by Ritik, no changes). 2026-10-31 20:50: the rater packets; L3 first, due Nov 6; L4 part 1 due Nov 14; the returned files' names. Oct 30: the `guess_trained` column). The full definitions and one example per
 label are in [`LABELING_GUIDE.md`](LABELING_GUIDE.md). Read it once before the first row.
 
 ## What you label, in this order
@@ -24,7 +24,8 @@ anyway. Split each part over two or three sittings. Finish each batch before the
 the order is seeded and mixes the channels on purpose.
 
 **Your packet** (Oct 31, `tools/rater_packets.py`). Ritik sends a zip, `rater_packet_<name>.zip`, with a one-page
-README, the labeling guide with examples, 10 practice rows (answers in a separate file), and the first two sheets
+README, the labeling guide with examples, 10 practice rows (answers in a separate file; the examples and answers
+reviewed and set by Ritik, Nov 1), and the first two sheets
 named for you: `L3_<initials>.csv` and `L4_part1_<initials>.csv` (the same rows for both raters; L4 has final answers
 only: label in `label_final`). L4 part 2 and L5 (`trackB/rater1.csv` or `rater2.csv`) follow later.
 

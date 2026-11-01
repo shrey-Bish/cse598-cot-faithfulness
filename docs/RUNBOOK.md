@@ -361,7 +361,10 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   final answer: no mention / mentions only / rejects the hint / says the hint changed the answer /
   unclear ([`labeling/LABELING_GUIDE.md`](labeling/LABELING_GUIDE.md)).
 - **Where:** anywhere, no calls. **Status:** the kit is built (Oct 27); the rater packets for L3 and L4 part 1 are
-  built (Oct 31; `tools/rater_packets.py`); labeling not started.
+  built (Oct 31; `tools/rater_packets.py`), their examples and practice answers reviewed and set by Ritik (Nov 1).
+  Ritik's sheets (rater 1) are in, format checked (Nov 1): `results/labels/L3_RA.csv` and
+  `results/labels/gate3/L4/L4_part1_RA.csv`. Shrey's packet goes out from Ritik; kappa only once both sheets of a
+  batch are in (the packet's README gives the two commands).
 - **Commands** (from `cot-disclosure/`):
   ```bash
   ../.venv/bin/python tools/label_kit.py build     # done Oct 27: results/labels/ (gitignored: model text)
