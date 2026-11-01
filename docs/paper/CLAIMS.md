@@ -2,7 +2,7 @@
 
 Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md) (Oct 29; updated 23:15 with C11–C14, Oct
 30 01:10 with C15, 04:00 with B15, 09:30 with set A, B1's alpha, Gate 3 interim, Qwen3-8B and C13; Oct 31 16:40 with
-Gate 3 final). Status words as in
+Gate 3 final; Nov 1 with B16, claim 1.1). Status words as in
 FINDINGS: *confirmed* (measured as stated, the interval excludes no effect), *tentative* (direction
 there, interval includes 0 or a confound remains), *waiting* (the run is going or planned).
 `[TONIGHT: ...]` marks a number tonight's runs fill in.
@@ -18,12 +18,18 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
     - Olmo 3 7B Think +32 [+22, +42] / +21 [+13, +30] (F17);
     - Qwen3-8B, the same weights, thinking on +19 [+10, +29] / +78 [+69, +86], off +13 [+7, +21] / +13 [+3, +23]
       (F29).
-- **Status:** *confirmed* (four models; thinking on and off in one of them). *Tentative* for Olmo alone in its pinned format (F1:
-  +19 [−2, +40], one user run per question).
-- **Strongest objection:** the channels differ in more than the source: wording, position, and
-  the pasted block sits inside the user turn.
-- **Settles it:** the real tool call (F15, F16) and the inserted tool turn (F17) use the same JSON
-  as the pasted block. A wording-matched user channel ("my notes say (B)") would close the rest.
+  - **B16 (F35, Nov 1), the user with the tool's authority** ("My course answer key says the answer is (X)."), tool
+    minus that, pasted / the tool's channel: Qwen3 30B Thinking +12 [+5, +19] / +6 [−7, +19]; Instruct +6 [−1, +13] /
+    **+75 [+65, +85]**; Olmo 3 7B Think −3 [−10, +3] / **−14 [−21, −6]** (authority moves it more). The share of
+    Gate 2's gap the claim closes: the pasted block 68% and 71% (Qwen3), 109% (Olmo); the tool's channel 80%
+    (Thinking), 164% (Olmo), 16% (Instruct's own call).
+- **Status:** *confirmed* as worded, against the plain user hint (four models; thinking on and off in one of them).
+  *Tentative* for Olmo alone in its pinned format (F1: +19 [−2, +40], one user run per question). **Restated by B16:**
+  most of the gap is the source's claimed authority, not the channel; the channel adds to it only for Qwen3 30B
+  Instruct's own call and Qwen3 30B Thinking's pasted block.
+- **Strongest objection:** B16 is cross-day (T11: its tool arms were Track B's replies, replayed from the cache; the
+  canary held) and one wording, and "answer key" is also the tool's name for itself.
+- **Settles it:** B19, the same comparison made the same day (new seeds), and a second authority wording.
 
 **1.2 The private reasoning mentions the hint; the final answer almost never does.**
 - **Evidence:**

@@ -1,6 +1,6 @@
 # Questions a reviewer would ask that we can't answer yet
 
-Each question: why it matters, and which runs answer it. Updated Oct 31 16:40: Gate 3 final (F28). Oct 30 09:30: set A (F26), B1's alpha (F27), Gate 3
+Each question: why it matters, and which runs answer it. Updated Nov 1: B16 (F35) on question 3. Oct 31 16:40: Gate 3 final (F28). Oct 30 09:30: set A (F26), B1's alpha (F27), Gate 3
 interim (F28), Qwen3-8B (F29) and C13 (F30) are in; C16 running. Oct 30 04:00: C15 (F24) and B15 (F25);
 Oct 29 23:15: C11 and C12 (F22, F23); added C13 (Sol), C14 (exploratory).
 The runs of Oct 28–29:
@@ -94,6 +94,9 @@ The runs of Oct 28–29:
    - Our point is that the independent check disappears: "as good as the tool" (F18: 92 and 89 of
      159 vs the tool's 84).
    - The paper should show both sides at other bad-lookup rates (a reweighting, no new calls).
+   - **For the solver, mostly yes (B16, F35, Nov 1):** a user who claims the answer key's authority moves the answer
+     about as much as the tool's pasted block (Qwen3 +6 and +12 beyond the claim; Olmo −3), and more than Olmo's
+     inserted tool turn (−14). Only Qwen3 30B Instruct's own call goes far beyond it (+75). Cross-day (T11).
 4. **Would a better prompt fix it?**
    - Two failed: a warning (F19) and committing first (F21).
    - Not answered tonight: a pre-registered set of wordings, or a structural fix (the trace

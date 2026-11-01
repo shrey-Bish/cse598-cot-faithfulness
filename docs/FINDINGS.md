@@ -32,7 +32,7 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    pasted block: Qwen3 30B Thinking +35, Qwen3 30B Instruct +21, Olmo 3 7B Think +32 points), and in
    Qwen3-8B with thinking on and off (+19, +13; F29). *Confirmed* (F1, F15, F16, F17, F29).
    **Most of that pull is the tool's claim to be the answer key (B16, F35).** A user who writes "My course answer
-   key says the answer is (X)." moves the answer about as much: the claim closes 68–80% of the gap with the pasted
+   key says the answer is (X)." moves the answer about as much: the claim closes 68% and 71% of the gap with the pasted
    block in Qwen3 and all of it in Olmo, whose inserted tool turn moves it less than the user's claim (−14 [−21, −6]).
    The tool goes beyond the claim where Qwen3 30B Instruct calls it itself (+75 [+65, +85]; it calls every time) and
    in Qwen3 30B Thinking's pasted block (+12 [+5, +19]). Cross-day: the tool replies are mostly Track B's, replayed

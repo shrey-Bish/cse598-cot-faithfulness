@@ -97,7 +97,7 @@ the answer is (X)."; each tool arm minus that, paired by question:
 | Qwen3 30B Instruct | +6 [−1, +13]: no difference detected | own call +75 [+65, +85]: tool beyond authority |
 | Olmo 3 7B Think | −3 [−10, +3]: no difference detected | inserted turn −14 [−21, −6]: authority moves it more |
 
-- The claim closes 68–80% of Gate 2's pasted-block gap in Qwen3 and all of it in Olmo; only Instruct's own call (it
+- The claim closes 68% and 71% of Gate 2's pasted-block gap in Qwen3 and all of it in Olmo; only Instruct's own call (it
   calls every time) goes far beyond it (the claim closes 16%).
 - Descriptive: with the user's claim the final answer names it (132 and 135 of 162 for Qwen3) and is never bare;
   after a call it isn't named. The bare letter is about the call.
