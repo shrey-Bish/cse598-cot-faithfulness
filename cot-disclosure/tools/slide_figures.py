@@ -11,6 +11,10 @@ summaries (no calls, no gitignored data). One style for every slide: 16:9, white
   b16_authority     slide 7 (F35): (a) each tool arm minus a user who claims the answer key's authority, paired by
                     question, with the pre-registered reading; (b) following per arm, X of Y (95% Wilson), the plain
                     user hint from Track B's Oct 27-28 runs (cross-day; the tool arms mostly replayed from them, T11)
+  readout_qwen8b    slide 4 (A37, F36): (a) the share of the hint's drop at the layers chosen on the puzzles, Qwen3-8B
+                    on MMLU-Pro (the test) beside Olmo 3 7B Think's at 15, 19 and 23 and the rule's 0.5; (b, c) the
+                    drop by layer at the takeover, puzzles and MMLU-Pro, the chosen layers marked (95% bootstraps
+                    clustered by question, as patching.handoff computes them for the rule)
   channels          the report's setup (section 2): one prompt per channel, built by tools/answer_key.build with a
                     placeholder question; the hint's text in the cue color, and who writes each turn (its CSV: the
                     turns' roles, writers and templates, no prompt text)
@@ -52,8 +56,9 @@ ARMS_C4_LABELS = tuple(name for _, name in ARMS_C4)
 MODELS_B15 = (("qwen3-30b-a3b-thinking-2507", "Qwen3 30B Thinking"), ("qwen3-30b-a3b-instruct-2507", "Qwen3 30B Instruct"))
 MEASURES_B15 = (("names_tool_after_call", "names the tool after a call", "final"),
                 ("following", "follows the wrong letter (real call)", "damage"))
-LEVELS = (("1", "Inside the model", "Layers 15, 19 and 23 read the tool's letter straight from the prompt: 0.90 of the "
-           "drop at the takeover (Olmo 3 7B Think)", "F11, F26, F32", "Qwen3-8B (A37); the trained model (A18)"),
+LEVELS = (("1", "Inside the model", "A few layers read the tool's letter straight from the prompt: 15, 19 and 23 hold 0.90 "
+           "of the drop at the takeover in Olmo 3 7B Think; 21, 22 and 29 hold 0.70 in Qwen3-8B", "F11, F26, F32, F36",
+           "the trained model (A18)"),
           ("2", "In the model's words", "After a tool call the final answer is a bare letter; the private reasoning "
            "names the tool. One instruction brings the source back, not the right answer", "F15, F25, F29, F35",
            "thinking dose (B17)"),
@@ -68,6 +73,10 @@ CHANNELS = (("none", "No hint", "the baseline"), ("user", "The user's hint", "Tr
             ("tool_injected", "A tool turn written in", "Olmo 3 7B Think"))
 QUESTION, QID, LETTER = "[question, options (A)-(J)]", "q1", "B"
 CHANNELS_B16 = {"tool_pasted": "pasted block", "tool_real": "its own call", "tool_injected": "inserted tool turn"}
+QWEN8B = SUM / "trackA" / "qwen8b_mech"
+OLMO_READOUT = (("Olmo 3 7B Think, Test 2 (F11)", SUM / "trackA" / "step10_handoff.json"),
+                ("Olmo 3 7B Think, set A (F26)", SUM / "trackA" / "setA" / "step10_handoff.json"))
+HALVES_Q8 = (("localization", "puzzles"), ("replication", "MMLU-Pro"))
 
 
 # ---------------------------------------------------------------- data
@@ -127,6 +136,35 @@ def b16_rows(report=SUM / "trackB" / "b16_report.json"):
         rows.append(row("b", name, "plain user hint", "following, Track B (Oct 27–28)", plain))
         for arm, e in res[key]["arms"].items():
             rows.append(row("b", name, CHANNELS_B16.get(arm, arm), "following", e["following"]))
+    return rows
+
+
+def qwen8b_rows(summary=QWEN8B / "qwen8b_step10_patching.json", readout=QWEN8B / "qwen8b_readout.json",
+                olmo=OLMO_READOUT):
+    """(a) the share of the drop at the chosen layers at cut (ii): Qwen3-8B on MMLU-Pro (the test, with the rule's
+    reading) and Olmo 3 7B Think at 15, 19 and 23; (b) the drop by layer at cut (ii) per half, the chosen layers
+    marked. Per-layer intervals from patching.handoff on qwen8b_mech's cuts, as the rule computed them."""
+    from finetune.look import patching as pt
+    from finetune.look import qwen8b_mech as qm
+    s, r = json.loads(Path(summary).read_text()), json.loads(Path(readout).read_text())
+    chosen = r["localization"]["layers"]
+
+    def ci(panel, what, half, measure, e, layer="", mark="", reading=""):
+        return {"panel": panel, "what": what, "half": half, "layer": layer, "measure": measure, "value": e["mean"],
+                "low": e["low"], "high": e["high"], "questions": e["questions"], "interval": CLUSTERED,
+                "chosen": mark, "reading": reading}
+    at = ", ".join(map(str, chosen))
+    rows = [ci("a", "Qwen3-8B, MMLU-Pro (the test)", "MMLU-Pro", f"share of the drop at {at}",
+               r["replication"]["share_at_layers"], reading=r["replication"]["verdict"])]
+    for name, path in olmo:
+        h = json.loads(Path(path).read_text())["handoff"]
+        rows.append(ci("a", name, "", f"share of the drop at {', '.join(map(str, h['readout_layers']))}",
+                       h["by_cut_type"]["ii"]["all"]["drop_share_readout"]))
+    for half, name in HALVES_Q8:
+        sub = qm.localization_rows(s) if half == "localization" else qm.subset(s, half, qm.PRIMARY)
+        a = pt.handoff(sub, None, full=s["full_attention_layers"], readout=chosen)["by_cut_type"]["ii"]["all"]
+        rows += [ci("b", f"Qwen3-8B, {name}", name, "drop in hint-token restoration", e, layer=i,
+                    mark="yes" if i in chosen else "no") for i, e in enumerate(a["drop_by_layer"])]
     return rows
 
 
@@ -323,6 +361,78 @@ def fig_b16(out=OUT, report=SUM / "trackB" / "b16_report.json"):
     return paths
 
 
+def fig_qwen8b(out=OUT, summary=QWEN8B / "qwen8b_step10_patching.json", readout=QWEN8B / "qwen8b_readout.json"):
+    plt = style()
+    rows = qwen8b_rows(summary, readout)
+    r = json.loads(Path(readout).read_text())
+    loc, rep = r["localization"], r["replication"]
+    fig = plt.figure(figsize=SIZE)
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 2.6], left=0.075, right=0.985, top=0.8, bottom=0.17,
+                          hspace=0.62, wspace=0.08)
+    ax_a = fig.add_subplot(gs[0, :])
+    a = [x for x in rows if x["panel"] == "a"]
+    for y, x in enumerate(reversed(a)):
+        color = ROLE["cue"] if x["what"].startswith("Qwen3-8B") else ROLE["baseline"]
+        ax_a.plot([x["low"], x["high"]], [y, y], color=color, linewidth=2.4, solid_capstyle="butt")
+        ax_a.plot(x["value"], y, "o", color=color, markersize=10, markeredgecolor=WHITE, markeredgewidth=1.5)
+        ax_a.annotate(f"{x['value']:.2f} [{x['low']:.2f}, {x['high']:.2f}], {x['questions']} questions"
+                      + (f": {x['reading']}" if x["reading"] else ""), (x["high"], y), xytext=(8, 0),
+                      textcoords="offset points", va="center", fontsize=11, color=INK)
+        ax_a.text(-0.6, y, f"{x['what']}, at {x['measure'].rsplit(' at ', 1)[1]}", fontsize=11, color=INK,
+                  va="center")
+    ax_a.set_yticks([])
+    ax_a.spines["left"].set_visible(False)
+    ax_a.axvline(rep["threshold"], color=MUTED, linewidth=1.2, linestyle="--")
+    ax_a.annotate("the rule: lower bound above 0.5", (rep["threshold"], len(a) - 0.5), xytext=(-6, 0),
+                  textcoords="offset points", ha="right", va="center", fontsize=10.5, color=MUTED)
+    ax_a.set_xlim(-0.6, 1.5)
+    ax_a.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
+    ax_a.spines["bottom"].set_bounds(0, 1.0)
+    ax_a.set_ylim(-0.6, len(a) - 0.2)
+    ax_a.grid(axis="x", color=GRID)
+    ax_a.grid(axis="y", visible=False)
+    ax_a.set_title("(a) Share of the hint's drop at the takeover held by three layers", loc="left", color=INK)
+    b = [x for x in rows if x["panel"] == "b"]
+    axes = [fig.add_subplot(gs[1, 0])]
+    axes.append(fig.add_subplot(gs[1, 1], sharey=axes[0]))
+    titles = {"puzzles": f"(b) Puzzles, chosen here: {loc['usable_cuts']} cuts, {loc['questions']} questions",
+              "MMLU-Pro": f"(c) MMLU-Pro, the test: {rep['usable_cuts']} cuts, {rep['questions']} questions"}
+    for ax, (_, half) in zip(axes, HALVES_Q8):
+        mine = sorted((x for x in b if x["half"] == half), key=lambda x: x["layer"])
+        for x in mine:
+            pick = x["chosen"] == "yes"
+            ax.bar(x["layer"], x["value"], 0.8, color=ROLE["cue"] if pick else ROLE["baseline"], edgecolor=WHITE,
+                   linewidth=1)
+            ax.plot([x["layer"]] * 2, [x["low"], x["high"]], color=INK, linewidth=1.0, solid_capstyle="butt")
+            if pick:
+                ax.annotate(str(x["layer"]), (x["layer"], x["high"]), xytext=(0, 4), textcoords="offset points",
+                            ha="center", fontsize=11, color=INK)
+        ax.axhline(0, color=MUTED, linewidth=1.0)
+        ax.set_xlim(-1, 36)
+        ax.set_ylim(-0.25, 0.47)
+        ax.set_xticks(range(0, 36, 5))
+        ax.set_xlabel("layer (all 36 see the whole prompt)")
+        ax.grid(axis="y", color=GRID)
+        ax.grid(axis="x", visible=False)
+        ax.set_title(titles[half], loc="left", color=INK)
+    axes[0].set_ylabel("drop in hint-token\nrestoration (share)")
+    axes[1].tick_params(labelleft=False)
+    fig.text(0.075, 0.93, "Qwen3-8B also reads the tool's letter at a few layers, though all 36 see the whole prompt.",
+             fontsize=15, color=INK)
+    fig.text(0.075, 0.885, f"Layers {', '.join(map(str, loc['layers']))}, chosen on the puzzles, hold "
+             f"{rep['share_at_layers']['mean']:.2f} of the drop on new questions: it {rep['verdict']}.", fontsize=15,
+             color=INK)
+    fig.text(0.075, 0.012, textwrap.fill(
+        "A37 (F36), pre-registered Oct 30: Qwen3-8B, thinking on, after its own tool call (tool_real). Step 10's "
+        "activation patching at the takeover (cut (ii)): the 3 layers with the largest mean drop on the 24 pilot puzzles, "
+        "tested on MMLU-Pro (replicates: lower bound above 0.5, and each within one layer of MMLU-Pro's top 3). Lines: "
+        "95% bootstrap clustered by question. Olmo 3 7B Think: layers 15, 19 and 23, 3 of its 8 full-attention layers "
+        "(24 of its 32 slide over 4,096 tokens).", 160), fontsize=10.5, color=MUTED, linespacing=1.35)
+    paths = save(fig, "readout_qwen8b", rows, out)
+    plt.close(fig)
+    return paths
+
+
 def fig_channels(out=OUT):
     plt = style()
     from matplotlib.patches import FancyBboxPatch
@@ -401,7 +511,7 @@ def fig_levels(out=OUT):
 
 
 def main():
-    for f in (fig_levels, fig_bare, fig_b16, fig_channels):
+    for f in (fig_levels, fig_bare, fig_b16, fig_qwen8b, fig_channels):
         for p in f():
             print(p.relative_to(CODE.parent))
 

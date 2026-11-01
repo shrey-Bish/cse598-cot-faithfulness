@@ -57,7 +57,7 @@ def png_size(path):
 
 
 def test_each_figure_writes_png_svg_and_its_table_at_16_9(tmp_path):
-    for f in (sf.fig_bare, sf.fig_levels, sf.fig_b16, sf.fig_channels):
+    for f in (sf.fig_bare, sf.fig_levels, sf.fig_b16, sf.fig_channels, sf.fig_qwen8b):
         paths = f(out=tmp_path)
         assert [p.suffix for p in paths] == [".png", ".svg", ".csv"] and all(p.stat().st_size > 0 for p in paths)
         w, h = png_size(paths[0])
@@ -68,7 +68,7 @@ def test_each_figure_writes_png_svg_and_its_table_at_16_9(tmp_path):
 
 def test_the_waiting_spec_names_every_waiting_slide():
     text = (CODE.parent / "docs" / "paper" / "figures" / "WAITING.md").read_text()
-    for name in ("readout_qwen8b", "b17_effort", "readout_lora_vs_base", "c25_hops"):
+    for name in ("b17_effort", "readout_lora_vs_base", "c25_hops"):
         assert f"`docs/paper/figures/{name}.png`" in text
         assert not (CODE.parent / "docs" / "paper" / "figures" / f"{name}.png").exists()   # a spec, not a chart
 
@@ -112,3 +112,29 @@ def test_channel_turns_come_from_the_prompt_builder():
     assert "the model" in real and "the model" not in injected      # the call: the model's own, or written in by us
     rows = sf.channel_rows()
     assert all(len(str(v)) <= 80 for r in rows for v in r.values())  # labels only, no prompt text in the CSV
+
+
+def test_qwen8b_rows_are_a37s_readout():
+    """Slide 4 (A37, F36, Nov 1): the drop by layer at the takeover in each half, the layers chosen on the puzzles
+    marked, and the share at them on MMLU-Pro beside Olmo's at 15, 19 and 23; every number from the tracked summaries."""
+    r = json.loads((SUM / "trackA" / "qwen8b_mech" / "qwen8b_readout.json").read_text())
+    rows = sf.qwen8b_rows()
+    b = [x for x in rows if x["panel"] == "b"]
+    means = {"puzzles": r["localization"]["drop_by_layer_mean"],
+             "MMLU-Pro": r["replication"]["descriptive"]["drop_by_layer_mean"]}
+    for half, m in means.items():
+        mine = sorted((x for x in b if x["half"] == half), key=lambda x: x["layer"])
+        assert [x["layer"] for x in mine] == list(range(36))
+        assert all(abs(x["value"] - v) < 1e-12 for x, v in zip(mine, m))
+        assert [x["layer"] for x in mine if x["chosen"] == "yes"] == [21, 22, 29]
+        assert all(x["low"] <= x["value"] <= x["high"] and x["interval"].startswith("95% bootstrap") for x in mine)
+    puzzles = {x["layer"]: x for x in b if x["half"] == "puzzles"}
+    for layer, e in r["localization"]["drop_at_layer"].items():               # the rule's own intervals (Sol's
+        x = puzzles[int(layer)]                                                # float rounding aside)
+        assert abs(x["low"] - e["low"]) < 1e-12 and abs(x["high"] - e["high"]) < 1e-12
+    a = by([x for x in rows if x["panel"] == "a"], "what")
+    q, share = a[("Qwen3-8B, MMLU-Pro (the test)",)], r["replication"]["share_at_layers"]
+    assert (q["value"], q["low"], q["high"], q["questions"]) == (share["mean"], share["low"], share["high"], 14)
+    assert q["reading"] == "replicates"
+    assert [round(a[(k,)]["value"], 2) for k in ("Olmo 3 7B Think, Test 2 (F11)", "Olmo 3 7B Think, set A (F26)")] \
+        == [0.90, 0.90]

@@ -1,6 +1,7 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-11-01 (Nov 1: the docs' new folders, the submission folder's date, A18's and B17's
+Last updated: 2026-11-01 15:05 MST (A37 read: replicates, F36; level 1's open question answered, slide 4 drawn);
+2026-11-01 (Nov 1: the docs' new folders, the submission folder's date, A18's and B17's
 amendments; before that, 2026-10-31 22:50 MST: the 20-day program, set by Ritik on Oct 31. It replaces the planning reset and
 the Oct 27 timeline: the story, every experiment on its map, owners and dates, the final dates, the final
 presentation map and the report outline. B16 running on Voyager since 22:25.) The version before this one is kept
@@ -30,7 +31,9 @@ below the gates are unchanged from it apart from their dates. Where things are:
        hint-token restoration at the takeover (F11).
      - Replicated on separate questions: 0.90 [0.76, 1.06] (set A, F26).
      - Heads L19H31, L23H17 and L15H31 look at the hint more when the model follows it (F12; set A, F32).
-   - Open: does training stop that readout, or act after it (A18)? Does a second model read it the same way (A37)?
+     - In Qwen3-8B, whose 36 layers all see the whole prompt, three layers chosen on the puzzles (21, 22, 29) hold
+       0.70 [0.60, 0.83] of the drop on MMLU-Pro and are its own top three (A37, F36: replicates).
+   - Open: does training stop that readout, or act after it (A18)?
      Does scaling the tool's attention at inference help (B1, A30; with the one-line note, A38)?
 2. **In the model's words: after a tool call, the answer stops naming its source.**
    - Known:
@@ -69,7 +72,7 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 
 | level | # | question | owner | due | state (Oct 31) |
 |---|---|---|---|---|---|
-| 1 inside | A37 | Qwen3-8B, Steps 3 and 10: the readout on a second model; verdict by its rule | Ritik | Nov 3 | on Sol: Step 3 123022, Step 10 123025 |
+| 1 inside | A37 | Qwen3-8B, Steps 3 and 10: the readout on a second model; verdict by its rule | Ritik | Nov 3 | **done Nov 1** (F36): replicates; layers 21, 22, 29 (chosen on the puzzles) hold 0.70 [0.60, 0.83] on MMLU-Pro |
 | 1 inside | A30 | B1, provenance-scaled attention: the bench gate, the plan, the verdict by its rule | Ritik | Nov 4 | bench 122956 pending |
 | 1 inside | A18 | Inside the fixed model: Steps 9 and 10 on LoRA's evaluation runs. Does training stop the readout at 15/19/23, or act after it? Tool-hint cases only in the primary, user hints apart (amended Nov 1) | Ritik | Nov 10 | prepared |
 | 1 inside | A38 | STRETCH, only if B1 "works": prompt_only's note + B1 deployable, against each alone, same HF stack | Ritik | Nov 14 | prepared; waits for B1's verdict |
@@ -145,8 +148,8 @@ until the result arrives.
    - Figure: `docs/paper/figures/readout_by_layer.png` and `docs/paper/supplement/figures/readout_setA_vs_test2.png`.
    - Status: done. Owner: Ritik.
 4. **Level 1 on a second model.** Qwen3-8B (A37).
-   - Figure: `docs/paper/figures/readout_qwen8b.png` (waiting; spec in `WAITING.md`).
-   - Status: waiting on A37 (Sol 123022, 123025), due Nov 3. Owner: Ritik.
+   - Figure: `docs/paper/figures/readout_qwen8b.png`.
+   - Status: done Nov 1 (F36: replicates). Owner: Ritik.
 5. **Level 2: the private reasoning names it, the final answer doesn't** (F3, with L3's kappa).
    - Figure: `docs/paper/supplement/figures/cue_experiments.png`.
    - Status: the labels are due Nov 6. Owner: Ritik and Shrey.

@@ -1,4 +1,4 @@
 level,where,evidence,open
-1,Inside the model,"F11, F26, F32",Qwen3-8B (A37); the trained model (A18)
+1,Inside the model,"F11, F26, F32, F36",the trained model (A18)
 2,In the model's words,"F15, F25, F29, F35",thinking dose (B17)
 3,Between agents,"F18, F31, F33, F34",handoff notes (C25); pipeline vs model (C20)

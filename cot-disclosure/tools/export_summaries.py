@@ -77,6 +77,10 @@ OTHER = {                # Tracks B and C: numbers-only reports their scripts wr
     "results/trackB/b15_report.json": "trackB/b15_report.json",                  # B15 (progress/run_b15.py --report)
     "results/trackB/b16_report.json": "trackB/b16_report.json",                  # B16 (progress/run_b16.py --report)
     "results/trackB/b17/b17_report.json": "trackB/b17_report.json",              # B17 (progress/run_b17.py --report), once back
+    # A37 (Qwen3-8B Steps 3 and 10 on Track B's runs; Sol, copied back to results/trackB/qwen8b_mech/; F36)
+    "results/trackB/qwen8b_mech/qwen8b_readout.json": "trackA/qwen8b_mech/qwen8b_readout.json",
+    "results/trackB/qwen8b_mech/qwen8b_step10_patching.json": "trackA/qwen8b_mech/qwen8b_step10_patching.json",
+    "results/trackB/qwen8b_mech/qwen8b_step3.json": "trackA/qwen8b_mech/qwen8b_step3.json",
     "results/trackC/team_live_summary.json": "trackC/team_live_summary.json",    # agents/run_team.py --summary
     "results/trackC/team_replay_summary.json": "trackC/team_replay_summary.json",
     "results/trackC/team_smoke_olmo32b_summary.json": "trackC/team_smoke_olmo32b_summary.json",   # Oct 28, the 32B reviewer

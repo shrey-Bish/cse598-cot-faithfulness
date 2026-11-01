@@ -1,0 +1,166 @@
+{
+ "step": "qwen8b_step3",
+ "timestamp_utc": "2026-11-01T02:17:29+00:00",
+ "model": "Qwen/Qwen3-8B",
+ "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+ "snapshot_dir": "/scratch/ragarw68/hf/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218",
+ "snapshot_commit": "b968826d9c46dd6066d109eabc6255188de91218",
+ "chat_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+ "records": "/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/results/trackB/sol_vllm.jsonl.gz",
+ "records_sha256": "21b3e77247f35c7bea4a6c95675c4f855f8ac031c2c064be89a13feb1db472e9",
+ "versions": {
+  "python": "3.11.18",
+  "torch": "2.14.1+cu130",
+  "transformers": "5.18.0",
+  "tokenizers": "0.23.2",
+  "huggingface_hub": "1.33.0",
+  "accelerate": "1.15.0",
+  "peft": "0.21.2",
+  "safetensors": "0.8.0",
+  "numpy": "2.4.6",
+  "torch_cuda_build": "13.0"
+ },
+ "gpu": {
+  "name": "NVIDIA A100-SXM4-80GB",
+  "memory_gib": 79.3,
+  "capability": "8.0",
+  "count": 1,
+  "bf16": true
+ },
+ "code": {
+  "commit": "4222ff63b1662b637d0642be1b044127e623607a",
+  "finetune_dirty": false
+ },
+ "slurm": {
+  "SLURM_JOB_ID": "123022",
+  "SLURM_JOB_ACCOUNT": "class_cse59888883fall2026",
+  "SLURM_JOB_PARTITION": "public",
+  "SLURM_JOB_QOS": "class",
+  "SLURMD_NODENAME": "sg033"
+ },
+ "host": "sg033",
+ "rule": "cases: followed runs whose takeover comes at or after half the reasoning, on questions whose 3 no-hint runs (thinking on) were all answered and correct",
+ "sure_questions": {
+  "localization": 23,
+  "replication": 21
+ },
+ "left_out": {},
+ "groups": {
+  "localization | tool_real": {
+   "followed_runs_probed": 66,
+   "on_sure_questions": 63,
+   "takeover_types": {
+    "at 0": 1,
+    "late": 65
+   },
+   "takeover_types_on_sure": {
+    "late": 63
+   },
+   "cases": 63,
+   "case_questions": 23,
+   "forced_end_matches_final": "66 of 66"
+  },
+  "localization | tool_pasted": {
+   "followed_runs_probed": 1,
+   "on_sure_questions": 1,
+   "takeover_types": {
+    "late": 1
+   },
+   "takeover_types_on_sure": {
+    "late": 1
+   },
+   "cases": 1,
+   "case_questions": 1,
+   "forced_end_matches_final": "1 of 1"
+  },
+  "localization | system": {
+   "followed_runs_probed": 1,
+   "on_sure_questions": 1,
+   "takeover_types": {
+    "other": 1
+   },
+   "takeover_types_on_sure": {
+    "other": 1
+   },
+   "cases": 0,
+   "case_questions": 0,
+   "forced_end_matches_final": "0 of 1"
+  },
+  "replication | tool_real": {
+   "followed_runs_probed": 77,
+   "on_sure_questions": 50,
+   "takeover_types": {
+    "at 0": 38,
+    "other": 6,
+    "late": 33
+   },
+   "takeover_types_on_sure": {
+    "at 0": 15,
+    "other": 5,
+    "late": 30
+   },
+   "cases": 30,
+   "case_questions": 14,
+   "forced_end_matches_final": "77 of 77"
+  },
+  "replication | tool_pasted": {
+   "followed_runs_probed": 46,
+   "on_sure_questions": 22,
+   "takeover_types": {
+    "at 0": 21,
+    "late": 22,
+    "other": 3
+   },
+   "takeover_types_on_sure": {
+    "late": 15,
+    "at 0": 4,
+    "other": 3
+   },
+   "cases": 15,
+   "case_questions": 8,
+   "forced_end_matches_final": "45 of 46"
+  },
+  "replication | system": {
+   "followed_runs_probed": 44,
+   "on_sure_questions": 19,
+   "takeover_types": {
+    "at 0": 21,
+    "other": 5,
+    "late": 18
+   },
+   "takeover_types_on_sure": {
+    "late": 12,
+    "other": 4,
+    "at 0": 3
+   },
+   "cases": 12,
+   "case_questions": 8,
+   "forced_end_matches_final": "44 of 44"
+  },
+  "replication | user": {
+   "followed_runs_probed": 16,
+   "on_sure_questions": 3,
+   "takeover_types": {
+    "at 0": 8,
+    "other": 1,
+    "late": 7
+   },
+   "takeover_types_on_sure": {
+    "late": 3
+   },
+   "cases": 3,
+   "case_questions": 3,
+   "forced_end_matches_final": "16 of 16"
+  }
+ },
+ "output_tokens_server_minus_rebuilt": {
+  "0": 250,
+  "1": 1
+ },
+ "cache_check": {
+  "probes": 502,
+  "same_top": 502,
+  "max_abs_diff": 0.122459,
+  "over_0.05": 12
+ }
+}

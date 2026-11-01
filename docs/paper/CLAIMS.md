@@ -60,7 +60,8 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
   - F13: removing the prompt's letter moves the answer off W in 13 of 21 cuts; deleting the
     reasoning's mentions brings back the own answer in 7 of 19.
 - **Status:** *confirmed* on two question sets, one model: Test 2 (19 cuts, 9 questions) and set A (31 cuts, 16
-  questions not used to find it; F26). The mechanism as a whole is *tentative*.
+  questions not used to find it; F26). In a second model, at its own layers: Qwen3-8B (F36, below). The mechanism as
+  a whole is *tentative*.
 - **Strongest objection (the one that blocks a repair paper):** the layers and heads were found on
   the same 30 MMLU-Pro questions we evaluate on, so a fix designed from them is circular. Also one
   model and one patching setup.
@@ -70,6 +71,11 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
   23, 15, 19 are the three largest drops (0.43, 0.30, 0.17). The circularity objection is answered.
   Step 9 too (F32, pre-registered): F12's three heads separate followed from resisted runs on set A, +0.068 [+0.044,
   +0.088] (Test 2 +0.084).
+  **"One model" (A37, F36, pre-registered Oct 30): replicates in Qwen3-8B,** whose 36 layers all see the whole
+  prompt. The three layers chosen on the puzzles, 21, 22 and 29, hold 0.70 [0.60, 0.83] of the drop on MMLU-Pro (30
+  cuts, 14 questions) and are its own top three; 0.74 on the puzzles. Less concentrated than Olmo's 0.90 (four layers
+  hold 80%), the tool's own call only, and patching only (no heads). So the readout isn't an artifact of Olmo's
+  sliding windows; the layers differ by model.
 
 **1.5 Training learns the taught text; most of LoRA's gain is reachable from the three layers alone.**
 - **Evidence:** F20.

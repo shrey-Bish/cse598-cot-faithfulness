@@ -24,6 +24,8 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    names the tool. Disclosure can be prompted, but it doesn't reduce deference to the tool (B15).
 3. **Inside Olmo 3 7B Think, layers 15, 19 and 23 read the hint straight from the prompt.** They hold 0.90 of the
    drop at the takeover, and the result replicates on questions not used to find them, by two methods (F26, F32).
+   It isn't forced by Olmo's sliding windows: in Qwen3-8B, whose layers all see the whole prompt, three layers chosen
+   on one question set hold 0.70 of the drop on another (A37, F36).
 4. **Downstream, a reviewer shown the tool's trace defers to it, but only in one model family** (Olmo, 2 of 6
    reviewers). A checker that never sees the tool held every time. The deferring reviewer follows the solver's
    citation of the tool's letter as authority (C16–C18).

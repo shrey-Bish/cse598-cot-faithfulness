@@ -31,6 +31,9 @@ The runs of Oct 28–29:
    - F11 says the other five full layers read almost nothing on the evaluation set.
    - **Answered by A (F26):** on set A the 8 full layers hold 0.92 [0.83, 1.03] and 15/19/23 hold 0.90, so the
      other five hold about 0.02; the next largest drop is layer 31's 0.07 [0.04, 0.10].
+   - **And where every layer is full attention (A37, F36):** in Qwen3-8B, 3 of 36 layers (21, 22, 29), chosen on
+     the puzzles, hold 0.70 [0.60, 0.83] on MMLU-Pro (even share 0.083) and are its top three there; four hold 80%.
+     So a few layers do it without Olmo's sliding windows, not all of them.
 3. **Does a fix that downweights the tool span just make the model ignore tools?**
    - **Answered by B1:** the trade-off curve, wrong-hint following against correct-hint acceptance,
      and no-hint accuracy at the chosen alpha and at alpha = 1.

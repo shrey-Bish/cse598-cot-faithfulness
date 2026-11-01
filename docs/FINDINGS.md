@@ -1,7 +1,9 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-01 10:45 (F35 B16: most of a tool's pull is its claim to be the
+status. Started 2026-10-26; last updated 2026-11-01 15:05 (F36 A37: Qwen3-8B's readout replicates in a second model: layers 21, 22 and
+29, chosen on the puzzles, hold 0.70 [0.60, 0.83] of the drop on MMLU-Pro and are its own top three; the story's line
+3); 2026-11-01 10:45 (F35 B16: most of a tool's pull is its claim to be the
 answer key, except Qwen3 30B Instruct's own call; T11: B16's same-day tool arms were replayed from the reply cache;
 the story's line 1); 2026-10-31 16:40 (F28 final: Gate 3 met, all four trained versions
 pass, none beats the one-line instruction, the tags prediction not borne out for either tag version; at 11:40 F28's
@@ -50,7 +52,10 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    [0.76, 1.06] on 16 questions not used to find it (set A; the same three layers have the largest
    drops), where F12's three heads also separate followed from resisted runs again (+0.068 [+0.044,
    +0.088]; F32). **The mechanism holds by two methods on new questions.** *Confirmed* on two question sets, one model (F11, F12, F26, F32). The reasoning relays
-   little of it (F13). The mechanism as a whole is *tentative*.
+   little of it (F13). **It isn't forced by Olmo's sliding windows (A37, F36):** in Qwen3-8B, whose 36 layers all
+   see the whole prompt, three layers chosen on the puzzles (21, 22, 29) hold 0.70 [0.60, 0.83] of the drop on
+   MMLU-Pro and are its own top three (pre-registered: replicates); less concentrated than Olmo's 0.90. The mechanism
+   as a whole is *tentative*.
 4. **Downstream, a reviewer shown the tool's output defers to it.** Olmo 3.1 32B Instruct corrects a
    wrong tool answer in 59 of 73 from the answer alone, and in 6 and 3 of 73 once it sees the
    solver's private reasoning or the tool log. *Confirmed* for that reviewer (F18). Qwen3 30B
@@ -1893,6 +1898,68 @@ claim, 22 of 157 after the inserted turn.
   Thinking's pasted block (+12); authority moves it more for Olmo's inserted turn (−14); no difference detected for
   the other three.
 - *confirmed*, cross-day: the authority claim moves all three models above the plain user hint.
+
+## F36. Track A (A37): Qwen3-8B's readout replicates in a second model: three layers chosen on the puzzles hold most of the drop on MMLU-Pro, and they are its own top three
+
+**Setup.**
+- **Qwen3-8B** (`b968826d`), thinking on: 36 layers, all full attention, so any layer can read the hint. Olmo 3 7B
+  Think's readout is partly forced by its architecture (24 of 32 layers slide over 4,096 tokens).
+- **Runs:** Track B's Qwen3-8B runs (Sol), the model's own tool call (`tool_real`).
+- **Steps 3 and 10** as in Track A (`finetune/look/qwen8b_mech.py`), on Sol: Step 3 123022 (ended Oct 31), Step 10
+  123025 (ended Nov 1).
+- **Cases:** followed runs with a late takeover on sure questions: 63 on 23 pilot puzzles, 30 on 14 MMLU-Pro
+  questions.
+- **Rule** (Oct 30 11:45 log; Ritik's choices in `fd1a679`, before anything was submitted):
+  - **localize** the 3 layers with the largest mean drop in hint-token restoration on the puzzles (cut (ii));
+  - **replicates** on MMLU-Pro if their share of the drop has a 95% lower bound above 0.5 *and* each is within one
+    layer of one of MMLU-Pro's 3 largest drops;
+  - **partly:** one of the two; **doesn't replicate:** neither; **too few:** under 5 questions.
+
+**Result: replicates.**
+
+| half | cuts at (ii) (questions) | share at 21, 22, 29 | 3 largest drops | Olmo at 15, 19, 23 |
+|---|---|---|---|---|
+| puzzles (localization) | 63 (23) | 0.74 [0.69, 0.79] | 21, 22, 29 (chosen) | 0.90 [0.85, 0.96] (Test 2, F11) |
+| MMLU-Pro (replication) | 30 (14) | **0.70 [0.60, 0.83]** | **21, 22, 29** | 0.90 [0.76, 1.06] (set A, F26) |
+
+**Descriptive (pre-registered as outside the verdict):**
+- **Per layer at (ii):**
+  - **Puzzles:** 21 0.30, 29 0.23, 22 0.21.
+  - **MMLU-Pro:** 29 0.33, 22 0.20, 21 0.17.
+  - **The fourth layer:** 26 (0.19, 0.15). Four layers hold 80% in each half.
+  - **The even share:** 3 of 36 layers is 0.083.
+- **Cut (i), before the first mention:** 0.37 [0.31, 0.43] on MMLU-Pro. The answer position gains it at the same
+  layers: 0.45 and 0.43 of its rise (Olmo 0.62, 0.57).
+- **Swapping only the prompt's letter at the takeover** moves the answer off W in 54 of 63 (puzzles) and 30 of 30
+  (MMLU-Pro), all to O. Olmo: 13 of 21 and 12 of 34. In Qwen3-8B the prompt's letter, not the reasoning's
+  repetition, carries the answer at the takeover.
+- **Other channels** (MMLU-Pro, 8 questions each):
+  - **The pasted block:** 0.60 [0.48, 0.73] at the same layers (top 3: 21, 24, 29).
+  - **A hint in the system prompt** leaves its tokens elsewhere: 0.17 [0.08, 0.28]; layer 13 holds 0.40.
+  - **The user's hint:** 3 cases.
+
+**Checks.**
+- **Recomputed on the Mac** from the Step 10 summary: the same verdict, and every number within 2.2e-16 of Sol's
+  readout.
+- **The code:** both jobs ran at `4222ff6`, which contains the rule, with a clean tree.
+- **Prompts:** every rebuilt prompt matched the server's token count.
+- **Patching:** 243 of 243 cuts pass the sanity checks; none was left out by the 0.5 gap rule.
+
+**Limits.**
+- One replication: 14 questions, 30 cuts, late takeovers only. On MMLU-Pro 15 of 50 followed runs on sure questions
+  already favor W before the reasoning starts and aren't tested.
+- Patching only: no Step 9 (heads) on Qwen3-8B.
+- Chosen on puzzles, tested on MMLU-Pro (Track A's evaluation questions, read only by this rule).
+
+**Source.**
+- `cot-disclosure/results/summaries/trackA/qwen8b_mech/` (`qwen8b_readout.json`, `qwen8b_step10_patching.json`,
+  `qwen8b_step3.json`).
+- Recomputed with `python finetune/look/qwen8b_mech.py readout
+  results/trackB/qwen8b_mech/qwen8b_step10_patching.json` (the session log, Nov 1 15:05).
+
+**Status.** *confirmed* by the rule as stated: the readout replicates in a second model whose layers all see the
+whole prompt, at its own three layers (21, 22, 29), less concentrated than Olmo's (0.70 against 0.90). One patching
+setup; the tool's own call only.
 
 ## Measurement traps we hit and fixed
 

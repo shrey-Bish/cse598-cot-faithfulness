@@ -13,26 +13,9 @@ correct #14826A, damage (following a wrong letter) #9C6C06. Intervals: 95% boots
 
 ## Slide 4: Level 1 on a second model (A37, Qwen3-8B)
 
-- **Figure:** `docs/paper/figures/readout_qwen8b.png` (.svg, .csv).
-- **Shows:** whether a few layers read the tool's letter in Qwen3-8B (36 layers, all full attention) as layers 15,
-  19 and 23 do in Olmo 3 7B Think.
-- **Source:** Sol `$TRACKA_OUT/qwen8b_step10/qwen8b_readout.json` and `qwen8b_step10_patching.json`
-  (`finetune/look/qwen8b_mech.py step10`, jobs 123022 and 123025), copied back to
-  `cot-disclosure/results/trackA/qwen8b_step10/`; numbers only, exported to
-  `results/summaries/trackA/qwen8b_step10/`.
-- **Axes and encodings:** two panels sharing the y axis.
-  - Left: the puzzles (localization). x = layer 0–35, y = the drop in hint-token restoration at cut (ii) (the
-    takeover), mean and interval. The three chosen layers are marked in the cue color; the rest are baseline.
-  - Right: MMLU-Pro (replication), the same axes.
-  - Above them, one dot and interval: the share of the drop at the chosen layers on MMLU-Pro, beside Olmo's 0.90
-    (F11, F26) and a 0.5 reference line.
-- **Comparison (pre-registered Oct 30, before any probe):** the K = 3 layers chosen on the puzzles (tool_real,
-  cut (ii)). On MMLU-Pro their share of the drop:
-  - "replicates" if its lower bound is above 0.5 and each chosen layer is within one layer of that half's top 3;
-  - "partly" if one of the two holds;
-  - "doesn't replicate" if neither;
-  - "too few" if fewer than 5 questions.
-- **Owner and date:** Ritik; due Nov 3.
+Made Nov 1 from `results/summaries/trackA/qwen8b_mech/` (the readout and Step 10's summary) and Olmo's
+`step10_handoff.json` (Test 2, set A): `docs/paper/figures/readout_qwen8b.png` (F36). It's drawn to the spec, except
+that the Sol files were copied back to `results/trackB/qwen8b_mech/`, not `results/trackA/qwen8b_step10/`.
 
 ## Slide 7: Tool or authority? (B16)
 

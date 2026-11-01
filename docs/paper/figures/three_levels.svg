@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-11-01T10:32:46.462394</dc:date>
+    <dc:date>2026-11-01T15:48:26.480248</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -40,7 +40,7 @@ Q 31.2 244.2 31.2 253.2
 L 31.2 322.8 
 Q 31.2 331.8 40.2 331.8 
 z
-" clip-path="url(#pa74b882742)" style="fill: #ffffff; stroke: #c02f79; stroke-width: 2.2; stroke-linejoin: miter"/>
+" clip-path="url(#pd3e6e26cc6)" style="fill: #ffffff; stroke: #c02f79; stroke-width: 2.2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_3">
     <path d="M 184.8 445.2 
@@ -53,17 +53,17 @@ Q 172.8 130.8 172.8 142.8
 L 172.8 433.2 
 Q 172.8 445.2 184.8 445.2 
 z
-" clip-path="url(#pa74b882742)" style="fill: #ffffff; stroke: #e4e3df; stroke-width: 1.6; stroke-linejoin: miter"/>
+" clip-path="url(#pd3e6e26cc6)" style="fill: #ffffff; stroke: #e4e3df; stroke-width: 1.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_4">
     <path d="M 134.004272 288 
 Q 151.501825 288 166.539702 288 
-" clip-path="url(#pa74b882742)" style="fill: none; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
+" clip-path="url(#pd3e6e26cc6)" style="fill: none; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
     <path d="M 159.339702 284.4 
 L 166.539702 288 
 L 159.339702 291.6 
 z
-" clip-path="url(#pa74b882742)" style="fill: #c02f79; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
+" clip-path="url(#pd3e6e26cc6)" style="fill: #c02f79; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
    </g>
    <g id="patch_5">
     <path d="M 450.6 445.2 
@@ -76,17 +76,17 @@ Q 438.6 130.8 438.6 142.8
 L 438.6 433.2 
 Q 438.6 445.2 450.6 445.2 
 z
-" clip-path="url(#pa74b882742)" style="fill: #ffffff; stroke: #e4e3df; stroke-width: 1.6; stroke-linejoin: miter"/>
+" clip-path="url(#pd3e6e26cc6)" style="fill: #ffffff; stroke: #e4e3df; stroke-width: 1.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_6">
     <path d="M 416.001123 288 
 Q 425.401494 288 432.342191 288 
-" clip-path="url(#pa74b882742)" style="fill: none; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
+" clip-path="url(#pd3e6e26cc6)" style="fill: none; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
     <path d="M 425.142191 284.4 
 L 432.342191 288 
 L 425.142191 291.6 
 z
-" clip-path="url(#pa74b882742)" style="fill: #c02f79; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
+" clip-path="url(#pd3e6e26cc6)" style="fill: #c02f79; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
    </g>
    <g id="patch_7">
     <path d="M 716.4 445.2 
@@ -99,17 +99,17 @@ Q 704.4 130.8 704.4 142.8
 L 704.4 433.2 
 Q 704.4 445.2 716.4 445.2 
 z
-" clip-path="url(#pa74b882742)" style="fill: #ffffff; stroke: #e4e3df; stroke-width: 1.6; stroke-linejoin: miter"/>
+" clip-path="url(#pd3e6e26cc6)" style="fill: #ffffff; stroke: #e4e3df; stroke-width: 1.6; stroke-linejoin: miter"/>
    </g>
    <g id="patch_8">
     <path d="M 681.801123 288 
 Q 691.201494 288 698.142191 288 
-" clip-path="url(#pa74b882742)" style="fill: none; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
+" clip-path="url(#pd3e6e26cc6)" style="fill: none; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
     <path d="M 690.942191 284.4 
 L 698.142191 288 
 L 690.942191 291.6 
 z
-" clip-path="url(#pa74b882742)" style="fill: #c02f79; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
+" clip-path="url(#pd3e6e26cc6)" style="fill: #c02f79; stroke: #c02f79; stroke-width: 2.2; stroke-linecap: round"/>
    </g>
    <g id="text_1">
     <text style="font-weight: 700; font-size: 26px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="36" y="48" transform="rotate(-0 36 48)">Where did that answer come from?</text>
@@ -126,17 +126,18 @@ z
     <text style="font-weight: 700; font-size: 17px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="189" y="166.41668" transform="rotate(-0 189 166.41668)">1  Inside the model</text>
    </g>
    <g id="text_5">
-    <text style="font-size: 12.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(189 210.511719)">Layers 15, 19 and 23 read the</text>
-    <text style="font-size: 12.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(189 228.636719)">tool's letter straight from the</text>
-    <text style="font-size: 12.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(189 246.761719)">prompt: 0.90 of the drop at the</text>
-    <text style="font-size: 12.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(189 265.362305)">takeover (Olmo 3 7B Think)</text>
+    <text style="font-size: 12.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(189 210.511719)">A few layers read the tool's</text>
+    <text style="font-size: 12.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(189 228.636719)">letter straight from the</text>
+    <text style="font-size: 12.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(189 246.761719)">prompt: 15, 19 and 23 hold 0.90</text>
+    <text style="font-size: 12.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(189 264.886719)">of the drop at the takeover in</text>
+    <text style="font-size: 12.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(189 283.584961)">Olmo 3 7B Think; 21, 22 and 29</text>
+    <text style="font-size: 12.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(189 301.630859)">hold 0.70 in Qwen3-8B</text>
    </g>
    <g id="text_6">
-    <text style="font-size: 11.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="189" y="371.987754" transform="rotate(-0 189 371.987754)">Evidence: F11, F26, F32</text>
+    <text style="font-size: 11.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="189" y="371.987754" transform="rotate(-0 189 371.987754)">Evidence: F11, F26, F32, F36</text>
    </g>
    <g id="text_7">
-    <text style="font-size: 11.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #52514e" transform="translate(189 403.935781)">Open: Qwen3-8B (A37); the trained</text>
-    <text style="font-size: 11.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #52514e" transform="translate(189 419.89832)">model (A18)</text>
+    <text style="font-size: 11.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="189" y="403.935781" transform="rotate(-0 189 403.935781)">Open: the trained model (A18)</text>
    </g>
    <g id="text_8">
     <text style="font-weight: 700; font-size: 17px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="454.8" y="166.41668" transform="rotate(-0 454.8 166.41668)">2  In the model's words</text>
@@ -177,7 +178,7 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="pa74b882742">
+  <clipPath id="pd3e6e26cc6">
    <rect x="0" y="0" width="960" height="540"/>
   </clipPath>
  </defs>

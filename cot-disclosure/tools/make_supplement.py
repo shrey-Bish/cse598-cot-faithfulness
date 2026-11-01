@@ -832,7 +832,9 @@ PREREG = [
      "rule_log": "2026-10-30_1145_A_qwen8b-mech-prereg.md", "rule_extra": [("the rule's choices", "fd1a679")],
      "rule_check": ["T = 0.5"], "f_title": r"Qwen3-8B.*(Step 3|Step 10|readout)",
      "result_glob": ["*qwen8b-mech-result*", "*qwen8b*readout*"],
-     "verdict": "waiting: Step 3 123022 and Step 10 123025 queued on Sol (Oct 31)", "verdict_check": []},
+     "verdict": "replicates: layers 21, 22 and 29, chosen on the puzzles (0.74 there), hold 0.70 [0.60, 0.83] of the "
+                "drop on MMLU-Pro (30 cuts, 14 questions) and are its own top three",
+     "verdict_check": ["replicates", "0.70 [0.60, 0.83]", "21, 22, 29"]},
     {"id": "c18", "track": "C", "experiment": "C18: H33, is the cue the argument for the wrong letter?", "kind": "pre",
      "rule": "stripped − unchanged (34 items), C16's two-sided rule: above 0 = the tool mentions are part of the cue; no "
              "change = the argument is the cue (H33); below 0 = removing them lowers corrections",
