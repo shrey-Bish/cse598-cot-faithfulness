@@ -26,7 +26,10 @@ The job, in order (every step stops it before the next):
   5. The runner (run_b17.py --run) against the server; Slurm's warning (USR1, 5 minutes before the limit) makes it
      start no new request.
   6. The numbers-only flags (results/trackB/b17/b17_flags.jsonl); with --smoke, the smoke's verdict
-     (run_b17.smoke_check -> smoke_check.json): all 15 ran, the tool path ran, the effort reaches the model.
+     (run_b17.smoke_check -> smoke_check.json): all 15 ran, at least 12 answered, every run that ended on its own
+     parsed, the tool path ran, the effort reaches the model.
+The exit code is 0 only when every step and check passed (4: the template check failed; 5: the smoke isn't clean;
+1 or 2: the runner left runs or was stopped), so the main job can wait on the smoke with afterok (Ritik, Nov 1).
 """
 import argparse
 import getpass
@@ -119,7 +122,7 @@ def server_ids(url):
     from providers.base import post_json
 
     def ids(effort, messages, tools):
-        req = {**sol_vllm.build_request(MODEL, messages, tools=tools, max_tokens=1, temperature=0.6, seed=0,
+        req = {**sol_vllm.build_request(MODEL, messages, tools=tools, max_tokens=1, temperature=run_b17().TEMPERATURE, seed=0,
                                         reasoning_effort=effort), "return_token_ids": True}
         status, body = post_json(url.rstrip("/") + "/chat/completions", {}, req, timeout=600)
         if status != 200 or "prompt_token_ids" not in body:
@@ -149,7 +152,6 @@ def run_b17():
 
 
 def run(log_dir, smoke=False, limit=None, auto_backends=False):
-    import yaml
     from transformers import AutoTokenizer
     from finetune.gpu import eval_job
     rb = run_b17()
@@ -166,7 +168,7 @@ def run(log_dir, smoke=False, limit=None, auto_backends=False):
     rb.OUT.mkdir(parents=True, exist_ok=True)
     url = f"http://localhost:{sol_vllm.PORT}/v1"
     with eval_job.Server(None, False, port=sol_vllm.PORT, log=Path(log_dir) / "vllm_gpt_oss_20b.log", cmd=cmd):
-        cfg = yaml.safe_load(open(CODE / "configs" / "trackB.yaml"))
+        cfg = rb.config()
         tok = AutoTokenizer.from_pretrained(str(snap))
         check = rb.template_check(cfg, server_ids(url), local_ids(tok), tok.decode)
         (rb.OUT / "template_check.json").write_text(json.dumps({**check, "start_date": START_DATE,

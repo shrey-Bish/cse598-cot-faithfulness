@@ -144,6 +144,92 @@ def test_the_smoke_check():
     assert not rb.smoke_check(smoke_rows()[:10])["checks"]["all ran"]
 
 
+def test_the_smoke_check_counts_answers_and_parses(monkeypatch):
+    """Ritik, Nov 1: the smoke also fails on too few answers (fewer than 12 of 15 with a letter) or on a run that
+    ended on its own without a letter the parser reads."""
+    rows = smoke_rows()
+    for r in rows[:3]:                                                    # 3 cut off: 12 of 15 answered, still clean
+        r.update(parsed_letter=None, finish_reason="length")
+    ok = rb.smoke_check(rows)
+    assert ok["ok"] and ok["answered"] == 12 and ok["checks"]["answered"] and ok["checks"]["parse"]
+    rows[3].update(parsed_letter=None, finish_reason="length")             # 11 of 15
+    few = rb.smoke_check(rows)
+    assert not few["ok"] and not few["checks"]["answered"] and few["checks"]["parse"]
+    rows = smoke_rows()
+    rows[7]["parsed_letter"] = None                                       # ended on its own, no letter: a parse failure
+    bad = rb.smoke_check(rows)
+    assert not bad["ok"] and not bad["checks"]["parse"] and bad["checks"]["answered"] and bad["unparsed"] == 1
+
+
+def test_b17_runs_at_gpt_oss_recommended_temperature(server):
+    """Ritik, Nov 1: gpt-oss-20b at its recommended temperature 1.0 (top_p 1.0); Track B's other models keep 0.6."""
+    cfg = rb.config()
+    assert cfg["temperature"] == rb.TEMPERATURE == 1.0 and CFG["temperature"] == 0.6
+    assert {**cfg, "temperature": CFG["temperature"]} == CFG                    # nothing else differs
+    job = rb.jobs(cfg)[0]
+    assert job["run_id"] == rb.jobs(CFG)[0]["run_id"]                   # the run ids don't move
+    tb.run_one(cfg, job)
+    assert {(b["temperature"], b["top_p"]) for b in server} == {(1.0, 1.0)}
+
+
+@pytest.fixture
+def smoke_job(tmp_path, monkeypatch):
+    """sol_b17.run with its server, snapshot and runner faked; returns run(rows) -> the job's exit code."""
+    monkeypatch.setattr(sb, "STOP", tmp_path / "stop")
+    monkeypatch.setattr(rb, "OUT", tmp_path / "b17")
+    monkeypatch.setattr(tb, "OUT", tmp_path)
+    monkeypatch.setattr(sb, "preflight", lambda vllm, log_dir: None)
+    snap = tmp_path / "snap"
+    snap.mkdir()
+    (snap / "chat_template.jinja").write_text("{{ messages }}")
+    (snap / "model-00000-of-00002.safetensors").write_bytes(b"w" * 10)
+    monkeypatch.setattr(sb, "snapshot", lambda local_only=True: snap)
+    (tmp_path / "log").mkdir()
+    (tmp_path / "log" / "snapshot.json").write_text(json.dumps({"revision": sb.REVISION, "files": [
+        {"file": "model-00000-of-00002.safetensors", "bytes": 10}]}))
+    from finetune.gpu import eval_job
+    import transformers
+
+    class FakeServer:
+        def __init__(self, *a, **kw):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+    monkeypatch.setattr(eval_job, "Server", FakeServer)
+    monkeypatch.setattr(transformers.AutoTokenizer, "from_pretrained", lambda path, **kw: NS(decode=str))
+    monkeypatch.setattr(sb, "local_ids", lambda tok: lambda e, m, t: [1, 2])
+    monkeypatch.setattr(rb, "export_flags", lambda: 0)
+
+    def run(rows, served=(1, 2), runner_rc=0):
+        monkeypatch.setattr(sb, "server_ids", lambda url: lambda e, m, t: list(served))
+        monkeypatch.setattr(sb.subprocess, "call", lambda cmd, env, cwd: runner_rc)
+        (tmp_path / "b17_sol_vllm_runs.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+        return sb.run(tmp_path / "log", smoke=True)
+    return run
+
+
+def test_the_smoke_job_exits_non_zero_when_any_check_fails(smoke_job):
+    """Ritik, Nov 1: the main job chains on the smoke (afterok), so the smoke job exits 0 only when every check
+    passes: the served template (4), then all ran, answered, parse, the tool path and the effort (5)."""
+    assert smoke_job(smoke_rows()) == 0
+    assert smoke_job(smoke_rows(), served=(1, 9)) == 4                    # the template differs
+    few = smoke_rows()
+    for r in few[:4]:
+        r.update(parsed_letter=None, finish_reason="length")
+    assert smoke_job(few) == 5                                           # 11 of 15 answered
+    unparsed = smoke_rows()
+    unparsed[0]["parsed_letter"] = None
+    assert smoke_job(unparsed) == 5                                      # a finished run the parser can't read
+    assert smoke_job(smoke_rows(statuses={2: "api_error"})) == 5         # not all ran
+    assert smoke_job(smoke_rows(called=False)) == 5                      # the tool path never ran
+    assert smoke_job(smoke_rows(tokens={"low": 900, "medium": 900, "high": 900})) == 5     # the effort doesn't reach it
+    assert smoke_job(smoke_rows(), runner_rc=2) == 2                     # stopped by Slurm's warning: not 0 either
+
+
 def flag(q, effort, cond, followed, called=True, chars=20, tokens=1000):
     return {"item_id": f"q{q}", "effort": effort, "condition": cond, "answered": True, "followed": followed,
             "called_tool": called and cond == "tool_real", "final_chars": chars, "parsed_letter": "B",

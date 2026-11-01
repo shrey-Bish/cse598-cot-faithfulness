@@ -8,8 +8,9 @@ high. Pre-registered in archive/sessions/2026-10-31/2026-10-31_2237_B_b17-prereg
   python progress/run_b17.py --run [--limit N]   # inside the Sol job only (progress/sol_b17.py starts the server)
 
 Track B's design (configs/trackB.yaml): the 24 pilot puzzles and the 30 MMLU-Pro items, conditions none / user /
-tool_pasted / tool_real / system, 3 runs, temperature 0.6, seed = run, one 32,768-token budget (prompt + every reply),
-the tool left to the model; x 3 efforts = 2,430 runs (810 a level). The effort goes in every request
+tool_pasted / tool_real / system, 3 runs, seed = run, one 32,768-token budget (prompt + every reply), the tool left to
+the model, at gpt-oss's recommended sampling (temperature 1.0, top_p 1.0; Ritik, Nov 1: the comparisons are within
+one model, and Track B's other models run at their recommended 0.6); x 3 efforts = 2,430 runs (810 a level). The effort goes in every request
 (reasoning_effort; vLLM renders gpt-oss's harmony system message with it: "Reasoning: low"). Jobs go repeat by repeat,
 each question in every effort and condition before any second run, so --limit 15 is the first question (a pilot
 puzzle) in all 15 cells: the smoke test, whose runs are the design's first 15 and count. Records:
@@ -55,11 +56,18 @@ SECONDARY = (("medium", "low"), ("high", "medium"))
 OUT = tb.OUT / "b17"
 FLAGS = OUT / "b17_flags.jsonl"
 SMOKE_JOBS = 15                                              # one question x 5 conditions x 3 efforts
+SMOKE_ANSWERED = 12                                          # of the 15, with a letter (Ritik, Nov 1)
+TEMPERATURE = 1.0                  # gpt-oss's recommended sampling (Ritik, Nov 1); Track B's yaml keeps 0.6 for its models
 # Planning assumptions for the dry run only (not measured; the smoke job measures them): mean output tokens a run
 # (every turn), and the server's generated tokens/s on one A100 with Track B's 48 in flight. Qwen3-8B on the same
 # kind of server (Oct 30, 66954217) generated 6.35M tokens in about 2 h: ~880 tokens/s.
 TOKENS = {"low": 1500, "medium": 4000, "high": 9000}
 RATE = (600, 900)
+
+
+def config(path=None):
+    """Track B's design (configs/trackB.yaml) at gpt-oss's temperature; nothing else differs."""
+    return {**yaml.safe_load(open(path or tb.CONFIG)), "temperature": TEMPERATURE}
 
 
 def models():
@@ -142,21 +150,25 @@ def template_check(cfg, server_ids, local_ids, decode):
 # ---------------------------------------------------------------- the smoke job's verdict
 def smoke_check(rows):
     """The smoke job's verdict from the run rows (b17_sol_vllm_runs.jsonl; numbers only): the first SMOKE_JOBS jobs
-    of the design all ran (status ok); the tool path ran (at least 1 of the 3 tool_real runs called the tool and
-    answered); the effort reaches the model (median output tokens over the 5 conditions rise from low to high)."""
-    first = {j["run_id"]: j for j in jobs(yaml.safe_load(open(tb.CONFIG)))[:SMOKE_JOBS]}
+    of the design all ran (status ok); at least SMOKE_ANSWERED have a letter; every run that ended on its own
+    (finish_reason "stop") has one, so the parser reads gpt-oss's final answers; the tool path ran (at least 1 of
+    the 3 tool_real runs called the tool and answered); the effort reaches the model (median output tokens over the
+    5 conditions rise from low to high)."""
+    first = {j["run_id"]: j for j in jobs(config())[:SMOKE_JOBS]}
     got = {r["run_id"]: r for r in latest(rows) if r["run_id"] in first}
     ok = [r for r in got.values() if r["status"] == "ok"]
     real = [r for r in ok if r["condition"] == "tool_real"]
     tokens = {e: [r.get("total_output_tokens") or 0 for r in ok if r.get("effort") == e] for e in EFFORTS}
     med = {e: statistics.median(v) if v else None for e, v in tokens.items()}
-    checks = {"all ran": len(ok) == SMOKE_JOBS,
+    answered = sum(bool(r["parsed_letter"]) for r in ok)
+    unparsed = sum(r.get("finish_reason") == "stop" and not r["parsed_letter"] for r in ok)
+    checks = {"all ran": len(ok) == SMOKE_JOBS, "answered": answered >= SMOKE_ANSWERED, "parse": unparsed == 0,
               "tool path ran": any(r["called_tool"] and r["parsed_letter"] for r in real),
               "effort reaches the model": None not in med.values() and med["high"] > med["low"]}
     return {"ok": all(checks.values()), "checks": checks, "jobs": len(first), "ran": len(got), "status_ok": len(ok),
             "statuses": {s: sum(r["status"] == s for r in got.values()) for s in {r["status"] for r in got.values()}},
             "tool_real_called": sum(bool(r["called_tool"]) for r in real), "tool_real": len(real),
-            "answered": sum(bool(r["parsed_letter"]) for r in ok),
+            "answered": answered, "unparsed": unparsed,
             "cut_off": sum(r.get("finish_reason") == "length" for r in ok), "median_output_tokens": med}
 
 
@@ -265,7 +277,7 @@ def main():
     ap.add_argument("--stop-file", help="start no new job once this file exists (Slurm's warning)")
     ap.add_argument("--flags", default=str(FLAGS), help="the numbers-only flags (default: %(default)s)")
     a = ap.parse_args()
-    cfg = yaml.safe_load(open(tb.CONFIG))
+    cfg = config()
     if a.report:
         rows = latest(load(a.flags))
         if not rows:
