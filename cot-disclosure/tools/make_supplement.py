@@ -865,6 +865,16 @@ PREREG = [
      "verdict_check": ["tool beyond authority", "authority moves it more", "no difference detected", "T11"],
      "after": ["the replay of the tool arms from the reply cache, found from the drift check (T11): the comparison is "
                "read as cross-day", "the final answer naming the source under each arm (descriptive)"]},
+    {"id": "b19", "track": "B", "experiment": "B19: B16's tool arms again, the same day as its authority arm (new "
+                                              "seeds, no reply cache)", "kind": "pre",
+     "rule": "B16's rule, now same-day (its amendment, section 9): each B19 tool arm minus B16's user_authority, paired "
+             "by question: above 0 = tool beyond authority; below 0 = authority moves it more; else no difference "
+             "detected; per model and tool channel, the 16,000 cut beside it; a reading that differs from B16's is "
+             "the result, B16's beside it",
+     "rule_commit": "32d0eed", "rule_file": "archive/sessions/2026-10-31/2026-10-31_2220_B_b16-prereg.md",
+     "rule_check": ["the same rule, now same-day", "use_cache=False", "tool beyond authority"],
+     "f_title": r"\(B19\)", "result_glob": ["*b19-results*"],
+     "verdict": "waiting: running on Voyager (Nov 1, from 12:37)", "verdict_check": []},
     {"id": "b17", "track": "B", "experiment": "B17: does more thinking change real-call following and the bare final "
                                               "answer? (gpt-oss-20b, effort low/medium/high)", "kind": "pre",
      "rule": "high minus low effort, paired by question, on following on tool_real and on the bare final answer after "

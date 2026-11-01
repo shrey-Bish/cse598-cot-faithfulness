@@ -33,7 +33,7 @@ By: Ritik. Ritik's message of about 12:20: the rater 1 sheets, the packet review
   folder: clean. Each zip's 6 files match its folder; no file name with "key".
 - **Shrey's packet** (`results/labels/packets/rater_packet_shrey.zip`): Ritik sends it.
 
-## 3. B19: pre-registered, smoke, running
+## 3. B19: the amendment, the smoke, the run
 
 - **Pre-registered** as B16's amendment: §9 of [`2026-10-31_2220_B_b16-prereg.md`](2026-10-31/2026-10-31_2220_B_b16-prereg.md),
   committed (`32d0eed`) at 12:35, before any B19 call. The same rule, now same-day; T11's fix stated.
