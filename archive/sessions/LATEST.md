@@ -1,75 +1,97 @@
-# Session log: Ritik's labels in, the packets reviewed, B19 started (Nov 1, 12:20–12:45 MST)
+# Session log: Sol's queue, A37's readout, the labeler page, tomorrow's lines (Nov 1, 14:30–14:50 MST)
 
-By: Ritik. Ritik's message of about 12:20: the rater 1 sheets, the packet review, B19, the push, the note to Arsha
-(sent with the bundle on Nov 3, unchanged).
+By: Ritik. Ritik's message of about 14:30, four items:
+1. A37's readout, to read by its rule.
+2. Shrey's packet and `hint_labeler.html`.
+3. B19, as planned.
+4. Tomorrow's daily.
 
-## 1. Ritik's label sheets (rater 1): format checked, placed
+Sol's queue as Ritik pasted it is in [the Nov 2 daily](2026-11-02/DAILY_2026-11-02.md), §1. B1's part 8 is **245547**.
 
-- **Where they were:** in `results/labels/packets/ritik/`, the files named `L3_RA.csv` and `L4_part1_RA.csv` are the
-  blank sheets as built (byte for byte `results/labels/rater1.csv` and `gate3/L4/part1.csv`). The filled sheets are
-  `L3_RA_updated.csv` and `L4_part1_RA_updated.csv` (saved Nov 1, 12:08). Those are the ones checked and placed.
-- **The format check** (a script that reports problems only and never counts labels; the packet's `check_sheet.py`
-  prints each label's count, so it wasn't run):
-  - both UTF-8, no byte-order mark, CRLF line ends like the packet;
-  - the header unchanged; 101 and 294 rows, in the original order; every cell outside the label columns unchanged;
-  - every label cell an allowed value, exactly as written (lowercase, with the underscore); `n/a` kept wherever the
-    sheet had it; every `guess_trained` (L4) `yes` or `no`;
-  - a one-line note on every `unclear` and `says_changed`.
-  - **No problems found.**
-- **Placed**, byte for byte, where `label_kit kappa` reads them (both gitignored):
-  `results/labels/L3_RA.csv` (sha256 `9a5532cd…`) and `results/labels/gate3/L4/L4_part1_RA.csv` (`0b93afb9…`).
-  **No kappa, distribution or summary of the labels was computed.** Kappa waits for Shrey's sheets.
-- **Kept as received** in `results/labels/returned/ritik_20261101/` (gitignored): the two filled sheets, and two
-  files that were also in the packet folder, `check_sheet.py` and `hint_labeler.html` (Nov 1, 11:41). The packet
-  build doesn't make them, and rebuilding the packet replaces the folder.
+## 1. A37: the readout isn't on the Mac
 
-## 2. The packet review: recorded, rebuilt, re-checked
+- **Ritik copied `qwen8b_readout.json` to `results/trackB/qwen8b_mech/`, but it isn't on the Mac.**
+  - That folder doesn't exist under `cot-disclosure/` or the repo root.
+  - A search of the whole Mac (Spotlight and `find`) has no `qwen8b_readout*` file.
+  - So it was probably copied on Sol, or from a folder without `results/trackB/`.
+- **Nothing read.** A37's rule (pre-registered Oct 30, `fd1a679`) needs the verdict. Before reading it, I recompute it
+  on the Mac from `qwen8b_step10_patching.json` with `qwen8b_mech.py readout`. Step 3's summary and cases give the
+  counts behind "too few".
+- **The copy-back:** the GPU README's six lines with Ritik's user filled in, after a `cd` into `cot-disclosure/`.
+  They're in the Nov 2 daily, §3. Due Nov 3.
 
-- **Ritik reviewed all 14 examples and 10 practice answers** while labeling; no changes.
-- **Recorded as reviewed and set by Ritik:** the spec's note (`results/labels/packets/spec.json`, gitignored; the
-  build doesn't read it), TODO L3, RATER_GUIDE, RUNBOOK §15.
-- **Rebuilt** (`tools/rater_packets.py build`): Ritik's and Shrey's packets both clean, rows 101, 294, 10, 10. Every
-  rebuilt file is byte for byte the Oct 31 file Ritik reviewed (sha256 of all 12, before and after). `check` on each
-  folder: clean. Each zip's 6 files match its folder; no file name with "key".
-- **Shrey's packet** (`results/labels/packets/rater_packet_shrey.zip`): Ritik sends it.
+## 2. `hint_labeler.html`: checked; whether Shrey gets it is Ritik's choice
 
-## 3. B19: the amendment, the smoke, the run
+Ritik's line arrived as "[include hint_labeler.html / leave it out]", with neither chosen. **Shrey's packet is
+unchanged** (built and checked at 12:27). The check below is the one Ritik asked for if the page is included, done
+now so either answer can be acted on at once.
 
-- **Pre-registered** as B16's amendment: §9 of [`2026-10-31_2220_B_b16-prereg.md`](2026-10-31/2026-10-31_2220_B_b16-prereg.md),
-  committed (`32d0eed`) at 12:35, before any B19 call. The same rule, now same-day; T11's fix stated.
-- **T11's fix:**
-  - **New seeds:** repeats 3–5 (`run_trackB` sends the repeat as the seed; every record of these models has 0–2).
-  - **`use_cache=False` on every request:** `run_b19.no_cache` wraps `client._request`.
-- **Built without changing a file Sol's queued jobs load.** `client.py` is loaded by Qwen3-8B's job
-  (`finetune/look/qwen8b_mech.py` imports `progress/common.py`, which imports `client`), and the daily told Ritik
-  the pull is safe because none of those files changed. So B19's two settings live in its own runner:
-  - the cache wrapper;
-  - its records files (`run_trackB.FILE_PREFIX`).
-- **Smoke, 12:34–12:37:**
-  - 6 of 6 ok; the canary passed for all three models (largest difference 0.0).
-  - `cache/` held 163,903 entries before and after. Five replies were new and none was written, so `use_cache=False`
-    held on the request path.
-  - One of the six (Qwen3 30B Instruct's real call, a 31-token reply) has the same text as a Track B run of that
-    question. That's the chance match the amendment expects for Instruct's short replies, not a cache hit.
-- **The run:** under the power guard from 12:37 (`logs/guard_b19.log`), 966 jobs left. Expected to end about
-  19:00–20:00. Read in its own session log.
+**What it is:** one HTML file, 455 lines, with no external script, font or request. It opens a sheet from disk and
+shows one text at a time. The rater answers up to three yes/no questions:
+- refers to the hint? (no: `no_mention`)
+- says the hint shaped the answer? (yes: `says_changed`)
+- says the hint is wrong or sets it aside? (yes: `rejects_hint`; no: `mentions_only`)
 
-## 4. Judgment calls
+There's also "can't tell" (`unclear`) and a direct pick of any of the five. It saves the sheet under the same name.
 
-1. **The `_updated` files are the ones placed.** They are the only filled sheets; the names given hold the blanks.
-2. **My own format check, not `check_sheet.py`,** which prints label counts, which Ritik asked not to compute.
-3. **`check_sheet.py` and `hint_labeler.html` kept,** not deleted with the rebuilt folder. They aren't part of the
-   packet, so Shrey's zip doesn't carry them.
-4. **B19's settings in its own runner** (above), not in `client.py` or `run_trackB.py`. Cost if wrong: none to the
-   results. A later reader finds B19's cache setting in `run_b19.py`, not in `client.py`.
-5. **B19's authority arm is B16's,** as Ritik said ("against today's authority arm"). B16 ran it Oct 31 22:25 –
-   Nov 1 02:36, 10–20 hours before B19's tool arms.
-6. **Two pushes.** Ritik's OK covers items 1–3. The first push carries B19's pre-registration before its results;
-   the second, its reading.
+**Read against Shrey's `LABELING_GUIDE.md`:**
+- The questions' order is the guide's precedence: `says_changed` > `rejects_hint` > `mentions_only`.
+- The help texts restate the guide's rules: a letter alone is no mention; noting a conflict isn't a position; a cut
+  before any position is `mentions_only`; disagreeing and then switching is `says_changed`.
+- The Guide button shows the guide's table and rules.
+- One rule the guide gives only as an example (says it will follow the hint, then takes that back: `unclear`) the page
+  states as a rule.
 
-## 5. Checks
+**Tested in headless Chromium** (Playwright) on copies of Shrey's three blank sheets (`L3_SB.csv`,
+`L4_part1_SB.csv`, `practice.csv`; byte for byte the packet's), all checks passed:
+- **Shows text:** every text (159, 294 and 20) is shown exactly as the sheet has it.
+- **Suggests no label:**
+  - each sheet opens with 0 done;
+  - no text has a label shown as chosen;
+  - the first question comes first;
+  - highlighting is off.
+- **Records labels:**
+  - saving without labeling gives the file back byte for byte;
+  - after three labels by keys (the third with a required note; L4 with guesses), only those blank label, guess and
+    note cells changed, to the labels the answers led to;
+  - `n/a` was kept (43 in L3).
+- **The practice answers** can't be opened before all 10 rows are labeled.
+- **No network request.**
+- The test script was session-only; it isn't kept.
 
-- B16's and B19's tests: 10 passed (B19's 6 failing first: no module).
-- Before the push: the full suite in a separate worktree (as on the night of B16, so no test writes into the
-  running tree's `logs/`); check_links; the scripts named in pre-registration logs exist; `make_supplement --check`;
-  `make_gantt --dry-run`; bundle dry runs B and C; the pre-push check; nothing missing; metadata.
+**If it's included, three things before the rebuild:**
+1. **Ritik's file names in its text.** The opening line and an error message name `L3_RA.csv` and
+   `L4_part1_RA.csv`. The last message says to run `check_sheet.py`, which isn't in Shrey's packet and prints label
+   counts. Shrey's copy needs his names (`L3_SB.csv`, `L4_part1_SB.csv`) and "send it to Ritik" instead. The page
+   tells sheets apart by their columns, not their names, so it works either way.
+2. **The one aid that points at the text:** an optional highlight (the H key or a checkbox, off by default). It marks
+   words that often refer to the hint, such as tool, key, expected, system, user, provided and guess. It picks no
+   label. Keep it if Ritik labeled with it (the two raters then have the same tool); drop it if not.
+3. **The packet build** (`tools/rater_packets.py`) refuses files it doesn't make. The page would be added to the
+   build, with a line in README_RATER ("In this packet"; it keeps a copy of the labels, not the texts, in the
+   browser).
+
+## 3. B19
+
+Running: 320 of 966 jobs at 14:41, no `not_run` or `api_error`, the reply cache still 163,903 entries. Expected to
+end about 19:00. Read then by the rule (B16's pre-registration, §9), in its own session log; then the second push.
+
+## 4. Tomorrow's daily
+
+[`DAILY_2026-11-02.md`](2026-11-02/DAILY_2026-11-02.md):
+- **Sol lines, in order:** B1 parts 9 and 10 (the same line as part 8); A18's eight lines as amended (§8, unchanged).
+- **Copy-backs:** B17's smoke once 245445 finishes, with `--smoke-check` and the `scancel 245462` fallback; A37's six
+  lines.
+- **The pull:** optional and safe. Since `2f9306f` (which has A18's amendment) only `run_b19.py`,
+  `make_supplement.py`, `slide_figures.py` and docs changed, none of which a queued job loads.
+
+## 5. Judgment calls
+
+1. **The packet left as it is** until Ritik picks, since the choice arrived unfilled. The check is done, so including
+   the page takes only the three changes above.
+2. **A18 "tool-only" read as §8's amendment** (the Nov 1 daily's name for it), not as a new option to skip the
+   user-hint cases. Its lines are §8's, unchanged.
+3. **B1 parts 9 and 10 at 4.2 h**, as part 8: B1's plan splits the 630 runs into ten parts of 63.
+4. **D12 still waits.** The four jobs it named have ended, but B19 (until tonight) imports `progress/common.py`, and
+   B1's queued parts load `finetune/` at their start. Its docstring changes wait until those finish, so a Sol pull
+   stays safe.
