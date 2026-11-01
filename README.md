@@ -84,6 +84,7 @@ Recompute reported numbers from saved runs, with no API calls:
 .venv/bin/python cot-disclosure/progress/analyze_progress.py                  # the progress round
 cd cot-disclosure && ../.venv/bin/python tools/export_summaries.py --check     # the summaries hold no text
 ../.venv/bin/python tools/paper_figures.py                                    # docs/paper/figures/
+../.venv/bin/python tools/slide_figures.py                                    # the slides' figures (WAITING.md: the rest)
 ../.venv/bin/python tools/make_supplement.py --check                          # the supplement, checked
 ```
 

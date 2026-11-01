@@ -126,12 +126,15 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 
 ## Final presentation map (about 12 slides)
 
-Bullets only; the team writes the prose and the speaker notes. Figure paths are from the repo root. "To make" marks a
-figure that doesn't exist yet: `tools/paper_figures.py` makes it from the numbers-only summaries.
+Bullets only; the team writes the prose and the speaker notes. Figure paths are from the repo root. The slide figures
+are made by `tools/slide_figures.py` from the numbers-only summaries (16:9, PNG, SVG and a CSV of every plotted
+number). "Waiting" marks a figure whose result isn't in yet: its spec (source file, axes, the pre-registered
+comparison, owner, date) is in [`docs/paper/figures/WAITING.md`](paper/figures/WAITING.md), and no chart is drawn
+until the result arrives.
 
 1. **Where did that answer come from?** The question and the three levels.
-   - Figure: `docs/paper/figures/three_levels.svg` (to make; a diagram, no data).
-   - Status: to make. Owner: Ritik.
+   - Figure: `docs/paper/figures/three_levels.png` and `.svg` (a diagram, no data; `tools/slide_figures.py`).
+   - Status: made Nov 1. Owner: Ritik.
 2. **Tools pull harder than users.** Gate 2 on four models (F1, F15–F17, F29).
    - Figure: `docs/paper/supplement/figures/trackB_following.png`.
    - Status: done; the final version (Nov 18) adds B16 and B17. Owner: Arsha.
@@ -139,34 +142,35 @@ figure that doesn't exist yet: `tools/paper_figures.py` makes it from the number
    - Figure: `docs/paper/figures/readout_by_layer.png` and `docs/paper/supplement/figures/readout_setA_vs_test2.png`.
    - Status: done. Owner: Ritik.
 4. **Level 1 on a second model.** Qwen3-8B (A37).
-   - Figure: `docs/paper/figures/readout_qwen8b.png` (to make).
-   - Status: due Nov 3. Owner: Ritik.
+   - Figure: `docs/paper/figures/readout_qwen8b.png` (waiting; spec in `WAITING.md`).
+   - Status: waiting on A37 (Sol 123022, 123025), due Nov 3. Owner: Ritik.
 5. **Level 2: the private reasoning names it, the final answer doesn't** (F3, with L3's kappa).
    - Figure: `docs/paper/supplement/figures/cue_experiments.png`.
    - Status: the labels are due Nov 6. Owner: Ritik and Shrey.
 6. **Level 2: after a tool call, the answer goes bare.** F15, C4's control, F29; one instruction brings the source
    back without reducing deference (F25).
-   - Figure: `docs/paper/figures/bare_after_call.png` (to make).
-   - Status: the data is done. Owner: Arsha.
+   - Figure: `docs/paper/figures/bare_after_call.png` (`tools/slide_figures.py`: Track B's bare answers after a call,
+     C4's right-or-wrong control, B15's instruction).
+   - Status: made Nov 1. Owner: Arsha.
 7. **Tool or authority?** (B16)
-   - Figure: `docs/paper/figures/b16_authority.png` (to make).
-   - Status: running, due Nov 3. Owner: Ritik, then Arsha.
+   - Figure: `docs/paper/figures/b16_authority.png` (waiting; spec in `WAITING.md`).
+   - Status: waiting on B16's reading, due Nov 3. Owner: Ritik, then Arsha.
 8. **Thinking dose** (B17; the slide goes if B17 is dropped).
-   - Figure: `docs/paper/figures/b17_effort.png` (to make).
-   - Status: due Nov 12. Owner: Arsha.
+   - Figure: `docs/paper/figures/b17_effort.png` (waiting; spec in `WAITING.md`).
+   - Status: waiting on B17, due Nov 12. Owner: Arsha.
 9. **The fix: training cuts following, but none beats one line** (F28, Gate 3).
    - Figure: `cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png`.
    - Status: done; false disclosure from L4 part 1 (Nov 14); the final statement Nov 20. Owner: Ritik.
 10. **Inside the fixed model.** Does training stop the readout or act after it (A18)? And B1 (A30).
-    - Figure: `docs/paper/figures/readout_lora_vs_base.png` (to make).
-    - Status: due Nov 10. Owner: Ritik.
+    - Figure: `docs/paper/figures/readout_lora_vs_base.png` (waiting; spec in `WAITING.md`).
+    - Status: waiting on A18 (due Nov 10) and B1's verdict (Nov 4). Owner: Ritik.
 11. **Level 3: reviewers defer to the trace, and the citation is the cue.** F18, F22, F24, F30, F31, F33, F34, C19.
     - Figure: `docs/paper/supplement/figures/trackC_reviewers.png` and `docs/paper/figures/reviewer_by_prompt.png`.
     - Status: done; C19 due Nov 7. Owner: Shrey.
 12. **Across agents, and what holds.** The handoff note loses the source (C25); pipeline vs model (C20); a
     realistic tool (C26); the checker.
-    - Figure: `docs/paper/figures/c25_hops.png` (to make).
-    - Status: due Nov 12–15. Owner: Shrey.
+    - Figure: `docs/paper/figures/c25_hops.png` (waiting; spec in `WAITING.md`).
+    - Status: waiting on C25 (Nov 12), C20 and C26 (Nov 15). Owner: Shrey.
 13. **What to do about it, and the limits.**
     - Figure: none.
     - Status: Nov 21–22. Owner: everyone.

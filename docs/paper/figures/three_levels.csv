@@ -1,0 +1,4 @@
+level,where,evidence,open
+1,Inside the model,"F11, F26, F32",Qwen3-8B (A37); the trained model (A18)
+2,In the model's words,"F15, F25, F29",tool or authority (B16); thinking dose (B17)
+3,Between agents,"F18, C16-C18",handoff notes (C25); pipeline vs model (C20)

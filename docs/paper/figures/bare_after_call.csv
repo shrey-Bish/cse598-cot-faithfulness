@@ -1,0 +1,14 @@
+panel,model,arm,measure,k,n,value,low,high,interval,compared_k,compared_n,reading
+a,Qwen3 30B Thinking,after its own tool call,bare final answer,51,54,0.9444444444444444,0.8852459016393442,1.0,95% bootstrap clustered by question,,,
+a,Qwen3 30B Thinking,the same hint pasted,bare final answer,0,162,0.0,0.0,0.0,95% bootstrap clustered by question,,,
+a,Qwen3 30B Instruct,after its own tool call,bare final answer,111,162,0.6851851851851852,0.5617283950617284,0.8024691358024691,95% bootstrap clustered by question,,,
+a,Qwen3 30B Instruct,the same hint pasted,bare final answer,0,162,0.0,0.0,0.0,95% bootstrap clustered by question,,,
+a,"Qwen3-8B, thinking on",after its own tool call,bare final answer,138,145,0.9517241379310345,0.8874172185430463,1.0,95% bootstrap clustered by question,,,
+a,"Qwen3-8B, thinking on",the same hint pasted,bare final answer,40,162,0.24691358024691357,0.16049382716049382,0.3395061728395062,95% bootstrap clustered by question,,,
+b,"Qwen3 30B Thinking (C4, the call forced)",after a right lookup,bare final answer,80,84,0.9523809523809523,0.8838668489458142,0.9813282533202138,95% Wilson,,,
+b,"Qwen3 30B Thinking (C4, the call forced)",after a wrong lookup,bare final answer,71,75,0.9466666666666667,0.8707401276633778,0.9790665723987743,95% Wilson,,,
+b,"Qwen3 30B Thinking (C4, the call forced)",no tool,bare final answer,2,159,0.012578616352201259,0.0034563154886584208,0.044697630902917854,95% Wilson,,,
+c,Qwen3 30B Thinking,one instruction minus Track B,names the tool after a call,33,63,0.46825396825396826,0.29508196721311475,0.6404208998548621,"95% bootstrap clustered by question, unpaired",3,54,rises
+c,Qwen3 30B Thinking,one instruction minus Track B,follows the wrong letter (real call),63,162,0.05555555555555558,-0.024691358024691357,0.1358024691358025,"95% bootstrap clustered by question, paired",54,162,no change detected
+c,Qwen3 30B Instruct,one instruction minus Track B,names the tool after a call,149,162,0.7037037037037037,0.5925925925925926,0.8086419753086419,"95% bootstrap clustered by question, unpaired",35,162,rises
+c,Qwen3 30B Instruct,one instruction minus Track B,follows the wrong letter (real call),146,162,-0.006172839506172867,-0.07407407407407407,0.06172839506172845,"95% bootstrap clustered by question, paired",147,162,no change detected
