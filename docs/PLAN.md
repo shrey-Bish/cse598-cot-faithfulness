@@ -16,7 +16,8 @@ below the gates are unchanged from it apart from their dates. Where things are:
 - **Track C:** Shrey's since Oct 30. Its experiments below are prepared now (code, CPU tests, a pre-registration log
   and a dry run each), and Shrey runs them on Voyager from about Nov 4.
 - **Track B:** back to Arsha on Nov 3. B16 ran Oct 31–Nov 1 and is read (F35); B17 is prepared.
-- **Sol:** Ritik submits every job.
+- **Sol:** Ritik submits every job, in this order to the freeze (Ritik, Nov 1): B1's bench, then B1's rerun;
+  Qwen3-8B's Steps 3 and 10 (queued); B17; A18; A38 only if B1 works (RUNBOOK §0).
 - **Pre-registration:** before any run, as always.
 
 ## The story: "Where did that answer come from?"
@@ -304,7 +305,7 @@ hits it has no answer). Five systems: base, prompt-only, LoRA only, tags only, L
 - **Account and queue.** Every job today uses `class_cse59888883fall2026`, on
   `-p public -q class -G a100:1`; the course account has only the class QoS (no debug or public QoS, Oct 28). Accounts, partitions, QoS and
   their limits are to live in one config file that `sol/submit.sh` reads; it allows only the
-  accounts listed there (today only the course account; Ritik adds others himself if more Sol
+  accounts listed there (today only the course account; Ritik adds others if more Sol
   access comes).
 - **The class QoS** (`sacctmgr -P show qos class`, confirmed Oct 27, re-checked Oct 30): MaxTRES cpu=32,
   gres/gpu=4, mem=320G; MaxWall 24 h; MaxJobsPU 2; MaxSubmitPU 10; MaxTRESRunMinsPU

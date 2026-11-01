@@ -1,6 +1,7 @@
 # Runbook: how to run every step
 
-Last updated: 2026-10-31 22:50 MST (B16; the 20-day program's experiments: §14, §18, §19). One page per step: what it does, where it runs, the commands in order,
+Last updated: 2026-11-01 (the Sol order, §0; A18 tool-only and B17 at temperature 1.0 with its smoke's exit
+code, §14 and §18; B16 read, §18). Before: 2026-10-31 22:50 MST (B16; the 20-day program's experiments: §14, §18, §19). One page per step: what it does, where it runs, the commands in order,
 inputs and outputs, how long it takes, and what to check. Written so anyone in the group can run a
 step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md); open work in
 [`TODO.md`](status/TODO.md).
@@ -12,6 +13,11 @@ step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md
 ---
 
 ## 0. Read this first
+
+**The Sol order to the results freeze (Ritik, Nov 1).** One queue, in this order: (1) B1's bench (122956,
+queued), then B1's rerun from its plan (§14, A30); (2) Qwen3-8B's Steps 3 and 10 (123022, 123025, queued; A37); (3)
+B17 (§18: the download, the smoke, then the runs chained with `afterok`); (4) A18 (§14, tool-hint cases first);
+(5) A38 only if B1 "works" (§14). Nothing new after Nov 18.
 
 **Rules that apply to every step.**
 - **Dry run first.** Every script that calls a model has `--dry-run` (calls, time, nothing sent).
@@ -458,8 +464,10 @@ It refuses a push that adds anything under a produced-data folder, any file with
   ```
 
 - **B16, tool or authority** (Oct 31; pre-registered in the 2026-10-31 22:20 log). The user's hint with the answer
-  key's authority (`user_authority`) and the tool arms again, the same day, on the three Voyager models: 1,458 runs,
-  ~8.4 h at 4 in flight. Its own records (`b16_voyager.jsonl.gz`), never in Track B's table.
+  key's authority (`user_authority`) and the tool arms again, on the three Voyager models: 1,458 runs, ~8.4 h at 4
+  in flight. Its own records (`b16_voyager.jsonl.gz`), never in Track B's table. **Done Nov 1 (F35).** The tool arms
+  sent Track B's exact requests, so the reply cache returned Track B's replies for 907 of 972 (T11): to make a rerun
+  the same day, change the seed or bypass the cache, and pre-register which.
   ```bash
   ../.venv/bin/python progress/run_b16.py --dry-run                 # jobs, calls, hours
   ../.venv/bin/python progress/run_b16.py --run --limit 9           # smoke: question 1, every arm and model
@@ -470,7 +478,10 @@ It refuses a push that adds anything under a produced-data folder, any file with
 
 - **B17, the thinking dose** (Oct 31; pre-registered in the 2026-10-31 22:37 log): gpt-oss-20b at reasoning effort
   low, medium and high on our vLLM server in a Sol job; 2,430 runs, ~4–6 GPU h. Records stay on Sol, and the
-  numbers-only flags come back.
+  numbers-only flags come back. **At temperature 1.0** (gpt-oss's recommended setting; Track B's models stay at their
+  0.6; amended Nov 1, before anything ran). **The smoke job exits 0 only if every check passes** (4: the template; 5:
+  all ran, at least 12 of 15 answered, every finished run parsed, the tool path, the effort), so the runs wait on it
+  with `afterok`; after a failed smoke the runs job stays pending (`DependencyNeverSatisfied`): `scancel` it.
   ```bash
   # Mac, no calls: the jobs and hours
   ../.venv/bin/python progress/run_b17.py --dry-run

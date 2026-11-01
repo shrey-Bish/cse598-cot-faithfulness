@@ -117,7 +117,11 @@ From `cot-disclosure/`, Voyager only, under the power guard, at most 4 requests 
 3. **Then the reading,** in its own session log and F-entry.
 
 Each experiment's pre-registration is in `archive/sessions/2026-10-31/`: C19 22:31, C20 22:32, C25 22:33, C26 22:34.
-Decisions on these are Ritik's until you start.
+Decisions on these are Ritik's until you start. **Confirmed by Ritik on Nov 1:** C19's two sentences, C25's writer
+(Qwen3 30B Instruct) and decider (C4's reviewer in `plus_explanation`), and C20's reuse of saved runs for three of
+its four arms. **You label C25's 20-row spot check** (about 15 minutes; one of `names_tool`, `other_source`,
+`no_source`, `unclear` per row, by a person, never a model; its pre-registration says how), before running
+`--spot-check-read`.
 
 ```bash
 # C19: H34
@@ -133,7 +137,7 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
   --job "voyager:c25plain:c25notesplain=agents/run_team.py --rereview team_c15_solve --notes-from team_c25_notes_plain --no-check-tool --bad-first --variants plus_explanation --cases results/trackC/c15_items.jsonl --log team_c25_plain --run-name c25plain" \
   --job "voyager:c25keep:c25noteskeep=agents/run_team.py --rereview team_c15_solve --notes-from team_c25_notes_keep --no-check-tool --bad-first --variants plus_explanation --cases results/trackC/c15_items.jsonl --log team_c25_keep --run-name c25keep" \
   --job "voyager:c25stripped:c25noteskeep=agents/run_team.py --rereview team_c15_solve --notes-from team_c25_notes_keep --final-edit strip_tool --no-check-tool --bad-first --variants plus_explanation --cases results/trackC/c15_items.jsonl --log team_c25_keep_stripped --run-name c25stripped" >> logs/guard.log 2>&1 &
-../.venv/bin/python agents/c25.py --spot-check     # the blind 20-row sheet (its key kept apart), written once; a person labels it
+../.venv/bin/python agents/c25.py --spot-check     # the blind 20-row sheet (its key kept apart), written once; Shrey labels it
 ../.venv/bin/python agents/c25.py
 ../.venv/bin/python agents/c25.py --spot-check-read results/trackC/c25_spotcheck_sheet.csv
 
