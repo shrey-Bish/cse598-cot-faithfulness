@@ -17,8 +17,9 @@ answer separately, so we can check which of the two admits the hint. Three track
 experiment on that map. Results freeze on Nov 18; the final presentation and report are on Nov 24. Details, numbers
 and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The story so far").
 
-1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than from the user,
-   in all four models tested (Gate 2).
+1. **Tools sway models more than users, mostly through their claim to be the answer key.** The same wrong hint moves
+   the answer more from a tool than from the user, in all four models tested (Gate 2); a user who claims the answer
+   key's authority moves it about as much, except where the model calls the tool itself every time (B16, F35).
 2. **After a tool call, the final answer stops explaining.** It becomes a bare letter while the private reasoning
    names the tool. Disclosure can be prompted, but it doesn't reduce deference to the tool (B15).
 3. **Inside Olmo 3 7B Think, layers 15, 19 and 23 read the hint straight from the prompt.** They hold 0.90 of the

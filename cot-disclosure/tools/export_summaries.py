@@ -75,6 +75,7 @@ OTHER = {                # Tracks B and C: numbers-only reports their scripts wr
     "results/trackB/trackB_report.json": "trackB/trackB_report.json",            # progress/trackB_report.py
     "results/trackB/template_check.jsonl": "trackB/template_check.jsonl",        # progress/voyager_template_check.py
     "results/trackB/b15_report.json": "trackB/b15_report.json",                  # B15 (progress/run_b15.py --report)
+    "results/trackB/b16_report.json": "trackB/b16_report.json",                  # B16 (progress/run_b16.py --report)
     "results/trackC/team_live_summary.json": "trackC/team_live_summary.json",    # agents/run_team.py --summary
     "results/trackC/team_replay_summary.json": "trackC/team_replay_summary.json",
     "results/trackC/team_smoke_olmo32b_summary.json": "trackC/team_smoke_olmo32b_summary.json",   # Oct 28, the 32B reviewer

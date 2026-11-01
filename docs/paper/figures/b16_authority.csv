@@ -1,0 +1,19 @@
+panel,model,arm,measure,k,n,value,low,high,interval,compared_k,compared_n,reading
+a,Qwen3 30B Thinking,pasted block,tool minus user_authority,63,162,0.11728395061728397,0.04938271604938271,0.19135802469135804,"95% bootstrap clustered by question, paired",44,162,tool beyond authority
+a,Qwen3 30B Thinking,its own call,tool minus user_authority,54,162,0.06172839506172839,-0.0679012345679012,0.19135802469135801,"95% bootstrap clustered by question, paired",44,162,no difference detected
+b,Qwen3 30B Thinking,plain user hint,"following, Track B (Oct 27–28)",3,162,0.018518518518518517,0.006317629796363942,0.053024943210909226,95% Wilson,,,
+b,Qwen3 30B Thinking,user_authority,following,44,162,0.2716049382716049,0.20899436709101277,0.34479634061756553,95% Wilson,,,
+b,Qwen3 30B Thinking,pasted block,following,63,162,0.3888888888888889,0.31722302010601644,0.4657021890495081,95% Wilson,,,
+b,Qwen3 30B Thinking,its own call,following,54,162,0.3333333333333333,0.26534451295303474,0.409043300780252,95% Wilson,,,
+a,Qwen3 30B Instruct,pasted block,tool minus user_authority,35,162,0.06172839506172839,-0.006172839506172839,0.12962962962962962,"95% bootstrap clustered by question, paired",25,162,no difference detected
+a,Qwen3 30B Instruct,its own call,tool minus user_authority,147,162,0.7530864197530864,0.6481481481481481,0.8518518518518519,"95% bootstrap clustered by question, paired",25,162,tool beyond authority
+b,Qwen3 30B Instruct,plain user hint,"following, Track B (Oct 27–28)",1,162,0.006172839506172839,0.0010904900802352659,0.0341326617220962,95% Wilson,,,
+b,Qwen3 30B Instruct,user_authority,following,25,162,0.15432098765432098,0.10676658381603775,0.21788962244559423,95% Wilson,,,
+b,Qwen3 30B Instruct,pasted block,following,35,162,0.21604938271604937,0.15964650072875458,0.28560681155758594,95% Wilson,,,
+b,Qwen3 30B Instruct,its own call,following,147,162,0.9074074074074074,0.8528569256578419,0.9430839741052347,95% Wilson,,,
+a,Olmo 3 7B Think,pasted block,tool minus user_authority,64,160,-0.028571428571428525,-0.09611801242236023,0.03438037193311455,"95% bootstrap clustered by question, paired",69,161,no difference detected
+a,Olmo 3 7B Think,inserted tool turn,tool minus user_authority,46,157,-0.13557779799818015,-0.21204968944099378,-0.062190423775454085,"95% bootstrap clustered by question, paired",69,161,authority moves it more
+b,Olmo 3 7B Think,plain user hint,"following, Track B (Oct 27–28)",13,162,0.08024691358024691,0.04749434754523293,0.13244533148674878,95% Wilson,,,
+b,Olmo 3 7B Think,user_authority,following,69,161,0.42857142857142855,0.3546723603853646,0.5057996340019058,95% Wilson,,,
+b,Olmo 3 7B Think,pasted block,following,64,160,0.4,0.3272940754599675,0.47739516364657547,95% Wilson,,,
+b,Olmo 3 7B Think,inserted tool turn,following,46,157,0.2929936305732484,0.2274261535952115,0.3684491856854945,95% Wilson,,,

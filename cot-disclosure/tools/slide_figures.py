@@ -8,6 +8,9 @@ summaries (no calls, no gitignored data). One style for every slide: 16:9, white
                     question; (b) C4's control, Qwen3 30B Thinking with the call forced: after a right lookup, a wrong
                     one and no tool (95% Wilson: C4's summary keeps no clustered interval); (c) B15's one instruction
                     minus Track B, the pre-registered differences (95% bootstraps clustered by question)
+  b16_authority     slide 7 (F35): (a) each tool arm minus a user who claims the answer key's authority, paired by
+                    question, with the pre-registered reading; (b) following per arm, X of Y (95% Wilson), the plain
+                    user hint from Track B's Oct 27-28 runs (cross-day; the tool arms mostly replayed from them, T11)
 
   python tools/slide_figures.py          # -> docs/paper/figures/<name>.png, .svg and .csv
 
@@ -47,10 +50,13 @@ MEASURES_B15 = (("names_tool_after_call", "names the tool after a call", "final"
 LEVELS = (("1", "Inside the model", "Layers 15, 19 and 23 read the tool's letter straight from the prompt: 0.90 of the "
            "drop at the takeover (Olmo 3 7B Think)", "F11, F26, F32", "Qwen3-8B (A37); the trained model (A18)"),
           ("2", "In the model's words", "After a tool call the final answer is a bare letter; the private reasoning "
-           "names the tool. One instruction brings the source back, not the right answer", "F15, F25, F29",
-           "tool or authority (B16); thinking dose (B17)"),
+           "names the tool. One instruction brings the source back, not the right answer", "F15, F25, F29, F35",
+           "thinking dose (B17)"),
           ("3", "Between agents", "A reviewer shown the trace defers to it, in one model family; a checker that never "
-           "sees the tool holds", "F18, C16-C18", "handoff notes (C25); pipeline vs model (C20)"))
+           "sees the tool holds", "F18, F31, F33, F34", "handoff notes (C25); pipeline vs model (C20)"))
+MODELS_B16 = (("qwen3-30b-a3b-thinking-2507", "Qwen3 30B Thinking"), ("qwen3-30b-a3b-instruct-2507", "Qwen3 30B Instruct"),
+              ("olmo3-7b-think", "Olmo 3 7B Think"))
+CHANNELS_B16 = {"tool_pasted": "pasted block", "tool_real": "its own call", "tool_injected": "inserted tool turn"}
 
 
 # ---------------------------------------------------------------- data
@@ -91,6 +97,25 @@ def bare_rows(report=SUM / "trackB" / "trackB_report.json", c4=SUM / "trackC" / 
                          "k": e["with"]["k"], "n": e["with"]["n"], "value": e["diff"], "low": e["interval"][0],
                          "high": e["interval"][1], "interval": CLUSTERED + (", paired" if e["paired"] else ", unpaired"),
                          "compared_k": e["without"]["k"], "compared_n": e["without"]["n"], "reading": e["reading"]})
+    return rows
+
+
+def b16_rows(report=SUM / "trackB" / "b16_report.json"):
+    """(a) each tool arm minus user_authority (value: the difference; k/n the tool arm, compared_k/n the authority
+    arm; the pre-registered reading); (b) following per arm: the plain user hint (Track B, cross-day), user_authority
+    and the tool arms (value: the share, 95% Wilson)."""
+    res = json.loads(Path(report).read_text())
+    rows = []
+    for key, name in MODELS_B16:
+        for ch, e in res[key]["primary"].items():
+            rows.append({"panel": "a", "model": name, "arm": CHANNELS_B16[ch], "measure": "tool minus user_authority",
+                         "k": e["a"]["k"], "n": e["a"]["n"], "value": e["diff"], "low": e["interval"][0],
+                         "high": e["interval"][1], "interval": CLUSTERED + ", paired", "compared_k": e["b"]["k"],
+                         "compared_n": e["b"]["n"], "reading": e["reading"]})
+        plain = res[key]["secondary"]["authority_minus_user"]["b"]
+        rows.append(row("b", name, "plain user hint", "following, Track B (Oct 27–28)", plain))
+        for arm, e in res[key]["arms"].items():
+            rows.append(row("b", name, CHANNELS_B16.get(arm, arm), "following", e["following"]))
     return rows
 
 
@@ -189,6 +214,72 @@ def fig_bare(out=OUT, report=SUM / "trackB" / "trackB_report.json", c4=SUM / "tr
     return paths
 
 
+def fig_b16(out=OUT, report=SUM / "trackB" / "b16_report.json"):
+    plt = style()
+    rows = b16_rows(report)
+    fig = plt.figure(figsize=SIZE)
+    gs = fig.add_gridspec(1, 2, width_ratios=[3.3, 3.0], left=0.06, right=0.985, top=0.79, bottom=0.2, wspace=0.2)
+    ax_a, ax_b = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
+    a = [r for r in rows if r["panel"] == "a"]
+    for y, r in enumerate(reversed(a)):
+        color = ROLE["damage"] if r["reading"] != "no difference detected" else ROLE["baseline"]
+        ax_a.plot([r["low"] * 100, r["high"] * 100], [y, y], color=color, linewidth=2.4, solid_capstyle="butt")
+        ax_a.plot(r["value"] * 100, y, "o", color=color, markersize=10, markeredgecolor=WHITE, markeredgewidth=1.5)
+        left = r["high"] > 0.6                                  # a long bar: its reading goes on its left
+        ax_a.annotate(f"{r['value'] * 100:+.0f}: {r['reading']}", (r["low"] * 100 if left else max(r["high"] * 100, 0), y),
+                      xytext=(-7 if left else 7, 0), textcoords="offset points", va="center",
+                      ha="right" if left else "left", fontsize=11, color=INK)
+        back = {"boxstyle": "square,pad=0.08", "facecolor": WHITE, "edgecolor": "none"}
+        ax_a.text(-40, y + 0.3, f"{r['model']}, {r['arm']}", fontsize=11.5, color=INK, va="bottom", bbox=back, zorder=3)
+        ax_a.text(-40, y - 0.12, f"tool {r['k']} of {r['n']}, authority {r['compared_k']} of {r['compared_n']}",
+                  fontsize=10.5, color=MUTED, va="top", bbox=back, zorder=3)
+    ax_a.set_ylim(-0.6, len(a) - 0.15)
+    ax_a.set_yticks([])
+    ax_a.spines["left"].set_visible(False)
+    ax_a.axvline(0, color=MUTED, linewidth=1.0)
+    ax_a.set_xlim(-40, 100)
+    ax_a.set_xticks(range(-25, 101, 25))
+    ax_a.grid(axis="x", color=GRID)
+    ax_a.grid(axis="y", visible=False)
+    ax_a.set_xlabel("following: tool arm minus the user's authority claim (points)")
+    ax_a.set_title("(a) The tool against the same claim from the user", loc="left", color=INK)
+    b = [r for r in rows if r["panel"] == "b"]
+    color = {"plain user hint": ROLE["baseline"], "user_authority": ROLE["cue"]}
+    names = [n for _, n in MODELS_B16]
+    for i, name in enumerate(names):
+        mine = [r for r in b if r["model"] == name]
+        for j, r in enumerate(mine):
+            x = i + (j - (len(mine) - 1) / 2) * 0.22
+            v, lo, hi = r["value"] * 100, r["low"] * 100, r["high"] * 100
+            ax_b.bar(x, v, 0.2, color=color.get(r["arm"], ROLE["final"]), edgecolor=WHITE, linewidth=1.5,
+                     hatch="//" if r["arm"] == "plain user hint" else None)
+            ax_b.plot([x, x], [lo, hi], color=INK, linewidth=1.2, solid_capstyle="butt")
+            ax_b.annotate(f"{r['k']}", (x, hi), xytext=(0, 4), textcoords="offset points", ha="center", fontsize=10,
+                          color=INK)
+    ax_b.set_xticks(range(len(names)), [n.replace(" 30B ", " 30B\n").replace(" 7B ", " 7B\n") for n in names])
+    ax_b.set_ylim(0, 132)                                       # room above 100 for the legend
+    ax_b.set_yticks(range(0, 101, 25))
+    ax_b.spines["left"].set_bounds(0, 100)
+    ax_b.set_ylabel("follows the wrong letter (%)")
+    ax_b.set_title("(b) Following per arm (count of 162 above each bar)", loc="left", color=INK)
+    handles = [plt.Rectangle((0, 0), 1, 1, facecolor=ROLE["baseline"], hatch="//", edgecolor=WHITE),
+               plt.Rectangle((0, 0), 1, 1, color=ROLE["cue"]), plt.Rectangle((0, 0), 1, 1, color=ROLE["final"])]
+    ax_b.legend(handles, ["plain user hint (Oct 27–28)", "user claims the answer key",
+                          "tool arms: the pasted block, then the\nmodel's own call (Qwen3) or the inserted turn (Olmo)"],
+                loc="upper left", fontsize=10.5, frameon=False)
+    fig.text(0.06, 0.93, "Most of a tool's pull is its claim to be the answer key.", fontsize=15, color=INK)
+    fig.text(0.06, 0.885, "A user who claims the same authority moves the answer about as much, except where the model "
+             "calls the tool itself.", fontsize=15, color=INK)
+    fig.text(0.06, 0.012, "B16 (F35), pre-registered Oct 31: each tool arm minus user_authority (\"My course answer key "
+             "says the answer is (X).\"), paired by question; 54 questions x 3 runs;\nlines: 95% bootstrap clustered by "
+             "question (a), 95% Wilson (b). Cross-day: the tool arms are mostly Track B's Oct 27-28 replies, replayed from "
+             "the reply cache (T11);\nthe identity canary found the served models unchanged. Olmo's tool channels: the "
+             "pasted block and the inserted tool turn.", fontsize=10.5, color=MUTED, linespacing=1.35)
+    paths = save(fig, "b16_authority", rows, out)
+    plt.close(fig)
+    return paths
+
+
 def fig_levels(out=OUT):
     plt = style()
     from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
@@ -223,7 +314,7 @@ def fig_levels(out=OUT):
 
 
 def main():
-    for f in (fig_levels, fig_bare):
+    for f in (fig_levels, fig_bare, fig_b16):
         for p in f():
             print(p.relative_to(CODE.parent))
 

@@ -57,7 +57,7 @@ def png_size(path):
 
 
 def test_each_figure_writes_png_svg_and_its_table_at_16_9(tmp_path):
-    for f in (sf.fig_bare, sf.fig_levels):
+    for f in (sf.fig_bare, sf.fig_levels, sf.fig_b16):
         paths = f(out=tmp_path)
         assert [p.suffix for p in paths] == [".png", ".svg", ".csv"] and all(p.stat().st_size > 0 for p in paths)
         w, h = png_size(paths[0])
@@ -68,6 +68,25 @@ def test_each_figure_writes_png_svg_and_its_table_at_16_9(tmp_path):
 
 def test_the_waiting_spec_names_every_waiting_slide():
     text = (CODE.parent / "docs" / "paper" / "figures" / "WAITING.md").read_text()
-    for name in ("readout_qwen8b", "b16_authority", "b17_effort", "readout_lora_vs_base", "c25_hops"):
+    for name in ("readout_qwen8b", "b17_effort", "readout_lora_vs_base", "c25_hops"):
         assert f"`docs/paper/figures/{name}.png`" in text
         assert not (CODE.parent / "docs" / "paper" / "figures" / f"{name}.png").exists()   # a spec, not a chart
+
+
+def test_b16_rows_are_the_pre_registered_readings():
+    """Slide 7 (F35, Nov 1): each tool arm minus user_authority, paired by question, with the rule's reading; and the
+    following per arm, the plain user hint marked cross-day."""
+    rows = sf.b16_rows()
+    a = by([r for r in rows if r["panel"] == "a"], "model", "arm")
+    assert len(a) == 6
+    r = a[("Qwen3 30B Instruct", "its own call")]
+    assert (r["k"], r["n"], r["compared_k"], r["compared_n"]) == (147, 162, 25, 162)
+    assert round(r["value"] * 100) == 75 and r["reading"] == "tool beyond authority"
+    assert a[("Olmo 3 7B Think", "inserted tool turn")]["reading"] == "authority moves it more"
+    assert a[("Qwen3 30B Thinking", "pasted block")]["reading"] == "tool beyond authority"
+    assert sum(r["reading"] == "no difference detected" for r in a.values()) == 3
+    for r in a.values():
+        assert r["low"] <= r["value"] <= r["high"] and r["interval"].startswith("95% bootstrap")
+    b = by([r for r in rows if r["panel"] == "b"], "model", "arm")
+    assert (b[("Olmo 3 7B Think", "plain user hint")]["k"], b[("Olmo 3 7B Think", "user_authority")]["k"]) == (13, 69)
+    assert b[("Qwen3 30B Thinking", "plain user hint")]["measure"].endswith("(Oct 27–28)")

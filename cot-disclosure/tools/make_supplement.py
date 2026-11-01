@@ -857,7 +857,14 @@ PREREG = [
              "below 0 = authority moves it more; else no difference detected; per model and tool channel, at the "
              "run's own budget (the 16,000 cut beside it)",
      "rule_log": "2026-10-31_2220_B_b16-prereg.md", "rule_check": ["tool beyond authority"], "f_title": r"\(B16\)",
-     "result_glob": ["*b16-results*"], "verdict": "waiting: running on Voyager (Oct 31 22:25)", "verdict_check": []},
+     "result_glob": ["*b16-results*"],
+     "verdict": "tool beyond authority: Qwen3 30B Instruct's own call (+75) and Qwen3 30B Thinking's pasted block (+12); "
+                "authority moves it more: Olmo 3 7B Think's inserted turn (−14); no difference detected in the other "
+                "three. Cross-day, not same-day: 907 of 972 tool runs replayed Track B's Oct 27–28 replies from the "
+                "reply cache (T11)",
+     "verdict_check": ["tool beyond authority", "authority moves it more", "no difference detected", "T11"],
+     "after": ["the replay of the tool arms from the reply cache, found from the drift check (T11): the comparison is "
+               "read as cross-day", "the final answer naming the source under each arm (descriptive)"]},
     {"id": "b17", "track": "B", "experiment": "B17: does more thinking change real-call following and the bare final "
                                               "answer? (gpt-oss-20b, effort low/medium/high)", "kind": "pre",
      "rule": "high minus low effort, paired by question, on following on tool_real and on the bare final answer after "

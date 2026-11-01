@@ -15,7 +15,7 @@ below the gates are unchanged from it apart from their dates. Where things are:
 - **Track A:** Ritik, to the end.
 - **Track C:** Shrey's since Oct 30. Its experiments below are prepared now (code, CPU tests, a pre-registration log
   and a dry run each), and Shrey runs them on Voyager from about Nov 4.
-- **Track B:** back to Arsha on Nov 3. B16 runs before then; B17 is prepared.
+- **Track B:** back to Arsha on Nov 3. B16 ran Oct 31–Nov 1 and is read (F35); B17 is prepared.
 - **Sol:** Ritik submits every job.
 - **Pre-registration:** before any run, as always.
 
@@ -40,8 +40,10 @@ below the gates are unchanged from it apart from their dates. Where things are:
      - One instruction brings the source back and doesn't reduce the deference (F25).
      - Training cuts following, but none of the four trained versions beats a one-line instruction, and the LoRA
        versions' false-disclosure candidates rise (F28).
+     - Most of a tool's pull is its claim to be the answer key: a user making the same claim moves the answer about
+       as much, except Qwen3 30B Instruct's own call (+75) and Qwen3 30B Thinking's pasted block (+12); and that
+       claim, from the user, is named in the final answer, unlike a tool call (B16, F35; cross-day, T11).
    - Open:
-     - Is the pull the tool, or the answer key's authority (B16)?
      - Does more thinking change it (B17)?
      - Do two raters agree on what the texts say (L3)?
      - Does training teach the model to claim checks it doesn't do (L4)?
@@ -70,7 +72,7 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | 1 inside | A30 | B1, provenance-scaled attention: the bench gate, the plan, the verdict by its rule | Ritik | Nov 4 | bench 122956 pending |
 | 1 inside | A18 | Inside the fixed model: Steps 9 and 10 on LoRA's evaluation runs. Does training stop the readout at 15/19/23, or act after it? Tool-hint cases only in the primary, user hints apart (amended Nov 1) | Ritik | Nov 10 | prepared |
 | 1 inside | A38 | STRETCH, only if B1 "works": prompt_only's note + B1 deployable, against each alone, same HF stack | Ritik | Nov 14 | prepared; waits for B1's verdict |
-| control | B16 | Tool or authority? The answer key's authority in the user's hint, against the tool channels | Ritik; Arsha, from Nov 3 | Nov 3 | running on Voyager |
+| control | B16 | Tool or authority? The answer key's authority in the user's hint, against the tool channels | Ritik; Arsha, from Nov 3 | Nov 3 | **done Nov 1** (F35): tool beyond authority for Qwen3 Instruct's call (+75) and Thinking's pasted block (+12), authority moves Olmo more than its inserted turn (−14), no difference in the other three; cross-day (T11) |
 | 2 words | B17 | Thinking dose: gpt-oss-20b on Sol at reasoning effort low, medium, high | Ritik submits; Arsha, from Nov 3 | Nov 12 | prepared; dropped if it can't run cleanly within one day |
 | 2 words | L3 | Gate 2's hand labels (F3 rests on them): kappa per channel | Ritik and Shrey | Nov 6 | packets ready |
 | 2 words | L4 part 1 | Does training teach the model to claim checks it doesn't do? | Ritik and Shrey | Nov 14 | packets ready |
@@ -152,9 +154,10 @@ until the result arrives.
    - Figure: `docs/paper/figures/bare_after_call.png` (`tools/slide_figures.py`: Track B's bare answers after a call,
      C4's right-or-wrong control, B15's instruction).
    - Status: made Nov 1. Owner: Arsha.
-7. **Tool or authority?** (B16)
-   - Figure: `docs/paper/figures/b16_authority.png` (waiting; spec in `WAITING.md`).
-   - Status: waiting on B16's reading, due Nov 3. Owner: Ritik, then Arsha.
+7. **Tool or authority?** (B16, F35)
+   - Figure: `docs/paper/figures/b16_authority.png` (`tools/slide_figures.py`: each tool arm minus the user's
+     authority claim, and following per arm).
+   - Status: made Nov 1. Owner: Ritik, then Arsha.
 8. **Thinking dose** (B17; the slide goes if B17 is dropped).
    - Figure: `docs/paper/figures/b17_effort.png` (waiting; spec in `WAITING.md`).
    - Status: waiting on B17, due Nov 12. Owner: Arsha.

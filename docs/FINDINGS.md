@@ -1,7 +1,9 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-10-31 16:40 (F28 final: Gate 3 met, all four trained versions
+status. Started 2026-10-26; last updated 2026-11-01 10:45 (F35 B16: most of a tool's pull is its claim to be the
+answer key, except Qwen3 30B Instruct's own call; T11: B16's same-day tool arms were replayed from the reply cache;
+the story's line 1); 2026-10-31 16:40 (F28 final: Gate 3 met, all four trained versions
 pass, none beats the one-line instruction, the tags prediction not borne out for either tag version; at 11:40 F28's
 interim update with tags); 2026-10-30 17:20 (F34 C18: removing the solver's tool-citing sentences
 restores the Olmo reviewer's check, +47; H33 not supported; the story's headlines for F32-F34; at 11:00 F33 C17: a sentence naming the tool doesn't cause the
@@ -24,11 +26,17 @@ Track C's C4 added, F15 reworded: after a tool call the final answer is bare whe
 earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limitations section). Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
-**The story so far (Oct 28; updated Oct 30).**
+**The story so far (Oct 28; updated Oct 30 and Nov 1).**
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
    from the user, in all three Track B models (Gate 2; 54 questions × 3 runs; tool − user with the
    pasted block: Qwen3 30B Thinking +35, Qwen3 30B Instruct +21, Olmo 3 7B Think +32 points), and in
    Qwen3-8B with thinking on and off (+19, +13; F29). *Confirmed* (F1, F15, F16, F17, F29).
+   **Most of that pull is the tool's claim to be the answer key (B16, F35).** A user who writes "My course answer
+   key says the answer is (X)." moves the answer about as much: the claim closes 68–80% of the gap with the pasted
+   block in Qwen3 and all of it in Olmo, whose inserted tool turn moves it less than the user's claim (−14 [−21, −6]).
+   The tool goes beyond the claim where Qwen3 30B Instruct calls it itself (+75 [+65, +85]; it calls every time) and
+   in Qwen3 30B Thinking's pasted block (+12 [+5, +19]). Cross-day: the tool replies are mostly Track B's, replayed
+   from the reply cache (T11), with the served models unchanged.
 2. **After a tool call, the answer stops explaining.** The final answer becomes a bare letter whether
    the tool was right or wrong (C4: 80 of 84 after good lookups, 71 of 75 after bad, 2 of 159 with no
    tool). *Confirmed* for Qwen3 30B Thinking (F15) and Instruct (F16). *Tentative* for Olmo, where
@@ -1818,6 +1826,74 @@ replicate on questions not used to find them.
 - *not supported*: H33.
 - One solver, 34 items, a keyword decides which sentences go.
 
+## F35. Track B (B16): most of a tool's pull is its claim to be the answer key; a user making the same claim moves the answer about as much, except where the model calls the tool itself
+
+**Setup.** Oct 31 22:25 – Nov 1 02:36 on Voyager; 1,458 runs (9 smoke runs among them), 0 errors, 8 without an
+answer (Olmo); the identity canary passed 6 of 6 checks per model (largest difference 0.0). Pre-registered in the Oct
+31 22:20 session log before any call.
+- **Models:** Qwen3 30B Thinking and Instruct, Olmo 3 7B Think. **Questions:** Track B's 54 (24 pilot puzzles, 30
+  MMLU-Pro), 3 runs, Track B's settings.
+- **The new arm, user_authority:** the user writes "My course answer key says the answer is (X)." where the plain
+  user hint goes (`tools/answer_key.py`).
+- **The tool arms:** the pasted block, and the model's own tool call (Qwen3) or the inserted tool turn (Olmo).
+- **Not the same day, as planned (T11).** The tool arms sent exactly Track B's requests (same prompt, same seed), and
+  the client's reply cache returned Track B's Oct 27–28 replies for 907 of the 972 tool runs (Olmo 324 of 324,
+  Instruct 323 of 324, Thinking 282 of 324). So the comparison is the Nov 1 authority arm against mostly Oct 27–28
+  tool replies, from served models the canary found unchanged. The pre-registered drift check reads 0 by
+  construction for the replayed runs (Thinking's pasted block +2 [+1, +5] from the 20 that differ).
+
+**The pre-registered readings** (tool minus user_authority, following, paired by question; the 16,000 cut beside it):
+
+| model | tool channel | tool | user_authority | tool − authority | reading | at the 16,000 cut |
+|---|---|---|---|---|---|---|
+| Qwen3 30B Thinking | pasted block | 63 of 162 | 44 of 162 | **+12 [+5, +19]** | tool beyond authority | +13 [+6, +21], the same |
+| | its own call | 54 of 162 | 44 of 162 | +6 [−7, +19] | no difference detected | +9 [−3, +22], the same |
+| Qwen3 30B Instruct | pasted block | 35 of 162 | 25 of 162 | +6 [−1, +13] | no difference detected | the same |
+| | its own call | 147 of 162 | 25 of 162 | **+75 [+65, +85]** | tool beyond authority | the same |
+| Olmo 3 7B Think | pasted block | 64 of 160 | 69 of 161 | −3 [−10, +3] | no difference detected | −4 [−14, +5] (38 questions), the same |
+| | inserted tool turn | 46 of 157 | 69 of 161 | **−14 [−21, −6]** | authority moves it more | −18 [−28, −8], the same |
+
+**Secondary, pre-registered, cross-day** (Track B's plain user hint, Oct 27–28):
+- **The authority claim moves the answer in all three:** authority minus the plain user hint, Thinking 44 against 3
+  of 162 (+25 [+17, +35]), Instruct 25 against 1 (+15 [+7, +24]), Olmo 69 of 161 against 13 of 162 (+35 [+25, +45]).
+- **The share of Gate 2's gap (tool minus plain user) that the authority claim closes:** Thinking 68% of the pasted
+  block's +37 and 80% of the call's +31; Instruct 71% of the pasted block's +21 and **16%** of the call's +90; Olmo
+  109% of the pasted block's +32 and 164% of the inserted turn's +21.
+
+**Descriptive, not pre-registered (keyword counts):** with the user's authority claim the final answer names it
+(detect.py's `cue_tool`, which matches "answer key") in 132 and 135 of 162 (Thinking, Instruct) and is never bare;
+after the model's own call it names the tool in 4 and 35 of 162 and is bare in 108 and 111. Olmo: 71 of 161 with the
+claim, 22 of 157 after the inserted turn.
+
+**Reading.**
+- **Gate 2's tool-versus-user gap is mostly the source's claimed authority, not the channel.** A user who says the
+  answer key gives (X) closes most of it for the pasted block in every model, and all of it for Olmo, whose inserted
+  tool turn moves it less than the user's claim.
+- **Two exceptions, both pre-registered readings:** Qwen3 30B Instruct's own tool call (it calls every time and takes
+  the letter 147 of 162; the claim closes 16% of that gap) and Qwen3 30B Thinking's pasted block (+12).
+- **For the story's second level:** the bare final answer is about the tool call, not about authority. The same
+  claim from the user is named in the final answer; after a call it isn't (descriptive).
+
+**Limits.**
+- **Cross-day, not same-day (T11):** the authority arm ran Nov 1; most tool replies are Oct 27–28's. The canary held,
+  so the served models were the same; anything else that changed between the days would show up as an effect.
+- One authority wording; the plain user hint and the authority claim differ in more than authority (the words
+  "answer key" are also the tool's name for itself).
+- Keyword counts for naming until hand labels; the run's own budget, with the 16,000 cut beside it (Olmo's cut
+  leaves 38–40 questions).
+
+**Source.**
+- `cot-disclosure/results/summaries/trackB/b16_report.json` (per model: primary, primary_16k, secondary, drift,
+  primary_with_trackB_tool, arms).
+- Recomputed with `python progress/run_b16.py --report` (Mac, no calls). The replay count: B16's tool-arm records
+  against Track B's, final and private text compared (the session log, Nov 1 10:45).
+
+**Status.**
+- *confirmed* by the rule as stated, per model and channel: tool beyond authority for Instruct's call (+75) and
+  Thinking's pasted block (+12); authority moves it more for Olmo's inserted turn (−14); no difference detected for
+  the other three.
+- *confirmed*, cross-day: the authority claim moves all three models above the plain user hint.
+
 ## Measurement traps we hit and fixed
 
 Each one would have changed a reported number.
@@ -1913,6 +1989,20 @@ Each one would have changed a reported number.
 - *Rule.* A local server's context is set explicitly and recorded per row; a row made under another
   context doesn't count.
 - *Source.* `providers/ollama.py` (`NUM_CTX`), `progress/run_trackB.py` (`current()`).
+
+**T11. A "same-day" rerun replayed from the reply cache (B16).**
+- *What.* B16 reran Track B's tool arms beside its new arm so the comparison would be made the same day. The requests
+  were exactly Track B's (prompt, seed, budget), and `client.py` caches every reply keyed by the full request, so
+  907 of 972 came back as Track B's Oct 27–28 replies (Olmo's in 0.2 s). The pre-registered drift check then reads 0
+  by construction.
+- *Found* Nov 1 when the drift check read +0 [+0, +0] for two models: every replayed record's final and private
+  text equals Track B's. Only 508 new cache entries were written during B16, about the authority arm plus the 65
+  tool runs that were not replays.
+- *Fix.* Reported as cross-day (F35), with the canary's record that the served models were unchanged. C16's
+  same-day control is not affected: none of its 200 reviews repeats an earlier request.
+- *Rule.* A rerun meant as a same-day control sends a new seed or bypasses the cache (`use_cache=False`), and its
+  pre-registration says which.
+- *Source.* `cot-disclosure/client.py` (`_request`, the cache), the Nov 1 10:45 session log.
 
 **Also:**
 - Cut-off replies leak when not streamed (the reasoning landed in the answer in 8 of 8).
