@@ -105,7 +105,7 @@ rerun with the same seed reuses them. Delete `cache/` for fresh calls.
 | `providers/` | One interface over Voyager, Ollama, OpenAI, Anthropic, xAI (`base.py`); `budget.py` caps and logs spend |
 | `tools/answer_key.py` | Hint conditions (`none`, `user`, `tool_pasted`, `tool_real`, `tool_injected`, `system`) and the `lookup_answer_key` tool |
 | `tools/export_summaries.py`, `prepush_check.py`, `untrack_produced.py` | Numbers-only summaries (no question or reply text); the pre-push check; the history rewrite (`--not-in`, `--backup`) |
-| `tools/label_kit.py`, `make_handoff_bundle.py` | The labeling kit and Cohen's kappa; per-track data bundles with a sha256 manifest |
+| `tools/label_kit.py`, `rater_packets.py`, `make_handoff_bundle.py` | The labeling kit and Cohen's kappa; the raters' packets (gitignored), checked and zipped; per-track data bundles with a sha256 manifest |
 | `agents/` | Track C: `solver.py`, `reviewer.py`, `checker.py`, `run_team.py` (tool and no-tool teams, reviewer models, `--cases`, `--summary`) |
 | `finetune/` | Track A: Steps 1–10, the dataset, source tags, Steps 11–13 (`train.py`, `generate.py`, `eval.py`), the Sol kit (design: [docs/TRACK_A.md](../docs/TRACK_A.md); B1/B2: [docs/TRACK_A_PROVENANCE.md](../docs/TRACK_A_PROVENANCE.md); [the GPU kit](finetune/gpu/README.md)) |
 | `configs/` | `models.yaml` (provider facts, Voyager IDs), `canary/` (identity references), `prices.yaml`, `trackB.yaml` |

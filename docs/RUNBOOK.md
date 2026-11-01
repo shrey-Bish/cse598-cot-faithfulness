@@ -329,7 +329,8 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
 - **What:** two raters label what the text says about the hint, for the private reasoning and the
   final answer: no mention / mentions only / rejects the hint / says the hint changed the answer /
   unclear ([`progress/LABELING_GUIDE.md`](progress/LABELING_GUIDE.md)).
-- **Where:** anywhere, no calls. **Status:** the kit is built (Oct 27); labeling not started.
+- **Where:** anywhere, no calls. **Status:** the kit is built (Oct 27); the rater packets for L3 and L4 part 1 are
+  built (Oct 31; `tools/rater_packets.py`); labeling not started.
 - **Commands** (from `cot-disclosure/`):
   ```bash
   ../.venv/bin/python tools/label_kit.py build     # done Oct 27: results/labels/ (gitignored: model text)
@@ -340,6 +341,13 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
                                                    # rows 152-171: private reasoning only, the keyword check (F15)
   ../.venv/bin/python tools/label_kit.py kappa results/labels/trackB/rater1.csv results/labels/trackB/rater2.csv
   # ^ also each rater's agreement with the bare-reply rule on the spot-check rows, and with the keyword on rows 152-171
+  # rater packets (Oct 31): L3 and L4 part 1 as built, a README, the guide with examples, 10 practice rows; zipped
+  ../.venv/bin/python tools/rater_packets.py build   # -> results/labels/packets/<rater>/ and rater_packet_<rater>.zip
+  ../.venv/bin/python tools/rater_packets.py check results/labels/packets/shrey
+  # returned sheets go next to their keys: L3_RA.csv, L3_SB.csv in results/labels/; L4_part1_*.csv in results/labels/gate3/L4/
+  ../.venv/bin/python tools/label_kit.py kappa results/labels/L3_RA.csv results/labels/L3_SB.csv
+  ../.venv/bin/python tools/label_kit.py kappa results/labels/gate3/L4/L4_part1_RA.csv results/labels/gate3/L4/L4_part1_SB.csv
+  # ^ kappa per channel (user, tool_pasted, tool_injected) and each rater's guess against key_L4.csv
   ```
 - **In → out:** `docs/progress/LABEL_QUEUE.csv` + saved runs → `results/labels/` (101 rows: 91 + 10
   replacements; sheets, key). `kappa` prints Cohen's kappa per text (private, final), overall and by

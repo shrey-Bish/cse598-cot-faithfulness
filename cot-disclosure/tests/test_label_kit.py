@@ -188,3 +188,48 @@ def test_kappa_reports_the_raters_guesses_against_l4s_key(tmp_path):
     res = lk.kappa(tmp_path / "rater1.csv", tmp_path / "rater2.csv")[0]
     assert res["guess | rater1 right about the trained model"] == {"right": 4, "of": 4, "accuracy": 1.0}
     assert res["guess | rater2 right about the trained model"] == {"right": 2, "of": 3, "accuracy": 2 / 3}
+
+
+def write_sheet(path, cols, rows):
+    with open(path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=cols)
+        w.writeheader()
+        for r in rows:
+            w.writerow({c: r.get(c, "") for c in cols})
+
+
+def test_kappa_reads_the_returned_packet_files(tmp_path):
+    """Oct 31: the raters return L3_<initials>.csv and L4_part1_<initials>.csv; each pair sits next to its key. L3's
+    key.csv isn't Track B's (no keyword-check rows); L4's channels are named as the evaluation names them; a label
+    typed with a capital or a space is read, and a cell that isn't a label is reported, not silently dropped."""
+    l3 = tmp_path / "labels"
+    l4 = l3 / "gate3" / "L4"
+    l4.mkdir(parents=True)
+    l3_cols = ["row", "run_id", "model", "condition", "cue_letter", "private_excerpt", "final_excerpt", "label_private",
+               "label_final", "note"]
+    conds = ["expB cue_tool (simulated tool block)", "expB cue_user", "pilot wrong hint, replacement", "expB cue_tool, replacement"]
+    ra = [("mentions_only", "rejects_hint"), ("no_mention", "no_mention"), ("n/a", "says_changed"), ("rejects_hint", "maybe")]
+    sb = [("mentions_only", "rejects_hint"), ("No_mention ", "no_mention"), ("n/a", "says_changed"), ("rejects_hint", "unclear")]
+    for name, labels in (("L3_RA.csv", ra), ("L3_SB.csv", sb)):
+        write_sheet(l3 / name, l3_cols, [{"row": i, "run_id": f"r{i}", "condition": c, "label_private": p, "label_final": f}
+                                         for i, (c, (p, f)) in enumerate(zip(conds, labels), 1)])
+    write_sheet(l3 / "key.csv", ["row", "run_id", "keyword_private", "keyword_final", "followed_cue", "answer", "text_status",
+                                 "source"], [{"row": i, "run_id": f"r{i}"} for i in range(1, 5)])
+    res, dis = lk.kappa(l3 / "L3_RA.csv", l3 / "L3_SB.csv")
+    assert {"private | tool", "private | user", "final | tool", "final | user"} <= set(res)
+    assert res["private | all"]["rows"] == 3 and res["private | all"]["agreement"] == 1.0      # "No_mention " read
+    assert res["final | all"]["rows"] == 3
+    assert res["not a label | rater1"] == {"cells": 1, "rows": ["4"]} and "not a label | rater2" not in res
+    assert not [k for k in res if k.startswith("keyword check")]
+    l4_cols = ["row", "run_id", "channel", "hint_letter", "final_answer", "label_final", "guess_trained", "note"]
+    chans = ["tool_injected", "user", "tool_pasted", "tool_injected"]
+    for name, guesses in (("L4_part1_RA.csv", ["yes", "no", "no", "yes"]), ("L4_part1_SB.csv", ["Yes", "yes", "yes", "no"])):
+        write_sheet(l4 / name, l4_cols, [{"row": i, "run_id": f"q{i}", "channel": c, "label_final": "rejects_hint",
+                                          "guess_trained": g} for i, (c, g) in enumerate(zip(chans, guesses), 1)])
+    write_sheet(l4 / "key_L4.csv", ["part", "row", "run_id", "system", "candidate", "match", "item_id", "seed"],
+                [{"part": 1, "row": i, "run_id": f"q{i}", "system": s} for i, s in enumerate(["lora", "base", "prompt_only", "base"], 1)])
+    res = lk.kappa(l4 / "L4_part1_RA.csv", l4 / "L4_part1_SB.csv")[0]
+    assert {"final | tool_injected", "final | user", "final | tool_pasted"} <= set(res) and "final | tool" not in res
+    assert res["final | tool_injected"]["rows"] == 2
+    assert res["guess | rater1 right about the trained model"] == {"right": 3, "of": 4, "accuracy": 0.75}
+    assert res["guess | rater2 right about the trained model"] == {"right": 2, "of": 4, "accuracy": 0.5}

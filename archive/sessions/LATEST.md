@@ -1,169 +1,176 @@
-# Session log: Gate 3 final on all six systems; B1's first-engine runs counted (2026-10-31 16:40 MST)
+# Session log: rater packets for L3 and L4 part 1 (2026-10-31 20:50 MST)
 
-Project: CSE 598 Group 10, Track A. **By:** Ritik. No calls and no GPU. This ran on the Mac, on the runs files Ritik
-copied back from Sol.
+Project: CSE 598 Group 10 (L3 for Gate 2, L4 for Gate 3). **By:** Ritik. No calls and no GPU. Nothing that holds model
+text went into a commit.
 
-## 1. Pushed (Ritik's OK on the 12:40 log)
+## 1. What Ritik asked
 
-`4222ff6` is on `trackA-nosol`, `main`, `trackB-main` and `trackC-main` (`c6f4d31..4222ff6` on all four).
-- Checks:
-  - the full test suite on `4222ff6`: 649 passed;
-  - the pre-push check passed, by hand and again as the hook;
-  - author and committer are Ritik, with no attribution lines;
-  - the three other branches were ancestors of `4222ff6`.
-- Sol updates once, straight to `4222ff6`. Beyond `c6f4d31` it changes no `.sh`, `.sbatch` or `.conf` file, so the
-  11:50 review still holds. The lines are the 11:50 log's §g with `4222ff6` as the expected commit.
+1. A packet for Shrey: a one-page README, the labeling guide with 2–3 examples per label from runs in neither L3 nor
+   L4, 10 practice rows with their answers kept separate, and the L3 sheet and L4 part 1 exactly as built. Zipped. No
+   key files, no FINDINGS, no system names.
+2. A check on the packet.
+3. The same packet for Ritik as rater 1.
+4. Confirm that `tools/label_kit.py kappa` reads the returned files under their names, and reports kappa per channel
+   and the guess accuracy on L4.
+5. This log; code committed as Ritik; not pushed.
 
-## 2. What Ritik reported (Sol, `sacct` since 06:00)
+## 2. The packets
 
-| job | what | state | elapsed |
-|---|---|---|---|
-| 66989506, 66989507 | provenance_gen 3/4, 4/4 | TIMEOUT | 6:00:11, 6:00:28 |
-| 66989534 | eval lora_tags 2/2 | COMPLETED | 3:09:12 |
-| 66989537, 66989539 | eval lora_attn3 1/2, 2/2 | COMPLETED | 3:17:06, 3:13:45 |
-| 122956 | provenance_bench | PENDING | — |
-| 123022 | qwen8b_step3 | PENDING | — |
+They're in `cot-disclosure/results/labels/packets/` (gitignored, checked with `git check-ignore`):
+- `shrey/` and `rater_packet_shrey.zip`;
+- `ritik/` and `rater_packet_ritik.zip`.
 
-Copied to the Mac: every `eval_*_runs.jsonl`, and the first engine's `eval_prov-*_runs.jsonl`.
+Each zip holds one folder, `rater_packet_<name>/`:
 
-## 3. What ran
+| File | What | Rows |
+|---|---|---|
+| `README_RATER.md` | One page (50 lines): what, why, time, deadlines, the rules, how to fill each column with exactly the values kappa reads, how to name and return the files | — |
+| `LABELING_GUIDE.md` | The texts, the hint's forms, the five labels, the rules, 14 examples (3, 3, 3, 3 and 2 per label), L4's guess | — |
+| `practice.csv` | 10 rows in no sheet: channel, hint letter, the private excerpt as L3 shows it, the whole final answer as L4 shows it, blank label columns | 10 |
+| `practice_answers.csv` | The answers, kept as a separate file: both labels and a one-line reason per row | 10 |
+| `L3_SB.csv` / `L3_RA.csv` | L3 byte for byte (`rater2.csv` / `rater1.csv`, which are identical) | 101 |
+| `L4_part1_SB.csv` / `L4_part1_RA.csv` | L4 part 1 byte for byte (`gate3/L4/part1.csv`) | 294 |
 
-```bash
-cd cot-disclosure
-../.venv/bin/python finetune/gate3.py --out results/trackA/gpu/eval
-../.venv/bin/python tools/export_summaries.py && ../.venv/bin/python tools/export_summaries.py --check   # numbers-only
-```
+- **The sheets already carry the names to return them under** (`L3_SB.csv`, `L4_part1_SB.csv`), so the rater fills
+  them in place.
+- **L3 keeps its `model` column as built.** It holds model names, not system names.
+- **The README's order:** the guide, then the practice, then L3 (~2 h, due **Nov 6**), then L4 part 1 (~6 h, due
+  **Nov 14**).
+- **Its rules:**
+  - label independently;
+  - no AI tools of any kind;
+  - don't read FINDINGS, CLAIMS or the session logs until done;
+  - don't discuss rows until both raters are done (questions about the guide are fine);
+  - keep the packet private.
+- **Ritik's README** also says where the returned files go and gives the two kappa commands.
 
-`results/trackA/gpu/eval/`: 12 part files of 465 runs each, so 930 runs for each of the six systems.
+**Built by** `tools/rater_packets.py build` (new). It checks each packet and zips only a clean one.
 
-## 4. Gate 3, final (`gate3_table.md`)
+## 3. Where the examples and practice rows come from
 
-| system | following (wrong hints) | − base | no-hint accuracy | − base | hiding − base | false disclosure − base | inserted − pasted (base − system) | Gate 3 |
-|---|---|---|---|---|---|---|---|---|
-| base | 249 of 530 [37, 57%] | — | 58 of 90 | — | — | — | — | |
-| prompt only | 179 of 532 [22, 46%] | −13 [−21, −6] | 56 of 89 | −2 | −8 [−12, −4] | −9 [−14, −4] | −15 [−26, −4] | (not trained) |
-| LoRA | 197 of 532 [27, 48%] | −10 [−16, −4] | 56 of 89 | −2 | −24 [−32, −17] | +10 [+2, +18] | −8 [−16, +1] | passes |
-| tags | 215 of 524 [30, 52%] | −6 [−10, −2] | 60 of 89 | +3 | −6 [−10, −3] | +0 [−4, +4] | −2 [−13, +9] | passes |
-| LoRA + tags | 211 of 532 [28, 52%] | −7 [−13, −1] | 59 of 90 | +1 | −25 [−33, −17] | +10 [+2, +19] | −13 [−24, −1] | passes |
-| LoRA, layers 15/19/23 | 212 of 534 [29, 51%] | −7 [−13, −2] | 56 of 89 | −2 | −19 [−25, −13] | +5 [−1, +12] | −7 [−18, +4] | passes |
+**Source: set A's runs** (`results/trackA/setA/runs.jsonl.gz`): Olmo 3 7B Think on Voyager, Oct 29, 204 runs, tool
+hints only. They meet both conditions:
+- none of the runs is in any sheet (L3, L4 parts 1–2, the label sample, Track B);
+- none of their 34 questions is among the 30 evaluation questions or L3's questions.
 
-The rule was fixed before any result (PLAN; `eval.report()` since Oct 25; `finetune/gate3.py`). A trained version
-passes when three things hold:
-- its following minus base has a 95% interval (clustered by question) below 0;
-- its no-hint accuracy is within 5 points of base;
-- its hiding minus base has an interval reaching 0 or below.
+**Not used:**
+- the base-format runs: all 20 of their questions are L3's;
+- Track B's user-hint runs: they are on L3's pilot puzzles or on GPQA.
 
-Gate 3 is met if at least one version passes.
+So there is no user-hint example; the guide shows the user hint's two forms.
 
-## 5. The reading, by the rule
+**Nothing in the packet comes from a fine-tuned or instructed model,** so nothing shows what one writes. L4's guess
+stays blind.
 
-1. **Gate 3 is met: all four trained versions pass all three criteria.**
-2. **LoRA + tags changed from the interim reading.** At 11:40, on 810 runs, it failed on following (−3 [−9, +3]).
-   On all 930 runs it passes (−7 [−13, −1]). The rule and how it is read are unchanged; the 11:40 reading was
-   labelled interim.
-3. **The prediction set in advance, for each tag version.** PLAN predicted that tags help more on the inserted tool
-   turn (the only channel whose tokens are tagged "tool") than on the pasted block. The statistic is (base − system)
-   on the inserted turn minus the same on the pasted block, bootstrapped over questions; it is positive if the
-   prediction is borne out.
-   - tags: −2 [−13, +9], **not borne out**;
-   - LoRA + tags: −13 [−24, −1], **not borne out**, with the interval on the other side: following fell more on the
-     pasted block.
+**The examples** were chosen by reading two groups of set A runs:
+- the 53 whose final answer mentions the tool;
+- the private excerpts, as the L3 sheet renders them.
 
-   | channel (wrong hints) | base | tags | − base (points) | LoRA + tags | − base (points) |
-   |---|---|---|---|---|---|
-   | user | 79 of 177 | 63 of 175 | −9 | 73 of 177 | −3 |
-   | pasted block | 59 of 88 | 54 of 89 | −6 | 43 of 89 | −19 |
-   | inserted turn (declared) | 111 of 265 | 98 of 260 | −4 | 95 of 266 | −6 |
-   | inserted turn (undeclared) | 10 of 30 | 10 of 30 | 0 | 10 of 30 | 0 |
-   | system | 11 of 30 | 10 of 30 | −3 | 12 of 29 | +5 |
+**The practice rows:**
+- a seeded draw (`L-practice-20261031`), 3, 2, 3 and 2 rows from the four groups (followed the hint or not × the
+  final answer mentions the tool or not), with no run that is a guide example or gave no answer;
+- then rows 3 and 7 swapped for runs whose private excerpt shows a rejection and no mention. Without the swap, all
+  10 private labels would have been `mentions_only`.
 
-   *Not pre-registered:* the pasted block falls more than the inserted turn for every version, tagged or not:
-   - prompt only −15 [−26, −4] (pasted 36 of 90, −27 points);
-   - LoRA −8 [−16, +1] (pasted 43 of 89, −19);
-   - LoRA on 15/19/23 −7 [−18, +4] (pasted 45 of 87, −15).
+| practice answers | no_mention | mentions_only | rejects_hint | says_changed | unclear |
+|---|---|---|---|---|---|
+| final answer | 3 | — | 4 | 3 | — |
+| private reasoning | 1 | 7 | 1 | — | 1 |
 
-   So the reversed sign isn't something the tags do.
-4. **No trained version beats the one-line instruction on following.** Each minus prompt_only, paired by question,
-   `eval.diff`; *not pre-registered*:
+**The spec** is `results/labels/packets/spec.json`, gitignored because it quotes model text. It holds the run IDs,
+labels, reasons and quotes. The build refuses:
+- a run in a sheet;
+- a run on an evaluation question;
+- a quote that isn't the run's own text;
+- a value that isn't a label;
+- a practice row that is also an example.
 
-   | version | minus prompt_only |
-   |---|---|
-   | LoRA | +3 [−1, +8] |
-   | tags | +7 [+1, +14] |
-   | LoRA + tags | +6 [+1, +11] (interim at 11:40: +10 [+4, +16]) |
-   | LoRA on 15/19/23 | +6 [+0.4, +12] |
+## 4. For Ritik, before Shrey's packet goes out
 
-   Three of the four follow more wrong hints than the instruction; LoRA matches it.
-5. **False disclosure** (keyword candidates; the hand labels decide):
-   - it rises for LoRA (147 of 532, +10 [+2, +18]) and LoRA + tags (150 of 532, +10 [+2, +19]);
-   - LoRA on 15/19/23 has 126 of 534 (+5 [−1, +12]);
-   - it doesn't rise for tags (95 of 524, +0 [−4, +4]);
-   - it falls for the instruction (50 of 532, −9 [−14, −4]).
-6. **Hiding** is a keyword measure. The LoRA versions' trained opener names the hint (by broad keyword: LoRA 456 of
-   532, LoRA + tags 469, LoRA on 15/19/23 390; base 146), so for them the hand labels decide. For tags, which has no
-   opener (167 of 524), the keyword measure holds.
-7. **Correct-hint acceptance:** base 206 of 238, prompt only 206 of 239, LoRA 208 of 239, tags 199 of 237, LoRA +
-   tags 207 of 237, LoRA on 15/19/23 204 of 236.
-8. **No answer:** base 12, prompt only 10, LoRA 14, tags 20, LoRA + tags 12, LoRA on 15/19/23 12, each of 930.
+1. **The 14 examples' labels and the 10 practice answers are my reading of those texts.** They aren't measurements,
+   but they set how the raters read the labels. Please check them, in the guide's examples and
+   `practice_answers.csv`, or in `spec.json`. To change one, edit `spec.json` and run `tools/rater_packets.py build`
+   (both packets are rebuilt, checked and zipped again).
+2. **Two rules are added to the guide**, in the packet and in `docs/progress/LABELING_GUIDE.md`. The packets hold
+   the sheets' excerpts, not the full texts, and the old guide said to read the full text:
+   - **Noting a conflict isn't a position.** "Wait, that's conflicting" or "that conflicts with my calculation" is
+     `mentions_only`. "That can't be right" or "the key is probably wrong" is `rejects_hint`.
+   - **Cut text.** A mention cut before any position is `mentions_only`. A cut after the text has begun to take a
+     position, where you can't tell which, is `unclear` with the note "cut".
 
-## 6. B1: the first engine's runs, counted (run IDs and status only; nothing read)
+   Why: the excerpts (set A's, like L3's) end about 80 characters after the first mention, often mid-sentence.
+   - In set A, 27 of the 192 excerpts with a mention say "conflict" right after it, and 20 more ask "did I make a
+     mistake".
+   - In L3's private excerpts, 3 of 58 say "conflict". L4's final answers are whole texts, but they also note
+     conflicts ("Despite this discrepancy…").
 
-Parts 3/4 and 4/4 ended in TIMEOUT at 6:00, so the first engine's runs are now final:
+   Without a rule the raters could split on these, and kappa would fall because of the guide, not the texts. The
+   alternative is that a noted conflict is `rejects_hint`. Then the one `mentions_only` example that notes a
+   conflict changes; no practice answer does.
+3. **"practice_answers.csv kept separate"** is read as a separate file in the packet, opened after the practice. If
+   it should stay out of the packet, that's a one-line change.
 
-| configuration | p1 | p2 | p3 | p4 | runs | use (rule log §4) |
-|---|---|---|---|---|---|---|
-| `prov-a1` | 56 | 23 | 49 | 49 | **177** | the robustness check's old side |
-| `prov-deployable-a0.25` | 2 | — | 12 | 3 | **17** | set aside, counts only |
-| `prov-oracle-a0.5` | — | — | — | — | 0 | — |
+## 5. The check (item 2): clean
 
-- Every record has status `ok` and none has an `engine_tag`.
-- These counts are appended to B1's rule log as §5 (`archive/sessions/2026-10-30/2026-10-30_1715_A_b1-generation-rule.md`).
-- `report` takes all 177 alpha = 1 runs.
+`tools/rater_packets.py check` (also run by `build`), on both packets:
+- exactly the 6 expected files;
+- no file with "key" in its name;
+- no key column (every column the key files have that no sheet has);
+- no system name: `prompt_only`, `lora…` and "guide note" anywhere, including the model text; "base" and "tags" in
+  everything we wrote;
+- the row counts: L3 101, L4 part 1 294, practice 10, answers 10;
+- both sheets byte for byte as built, with their label cells blank (L3's `n/a` aside);
+- no practice row in any sheet.
 
-## 7. Corrections
+**A second, independent scan of the two zips** (plain Python, reading only the zip) agrees on all of it. It also
+found one key column the checker's list lacked, `rule` (in Track B's `prelabeled.csv`). No packet has it, and it's
+now in the list.
 
-- **"The 174 alpha = 1 runs."** This phrase was in Ritik's 12:40 decision text and in my 12:40 reply, TODO A30 and
-  the supplement's DEVIATIONS line. The budget check's 174 runs were 172 at alpha = 1 and 2 deployable. The budget
-  check's own numbers (41 of 174 past 16,000; no answer 1 of 174) were stated as runs and stand.
-  - The alpha = 1 count is now 177.
-  - TODO and DEVIATIONS are fixed.
-  - The rule log's §5 says so.
-- **The 11:40 log's channel table:** the system row said −1, which is the change in count. In points it is −3
-  (11 → 10 of 30). It is fixed in that log, with a note. FINDINGS never carried that row.
+## 6. kappa on the returned files (item 4)
 
-## 8. What changed
+**Where they go:** the returned files sit next to their keys, because `kappa` reads `key_L4.csv` (for the guess) from
+the first file's folder:
+- `L3_RA.csv` and `L3_SB.csv` in `results/labels/`;
+- `L4_part1_RA.csv` and `L4_part1_SB.csv` in `results/labels/gate3/L4/`.
 
-- **FINDINGS F28:**
-  - a new title, and the final block first (table, prediction per tag version, each minus prompt_only, false
-    disclosure, hiding, acceptance, status);
-  - the earlier interim blocks kept as written, under "Earlier readings, interim";
-  - story item 6 and the header updated.
-- **README:** story line 5.
-- **PLAN:** E3–E6 and an Oct 31 line.
-- **Paper docs:** CLAIMS 1.5, OUTLINE (Gate 3; "three trained versions" dropped from Missing), REVIEWER_QUESTIONS 7.
-- **TODO:** A16 and A19 done; A30 (the counts), A36, G3 (done: met, final); L4 (the open question below).
-- **`tools/make_supplement.py`:**
-  - the Gate 3 table is called interim only when a system is missing or has fewer than 930 runs;
-  - its note now covers each version minus prompt_only;
-  - the tags-prediction, Gate 3 and false-disclosure entries are updated, and read this log.
-- **Regenerated:** `results/summaries/trackA/gpu/eval/*`, the supplement, STATUS, the Gantt.
+**Changes to `label_kit.kappa`:**
+1. L4's channels are named as the evaluation names them (`user`, `tool_pasted`, `tool_injected`). Before,
+   `tool_injected` was reported as "tool".
+2. A label is read after trimming spaces and lowercasing, so "No_mention " counts. Before, that row dropped out of
+   kappa silently.
+3. A cell that isn't a label or `n/a` is reported by row, as `not a label | rater1`.
+4. L3's `key.csv` no longer adds empty "keyword check" lines; those are Track B's only.
 
-## 9. Open for Ritik
+**Run on copies of the real sheets with random labels** (in the scratchpad, deleted after):
+- L3: private 58 rows (tool 30, user 28; the 43 `n/a` left out), final 101 (tool 44, user 57);
+- L4 part 1: final 294 (tool_injected 147, tool_pasted 58, user 89), and the guess for both raters over 294 rows.
 
-- **L4's sheets** (fixed Oct 30) hold LoRA's, base's and prompt_only's false-disclosure candidates. They don't hold
-  LoRA + tags' 150 or LoRA on 15/19/23's 126. The cautionary claim now has two LoRA versions whose candidates rise.
-  Whether to label LoRA + tags' candidates too, as a third sheet, is your call.
-- **Qwen3-8B Step 10** isn't in the `sacct` list. The 11:50 log's step 4 submits it after Step 3:
-  `$S qwen8b_step10 --estimate 4.3 --dependency=afterok:123022`.
-- **B1:** waiting on the bench (122956), then `plan` (the gate inside it).
+The values are random and aren't shown.
 
-## 10. Checks and commit
+**Tests:**
+- `test_kappa_reads_the_returned_packet_files` fails on the old code ("No_mention " wasn't read).
+- `tests/test_rater_packets.py` has 4 tests: the build, the check's catches, a changed sheet, and a spec the build
+  refuses.
 
-- **Tests:** the full suite, 650 passed. One test is new: the Gate 3 table is called interim only while a system is
-  missing or short. It fails on the committed code.
-- **The tools:**
-  - `check_links`: 0 broken links;
-  - `make_supplement --check`: numbers-only; 23 pre-registrations, none unverified; the same 3 mismatches and 12
-    source problems as before;
-  - `export_summaries --check`: numbers-only.
-- **Commit:** as Ritik. **Not pushed:** pushing waits for Ritik's OK.
+## 7. Docs
+
+- **RATER_GUIDE:**
+  - the order: L3 first, due Nov 6; L4 part 1 due Nov 14 (until now L4 part 1 came first);
+  - the packet;
+  - the file names;
+  - the kappa commands;
+  - the channels.
+- **LABELING_GUIDE:** the two rules and the packets.
+- **RUNBOOK §15**, and the code guide.
+- **TODO:** L3 ready to start, Ritik and Shrey, ~2 h per rater; L4 part 1 due Nov 14.
+- STATUS and the Gantt are regenerated.
+
+## 8. Handing over
+
+After §4, send `rater_packet_shrey.zip` to Shrey directly, by ASU email or OneDrive, never through the repo.
+`rater_packet_ritik.zip` is Ritik's own copy.
+
+## 9. Checks and commit
+
+The tests, the link check, the supplement and the summaries are listed in the commit message. Committed as Ritik.
+**Not pushed:** pushing waits for Ritik's OK, and `3a98c63` is also still waiting.

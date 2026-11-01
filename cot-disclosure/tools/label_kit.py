@@ -256,8 +256,8 @@ def cohen_kappa(a, b):
 
 
 def channel_of(condition):
-    if condition in ("user", "tool_pasted", "tool_real", "system"):            # Track B's channels
-        return condition
+    if condition in ("user", "tool_pasted", "tool_real", "system", "tool_injected", "tool_injected_undeclared"):
+        return condition                                       # Track B's channels, and the evaluation's (L4)
     return "tool" if "tool" in condition else "user"
 
 
@@ -267,24 +267,29 @@ def kappa(path1, path2):
             return {r["row"]: r for r in csv.DictReader(f)}
     r1, r2 = read(path1), read(path2)
     cond = lambda r: r.get("condition") or r["channel"]  # noqa: E731     L4's sheets (Oct 30) name it channel
+    lab = lambda r, col: (r.get(col) or "").strip().lower()  # noqa: E731   "No_mention " is read as no_mention
     out, disagreements = {}, []
     for text in ("private", "final"):
         col = f"label_{text}"
-        rows = [k for k in r1 if k in r2 and r1[k].get(col) in LABELS and r2[k].get(col) in LABELS]
+        rows = [k for k in r1 if k in r2 and lab(r1[k], col) in LABELS and lab(r2[k], col) in LABELS]
         for group in ("all", *sorted({channel_of(cond(r1[k])) for k in r1})):
             keep = [k for k in rows if group == "all" or channel_of(cond(r1[k])) == group]
-            k_, po, n = cohen_kappa([r1[k][col] for k in keep], [r2[k][col] for k in keep])
+            k_, po, n = cohen_kappa([lab(r1[k], col) for k in keep], [lab(r2[k], col) for k in keep])
             out[f"{text} | {group}"] = {"kappa": k_, "agreement": po, "rows": n}
-        disagreements += [{"row": k, "text": text, "rater1": r1[k][col], "rater2": r2[k][col], "run_id": r1[k]["run_id"]}
-                          for k in rows if r1[k][col] != r2[k][col]]
+        disagreements += [{"row": k, "text": text, "rater1": lab(r1[k], col), "rater2": lab(r2[k], col),
+                           "run_id": r1[k]["run_id"]} for k in rows if lab(r1[k], col) != lab(r2[k], col)]
+    for name, r in (("rater1", r1), ("rater2", r2)):      # a typo would drop the row from kappa: say so
+        odd = [k for k in r for c in ("label_private", "label_final") if lab(r[k], c) not in (*LABELS, "", "n/a")]
+        if odd:
+            out[f"not a label | {name}"] = {"cells": len(odd), "rows": sorted(set(odd), key=lambda x: (len(x), x))}
     pre = Path(path1).parent / "prelabeled.csv"
     if pre.exists():                                    # Track B: each rater against the bare-reply rule
         with open(pre, newline="") as f:
             spot = {r["sheet_row"]: r["label_final"] for r in csv.DictReader(f) if r["sheet_row"]}
         for name, r in (("rater1", r1), ("rater2", r2)):
-            done = [k for k in spot if k in r and r[k]["label_final"] in LABELS]
+            done = [k for k in spot if k in r and lab(r[k], "label_final") in LABELS]
             out[f"spot check | {name} agrees with the rule"] = {
-                "agreement": sum(r[k]["label_final"] == spot[k] for k in done) / len(done) if done else None,
+                "agreement": sum(lab(r[k], "label_final") == spot[k] for k in done) / len(done) if done else None,
                 "rows": len(done), "of": len(spot)}
     l4 = Path(path1).parent / "key_L4.csv"
     if l4.exists():                                     # L4 (Oct 30): each rater's "trained model?" guesses against the key
@@ -300,10 +305,10 @@ def kappa(path1, path2):
     if key.exists():                                    # Track B: each rater against the keyword on group 3
         with open(key, newline="") as f:
             said = {r["row"]: r["keyword_private"] == "True" for r in csv.DictReader(f) if r.get("private_check") == "True"}
-        for name, r in (("rater1", r1), ("rater2", r2)):
-            done = [k for k in said if k in r and r[k]["label_private"] in LABELS]
+        for name, r in (("rater1", r1), ("rater2", r2)) if said else ():   # L3's key.csv has no group 3
+            done = [k for k in said if k in r and lab(r[k], "label_private") in LABELS]
             out[f"keyword check | {name} agrees with the keyword"] = {
-                "agreement": sum((r[k]["label_private"] != "no_mention") == said[k] for k in done) / len(done) if done else None,
+                "agreement": sum((lab(r[k], "label_private") != "no_mention") == said[k] for k in done) / len(done) if done else None,
                 "rows": len(done), "of": len(said), "keyword_says_mention": sum(said.values())}
     return out, disagreements
 
