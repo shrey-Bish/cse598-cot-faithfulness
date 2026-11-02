@@ -120,16 +120,16 @@ def template_rows(cfg):
 
 def compare_ids(server, local, decode):
     """How the server's prompt token ids (vLLM's harmony rendering) differ from ours (the snapshot's chat template):
-    identical; whitespace only (the decoded texts equal once runs of whitespace are collapsed); or differs, with the
-    first differing position and the decoded text around it on each side."""
+    identical; whitespace only (the decoded texts equal once all whitespace is removed, so whitespace on one side
+    only counts: the amendment of Nov 2); or differs. Both differences give the first differing position and the
+    decoded text around it on each side."""
     out = {"server_tokens": len(server), "local_tokens": len(local), "gap": len(server) - len(local)}
     if server == local:
         return {**out, "verdict": "identical"}
     s, t = decode(server), decode(local)
-    if re.sub(r"\s+", " ", s).strip() == re.sub(r"\s+", " ", t).strip():
-        return {**out, "verdict": "whitespace only"}
     i = next((k for k, (a, b) in enumerate(zip(server, local)) if a != b), min(len(server), len(local)))
-    return {**out, "verdict": "differs", "first_difference": i, "server_text": decode(server[max(0, i - 8):i + 24]),
+    return {**out, "verdict": "whitespace only" if re.sub(r"\s+", "", s) == re.sub(r"\s+", "", t) else "differs",
+            "first_difference": i, "server_text": decode(server[max(0, i - 8):i + 24]),
             "local_text": decode(local[max(0, i - 8):i + 24])}
 
 
@@ -144,7 +144,7 @@ def template_check(cfg, server_ids, local_ids, decode):
         rows.append({"effort": r["effort"], "condition": r["condition"], **cmp})
     return {"ok": not any(r["verdict"] == "differs" for r in rows), "rows": rows,
             "rule": "every first-turn prompt (5 conditions x 3 efforts) identical to the snapshot's chat template, or "
-                    "differing in whitespace only"}
+                    "differing in whitespace only (equal once all whitespace is removed: the amendment of Nov 2)"}
 
 
 # ---------------------------------------------------------------- the smoke job's verdict

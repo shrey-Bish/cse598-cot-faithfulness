@@ -121,6 +121,18 @@ def test_the_template_check_passes_identical_and_whitespace_and_stops_on_a_diffe
     assert bad[0]["first_difference"] == 1 and bad[0]["gap"] == 0
 
 
+def test_whitespace_on_one_side_only_is_a_whitespace_only_difference():
+    """The amendment of Nov 2 (§12): the smoke 245445 stopped on the system condition, where the chat template ends
+    the developer message's instructions with a blank line and vLLM's harmony rendering doesn't. Whitespace present on
+    one side only differs in whitespace only, as the rule says; the record keeps where."""
+    words = {1: "v2).<|end|>", 2: "v2).\n\n<|end|>", 3: "v3).<|end|>"}
+    decode = lambda ids: "".join(words[i] for i in ids)                      # noqa: E731
+    ws = rb.compare_ids([1], [2], decode)
+    assert ws["verdict"] == "whitespace only" and ws["first_difference"] == 0
+    assert (ws["server_text"], ws["local_text"]) == (words[1], words[2])
+    assert rb.compare_ids([3], [2], decode)["verdict"] == "differs"
+
+
 def smoke_rows(tokens=None, statuses=None, called=True):
     tokens = tokens or {"low": 300, "medium": 1200, "high": 5000}
     rows = []
@@ -355,3 +367,29 @@ def test_the_real_chat_template_at_each_effort_if_cached():
     assert "namespace functions" in text[("medium", "tool_real")]
     n = {k: len(ids(k[0], r["messages"], r["tools"])) for k, r in zip(text, rows)}
     assert all(n[("low", c)] == n[("high", c)] for c in CFG["conditions"])
+
+
+def test_the_smokes_served_prompts_pass_the_check_if_cached():
+    """The smoke 245445's failure (Nov 1), rebuilt from the real chat template: vLLM served the system condition as
+    ours without the blank line before the developer message's <|end|> (379 tokens each, template_check.json). The
+    check reads that as whitespace only; every other prompt is identical."""
+    transformers = pytest.importorskip("transformers")
+    try:
+        tok = transformers.AutoTokenizer.from_pretrained(sb.REPO, revision=sb.REVISION, local_files_only=True)
+    except Exception:
+        pytest.skip("gpt-oss-20b's tokenizer isn't cached here")
+    ours = sb.local_ids(tok)
+
+    def served(effort, messages, tools):
+        ids = ours(effort, messages, tools)
+        if messages[0]["role"] != "system":
+            return ids
+        text = tok.decode(ids)
+        end = text.index("<|end|>", text.index("<|start|>developer"))
+        return tok.encode(text[:end].rstrip("\n") + text[end:], add_special_tokens=False)
+    check = rb.template_check(CFG, served, ours, tok.decode)
+    assert check["ok"]
+    assert {(r["condition"], r["verdict"]) for r in check["rows"]} == \
+        {(c, "identical") for c in CFG["conditions"] if c != "system"} | {("system", "whitespace only")}
+    system = [r for r in check["rows"] if r["condition"] == "system"]
+    assert {(r["server_tokens"], r["local_tokens"], r["first_difference"]) for r in system} == {(379, 379, 88)}
