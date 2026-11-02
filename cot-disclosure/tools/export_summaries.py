@@ -76,6 +76,7 @@ OTHER = {                # Tracks B and C: numbers-only reports their scripts wr
     "results/trackB/template_check.jsonl": "trackB/template_check.jsonl",        # progress/voyager_template_check.py
     "results/trackB/b15_report.json": "trackB/b15_report.json",                  # B15 (progress/run_b15.py --report)
     "results/trackB/b16_report.json": "trackB/b16_report.json",                  # B16 (progress/run_b16.py --report)
+    "results/trackB/b19_report.json": "trackB/b19_report.json",                  # B19 (progress/run_b19.py --report)
     "results/trackB/b17/b17_report.json": "trackB/b17_report.json",              # B17 (progress/run_b17.py --report), once back
     # A37 (Qwen3-8B Steps 3 and 10 on Track B's runs; Sol, copied back to results/trackB/qwen8b_mech/; F36)
     "results/trackB/qwen8b_mech/qwen8b_readout.json": "trackA/qwen8b_mech/qwen8b_readout.json",

@@ -30,6 +30,9 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
 - **Strongest objection:** B16 is cross-day (T11: its tool arms were Track B's replies, replayed from the cache; the
   canary held) and one wording, and "answer key" is also the tool's name for itself.
 - **Settles it:** B19, the same comparison made the same day (new seeds), and a second authority wording.
+  **Same day, answered (B19, Nov 1, F35):** new seeds and no reply cache, the same six readings: Thinking +10 [+4,
+  +17] / −2 [−13, +10]; Instruct +4 [−1, +10] / **+75 [+65, +85]**; Olmo −3 [−11, +5] / **−14 [−22, −7]**. A second
+  authority wording is still open.
 
 **1.2 The private reasoning mentions the hint; the final answer almost never does.**
 - **Evidence:**

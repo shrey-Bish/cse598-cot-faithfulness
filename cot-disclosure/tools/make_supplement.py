@@ -876,7 +876,10 @@ PREREG = [
      "rule_commit": "32d0eed", "rule_file": "archive/sessions/2026-10-31/2026-10-31_2220_B_b16-prereg.md",
      "rule_check": ["the same rule, now same-day", "use_cache=False", "tool beyond authority"],
      "f_title": r"\(B19\)", "result_glob": ["*b19-results*"],
-     "verdict": "waiting: running on Voyager (Nov 1, from 12:37)", "verdict_check": []},
+     "verdict": "all six readings the same as B16's, now same-day: tool beyond authority for Thinking's pasted block "
+                "(+10 [+4, +17]) and Instruct's own call (+75 [+65, +85]); authority moves it more for Olmo's inserted "
+                "turn (−14 [−22, −7]); no difference detected for the other three",
+     "verdict_check": ["all six readings the same", "+10 [+4, +17]", "−14 [−22, −7]"]},
     {"id": "b17", "track": "B", "experiment": "B17: does more thinking change real-call following and the bare final "
                                               "answer? (gpt-oss-20b, effort low/medium/high)", "kind": "pre",
      "rule": "high minus low effort, paired by question, on following on tool_real and on the bare final answer after "

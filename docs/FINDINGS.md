@@ -1,7 +1,8 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-01 15:05 (F36 A37: Qwen3-8B's readout replicates in a second model: layers 21, 22 and
+status. Started 2026-10-26; last updated 2026-11-01 20:50 (F35: B19, the same-day check, gives the same six readings; T11 checked); 2026-11-01
+15:05 (F36 A37: Qwen3-8B's readout replicates in a second model: layers 21, 22 and
 29, chosen on the puzzles, hold 0.70 [0.60, 0.83] of the drop on MMLU-Pro and are its own top three; the story's line
 3); 2026-11-01 10:45 (F35 B16: most of a tool's pull is its claim to be the
 answer key, except Qwen3 30B Instruct's own call; T11: B16's same-day tool arms were replayed from the reply cache;
@@ -1846,6 +1847,7 @@ answer (Olmo); the identity canary passed 6 of 6 checks per model (largest diffe
   Instruct 323 of 324, Thinking 282 of 324). So the comparison is the Nov 1 authority arm against mostly Oct 27–28
   tool replies, from served models the canary found unchanged. The pre-registered drift check reads 0 by
   construction for the replayed runs (Thinking's pasted block +2 [+1, +5] from the 20 that differ).
+  **Checked the same day by B19 (Nov 1, below): all six readings the same.**
 
 **The pre-registered readings** (tool minus user_authority, following, paired by question; the 16,000 cut beside it):
 
@@ -1882,14 +1884,42 @@ claim, 22 of 157 after the inserted turn.
 **Limits.**
 - **Cross-day, not same-day (T11):** the authority arm ran Nov 1; most tool replies are Oct 27–28's. The canary held,
   so the served models were the same; anything else that changed between the days would show up as an effect.
+  B19 repeated the tool arms with new seeds and no cache, 10–20 hours after the authority arm: the same six readings.
 - One authority wording; the plain user hint and the authority claim differ in more than authority (the words
   "answer key" are also the tool's name for itself).
 - Keyword counts for naming until hand labels; the run's own budget, with the 16,000 cut beside it (Olmo's cut
   leaves 38–40 questions).
 
+**Same-day check (B19, Nov 1; pre-registered as B16's amendment, the Oct 31 22:20 log §9, before any call).**
+- **The rerun:** B16's tool arms with new seeds (repeats 3–5) and `use_cache=False`, read against B16's
+  `user_authority` runs by the same rule.
+  - Voyager, 12:37–18:44 MST: 972 runs, 0 errors.
+  - The canary passed 22 of 22 checks.
+  - The reply cache was unchanged (163,903 entries).
+  - No run replayed Track B's texts, except Instruct's near-deterministic replies after its call (112 of 162; within
+    Track B alone its three runs agree on 34 of 54 questions).
+- **All six readings are the same as B16's, at both cuts:**
+
+| model | tool channel | B19 tool | B19 − authority | B16 − authority (cross-day) | reading |
+|---|---|---|---|---|---|
+| Qwen3 30B Thinking | pasted block | 61 of 162 | **+10 [+4, +17]** | +12 [+5, +19] | tool beyond authority |
+| | its own call | 41 of 162 | −2 [−13, +10] | +6 [−7, +19] | no difference detected |
+| Qwen3 30B Instruct | pasted block | 32 of 162 | +4 [−1, +10] | +6 [−1, +13] | no difference detected |
+| | its own call | 147 of 162 | **+75 [+65, +85]** | +75 [+65, +85] | tool beyond authority |
+| Olmo 3 7B Think | pasted block | 63 of 158 | −3 [−11, +5] | −3 [−10, +3] | no difference detected |
+| | inserted tool turn | 45 of 158 | **−14 [−22, −7]** | −14 [−21, −6] | authority moves it more |
+
+- **The drift check, now real** (B19's tool arms minus Track B's): no difference detected in five of six.
+  - **The exception, Qwen3 30B Thinking's own call:** 41 of 162 against 54, −8 [−15, −1]. It calls the tool less
+    often (41 calls, all followed, against 54 and 54).
+  - **Gate 2's gap closed by the claim there:** 108% (B16 80%).
+  - **The other shares** are within 6 points of B16's: 71%, 77%, 16%, 109%, 170%.
+
 **Source.**
 - `cot-disclosure/results/summaries/trackB/b16_report.json` (per model: primary, primary_16k, secondary, drift,
-  primary_with_trackB_tool, arms).
+  primary_with_trackB_tool, arms); B19's `cot-disclosure/results/summaries/trackB/b19_report.json` (the same, with
+  each reading beside B16's, and the replay count), from `python progress/run_b19.py --report` (the session log, Nov
+  1 20:50).
 - Recomputed with `python progress/run_b16.py --report` (Mac, no calls). The replay count: B16's tool-arm records
   against Track B's, final and private text compared (the session log, Nov 1 10:45).
 
@@ -1898,6 +1928,7 @@ claim, 22 of 157 after the inserted turn.
   Thinking's pasted block (+12); authority moves it more for Olmo's inserted turn (−14); no difference detected for
   the other three.
 - *confirmed*, cross-day: the authority claim moves all three models above the plain user hint.
+- *confirmed* same-day by B19 (Nov 1): the same six readings with new seeds and no reply cache.
 
 ## F36. Track A (A37): Qwen3-8B's readout replicates in a second model: three layers chosen on the puzzles hold most of the drop on MMLU-Pro, and they are its own top three
 
@@ -2071,7 +2102,8 @@ Each one would have changed a reported number.
   "repeats need new seeds"): an identical request is answered from the cache. B16's design didn't carry that over.
 - *Rule.* A rerun meant as a same-day control sends a new seed or bypasses the cache (`use_cache=False`), and its
   pre-registration says which.
-- *Source.* `cot-disclosure/client.py` (`_request`, the cache), the Nov 1 10:45 session log.
+- *Checked.* B19 (Nov 1) did both: 972 new runs, the cache unchanged, B16's six readings the same (F35).
+- *Source.* `cot-disclosure/client.py` (`_request`, the cache), the Nov 1 10:45 and 20:50 session logs.
 
 **Also:**
 - Cut-off replies leak when not streamed (the reasoning landed in the answer in 8 of 8).

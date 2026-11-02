@@ -1,6 +1,7 @@
 # Track B handoff: test widely (for Arsha, from Nov 3)
 
-Last updated: 2026-11-01 (final for the Nov 3 handoff: results through B16; B17 prepared and amended; your first
+Last updated: 2026-11-01 20:50 (B19 done: the same-day check gives B16's six readings); 2026-11-01 (final for the
+Nov 3 handoff: results through B16; B17 prepared and amended; your first
 day and your plan to Nov 18). Earlier versions are in git history (`git log --follow docs/tracks/TRACK_B.md`; it was
 `docs/handoff/TRACK_B.md` until Nov 1). Ritik runs Track B until Nov 3, then it's yours.
 
@@ -26,7 +27,7 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 4. **Reproduce the numbers, no calls:** `progress/trackB_report.py` (the Track B table, F15–F17, F29),
    `progress/run_b15.py --report` (F25) and `progress/run_b16.py --report` (F35). Each should match FINDINGS.
 5. **Read:** this page, then [`FINDINGS.md`](../FINDINGS.md) F15, F16, F17, F25, F29, F35 and traps T1–T11.
-6. **Voyager:** only for a new run (B19, if approved). Your own key goes in `cot-disclosure/.env`
+6. **Voyager:** only for a new run (none is planned; B19 ran Nov 1). Your own key goes in `cot-disclosure/.env`
    (`.env.example`); never share it, log it or commit it.
 
 ## 1. Your plan to Nov 18
@@ -34,9 +35,8 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 | when | what | yours to do | due |
 |---|---|---|---|
 | Nov 3 | handoff | the first day above | Nov 3 |
-| Nov 4–5 | B16 | re-read its report and F35; decide with Ritik whether B19 (a same-day check) is worth ~5.6 Voyager hours | Nov 5 |
+| Nov 4–5 | B16 and B19 | re-read their reports and F35 (`run_b16.py --report`, `run_b19.py --report`; B19's records are in the bundle only if it is rebuilt) | Nov 5 |
 | Nov 4–12 | B17 | Ritik submits the Sol jobs (download, smoke, runs); you copy back the numbers-only files, run `--smoke-check`, and once all 2,430 runs are back, `--report` and its session log and F-entry by the pre-registered rule | Nov 12 |
-| if approved | B19 | pre-register, dry-run, then run on Voyager under the guard; read by its rule | by Nov 15 |
 | Nov 13–18 | B18 | the final Track B table and one figure: B14's table with B16 and B17 (each labelled), Gate 2 on every model | Nov 18 |
 | Nov 18 | the freeze | no new runs after it | — |
 | Nov 19–20 | verdicts and figures | slides 2, 6, 7 and 8 (PLAN's presentation map): the final versions | Nov 20 |
@@ -102,16 +102,16 @@ the answer is (X)."; each tool arm minus that, paired by question:
 - Descriptive: with the user's claim the final answer names it (132 and 135 of 162 for Qwen3) and is never bare;
   after a call it isn't named. The bare letter is about the call.
 - **Cross-day, not same-day (T11):** the tool arms sent Track B's exact requests, so the reply cache returned
-  Track B's Oct 27–28 replies for 907 of 972. The canary held, so the served models were the same. B19 would make it
-  same-day.
+  Track B's Oct 27–28 replies for 907 of 972. The canary held, so the served models were the same. **B19 (Nov 1) made
+  it same-day: new seeds, no cache, all six readings the same** (F35; log 2026-11-01 20:50).
 
 ## 3. Yours to read and run
 
-- **B16 (done Nov 1; log 2026-11-01 10:45):** `progress/run_b16.py --report` reproduces F35 from the bundle. The open
-  question is B19.
-- **B19 (proposed, needs Ritik's OK):** the tool arms again with new seeds (repeats 3–5) or the cache bypassed, beside
-  a new authority arm, all the same day; ~1,000 Voyager calls, ~5.6 h. Pre-register first (copy B16's log: the rule,
-  the cut, the drift check), then dry-run.
+- **B16 (done Nov 1; log 2026-11-01 10:45):** `progress/run_b16.py --report` reproduces F35 from the bundle. B19
+  checked it the same day.
+- **B19 (done Nov 1; B16's pre-registration §9; log 2026-11-01 20:50):** B16's tool arms again with new seeds (repeats
+  3–5) and no reply cache, against B16's authority arm; 972 runs. All six readings are B16's; the drift check is real
+  now (Thinking's own call: fewer calls than Oct 27–28). `progress/run_b19.py --report` reproduces it.
 - **B17, the thinking dose (prepared; amended Nov 1; pre-registered in the 2026-10-31 22:37 log, section 11 for the
   amendment):** gpt-oss-20b (`openai/gpt-oss-20b` at `6cee5e81`, Apache 2.0, not gated) on our vLLM server in a Sol
   job, at effort low, medium and high.
@@ -157,7 +157,7 @@ table), `providers/` (Voyager, our Sol vLLM, Hugging Face on Sol). The code map:
 |---|---|---|
 | B7, B4, B8, B9, B14, B15 | Voyager runs, Qwen3-8B on Sol, steered cases, Gate 2, the table, the instruction | done (F15–F17, F25, F29) |
 | B16 | Tool or authority? | done Nov 1 (F35); cross-day (T11) |
-| B19 | A same-day check of B16 | proposed; needs Ritik's OK |
+| B19 | A same-day check of B16 | done Nov 1 (F35): the same six readings |
 | B17 | Thinking dose: gpt-oss-20b at effort low, medium, high | prepared and amended; due Nov 12; dropped if the smoke isn't clean within a day |
 | B18 | The final Track B table and one figure | due Nov 18 (the results freeze) |
 | L5 | Track B's labeling batch (171 rows) | should: after L3 and L4 |
