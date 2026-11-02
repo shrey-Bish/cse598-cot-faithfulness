@@ -1,105 +1,206 @@
-# Session log: B19 read by B16's rule, now same-day: all six readings the same as B16's (Nov 1, 20:50 MST)
+# Session log: B17's template check amended for its last try; B1's part 8; the story's line 1 (Nov 2, 14:10–15:00 MST)
 
-By: Ritik. Ritik's go (Nov 1, about 12:20) and the amendment it fixed: §9 of
-[B16's pre-registration](2026-10-31/2026-10-31_2220_B_b16-prereg.md), committed in `32d0eed` (12:35) before any
-B19 call. Ritik's message of about 15:00: "read it when it finishes, then the second push, as planned."
+By: Ritik. Ritik's message of about 14:10, eight items: the standing rules (0), B17 first (1), B1's part 8 and the
+finished parts (2), Sol's queue (3), the story's line 1 and the README (4), Arsha's note and her bundle (5), A37 in
+plain words (6), and the push (7).
 
-## 1. The run
+## 1. B17: why the smoke stopped, and the fix
 
-- **On Voyager, 12:37–18:44 MST**, under the power guard (`logs/guard_b19.log`); the smoke test at 12:34.
-- **972 runs, all `ok`**, with no `not_run` and no `api_error`:
-  - 324 per model, 162 per arm;
-  - repeats 3, 4 and 5 only, every record tagged `b19`;
-  - in its own files (`results/trackB/b19_voyager*.jsonl*`, gitignored).
-- **No answer:** Olmo 4 in each tool arm (8 of 324; B16's tool arms had 7), plus 1 in B16's authority arm. The two
-  Qwen3 models: 0.
-- **The identity canary:** 22 checks (the smoke test, the start, then hourly), all passed, largest difference 0.0.
-- **T11's fix held:**
-  - **The reply cache:** 163,903 entries before the first call and after the last, so no reply was written.
-    `use_cache=False` also means none was read. B19's seeds (3–5) aren't in any earlier request, so no earlier reply
-    could have matched anyway.
-  - **Replays** (runs whose final and private texts both equal a Track B run's of the same question and arm):
-    - **0 of 162 in each arm,** except Qwen3 30B Instruct's own call: **112 of 162**.
-    - **Instruct's 112 are expected, not a leftover.** After its call, Instruct's answer is nearly deterministic:
-      - **Within Track B alone,** all three runs of a question gave the same final text on 34 of 54 questions (B19:
-        33).
-      - **The texts:** median 11 characters, 16 distinct texts, no private text; the longest is a 542-character
-        calculation.
-      - **No pattern by seed:** the matches spread evenly over all nine pairs of a B19 repeat and a Track B repeat
-        (33–38 each), as chance matches do; a fixed or ignored seed wouldn't.
-      - **Same seed handling elsewhere:** the seed is sent on both steps of the tool loop (`run_trackB.run_one`). The
-        same model's pasted arm, one request, has 0 replays.
-    - §9 expected chance matches for Instruct's short replies.
+**What Ritik reported:** the smoke 245445 stopped 22:26 into the job (exit 4) at the served-template check, before
+any run. Its log reads "template check: FAILED (... low system differs ... medium system differs ... high system
+differs)", and the other four conditions were "identical" at all three efforts. The server had started fine (vLLM
+0.31.0, the options check passed). The main run 245462 was cancelled by its dependency. Ritik copied
+`template_check.json` to `results/trackB/b17/`.
 
-## 2. The rule's readings: the same as B16's, all six
+**The difference** (`template_check.json`, then rebuilt on the Mac):
+- **Two newlines, in one place.** Both renderings of the `system` prompt have 379 tokens and are identical through
+  token 87, the developer header and `# Instructions` included. At token 88:
+  - the chat template has `...(source: study guide v2).\n\n<|end|>`;
+  - vLLM has `...(source: study guide v2).<|end|>`.
+- **Why:**
+  - **The chat template** (`6cee5e81`, `chat_template.jinja` lines 246–248) always writes `\n\n` after the developer
+    instructions, as the separator before `# Tools`, even when there are no tools.
+  - **Harmony, as vLLM renders it,** puts a separator only between sections.
+  - **Only `system` is hit:** it is Track B's only condition with instructions and no tools.
+- **Ritik's guess, half right.** Both renderings put our note in the developer message; the difference is only that
+  trailing blank line.
+- **Which is the model's format: harmony, as vLLM serves it.**
+  - vLLM renders with `openai-harmony`, OpenAI's renderer of the format gpt-oss was trained in. The jinja template
+    re-implements it for `transformers`.
+  - The note already sits where harmony puts a request's system prompt: the developer message's instructions.
+    Harmony's own system message holds the effort and the date.
+  - So the requests stay as they are.
+- **The fault was the check's.**
+  - The pre-registration's rule passes prompts "differing in whitespace only". Its code collapsed runs of whitespace
+    to one space, which leaves `). <|end|>` against `).<|end|>`.
+  - So whitespace on one side only counted as a difference.
 
-**The rule:** each B19 tool arm minus B16's `user_authority`, paired by question, with a 95% bootstrap clustered by
-question.
-- **Readings:** above 0 is "tool beyond authority"; below 0, "authority moves it more"; otherwise "no difference
-  detected".
-- **The 16,000 cut** is shown beside each reading.
+**The fix** (`e008a9d`, pushed 14:26; [B17's pre-registration, §12](2026-10-31/2026-10-31_2237_B_b17-prereg.md)):
+- **"Whitespace only"** now means the decoded texts are equal once all whitespace is removed. Any other difference
+  still stops the job before any run.
+- **Whitespace-only rows** in `template_check.json` now also give the first difference and the text on each side.
+- **Checked on the Mac** (no calls; the real chat template from the local Hugging Face cache):
+  - **The job's numbers:** our 15 prompts give the job's own token counts.
+  - **The server's side:** deleting only that blank line gives the server's 379 tokens and, exactly, its text at the
+    first difference, at each effort.
+- **Tests:** two new ones in `tests/test_trackB_b17.py` failed on the old code and pass now (14 of 14).
+  - One rebuilds the smoke's 15 prompts from the real template: with the old check it fails as the job did; with the
+    fix it passes.
+  - The other is a minimal case: whitespace on one side only, beside a real difference that still stops.
+- **Not chosen:**
+  - **A new reference** (`openai-harmony`'s own rendering): it isn't installed on the Mac, and it would be new code on
+    the day.
+  - **Sending the note another way:** it already arrives as harmony expects.
+  - **Dropping `system`:** nothing in how it is served is wrong.
+- **The failed check is kept** as `results/trackB/b17/template_check_245445.json` (gitignored), so the copy-back
+  can't overwrite it.
 
-| model | tool channel | B19 tool (Nov 1) | authority (B16) | **B19 − authority** | reading | 16,000 cut | B16's (cross-day) |
-|---|---|---|---|---|---|---|---|
-| Qwen3 30B Thinking | pasted block | 61 of 162 | 44 of 162 | **+10 [+4, +17]** | tool beyond authority | +12 [+5, +18], the same | +12 [+5, +19], the same |
-| | its own call | 41 of 162 | 44 of 162 | −2 [−13, +10] | no difference detected | +0 [−11, +12], the same | +6 [−7, +19], the same |
-| Qwen3 30B Instruct | pasted block | 32 of 162 | 25 of 162 | +4 [−1, +10] | no difference detected | the same | +6 [−1, +13], the same |
-| | its own call | 147 of 162 | 25 of 162 | **+75 [+65, +85]** | tool beyond authority | the same | +75 [+65, +85], the same |
-| Olmo 3 7B Think | pasted block | 63 of 158 | 69 of 161 | −3 [−11, +5] | no difference detected | −4 [−15, +6] (39 q), the same | −3 [−10, +3], the same |
-| | inserted tool turn | 45 of 158 | 69 of 161 | **−14 [−22, −7]** | authority moves it more | −18 [−29, −7] (40 q), the same | −14 [−21, −6], the same |
+**The one-day rule (§6):**
+- **The clock** started with the first smoke (Nov 1, about 15:57 MST). This is its one fix and one resubmission.
+- **Ritik's reading:** the rerun must start before about 16:00 today.
+- **§6's words:** the smoke must be *clean* 24 hours after the clock starts. The first smoke took 22 minutes to reach
+  the check, so a start before about 15:20 meets the words as well.
+- **If the smoke isn't clean, B17 is dropped:** TODO says "dropped (could not run cleanly within one day, Nov 2)".
 
-**What it decides (§9):** all six agree. So F35 adds B19 as the same-day check, and the story stays as it is.
+**The pull on Sol is safe for the queued jobs.** Since `2f9306f` (the oldest commit Sol can be at), the pull brings
+`run_b17.py` and its tests, `run_b19.py`, three tools (`export_summaries`, `make_supplement`, `slide_figures`), their
+tests, and docs. The two job types' imports, traced statically and transitively:
+- **B1's parts** (`finetune/gpu/provenance_job.py`): none of these files.
+- **A18's jobs** (`finetune/look/a18.py`): they reach `progress/sol_b17.py` only inside vLLM's preflight
+  (`vllm_options.job_commands`, imported inside a function), which calls `serve_cmd` (unchanged). `sol_b17` loads
+  `run_b17` only inside its own job.
 
-## 3. Also reported (no decision)
+## 2. Sol's lines (given to Ritik after the first push)
 
-- **Drift, now a real check** (B19's tool arms minus Track B's, Oct 27–28). No difference detected in five of six.
-  - **The exception, Qwen3 30B Thinking's own call:** 41 of 162 today against 54, **−8 [−15, −1], today lower**.
-  - **It's the call rate,** not following after a call. Thinking called the tool in 41 runs and followed in all 41;
-    Track B had 54 and 54.
-  - **The primary reading is unchanged:** no difference detected, at both cuts.
-- **The share of Gate 2's gap that the authority claim closes,** with B19's tool arms. The plain user hint is still
-  Track B's, cross-day:
+Queue at Ritik's message: 10 of 10, all pending.
+- **B1:** part 9 (334078) and part 10 (334081).
+- **A18, tool-only (§8):**
+  - Step 3: base 334084 (A), lora 334085 (B);
+  - Step 10: 334111, 334112, then 334113 (afterok B);
+  - the swap: 334114;
+  - Step 9: base 334115, lora 334116 (afterok B).
 
-| model | pasted block | own call / inserted turn |
-|---|---|---|
-| Qwen3 30B Thinking | 71% (B16 68%) | 108% (B16 80%; Thinking's gap is smaller today, +23 against +31) |
-| Qwen3 30B Instruct | 77% (71%) | 16% (16%) |
-| Olmo 3 7B Think | 109% (109%) | 170% (164%) |
+No job can end before 16:00, since none is running. So 334116 is cancelled to make the place, as Ritik offered.
 
-- **Per arm** (keyword counts, as B16's): the final answer names the hint or tool, and is bare (30 characters or
-  fewer).
-  - **Thinking's own call:** names it 12 of 162 (B16 4) and is bare in 86 (B16 108). Both shifts go with fewer calls.
-  - **Instruct's own call:** names 39 (35), bare 109 (111).
-  - **Olmo's inserted turn:** names 28 of 158 (22 of 157), bare 102 of 162 (115).
-  - **Pasted blocks:** close to B16's in all three models.
-- **The authority claim against the plain user hint** is B16's own number, since both arms are the same runs:
-  Thinking +25, Instruct +15, Olmo +35.
+```bash
+cd /scratch/ragarw68/cse598-cot-faithfulness
+git pull --ff-only && git log -1 --format=%h      # e008a9d or later
+squeue -u ragarw68
+scancel 334116                                    # A18 step9 lora; resubmitted later (below)
+S=cot-disclosure/finetune/gpu/sol/submit.sh
+F=/scratch/ragarw68/trackA/provenance_forced/provenance_forced.json
+$S b17 --estimate 0.75 -- --smoke                 # -> K (limit 1:00)
+scontrol top K
+# B17's 2,430 runs: chained on the smoke if a place frees while K is pending or running ...
+$S b17 --estimate 6 --dependency=afterok:K
+# ... or, once K has ended (sacct -j K --format=JobID,State,Elapsed,ExitCode shows COMPLETED 0:0), in its place:
+$S b17 --estimate 6
+# then, as places free:
+$S provenance_gen --estimate 0.75 -- --alpha-from $F --part 8/10           # B1 part 8's last run (limit 1:00)
+$S a18 --estimate 0.6 --dependency=afterok:334085 -- step9 --system lora     # 334116 again (no dependency once 334085 has ended)
+```
 
-## 4. Checks
+- **B1's part 8** (245547) was stopped by Slurm's warning just before its 5:30 limit, with 1 of its 63 runs left
+  (`prov-a1-v2` 21 of 21, deployable 21 of 21, oracle 20 of 21). The rerun skips the 62 saved runs. One run plus the
+  model load is well under an hour: the estimate is 0.75, so the limit is 1:00.
+- **Copy-backs (Mac, `cot-disclosure/`, numbers only):**
 
-- `python progress/run_b19.py --report` (Mac, no calls) wrote `results/trackB/b19_report.json`. It's exported
-  numbers-only to `results/summaries/trackB/b19_report.json`.
-- **The run's checks:** 972 runs, one record each (`latest`), 0 errors; the canary's 22 checks; the cache count; the
-  replay count and its spread over seed pairs (above).
-- **The code that ran:** `run_b19.py` and its 6 tests as committed in `32d0eed`; no file it imports changed during
-  the run.
+```bash
+H=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68
+# B1, parts 1-7 (counts only; B1's rule is read when all 630 runs are done)
+rsync -av "$H/trackA/provenance_gen/eval_prov-*-v2_p[1-7]of10_runs.jsonl" results/trackA/gpu/provenance_gen/
+for f in results/trackA/gpu/provenance_gen/eval_prov-*-v2_p[1-7]of10_runs.jsonl; do
+  printf '%3s ok  %s\n' "$(grep -c '"status": "ok"' "$f")" "${f##*/}"; done                 # 21 each: 21 files
+# B17's smoke, once K has ended
+rsync -av $H/cse598-cot-faithfulness/cot-disclosure/results/trackB/b17/ results/trackB/b17/
+rsync -av $H/cse598-cot-faithfulness/cot-disclosure/results/trackB/b17_sol_vllm_runs.jsonl results/trackB/
+../.venv/bin/python progress/run_b17.py --smoke-check
+```
 
-## 5. What changed
+## 3. The story's line 1 and the README (item 4)
 
-- **FINDINGS F35:**
-  - **The setup:** the cross-day paragraph says B19 checked it the same day.
-  - **A new paragraph:** "Same-day check (B19)", with the six readings.
-  - **The status:** confirmed same-day.
-- **FINDINGS T11:** a line on the check.
-- **The story and README:** unchanged (§9; Ritik: change them only if a reading changes). Their line on B16 still
-  says the tool replies were cross-day. B19 now backs that line with a same-day run; the wording is Ritik's call.
-- **Elsewhere:**
-  - **CLAIMS 1.1:** one line, the same-day check.
-  - **TRACK_B:** B19 done.
-  - **The supplement's ledger:** B19's verdict.
-  - **The summaries:** `b19_report.json` and the canary's 22 new rows.
-  - **TODO B19:** done.
-- **Not changed:**
-  - **The note to Arsha** in the Nov 1 daily still lists B19 as "one early decision for us". Ritik sends it on Nov 3,
-    so that line is Ritik's to update.
-  - **The Track B bundle** (`trackB_20261101.tar.gz`) doesn't include B19's records. Rebuilding it on Nov 3 would.
+- **FINDINGS, the story's line 1:** "**Confirmed same-day (B19):** B16's tool replies were cross-day, mostly Track
+  B's replayed from the reply cache (T11); rerun on Nov 1 with new seeds and no cache, all six readings held (+10
+  [+4, +17], +75 [+65, +85], −14 [−22, −7]; F35)". This replaces "Cross-day: the tool replies are mostly Track B's,
+  replayed from the reply cache (T11), with the served models unchanged."
+- **README, line 1:** "(B16, F35; confirmed same-day, B19)".
+- **README, line 5:** "a second model's mechanism (Qwen3-8B) [is] under way" was out of date since A37 (Nov 1). It now
+  reads "the trained model's mechanism (A18)".
+
+## 4. Arsha (item 5)
+
+- **The note** (Nov 1 daily): the B19 line is now "B19 (Nov 1) reran B16's tool arms the same day with new seeds
+  and no cache: all six readings held (F35)." It is still 11 lines.
+- **Set when the bundle is rebuilt on Nov 3:**
+  - **the bundle line:** its name and size;
+  - **the B17 line:** "your part" depends on today's smoke. If it isn't clean, B17 is dropped, and that line changes.
+- **The bundle, Nov 3 morning** (TODO H2): rebuilt with B19's records and A37's summaries, verified, and the file
+  named to Ritik. Last night's dry run gave 26 files, 59.0 MB. This needs Ritik's first message on Nov 3; nothing
+  runs on its own.
+
+## 5. A37 in plain words (item 6)
+
+- **The rule** (fixed Oct 30, before anything ran):
+  - **Choose:** find the three layers that do most of the work of carrying the tool's letter into the answer, using
+    the puzzles only.
+  - **Test:** on MMLU-Pro, questions not used to choose, check two things. Do those three layers still hold more
+    than half of it (the 95% lower bound above 0.5)? And are they MMLU-Pro's own top three, give or take one layer?
+  - **Reading:** both means "replicates"; one means "partly"; neither means "doesn't".
+- **The result:**
+  - **Chosen:** layers 21, 22 and 29 hold 0.74 on the puzzles.
+  - **Tested:** on MMLU-Pro they hold 0.70 [0.60, 0.83] (30 cuts, 14 questions), and they are exactly MMLU-Pro's top
+    three. Both conditions hold: **replicates**.
+  - **The prompt's letter carries the answer.** At the takeover, swapping only the letter in the prompt (while the
+    reasoning still names the old one) moves the answer in 54 of 63 and 30 of 30 cuts.
+- **For line 3: yes, the readout holds in a second model family.**
+  - Qwen3-8B, a different family from Olmo, also reads the tool's letter straight from the prompt at a few
+    mid-to-late layers.
+  - That rules out the worry that Olmo's sliding windows force it: every Qwen3-8B layer sees the whole prompt.
+- **Weaker than in Olmo, and narrower:**
+  - **Less concentrated:** 0.70, against Olmo's 0.90, and a fourth layer (26) adds about 0.15–0.19.
+  - **One channel:** the real tool call only.
+  - **Small:** 14 questions.
+  - **Patching only:** no attention heads were tested in Qwen3-8B, so F12's heads aren't replicated.
+- **Line 3 needs no new change.** It and the README's line 3 were updated with A37 on Nov 1 (`164eba2`). The "as a
+  whole *tentative*" status stays.
+
+## 6. Judgment calls, with their cost if wrong
+
+1. **The check is fixed; the requests are untouched.** The served rendering is harmony's own, and the rule's words
+   already allowed whitespace.
+   - Cost if wrong: if someone held that the chat template is the reference, the trailing blank line would be a real
+     difference. It is two newlines at the end of the instructions, and the runs use vLLM's rendering either way.
+2. **Whitespace is removed, not collapsed.** This loosens the check everywhere in the 15 prompts, not just at this
+   spot.
+   - Cost if wrong: a whitespace-only difference elsewhere would pass unremarked. It is still recorded in
+     `template_check.json`.
+3. **334116 is the job cancelled,** as Ritik offered. No queued job can end before 16:00, since all ten are pending.
+   - Cost if wrong: A18's Step 9 on the LoRA side starts later; it is resubmitted at the next free place.
+4. **B17's main run waits for the smoke's own place** rather than a second cancellation.
+   - Cost if wrong: the 2,430 runs start a little later (B17 is due Nov 12).
+5. **B1's part 8 estimate is 0.75 h (limit 1:00).** That covers 1 run and the model load (0.15 h).
+   - Cost if wrong: if that one run is unusually long, the job stops again and a rerun finishes it.
+6. **README line 5** was corrected in passing: A37 is done, so Qwen3-8B is no longer "under way".
+7. **Arsha's note was edited in place,** in the Nov 1 daily, since it is a draft for Ritik to send.
+
+## 7. Checks and pushes
+
+- **First push** (`e008a9d`, B17 only, before Sol's pull):
+  - the full suite in a clean worktree: 725 passed, 8 skipped (6:45);
+  - `check_links`: 0 broken;
+  - a fast-forward of all four branches from `e6466c7`;
+  - the pre-push check;
+  - author and committer Ritik, with no attribution.
+- **Second push** (this log, the story, the README, Arsha's note, the daily, TODO, STATUS and the Gantt): the same
+  checks, plus the supplement's check.
+
+## 8. What's waiting for Ritik
+
+1. **On Sol now:** the pull, `scancel 334116`, then the smoke, moved to the top. It should start before 16:00, and
+   before about 15:20 to meet §6's words.
+2. **B17's main run:** chained on the smoke, or submitted in its place once it ends clean.
+3. **As places free:** B1's part 8, then 334116's Step 9 again.
+4. **Copy-backs:** B1's parts 1–7 (counts) and B17's smoke (then `--smoke-check`). If the smoke isn't clean, B17 is
+   dropped.
+5. **Nov 3 morning:** your first message, and I rebuild and verify Arsha's bundle and name the file. Then the note,
+   with its bundle line and, if B17 is dropped, its B17 line updated.

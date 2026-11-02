@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-01 20:50 (F35: B19, the same-day check, gives the same six readings; T11 checked); 2026-11-01
+status. Started 2026-10-26; last updated 2026-11-02 (the story's line 1: confirmed same-day, B19); 2026-11-01 20:50 (F35: B19, the same-day check, gives the same six readings; T11 checked); 2026-11-01
 15:05 (F36 A37: Qwen3-8B's readout replicates in a second model: layers 21, 22 and
 29, chosen on the puzzles, hold 0.70 [0.60, 0.83] of the drop on MMLU-Pro and are its own top three; the story's line
 3); 2026-11-01 10:45 (F35 B16: most of a tool's pull is its claim to be the
@@ -29,7 +29,7 @@ Track C's C4 added, F15 reworded: after a tool call the final answer is bare whe
 earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limitations section). Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
-**The story so far (Oct 28; updated Oct 30 and Nov 1).**
+**The story so far (Oct 28; updated Oct 30, Nov 1 and Nov 2).**
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
    from the user, in all three Track B models (Gate 2; 54 questions × 3 runs; tool − user with the
    pasted block: Qwen3 30B Thinking +35, Qwen3 30B Instruct +21, Olmo 3 7B Think +32 points), and in
@@ -38,8 +38,9 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    key says the answer is (X)." moves the answer about as much: the claim closes 68% and 71% of the gap with the pasted
    block in Qwen3 and all of it in Olmo, whose inserted tool turn moves it less than the user's claim (−14 [−21, −6]).
    The tool goes beyond the claim where Qwen3 30B Instruct calls it itself (+75 [+65, +85]; it calls every time) and
-   in Qwen3 30B Thinking's pasted block (+12 [+5, +19]). Cross-day: the tool replies are mostly Track B's, replayed
-   from the reply cache (T11), with the served models unchanged.
+   in Qwen3 30B Thinking's pasted block (+12 [+5, +19]). **Confirmed same-day (B19):** B16's tool replies were
+   cross-day, mostly Track B's replayed from the reply cache (T11); rerun on Nov 1 with new seeds and no cache, all six
+   readings held (+10 [+4, +17], +75 [+65, +85], −14 [−22, −7]; F35).
 2. **After a tool call, the answer stops explaining.** The final answer becomes a bare letter whether
    the tool was right or wrong (C4: 80 of 84 after good lookups, 71 of 75 after bad, 2 of 159 with no
    tool). *Confirmed* for Qwen3 30B Thinking (F15) and Instruct (F16). *Tentative* for Olmo, where

@@ -158,7 +158,7 @@ table), `providers/` (Voyager, our Sol vLLM, Hugging Face on Sol). The code map:
 | B7, B4, B8, B9, B14, B15 | Voyager runs, Qwen3-8B on Sol, steered cases, Gate 2, the table, the instruction | done (F15–F17, F25, F29) |
 | B16 | Tool or authority? | done Nov 1 (F35); cross-day (T11) |
 | B19 | A same-day check of B16 | done Nov 1 (F35): the same six readings |
-| B17 | Thinking dose: gpt-oss-20b at effort low, medium, high | prepared and amended; due Nov 12; dropped if the smoke isn't clean within a day |
+| B17 | Thinking dose: gpt-oss-20b at effort low, medium, high | prepared and amended; the first smoke (245445, Nov 1) stopped at the served-template check before any run, on a blank line the chat template adds and harmony doesn't (the check fixed, pre-registration §12); the second and last try Nov 2; due Nov 12; dropped if the smoke isn't clean within a day |
 | B18 | The final Track B table and one figure | due Nov 18 (the results freeze) |
 | L5 | Track B's labeling batch (171 rows) | should: after L3 and L4 |
 | B1–B3, B6 | Closed providers; GPQA | blocked: no keys; no paid calls; GPQA's terms not accepted |
