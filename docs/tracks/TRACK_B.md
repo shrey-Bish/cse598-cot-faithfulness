@@ -1,13 +1,8 @@
 # Track B handoff: test widely (for Arsha, from Nov 6)
 
-Last updated: 2026-11-03 11:30 (the handoff moves to **Nov 6** (Ritik): the 10:00 line saying it was done is
-corrected, nothing was sent; the bundle is rebuilt on Nov 6 morning; B18 and slide 2 started for you, §1a);
-2026-11-03 10:00 (slide 8 drawn, `docs/paper/figures/b17_effort.png`); 2026-11-03 09:30 (B17 done: no change detected on both primary readings, F37; run after its one-day
-window, kept by Ritik's decision before any result was read, pre-registration §13); 2026-11-01 20:50 (B19 done: the
-same-day check gives B16's six readings); 2026-11-01 (final for the
-handoff (then Nov 3; now Nov 6): results through B16; B17 prepared and amended; your first
-day and your plan to Nov 18). Earlier versions are in git history (`git log --follow docs/tracks/TRACK_B.md`; it was
-`docs/handoff/TRACK_B.md` until Nov 1). Ritik runs Track B until Nov 6, then it's yours.
+Last updated: 2026-11-03 13:00 (the handoff moves to Nov 6; B18 and slide 2 started for you, §1a; B20 prepared;
+closed models dropped). History: `git log --follow docs/tracks/TRACK_B.md` (it was `docs/handoff/TRACK_B.md` until
+Nov 1). Ritik runs Track B until Nov 6, then it's yours.
 
 **The question.** Does the failure seen in the progress round (a wrong hint from a tool moves thinking models more
 than the same hint from the user, and the final answer rarely says so) hold on more models, with thinking on and off
@@ -25,8 +20,8 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 2. **The pre-push check,** once per clone ([`RUNBOOK.md`](../RUNBOOK.md) §17). The repo is public, and produced
    data never goes to GitHub.
 3. **The data:** Ritik sends the bundle `trackB_20261106.tar.gz`, rebuilt on Nov 6 morning (`tools/make_handoff_bundle.py --track B`:
-   `results/trackB/` and the canary log, 17 files, ~47.5 MB, a sha256 manifest inside and beside it; B16's runs and
-   Qwen3-8B's numbers-only Sol files included, no GPQA). Unpack it into `cot-disclosure/` and check it with
+   `results/trackB/` and the canary log, with B16's, B17's and B19's records and A37's Qwen3-8B files; a sha256
+   manifest inside and beside it; no GPQA; its file count and size are written when it is built on Nov 6). Unpack it into `cot-disclosure/` and check it with
    `../.venv/bin/python tools/make_handoff_bundle.py --verify <the bundle>`.
 4. **Reproduce the numbers, no calls:** `progress/trackB_report.py` (the Track B table, F15–F17, F29),
    `progress/run_b15.py --report` (F25) and `progress/run_b16.py --report` (F35). Each should match FINDINGS.
@@ -39,7 +34,7 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 | when | what | yours to do | due |
 |---|---|---|---|
 | Nov 6 | handoff | Ritik sends the bundle (rebuilt Nov 6 morning) and the note; the first day above | Nov 6 |
-| Nov 6–7 | B16 and B19 | re-read their reports and F35 (`run_b16.py --report`, `run_b19.py --report`; B19's records are in the bundle only if it is rebuilt) | Nov 5 |
+| Nov 6–7 | B16 and B19 | re-read their reports and F35 (`run_b16.py --report`, `run_b19.py --report`) | Nov 7 |
 | Nov 6–7 | B17 | done Nov 3 (F37; Ritik read it by the rule): re-read F37 and `run_b17.py --report` from the bundle's records; it is in B18's table, labelled (temperature 1.0; run after its one-day window, §13) | Nov 7 |
 | Nov 6–18 | B18 | started Nov 3 (§1a): you check it, add B20's models when they are read (Nov 17), and finish it | Nov 18 |
 | Nov 18 | the freeze | no new runs after it | — |
@@ -92,7 +87,7 @@ against Track B's 0.6. Every model: 54 questions (24 pilot puzzles, 30 MMLU-Pro)
 tool_pasted, tool's channel, system) × 3 runs; one 32,768-token budget (prompt + every reply), the 16,000 cut beside
 every table.
 
-**Gate 2 (is the tool-vs-user gap clear?):** clear for all four models.
+**Gate 2 (is the tool-vs-user gap clear?):** clear for all five models (the four below, and gpt-oss-20b at every effort, F37).
 
 | model | user | pasted | tool's channel | system | pasted − user | channel − user |
 |---|---|---|---|---|---|---|
@@ -187,17 +182,19 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py --job "voyager:NAME
 `run_b17.py` and `sol_b17.py` (each experiment's design, checks and report; their records never enter Track B's
 table), `providers/` (Voyager, our Sol vLLM, Hugging Face on Sol). The code map: [`cot-disclosure/README.md`](../../cot-disclosure/README.md).
 
-## 5. Open items ([`TODO.md`](../status/TODO.md), Track B)
+## 5. Open items ([`TODO_B.md`](../trackB/TODO_B.md), Track B's own rows since Nov 3)
 
-| # | Item | Status (Nov 1) |
+| # | Item | Status (Nov 3) |
 |---|---|---|
 | B7, B4, B8, B9, B14, B15 | Voyager runs, Qwen3-8B on Sol, steered cases, Gate 2, the table, the instruction | done (F15–F17, F25, F29) |
-| B16 | Tool or authority? | done Nov 1 (F35); cross-day (T11) |
+| B16 | Tool or authority? | done Nov 1 (F35); confirmed same-day (B19) |
 | B19 | A same-day check of B16 | done Nov 1 (F35): the same six readings |
 | B17 | Thinking dose: gpt-oss-20b at effort low, medium, high | done Nov 3 (F37): no change detected on both; the first smoke (245445, Nov 1) stopped at the served-template check (fixed, §12); the second (355632) ran Nov 3, after the one-day window, kept by Ritik's decision before any result was read (§13) |
-| B18 | The final Track B table and one figure | due Nov 18 (the results freeze) |
+| B18 | The final Track B table and one figure | in progress: started Nov 3 (§1a); due Nov 18 |
+| B20 | Open models from new families on Sol, thinking on and off | pre-registered and coded Nov 3; runs by Nov 15, yours to read by Nov 17 |
 | L5 | Track B's labeling batch (171 rows) | should: after L3 and L4 |
-| B1–B3, B6 | Closed providers; GPQA | blocked: no keys; no paid calls; GPQA's terms not accepted |
+| B21–B23 | Closed providers (were B1–B3; renamed Nov 3 so B1 means only the attention scaling) | dropped (cost, Nov 3): open models on Sol replace them (B20) |
+| B6 | GPQA Diamond | blocked: its terms not accepted |
 
 ## 6. Known traps
 

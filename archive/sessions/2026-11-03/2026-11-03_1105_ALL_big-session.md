@@ -107,7 +107,7 @@ allowlist reads.
   - C19, C20, C25 and C26 read only these. Drawing new fresh items would need the training pool, which no prepared
     run does.
 
-## Part 4, so far: E2 and A39 pre-registered (commit `61db5af`, before any run on E2)
+## Part 4, so far: E2 and A39 (their pre-registration is the 11:30 log, commit `61db5af`, before any run on E2)
 
 The full record is in [`2026-11-03_1130_A_e2-a39-prereg.md`](2026-11-03_1130_A_e2-a39-prereg.md).
 - **Item 12:** PLAN's honest verdict (one paragraph, "The fix, honestly").
@@ -121,3 +121,190 @@ The full record is in [`2026-11-03_1130_A_e2-a39-prereg.md`](2026-11-03_1130_A_e
   - The implementation is under way.
 - **Item 15, B1R2:** written as conditional: it runs only if the Sol plan leaves about 60 GPU-hours by Nov 15 after
   A39 and B20.
+
+### §2a. START_HERE, checked; the handoff verified as Shrey would run it (items 7–8)
+
+**START_HERE.md** (866 lines; drafted from TRACK_C, FINDINGS and the four pre-registrations, then reviewed):
+- the setup, hand-back and brief sections were read line by line; the bundle line was corrected to Nov 3's contents;
+- the brief names no product; every number in its results section is copied from FINDINGS;
+- **its additions, kept and listed here for Ritik:**
+  - a smoke step before each run, with its own log, read by no rule;
+  - one-line meanings for C25's four spot-check labels, from the guide's rules;
+  - figures written to `docs/trackC/figures/` and placed by Ritik at merge;
+  - halt handling: an unreachable Voyager resumes; a canary failure or a changed model stops and goes to Ritik;
+  - the assistant asks Shrey before any command that calls Voyager.
+
+**TRACK_C.md fixed where it contradicted the decisions:**
+- a header says START_HERE holds;
+- the bundle is now Nov 3's;
+- FC entries, logs, summaries and figures go where START_HERE says.
+
+**RUNBOOK §0:** C19, C25, C20 and C26 now run without a further go from Ritik, since they are pre-registered and
+their choices were confirmed Nov 1.
+
+**The fresh clone** (`git clone` of this repo at `5f38123` as `trackC-main`, the commit pushed today):
+1. The allowlist, `path_check.py` and `docs/trackC/` are all present.
+2. **The bundle:** unpacked with `--exclude MANIFEST.json`. `--verify` printed "bundle matches its manifest"; 42 files
+   are in `results/trackC/`; C15's items hash begins `10dd00e3e8f5bc0e`.
+3. **Tests:** Track C's 8 files and the allowlist's give **54 passed**. The full suite in the clone is in §11.
+   - The clone reused the project's virtual environment; a fresh `pip install` wasn't repeated.
+4. **The hooks:**
+   - a commit of a session log under `docs/trackC/sessions/` **went through**;
+   - a commit touching `cot-disclosure/client.py` was **refused** (exit 1, naming the file);
+   - `--range` over the branch is clean.
+5. **F18, F24 and F34 reproduced with no calls:**
+   - F18: Olmo 32B with the private reasoning corrects 6 of 73;
+   - F24: −55 [−70, −38], "defers"; H23 +14 [−13, +37], "not supported";
+   - F34: +47 [+29, +65], "more corrections";
+   - each summary is byte-identical to the tracked copy in `results/summaries/trackC/`.
+6. **One thing to tell Shrey:** the run guard (`progress/guard.py`) uses macOS's `pmset` and `caffeinate`. If his
+   machine isn't a Mac, the guard won't start, and he should say so before C19.
+
+### §2b. The message for Ritik to send Shrey (item 9)
+
+> Hi Shrey, Track C is set up for you to run on your own from today.
+> - **Branch:** `trackC-main`. Start with `docs/trackC/START_HERE.md`; it has everything, and where TRACK_C.md differs,
+>   START_HERE holds.
+> - **Your paths** on that branch: `agents/`, `tests/test_trackC_*`, `docs/trackC/`, `docs/tracks/TRACK_C.md`,
+>   `results/trackC/` and `results/summaries/trackC/`. Install the two git hooks in START_HERE §4; the first refuses a
+>   commit outside those paths, the second keeps data off GitHub.
+> - **Data:** `trackC_20261103.tar.gz` (5 MB) is in our ASU storage folder. Unpack it into `cot-disclosure/` and run
+>   `--verify` (START_HERE §4, step 6).
+> - **First two tasks:** (1) setup, the tests and the three no-call reproductions of F18, F24 and F34, which should
+>   match exactly; (2) C19 by its pre-registration, due Nov 7.
+> - **To hand back:** push to `trackC-main` and tell me; I review and merge into main.
+> - **One check first:** the run guard uses macOS tools. If you're not on a Mac, tell me before C19.
+
+## Part 5, item 18: the sloppiness audit and its fixes (docs only, plus one constant)
+
+**How the audit was done:** a read-only audit of 18 docs against the facts of Nov 3 found 81 problems: 41 stale or
+wrong statements, 20 out-of-date TODO rows, 10 numbers that disagree and 10 long or duplicated passages. They were
+fixed as below. Line numbers are as of `5f38123`.
+
+**Stale or wrong statements:**
+- **PLAN:**
+  - the header is one line, and the history is in git;
+  - the Sol order;
+  - the open questions: B1, B17 and L4 moved to "known";
+  - the map, dated Nov 3, now has rows for A18 (done on Sol), B18 (started), B20, E2, A39 and B1R2;
+  - a new calendar to Nov 18;
+  - Gate 2: five models, and L3's kappa;
+  - Gate 3: L4 read; it waits on A18 and A39;
+  - slides 2, 5, 8 and 12;
+  - the report outline's B1 line;
+  - "confirmed same-day (B19)";
+  - the 458 lines of Oct 31 per-track design notes replaced by a pointer (they are word for word in
+    `archive/superseded/PLAN_2026-10-31.md`);
+  - the risks rewritten for Nov 3.
+  - 695 → 274 lines.
+- **FINDINGS:**
+  - the header is one line (a 27-line changelog before);
+  - story line 1: "all five Track B models";
+  - story line 4: the family reading, now confirmed over four families (F30), so the stale "tentative" line was
+    deleted;
+  - F3's status;
+  - F20's two "waiting (Gate 3)" lines;
+  - F26's "Step 9 isn't read" (it is F32);
+  - F27's generation line;
+  - the Oct 27 figure plan replaced by a pointer;
+  - "*waiting*" defined as in CLAIMS ("going or planned").
+- **CLAIMS:**
+  - the header;
+  - the obsolete `[TONIGHT]` line deleted;
+  - set A "tonight" → Oct 29, and Step 9 read;
+  - 1.6's behavior (F28);
+  - 1.8, B2: dropped.
+- **README:**
+  - line 5: A18 done on Sol, A39 and B1R2;
+  - the read-first table sends Shrey and Arsha to their START_HERE;
+  - the folder map has `trackB/`, `trackC/`, `paper/REPORT.md` and `paper/tables/`.
+- **TODO.md:**
+  - the header is one line;
+  - one status vocabulary, shared with TODO_B and TODO_C;
+  - current cells for A17, A18, A30, A36, L3, L4, L5, G2, G3, H1, H2 and D14 (each points to the logs for history);
+  - "Blocked by" cleared on A17, A18 and L4;
+  - L4's and L5's owner: "Ritik and Shrey";
+  - H2's item: "final by Nov 6";
+  - the old Notes section moved word for word to `archive/superseded/TODO_notes_2026-11-03.md`.
+- **TODO_B:**
+  - the closed-provider rows are renamed B21–B23 (they were B1–B3, which clashed with the attention scaling) and
+    marked dropped for cost (Part 3);
+  - B9, B17 and B18 are current, and B20 is added;
+  - done rows' owner: "Ritik", never a later owner for past work;
+  - B4's time column.
+- **TRACK_B:**
+  - the header;
+  - the bundle line, sized on Nov 6;
+  - B16/B19 due Nov 7;
+  - five models;
+  - §5 links TODO_B, dated Nov 3, with B18 and B20;
+  - B16 "confirmed same-day";
+  - the closed providers dropped.
+- **TRACK_A:** the header (steps 1–13 done; Gate 3 met Oct 31; A18 and A39 open), steps 6–7 and 11–13 done, the
+  fourth version's line, and Gate 3's date.
+- **TRACK_A_FIX:** B2 dropped; B1R and B1R2; LR_GATE approved Oct 29; B1's GPU hours as run (34.3 for 630).
+- **RUNBOOK:**
+  - the header;
+  - TODO pointers;
+  - §0's Sol order (Nov 3);
+  - the test count;
+  - §14's status;
+  - §15's labels (both sheets in; settle; the fresh batch);
+  - §17's pre-commit hook lines;
+  - §18's status;
+  - B17 and A38 marked done and dropped;
+  - §19's Track C status;
+  - §20: whose logs go where.
+- **RATER_GUIDE:**
+  - raters "Ritik and Shrey";
+  - L3 and L4 part 1 returned;
+  - rows for L3's settling and its fresh batch;
+  - the kappa rule's wording aligned with PLAN's "per channel" (written Oct 27). This changes no verdict: L3's final
+    answer fails overall too, and L4 passes everywhere.
+- **WAITING.md:** the preamble (slides 2, 4, 7, 8 made; Shrey's figures go under `docs/trackC/figures/`), slide 8's
+  owner, B1 read, slide 2 → `gate2.png`, slides 5 and 9.
+- **SOL_SETUP:** the per-user kit is on `trackC-main`; his accounts file stays uncommitted (it is outside the
+  allowlist); C13's run dates (Oct 29–30, 66954278).
+- **OUTLINE:**
+  - a dated header pointing to REPORT.md;
+  - contributions with 5 models and F36, F38 and L4;
+  - the setup's models;
+  - Gate 2 table;
+  - set A's Step 9 (F32);
+  - B2 removed;
+  - "missing" now A18 and A39;
+  - the mechanism in two models.
+- **The code map (`cot-disclosure/README.md`):** `path_check.py`, `slide_figures.py`, `trackb_final.py`,
+  `path_allowlist.txt`, E2's file, and the tracks' own folders.
+- **`tools/make_gantt.py`:** Track B's takeover date Nov 3 → Nov 6, the source of STATUS's "Arsha from Nov 3". The
+  Gantt tests' fixtures and expectations moved to Nov 6; 51 of 51 pass.
+
+**Numbers that disagreed:**
+
+| # | what | fix |
+|---|---|---|
+| N1 | the family reading | confirmed, F30 |
+| N2 | TRACK_B's bundle size | sized on Nov 6 |
+| N3 | trackB-main | kept at main until Nov 6 |
+| N4 | the test count | 745 on Nov 3 |
+| N5 | B1's GPU hours | as run |
+| N6 | Gate 3's date | Nov 20 |
+| N7 | the kappa wording | above |
+| N8 | B4's engine and hours | vLLM, 2:01 |
+| N9 | C13's dates | Oct 29–30 |
+| N10 | the training-target median | left: the two numbers are different snapshots, each labelled where it appears |
+
+**Not done, on purpose:**
+- **L7:** TODO_C's C19–C26 cells repeat TRACK_C §5. That is Shrey's file now; he may trim it.
+- **L8:** F28's "earlier readings, interim" (66 lines) stays. The supplement's DEVIATIONS check reads strings in F28,
+  and moving them risks unverifying rows.
+- **L9:** the repeated phrases ("§13", "underpowered") stay where each is a label the rule asks for. They were cut in
+  TODO's cells.
+- **The ID clash between E2 (the set) and PLAN's old batch-3 job "E2":** the job ID left with the removed PLAN
+  sections. `eval_job.py`'s docstring still says "jobs E1-E6", and the A39 change is editing that file now.
+
+**After the fixes:**
+- `check_links`: 0 broken.
+- The supplement: 34 ledger rows (A39 and B1R2 added), none unverified, no log outside it; DEVIATIONS 0 unverified;
+  CLAIMS the same 3 old mismatches.
+- `make_gantt --dry-run` parses everything.

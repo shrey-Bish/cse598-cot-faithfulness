@@ -80,7 +80,7 @@ PLAN = """# Plan
 | When | Track A | Track B | Track C | Labels, repo, handoff |
 |---|---|---|---|---|
 | Tue Oct 27 **(now)** | Steps 6–7 end | runs | — | rewrite |
-| Mon Nov 2–Tue Nov 3 | E1–E5 continue | **Handoff to Arsha, Nov 3** | **Handoff to Shrey, Nov 3** | docs final |
+| Mon Nov 2–Tue Nov 3 | E1–E5 continue | **Handoff to Arsha, Nov 6** | **Handoff to Shrey, Nov 3** | docs final |
 | Nov 4–9 | E1–E5 done; look inside the best version (L1) | Arsha | Shrey | **Gate 2, Nov 8** |
 | Nov 10–20 | Step 13 analysis; reruns; all evaluation done by Nov 20 at the latest | | | Phase 6 sample labeled |
 | Nov 23–29 | Hand the best version to B and C | Run it through B's conditions | Run it as the solver | Draft report |
@@ -279,13 +279,13 @@ def test_dates_and_inferred_marking(model, repo):
 
 def test_owner_normalization(model):
     t = by_id(model)
-    assert t["B1"]["owner"] == "Arsha (from Nov 3)" and t["B3"]["owner"] == "Arsha (from Nov 3)"
+    assert t["B1"]["owner"] == "Arsha (from Nov 6)" and t["B3"]["owner"] == "Arsha (from Nov 6)"
     assert t["B2"]["owner"] == "Ritik"                                  # past work stays Ritik's
     assert t["C2"]["owner"] == "Shrey (from Oct 30)" and t["C2"]["owner_todo"] == "Ritik; Shrey, from Nov 3"
     assert t["C1"]["owner"] == "Ritik" and t["L1"]["owner"] == "Ritik" and t["A2"]["owner"] == "Ritik"
     hand = {x["id"]: x for x in model["data"]["tasks"] if x["phase"] == "Handoffs"}
     assert hand["Handoff C"]["start"] == date(2026, 10, 30) and "PLAN says Nov 3" in hand["Handoff C"]["end_basis"]
-    assert hand["Handoff B"]["start"] == date(2026, 11, 3) and "PLAN says" not in hand["Handoff B"]["end_basis"]
+    assert hand["Handoff B"]["start"] == date(2026, 11, 6) and "PLAN says" not in hand["Handoff B"]["end_basis"]
 
 
 def test_a_task_named_only_in_a_session_log_is_picked_up(model):
@@ -412,7 +412,7 @@ def test_todo_sheet_open_tasks_and_what_each_milestone_needs(model):
     g2 = rows["Gate 2"]                              # TODO's G2 (B3, L1), what B3 waits on, the handoff before it
     assert g2["Blocked by / depends on"] == "B3, L1, B2, H1" and g2["Kind"] == "milestone"
     assert "B2 Voyager runs, 3 per question (done)" in g2["Next action"]
-    assert "Track B to Arsha, Nov 3 (inferred)" in g2["Next action"]
+    assert "Track B to Arsha, Nov 6 (inferred)" in g2["Next action"]
     assert rows["Gate 3"]["Blocked by / depends on"] == "A3, A2, A5"            # A5: due by the gate (inferred)
     assert "A5 Look-inside rerun on the best version (planned) (inferred)" in rows["Gate 3"]["Next action"]
     assert rows["Handoff B"]["Next action"] == ("Needs: H1 docs/handoff/TRACK_B.md, for Arsha (in progress); open "
@@ -506,9 +506,9 @@ def test_status_page(model, repo):
                          "### Done since Oct 27 (1)"]
     assert heads.count("### Next") == heads.count("### Blocked on") == 5
     assert {"## Per owner", "### Ritik (Track A, the labels, the repo and the report)",
-            "### Arsha (Track B from Nov 3)", "### Shrey (Track C from Oct 30)",
+            "### Arsha (Track B from Nov 6)", "### Shrey (Track C from Oct 30)",
             "## Milestones and what each needs"} <= set(heads)
-    assert "## Track B: test widely (Arsha from Nov 3; the work before, Ritik)" in heads
+    assert "## Track B: test widely (Arsha from Nov 6; the work before, Ritik)" in heads
     assert "- Oct 28: **A4** Copy the follow-up file: F2: the readout replicates, +0.90 [+0.85, +0.96]" in md
     assert "1. **A2** (Ritik; due Nov 9*): Finish: Evaluate the trained versions on Sol." in md
     assert "- **B1** Closed-provider keys: keys" in md and "- **L1** Label the queue, two raters: Ritik is asking" in md

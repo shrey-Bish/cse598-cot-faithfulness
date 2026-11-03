@@ -1,11 +1,9 @@
 # Candidate claims: evidence, status, objection, what settles it
 
-Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md) (Oct 29; updated 23:15 with C11–C14, Oct
-30 01:10 with C15, 04:00 with B15, 09:30 with set A, B1's alpha, Gate 3 interim, Qwen3-8B and C13; Oct 31 16:40 with
-Gate 3 final; Nov 1 with B16, claim 1.1; Nov 3 with B17 and B1, claims 1.1 and 1.7; then L3's and L4 part 1's hand labels, claims 1.2 and 1.5). Status words as in
-FINDINGS: *confirmed* (measured as stated, the interval excludes no effect), *tentative* (direction
-there, interval includes 0 or a confound remains), *waiting* (the run is going or planned).
-`[TONIGHT: ...]` marks a number tonight's runs fill in.
+Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-03 (B17, B1, the hand
+labels; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
+the interval excludes no effect), *tentative* (direction there, interval includes 0 or a confound remains), *waiting*
+(the run is going or planned), *not supported*, *dropped*.
 
 ## Thread 1: where the hint is read, and a repair that acts there
 
@@ -57,9 +55,9 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
 - **Status:** *confirmed* as forced-answer readings, but concentrated (top 3 questions hold 23 of
   43).
 - **Strongest objection:** forced answers off-distribution; few questions.
-- **Settles it:** more questions with late takeovers. Set A (tonight) adds the 34 validation
+- **Settles it:** more questions with late takeovers. Set A (Oct 29) adds the 34 validation
   questions: set A (Oct 29, Voyager) followed 30 of 100 pasted and 26 of 101 inserted runs, with 39 late takeovers
-  on 16 sure questions (above the minimum of 5). Step 10 on them is done (F26); Step 9 is back, unread.
+  on 16 sure questions (above the minimum of 5). Step 10 on them is done (F26); Step 9 is read (F32: the heads replicate).
 
 **1.4 Three full-attention layers (15, 19, 23) read the hint's letter straight from the prompt.**
 - **Evidence:**
@@ -117,7 +115,8 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
   - tags alone −9% on the taught tokens without the opener, less than the −12% on the rest;
   - lora_tags − lora +0.0009 [+0.0004, +0.0014] nats;
   - injected − pasted +0.0003 [−0.0008, +0.0015].
-- **Status:** *confirmed* in loss. Behavior *waiting* (Gate 3).
+- **Status:** *confirmed* in loss. Behavior (F28): tags pass Gate 3 (−6 [−10, −2]) but help no more on the inserted
+  turn than the pasted block (−2 [−13, +9]): not tool-specific.
 - **Strongest objection:** loss can't show whether tags change how tool text is treated.
 - **Settles it:** Gate 3's behavior test per channel.
 
@@ -144,7 +143,7 @@ without making the model ignore correct tools.**
   - deployable (tool-role span) and oracle (pasted span) reported apart.
 
 **1.8 (B2) A learned per-head provenance bias in those layers beats input-embedding tags.**
-- **Status:** *waiting* (code tonight, training after Gate 3's schedule allows).
+- **Status:** *dropped* (scope, Oct 31; A31): code and CPU tests exist, never trained.
 - **Settles it:** same data and settings as lora_attn3, alone and together; loss by part (S7's
   method), then behavior.
 

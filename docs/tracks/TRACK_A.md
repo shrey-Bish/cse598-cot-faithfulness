@@ -3,10 +3,9 @@
 *Moved here from `cot-disclosure/finetune/README.md` on Oct 30 (archive/MOVES.md). File names below are in
 `cot-disclosure/finetune/` unless a path says otherwise.*
 
-Owner: Ritik. Last updated: 2026-10-27 12:30 MST. Steps 1–5 and 8–10 are done; Steps 6–7
-(training data) finish Oct 27; Steps 11–13 (train, generate, evaluate) run on ASU Sol as soon as
-their code is ready: the first jobs from Oct 29, evaluation from Oct 30, all done by Nov 20, Gate 3
-on Nov 22. Findings: `docs/FINDINGS.md` (F1–F14). Commands for
+Owner: Ritik. Last updated: 2026-11-03. Steps 1–13 are done; Gate 3 was met Oct 31 (F28); open: A18 (inside the
+trained model; its Sol jobs done, not read) and A39 (the fix round on E2, 120 fresh questions). Findings:
+`docs/FINDINGS.md` (F1–F14, F20, F26–F28, F32, F36, F38). Commands for
 every step: `docs/RUNBOOK.md`. The Sol kit: [`gpu/README.md`](../../cot-disclosure/finetune/gpu/README.md).
 
 ## The pipeline
@@ -19,13 +18,13 @@ every step: `docs/RUNBOOK.md`. The Sol kit: [`gpu/README.md`](../../cot-disclosu
 | 3 | Takeover curves by early answering: 219 runs, 137,143 probes | Voyager | done Oct 24 (F4–F6) |
 | 4 | Deleting the reasoning's hint mentions: 19 cases, 209 calls | Voyager | done Oct 24 (F7) |
 | 5 | Dataset rules, held-out set, length audit | Mac | done Oct 24 |
-| 6–7 | No-hint runs on a 1,600-question pool; prefill training targets | Voyager | running, finish Oct 27 |
+| 6–7 | No-hint runs on a 1,600-question pool; prefill training targets | Voyager | done Oct 27 |
 | 8 | Checkpoint check: the Sol weights against Voyager's echoes | Sol | done Oct 26 (F9) |
 | 9 | Attention to the hint, from the answer and from each reasoning sentence | Sol | done Oct 26–27 (F10, F12, F14) |
 | 10 | Activation patching on Step 4's cases | Sol | done Oct 26 (F11, F13) |
-| 11 | Train LoRA only, tags only, LoRA + tags | Sol | code not written |
-| 12 | Generation with tags (own loop; vLLM with prompt embeddings) | Sol | vLLM folding tested on CPU; rest not written |
-| 13 | Evaluate base, prompt-only and the trained versions; the look-inside rerun | Sol | code not written |
+| 11 | Train LoRA only, tags only, LoRA + tags (and LoRA on 15/19/23) | Sol | done Oct 28 (F20) |
+| 12 | Generation with tags (own loop; vLLM with prompt embeddings) | Sol | done Oct 29–31 (batch 3) |
+| 13 | Evaluate base, prompt-only and the trained versions; the look-inside rerun | Sol | done Oct 31 (Gate 3, F28); the look-inside rerun is A18 (Nov 3, not read) |
 
 Files that store full replies are gzip (`.jsonl.gz`, read and written by `progress/common.load` /
 `append`), with a small `_runs.jsonl` summary beside the big ones. All of `results/trackA/` and
@@ -99,7 +98,7 @@ hinted ones. Output: `finetune/data/train_examples.jsonl.gz`, `validation_exampl
 - **Base:** `allenai/Olmo-3-7B-Think` at d97e442 (the Sol weights match by sha256, F9).
 - **Versions (same data):** LoRA only; source tags only, base frozen; LoRA + tags. This separates
   "the tags help" from "fine-tuning on this data helps". A fourth, scheduled last: LoRA only on
-  the attention of layers 15, 19 and 23 (dropped if the main evaluations aren't done by Nov 9).
+  the attention of layers 15, 19 and 23 (evaluated with the others, Oct 31; F28).
 - **Wrapper:** `peft` LoRA on `q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj`,
   then `SourceTaggedLM`; the trainable parameters are the LoRA weights plus the tag table.
 - **Settings (decided Oct 27, one setting, no grid):** rank 16, alpha 32, dropout 0.05, LoRA
@@ -140,7 +139,7 @@ generations per system). Systems: base, prompt-only, and the trained versions, a
   base model) and Step 9's heads L19H31, L23H17, L15H31: does attention drop, or stay while the
   answer stops following?
 
-**Success (Gate 3, Nov 22):** on held-out questions with held-out wordings, the trained model
+**Success (Gate 3; the final statement Nov 20; met Oct 31, F28):** on held-out questions with held-out wordings, the trained model
 follows fewer wrong hints than the base model (the bootstrap difference excludes 0), no-hint
 accuracy stays within 5 points, and the hiding check doesn't rise. Otherwise a negative result with
 the analysis.

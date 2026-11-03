@@ -1,11 +1,11 @@
 # Slide figures waiting on a result: the specs
 
-Written Nov 1 (Ritik's overnight list, item 11) for the final presentation map in [`docs/PLAN.md`](../../PLAN.md).
-Each slide below has no chart yet because its result isn't in. Nothing here is drawn from fake or partial numbers.
-When the result arrives, the figure is added to `cot-disclosure/tools/slide_figures.py` in the same style as
-`bare_after_call` (16:9, white, colors by role, X of Y on the bars, a CSV of every plotted number). It reads the
-numbers-only summary under `cot-disclosure/results/summaries/`, which needs an entry in `tools/export_summaries.py`
-first; none of these has one yet.
+Written Nov 1 for the final presentation map in [`docs/PLAN.md`](../../PLAN.md); updated Nov 3 (slides 4, 7, 8 and 2
+are made; slide 12 is drawn by Shrey). Nothing here is drawn from fake or partial numbers. Ritik's slides are added to
+`cot-disclosure/tools/slide_figures.py` in the style of `bare_after_call` (16:9, white, colors by role, X of Y on the
+bars, a CSV of every plotted number), from a numbers-only summary under `cot-disclosure/results/summaries/`. **Shrey's
+(slides 11–12) are drawn by a script under `cot-disclosure/agents/` into `docs/trackC/figures/` (shared code is read-only
+on `trackC-main`); Ritik places them at merge.**
 
 Colors by role: final answer #E2622A, private reasoning #2F6FD6, the cue #C02F79, baseline or comparison #8893A6,
 correct #14826A, damage (following a wrong letter) #9C6C06. Intervals: 95% bootstraps clustered by question
@@ -37,7 +37,7 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
   1. following on tool_real;
   2. the bare final answer after a call.
   - Medium minus low and high minus medium go in the CSV, with no decision.
-- **Owner and date:** Arsha; due Nov 12.
+- **Owner and date:** made Nov 3 by Ritik (F37); Arsha's from Nov 6.
 
 ## Slide 10: Inside the fixed model (A18, with B1)
 
@@ -64,7 +64,7 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
     readout layers", "before them" or "spread over 0–23".
   - "Acts after the readout" if the reverse holds; else "either half suffices" or "unclear".
   - B1's rule (Oct 30 17:15): "works", "ignores tools", "costs accuracy", "no effect" or "worse".
-- **Owner and date:** Ritik; A18 due Nov 10, B1's verdict Nov 4.
+- **Owner and date:** Ritik; A18 due Nov 10; B1 read Nov 3 (F38).
 
 ## Slide 12: Across agents, and what holds (C25; C20, C26)
 
@@ -89,11 +89,11 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 
 ## Additions to figures that exist (no new file)
 
-- **Slide 2** (`docs/paper/supplement/figures/trackB_following.png`): the final version, Nov 18, adds B16's
-  authority arm and B17's efforts. Owner: Arsha.
+- **Slide 2:** made Nov 3 as `docs/paper/figures/gate2.png` (B18's rows, with B17's efforts); B20 if read by Nov 17.
+  Owner: Arsha, from Nov 6.
 - **Slide 5** (`docs/paper/supplement/figures/cue_experiments.png`): L3's kappa in the caption once the labels are
-  in. Due Nov 6. Owners: Ritik and Shrey.
+  settled (kappa under 0.6 on Nov 3). Owners: Ritik and Shrey.
 - **Slide 9** (`cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png`): false disclosure from
-  L4 part 1's hand labels, due Nov 14. The final statement is Nov 20. Owner: Ritik.
+  L4 part 1's hand labels (read Nov 3, F28). The final statement is Nov 20. Owner: Ritik.
 - **Slide 11** (`docs/paper/supplement/figures/trackC_reviewers.png`): C19's answer-key-versus-own-working bars,
   due Nov 7. Owner: Shrey.

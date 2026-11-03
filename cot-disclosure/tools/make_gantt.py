@@ -52,7 +52,7 @@ a handoff that falls before the gate on a track it needs, open items due by the 
 named for the gate that still have a rerun to do (inferred); for a report or presentation window, the other clauses
 of PLAN's timeline row and PLAN's deliverables, each with its track's open items (inferred).
 
-Owners (the rule): past work is Ritik's; an open Track B item is Arsha's from Nov 3; an open Track C item is
+Owners (the rule): past work is Ritik's; an open Track B item is Arsha's from Nov 6 (moved from Nov 3); an open Track C item is
 Shrey's from Oct 30; Track A, the labels, the repo and the report are Ritik's. TODO's own owner text is kept in a
 column beside it.
 """
@@ -80,7 +80,7 @@ TRACK_NAME = {"Setup": "Setup and the progress round", "A": "Track A: explain an
               "C": "Track C: multi-agent pipeline", "Labels": "Labels", "Repo": "Repo, docs and handoff",
               "Milestones": "Milestones: gates, handoffs, presentations, report", "ALL": "All tracks"}
 # Who owns what (the rule): past work stays Ritik's; open items move to the teammate who takes the track over
-TAKEOVER = {"B": ("Arsha", date(2026, 11, 3)), "C": ("Shrey", date(2026, 10, 30))}
+TAKEOVER = {"B": ("Arsha", date(2026, 11, 6)), "C": ("Shrey", date(2026, 10, 30))}   # B: Nov 6 (moved from Nov 3 on Nov 3)
 OWNER = {"A": "Ritik", "Labels": "Ritik", "Repo": "Ritik", "Setup": "Ritik", "Milestones": "everyone"}
 MON = {m: i for i, m in enumerate(("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov",
                                    "Dec"), 1)}
@@ -518,7 +518,7 @@ def hours(time, needs=""):
 
 
 def owner(track, status):
-    """The owner by the rule: past work Ritik's; open Track B Arsha's from Nov 3, open Track C Shrey's from Oct 30."""
+    """The owner by the rule: past work Ritik's; open Track B Arsha's from Nov 6, open Track C Shrey's from Oct 30."""
     if track in TAKEOVER and status != "done":
         who, when = TAKEOVER[track]
         return f"{who} (from {when:%b} {when.day})"

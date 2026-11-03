@@ -9,7 +9,8 @@ Track A, Oct 29. By: Ritik. Code: `finetune/provenance.py` (the mechanism), `fin
 
 **Result (Nov 3; FINDINGS F38):** B1's generation on the held-out 30, read by its rule: the deployable span (alpha 0.25)
 "ignores tools" (following on the inserted tool turn −17 [−30, −3], correct-hint acceptance −7 points, beyond the
-5-point limit); the oracle span (alpha 0.5) "no effect" (−9 [−19, +1]). A38 isn't run. B2 is not started.
+5-point limit); the oracle span (alpha 0.5) "no effect" (−9 [−19, +1]). A38 isn't run. B1R (a replication) wasn't run: underpowered by its check (F38); B1R2 on E2 is conditional (TODO). B2 is
+dropped (scope, Oct 31; never trained).
 
 ## Why here
 
@@ -124,7 +125,7 @@ A fix that just makes the model ignore tools isn't a fix, so both sides are alwa
 - **The versions:** `gate3` (gates only, the base model frozen) and `lora_attn3_gate` (lora_attn3 and
   the gates). They use the same data and settings.
 - **One new setting:** the gates' learning rate, `LR_GATE` = 1e-2. A scalar moves at most about lr per
-  Adam step, so 2e-4 would leave it near 0 after 260 steps. This is a decision for Ritik.
+  Adam step, so 2e-4 would leave it near 0 after 260 steps. Approved by Ritik, Oct 29 22:20 (B2 later dropped).
 - **Checkpoints:** the epoch checkpoints hold the gates. `final/gate.pt` and `final/gate.json` hold
   the learned bias per layer and head.
 - **Validation loss:** `val_loss.py` takes the gate versions and marks the tool keys.
@@ -144,7 +145,7 @@ The estimates are from the dry runs:
 # 1. forced on set A (after set A's cases and runs are on Sol; ~15-30 min)
 cot-disclosure/finetune/gpu/sol/submit.sh provenance_forced --estimate 0.5 -- \
     --cases-from <set A cases.jsonl> --runs-from <set A runs.jsonl.gz> --items-from <set A items.jsonl>
-# 2. generation: alpha = 1 and the chosen alpha per span; 630 runs, 11-23 GPU h, in 4 parts of 2.8-5.6 h
+# 2. generation: alpha = 1 and the chosen alpha per span; 630 runs; as run (the -v2 engine): 34.3 GPU h in 10 parts
 for k in 1 2 3 4; do
   cot-disclosure/finetune/gpu/sol/submit.sh provenance_gen --estimate 4.5 --dependency=afterok:<forced job> -- \
       --alpha-from /scratch/ragarw68/trackA/provenance_forced/provenance_forced.json --part $k/4
@@ -162,7 +163,7 @@ rsync -av "ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68/trackA/provenance_gen
 ```
 
 **What it costs:**
-- One trade-off point (one alpha, one span, 210 runs) is 3.8–7.5 GPU hours.
+- One trade-off point (one alpha, one span, 210 runs) took about 11.4 GPU hours as run (34.3 for 630, F38).
 - The full sweep, 4 alphas × 2 spans plus alpha = 1, would be 34–68 GPU hours. So the curve across
   alpha comes from `forced` on set A (cheap), and generation runs at alpha = 1 and the chosen alphas.
 - Measure the rate on the first part before submitting the rest.

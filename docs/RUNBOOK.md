@@ -1,10 +1,9 @@
 # Runbook: how to run every step
 
-Last updated: 2026-11-01 (the Sol order, §0; A18 tool-only and B17 at temperature 1.0 with its smoke's exit
-code, §14 and §18; B16 read, §18). Before: 2026-10-31 22:50 MST (B16; the 20-day program's experiments: §14, §18, §19). One page per step: what it does, where it runs, the commands in order,
+Last updated: 2026-11-03 (the Sol order, §0; labels, §15; the pre-commit hook, §17; history: `git log -- docs/RUNBOOK.md`). One page per step: what it does, where it runs, the commands in order,
 inputs and outputs, how long it takes, and what to check. Written so anyone in the group can run a
 step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md); open work in
-[`TODO.md`](status/TODO.md).
+[`TODO.md`](status/TODO.md), [`TODO_B.md`](trackB/TODO_B.md) and [`TODO_C.md`](trackC/TODO_C.md).
 
 **Conventions.** Mac commands run from `cot-disclosure/` with the repo's virtual environment, written
 `../.venv/bin/python`. Sol commands run from the clone's root, `/scratch/ragarw68/cse598-cot-faithfulness`.
@@ -14,10 +13,10 @@ step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md
 
 ## 0. Read this first
 
-**The Sol order to the results freeze (Ritik, Nov 1).** One queue, in this order: (1) B1's bench (122956,
-queued), then B1's rerun from its plan (§14, A30); (2) Qwen3-8B's Steps 3 and 10 (123022, 123025, queued; A37); (3)
-B17 (§18: the download, the smoke, then the runs chained with `afterok`); (4) A18 (§14, tool-hint cases first);
-(5) A38 only if B1 "works" (§14). Nothing new after Nov 18.
+**The Sol order to the results freeze (Ritik, Nov 3).** B1, A37 and B17 are done; A38 is dropped. One queue, in this
+order: (1) A18's copy-back and reading (its jobs are done); (2) the bench of job shapes (TODO R3); (3) A39 on E2 (runs by
+Nov 15; pre-registration 2026-11-03 11:30); (4) B20 (pre-registration 2026-11-03 13:00); (5) B1R2 only if about 60
+GPU-hours remain by Nov 15. Nothing new after Nov 18. The lines are in the Nov 3 session log (11:05).
 
 **Rules that apply to every step.**
 - **Dry run first.** Every script that calls a model has `--dry-run` (calls, time, nothing sent).
@@ -44,7 +43,7 @@ B17 (§18: the download, the smoke, then the runs chained with `afterok`); (4) A
 cd ~/Documents/Projects/ODL/cse598-cot-faithfulness
 python3 -m venv .venv && .venv/bin/pip install -r cot-disclosure/requirements.txt
 cp cot-disclosure/.env.example cot-disclosure/.env        # add RC_LLM_API_KEY (Voyager)
-cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no network, ~2 min
+cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (745 on Nov 3), no network, ~6 min
 ```
 **Check:** every test passes. Then install the pre-push check (page 17).
 
@@ -280,7 +279,8 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   through a local vLLM server (`finetune/generate.py`; LoRA merged in, the model tag folded into the
   embeddings, tagged prompt embeddings). Step 13 evaluates 930 runs per system (`finetune/eval.py`)
   and reports the measures. The job order, hours and limits: PLAN (Track A, the Gate 3 job plan).
-- **Where:** Sol, each job on Ritik's "go". **Status:** code done with CPU tests; nothing run on Sol.
+- **Where:** Sol, each job on Ritik's "go". **Status:** batch 2 trained Oct 28; batch 3 evaluated, Gate 3 final Oct 31
+  (F28); A18 ran Nov 2–3 (not read); A39 on E2 pre-registered Nov 3.
 - **Commands** (first the inputs from the Mac, then on Sol from the clone's root):
   ```bash
   # Mac, repo root: the inputs (training examples included) to Sol
@@ -350,7 +350,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
   ```
   The cases without any calls: `../.venv/bin/python finetune/look/a18.py plan` (Mac). The reading:
   `finetune/look/a18.py readout`.
-- **A38, the note + B1 (stretch)** (Oct 31; pre-registered in the 2026-10-31 22:45 log): only after B1's verdict reads
+- **Dropped Nov 3 (F38: B1 doesn't read "works").** **A38, the note + B1 (stretch)** (Oct 31; pre-registered in the 2026-10-31 22:45 log): only after B1's verdict reads
   "works". `plan --note` refuses otherwise and prints no lines.
   ```bash
   "$TRACKA_PY" cot-disclosure/finetune/gpu/provenance_job.py plan --out "$TRACKA_OUT" \
@@ -365,8 +365,9 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # 283 tests, no netwo
 - **Where:** anywhere, no calls. **Status:** the kit is built (Oct 27); the rater packets for L3 and L4 part 1 are
   built (Oct 31; `tools/rater_packets.py`), their examples and practice answers reviewed and set by Ritik (Nov 1).
   Ritik's sheets (rater 1) are in, format checked (Nov 1): `results/labels/L3_RA.csv` and
-  `results/labels/gate3/L4/L4_part1_RA.csv`. Shrey's packet goes out from Ritik; kappa only once both sheets of a
-  batch are in (the packet's README gives the two commands).
+  `results/labels/gate3/L4/L4_part1_RA.csv`. **Both sheets in Nov 3:** L3 kappa under 0.6 in four of six cells
+  (settle the 25 disagreements on `results/labels/L3_settle.csv`, tighten the guide, label the fresh batch in
+  `results/labels/fresh/`, 72 rows); L4 part 1 kappa 0.930 (read, F28).
 - **Commands** (from `cot-disclosure/`):
   ```bash
   ../.venv/bin/python tools/label_kit.py build     # done Oct 27: results/labels/ (gitignored: model text)
@@ -421,14 +422,22 @@ python3 cot-disclosure/tools/prepush_check.py --rev HEAD     # what a push would
 It refuses a push that adds anything under a produced-data folder, any file with "gpqa" in its name
 (code and docs excepted), or a file over 50 MB.
 
+**The path allowlist (Track C's branch, from Nov 3).** On a branch listed in `cot-disclosure/configs/path_allowlist.txt`,
+a commit may touch only that branch's paths. Install the check as the pre-commit hook, once per clone:
+```bash
+printf '#!/bin/sh\nexec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/path_check.py" "$@"\n' > .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+python3 cot-disclosure/tools/path_check.py --range origin/main..origin/trackC-main --branch trackC-main   # review before a merge
+```
+
 ## 18. Track B: test widely
 
 - **What:** hint following and admission across models, thinking on/off and channels
   (`configs/trackB.yaml`): 54 questions (24 puzzles, 30 MMLU-Pro) × 5 conditions × 3 runs per model.
   Olmo 3 7B Think runs in the pinned Think format with the declared `tool_injected` channel, as in
   Track A. **Where:** Mac → Voyager; Qwen3-8B on Sol (a GPU job; Ollama never on the Mac, Oct 28);
-  closed providers only with keys and Ritik's "go". **Status:** smoke tests passed Oct 27 (15 of 15);
-  the Voyager models running one after another under the power guard (Oct 28).
+  closed providers dropped for cost (Nov 3). **Status:** done Oct 28 (F15–F17); Qwen3-8B Oct 30 (F29); B16 Nov 1
+  (F35); B17 Nov 3 (F37); B20 (open models on Sol) pre-registered Nov 3.
 - **Before a model's first batch** (from `cot-disclosure/`): its served template and an identity
   canary, then a smoke test and the dry run in a session log.
   ```bash
@@ -481,7 +490,7 @@ It refuses a push that adds anything under a produced-data folder, any file with
   ../.venv/bin/python progress/run_b16.py --report                  # once all 1,458 are done -> b16_report.json
   ```
 
-- **B17, the thinking dose** (Oct 31; pre-registered in the 2026-10-31 22:37 log): gpt-oss-20b at reasoning effort
+- **B17, the thinking dose** (Oct 31; pre-registered in the 2026-10-31 22:37 log; **done Nov 3, F37; §13**): gpt-oss-20b at reasoning effort
   low, medium and high on our vLLM server in a Sol job; 2,430 runs, ~4–6 GPU h. Records stay on Sol, and the
   numbers-only flags come back. **At temperature 1.0** (gpt-oss's recommended setting; Track B's models stay at their
   0.6; amended Nov 1, before anything ran). **The smoke job exits 0 only if every check passes** (4: the template; 5:
@@ -510,7 +519,8 @@ It refuses a push that adds anything under a produced-data folder, any file with
   reviewer model × variant, bad and good lookups apart. **Where:** Mac → Voyager.
   **Status:** code done Oct 27 (append-only, resumable); C1 (5 items) done Oct 27; the 32B
   reviewer's smoke done Oct 28 00:20; C4 done Oct 28 17:51 (318 cases); C9 (the reviewers again, with
-  one sentence added) done Oct 28 22:33 (954 calls; FINDINGS F19).
+  one sentence added) done Oct 28 22:33 (954 calls; FINDINGS F19); C4–C18 done (F18–F34); C19, C20, C25, C26 are
+  Shrey's (`docs/trackC/START_HERE.md`).
 - **Commands** (from `cot-disclosure/`):
   ```bash
   ../.venv/bin/python agents/run_team.py --replay                       # saved data, no calls
@@ -555,7 +565,8 @@ It refuses a push that adds anything under a produced-data folder, any file with
 ## 20. Session logs
 
 - **What:** after every run (a Voyager batch, a Sol job, an analysis that changes a reported number)
-  and at every stop, Ritik (until Nov 3; then each track's owner) writes
+  and at every stop, Ritik writes (Track A and shared work; Track C's logs go in `docs/trackC/sessions/`, Shrey's;
+  Track B's in `docs/trackB/sessions/`, Arsha's from Nov 6)
   `archive/sessions/YYYY-MM-DD/YYYY-MM-DD_HHMM_<A|B|C|ALL>_<name>.md` (Arizona
   time), copies it to `archive/sessions/LATEST.md` and adds a line to `archive/sessions/INDEX.md`; and at
   the end of each day `archive/sessions/YYYY-MM-DD/DAILY_YYYY-MM-DD.md` (per track: what ran, what's in flight, key

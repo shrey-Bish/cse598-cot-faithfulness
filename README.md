@@ -38,16 +38,17 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    keyword false-disclosure candidates are rarely real: most say the hint shaped the answer (L4 part 1, F28).
    Inference-time attention scaling (B1, F38) makes a real cut in following on the inserted tool turn that misses
    its pre-registered acceptance limit ("ignores tools"), underpowered at 30 questions; a replication that could
-   settle it needs more than the budget, so neither it nor A38 is run. The trained model's mechanism (A18) is under
-   way.
+   settle it needs more than the budget, so neither it nor A38 is run. A18's Sol jobs (inside the trained model) have
+   finished and its reading is next; A39 tests a provenance wrapper and combinations on E2, 120 fresh questions (B1's
+   replication there, B1R2, runs only if Sol has room by Nov 15).
 
 ## Read this first
 
 | You are | Read first | Then |
 |---|---|---|
 | Ritik (Track A, labels, the report) | [`docs/status/STATUS.md`](docs/status/STATUS.md), [`docs/status/TODO.md`](docs/status/TODO.md) | the newest daily in [`archive/sessions/`](archive/sessions/INDEX.md); [`docs/RUNBOOK.md`](docs/RUNBOOK.md) |
-| Shrey (Track C, from Oct 30) | [`docs/tracks/TRACK_C.md`](docs/tracks/TRACK_C.md) | [`docs/tracks/SOL_SETUP.md`](docs/tracks/SOL_SETUP.md), [`docs/labeling/RATER_GUIDE.md`](docs/labeling/RATER_GUIDE.md), the code map [`cot-disclosure/README.md`](cot-disclosure/README.md) |
-| Arsha (Track B, from Nov 6) | [`docs/tracks/TRACK_B.md`](docs/tracks/TRACK_B.md) | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) §18, the code map |
+| Shrey (Track C, from Oct 30) | [`docs/trackC/START_HERE.md`](docs/trackC/START_HERE.md) | [`docs/tracks/SOL_SETUP.md`](docs/tracks/SOL_SETUP.md), [`docs/labeling/RATER_GUIDE.md`](docs/labeling/RATER_GUIDE.md), the code map [`cot-disclosure/README.md`](cot-disclosure/README.md) |
+| Arsha (Track B, from Nov 6) | [`docs/trackB/START_HERE.md`](docs/trackB/START_HERE.md), then [`docs/tracks/TRACK_B.md`](docs/tracks/TRACK_B.md) | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) §18, the code map |
 | A grader | this page, then FINDINGS' "story so far" | [`docs/PLAN.md`](docs/PLAN.md) (the calendar, the presentation map), [`docs/status/STATUS.md`](docs/status/STATUS.md) |
 | A paper reviewer | [`docs/paper/CLAIMS.md`](docs/paper/CLAIMS.md) | [`docs/paper/supplement/EVIDENCE.md`](docs/paper/supplement/EVIDENCE.md) and [`PREREGISTRATIONS.md`](docs/paper/supplement/PREREGISTRATIONS.md) |
 
@@ -64,10 +65,13 @@ docs/
                        TRACK_B.md (Arsha), TRACK_C.md (Shrey), SOL_SETUP.md (Sol for a second user)
   labeling/            LABELING_GUIDE.md and RATER_GUIDE.md, and two files code reads: LABEL_QUEUE.csv and
                        RESULTS_SUMMARY.json (the progress round's numbers)
-  paper/               CLAIMS, OUTLINE, REVIEWER_QUESTIONS, RELATED_WORK (bullets, not prose); figures/
-                       (tools/paper_figures.py) and supplement/ (tools/make_supplement.py), both generated
-  status/              TODO.md (edited by hand), and STATUS.md, GANTT.xlsx, gantt.png, gantt.pdf, generated
-                       from the repo by tools/make_gantt.py after every working session
+  paper/               CLAIMS, OUTLINE, REPORT (the report's skeleton), REVIEWER_QUESTIONS, RELATED_WORK (bullets,
+                       not prose); figures/ (tools/slide_figures.py), tables/ (tools/trackb_final.py) and supplement/
+                       (tools/make_supplement.py), all generated
+  status/              TODO.md (Track A, labels, repo; edited by hand), and STATUS.md, GANTT.xlsx, gantt.png,
+                       gantt.pdf, generated from the repo by tools/make_gantt.py after every working session
+  trackB/, trackC/     each track owner's own records: START_HERE, TODO_B / TODO_C (the Gantt reads them),
+                       FINDINGS_B / FINDINGS_C (new findings, merged into FINDINGS at the end), sessions/
 cot-disclosure/      the code, configs and tests; its README.md is the code map (folder -> track -> entry points)
   results/summaries/   the tracked, numbers-only results (produced data stays in gitignored results/trackA|B|C)
 archive/             history, kept but out of the way

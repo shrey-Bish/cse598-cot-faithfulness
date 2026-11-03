@@ -46,9 +46,10 @@ cd /scratch/$USER/cse598-cot-faithfulness
 grep -q TRACKA_SCRATCH cot-disclosure/finetune/gpu/sol/env.sh && echo "per-user kit: ok"
 ```
 
-No "ok": the branch doesn't have the per-user kit yet (Oct 30); it needs merging into `trackC-main`, then `git pull`.
+No "ok": `git pull` on `trackC-main` (it has the per-user kit since Nov 2), then tell Ritik if it's still missing.
 
-**3. Your accounts file** (in the clone; it holds no secret and can be committed on `trackC-main`):
+**3. Your accounts file** (in the clone; it holds no secret, but keep it uncommitted: it is outside Track C's path
+allowlist on `trackC-main`, so ask Ritik to add it on `main` if it should be tracked):
 
 ```bash
 mkdir -p cot-disclosure/finetune/gpu/sol/accounts.d
@@ -102,7 +103,7 @@ rsync -av results/trackB/steered_cases.jsonl \
 **The job** (Sol, from the clone; one A100, both reviewers one after the other, resumable):
 
 ```bash
-cot-disclosure/finetune/gpu/sol/submit.sh c13 --estimate 1.5      # limit 2:00 (Oct 29's run took 48 min)
+cot-disclosure/finetune/gpu/sol/submit.sh c13 --estimate 1.5      # limit 2:00 (the Oct 29–30 run, 66954278, took 48 min)
 squeue -u $USER
 ```
 
@@ -110,7 +111,7 @@ Its logs are written in the clone, `results/trackC/team_c13_granite.jsonl` and `
 servers' in `/scratch/$USER/trackA/c13/vllm_<model>.log`. A job that runs out of time resumes in the next one:
 submit the same line again.
 
-**Copy-back** (Mac, from `cot-disclosure/`). The Track C bundle already has C13's logs from Oct 29 under those
+**Copy-back** (Mac, from `cot-disclosure/`). The Track C bundle already has C13's logs from the Oct 29–30 run (66954278) under those
 names, so copy a new run back under its own name:
 
 ```bash

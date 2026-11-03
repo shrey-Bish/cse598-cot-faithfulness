@@ -1,5 +1,8 @@
 # Outlines (bullets; the team writes the prose)
 
+Last updated 2026-11-03 (results through F38, L3 and L4 part 1; B2 dropped). The report's skeleton, with setup and
+methods filled in, is [`REPORT.md`](REPORT.md).
+
 Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
 ([`CLAIMS.md`](CLAIMS.md)). **Missing** marks what a reviewer would ask for and we don't have yet.
 
@@ -8,22 +11,23 @@ Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
 1. **Introduction**
    - Thinking models follow wrong hints from tools more than from users (1.1), and hide it in the
      final answer (1.2).
-   - We locate the readout (1.4) and repair it where it lives (1.7, 1.8). Input-embedding
+   - We locate the readout (1.4) and try to repair it where it lives (1.7). Input-embedding
      provenance tags don't help (1.6).
-   - Contributions: the tool-vs-user gap in 4 models (thinking on and off in one of them); a layer-level
-     localization replicated on separate questions (set A, F26); a training-free, deployable fix with its
-     trade-off; a trained per-head bias; and a cautionary result on fine-tuning for disclosure (F28, waiting
-     on labels).
+   - Contributions: the tool-vs-user gap in 5 models (thinking on and off in one, three efforts in another); a
+     layer-level localization replicated on separate questions (set A, F26) and in a second model (F36); a
+     training-free fix and its trade-off (B1, F38: underpowered at 30 questions); fine-tuning that passes Gate 3 but
+     doesn't beat a one-line instruction, whose keyword false-disclosure candidates are rarely real by hand labels
+     (F28, L4); and A39 on 120 fresh questions (E2).
 2. **Setup**
    - Models: Olmo 3 7B Think (pinned Think format, rendered by us); Track B's Qwen3 30B Thinking and
-     Instruct.
+     Instruct, Qwen3-8B (thinking on and off), gpt-oss-20b (three efforts); B20's open models if read.
    - Channels: user, pasted tool block, inserted tool turn (declared), real tool call; system note.
    - Questions: 24 puzzles and 30 MMLU-Pro (evaluation); the training pool's 34 validation questions
      (set A, localization only).
    - Statistics: X of Y with Wilson intervals; differences with a bootstrap clustered by question;
      at least 5 questions per group.
 3. **Behavior** (F1, F2, F3, F15–F17, F25, F29)
-   - Gate 2 table: 4 models × channels; Qwen3-8B with thinking on and off.
+   - Gate 2 table: 5 models × channels (B18's table); Qwen3-8B with thinking on and off; gpt-oss-20b by effort.
    - Private vs final mention; bare final answers after a tool call.
    - The title question in the same weights (F29): thinking puts the tool in the private reasoning
      (141 of 145) and not the final answer (0 of 143), and raises the call rate.
@@ -38,7 +42,7 @@ Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
      repetition.
    - **Set A replicates (F26):** 0.90 [0.76, 1.06] at 15/19/23 on 16 questions not used to find them;
      the same three layers are the largest drops. This makes section 6 non-circular.
-   - **Missing:** set A's Step 9 (F12's three heads, pre-registered Oct 30).
+   - Set A's Step 9: F12's three heads replicate (F32).
 6. **Repair**
    - Training (F20): LoRA learns the taught text. LoRA on the three layers reaches 85–90% of it.
      Tags don't help.
@@ -47,18 +51,19 @@ Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
      - Evaluated on the held-out 30: wrong-hint following vs correct-hint acceptance vs no-hint
        accuracy.
      - Deployable vs oracle spans.
-   - B2: a learned per-head bias.
    - **Gate 3, final (F28):** all four trained versions pass by the rule, none beats a one-line instruction
      (each minus it +3 to +7, not pre-registered), the tags prediction isn't borne out, and the LoRA versions'
      false-disclosure candidates rise (+10 [+2, +18], +10 [+2, +19]) while the instruction's fall.
      Candidate cautionary claim: fine-tuning for disclosure reduced hint-following no more than an
      instruction, and may have taught the model to claim checks it didn't do.
    - B1's alpha from set A (F27): 0.25 deployable, 0.5 oracle.
-   - **Missing:** the false-disclosure labels; B1's generation; B2 training.
+   - Hand labels (L4 part 1, F28): LoRA's false-disclosure candidates are rarely real.
+   - B1's generation (F38): a real cut on the inserted turn that misses its acceptance limit; underpowered.
+   - **Missing:** A18 (inside the trained model); A39 on E2.
 7. **Related work** ([`RELATED_WORK.md`](RELATED_WORK.md)): CoT faithfulness; patching; ITI and PASTA;
    instruction hierarchy, ISE, StruQ and SecAlign; knowledge conflicts.
 8. **Limitations**
-   - One model for the mechanism.
+   - The mechanism in two models (Olmo, Qwen3-8B, F36); the fix in one.
    - Forced answers off-distribution.
    - Keyword counts until labels.
    - The serving-format confound (F2).

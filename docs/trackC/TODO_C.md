@@ -1,6 +1,7 @@
 # Track C: to do (Shrey's, from Oct 30)
 
-Moved from `docs/status/TODO.md` on Nov 3 (rows and their history unchanged), so no file is edited by two people. `tools/make_gantt.py` reads this file beside TODO.md; keep the table's columns and a row per task. Status words as in TODO.md: done, planned, blocked, dropped (reason, date), with dates. Shrey keeps it current on `trackC-main` (START_HERE.md); Ritik merges it into `main`.
+Moved from `docs/status/TODO.md` on Nov 3 (rows and their history unchanged), so no file is edited by two people. `tools/make_gantt.py` reads this file beside TODO.md; keep the table's columns and a row per task. Status words as in TODO.md: done, in progress, planned (prepared, pre-registered or conditional), blocked,
+dropped (reason, date), each with its date; the first words of the cell are the current state. Shrey keeps it current on `trackC-main` (START_HERE.md); Ritik merges it into `main`.
 
 ## Track C (Shrey from Oct 30; the work through C18 is Ritik's)
 

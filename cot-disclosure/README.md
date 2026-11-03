@@ -1,6 +1,6 @@
 # cot-disclosure: the code map
 
-Last updated: 2026-11-01. Everything that calls the models, saves the runs, computes the numbers and makes the
+Last updated: 2026-11-03. Everything that calls the models, saves the runs, computes the numbers and makes the
 figures. What the project found is in [`../docs/FINDINGS.md`](../docs/FINDINGS.md), what comes next in
 [`../docs/PLAN.md`](../docs/PLAN.md), and the exact command for each step in [`../docs/RUNBOOK.md`](../docs/RUNBOOK.md).
 Folders and module names are fixed: tests, Sol job scripts, RUNBOOK lines and teammates' commands use these paths.
@@ -34,16 +34,17 @@ Track: A = inside one model and the fix; B = more models and channels; C = agent
 | `finetune/` | A | The pinned Olmo format (`olmo_format.py`), continuation, the dataset (Steps 5–7), source tags, training, generation, evaluation (Steps 11–13), Gate 3's table, provenance-scaled attention (B1). *Historical, evidence for Steps 1–2b:* `voyager_capabilities.py`, `voyager_ids_check.py`, `template_revisions.py`, `show_spans.py`, `smoke_2b.py`, `base_format.py`; *for Steps 5–7:* `length_audit.py`, `make_pool.py`, `run_nohint.py`, `make_targets.py`, `run_steps67.py`, `check_examples.py`; *for the training plan:* `gpu_estimate.py`, `move_to_gz.py` | `build_dataset.py`, `train.py`, `generate.py`, `eval.py`, `gate3.py`, `provenance.py`, `setA.py` |
 | `finetune/look/` | A | Looking inside: the takeover curve (Step 3), the deletion test (Step 4), attention to the hint (Step 9), activation patching (Step 10), the window check; the same on Qwen3-8B (`qwen8b_mech.py`) and on the trained model (`a18.py`); figures. *Historical, evidence for F4–F6 (Step 3):* `before_takeover.py`, `plot_takeover.py` | `takeover.py`, `patching.py`, `attn_to_hint.py`, `qwen8b_mech.py`, `a18.py`, `plot_figures.py` |
 | `finetune/gpu/` | A (B, C on Sol) | The Sol kit: what every GPU job shares (`kit.py`), job plans, the evaluation job, B1's jobs, the checks (import, checkpoint, vLLM options); `sol/`: one `.sbatch` per job kind, `run.sh` (the dispatcher), `submit.sh` (the only way to submit; accounts and estimates checked). *Historical:* `smoke.py`, `step8_verdict.py`, `plan_training.py` (Steps 8–11) | `sol/submit.sh <kind>`, `provenance_job.py`, `plan_eval.py`, `eval_job.py` ([its README](finetune/gpu/README.md)) |
-| `tools/` | all | The hint conditions and the tool (`answer_key.py`); labels (`label_kit.py`: queues, sheets, Cohen's kappa; `rater_packets.py`); the generated docs (`make_gantt.py`, `make_supplement.py`, `paper_figures.py`, `export_summaries.py`); repo checks (`check_links.py`, `prepush_check.py`); per-track data bundles (`make_handoff_bundle.py`). *Historical:* `untrack_produced.py` (the history rewrite decided Oct 26) | `make_gantt.py`, `make_supplement.py`, `paper_figures.py`, `label_kit.py`, `prepush_check.py` |
-| `configs/` | all | `models.yaml` (provider facts, Voyager IDs), `trackB.yaml` (Track B's design), `canary/` (identity references), `prices.yaml` | read by the code |
-| `data/progress/` | all | `mmlupro_30.jsonl`: the 30 evaluation questions. Nothing is ever chosen on them | read by the code |
+| `tools/` | all | The hint conditions and the tool (`answer_key.py`); labels (`label_kit.py`: queues, sheets, Cohen's kappa, the settling sheet, the fresh batch; `rater_packets.py`); the generated docs (`make_gantt.py`, `make_supplement.py`, `paper_figures.py`, `slide_figures.py`, `trackb_final.py`, `export_summaries.py`); repo checks (`check_links.py`, `prepush_check.py`, `path_check.py`: the path allowlist as a pre-commit hook); per-track data bundles (`make_handoff_bundle.py`). *Historical:* `untrack_produced.py` (the history rewrite decided Oct 26) | `make_gantt.py`, `make_supplement.py`, `paper_figures.py`, `label_kit.py`, `prepush_check.py` |
+| `configs/` | all | `models.yaml` (provider facts, Voyager IDs), `trackB.yaml` (Track B's design), `canary/` (identity references), `prices.yaml`, `path_allowlist.txt` (each listed branch's paths: Track C's) | read by the code |
+| `data/progress/` | all | `mmlupro_30.jsonl`: the 30 evaluation questions; `mmlupro_e2.jsonl`: E2, 120 fresh ones (Nov 3, `finetune/make_e2.py`, sha256 in its pre-registration). Nothing is ever chosen on them | read by the code |
 | `results/` | all | `summaries/` is tracked and numbers-only; everything else is produced data (gitignored) | `tools/export_summaries.py --check` |
 | `tests/` | all | CPU tests for every module above (no network, no calls) | `../.venv/bin/python -m pytest -q` |
 | `ui/` | all | *Historical, the progress round's demo* (its figures F1–F9): six examples and the charts page from saved runs; its guide is [archive/progress-round/ui_demo_README.md](../archive/progress-round/ui_demo_README.md) | `python3 ui/app.py` (http://127.0.0.1:8765) |
 
 Track A's design is in [`docs/tracks/TRACK_A.md`](../docs/tracks/TRACK_A.md), B1/B2's in
 [`docs/tracks/TRACK_A_FIX.md`](../docs/tracks/TRACK_A_FIX.md), Track B's and Track C's handoffs in
-[`docs/tracks/`](../docs/tracks/).
+[`docs/tracks/`](../docs/tracks/), and each track owner's own records in [`docs/trackB/`](../docs/trackB/START_HERE.md) and
+[`docs/trackC/`](../docs/trackC/START_HERE.md).
 
 ## Voyager facts that matter for new code
 

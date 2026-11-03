@@ -1,32 +1,8 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-03 10:00 (F3: L3's hand labels in, kappa below 0.6 in four of six cells, so they don't stand yet; F28: L4 part 1's hand labels, LoRA's false-disclosure candidates rarely real; F38 reframed and B1R's power check: not run, underpowered; the story's line 6); 2026-11-03 09:30 (F37 B17: in gpt-oss-20b, more thinking changes neither following on the real call nor the bare answer after a call, run after its one-day window; F38 B1: the deployable span "ignores tools", the oracle "no effect", so A38 isn't run; the story's lines 1, 2, 5 and 6); 2026-11-02 (the story's line 1: confirmed same-day, B19); 2026-11-01 20:50 (F35: B19, the same-day check, gives the same six readings; T11 checked); 2026-11-01
-15:05 (F36 A37: Qwen3-8B's readout replicates in a second model: layers 21, 22 and
-29, chosen on the puzzles, hold 0.70 [0.60, 0.83] of the drop on MMLU-Pro and are its own top three; the story's line
-3); 2026-11-01 10:45 (F35 B16: most of a tool's pull is its claim to be the
-answer key, except Qwen3 30B Instruct's own call; T11: B16's same-day tool arms were replayed from the reply cache;
-the story's line 1); 2026-10-31 16:40 (F28 final: Gate 3 met, all four trained versions
-pass, none beats the one-line instruction, the tags prediction not borne out for either tag version; at 11:40 F28's
-interim update with tags); 2026-10-30 17:20 (F34 C18: removing the solver's tool-citing sentences
-restores the Olmo reviewer's check, +47; H33 not supported; the story's headlines for F32-F34; at 11:00 F33 C17: a sentence naming the tool doesn't cause the
-drop; at 10:35 F32: set A's Step 9 replicates F12's three heads; at 10:30 F31 C16: the Olmo reviewer corrects fewer wrong answers
-when the final answer names the tool, unclear by the rule; Qwen3 unchanged; F28 corrected at 10:00: the guide note
-isn't what the targets were made with; the title-question reading of F29; at 09:30 F26 set A: the readout at 15/19/23 replicates; F27 B1's
-alpha 0.25 / 0.5; F28 Gate 3 interim: LoRA passes, the note does as well in the prompt, false disclosure rises; F29
-Qwen3-8B: thinking on calls the tool far more; F30 C13: neither new family defers; B15's "before" stated plainly;
-at 04:00 F25, B15: one instruction brings the tool back into the
-final answer, following unchanged; at 01:10 F24, C15 on 100 fresh items: F18 replicates, redaction
-restores part of the check again, H23 not supported, C14's cheaper check fails; earlier Oct 29 16:45 F23's split by set
-restated as hypothesis H23, to test;
-Oct 29 10:55 F23: redacting the tool's letter restores part of the check;
-F22: the reviewer's deference follows the model family; Oct 28 23:25
-F21: committing first doesn't protect the reviewer's check;
-at 23:03 F20: the tags check and lora_attn3 first; at 22:42 F19: an instruction doesn't restore the
-reviewer's check; F20: training against base on the taught tokens; at 21:50 the story so far, F18: both sides
-of the reviewer's deference, automation bias, the deployment reading; at 18:23 F17 Olmo 3 7B Think in Track B and F18
-Track C's C4 added, F15 reworded: after a tool call the final answer is bare whether the lookup was right or wrong;
-earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limitations section). Design and plans:
+status. Started 2026-10-26; last updated 2026-11-03 12:40 (the doc audit). History: `git log -- docs/FINDINGS.md` and
+the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
 **From Nov 3, each track's new findings are in its own file** (Ritik merges them here at the end): Track C's in
@@ -35,7 +11,7 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
 
 **The story so far (Oct 28; updated Oct 30, Nov 1, Nov 2 and Nov 3).**
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
-   from the user, in all three Track B models (Gate 2; 54 questions × 3 runs; tool − user with the
+   from the user, in all five Track B models: the three on Voyager (Gate 2; 54 questions × 3 runs; tool − user with the
    pasted block: Qwen3 30B Thinking +35, Qwen3 30B Instruct +21, Olmo 3 7B Think +32 points), in
    Qwen3-8B with thinking on and off (+19, +13; F29), and in gpt-oss-20b at every reasoning effort (pasted +24 to
    +26, the real call +14 to +26; B17, F37, run after its one-day window). *Confirmed* (F1, F15, F16, F17, F29;
@@ -76,7 +52,7 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    when shown everything at once, now defers to the tool log (F21, *confirmed*). Two more
    reviewers (C11): Olmo 3 7B Instruct defers too (1 of 73 against 32 alone), Qwen3 30B Thinking
    doesn't (67 against 66). In four reviewers the deference follows the family, not size or
-   thinking (F22; *confirmed* per model, the family reading *tentative*). Redacting the tool's
+   thinking (F22, F30; *confirmed* per model and, over four families, as Olmo-specific). Redacting the tool's
    letter from what the Olmo 32B reviewer sees restores part of its check (6 → 23 and 3 → 24 of
    73), not most of it (alone: 59): it defers to the source as well as to the letter (F23,
    *confirmed* as partial). On 100 fresh items (C15, F24), both replicate (−55; redaction +25), the
@@ -139,7 +115,7 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
   - *confirmed*: measured as stated, and the interval excludes no effect
   - *tentative*: the direction is there, but the interval includes 0, or a confound remains
   - *refuted*: an earlier claim the data contradicts
-  - *waiting*: the run is going
+  - *waiting*: the run is going or planned
 
 Models are on ASU Voyager unless noted. "Served format" is Voyager's chat endpoint; for Olmo 3 7B
 Think that meant the Olmo 3 *Instruct* template. "Pinned format" is Olmo 3 7B Think's own Think
@@ -206,7 +182,8 @@ confound the comparison: the token budget and the run counts.
   "the user asks…"), so 208 is an upper bound.
 - **Source.** `docs/labeling/RESULTS_SUMMARY.json` (`pilot.mentions.<model>.private_mentions_hinted`
   and `final_mentions_hinted`); `archive/superseded/OVERVIEW_2026-10-27.md` §6; `base_format.py --report`.
-- **Status.** *confirmed* as keyword counts. Hand labels (two raters, Cohen's kappa) *waiting*.
+- **Status.** *confirmed* as keyword counts. Hand labels in (L3, Nov 3): kappa under 0.6 in four of six cells, so they
+  don't stand yet (below).
 - **Hand labels, Nov 3 (L3, 101 rows, Ritik and Shrey):** Cohen's kappa is below 0.6 in four of six cells.
   - **Private reasoning:** 0.63 over 58 rows; tool 0.29 (30 rows), user 0.85 (28 rows).
   - **Final answer:** 0.54 over 101 rows; tool 0.59 (44 rows), user 0.43 (57 rows).
@@ -1123,9 +1100,9 @@ clustered by question. Each overall loss matches its training run's `state.json`
     apart.
   - *confirmed*: tags alone don't favor the taught tokens. lora_tags is 0.5% above lora (the
     interval excludes 0), with no injected − pasted difference: the tags prediction isn't borne
-    out in the loss. Whether tags change behavior on tool text: *waiting* (Gate 3).
+    out in the loss. Whether tags change behavior on tool text: no (F28: they help no more on the inserted turn).
   - *tentative*: the hint-check part rests on a keyword rule, not labels.
-  - Behavior: *waiting* (Gate 3).
+  - Behavior (F28, final Oct 31): every version passes Gate 3; the tags prediction isn't borne out.
 
 ## F21. Track C (C10): committing to its own answer first doesn't protect the reviewer's check
 
@@ -1244,7 +1221,6 @@ seed = repeat, and a 16,000-token cap (C4: 8,000; a thinking reviewer's reasonin
 - **Status.**
   - *confirmed*: Olmo 3 7B Instruct defers (−42, the interval below −20, with either context).
   - *confirmed*: Qwen3 30B Thinking doesn't (the intervals include 0).
-  - *tentative*: the family reading. It rests on two models per family and one solver's cases.
   - **C13 (F30, Oct 30):** Granite and Mistral don't defer. The family reading is *confirmed* on four families.
 
 ## F23. Track C (C12): redacting the tool's letter restores part of the reviewer's check, not most of it
@@ -1504,7 +1480,7 @@ The Thinking model's calling runs are 63 of 162 with the instruction, over 33 qu
 - **The answer position gains it at the same layers:** 0.57 [0.46, 0.70] of its rise at (ii). Test 2: 0.62.
 - **Swapping only the prompt's letter** (F13's direct path) moves the answer off W in 12 of 34 [21, 52%], all to
   O. Test 2: 13 of 21 [41, 79%]. Set A has no Step 4 deletions to compare with.
-- **Step 9 on set A** (201 runs) is back. It isn't read: no rule was fixed for it.
+- **Step 9 on set A** (201 runs): read by the rule fixed Oct 30 10:10 (F32): F12's three heads replicate.
 
 **Source.** `cot-disclosure/results/summaries/trackA/setA/step10_handoff.json`, `step10_patching.json`; `python
 finetune/look/patching.py --handoff results/trackA/setA/step10_patching.json --handoff-out
@@ -1533,8 +1509,8 @@ patching setup). The circularity objection to designing a fix from these layers 
 - **The correct-hint cost sets the limit.** Every lower alpha lowers P(W) further (alpha 0, oracle: −20.6) but
   costs a correct hint more than 5 points.
 
-**Status.** Alpha is fixed (not 1), so B1's generation on the held-out 30 runs (provenance_gen, 4 parts, submitted
-Oct 30). Following, correct-hint acceptance and no-hint accuracy there: **read Nov 3 (F38)**: the deployable span
+**Status.** Alpha is fixed (not 1), so B1's generation on the held-out 30 ran (the fixed engine's `-v2` rerun, 10
+parts). Following, correct-hint acceptance and no-hint accuracy there: **read Nov 3 (F38)**: the deployable span
 "ignores tools", the oracle "no effect". **Source:**
 `cot-disclosure/results/summaries/trackA/setA/provenance_forced.json`.
 
@@ -2341,17 +2317,8 @@ Each one would have changed a reported number.
 
 ---
 
-## Figure plan: the 6 figures that tell the story
+## Figures
 
-| # | Story beat | Figure | Status |
-|---|---|---|---|
-| 1 | The failure: tool hints move the answer more than user hints | Test 2 by channel, served (`archive/progress-round/presentation/progress/figures/F9_expB_cue_by_channel.png`) next to Step 2b per channel, pinned (`results/summaries/trackA/figures/fig1_pinned_by_channel.png`) (F1, F2) | both **exist** (pinned panel drawn Oct 27) |
-| 2 | It's hidden: the reasoning names the hint, the final answer doesn't | `archive/progress-round/presentation/progress/figures/F2_pilot_mentions_by_channel.png` (F3) | **exists** |
-| 3 | Where it takes over: the hint starts ahead, swings, and wins late on known answers | `results/summaries/trackA/figures/takeover_mean_curves.png` and `takeover_points.png` (F4–F6) | **exists** |
-| 4 | Is the repetition causal? Deletion vs control vs unedited: the answer at the cut, continuations, re-mentions | `results/summaries/trackA/figures/fig4_deletion.png`, from `deletion_runs.jsonl` + `deletion_remention.jsonl` (F7) | **exists** (drawn Oct 27; `finetune/look/plot_figures.py`) |
-| 5 | Inside the model: the handoff. Per cut, hint-token and answer restoration by layer, with the full-attention layers drawn and 15, 19, 23 marked (F11, F12). Beside it: the hint wins the lead at the moments the model looks back at it (F14, hint − control panel) | `results/summaries/trackA/figures/step10_handoff.png`; `results/summaries/trackA/step9_onsets.png` (left panel) | both **exist**. The per-token panel goes in the appendix. `step9_aligned.png` is not used (closest-approach anchor, T9) |
-| 6 | The window: the hint's pull vs distance to its last mention | `results/summaries/trackA/window_reach.png` (F8) | **exists** (tentative finding) |
-
-After Phase 6, a seventh figure goes in: the Gate 3 comparison. It shows hint following,
-accuracy and the hiding check for base, prompt-only and the trained versions, all on Sol (F9). The
-handoff figure is redrawn for the best version, to show whether the drops at 15, 19 and 23 shrink.
+The figures follow PLAN's presentation map ([`PLAN.md`](PLAN.md)) and are in `docs/paper/figures/` and the
+supplement's `figures/`; [`paper/figures/WAITING.md`](paper/figures/WAITING.md) has the specs of those still waiting. The figure plan of Oct 27
+is in git history.

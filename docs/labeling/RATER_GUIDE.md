@@ -1,15 +1,17 @@
 # Rater guide, one page: labeling L4, L3 and L5
 
-For the two raters (Ritik, plus Shrey or Arsha). Last updated 2026-11-01 (the packet's examples and practice answers
-reviewed and set by Ritik, no changes). 2026-10-31 20:50: the rater packets; L3 first, due Nov 6; L4 part 1 due Nov 14; the returned files' names. Oct 30: the `guess_trained` column). The full definitions and one example per
+For the two raters, Ritik and Shrey. Last updated 2026-11-03 (both L3 and L4 part 1 sheets returned; L3's settling and
+fresh batch; the kappa rule's wording aligned with PLAN; history: `git log -- docs/labeling/RATER_GUIDE.md`). The full definitions and one example per
 label are in [`LABELING_GUIDE.md`](LABELING_GUIDE.md). Read it once before the first row.
 
 ## What you label, in this order
 
 | Order | Batch | Rows | What each row is | Time per rater |
 |---|---|---|---|---|
-| 1 | **L3, the queue** (F3 rests on it; due **Nov 6**, before Gate 2 on Nov 8) | 101 | one hinted run: its private reasoning and its final answer | ~2 h |
-| 2 | **L4, Gate 3's sample, part 1** (rows 1–294; due **Nov 14**) | 294 | one final answer to a hinted question (no private reasoning) | ~6 h (~1¼ min a row) |
+| 1 | **L3, the queue** (F3 rests on it) | 101 | one hinted run: its private reasoning and its final answer | ~2 h; **returned Nov 3** (kappa under 0.6) |
+| 1a | **L3, settling** (`results/labels/L3_settle.csv`): the 25 disagreements side by side; fill the third column pair and the guide rule that decided each | 23 rows | the two labels and notes | on a call, before Nov 6 |
+| 1b | **L3, the fresh batch** (`results/labels/fresh/`), after the guide is tightened from the call's notes | 72 | as L3 (Track B runs in no sheet) | ~85 min; before Gate 2 on Nov 8 |
+| 2 | **L4, Gate 3's sample, part 1** (rows 1–294; **returned Nov 3**, kappa 0.930) | 294 | one final answer to a hinted question (no private reasoning) | ~6 h (~1¼ min a row) |
 | 3 | **L4, part 2** (rows 295–586) | 292 | the same as part 1 | ~6 h |
 | 4 | **L5, Track B**, group 1 (rows 1–68) | 68 | Qwen3 30B Thinking after a real tool call or with the pasted block: both texts | ~2 h |
 | 4 | L5, group 2 (rows 69–151) | 83 | Qwen3 30B Instruct, the same: final answer only (private is `n/a`) | ~1.5 h |
@@ -95,7 +97,8 @@ tool; L4: user, tool_pasted, tool_injected):
 same folder as the sheets). Near chance means the sheets were blind; well above it means the style gave the model
 away.
 
-**Kappa of 0.6 or more** for a text: the labels stand.
+**Kappa of 0.6 or more** for a text, overall and in each hint channel (PLAN's "per channel", written Oct 27; aligned
+here Nov 3, which changes no verdict: L3's final answer fails overall too, and L4 passes everywhere): the labels stand.
 
 **Below 0.6:**
 1. Both raters meet and settle the disagreements; the settled labels go in a third column pair, and the original

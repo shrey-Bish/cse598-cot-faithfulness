@@ -918,6 +918,22 @@ PREREG = [
      "f_title": r"\(A38\)", "result_glob": ["*a38-results*", "*b1-generation-result*"],
      "verdict": "not run, as pre-registered: B1's deployable span reads \"ignores tools\" (F38)",
      "verdict_check": ["A38 isn't run"]},
+    {"id": "a39", "track": "A", "experiment": "A39: fix round 2 on E2 (120 fresh questions): the provenance wrapper, the "
+                                              "note with LoRA and with the wrapper, LoRA + wrapper; a powered Gate 3", "kind": "pre",
+     "rule": "on E2, paired by question: R1 Gate 3's rule against base (a powered replication for base, prompt_only, "
+             "LoRA, labelled so); R2 each against prompt_only (fewer / more / no difference detected); R3 each "
+             "combination against each of its parts by A38's reading; R4 the wrapper on the inserted turn by B1's rule; "
+             "the 30 reported beside it",
+     "rule_log": "2026-11-03_1130_A_e2-a39-prereg.md", "rule_check": ["powered replication of Gate 3", "R4, the wrapper"],
+     "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: pre-registered Nov 3, code ready, "
+     "not submitted", "verdict_check": []},
+    {"id": "b1r2", "track": "A", "experiment": "B1R2: B1's deployable span on E2 (a labelled replication; only if Sol "
+                                               "has room by Nov 15)", "kind": "pre",
+     "rule": "alpha 0.25 against alpha = 1 on E2's inserted tool turn, by B1's rule (b1_verdict) unchanged; B1's verdict "
+             "(F38) stays primary",
+     "rule_log": "2026-11-03_1130_A_e2-a39-prereg.md", "rule_check": ["B1R2: B1's deployable span on E2"],
+     "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "waiting: conditional on Sol time",
+     "verdict_check": []},
     {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
      "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "
              "H34 supported by fewer corrections (or a smaller drop), not supported by no change",
