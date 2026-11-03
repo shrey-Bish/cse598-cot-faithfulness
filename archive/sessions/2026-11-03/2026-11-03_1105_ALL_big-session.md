@@ -83,3 +83,41 @@ allowlist reads.
      one; the same file takes it when wanted.
 6. **What doesn't move:** no code folder or module. TRACK_C.md stays as the track's design record and links to
    START_HERE.
+
+**Done as planned** (commit `f603110`):
+- **The allowlist and its check.** `path_check.py` has 7 tests on throwaway repos, all failing first:
+  - an allowed commit passes and a shared file is refused;
+  - a deletion or rename of a shared file is refused;
+  - a wider list staged in the same commit doesn't help;
+  - other branches aren't checked;
+  - a merge may take main's files unchanged but not edit them;
+  - `--range` reports outside paths.
+- **The TODOs.** 25 Track C rows went to `docs/trackC/TODO_C.md` and 19 Track B rows to `docs/trackB/TODO_B.md`,
+  verbatim; TODO.md keeps a pointer for each.
+  - `make_gantt.todo_paths` reads all three. Its test failed first; 51 of 51 pass.
+  - The Gantt counts Track B and Track C as before.
+- **The records.** `FINDINGS_C.md` (FC1, …) and `FINDINGS_B.md` (FB1, …) exist; FINDINGS.md links to both. Each track
+  has `sessions/INDEX.md`. Track B's START_HERE points to TRACK_B until Nov 6.
+- **START_HERE.md (Track C)** was drafted from TRACK_C, FINDINGS and the four pre-registration logs, then checked
+  (§2a below).
+- **Shrey's bundle:** `results/handoff/trackC_20261103.tar.gz` (gitignored):
+  - 43 files, 31.3 MB raw, 5.1 MB packed;
+  - all of `results/trackC/` (C15's items, every team log and summary) plus Track B's `steered_cases.jsonl`;
+  - verified against its manifest; no GPQA.
+  - C19, C20, C25 and C26 read only these. Drawing new fresh items would need the training pool, which no prepared
+    run does.
+
+## Part 4, so far: E2 and A39 pre-registered (commit `61db5af`, before any run on E2)
+
+The full record is in [`2026-11-03_1130_A_e2-a39-prereg.md`](2026-11-03_1130_A_e2-a39-prereg.md).
+- **Item 12:** PLAN's honest verdict (one paragraph, "The fix, honestly").
+- **Item 13, E2:** 120 questions, 30 per evaluation category, seed `e2-20261103`, sha256 `59c5c250…`.
+  - Its size comes from Gate 3's own runs (`make_e2.py --power`), not the GPU cap: at 120, following is ±3.8 to
+    ±4.9 and acceptance ±3.7 to ±3.9.
+  - Checked by id and text: none of the 30, the pool, set A, Track B's 54 or C15's items.
+- **Item 14, A39:** 7 systems, a lean design of 12 runs a question, and shared runs where the wrapper's prompt is
+  identical (60 a question, 9,000 with the 30 beside), with rules R1–R4.
+  - **Added: LoRA + wrapper,** because it is cheap (4 runs a question) and asks whether marking adds to training.
+  - The implementation is under way.
+- **Item 15, B1R2:** written as conditional: it runs only if the Sol plan leaves about 60 GPU-hours by Nov 15 after
+  A39 and B20.

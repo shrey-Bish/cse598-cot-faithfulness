@@ -21,7 +21,9 @@ B17 (§18: the download, the smoke, then the runs chained with `afterok`); (4) A
 
 **Rules that apply to every step.**
 - **Dry run first.** Every script that calls a model has `--dry-run` (calls, time, nothing sent).
-  Any run over 50 calls, and any Sol job, needs Ritik's "go".
+  Any run over 50 calls, and any Sol job, needs Ritik's "go". **From Nov 3, Track C:** C19, C25, C20 and C26 have it
+  (pre-registered; their open choices confirmed Nov 1), so Shrey runs them without asking; a new Track C experiment needs
+  its pre-registration committed on `trackC-main` first (docs/trackC/START_HERE.md).
 - **At most 4 Voyager requests in flight** per machine, shared by every process
   (`progress/common.slot`). Long runs resume where they stopped.
 - **Keep the Mac awake** during Voyager runs: plugged in, lid open. On battery with the lid closed

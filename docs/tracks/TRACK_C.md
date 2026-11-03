@@ -4,6 +4,14 @@ Final, Oct 30, 2026; §5 updated Oct 31 to the 20-day program (C19, C25, C20, C2
 dropped; results freeze Nov 18). The work through C18 is Ritik's; from Oct 30 Track C is yours. Branch `trackC-main`. The data
 comes as a bundle through ASU storage (§7), never through GitHub.
 
+**From Nov 3, start with [`docs/trackC/START_HERE.md`](../trackC/START_HERE.md); where this page differs, START_HERE
+holds.** In short: the bundle is `trackC_20261103.tar.gz`; a finished experiment gets an FC entry in
+[`docs/trackC/FINDINGS_C.md`](../trackC/FINDINGS_C.md) (not an F-entry here) and its session logs go in
+`docs/trackC/sessions/` (not `archive/sessions/`); numbers-only summaries are written from your own `agents/` module,
+figures under `docs/trackC/figures/`; on `trackC-main` only the paths in `cot-disclosure/configs/path_allowlist.txt`
+change (a pre-commit hook checks it), commits are yours with no attribution lines, and C19, C25, C20 and C26 run by their
+pre-registrations without a further go from Ritik.
+
 **The question.** A solver agent looks something up with a tool, and the tool returns a wrong answer. Does the wrong
 answer reach the team's output? Does a reviewer that sees more of the solver's work (its final answer, its private
 reasoning, the tool log) catch it? Does a checker that never sees the tool catch it, and at what cost in false
@@ -76,7 +84,7 @@ item, in points with a 95% bootstrap clustered by item. The rule is C11's (defer
    - Never commit `.env`, never print a key, never use anyone else's.
    - Leave `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` and `XAI_API_KEY` empty: no paid calls.
 4. **The data:**
-   - `tar xzf trackC_20261030.tar.gz -C cot-disclosure`;
+   - `tar --exclude MANIFEST.json -xzf trackC_20261103.tar.gz -C cot-disclosure` (the Nov 3 bundle; START_HERE §4);
    - then `../.venv/bin/python tools/make_handoff_bundle.py --verify <the tar.gz>`.
 5. **Reproduce three findings** (no calls):
    - `../.venv/bin/python agents/run_team.py --summary --log team_c4 --cases results/trackB/steered_cases.jsonl --table`
@@ -209,7 +217,8 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
 
 ## 7. The data bundle
 
-`trackC_20261030.tar.gz`: 43 files, 31.3 MB unpacked, 5.1 MB packed, with a sha256 manifest inside and beside it.
+`trackC_20261103.tar.gz` (rebuilt Nov 3; the Oct 30 one is superseded): 43 files, 31.3 MB unpacked, 5.1 MB packed, with a
+sha256 manifest inside and beside it.
 - **Logs and summaries:** C1 (`team_live`), the 32B smoke, C4, C9–C13, C15 (solve and reviews), C16 (solve, control,
   reviews), C17 (names, own working) and C18 (unchanged, stripped).
 - **Readings:** C14's and C15–C18's.
