@@ -2,7 +2,7 @@
 
 Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md) (Oct 29; updated 23:15 with C11–C14, Oct
 30 01:10 with C15, 04:00 with B15, 09:30 with set A, B1's alpha, Gate 3 interim, Qwen3-8B and C13; Oct 31 16:40 with
-Gate 3 final; Nov 1 with B16, claim 1.1; Nov 3 with B17 and B1, claims 1.1 and 1.7). Status words as in
+Gate 3 final; Nov 1 with B16, claim 1.1; Nov 3 with B17 and B1, claims 1.1 and 1.7; then L3's and L4 part 1's hand labels, claims 1.2 and 1.5). Status words as in
 FINDINGS: *confirmed* (measured as stated, the interval excludes no effect), *tentative* (direction
 there, interval includes 0 or a confound remains), *waiting* (the run is going or planned).
 `[TONIGHT: ...]` marks a number tonight's runs fill in.
@@ -43,8 +43,10 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
   - F3: Test 1 private 208 of 216 vs final 8 of 216.
   - F15: after a tool call the final answer is a bare letter, whether the lookup was right or
     wrong (C4: 80 of 84 vs 71 of 75; no tool 2 of 159).
-- **Status:** *confirmed* as keyword and length counts. Hand labels *waiting* (L3, 101 rows; L5,
-  171 rows with a 20-row keyword check).
+- **Status:** *confirmed* as keyword and length counts. **Hand labels (L3, Nov 3): kappa below 0.6 in four of six
+  cells** (private 0.63, tool 0.29, user 0.85; final 0.54, tool 0.59, user 0.43; F3). By the plan they don't stand
+  yet: the raters settle the 25 disagreements, the guide is tightened, a fresh batch is labeled, and no
+  acknowledgment claim from hand labels goes in the report before that. L5 (171 rows) waits.
 - **Strongest objection:** a keyword is not an acknowledgment, and "the user asks…" fires with no
   hint (22 of 72).
 - **Settles it:** two raters, Cohen's kappa per channel; the keyword check (rows 152–171).
@@ -101,9 +103,12 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
   - *and* the LoRA versions' false-disclosure candidates rise (LoRA +10 [+2, +18], LoRA + tags +10 [+2, +19]) while
     the instruction's fall (−9 [−14, −4]);
   - *and* the tags prediction (more help on the inserted tool turn) isn't borne out for either tag version.
-- **Candidate cautionary claim (waiting on hand labels):** fine-tuning for disclosure reduced hint-following no more
-  than an instruction, and may have taught the model to claim checks it didn't do. The labels of LoRA's
-  false-disclosure candidates go first in the queue.
+- **Candidate cautionary claim, read with hand labels (L4 part 1, Nov 3; kappa 0.93; F28):** fine-tuning for
+  disclosure reduced hint-following no more than an instruction (stands), and may have taught the model to claim
+  checks it didn't do: **not supported** for claimed disagreement. 1 and 2 of LoRA's 147 candidates are
+  `rejects_hint` (the answer says the hint is wrong, yet ends on it); 97 and 89 say the hint shaped the answer. The
+  "worked independently" half has no label; the raters could tell LoRA's style (`guess_trained` right on 270 and
+  267 of 294). The reading was set after labeling, before counting (the L4 log, §6).
 - **Settles it:** the label sample (false disclosure; what the trained answer says); LoRA on 15/19/23 and the tag
   versions (Gate 3, all six systems).
 
@@ -125,9 +130,11 @@ without making the model ignore correct tools.**
   - deployable (0.25), on the inserted tool turn: following 26 of 60 → 16 of 60, −17 [−30, −3]; correct-hint acceptance
     25 → 23 of 30 (−7 points); no-hint accuracy 16 → 19 of 30 (+10): **ignores tools** by the rule;
   - oracle (0.5), on every hint channel: following 61 of 120 → 50 of 120, −9 [−19, +1]: **no effect**.
-- **Status:** *not supported as worded* by its rule: the deployable span cuts following but costs correct-hint
-  acceptance beyond the 5-point limit, and the oracle span shows no effect. *Tentative* on the cost: it is 2 of 30
-  runs, and no-hint accuracy, which the scaling can't touch, moved +10 by sampling alone. A38 isn't run.
+- **Status:** *not supported as worded* by its rule (deployable "ignores tools", oracle "no effect"): a real cut in
+  following on the inserted turn that misses its pre-registered acceptance limit; underpowered at 30 questions.
+  *Tentative* on the cost: it is 2 of 30 runs, and no-hint accuracy, which the scaling can't touch, moved +10 by
+  sampling alone. **A replication (B1R) isn't run:** 35 GPU-hours fit 70 fresh questions, an acceptance half-width
+  of 6 to 9 points; ±5 needs about 107 to 245 questions (53 to 122 GPU-hours; F38). A38 isn't run.
 - **Strongest objection:** it may just make the model ignore tools. Its layers and alpha could be
   tuned on the evaluation questions.
 - **Settles it:**

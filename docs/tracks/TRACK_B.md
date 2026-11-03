@@ -1,6 +1,7 @@
 # Track B handoff: test widely (for Arsha, from Nov 3)
 
-Last updated: 2026-11-03 09:30 (B17 done: no change detected on both primary readings, F37; run after its one-day
+Last updated: 2026-11-03 10:00 (the handoff done: Ritik sent the bundle `trackB_20261103.tar.gz` and the note;
+slide 8 drawn, `docs/paper/figures/b17_effort.png`); 2026-11-03 09:30 (B17 done: no change detected on both primary readings, F37; run after its one-day
 window, kept by Ritik's decision before any result was read, pre-registration §13); 2026-11-01 20:50 (B19 done: the
 same-day check gives B16's six readings); 2026-11-01 (final for the
 Nov 3 handoff: results through B16; B17 prepared and amended; your first
@@ -36,7 +37,7 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 
 | when | what | yours to do | due |
 |---|---|---|---|
-| Nov 3 | handoff | the first day above | Nov 3 |
+| Nov 3 | handoff | **done Nov 3:** Ritik sent the bundle (`trackB_20261103.tar.gz`, 50 MB) and the note; the first day above | Nov 3 |
 | Nov 4–5 | B16 and B19 | re-read their reports and F35 (`run_b16.py --report`, `run_b19.py --report`; B19's records are in the bundle only if it is rebuilt) | Nov 5 |
 | Nov 4–5 | B17 | done Nov 3 (F37; Ritik read it by the rule): re-read F37 and `run_b17.py --report` from the bundle's records; it goes into B18, labelled (temperature 1.0; run after its one-day window, §13) | Nov 5 |
 | Nov 13–18 | B18 | the final Track B table and one figure: B14's table with B16 and B17 (each labelled), Gate 2 on every model | Nov 18 |

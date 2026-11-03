@@ -15,6 +15,11 @@ summaries (no calls, no gitignored data). One style for every slide: 16:9, white
                     on MMLU-Pro (the test) beside Olmo 3 7B Think's at 15, 19 and 23 and the rule's 0.5; (b, c) the
                     drop by layer at the takeover, puzzles and MMLU-Pro, the chosen layers marked (95% bootstraps
                     clustered by question, as patching.handoff computes them for the rule)
+  b17_effort        slide 8 (B17, F37): gpt-oss-20b at reasoning effort low, medium and high, the same weights: (a)
+                    following on the real tool call, with the call rate behind it; (b) the bare final answer after a
+                    call; X of Y with 95% bootstraps clustered by question, the pre-registered high minus low in the
+                    titles (the CSV also has medium minus low and high minus medium, no decision). Run after its
+                    one-day window (pre-registration section 13), said on the slide
   channels          the report's setup (section 2): one prompt per channel, built by tools/answer_key.build with a
                     placeholder question; the hint's text in the cue color, and who writes each turn (its CSV: the
                     turns' roles, writers and templates, no prompt text)
@@ -136,6 +141,32 @@ def b16_rows(report=SUM / "trackB" / "b16_report.json"):
         rows.append(row("b", name, "plain user hint", "following, Track B (Oct 27–28)", plain))
         for arm, e in res[key]["arms"].items():
             rows.append(row("b", name, CHANNELS_B16.get(arm, arm), "following", e["following"]))
+    return rows
+
+
+EFFORTS = ("low", "medium", "high")
+CONTRASTS_B17 = (("primary", "high - low"), ("secondary", "medium - low"), ("secondary", "high - medium"))
+MEASURES_B17 = (("following_tool_real", "following on the real call"), ("bare_after_call", "bare final answer after a call"))
+
+
+def b17_rows(report=SUM / "trackB" / "b17_report.json"):
+    """(a) following on the real call and the call rate per effort; (b) the bare final answer after a call per effort
+    (value: the share, the clustered interval); (c) the contrasts (value: the difference; k/n the first effort,
+    compared_k/n the second; high minus low with the rule's reading, the others "no decision")."""
+    res = json.loads(Path(report).read_text())
+    rows = []
+    for e in EFFORTS:
+        tr = res["per_effort"][e]["channels"]["tool_real"]
+        rows.append(row("a", "gpt-oss-20b", e, "following on the real call", tr["following"]))
+        rows.append(row("a", "gpt-oss-20b", e, "calls the tool", tr["tool_call_rate"]))
+        rows.append(row("b", "gpt-oss-20b", e, "bare final answer after a call", tr["bare_final_when_called"]))
+    for block, name in CONTRASTS_B17:
+        for key, measure in MEASURES_B17:
+            x = res[block][name][key]
+            rows.append({"panel": "c", "model": "gpt-oss-20b", "arm": name, "measure": measure, "k": x["with"]["k"],
+                         "n": x["with"]["n"], "value": x["diff"], "low": x["interval"][0], "high": x["interval"][1],
+                         "interval": CLUSTERED + ", paired", "compared_k": x["without"]["k"],
+                         "compared_n": x["without"]["n"], "reading": x["reading"] if block == "primary" else "no decision"})
     return rows
 
 
@@ -361,6 +392,59 @@ def fig_b16(out=OUT, report=SUM / "trackB" / "b16_report.json"):
     return paths
 
 
+def fig_b17(out=OUT, report=SUM / "trackB" / "b17_report.json"):
+    plt = style()
+    rows = b17_rows(report)
+    tokens = {e: v["median_output_tokens"] for e, v in json.loads(Path(report).read_text())["per_effort"].items()}
+    fig = plt.figure(figsize=SIZE)
+    gs = fig.add_gridspec(1, 2, left=0.065, right=0.985, top=0.76, bottom=0.21, wspace=0.16)
+    axes = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
+    hl = {r["measure"]: r for r in rows if r["panel"] == "c" and r["arm"] == "high - low"}
+    series = (("a", "calls the tool", ROLE["baseline"], -0.06), ("a", "following on the real call", ROLE["damage"], 0.06),
+              ("b", "bare final answer after a call", ROLE["final"], 0.0))
+    for panel, measure, color, dx in series:
+        ax = axes[0 if panel == "a" else 1]
+        mine = [r for r in rows if r["panel"] == panel and r["measure"] == measure]
+        xs = [i + dx for i in range(len(mine))]
+        ax.plot(xs, [r["value"] * 100 for r in mine], color=color, linewidth=2, zorder=2)
+        for x, r in zip(xs, mine):
+            ax.plot([x, x], [r["low"] * 100, r["high"] * 100], color=color, linewidth=2, solid_capstyle="butt", zorder=2)
+            ax.plot(x, r["value"] * 100, "o", color=color, markersize=10, markeredgecolor=WHITE, markeredgewidth=2, zorder=3)
+            left = measure == "calls the tool"                     # the call rate's counts on its left, clear of (a)'s
+            ax.annotate(f"{r['k']} of {r['n']}", (x, r["value"] * 100), xytext=(-12 if left else 12, 6 if left else -16),
+                        textcoords="offset points", ha="right" if left else "left", fontsize=11, color=INK)
+    for ax, (key, title) in zip(axes, (("following on the real call", "(a) Follows the tool's wrong letter"),
+                                       ("bare final answer after a call", "(b) Bare final answer after a call"))):
+        d = hl[key]
+        pts = lambda v: "0" if abs(v) < 0.005 else f"{v * 100:+.0f}".replace("-", "−")  # noqa: E731
+        ax.set_title(f"{title}\nhigh − low {pts(d['value'])} [{pts(d['low'])}, {pts(d['high'])}]: {d['reading']}",
+                     loc="left", color=INK)
+        ax.set_xticks(range(3), [f"{e}\n{int(tokens[e] + 0.5):,} tokens" for e in EFFORTS])
+        ax.set_xlim(-0.6, 2.6)
+        ax.set_ylim(0, 105)
+        ax.set_yticks(range(0, 101, 25))
+        ax.grid(axis="y", color=GRID)
+        ax.grid(axis="x", visible=False)
+        ax.set_xlabel("reasoning effort (median reply length)")
+    axes[0].set_ylabel("share of tool_real runs (%)")
+    axes[1].set_ylabel("share of runs that called the tool (%)")
+    axes[0].legend([plt.Line2D([], [], color=ROLE["damage"], marker="o", linewidth=2),
+                    plt.Line2D([], [], color=ROLE["baseline"], marker="o", linewidth=2)],
+                   ["follows the wrong letter (answered runs)", "calls the tool"], loc="upper left", frameon=False)
+    fig.text(0.065, 0.93, "More thinking changes neither: gpt-oss-20b follows the tool about as often, and answers bare after a call.",
+             fontsize=15, color=INK)
+    fig.text(0.065, 0.885, "At high effort it calls the tool far more, but follows less once it has called.",
+             fontsize=15, color=INK)
+    fig.text(0.065, 0.012, "B17 (F37), pre-registered Oct 31: high minus low effort, paired by question; gpt-oss-20b on Sol "
+             "(vLLM, harmony), temperature 1.0 (its recommended);\n54 questions x 3 runs per effort; lines: 95% bootstrap "
+             "clustered by question; bare = a final answer of 30 characters or fewer. The call rate is reported with no "
+             "decision.\nRun after its one-day window (pre-registration section 13), kept by a decision made before any "
+             "result was read.", fontsize=10.5, color=MUTED, linespacing=1.35)
+    paths = save(fig, "b17_effort", rows, out)
+    plt.close(fig)
+    return paths
+
+
 def fig_qwen8b(out=OUT, summary=QWEN8B / "qwen8b_step10_patching.json", readout=QWEN8B / "qwen8b_readout.json"):
     plt = style()
     rows = qwen8b_rows(summary, readout)
@@ -511,7 +595,7 @@ def fig_levels(out=OUT):
 
 
 def main():
-    for f in (fig_levels, fig_bare, fig_b16, fig_qwen8b, fig_channels):
+    for f in (fig_levels, fig_bare, fig_b16, fig_qwen8b, fig_b17, fig_channels):
         for p in f():
             print(p.relative_to(CODE.parent))
 

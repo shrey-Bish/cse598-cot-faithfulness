@@ -34,11 +34,12 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    reviewers). A checker that never sees the tool held every time. The deferring reviewer follows the solver's
    citation of the tool's letter as authority (C16–C18).
 5. **The fix, so far:** all four fine-tuned versions pass Gate 3 by its rule, but none beats a one-line
-   instruction on following, the source tags don't act where the tool's tokens are, and the LoRA versions'
-   false-disclosure candidates rise (hand labels pending; F28). Inference-time attention scaling (B1, F38) cuts
-   following on the inserted tool turn but costs correct tools beyond its rule's limit ("ignores tools"), and shows
-   no effect across every hint span, so its combination with the instruction (A38) isn't run. The trained model's
-   mechanism (A18) is under way.
+   instruction on following, and the source tags don't act where the tool's tokens are. By hand labels, LoRA's
+   keyword false-disclosure candidates are rarely real: most say the hint shaped the answer (L4 part 1, F28).
+   Inference-time attention scaling (B1, F38) makes a real cut in following on the inserted tool turn that misses
+   its pre-registered acceptance limit ("ignores tools"), underpowered at 30 questions; a replication that could
+   settle it needs more than the budget, so neither it nor A38 is run. The trained model's mechanism (A18) is under
+   way.
 
 ## Read this first
 

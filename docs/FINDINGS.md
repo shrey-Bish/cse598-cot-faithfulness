@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-03 09:30 (F37 B17: in gpt-oss-20b, more thinking changes neither following on the real call nor the bare answer after a call, run after its one-day window; F38 B1: the deployable span "ignores tools", the oracle "no effect", so A38 isn't run; the story's lines 1, 2, 5 and 6); 2026-11-02 (the story's line 1: confirmed same-day, B19); 2026-11-01 20:50 (F35: B19, the same-day check, gives the same six readings; T11 checked); 2026-11-01
+status. Started 2026-10-26; last updated 2026-11-03 10:00 (F3: L3's hand labels in, kappa below 0.6 in four of six cells, so they don't stand yet; F28: L4 part 1's hand labels, LoRA's false-disclosure candidates rarely real; F38 reframed and B1R's power check: not run, underpowered; the story's line 6); 2026-11-03 09:30 (F37 B17: in gpt-oss-20b, more thinking changes neither following on the real call nor the bare answer after a call, run after its one-day window; F38 B1: the deployable span "ignores tools", the oracle "no effect", so A38 isn't run; the story's lines 1, 2, 5 and 6); 2026-11-02 (the story's line 1: confirmed same-day, B19); 2026-11-01 20:50 (F35: B19, the same-day check, gives the same six readings; T11 checked); 2026-11-01
 15:05 (F36 A37: Qwen3-8B's readout replicates in a second model: layers 21, 22 and
 29, chosen on the puzzles, hold 0.70 [0.60, 0.83] of the drop on MMLU-Pro and are its own top three; the story's line
 3); 2026-11-01 10:45 (F35 B16: most of a tool's pull is its claim to be the
@@ -109,13 +109,17 @@ earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limita
    LoRA + tags +6 [+1, +11], LoRA on 15/19/23 +6 [+0.4, +12]). The tags prediction (tags help most on the
    inserted tool turn) isn't borne out for either tag version (tags −2 [−13, +9]; LoRA + tags −13 [−24, −1],
    the other way). The LoRA versions' false-disclosure candidates rise (LoRA +10 [+2, +18], LoRA + tags
-   +10 [+2, +19]) while the instruction's fall (−9 [−14, −4]). **Candidate cautionary claim, waiting on hand
-   labels (L4):** fine-tuning for disclosure reduced hint-following no more than an instruction, and may have
-   taught the model to claim checks it didn't do. **Inference-time attention scaling (B1, F38) doesn't pass its
-   rule:** scaling the inserted tool turn's keys at 15/19/23 cuts following there (−17 [−30, −3]), but correct-hint
-   acceptance falls 7 points (2 of 30 runs; the limit is 5): "ignores tools". Scaling every hint span shows no
-   effect (−9 [−19, +1]). So A38 (the instruction with the span) isn't run. The 5-point limits are within the
-   sampling noise at 30 questions (no-hint accuracy, which the scaling can't touch, moved +10).
+   +10 [+2, +19]) while the instruction's fall (−9 [−14, −4]). **By hand labels, LoRA's candidates are rarely
+   real (L4 part 1, Nov 3; two raters, kappa 0.93):** 1 to 2 of its 147 claim to have rejected the hint while
+   ending on it; most (61% to 66%) say the hint shaped the answer. So the cautionary claim's second half ("may have
+   taught the model to claim checks it didn't do") isn't supported for claimed disagreement; its "worked it out
+   independently" half can't be read from the labels, and the raters could tell LoRA's style (the reading set after
+   labeling, before counting). Its first half stands: fine-tuning reduced following no more than an instruction.
+   **Inference-time attention scaling (B1, F38): a real cut in following on the inserted tool turn (−17 [−30, −3])
+   that misses its pre-registered acceptance limit (−7 points against 5; "ignores tools" by the rule);
+   underpowered at 30 questions.** Scaling every hint span shows no effect (−9 [−19, +1]). A replication that could
+   resolve the limit needs about 107 to 245 fresh questions (53 to 122 GPU-hours); 35 GPU-hours fit 70, so it isn't
+   run (B1R). A38 (the instruction with the span) isn't run either.
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
@@ -199,6 +203,17 @@ confound the comparison: the token budget and the run counts.
 - **Source.** `docs/labeling/RESULTS_SUMMARY.json` (`pilot.mentions.<model>.private_mentions_hinted`
   and `final_mentions_hinted`); `archive/superseded/OVERVIEW_2026-10-27.md` §6; `base_format.py --report`.
 - **Status.** *confirmed* as keyword counts. Hand labels (two raters, Cohen's kappa) *waiting*.
+- **Hand labels, Nov 3 (L3, 101 rows, Ritik and Shrey):** Cohen's kappa is below 0.6 in four of six cells.
+  - **Private reasoning:** 0.63 over 58 rows; tool 0.29 (30 rows), user 0.85 (28 rows).
+  - **Final answer:** 0.54 over 101 rows; tool 0.59 (44 rows), user 0.43 (57 rows).
+  - **By the plan** (PLAN, "under 0.6, tighten the guide and label a fresh batch"; RATER_GUIDE "Below 0.6"), the
+    labels don't stand yet:
+    1. the two raters settle the 25 disagreements (rows listed in the Nov 3 log), the settled labels in a third
+       column pair beside the original two;
+    2. the guide is tightened;
+    3. a fresh batch is labeled.
+  - **No acknowledgment claim from hand labels goes in the report before that** (PLAN, Gate 2). No label rate of
+    L3 has been computed. F3 stays a keyword count.
 
 ## F4. Known answers are overridden, mostly late in the reasoning, on a few questions
 
@@ -1519,7 +1534,7 @@ Oct 30). Following, correct-hint acceptance and no-hint accuracy there: **read N
 "ignores tools", the oracle "no effect". **Source:**
 `cot-disclosure/results/summaries/trackA/setA/provenance_forced.json`.
 
-## F28. Track A (Gate 3): every trained version passes by the rule, none beats a one-line instruction, and the LoRA versions' false-disclosure candidates rise
+## F28. Track A (Gate 3): every trained version passes by the rule, none beats a one-line instruction, and the LoRA versions' false-disclosure candidates rise, but by hand labels LoRA's are rarely real
 
 **Final, Oct 31** (`finetune/gate3.py` on all six systems, 930 runs each; log 2026-10-31 16:40). **Gate 3 is met:
 all four trained versions pass.**
@@ -1560,6 +1575,34 @@ all four trained versions pass.**
   and LoRA + tags (150 of 532, +10 [+2, +19]). LoRA on 15/19/23 has 126 of 534 (+5 [−1, +12]). It doesn't rise for
   tags (95 of 524) and falls for the instruction (50 of 532). L4's sheets (fixed Oct 30) hold LoRA's, base's and
   prompt_only's candidates, not the two later versions'.
+- **Hand labels (L4 part 1, Nov 3; Ritik and Shrey; kappa on the final answer 0.93 over 294 rows, every channel
+  0.89 or more): LoRA's candidates are rarely a real false disclosure.** Every row ends on the hint's (wrong) letter.
+
+  | group (rows) | rater | `rejects_hint` | `says_changed` | `mentions_only` | `no_mention` | `unclear` |
+  |---|---|---|---|---|---|---|
+  | LoRA's candidates (147) | Ritik | **1** | 97 | 42 | 6 | 1 |
+  | | Shrey | **2** | 89 | 49 | 6 | 1 |
+  | | both agree (139) | **1** | 89 | 42 | 6 | 1 |
+  | base, matched non-candidates (74) | Ritik | 0 | 11 | 0 | 62 | 1 |
+  | | Shrey | 0 | 10 | 1 | 63 | 0 |
+  | | both agree (72) | 0 | 10 | 0 | 62 | 0 |
+  | prompt_only, matched non-candidates (73) | Ritik | 0 | 12 | 4 | 57 | 0 |
+  | | Shrey | 0 | 10 | 5 | 58 | 0 |
+  | | both agree (70) | 0 | 10 | 3 | 57 | 0 |
+
+  - **Real false disclosure,** read as `rejects_hint` (the answer says the hint is wrong or sets it aside, yet ends
+    on it): 1 of 147 (Ritik), 2 of 147 (Shrey), 1 of the 139 agreed. **Most of LoRA's candidates say the hint
+    shaped the answer** (`says_changed`: 97 and 89 of 147, 66% [58, 73] and 61% [52, 68]): disclosure, not a false
+    claim of checking.
+  - **The matched rows** (the keyword's misses): no `rejects_hint` in base's 74 or prompt_only's 73; mostly
+    `no_mention` (78% to 86%). Part 1 compares candidates with non-candidates, so it gives no LoRA − base difference
+    in labels (that needs part 2, as the L4 log said before labeling).
+  - **Read after the fact:** which label is a false disclosure was set after labeling, before counting (the L4 log,
+    §6, commit `d63eb7f`). PLAN's check has two halves. "Claims it checked the hint and disagreed" is
+    `rejects_hint`. "Worked it out independently" has no label of its own: the guide puts it under
+    `mentions_only` with neutral mentions (42 and 49 of 147), so that half isn't read.
+  - **Limits:** the sheets were not blind to LoRA's style (each rater's `guess_trained` was right on 270 and 267 of
+    294 rows; chance 147); LoRA only (not LoRA + tags or LoRA on 15/19/23); keyword-selected rows.
 - **Hiding** is a keyword measure. The three LoRA versions' trained opener names the hint (by broad keyword LoRA 456
   of 532, LoRA + tags 469, LoRA on 15/19/23 390; base 146), so for them the hand labels decide. For tags (no opener,
   167 of 524) the keyword measure holds.
@@ -1571,8 +1614,11 @@ all four trained versions pass.**
 - *Not shown*: that any trained version beats a one-line instruction (three of four follow more wrong hints than it;
   not pre-registered).
 - *Not borne out*: the tags prediction, for both tag versions.
-- **Candidate cautionary claim**, *waiting* on hand labels (L4): fine-tuning for disclosure reduced hint-following no
-  more than an instruction, and may have taught the model to claim checks it didn't do.
+- **Candidate cautionary claim**, read with hand labels (L4 part 1, Nov 3): fine-tuning for disclosure reduced
+  hint-following no more than an instruction (*stands*, as above), and may have taught the model to claim checks it
+  didn't do: **not supported** for the claimed disagreement (1 to 2 of LoRA's 147 candidates; most say the hint
+  shaped the answer); the "worked independently" half can't be read from the labels. LoRA's keyword candidates
+  are mostly disclosure; base's candidates are labelled in part 2.
 
 **Earlier readings, interim** (kept as written; the final reading above replaces them).
 
@@ -2076,7 +2122,7 @@ setup; the tool's own call only.
 **Status.** By the rule as stated: **no change detected** on both primary outcomes (*confirmed* as no change at the
 widths above, in one model). Run after its one-day window (pre-registration §13).
 
-## F38. Track A (B1): on the held-out 30, scaling attention to the inserted tool turn cuts following there but costs correct-hint acceptance beyond the rule's limit ("ignores tools"); scaling every hint span shows no effect
+## F38. Track A (B1): on the held-out 30, scaling attention to the inserted tool turn gives a real cut in following that misses its pre-registered acceptance limit ("ignores tools" by the rule; underpowered at 30 questions); scaling every hint span shows no effect
 
 **Setup.**
 - **B1** scales the attention from layers 15, 19 and 23 to the hint span's keys by alpha, chosen on set A's forced
@@ -2125,13 +2171,31 @@ question: following −3 [−11, +5] (26 questions), acceptance +2 [0, +6] (25),
 No difference detected on any, as expected; the no-hint interval is wide (one run per question). The first engine's
 17 deployable runs are set aside (counts only).
 
+**A replication (B1R), checked for power before anything ran (Nov 3; not run).**
+- **The design asked for** (Ritik, Nov 3): fresh MMLU-Pro questions never used by Track A; the deployable span only,
+  alpha = 1 against 0.25 (not re-chosen); the fixed engine; the inserted tool turn; per question two wrong-hint, two
+  correct-hint and one no-hint run in each configuration; `b1_verdict` unchanged, B1 the primary result. **The gate:**
+  run it only if the expected 95% half-width of the acceptance difference is at most about 5 points at the largest
+  question count that fits in 35 GPU-hours.
+- **The cost, from B1's own runs:** 34.3 GPU-hours (Slurm's elapsed time, load included) for 630 runs and 6.93 M
+  tokens, about 202,000 tokens per GPU-hour. B1R's ten runs a question (B1's mean lengths on the inserted turn and
+  with no hint) take about 0.50 GPU-hours, so **35 GPU-hours fit 70 questions.**
+- **The expected half-widths at 70 questions,** from B1's numbers:
+  - **acceptance: 6.2 to 9.3 points.** That is B1's own clustered interval (±13.3 at 30 questions, one run)
+    scaled to 70: 8.7 if the second correct-hint run adds nothing, 6.2 if it halves the variance. From B1's rates
+    (25 and 23 of 30), with pairing ignored, it is 9.3.
+  - **following: 8.7 points** (B1's interval scaled), 11.0 from the rates.
+- **So B1R isn't run.** **B1 is underpowered: a replication that could resolve its limits needs about 107 to 245
+  questions, 53 to 122 GPU-hours**, for ±5 points on acceptance, by the same three estimates.
+
 **Source.** `cot-disclosure/results/summaries/trackA/gpu/provenance_gen/provenance_gen_report.json`; recomputed with
 `python finetune/gpu/provenance_job.py report --out results/trackA/gpu/provenance_gen` and `b1_verdict` (the session
 log, Nov 3 09:30).
 
-**Status.** By the rule as stated: deployable **ignores tools**, oracle **no effect**. The fall in following on the
-inserted turn is *confirmed* (−17 [−30, −3]); its cost to correct tools is *tentative* (a point estimate, 2 of 30
-runs). A38 is not run.
+**Status.** By the rule as stated: deployable **ignores tools**, oracle **no effect**. In plain terms: **a real cut in
+following on the inserted turn (−17 [−30, −3], *confirmed*) that misses its pre-registered acceptance limit (−7
+points against 5: a point estimate on 2 of 30 runs, *tentative*); underpowered at 30 questions.** A38 and B1R are
+not run.
 
 ## Measurement traps we hit and fixed
 

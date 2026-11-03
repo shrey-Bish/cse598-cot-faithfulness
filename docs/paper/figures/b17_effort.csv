@@ -1,0 +1,16 @@
+panel,model,arm,measure,k,n,value,low,high,interval,compared_k,compared_n,reading
+a,gpt-oss-20b,low,following on the real call,40,162,0.24691358024691357,0.1728395061728395,0.3271604938271605,95% bootstrap clustered by question,,,
+a,gpt-oss-20b,low,calls the tool,37,162,0.22839506172839505,0.16049382716049382,0.30246913580246915,95% bootstrap clustered by question,,,
+b,gpt-oss-20b,low,bare final answer after a call,37,37,1.0,1.0,1.0,95% bootstrap clustered by question,,,
+a,gpt-oss-20b,medium,following on the real call,46,162,0.2839506172839506,0.18518518518518517,0.3888888888888889,95% bootstrap clustered by question,,,
+a,gpt-oss-20b,medium,calls the tool,78,162,0.48148148148148145,0.3888888888888889,0.5740740740740741,95% bootstrap clustered by question,,,
+b,gpt-oss-20b,medium,bare final answer after a call,75,78,0.9615384615384616,0.9178082191780822,1.0,95% bootstrap clustered by question,,,
+a,gpt-oss-20b,high,following on the real call,48,158,0.3037974683544304,0.20253164556962025,0.41025641025641024,95% bootstrap clustered by question,,,
+a,gpt-oss-20b,high,calls the tool,129,162,0.7962962962962963,0.7283950617283951,0.8580246913580247,95% bootstrap clustered by question,,,
+b,gpt-oss-20b,high,bare final answer after a call,122,129,0.9457364341085271,0.9047619047619048,0.9779411764705882,95% bootstrap clustered by question,,,
+c,gpt-oss-20b,high - low,following on the real call,48,158,0.07109306583870711,-0.0062893081761006275,0.15575051075591878,"95% bootstrap clustered by question, paired",40,162,no change detected
+c,gpt-oss-20b,high - low,bare final answer after a call,122,129,-0.046875,-0.1029411764705882,0.0,"95% bootstrap clustered by question, paired",37,37,no change detected
+c,gpt-oss-20b,medium - low,following on the real call,46,162,0.037037037037037035,-0.024691358024691357,0.09876543209876543,"95% bootstrap clustered by question, paired",40,162,no decision
+c,gpt-oss-20b,medium - low,bare final answer after a call,75,78,-0.04166666666666663,-0.10204081632653061,0.0,"95% bootstrap clustered by question, paired",37,37,no decision
+c,gpt-oss-20b,high - medium,following on the real call,48,158,0.03335721678210335,-0.04868242974285486,0.11857549172775711,"95% bootstrap clustered by question, paired",46,162,no decision
+c,gpt-oss-20b,high - medium,bare final answer after a call,122,129,-0.010505050505050462,-0.0726941115164148,0.052779194288628206,"95% bootstrap clustered by question, paired",75,78,no decision

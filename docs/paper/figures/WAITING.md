@@ -23,8 +23,8 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 
 ## Slide 8: Thinking dose (B17)
 
-- **Figure:** `docs/paper/figures/b17_effort.png` (.svg, .csv). **B17 read Nov 3 (F37): its data are in, the figure
-  can be drawn.** Label it "run after its one-day window (pre-registration §13)".
+- **Made Nov 3** from `results/summaries/trackB/b17_report.json`: `docs/paper/figures/b17_effort.png` (F37), to the spec
+  below, labelled "run after its one-day window (pre-registration section 13)".
 - **Shows:** one set of weights (gpt-oss-20b) at reasoning effort low, medium and high.
 - **Source:** `cot-disclosure/results/trackB/b17/b17_report.json` (`progress/run_b17.py --report`, from the flags
   copied back from Sol), exported to `results/summaries/trackB/b17_report.json`.

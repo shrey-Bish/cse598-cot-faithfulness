@@ -57,7 +57,7 @@ def png_size(path):
 
 
 def test_each_figure_writes_png_svg_and_its_table_at_16_9(tmp_path):
-    for f in (sf.fig_bare, sf.fig_levels, sf.fig_b16, sf.fig_channels, sf.fig_qwen8b):
+    for f in (sf.fig_bare, sf.fig_levels, sf.fig_b16, sf.fig_channels, sf.fig_qwen8b, sf.fig_b17):
         paths = f(out=tmp_path)
         assert [p.suffix for p in paths] == [".png", ".svg", ".csv"] and all(p.stat().st_size > 0 for p in paths)
         w, h = png_size(paths[0])
@@ -68,7 +68,7 @@ def test_each_figure_writes_png_svg_and_its_table_at_16_9(tmp_path):
 
 def test_the_waiting_spec_names_every_waiting_slide():
     text = (CODE.parent / "docs" / "paper" / "figures" / "WAITING.md").read_text()
-    for name in ("b17_effort", "readout_lora_vs_base", "c25_hops"):
+    for name in ("readout_lora_vs_base", "c25_hops"):
         assert f"`docs/paper/figures/{name}.png`" in text
         assert not (CODE.parent / "docs" / "paper" / "figures" / f"{name}.png").exists()   # a spec, not a chart
 
@@ -138,3 +138,24 @@ def test_qwen8b_rows_are_a37s_readout():
     assert q["reading"] == "replicates"
     assert [round(a[(k,)]["value"], 2) for k in ("Olmo 3 7B Think, Test 2 (F11)", "Olmo 3 7B Think, set A (F26)")] \
         == [0.90, 0.90]
+
+
+def test_b17_rows_are_the_pre_registered_readings():
+    """Slide 8 (B17, F37, Nov 3): per effort, following on the real call and the call rate (a) and the bare final
+    answer after a call (b), each X of Y with its clustered interval; (c) the contrasts, high minus low with the rule's
+    reading, the other two with no decision; every number from the tracked summary."""
+    rows = sf.b17_rows()
+    a = by([r for r in rows if r["panel"] == "a"], "measure", "arm")
+    assert [(a[("following on the real call", e)]["k"], a[("following on the real call", e)]["n"])
+            for e in ("low", "medium", "high")] == [(40, 162), (46, 162), (48, 158)]
+    assert [a[("calls the tool", e)]["k"] for e in ("low", "medium", "high")] == [37, 78, 129]
+    b = by([r for r in rows if r["panel"] == "b"], "arm")
+    assert [(b[(e,)]["k"], b[(e,)]["n"]) for e in ("low", "medium", "high")] == [(37, 37), (75, 78), (122, 129)]
+    for r in [*a.values(), *b.values()]:
+        assert r["low"] <= r["value"] <= r["high"] and r["interval"] == sf.CLUSTERED
+    c = by([r for r in rows if r["panel"] == "c"], "measure", "arm")
+    hl = c[("following on the real call", "high - low")]
+    assert round(hl["value"] * 100) == 7 and hl["reading"] == "no change detected"
+    assert c[("bare final answer after a call", "high - low")]["reading"] == "no change detected"
+    assert c[("bare final answer after a call", "medium - low")]["reading"] == "no decision"
+    assert len(c) == 6
