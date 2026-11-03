@@ -13,10 +13,21 @@ step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md
 
 ## 0. Read this first
 
-**The Sol order to the results freeze (Ritik, Nov 3).** B1, A37 and B17 are done; A38 is dropped. One queue, in this
-order: (1) A18's copy-back and reading (its jobs are done); (2) the bench of job shapes (TODO R3); (3) A39 on E2 (runs by
-Nov 15; pre-registration 2026-11-03 11:30); (4) B20 (pre-registration 2026-11-03 12:19); (5) B1R2 only if about 60
-GPU-hours remain by Nov 15. Nothing new after Nov 18. The lines are in the Nov 3 session log (11:05).
+**The Sol order to the results freeze (Ritik, Nov 3, re-planned 14:50 for the earliest finish).** The course account
+only (no other account; the H100s aren't available). B1, A37, B17 and A18 are done (A18 read Nov 3, F39); A38 is
+dropped. One queue, in this order:
+1. the 1-GPU bench (389340);
+2. A39 on E2 in 1-GPU parts, the core systems first, round-robin, then the wrapper systems (pre-registration
+   2026-11-03 11:30, §10);
+3. B20's smokes after A39's first wave, Granite first, then each model's runs (2026-11-03 12:19, §13);
+4. A39 on the 30, only if E2 and B20 finish by Nov 11 09:00;
+5. B1R2 only if Nov 8's compute check passes (the A39 log's §10).
+
+Nothing new after Nov 18. The lines, in waves: the Nov 3 session log (15:14). Keep at most 10 jobs submitted (running
+and pending, downloads included); when one ends, submit the next line. **Times** come from `squeue --start -u $USER` on
+real jobs, not `sbatch --test-only`. **`submit.sh`** (Nov 3): `--htc` lets a job of 4 hours or less start on htc as
+well as public (checked by `sbatch --test-only` first); a second download is refused unless it waits for the first
+(`--dependency=afterany:N`), since a job without a GPU still takes one of the two running slots.
 
 **Rules that apply to every step.**
 - **Dry run first.** Every script that calls a model has `--dry-run` (calls, time, nothing sent).
@@ -43,7 +54,7 @@ GPU-hours remain by Nov 15. Nothing new after Nov 18. The lines are in the Nov 3
 cd ~/Documents/Projects/ODL/cse598-cot-faithfulness
 python3 -m venv .venv && .venv/bin/pip install -r cot-disclosure/requirements.txt
 cp cot-disclosure/.env.example cot-disclosure/.env        # add RC_LLM_API_KEY (Voyager)
-cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (745 on Nov 3), no network, ~6 min
+cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (813 on Nov 3), no network, ~7 min
 ```
 **Check:** every test passes. Then install the pre-push check (page 17).
 

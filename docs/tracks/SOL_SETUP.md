@@ -137,7 +137,13 @@ The other jobs work the same way under your user; their lines and outputs are in
 | Flags | DenyOnLimit: a job whose own request is over the limit is rejected at submission |
 
 `submit.sh` sets each limit to the estimate × 1.3, refuses a job over your row's GPU-minutes or MaxWall, and
-counts your running and pending jobs (`squeue -u $USER`) before it submits.
+counts your running and pending jobs (`squeue -u $USER`) before it submits. Since Nov 3:
+- a job without a GPU counts 0 GPU-minutes, but still takes one of the two running slots;
+- only running jobs count toward the 960 GPU-minutes, as Slurm counts them;
+- a second download (`get_*`) is refused unless it waits for the first (`--dependency=afterany:N`);
+- `--htc` lets a job of 4 hours or less start on `htc` as well as `public`, after `sbatch --test-only` accepts it.
+
+Times come from `squeue --start -u $USER` on real jobs, not from `--test-only`.
 
 ## Known traps
 

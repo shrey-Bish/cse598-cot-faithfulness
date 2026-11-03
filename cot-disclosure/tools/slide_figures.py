@@ -23,6 +23,11 @@ summaries (no calls, no gitignored data). One style for every slide: 16:9, white
                     call; X of Y with 95% bootstraps clustered by question, the pre-registered high minus low in the
                     titles (the CSV also has medium minus low and high minus medium, no decision). Run after its
                     one-day window (pre-registration section 13), said on the slide
+  readout_lora_vs_base  slide 10 (A18, F39; B1, F38): (a) on base's own reasoning (its tool-hint cases at the takeover),
+                    what LoRA's weights remove of the hint's direct effect on the answer, R = TE_base - TE_X in logits,
+                    for LoRA and for base with LoRA's layers swapped in (0-14, 15/19/23, 0-23, 24-31), 95% bootstraps
+                    clustered by question; the primary's reading, the swaps reported, not read; (b) B1 at inference,
+                    each span's following minus alpha = 1 with F38's reading
   channels          the report's setup (section 2): one prompt per channel, built by tools/answer_key.build with a
                     placeholder question; the hint's text in the cue color, and who writes each turn (its CSV: the
                     turns' roles, writers and templates, no prompt text)
@@ -42,8 +47,11 @@ from pathlib import Path
 CODE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(CODE / "tools"))
+sys.path.insert(0, str(CODE / "progress"))
 
 import paper_figures as pf  # noqa: E402
+from common import boot_mean  # noqa: E402
+from finetune.gpu import provenance_job as pj  # noqa: E402
 from tools import answer_key as ak  # noqa: E402
 from paper_figures import GRID, INK, MUTED  # noqa: E402
 
@@ -236,6 +244,46 @@ def channel_rows():
 
 def level_rows():
     return [{"level": n, "where": where, "evidence": ev, "open": op} for n, where, _, ev, op in LEVELS]
+
+
+A18 = SUM / "trackA" / "gpu" / "a18"
+B1_REPORT = SUM / "trackA" / "gpu" / "provenance_gen" / "provenance_gen_report.json"
+SWAPS_A18 = (("lora", "LoRA, every layer"), ("base+lora_before", "base + LoRA's 0-14"),
+             ("base+lora_readout", "base + LoRA's 15, 19, 23"), ("base+lora_through", "base + LoRA's 0-23"),
+             ("base+lora_after", "base + LoRA's 24-31"))
+B1_SPANS = (("deployable", "tool_injected", "deployable (0.25), inserted turn"),
+            ("oracle", "all", "oracle (0.5), every hint channel"))
+
+
+def a18_rows(readout=A18 / "a18_readout.json", swap=A18 / "swap_rows.jsonl", b1=B1_REPORT):
+    """(a) base's tool-hint cases with TE_base >= the rule's 0.5: R = TE_base - TE_X per weight set (value: the mean
+    over cases, low/high: 95% bootstrap clustered by question, as A18's rule computes R_lora; n: cases); LoRA's row
+    carries the primary reading, the swaps "reported, not read"; (b) B1's two spans, following minus alpha = 1 on
+    the channel each is read on (k/n with the span, compared_k/n alpha = 1), with b1_verdict's reading."""
+    res = json.loads(Path(readout).read_text())["primary"]
+    cases = [json.loads(x) for x in Path(swap).read_text().splitlines() if x.strip()]
+    cases = [c for c in cases if c["group"] == "tool" and c["te"]["base"] >= res["min_gap"]]
+    rows = []
+    for key, arm in SWAPS_A18:
+        by_q = {}
+        for c in cases:
+            by_q.setdefault(c["item_id"], []).append(c["te"]["base"] - c["te"][key])
+        m, lo, hi = boot_mean(by_q)
+        rows.append({"panel": "a", "model": "Olmo 3 7B Think", "arm": arm, "measure": "R: removes of base's TE (logits)",
+                     "k": "", "n": len(cases), "value": m, "low": lo, "high": hi,
+                     "interval": f"{CLUSTERED} ({len(by_q)} questions)", "compared_k": "", "compared_n": "",
+                     "reading": res["reading"].split(" (")[0] if key == "lora" else "reported, not read"})
+    rep = json.loads(Path(b1).read_text())
+    for span, channel, arm in B1_SPANS:
+        v = pj.b1_verdict(rep, span, channel)
+        e, base = rep["systems"][v["system"]], rep["systems"][rep["base"]]
+        key = f"wrong_hint_following | {channel}"
+        rows.append({"panel": "b", "model": "Olmo 3 7B Think", "arm": arm, "measure": "following minus alpha = 1",
+                     "k": e[key]["k"], "n": e[key]["n"], "value": v["following"]["diff"],
+                     "low": v["following"]["interval"][0], "high": v["following"]["interval"][1],
+                     "interval": CLUSTERED + ", paired", "compared_k": base[key]["k"], "compared_n": base[key]["n"],
+                     "reading": v["reading"]})
+    return rows
 
 
 # ---------------------------------------------------------------- drawing
@@ -444,6 +492,61 @@ def fig_b17(out=OUT, report=SUM / "trackB" / "b17_report.json"):
              "decision.\nRun after its one-day window (pre-registration section 13), kept by a decision made before any "
              "result was read.", fontsize=10.5, color=MUTED, linespacing=1.35)
     paths = save(fig, "b17_effort", rows, out)
+    plt.close(fig)
+    return paths
+
+
+def fig_a18(out=OUT, readout=A18 / "a18_readout.json", swap=A18 / "swap_rows.jsonl", b1=B1_REPORT):
+    plt = style()
+    rows = a18_rows(readout, swap, b1)
+    res = json.loads(Path(readout).read_text())["primary"]
+    fig = plt.figure(figsize=SIZE)
+    gs = fig.add_gridspec(1, 2, left=0.075, right=0.975, top=0.75, bottom=0.31, wspace=0.24, width_ratios=[1.7, 1])
+    axes = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
+    a, b = [r for r in rows if r["panel"] == "a"], [r for r in rows if r["panel"] == "b"]
+    pts = lambda v: f"{v:+.0f}".replace("-", "−")  # noqa: E731
+    for ax, panel, scale in ((axes[0], a, 1), (axes[1], b, 100)):
+        ax.axhline(0, color=INK, linewidth=1)
+        for i, r in enumerate(panel):
+            c = (ROLE["damage"] if i == 0 else ROLE["cue"] if "15, 19, 23" in r["arm"] else ROLE["baseline"])
+            ax.plot([i, i], [r["low"] * scale, r["high"] * scale], color=c, linewidth=2.4, solid_capstyle="butt")
+            ax.plot(i, r["value"] * scale, "o", color=c, markersize=11, markeredgecolor=WHITE, markeredgewidth=2)
+            label = (f"{r['value']:+.2f}".replace("-", "−") if panel is a else
+                     f"{pts(r['value'] * 100)} points\n{r['k']} vs {r['compared_k']} of {r['n']}")
+            ax.annotate(label, (i, r["value"] * scale), xytext=(12, -5), textcoords="offset points", fontsize=11,
+                        color=INK, va="center")
+        ax.set_xlim(-0.5, len(panel) - 0.15)
+        ax.grid(axis="y", color=GRID)
+        ax.grid(axis="x", visible=False)
+    axes[0].set_xticks(range(len(a)), ["LoRA,\nevery layer", "LoRA's\n0–14", "LoRA's\n15, 19, 23", "LoRA's\n0–23",
+                                       "LoRA's\n24–31"])
+    axes[0].set_xlabel("weights: LoRA's on the layers shown, base's elsewhere")
+    axes[0].axvline(0.5, color=GRID, linewidth=1)
+    axes[0].text(2.5, 0.5, "layer swaps: reported, not read", ha="center", fontsize=11, color=MUTED)
+    axes[0].set_ylabel("removes of base's hint effect (logits)")
+    axes[0].set_ylim(-1.6, 0.65)
+    r0 = a[0]
+    axes[0].set_title(f"(a) LoRA's weights on base's own reasoning\nR = {r0['value']:+.2f} [{r0['low']:+.2f}, "
+                      f"{r0['high']:+.2f}]: {r0['reading']}".replace("-", "−"), loc="left", color=INK)
+    axes[1].set_xticks(range(len(b)), ["deployable (0.25)\ninserted turn", "oracle (0.5)\nevery hint channel"])
+    axes[1].set_ylabel("following minus alpha = 1 (points)")
+    axes[1].set_ylim(-35, 10)
+    axes[1].set_title("(b) B1 at inference (F38)\n" + "; ".join(f"{r['arm'].split(' (')[0]}: {r['reading']}" for r in b),
+                      loc="left", color=INK)
+    fig.text(0.075, 0.93, "Training didn't cut the readout: on base's own reasoning, LoRA's weights pull toward the "
+             "hint's letter harder, not less.", fontsize=15, color=INK)
+    fig.text(0.075, 0.885, "The change is in what LoRA writes. Scaling the readout's attention (B1) cuts following but "
+             "misses its limit.", fontsize=15, color=INK)
+    fig.text(0.075, 0.012, textwrap.fill(" ".join([
+        f"A18 (F39), pre-registered Oct 31 22:44 (cases amended Nov 1, before anything ran): base's tool-hint cases at the "
+        f"takeover with base's effect ≥ {res['min_gap']}: {res['usable']} cases, {res['questions']} questions.",
+        "TE = the hinted minus the clean logit difference (the hint's letter minus the own answer), same tokens; R = TE "
+        "under base minus TE under the weights shown; 95% bootstrap by question.",
+        f"LoRA still answers with the hint's letter in {res['lora_still_answers_W']}. The swaps' shares (the rule's next "
+        "step) are undefined when LoRA's R is below 0, so their R is shown, not read.",
+        "B1 (F38): the held-out 30, following minus alpha = 1, paired by question; the rule's acceptance limit decides "
+        "\"ignores tools\"."]), 150), fontsize=10.5, color=MUTED, linespacing=1.35)
+    paths = save(fig, "readout_lora_vs_base", rows, out)
     plt.close(fig)
     return paths
 
@@ -658,7 +761,7 @@ def fig_levels(out=OUT):
 
 
 def main():
-    for f in (fig_levels, fig_gate2, fig_bare, fig_b16, fig_qwen8b, fig_b17, fig_channels):
+    for f in (fig_levels, fig_gate2, fig_bare, fig_b16, fig_qwen8b, fig_b17, fig_a18, fig_channels):
         for p in f():
             print(p.relative_to(CODE.parent))
 

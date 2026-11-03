@@ -3,9 +3,9 @@
 *Moved here from `cot-disclosure/finetune/README.md` on Oct 30 (archive/MOVES.md). File names below are in
 `cot-disclosure/finetune/` unless a path says otherwise.*
 
-Owner: Ritik. Last updated: 2026-11-03. Steps 1–13 are done; Gate 3 was met Oct 31 (F28); open: A18 (inside the
-trained model; its Sol jobs done, not read) and A39 (the fix round on E2, 120 fresh questions). Findings:
-`docs/FINDINGS.md` (F1–F14, F20, F26–F28, F32, F36, F38). Commands for
+Owner: Ritik. Last updated: 2026-11-03. Steps 1–13 are done; Gate 3 was met Oct 31 (F28); A18 read Nov 3 (F39: training acts in the
+reasoning); open: A39 (the fix round on E2, 120 fresh questions). Findings:
+`docs/FINDINGS.md` (F1–F14, F20, F26–F28, F32, F36, F38, F39). Commands for
 every step: `docs/RUNBOOK.md`. The Sol kit: [`gpu/README.md`](../../cot-disclosure/finetune/gpu/README.md).
 
 ## The pipeline
@@ -24,7 +24,7 @@ every step: `docs/RUNBOOK.md`. The Sol kit: [`gpu/README.md`](../../cot-disclosu
 | 10 | Activation patching on Step 4's cases | Sol | done Oct 26 (F11, F13) |
 | 11 | Train LoRA only, tags only, LoRA + tags (and LoRA on 15/19/23) | Sol | done Oct 28 (F20) |
 | 12 | Generation with tags (own loop; vLLM with prompt embeddings) | Sol | done Oct 29–31 (batch 3) |
-| 13 | Evaluate base, prompt-only and the trained versions; the look-inside rerun | Sol | done Oct 31 (Gate 3, F28); the look-inside rerun is A18 (Nov 3, not read) |
+| 13 | Evaluate base, prompt-only and the trained versions; the look-inside rerun | Sol | done Oct 31 (Gate 3, F28); the look-inside rerun is A18 (read Nov 3, F39: acts in the reasoning) |
 
 Files that store full replies are gzip (`.jsonl.gz`, read and written by `progress/common.load` /
 `append`), with a small `_runs.jsonl` summary beside the big ones. All of `results/trackA/` and

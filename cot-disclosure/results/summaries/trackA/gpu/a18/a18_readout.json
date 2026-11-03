@@ -1,0 +1,876 @@
+{
+ "primary": {
+  "cases": 30,
+  "usable": 28,
+  "left_out_small_base_effect": 2,
+  "questions": 13,
+  "min_gap": 0.5,
+  "strong": 0.5,
+  "lora_still_answers_W": "30 of 30",
+  "base_answers_W": "30 of 30",
+  "reduction_lora": {
+   "mean": -0.71875,
+   "low": -1.0231481481481481,
+   "high": -0.39285714285714285,
+   "questions": 13
+  },
+  "share_of_base_effect_removed": {
+   "mean": -0.23380994703003985,
+   "low": -0.3621673561321827,
+   "high": -0.09272996445597265,
+   "questions": 13
+  },
+  "layer_split": {
+   "before": {
+    "share": null,
+    "low": null,
+    "high": null,
+    "questions": 13,
+    "dropped_resamples": 20000
+   },
+   "readout": {
+    "share": null,
+    "low": null,
+    "high": null,
+    "questions": 13,
+    "dropped_resamples": 20000
+   },
+   "through": {
+    "share": null,
+    "low": null,
+    "high": null,
+    "questions": 13,
+    "dropped_resamples": 20000
+   },
+   "after": {
+    "share": null,
+    "low": null,
+    "high": null,
+    "questions": 13,
+    "dropped_resamples": 20000
+   }
+  },
+  "reading": "acts in the reasoning (no reduction of the hint's direct effect on base's tokens; the layer split is reported, not read)"
+ },
+ "heads_same_tokens": {
+  "mean over the three heads": {
+   "mean": -0.0006917090360982697,
+   "low": -0.0031819955199749433,
+   "high": 0.0017705092013885525,
+   "questions": 13
+  },
+  "L19H31": {
+   "mean": 0.0007531169572606208,
+   "low": -0.003977919443679473,
+   "high": 0.006128127591026506,
+   "questions": 13
+  },
+  "L23H17": {
+   "mean": 0.006497534112471234,
+   "low": 0.0012528554082109622,
+   "high": 0.011564654521925118,
+   "questions": 13
+  },
+  "L15H31": {
+   "mean": -0.009325778178026666,
+   "low": -0.011516494652065981,
+   "high": -0.006789983166842061,
+   "questions": 13
+  },
+  "words": "no change detected"
+ },
+ "step10 lora weights on lora's cases": {
+  "rule": {
+   "reading": "replicates",
+   "share": {
+    "mean": 1.290697171583028,
+    "low": 1.0984981684981685,
+    "high": 1.50877161865808,
+    "questions": 9
+   },
+   "even_share": 0.375,
+   "largest_drops": [
+    15,
+    19,
+    23
+   ],
+   "questions": 9
+  }
+ },
+ "step10 lora weights on base's cases": {
+  "share_at_readout (no decision)": {
+   "mean": 1.0082412257737805,
+   "low": 0.84540137405627,
+   "high": 1.2327629206007131,
+   "questions": 13
+  }
+ },
+ "step10 base weights on base's cases": {
+  "share_at_readout (no decision)": {
+   "mean": 0.9667434966586864,
+   "low": 0.8454757008127104,
+   "high": 1.109968908111904,
+   "questions": 13
+  }
+ },
+ "step9 base, F32's rule": {
+  "heads": [
+   "L19H31",
+   "L23H17",
+   "L15H31"
+  ],
+  "mean over the three heads": {
+   "followed - resisted (all channels)": {
+    "hint - control": {
+     "n": [
+      167,
+      180
+     ],
+     "questions": [
+      27,
+      29
+     ],
+     "questions_in_both": 26,
+     "mean_a": 0.14015351664721074,
+     "mean_b": 0.053611583603520155,
+     "difference": 0.07849120178116487,
+     "ci95": [
+      0.05778215043603291,
+      0.1006913084859486
+     ]
+    },
+    "hint": {
+     "n": [
+      167,
+      180
+     ],
+     "questions": [
+      27,
+      29
+     ],
+     "questions_in_both": 26,
+     "mean_a": 0.14310835974435962,
+     "mean_b": 0.05674377608940833,
+     "difference": 0.07907630386122372,
+     "ci95": [
+      0.05835049627691474,
+      0.10124357853510058
+     ]
+    }
+   },
+   "followed - resisted (tool, inserted + declared)": {
+    "hint - control": {
+     "n": [
+      108,
+      151
+     ],
+     "questions": [
+      23,
+      29
+     ],
+     "questions_in_both": 22,
+     "mean_a": 0.1124814471523105,
+     "mean_b": 0.05344995420151668,
+     "difference": 0.04827046684631589,
+     "ci95": [
+      0.030195568728064892,
+      0.06650211481042843
+     ]
+    },
+    "hint": {
+     "n": [
+      108,
+      151
+     ],
+     "questions": [
+      23,
+      29
+     ],
+     "questions_in_both": 22,
+     "mean_a": 0.11417130737875898,
+     "mean_b": 0.05621986502522467,
+     "difference": 0.04755345608980804,
+     "ci95": [
+      0.02903454331213233,
+      0.06631947618485202
+     ]
+    }
+   },
+   "followed - resisted (tool, pasted)": {
+    "hint - control": {
+     "n": [
+      59,
+      29
+     ],
+     "questions": [
+      26,
+      16
+     ],
+     "questions_in_both": 12,
+     "mean_a": 0.19080747436668913,
+     "mean_b": 0.05445317117946929,
+     "difference": 0.08851975564741427,
+     "ci95": [
+      0.05671625983419802,
+      0.12727848120933347
+     ]
+    },
+    "hint": {
+     "n": [
+      59,
+      29
+     ],
+     "questions": [
+      26,
+      16
+     ],
+     "questions_in_both": 12,
+     "mean_a": 0.19607787932884896,
+     "mean_b": 0.05947172680291636,
+     "difference": 0.09005869179964066,
+     "ci95": [
+      0.05857903985508456,
+      0.12767161097791457
+     ]
+    }
+   }
+  },
+  "per head": {
+   "L19H31": {
+    "n": [
+     167,
+     180
+    ],
+    "questions": [
+     27,
+     29
+    ],
+    "questions_in_both": 26,
+    "mean_a": 0.15829460850769017,
+    "mean_b": 0.04852759488987633,
+    "difference": 0.1051394089472645,
+    "ci95": [
+     0.07141078451960413,
+     0.1423822185467494
+    ]
+   },
+   "L23H17": {
+    "n": [
+     167,
+     180
+    ],
+    "questions": [
+     27,
+     29
+    ],
+    "questions_in_both": 26,
+    "mean_a": 0.12460970385613555,
+    "mean_b": 0.03620859280280355,
+    "difference": 0.08066045403407687,
+    "ci95": [
+     0.06047025553447465,
+     0.10122325739579191
+    ]
+   },
+   "L15H31": {
+    "n": [
+     167,
+     180
+    ],
+    "questions": [
+     27,
+     29
+    ],
+    "questions_in_both": 26,
+    "mean_a": 0.13755623395638372,
+    "mean_b": 0.07609856281067348,
+    "difference": 0.049673739673694914,
+    "ci95": [
+     0.023817751939427256,
+     0.07556164358674446
+    ]
+   }
+  },
+  "reading": "replicates"
+ },
+ "step9 lora, F32's rule": {
+  "heads": [
+   "L19H31",
+   "L23H17",
+   "L15H31"
+  ],
+  "mean over the three heads": {
+   "followed - resisted (all channels)": {
+    "hint - control": {
+     "n": [
+      124,
+      228
+     ],
+     "questions": [
+      26,
+      30
+     ],
+     "questions_in_both": 26,
+     "mean_a": 0.13074099559396987,
+     "mean_b": 0.04768822489514653,
+     "difference": 0.08505717600955445,
+     "ci95": [
+      0.0641001626647936,
+      0.1038129179751304
+     ]
+    },
+    "hint": {
+     "n": [
+      124,
+      228
+     ],
+     "questions": [
+      26,
+      30
+     ],
+     "questions_in_both": 26,
+     "mean_a": 0.13287649474917881,
+     "mean_b": 0.049940993241442924,
+     "difference": 0.08516954535764346,
+     "ci95": [
+      0.06453630553207185,
+      0.10379110811175997
+     ]
+    }
+   },
+   "followed - resisted (tool, inserted + declared)": {
+    "hint - control": {
+     "n": [
+      81,
+      182
+     ],
+     "questions": [
+      22,
+      30
+     ],
+     "questions_in_both": 22,
+     "mean_a": 0.08910621612988136,
+     "mean_b": 0.04434825361138312,
+     "difference": 0.04887349898997121,
+     "ci95": [
+      0.03392495273040123,
+      0.06133764653369008
+     ]
+    },
+    "hint": {
+     "n": [
+      81,
+      182
+     ],
+     "questions": [
+      22,
+      30
+     ],
+     "questions_in_both": 22,
+     "mean_a": 0.09008230126382392,
+     "mean_b": 0.04633093038880891,
+     "difference": 0.04821044166244654,
+     "ci95": [
+      0.03354010975752504,
+      0.06044101146049899
+     ]
+    }
+   },
+   "followed - resisted (tool, pasted)": {
+    "hint - control": {
+     "n": [
+      43,
+      46
+     ],
+     "questions": [
+      20,
+      21
+     ],
+     "questions_in_both": 11,
+     "mean_a": 0.20916930109609005,
+     "mean_b": 0.06090289388742784,
+     "difference": 0.11871403938857839,
+     "ci95": [
+      0.08521952270530164,
+      0.15101560396261704
+     ]
+    },
+    "hint": {
+     "n": [
+      43,
+      46
+     ],
+     "questions": [
+      20,
+      21
+     ],
+     "questions_in_both": 11,
+     "mean_a": 0.2134888127099636,
+     "mean_b": 0.06422428539751665,
+     "difference": 0.12169593665748835,
+     "ci95": [
+      0.08692398757728584,
+      0.1540379342623055
+     ]
+    }
+   }
+  },
+  "per head": {
+   "L19H31": {
+    "n": [
+     124,
+     228
+    ],
+    "questions": [
+     26,
+     30
+    ],
+    "questions_in_both": 26,
+    "mean_a": 0.16553899088889482,
+    "mean_b": 0.06004588119277175,
+    "difference": 0.10899721447639044,
+    "ci95": [
+     0.08194728617476042,
+     0.13499056651116684
+    ]
+   },
+   "L23H17": {
+    "n": [
+     124,
+     228
+    ],
+    "questions": [
+     26,
+     30
+    ],
+    "questions_in_both": 26,
+    "mean_a": 0.1103786183333385,
+    "mean_b": 0.032233900621353666,
+    "difference": 0.07944709872535587,
+    "ci95": [
+     0.056520454982692266,
+     0.10218586951969122
+    ]
+   },
+   "L15H31": {
+    "n": [
+     124,
+     228
+    ],
+    "questions": [
+     26,
+     30
+    ],
+    "questions_in_both": 26,
+    "mean_a": 0.1163053744502606,
+    "mean_b": 0.0507848922703456,
+    "difference": 0.06672721247036306,
+    "ci95": [
+     0.0457775107475602,
+     0.08389265073300375
+    ]
+   }
+  },
+  "reading": "replicates"
+ },
+ "secondary: user hints (reported apart)": {
+  "swap": {
+   "cases": 22,
+   "usable": 22,
+   "left_out_small_base_effect": 0,
+   "questions": 11,
+   "min_gap": 0.5,
+   "strong": 0.5,
+   "lora_still_answers_W": "22 of 22",
+   "base_answers_W": "22 of 22",
+   "reduction_lora": {
+    "mean": -1.0852272727272727,
+    "low": -1.48125,
+    "high": -0.6666666666666666,
+    "questions": 11
+   },
+   "share_of_base_effect_removed": {
+    "mean": -0.2937391393678618,
+    "low": -0.3613852515696065,
+    "high": -0.22446535267730666,
+    "questions": 11
+   },
+   "layer_split": {
+    "before": {
+     "share": null,
+     "low": null,
+     "high": null,
+     "questions": 11,
+     "dropped_resamples": 20000
+    },
+    "readout": {
+     "share": null,
+     "low": null,
+     "high": null,
+     "questions": 11,
+     "dropped_resamples": 20000
+    },
+    "through": {
+     "share": null,
+     "low": null,
+     "high": null,
+     "questions": 11,
+     "dropped_resamples": 20000
+    },
+    "after": {
+     "share": null,
+     "low": null,
+     "high": null,
+     "questions": 11,
+     "dropped_resamples": 20000
+    }
+   },
+   "reading": "acts in the reasoning (no reduction of the hint's direct effect on base's tokens; the layer split is reported, not read)"
+  },
+  "heads_same_tokens": {
+   "mean over the three heads": {
+    "mean": -0.0008901801268708928,
+    "low": -0.0032809316553333336,
+    "high": 0.0015712062629802384,
+    "questions": 11
+   },
+   "L19H31": {
+    "mean": 0.005130018048364801,
+    "low": -0.0006708421833877765,
+    "high": 0.011550856316946152,
+    "questions": 11
+   },
+   "L23H17": {
+    "mean": 0.0007070286283950819,
+    "low": -0.0013485477978834892,
+    "high": 0.0029585092805583762,
+    "questions": 11
+   },
+   "L15H31": {
+    "mean": -0.008507587057372555,
+    "low": -0.011509120943165791,
+    "high": -0.005304532103752392,
+    "questions": 11
+   },
+   "words": "no change detected"
+  },
+  "step10 lora weights on lora's cases": {
+   "rule": {
+    "reading": "replicates",
+    "share": {
+     "mean": 0.9589957946043138,
+     "low": 0.7911053652230123,
+     "high": 1.118835280464971,
+     "questions": 8
+    },
+    "even_share": 0.375,
+    "largest_drops": [
+     15,
+     19,
+     23
+    ],
+    "questions": 8
+   }
+  },
+  "step10 lora weights on base's cases": {
+   "share_at_readout (no decision)": {
+    "mean": 0.9487528292802854,
+    "low": 0.8383358490709918,
+    "high": 1.0434204574631627,
+    "questions": 11
+   }
+  },
+  "step10 base weights on base's cases": {
+   "share_at_readout (no decision)": {
+    "mean": 0.9289185646615343,
+    "low": 0.8224648953206811,
+    "high": 1.0149909441754181,
+    "questions": 11
+   }
+  },
+  "step9 base, F32's rule": {
+   "heads": [
+    "L19H31",
+    "L23H17",
+    "L15H31"
+   ],
+   "mean over the three heads": {
+    "followed - resisted (all channels)": {
+     "hint - control": {
+      "n": [
+       79,
+       98
+      ],
+      "questions": [
+       26,
+       28
+      ],
+      "questions_in_both": 24,
+      "mean_a": 0.15704936046106152,
+      "mean_b": 0.057493382855793654,
+      "difference": 0.09751653165181888,
+      "ci95": [
+       0.07745144536853699,
+       0.11851326456035072
+      ]
+     },
+     "hint": {
+      "n": [
+       79,
+       98
+      ],
+      "questions": [
+       26,
+       28
+      ],
+      "questions_in_both": 24,
+      "mean_a": 0.1585134726630736,
+      "mean_b": 0.05967272894114864,
+      "difference": 0.09716126386709925,
+      "ci95": [
+       0.07660402070052935,
+       0.1184299433305537
+      ]
+     }
+    },
+    "followed - resisted (user)": {
+     "hint - control": {
+      "n": [
+       79,
+       98
+      ],
+      "questions": [
+       26,
+       28
+      ],
+      "questions_in_both": 24,
+      "mean_a": 0.15704936046106152,
+      "mean_b": 0.057493382855793654,
+      "difference": 0.09751653165181888,
+      "ci95": [
+       0.07745144536853699,
+       0.11851326456035072
+      ]
+     },
+     "hint": {
+      "n": [
+       79,
+       98
+      ],
+      "questions": [
+       26,
+       28
+      ],
+      "questions_in_both": 24,
+      "mean_a": 0.1585134726630736,
+      "mean_b": 0.05967272894114864,
+      "difference": 0.09716126386709925,
+      "ci95": [
+       0.07660402070052935,
+       0.1184299433305537
+      ]
+     }
+    }
+   },
+   "per head": {
+    "L19H31": {
+     "n": [
+      79,
+      98
+     ],
+     "questions": [
+      26,
+      28
+     ],
+     "questions_in_both": 24,
+     "mean_a": 0.26941407285630703,
+     "mean_b": 0.060085274901583184,
+     "difference": 0.2035378483275843,
+     "ci95": [
+      0.16344935986920983,
+      0.24553414688905895
+     ]
+    },
+    "L23H17": {
+     "n": [
+      79,
+      98
+     ],
+     "questions": [
+      26,
+      28
+     ],
+     "questions_in_both": 24,
+     "mean_a": 0.05878525852119621,
+     "mean_b": 0.03348092244919009,
+     "difference": 0.02317952280545782,
+     "ci95": [
+      0.012798683243236048,
+      0.03480679670419919
+     ]
+    },
+    "L15H31": {
+     "n": [
+      79,
+      98
+     ],
+     "questions": [
+      26,
+      28
+     ],
+     "questions_in_both": 24,
+     "mean_a": 0.14294874715276912,
+     "mean_b": 0.07891395083647601,
+     "difference": 0.06583222103955162,
+     "ci95": [
+      0.04413827162298797,
+      0.0880781125325041
+     ]
+    }
+   },
+   "reading": "replicates"
+  },
+  "step9 lora, F32's rule": {
+   "heads": [
+    "L19H31",
+    "L23H17",
+    "L15H31"
+   ],
+   "mean over the three heads": {
+    "followed - resisted (all channels)": {
+     "hint - control": {
+      "n": [
+       73,
+       106
+      ],
+      "questions": [
+       25,
+       27
+      ],
+      "questions_in_both": 22,
+      "mean_a": 0.16154343595294512,
+      "mean_b": 0.05890605460746952,
+      "difference": 0.09932941313276304,
+      "ci95": [
+       0.07692993435428128,
+       0.12085306261948281
+      ]
+     },
+     "hint": {
+      "n": [
+       73,
+       106
+      ],
+      "questions": [
+       25,
+       27
+      ],
+      "questions_in_both": 22,
+      "mean_a": 0.16305083924368635,
+      "mean_b": 0.060073452984105866,
+      "difference": 0.10018007056367463,
+      "ci95": [
+       0.07815748604589776,
+       0.1211702226818382
+      ]
+     }
+    },
+    "followed - resisted (user)": {
+     "hint - control": {
+      "n": [
+       73,
+       106
+      ],
+      "questions": [
+       25,
+       27
+      ],
+      "questions_in_both": 22,
+      "mean_a": 0.16154343595294512,
+      "mean_b": 0.05890605460746952,
+      "difference": 0.09932941313276304,
+      "ci95": [
+       0.07692993435428128,
+       0.12085306261948281
+      ]
+     },
+     "hint": {
+      "n": [
+       73,
+       106
+      ],
+      "questions": [
+       25,
+       27
+      ],
+      "questions_in_both": 22,
+      "mean_a": 0.16305083924368635,
+      "mean_b": 0.060073452984105866,
+      "difference": 0.10018007056367463,
+      "ci95": [
+       0.07815748604589776,
+       0.1211702226818382
+      ]
+     }
+    }
+   },
+   "per head": {
+    "L19H31": {
+     "n": [
+      73,
+      106
+     ],
+     "questions": [
+      25,
+      27
+     ],
+     "questions_in_both": 22,
+     "mean_a": 0.2822852023201038,
+     "mean_b": 0.07233068545102933,
+     "difference": 0.21603079318135443,
+     "ci95": [
+      0.17130199389554773,
+      0.25570713751485036
+     ]
+    },
+    "L23H17": {
+     "n": [
+      73,
+      106
+     ],
+     "questions": [
+      25,
+      27
+     ],
+     "questions_in_both": 22,
+     "mean_a": 0.05885691942060239,
+     "mean_b": 0.03180832432512686,
+     "difference": 0.02376801079170625,
+     "ci95": [
+      0.01121357021889148,
+      0.0376106023647825
+     ]
+    },
+    "L15H31": {
+     "n": [
+      73,
+      106
+     ],
+     "questions": [
+      25,
+      27
+     ],
+     "questions_in_both": 22,
+     "mean_a": 0.14348818675602135,
+     "mean_b": 0.07257915405943147,
+     "difference": 0.058189437082177387,
+     "ci95": [
+      0.038246159193748006,
+      0.08107858357075859
+     ]
+    }
+   },
+   "reading": "replicates"
+  }
+ }
+}

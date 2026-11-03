@@ -1,0 +1,8 @@
+panel,model,arm,measure,k,n,value,low,high,interval,compared_k,compared_n,reading
+a,Olmo 3 7B Think,"LoRA, every layer",R: removes of base's TE (logits),,28,-0.71875,-1.0231481481481481,-0.39285714285714285,95% bootstrap clustered by question (13 questions),,,acts in the reasoning
+a,Olmo 3 7B Think,base + LoRA's 0-14,R: removes of base's TE (logits),,28,0.07366071428571429,0.009765625,0.14655172413793102,95% bootstrap clustered by question (13 questions),,,"reported, not read"
+a,Olmo 3 7B Think,"base + LoRA's 15, 19, 23",R: removes of base's TE (logits),,28,-0.013392857142857142,-0.07083333333333333,0.044642857142857144,95% bootstrap clustered by question (13 questions),,,"reported, not read"
+a,Olmo 3 7B Think,base + LoRA's 0-23,R: removes of base's TE (logits),,28,0.006696428571428571,-0.11904761904761904,0.15,95% bootstrap clustered by question (13 questions),,,"reported, not read"
+a,Olmo 3 7B Think,base + LoRA's 24-31,R: removes of base's TE (logits),,28,-0.8973214285714286,-1.0958333333333334,-0.6916666666666667,95% bootstrap clustered by question (13 questions),,,"reported, not read"
+b,Olmo 3 7B Think,"deployable (0.25), inserted turn",following minus alpha = 1,16,60,-0.16666666666666669,-0.30000000000000004,-0.033333333333333326,"95% bootstrap clustered by question, paired",26,60,ignores tools
+b,Olmo 3 7B Think,"oracle (0.5), every hint channel",following minus alpha = 1,50,120,-0.09166666666666662,-0.1916666666666667,0.008333333333333304,"95% bootstrap clustered by question, paired",61,120,no effect

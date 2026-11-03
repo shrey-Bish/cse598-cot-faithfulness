@@ -2,6 +2,7 @@
 #SBATCH -A class_cse59888883fall2026
 #SBATCH -p public
 #SBATCH -q class
+#SBATCH -N 1
 #SBATCH -G a100:4
 #SBATCH -c 32
 #SBATCH --mem=192G
@@ -11,6 +12,7 @@
 #SBATCH --signal=B:USR1@300
 # A39 (Nov 3): one system on one question set (e2 or mmlupro_30), or one part of it (resumes), in finetune/eval.py's
 # lean design: one vLLM server over the 4 GPUs (--data-parallel-size 4), 192 runs in flight; $TRACKA_OUT/a39/.
+# -N 1 (Nov 3): one server needs its 4 GPUs on one node; -G alone lets Slurm spread them over nodes.
 # 4 GPUs x 2:00 is half the class QoS's 960 running GPU-minutes, so two run at once. Submit only through submit.sh:
 #   cot-disclosure/finetune/gpu/sol/submit.sh a39 --estimate 1.5 -- base e2 1/2
 #   cot-disclosure/finetune/gpu/sol/submit.sh a39 --estimate 0.75 -- base e2 1/2 --limit 384    # the bench (R3)

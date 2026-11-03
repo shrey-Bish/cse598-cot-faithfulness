@@ -1,6 +1,6 @@
 # Slide figures waiting on a result: the specs
 
-Written Nov 1 for the final presentation map in [`docs/PLAN.md`](../../PLAN.md); updated Nov 3 (slides 4, 7, 8 and 2
+Written Nov 1 for the final presentation map in [`docs/PLAN.md`](../../PLAN.md); updated Nov 3 (slides 4, 7, 8, 2 and 10
 are made; slide 12 is drawn by Shrey). Nothing here is drawn from fake or partial numbers. Ritik's slides are added to
 `cot-disclosure/tools/slide_figures.py` in the style of `bare_after_call` (16:9, white, colors by role, X of Y on the
 bars, a CSV of every plotted number), from a numbers-only summary under `cot-disclosure/results/summaries/`. **Shrey's
@@ -41,6 +41,12 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 
 ## Slide 10: Inside the fixed model (A18, with B1)
 
+- **Made Nov 3** from `results/summaries/trackA/gpu/a18/` (`a18_readout.json`, `swap_rows.jsonl`) and B1's report:
+  `docs/paper/figures/readout_lora_vs_base.png` (F39, F38). Two departures from the spec below, both because R_lora
+  came out below 0: the middle panel's shares s(S) are undefined (their denominator is negative in every resample), so
+  panel (a) shows each swap's R beside R_lora, marked "reported, not read"; and the Sol files were copied back to
+  `results/trackA/gpu/a18/`, not `results/trackA/a18/`.
+- **The spec, as written Nov 1:**
 - **Figure:** `docs/paper/figures/readout_lora_vs_base.png` (.svg, .csv).
 - **Shows:** does LoRA's training stop the readout at layers 15, 19 and 23, or act after it? Beside it, B1 at
   inference time.

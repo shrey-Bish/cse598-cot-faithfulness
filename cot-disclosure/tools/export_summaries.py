@@ -64,6 +64,8 @@ KEEP_PATH = {             # under results/trackA/ -> under results/summaries/ (s
     "setA/step9_fixed_heads.json": "trackA/setA/step9_fixed_heads.json",    # set A, F12's three heads (F32)
     "setA/provenance_forced.json": "trackA/setA/provenance_forced.json",    # B1's forced answers and alpha (F27)
     "gpu/provenance_gen/provenance_gen_report.json": "trackA/gpu/provenance_gen/provenance_gen_report.json",  # B1 (F38)
+    "gpu/a18/a18_readout.json": "trackA/gpu/a18/a18_readout.json",          # A18's readings (finetune/look/a18.py; F39)
+    "gpu/a18/swap/swap_rows.jsonl": "trackA/gpu/a18/swap_rows.jsonl",       # A18's swap, one row a case (slide 10)
     "gpu/eval/eval_report.json": "trackA/gpu/eval/eval_report.json",        # batch 3 (F28)
     "gpu/eval/gate3.json": "trackA/gpu/eval/gate3.json",                    # finetune/gate3.py
     "gpu/eval/gate3_table.md": "trackA/gpu/eval/gate3_table.md",

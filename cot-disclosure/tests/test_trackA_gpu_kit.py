@@ -167,6 +167,7 @@ def test_every_job_script_uses_the_course_account_within_limits(script):
     gpus = [o for o in opts if o.startswith("-G ")]
     n = int(gpus[0].split(":")[1]) if gpus else 0               # Nov 3: A39 runs on 4 GPUs (the class QoS allows 4 a job)
     assert all(g.startswith("-G a100:") for g in gpus) and n in (0, 1, 4) and n * t <= 960   # the 960 running GPU-minutes
+    assert n <= 1 or "-N 1" in opts                           # Nov 3: one vLLM server over the GPUs needs them on one node
     assert "run.sh" in script.read_text() or "setup_env.sh" in script.read_text() or "setup_vllm.sh" in script.read_text()
     if "run.sh" in script.read_text():                         # Oct 29: step9 and step10 dropped set A's --items-from
         assert script.read_text().rstrip().endswith(f'run.sh {script.stem.removesuffix("_1gpu")} "$@"')   # a39_1gpu runs a39
@@ -273,19 +274,107 @@ def test_a_job_over_the_gpu_minute_limit_is_refused(tmp_path):
     assert r.returncode == 1 and "DenyOnLimit" in r.stderr and "1020 GPU-minutes" in r.stderr and not log.exists()
 
 
-def test_running_and_pending_jobs_are_counted(tmp_path):
+def test_running_jobs_count_their_gpus_and_pending_ones_are_listed(tmp_path):
+    """Nov 3: the 960 GPU-minutes cap the running jobs' remaining time x GPUs (Slurm counts no pending job), and a job
+    without a GPU (a download) counts 0. Before, it counted as 1 GPU and pending jobs were added in, so a wave of
+    1-GPU parts warned falsely."""
     env, log = fake_sbatch(tmp_path)
     fake_queue(tmp_path, env, ["101 RUNNING 5:00:00 8:00:00 gres/gpu:a100:1 2026-10-29T18:00:00"])
     r = submit(env, "step9", "--estimate", "6")                # 300 left + 480 = 780 of 960
     assert r.returncode == 0 and "total 780 of 960" in r.stdout and "WARNING" not in r.stdout
     fake_queue(tmp_path, env, ["101 RUNNING 7:00:00 8:00:00 gres/gpu:a100:1 2026-10-29T18:00:00",
-                               "102 RUNNING 6:00:00 8:00:00 N/A 2026-10-29T17:00:00"])
+                               "102 RUNNING 6:00:00 8:00:00 gres/gpu:a100:1 2026-10-29T17:00:00"])
     r = submit(env, "step9", "--estimate", "6")                # 420 + 360 + 480 = 1,260
     assert r.returncode == 0 and "both slots are taken" in r.stdout and "job 102 ends (2026-10-29T17:00:00)" in r.stdout
     assert "over the 960 GPU-minute limit by 300" in r.stdout and "about 150 min" in r.stdout
+    fake_queue(tmp_path, env, ["101 RUNNING 7:00:00 8:00:00 gres/gpu:a100:1 2026-10-29T18:00:00",
+                               "102 RUNNING 1:00:00 2:00:00 N/A 2026-10-29T12:00:00 trackB-get-b20"]
+               + [f"{i} PENDING 0:00 3:00:00 gres/gpu:a100:1 N/A trackA-a39-1gpu" for i in range(110, 117)])
+    r = submit(env, "step9", "--estimate", "6")                # 420 + 0 (no GPU) + 480 = 900; the pending not added
+    assert r.returncode == 0 and "total 900 of 960" in r.stdout and "WARNING" not in r.stdout, r.stdout
+    assert "pending 7 (1260 requested" in r.stdout and "both slots are taken (1 by a job without a GPU)" in r.stdout
     fake_queue(tmp_path, env, [f"{i} PENDING 0:00 1:00:00 N/A N/A" for i in range(10)])
     r = submit(env, "step9")
     assert r.returncode == 1 and "more than 10 jobs" in r.stdout
+
+
+def test_a_job_asking_gpus_per_job_counts_them_from_its_requested_tres(tmp_path):
+    """Nov 3: squeue's %b is the GPUs asked per node; a job asking them per job (-G, as every script here does) may
+    show N/A there, so its ReqTRES (scontrol) gives the count: A39's 4-GPU job counts 4, a download 0."""
+    env, log = fake_sbatch(tmp_path)
+    fake_queue(tmp_path, env, ["103 RUNNING 1:00:00 2:00:00 N/A 2026-11-03T18:00:00 trackA-a39",
+                               "104 RUNNING 0:30:00 2:00:00 N/A 2026-11-03T17:30:00 trackB-get-b20"])
+    (tmp_path / "bin" / "scontrol").write_text(
+        '#!/bin/bash\ncase "$*" in\n'
+        '  *103*) echo "JobId=103 JobName=trackA-a39 ReqTRES=cpu=32,mem=192G,node=1,billing=32,gres/gpu=4 '
+        'TresPerJob=gres/gpu:a100:4" ;;\n'
+        '  *104*) echo "JobId=104 JobName=trackB-get-b20 ReqTRES=cpu=4,mem=16G,node=1,billing=4" ;;\nesac\n')
+    (tmp_path / "bin" / "scontrol").chmod(0o755)
+    r = submit(env, "step9", "--estimate", "1")                # 60 x 4 + 30 x 0 + 90 (1:30) = 330
+    assert r.returncode == 0 and "running 2 (240 GPU-minutes left)" in r.stdout and "total 330 of 960" in r.stdout, r.stdout
+
+
+def fake_queue_and_jobs(tmp_path, env, lines):
+    """A fake squeue: with -j ID it prints that job's "STATE NAME" from these lines (id state left limit gres end name);
+    otherwise every line."""
+    (tmp_path / "queue.txt").write_text("".join(x + "\n" for x in lines))
+    (tmp_path / "bin" / "squeue").write_text(
+        "#!/bin/bash\nwhile [ $# -gt 0 ]; do [ \"$1\" = -j ] && { awk -v id=\"$2\" '$1 == id {print $2, $7}' "
+        + str(tmp_path / "queue.txt") + "; exit 0; }; shift; done\ncat " + str(tmp_path / "queue.txt") + "\n")
+    (tmp_path / "bin" / "squeue").chmod(0o755)
+    return env
+
+
+def test_a_second_download_waits_for_the_first(tmp_path):
+    """Nov 3: the class QoS's two running slots count jobs without a GPU too, and three B20 downloads took both. A
+    download (get_*) while another is running or pending is refused unless it waits for it (afterany), so downloads
+    hold at most one slot. Other jobs aren't affected."""
+    env, log = fake_sbatch(tmp_path)
+    fake_queue_and_jobs(tmp_path, env, ["201 RUNNING 1:00:00 2:00:00 N/A 2026-11-03T16:00:00 trackB-get-b20",
+                                        "202 PENDING 0:00 3:00:00 gres/gpu:a100:1 N/A trackA-a39-1gpu"])
+    r = submit(env, "get_b20", "--model", "gemma-4-26b-a4b-it")
+    assert r.returncode == 1 and "--dependency=afterany:201" in r.stdout and not log.exists(), r.stdout + r.stderr
+    r = submit(env, "get_b20", "--model", "gemma-4-26b-a4b-it", "--dependency=afterany:201")
+    assert r.returncode == 0 and "dependency ok: job 201" in r.stdout, r.stdout + r.stderr
+    assert "--dependency=afterany:201" in sbatch_args(log)
+    log.unlink()
+    r = submit(env, "a39_1gpu", "--estimate", "2.3", "--", "base", "e2", "1/4")      # a GPU job: not held back
+    assert r.returncode == 0 and log.exists(), r.stdout + r.stderr
+
+
+def fake_sbatch_calls(tmp_path, test_only_fails=False):
+    """A fake sbatch logging every call's arguments, one line a call; --test-only answers as Slurm does (stderr)."""
+    env, log = fake_sbatch(tmp_path)
+    calls = tmp_path / "sbatch_calls"
+    fail = ('echo "sbatch: error: Batch job submission failed: Invalid qos specification" >&2; exit 1'
+            if test_only_fails else 'echo "sbatch: Job 9 to start at 2026-11-03T16:30:00 using 8 processors on nodes '
+                                    'sg040 in partition htc" >&2; exit 0')
+    (tmp_path / "bin" / "sbatch").write_text(
+        f'#!/bin/bash\necho "$@" >> {calls}\ncase " $* " in *" --test-only "*) {fail} ;; esac\n'
+        f'echo "$@" > {log}\necho "Submitted batch job 1"\n')
+    return env, log, calls
+
+
+def test_htc_is_offered_beside_public_once_sbatch_test_only_accepts_it(tmp_path):
+    """Nov 3: --htc lets a job of 4 hours or less start on public or htc (-p public,htc), a pair accounts.conf lists;
+    sbatch --test-only must accept the same request first, else nothing is submitted. Over 4 hours: refused."""
+    env, log, calls = fake_sbatch_calls(tmp_path)
+    fake_squeue_jobs(tmp_path, {})
+    r = submit(env, "a39_1gpu", "--htc", "--estimate", "2.3", "--", "base", "e2", "1/4")
+    assert r.returncode == 0, r.stdout + r.stderr
+    first, second = calls.read_text().splitlines()
+    assert "--test-only" in first.split() and first.replace("--test-only ", "") == second
+    assert second.split()[:8] == ["-A", ACCOUNT, "-p", "public,htc", "-q", "class", "-t", "3:00:00"]
+    assert "to start at 2026-11-03T16:30:00" in r.stdout and "Submitted batch job 1" in r.stdout
+    r = submit(env, "a39_1gpu", "--htc", "--estimate", "3.5", "--", "base", "e2", "1/4")     # 4.55 h -> 5:00
+    assert r.returncode == 1 and "4 h" in r.stderr and len(calls.read_text().splitlines()) == 2
+    refused = tmp_path / "refused"
+    refused.mkdir()
+    env, log, calls = fake_sbatch_calls(refused, test_only_fails=True)
+    fake_squeue_jobs(refused, {})
+    r = submit(env, "a39_1gpu", "--htc", "--estimate", "2.3", "--", "base", "e2", "1/4")
+    assert r.returncode == 1 and "Invalid qos specification" in r.stderr and "without --htc" in r.stderr
+    assert len(calls.read_text().splitlines()) == 1 and not log.exists()
 
 
 def fake_squeue_jobs(tmp_path, jobs):
@@ -385,7 +474,8 @@ def test_only_listed_accounts(tmp_path):
     assert r.returncode == 1 and "not listed" in r.stderr and not log.exists()
     conf = (SOL / "accounts.conf").read_text()
     rows = [line.split() for line in conf.splitlines() if line.strip() and not line.startswith("#")]
-    assert rows == [[ACCOUNT, "public", "class", "960", "2", "10", "24", "4"]]
+    assert rows == [[ACCOUNT, "public", "class", "960", "2", "10", "24", "4"],
+                    [ACCOUNT, "htc", "class", "960", "2", "10", "4", "4"]]     # Nov 3: htc's 4 h, only with --htc
 
 
 @pytest.mark.parametrize("env_vars,ok", [({"SLURM_JOB_ID": "5", "SLURM_JOB_ACCOUNT": ACCOUNT}, True),

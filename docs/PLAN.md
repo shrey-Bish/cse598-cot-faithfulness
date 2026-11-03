@@ -1,7 +1,6 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-11-03 12:00 MST (the Nov 3 session: the fix's honest verdict; E2 and A39; Track B's handoff on
-Nov 6; the doc audit). History: `git log -- docs/PLAN.md`; the Oct 31 version and the per-track design notes that
+Last updated: 2026-11-03 15:11 MST (A18 read, F39; the Sol re-plan on the course account). History: `git log -- docs/PLAN.md`; the Oct 31 version and the per-track design notes that
 were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`](../archive/superseded/PLAN_2026-10-31.md). Where things are:
 - progress: [`STATUS.md`](status/STATUS.md);
 - each result, with its numbers and source: [`FINDINGS.md`](FINDINGS.md);
@@ -15,8 +14,15 @@ were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`
   and a dry run each), and Shrey runs them on Voyager from about Nov 4.
 - **Track B:** Arsha's from Nov 6 (Ritik, Nov 3: moved from Nov 3; the bundle rebuilt and sent Nov 6). B16 ran Oct 31–Nov 1 and is read (F35); B17 ran Nov 3 and is read (F37; run
   after its one-day window, pre-registration §13).
-- **Sol:** Ritik submits every job, in this order to the freeze (Ritik, Nov 3): A18's copy-back and reading; the bench
-  (R3); A39 on E2 (runs by Nov 15); B20; B1R2 only if about 60 GPU-hours remain by Nov 15 (RUNBOOK §0).
+- **Sol:** Ritik submits every job, on the course account only (no other account; the H100s aren't available), in
+  this order (Ritik, Nov 3, re-planned 14:50 for the earliest finish):
+  1. the 1-GPU bench (389340);
+  2. A39 on E2 in 1-GPU parts: the core systems first (base, prompt_only, LoRA, LoRA + note), then the wrapper systems;
+  3. B20's smokes after A39's first wave, Granite first, then its runs;
+  4. A39 on the 30, only if E2 and B20 finish by Nov 11 09:00;
+  5. B1R2 only if Nov 8's compute check passes (A39 log §10; RUNBOOK §0).
+
+  Time estimates come from `squeue --start` on real jobs, not `--test-only`.
 - **Pre-registration:** before any run, as always.
 
 **The fix, honestly (Nov 3).** LoRA cuts wrong-hint following by 10 points against base (−10 [−16, −4]) and passes Gate 3 by its rule, as do the other three trained versions. But no trained version beats the one-line instruction in the prompt (prompt_only −13 [−21, −6]; LoRA minus it +3 [−1, +8]). The source tags aren't tool-specific: they help no more on the inserted tool turn than on the pasted block (F28). B1's attention scaling cut following on the inserted turn by 17 points (−17 [−30, −3]) but missed its pre-registered acceptance limit (F38). By hand labels, LoRA's keyword false-disclosure candidates are rarely real (L4 part 1, F28). The main limit is power: 30 questions can't resolve the 5–10 point differences these comparisons turn on (B1's acceptance interval is ±13 points; Gate 3's following differences ±6 to ±7). So the fix round's next step is a bigger, fresh evaluation set fixed before any new result (E2, about 120 questions) and A39 on it (Part 4 of the Nov 3 plan). The verdicts already read on the 30 stay as they are.
@@ -35,8 +41,9 @@ were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`
        0.70 [0.60, 0.83] of the drop on MMLU-Pro and are its own top three (A37, F36: replicates).
      - Scaling the tool's attention at inference (B1, F38): a real cut in following on the inserted turn that misses
        its acceptance limit; underpowered at 30 questions; A38 dropped.
-   - Open: does training stop that readout, or act after it (A18: its Sol jobs are done, not read)? Does a provenance
-     wrapper or a combination beat the one-line instruction on 120 fresh questions (A39, E2)?
+     - Training acts in the reasoning, not on the readout (A18, F39): given base's own reasoning, LoRA's weights pull
+       toward the hint's letter harder, not less; LoRA's own following runs through the same three layers.
+   - Open: does a provenance wrapper or a combination beat the one-line instruction on 120 fresh questions (A39, E2)?
 2. **In the model's words: after a tool call, the answer stops naming its source.**
    - Known:
      - The private reasoning names the hint in 208 of 216 runs, the final answer in 8 (F3, keyword counts).
@@ -76,7 +83,7 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 |---|---|---|---|---|---|
 | 1 inside | A37 | Qwen3-8B, Steps 3 and 10: the readout on a second model; verdict by its rule | Ritik | Nov 3 | **done Nov 1** (F36): replicates; layers 21, 22, 29 (chosen on the puzzles) hold 0.70 [0.60, 0.83] on MMLU-Pro |
 | 1 inside | A30 | B1, provenance-scaled attention: the bench gate, the plan, the verdict by its rule | Ritik | Nov 4 | **done Nov 3** (F38): deployable "ignores tools" (following on the inserted turn −17 [−30, −3], acceptance −7 points), oracle "no effect" (−9 [−19, +1]) |
-| 1 inside | A18 | Inside the fixed model: Steps 9 and 10 on LoRA's evaluation runs. Does training stop the readout at 15/19/23, or act after it? Tool-hint cases only in the primary, user hints apart (amended Nov 1) | Ritik | Nov 10 | **all Sol jobs COMPLETED Nov 3**; not read |
+| 1 inside | A18 | Inside the fixed model: Steps 9 and 10 on LoRA's evaluation runs. Does training stop the readout at 15/19/23, or act after it? Tool-hint cases only in the primary, user hints apart (amended Nov 1) | Ritik | Nov 10 | **done Nov 3** (F39): "acts in the reasoning" (R_LoRA −0.72 [−1.02, −0.39]); secondaries a and b replicate; slide 10 |
 | 1 inside | A38 | STRETCH, only if B1 "works": prompt_only's note + B1 deployable, against each alone, same HF stack | Ritik | Nov 14 | **dropped Nov 3, as pre-registered:** B1's deployable span reads "ignores tools" (F38) |
 | control | B16 | Tool or authority? The answer key's authority in the user's hint, against the tool channels | Ritik; Arsha, from Nov 6 | Nov 3 | **done Nov 1** (F35): tool beyond authority for Qwen3 Instruct's call (+75) and Thinking's pasted block (+12), authority moves Olmo more than its inserted turn (−14), no difference in the other three; cross-day (T11) |
 | 2 words | B17 | Thinking dose: gpt-oss-20b on Sol at reasoning effort low, medium, high | Ritik submits; Arsha, from Nov 6 | Nov 12 | **done Nov 3** (F37): no change detected on both (following on the real call +7 [−1, +16]; bare after a call −5 [−10, 0]); run after its one-day window, kept by Ritik's decision before any result was read (§13) |
@@ -85,8 +92,8 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | 2 words | B18 | The final Track B table and one figure | Ritik; Arsha, from Nov 6 | Nov 18 | started Nov 3 (`tools/trackb_final.py`; slide 2) |
 | 2 words | B20 | Open models from new families on Sol (Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B, Granite 4.2 8B), thinking on and off | Ritik submits; Arsha, from Nov 6 | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3 |
 | 1 fix | E2 | A second, larger held-out set: 120 fresh MMLU-Pro questions from the evaluation categories | Ritik | Nov 3 | **done Nov 3** (sha256 `59c5c250…`) |
-| 1 fix | A39 | Fix round 2 on E2: the wrapper, combinations, a powered replication of Gate 3 | Ritik | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3 |
-| 1 fix | B1R2 | B1's deployable span on E2 (a labelled replication) | Ritik | Nov 15 | conditional on Sol time |
+| 1 fix | A39 | Fix round 2 on E2: the wrapper, combinations, a powered replication of Gate 3 | Ritik | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3; 1-GPU parts (amended 14:59); the bench (389340) queued |
+| 1 fix | B1R2 | B1's deployable span on E2 (a labelled replication) | Ritik | Nov 15 | decided Nov 8 09:00 from GPU-hours delivered against needed (A39 log §10) |
 | 3 agents | C19 | Is an authority claim the cue (H34)? | Shrey | Nov 7 | prepared |
 | 3 agents | C25 | Across agents (the centerpiece): solver with tool → a writer's handoff note → a decider that never sees the tool | Shrey | Nov 12 | prepared |
 | 3 agents | C20 | Pipeline vs model: a blind reviewer; a tag the system attaches; the solver's own disclosure; the checker | Shrey | Nov 15 | prepared |
@@ -101,9 +108,10 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | when | Track A (Ritik) | Track B | Track C | labels, repo, report |
 |---|---|---|---|---|
 | Oct 31–Nov 3 | A37 done (Nov 1); B1 read (Nov 3); A38 dropped; E2 and A39 pre-registered | B16, B19 done; B17 done (Nov 3) | C19, C25, C20, C26 prepared and dry-run; Shrey's workspace (Nov 3) | L3 and L4 part 1 in (Nov 3) |
-| Nov 4–7 | A18's copy-back and reading; the Sol bench; A39 on Sol | **Handoff to Arsha, Nov 6**; B20's downloads and smokes | C19 (Nov 7) | L3: settle, tighten, the fresh batch (before Nov 8) |
-| Nov 8–12 | A18's verdict (Nov 10); A39 runs | B20 runs | C25 (Nov 12) | **Gate 2 (Nov 8)** |
-| Nov 13–18 | A39 runs by Nov 15, read Nov 17; B1R2 only if it fits | B20 read (Nov 17); B18's table and figure (Nov 18) | C20 and C26 (Nov 15) | the report from Nov 10 |
+| Nov 3–5 | A18 read (Nov 3, F39); A39 on E2: the 1-GPU bench, then the core systems' 16 parts, round-robin | B20's downloads (running Nov 3); the smokes after A39's first wave, Granite first | — | — |
+| Nov 5–7 | A39 on E2: the wrapper systems' 6 parts; then A39 on the 30 (7 jobs) after B20's runs | **Handoff to Arsha, Nov 6**; B20's runs (one 1-GPU job a model, 4-hour limit) | C19 (Nov 7) | L3: settle, tighten, the fresh batch (before Nov 8) |
+| Nov 8–12 | **B1R2's decision, Nov 8 09:00** (compute only); if it fits, its runs; the 30 dropped if E2 and B20 aren't done by Nov 11 09:00 | B20's leftover runs | C25 (Nov 12) | **Gate 2 (Nov 8)** |
+| Nov 13–18 | runs end Nov 15; A39 read Nov 17 | B20 read (Nov 17); B18's table and figure (Nov 18) | C20 and C26 (Nov 15) | the report from Nov 10 |
 | Nov 18 | results freeze: all evaluation done by Nov 18, no new runs after it | | | |
 
 ## Gates
@@ -126,7 +134,8 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
   Otherwise a negative result with the analysis. All systems run on the same Sol stack (F9).
   - **Met on Oct 31** (F28): all four trained versions pass.
   - The final statement is Nov 20 (it was due Nov 22). L4 part 1 was read Nov 3 (F28: LoRA's candidates rarely real);
-    the statement waits on A18 (Nov 10) and A39's powered replication on E2 (Nov 17).
+    A18 was read Nov 3 (F39: training acts in the reasoning); the statement waits on A39's powered replication on E2
+    (Nov 17).
 
 ## Final presentation map (about 12 slides)
 
@@ -167,9 +176,9 @@ until the result arrives.
    - Figure: `cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png`.
    - Status: done; false disclosure from L4 part 1 read Nov 3 (F28: LoRA's candidates rarely real); the final statement
      Nov 20. Owner: Ritik.
-10. **Inside the fixed model.** Does training stop the readout or act after it (A18)? And B1 (A30).
-    - Figure: `docs/paper/figures/readout_lora_vs_base.png` (waiting; spec in `WAITING.md`).
-    - Status: waiting on A18 (due Nov 10); B1 read Nov 3 (F38: "ignores tools" and "no effect"). Owner: Ritik.
+10. **Inside the fixed model: training acts in the reasoning** (A18, F39). And B1 at inference (A30, F38).
+    - Figure: `docs/paper/figures/readout_lora_vs_base.png` (made Nov 3, `tools/slide_figures.py`).
+    - Status: made Nov 3 (F39: "acts in the reasoning"; F38: "ignores tools" and "no effect"). Owner: Ritik.
 11. **Level 3: reviewers defer to the trace, and the citation is the cue.** F18, F22, F24, F30, F31, F33, F34, C19.
     - Figure: `docs/paper/supplement/figures/trackC_reviewers.png` and `docs/paper/figures/reviewer_by_prompt.png`.
     - Status: done; C19 due Nov 7. Owner: Shrey.

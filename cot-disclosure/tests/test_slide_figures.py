@@ -6,6 +6,8 @@ import struct
 import sys
 from pathlib import Path
 
+import pytest
+
 CODE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CODE / "tools"))
 
@@ -57,7 +59,7 @@ def png_size(path):
 
 
 def test_each_figure_writes_png_svg_and_its_table_at_16_9(tmp_path):
-    for f in (sf.fig_bare, sf.fig_levels, sf.fig_b16, sf.fig_channels, sf.fig_qwen8b, sf.fig_b17, sf.fig_gate2):
+    for f in (sf.fig_bare, sf.fig_levels, sf.fig_b16, sf.fig_channels, sf.fig_qwen8b, sf.fig_b17, sf.fig_gate2, sf.fig_a18):
         paths = f(out=tmp_path)
         assert [p.suffix for p in paths] == [".png", ".svg", ".csv"] and all(p.stat().st_size > 0 for p in paths)
         w, h = png_size(paths[0])
@@ -68,7 +70,7 @@ def test_each_figure_writes_png_svg_and_its_table_at_16_9(tmp_path):
 
 def test_the_waiting_spec_names_every_waiting_slide():
     text = (CODE.parent / "docs" / "paper" / "figures" / "WAITING.md").read_text()
-    for name in ("readout_lora_vs_base", "c25_hops"):
+    for name in ("c25_hops",):                                   # slide 10 (readout_lora_vs_base) made Nov 3
         assert f"`docs/paper/figures/{name}.png`" in text
         assert not (CODE.parent / "docs" / "paper" / "figures" / f"{name}.png").exists()   # a spec, not a chart
 
@@ -159,3 +161,26 @@ def test_b17_rows_are_the_pre_registered_readings():
     assert c[("bare final answer after a call", "high - low")]["reading"] == "no change detected"
     assert c[("bare final answer after a call", "medium - low")]["reading"] == "no decision"
     assert len(c) == 6
+
+
+def test_a18_rows_are_the_pre_registered_readings():
+    """Slide 10 (A18, F39, Nov 3): (a) on base's tool-hint cases, R = TE_base - TE_X for LoRA (the primary, "acts in
+    the reasoning") and the four layer swaps (reported, not read: the rule's shares are undefined when R_lora < 0),
+    each with its 95% bootstrap clustered by question; (b) B1's spans minus alpha = 1 with F38's readings."""
+    rows = sf.a18_rows()
+    a = by([r for r in rows if r["panel"] == "a"], "arm")
+    lora = a[("LoRA, every layer",)]
+    readout = json.loads((SUM / "trackA" / "gpu" / "a18" / "a18_readout.json").read_text())["primary"]
+    assert (lora["value"], lora["low"], lora["high"]) == pytest.approx(
+        (readout["reduction_lora"]["mean"], readout["reduction_lora"]["low"], readout["reduction_lora"]["high"]))
+    assert round(lora["value"], 2) == -0.72 and lora["high"] < 0 and lora["reading"].startswith("acts in the reasoning")
+    assert lora["n"] == 28 and "13 questions" in lora["interval"]
+    swaps = [a[(s,)] for s in ("base + LoRA's 0-14", "base + LoRA's 15, 19, 23", "base + LoRA's 0-23",
+                               "base + LoRA's 24-31")]
+    assert [round(r["value"], 2) for r in swaps] == [0.07, -0.01, 0.01, -0.9]
+    assert all(r["reading"] == "reported, not read" and r["low"] <= r["value"] <= r["high"] for r in swaps)
+    b = by([r for r in rows if r["panel"] == "b"], "arm")
+    dep, ora = b[("deployable (0.25), inserted turn",)], b[("oracle (0.5), every hint channel",)]
+    assert (dep["k"], dep["n"], dep["compared_k"], dep["compared_n"]) == (16, 60, 26, 60) and dep["reading"] == "ignores tools"
+    assert round(dep["value"] * 100) == -17 and round(ora["value"] * 100) == -9 and ora["reading"] == "no effect"
+

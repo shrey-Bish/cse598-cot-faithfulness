@@ -59,7 +59,9 @@ Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
    - B1's alpha from set A (F27): 0.25 deployable, 0.5 oracle.
    - Hand labels (L4 part 1, F28): LoRA's false-disclosure candidates are rarely real.
    - B1's generation (F38): a real cut on the inserted turn that misses its acceptance limit; underpowered.
-   - **Missing:** A18 (inside the trained model); A39 on E2.
+   - Inside the fixed model (A18, F39): training acts in the reasoning; on base's own reasoning, LoRA's weights pull
+     toward the hint's letter harder, not less, and LoRA's own following runs through the same readout.
+   - **Missing:** A39 on E2.
 7. **Related work** ([`RELATED_WORK.md`](RELATED_WORK.md)): CoT faithfulness; patching; ITI and PASTA;
    instruction hierarchy, ISE, StruQ and SecAlign; knowledge conflicts.
 8. **Limitations**

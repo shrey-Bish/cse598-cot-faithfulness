@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-03 12:00 (the doc audit). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-03 15:09 (A18 read: F39). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -100,6 +100,10 @@ the session logs. Design and plans:
    underpowered at 30 questions.** Scaling every hint span shows no effect (−9 [−19, +1]). A replication that could
    resolve the limit needs about 107 to 245 fresh questions (53 to 122 GPU-hours); 35 GPU-hours fit 70, so it isn't
    run (B1R). A38 (the instruction with the span) isn't run either.
+   **Inside the fixed model (A18, F39): training acts in the reasoning, not on the readout.** Given base's own
+   reasoning, LoRA's weights pull the answer toward the hint's letter harder, not less (−0.72 logits [−1.02, −0.39]
+   removed; the hint's letter in 30 of 30 cases); when LoRA follows, it is through the same three layers, and F12's
+   heads still separate its followed runs from its resisted ones. What training changed is the reasoning LoRA writes.
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
@@ -2176,6 +2180,49 @@ log, Nov 3 09:30).
 following on the inserted turn (−17 [−30, −3], *confirmed*) that misses its pre-registered acceptance limit (−7
 points against 5: a point estimate on 2 of 30 runs, *tentative*); underpowered at 30 questions.** A38 and B1R are
 not run.
+
+## F39. Track A (A18): inside the fixed model, training acts in the reasoning: on base's own reasoning, LoRA's weights pull toward the hint's letter harder, not less, and LoRA's own following still runs through the readout
+
+**Setup.**
+- **The question** (pre-registered Oct 31 22:44; cases amended Nov 1, before anything ran): Gate 3's LoRA follows fewer
+  wrong hints (F28). Does training **stop the readout** at layers 15, 19 and 23, **act after it**, or **act in the
+  reasoning** (the trained weights read the hint as base does on base's tokens)?
+- **Runs:** batch 3's evaluation runs of base and LoRA on the held-out 30 (Olmo 3 7B Think). Step 10's rule picks the
+  cases: followed runs on sure questions with a late takeover, at most 3 per question (seed 0), tool hints (the pasted
+  block and the inserted turn) for the primary, user hints apart.
+- **The swap:** on base's cases at the takeover, the hint's direct effect TE (hinted minus clean logit difference, the
+  hint's letter minus the own answer, on the same tokens) under base, LoRA, and base with LoRA's decoder layers swapped
+  in for 0–14, 15/19/23, 0–23 or 24–31. **R_X = TE_base − TE_X.** 95% bootstraps clustered by question.
+- **Rule:** R_LoRA's interval above 0, else "acts in the reasoning" (the layer split reported, not read); then the
+  shares s(S) place it.
+- **Sol:** Steps 3, 9 and 10 and the swap, 11 jobs (334084–334115, 378041–378053), all completed; copied back Nov 3.
+
+**Result: "acts in the reasoning".**
+
+| reading | numbers | rule's reading |
+|---|---|---|
+| **primary:** R_LoRA on base's tool-hint cases | **−0.72 logits [−1.02, −0.39]**; 28 cases, 13 questions; LoRA still answers the hint's letter in 30 of 30 | **acts in the reasoning** |
+| a: LoRA's own cases under LoRA, set A's rule | share at 15/19/23: 1.29 [1.10, 1.51], the three largest drops; 9 questions | **replicates** |
+| b: F12's heads, followed minus resisted (F32's rule) | base +0.078 [+0.058, +0.101]; LoRA +0.085 [+0.064, +0.104]; 26 questions each | **replicates** in both |
+
+- **Reported, not read:** the swaps' R (the rule's shares are undefined when R_LoRA is below 0): LoRA's 0–14 +0.07
+  [+0.01, +0.15], 15/19/23 −0.01 [−0.07, +0.04], 0–23 +0.01 [−0.12, +0.15], 24–31 −0.90 [−1.10, −0.69]. F12's heads
+  on the same tokens, LoRA minus base: −0.001 [−0.003, +0.002], no change detected. The readout's share under LoRA on
+  base's cases 1.01 [0.85, 1.23], beside base's 0.97 [0.85, 1.11].
+- **User hints, apart:** the same pattern (R_LoRA −1.09 [−1.48, −0.67], 11 questions; LoRA's own cases 0.96 [0.79,
+  1.12]; F32's numbers +0.098 and +0.099).
+
+**What limits the reading.** The cases are base's followed runs, so the swap asks what LoRA's weights do with base's
+reasoning, not why LoRA's own runs went elsewhere. One trained version; 13 questions; the forced answer is
+off-distribution. The rule named "acts in the reasoning" for no reduction; R below 0 (more pull) rests on its interval
+alone, on these tokens.
+
+**Source.** `cot-disclosure/results/summaries/trackA/gpu/a18/a18_readout.json` and `swap_rows.jsonl`; recomputed with
+`python finetune/look/a18.py readout results/trackA/gpu/a18` (the session log, Nov 3 15:09). Slide 10:
+`docs/paper/figures/readout_lora_vs_base.png` (`tools/slide_figures.py`).
+
+**Status.** *Confirmed* by the rule: **acts in the reasoning**; secondaries a and b **replicate**. In plain terms:
+training didn't cut the readout or discount the letter after it; what changed is the reasoning LoRA writes.
 
 ## Measurement traps we hit and fixed
 

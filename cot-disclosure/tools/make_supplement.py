@@ -906,9 +906,12 @@ PREREG = [
              "readout / acts after the readout / either half suffices / acts in the reasoning / unclear, by the share "
              "of LoRA's reduction each swap recovers",
      "rule_log": "2026-10-31_2244_A_a18-prereg.md", "rule_check": ["stops the readout", "acts in the reasoning"],
-     "f_title": r"\(A18\)", "result_glob": ["*a18-results*"],
-     "verdict": "waiting: prepared, amended Nov 1 (tool hints only in the primary), not submitted",
-     "verdict_check": []},
+     "f_title": r"\(A18\)", "result_glob": ["*a18-reading*"],
+     "verdict": "acts in the reasoning: on base's tool-hint cases LoRA's weights add to the hint's pull (R_LoRA −0.72 "
+                "[−1.02, −0.39]); secondaries a (set A's rule) and b (F32's rule) replicate",
+     "verdict_check": ["acts in the reasoning", "−0.72 logits [−1.02, −0.39]", "replicates"],
+     "after": ["the layer swaps' R, shown because the rule's shares are undefined when R_LoRA is below 0: a "
+               "presentation chosen after seeing the result, not read (the extra pull comes with LoRA's layers 24–31)"]},
     {"id": "a38", "track": "A", "experiment": "A38 (stretch): the one-line note and B1 deployable together, against "
                                               "each alone", "kind": "pre",
      "rule": "the combination minus each alone, paired by question, the inserted tool turn: adds to both / adds, costs "
@@ -933,14 +936,17 @@ PREREG = [
              "combination against each of its parts by A38's reading; R4 the wrapper on the inserted turn by B1's rule; "
              "the 30 reported beside it",
      "rule_log": "2026-11-03_1130_A_e2-a39-prereg.md", "rule_check": ["powered replication of Gate 3", "R4, the wrapper"],
-     "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: pre-registered Nov 3, code ready, "
-     "not submitted", "verdict_check": []},
+     "rule_extra": [("the amendment, section 10 (job shapes, the 30's and B1R2's decisions)", "9fc52d6")],
+     "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: pre-registered and amended Nov 3; "
+     "the 1-GPU bench (389340) queued", "verdict_check": []},
     {"id": "b1r2", "track": "A", "experiment": "B1R2: B1's deployable span on E2 (a labelled replication; only if Sol "
                                                "has room by Nov 15)", "kind": "pre",
      "rule": "alpha 0.25 against alpha = 1 on E2's inserted tool turn, by B1's rule (b1_verdict) unchanged; B1's verdict "
              "(F38) stays primary",
      "rule_log": "2026-11-03_1130_A_e2-a39-prereg.md", "rule_check": ["B1R2: B1's deployable span on E2"],
-     "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "waiting: conditional on Sol time",
+     "rule_extra": [("its decision rule, section 10 (Nov 8 09:00, compute only)", "9fc52d6")],
+     "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "waiting: decided Nov 8 09:00 from Sol "
+     "time",
      "verdict_check": []},
     {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
      "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "

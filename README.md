@@ -38,9 +38,10 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    keyword false-disclosure candidates are rarely real: most say the hint shaped the answer (L4 part 1, F28).
    Inference-time attention scaling (B1, F38) makes a real cut in following on the inserted tool turn that misses
    its pre-registered acceptance limit ("ignores tools"), underpowered at 30 questions; a replication that could
-   settle it needs more than the budget, so neither it nor A38 is run. A18's Sol jobs (inside the trained model) have
-   finished and its reading is next; A39 tests a provenance wrapper and combinations on E2, 120 fresh questions (B1's
-   replication there, B1R2, runs only if Sol has room by Nov 15).
+   settle it needs more than the budget, so neither it nor A38 is run. Inside the trained model (A18, F39), training
+   acts in the reasoning, not on the readout: given base's own reasoning, LoRA's weights pull toward the hint's letter
+   harder, not less, and when LoRA follows it is through the same three layers. A39 tests a provenance wrapper and
+   combinations on E2, 120 fresh questions (B1's replication there, B1R2, runs only if Sol has room by Nov 15).
 
 ## Read this first
 

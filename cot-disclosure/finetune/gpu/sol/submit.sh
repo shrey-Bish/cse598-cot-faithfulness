@@ -14,9 +14,15 @@
 # own request is over it. So, for a job in the account's QoS:
 #   --estimate H   the time limit becomes H x 1.3, rounded up to the next 30 minutes (else the script's -t)
 #   refused here first: a limit x GPUs over the QoS's GPU-minutes, or over its MaxWall
-#   before submitting: this job's GPU-minutes + the remaining GPU-minutes of your running jobs and the
-#   requested GPU-minutes of your pending ones in that QoS (squeue); over the limit: a warning, and
-#   when the job can start; both slots taken: when the second slot frees up
+#   before submitting: this job's GPU-minutes + the remaining GPU-minutes of your running jobs in that
+#   QoS (squeue; a job's GPUs from %b, else its ReqTRES, and a job without a GPU counts 0; pending jobs
+#   are listed, not added, since Slurm counts a job only once it runs: Nov 3); over the limit: a
+#   warning, and when the job can start; both slots taken: when the second slot frees up (jobs without
+#   a GPU take slots too)
+#   a download (get_*) while another is running or pending: refused unless it waits for it
+#   (--dependency=afterany:N), so downloads hold at most one of the two running slots (Nov 3)
+#   --htc   the job may also start on htc (-p public,htc; Nov 3): its limit 4 h or less (htc's row in
+#   accounts.conf), and sbatch --test-only must accept the same request first
 #
 # The job script's partition and QoS must be a pair accounts.conf lists for the account (Oct 28: the
 # course account has only the class QoS; "-q public" was rejected by sbatch); else refused here, before
@@ -48,11 +54,12 @@ script="$HERE/$job.sbatch"
 [ -f "$script" ] || { echo "no such job script: $script" >&2; exit 2; }
 
 b20_models="gemma-4-26b-a4b-it nemotron-3-nano-30b-a3b granite-4.2-8b"   # progress/run_b20.py MODELS (tested)
-estimate="" sb=() jobargs=() model=""
+estimate="" sb=() jobargs=() model="" htc=0
 while [ $# -gt 0 ]; do
     case "$1" in
         --estimate) estimate=${2:?--estimate needs hours}; shift 2 ;;
         --estimate=*) estimate=${1#*=}; shift ;;
+        --htc) htc=1; shift ;;
         --model|--model=*)                   # B20's kinds only; any other job passes it on to sbatch, as before
             if [ "$job" != b20 ] && [ "$job" != get_b20 ]; then sb+=("$1"); shift
             elif [ "$1" = --model ]; then model=${2:?--model needs a name}; shift 2
@@ -142,6 +149,31 @@ else
 fi
 limit=$(printf '%d:%02d:00' $((limit_min / 60)) $((limit_min % 60)))
 need=$((limit_min * gpus))
+if [ "$htc" = 1 ]; then                       # Nov 3: may also start on htc (4 h), checked by sbatch --test-only below
+    htc_row=$(printf '%s\n' "$rows" | awk -v q="$QOS" '$1 == "htc" && $2 == q' | head -1)
+    if [ -z "$htc_row" ]; then
+        echo "refusing: --htc, but $TRACKA_ACCOUNTS_NAME lists no htc row for $ACCOUNT's $QOS QoS. Nothing was submitted." >&2
+        exit 1
+    fi
+    htc_wall=$(echo "$htc_row" | awk '{print $6}')
+    if [ "$limit_min" -gt $((htc_wall * 60)) ]; then
+        echo "refusing: --htc with a $limit limit, over htc's $htc_wall h; ask for less (the job resumes), or submit without --htc." \
+             "Nothing was submitted." >&2
+        exit 1
+    fi
+    override=(-p "$PARTITION,htc" -q "$QOS")
+fi
+dl=0 dl_names=""                              # Nov 3: a download takes one of the two running slots, like any job
+case "$job" in get_*) dl=1 ;; esac
+for f in "$HERE"/get_*.sbatch; do dl_names="$dl_names $(opt '(-J|--job-name)' "$f")"; done
+deps=""
+for ((i = 0; i < ${#sb[@]}; i++)); do
+    case "${sb[$i]}" in
+        --dependency=*|-d=*) deps=${sb[$i]#*=} ;;
+        --dependency|-d) deps=${sb[$((i + 1))]:-} ;;
+        -d*) deps=${sb[$i]#-d} ;;
+    esac
+done
 
 if true; then                                 # always a listed QoS (checked above)
     if [ "$limit_min" -gt $((MAX_WALL_H * 60)) ]; then
@@ -153,21 +185,40 @@ if true; then                                 # always a listed QoS (checked abo
              "(DenyOnLimit would reject it at submission). Ask for less time: the job resumes from its checkpoint." >&2
         exit 1
     fi
-    if command -v squeue >/dev/null 2>&1 && queue=$(squeue -h -u "${USER:-$(id -un)}" --qos="$QOS" -o "%i %T %L %l %b %e"); then
+    if command -v squeue >/dev/null 2>&1 && queue=$(squeue -h -u "${USER:-$(id -un)}" --qos="$QOS" -o "%i %T %L %l %b %e %j"); then
+        # %b is the GPUs asked per node; a job asking them per job (-G, as every script here) may show N/A: its ReqTRES has them
+        queue=$(printf '%s\n' "$queue" | while read -r id st left lim gres end name; do
+            [ -n "$id" ] || continue
+            if [[ "$gres" != *gpu* ]] && command -v scontrol >/dev/null 2>&1; then
+                t=$(scontrol show job -o "$id" 2>/dev/null | grep -oE 'gres/gpu(:[A-Za-z0-9_]+)?=[0-9]+' | head -1 || true)
+                gres=${t:-$gres}
+            fi
+            echo "$id $st $left $lim $gres $end $name"
+        done)
         printf '%s\n' "$queue" | awk -v need="$need" -v cap="$GPU_RUN_MIN" \
-            -v maxjobs="$MAX_JOBS" -v maxsub="$MAX_SUBMIT" -v limit="$limit" -v gpus="$gpus" '
+            -v maxjobs="$MAX_JOBS" -v maxsub="$MAX_SUBMIT" -v limit="$limit" -v gpus="$gpus" \
+            -v dl="$dl" -v dlnames="$dl_names" -v deps="$deps" '
+            BEGIN { n = split(dlnames, a, " "); for (i = 1; i <= n; i++) dlname[a[i]] = 1
+                    n = split(deps, a, /[^0-9]+/); for (i = 1; i <= n; i++) if (a[i] != "") dep[a[i]] = 1 }
             function mins(t,   a, d, n) { if (t !~ /^[0-9]/) return 0; d = 0
                 if (index(t, "-")) { split(t, a, "-"); d = a[1]; t = a[2] }
                 n = split(t, a, ":"); return d * 1440 + (n == 3 ? a[1] * 60 + a[2] + a[3] / 60 : n == 2 ? a[1] + a[2] / 60 : a[1]) }
-            function ngpu(g,   a, n) { if (g !~ /gpu/) return 1; n = split(g, a, ":"); return (a[n] ~ /^[0-9]+$/) ? a[n] : 1 }
-            $2 == "RUNNING" { g = ngpu($5); used += mins($3) * g; rate += g; running++
+            function ngpu(g,   a, b, n, m, i) { n = split(g, a, ",")     # gres/gpu:a100:4, gres/gpu=4, gpu:1; none: 0
+                for (i = 1; i <= n; i++) if (a[i] ~ /gpu/) { m = split(a[i], b, /[:=]/); return (b[m] ~ /^[0-9]+$/) ? b[m] : 1 }
+                return 0 }
+            $2 == "RUNNING" { g = ngpu($5); used += mins($3) * g; rate += g; running++; nogpu += (g == 0)
                               if (first == "" || $6 < first) { first = $6; firstid = $1 } }
             $2 == "PENDING" { pend += mins($4) * ngpu($5); pending++ }
-            END { total = used + pend + need
-                printf "QoS check: this job %s x %d GPU = %d GPU-minutes; running %d (%d GPU-minutes left), pending %d (%d requested); total %d of %d\n",
+            dl && ($2 == "RUNNING" || $2 == "PENDING") && ($7 in dlname) && !($1 in dep) {
+                held = held (held == "" ? "" : ":") $1; heldinfo = heldinfo (heldinfo == "" ? "" : ", ") $1 " (" $7 ", " $2 ")" }
+            END { total = used + need
+                printf "QoS check: this job %s x %d GPU = %d GPU-minutes; running %d (%d GPU-minutes left), pending %d (%d requested, counted once they run); total %d of %d\n",
                        limit, gpus, need, running, used, pending, pend, total, cap
                 if (running + pending + 1 > maxsub) { print "refusing: you would have more than " maxsub " jobs in the QoS"; exit 3 }
-                if (running >= maxjobs) printf "both slots are taken: the second slot frees up when job %s ends (%s)\n", firstid, first
+                if (held != "") { printf "refusing: download job %s is running or pending; a second download waits for it, so downloads hold at most one of your %d running slots: add --dependency=afterany:%s. Nothing was submitted.\n",
+                                         heldinfo, maxjobs, held; exit 4 }
+                if (running >= maxjobs) printf "both slots are taken%s: the second slot frees up when job %s ends (%s)\n",
+                                               (nogpu ? " (" nogpu " by a job without a GPU)" : ""), firstid, first
                 if (total > cap) {
                     printf "WARNING: over the %d GPU-minute limit by %d: the job waits", cap, total - cap
                     if (rate > 0) printf " about %d min, until the running jobs have used that much of their time", (total - cap) / rate + 0.999
@@ -192,16 +243,9 @@ depends_on() {          # the job kinds each job may wait for (plain case: works
         a18) echo "a18" ;;                                           # A18: Step 10, the swap, Step 9 after Step 3 (Oct 31)
         b20) echo "get_b20 b20" ;;                                   # B20: after its snapshot, or its smoke job (Nov 3)
         a39|a39_1gpu) echo "setup_vllm vllm_check a39 a39_1gpu" ;;     # A39: after vLLM's setup, or the bench (Nov 3)
+        get_*) echo "get_b20 get_c13 get_gptoss get_qwen8b" ;;       # a download after another (one slot at most; Nov 3)
     esac
 }
-deps=""
-for ((i = 0; i < ${#sb[@]}; i++)); do
-    case "${sb[$i]}" in
-        --dependency=*|-d=*) deps=${sb[$i]#*=} ;;
-        --dependency|-d) deps=${sb[$((i + 1))]:-} ;;
-        -d*) deps=${sb[$i]#-d} ;;
-    esac
-done
 if [ -n "$deps" ]; then
     kinds=$(depends_on "$job")
     [ -n "$kinds" ] || { echo "refusing: $job waits for no other job; drop --dependency" >&2; exit 1; }
@@ -228,6 +272,15 @@ unset SBATCH_ACCOUNT SLURM_ACCOUNT
 mkdir -p "${TRACKA_SLURM_LOGS:-/scratch/${USER:-$(id -un)}/trackA/slurm}"   # the scripts' -o directory (/scratch/%u/...)
 cd "$REPO"                                   # the job starts here ($SLURM_SUBMIT_DIR)
 trap - ERR
+if [ "$htc" = 1 ]; then
+    if ! tout=$(sbatch --test-only -A "$ACCOUNT" "${override[@]}" -t "$limit" ${sb[@]+"${sb[@]}"} "$script" \
+                ${jobargs[@]+"${jobargs[@]}"} 2>&1); then
+        echo "refusing: sbatch --test-only rejected -p $PARTITION,htc: ${tout:-no message}. Submit without --htc." \
+             "Nothing was submitted." >&2
+        exit 1
+    fi
+    echo "htc check (sbatch --test-only): $tout"
+fi
 if ! out=$(sbatch -A "$ACCOUNT" ${override[@]+"${override[@]}"} -t "$limit" ${sb[@]+"${sb[@]}"} "$script" \
            ${jobargs[@]+"${jobargs[@]}"} 2>&1); then
     echo "sbatch refused the job: ${out:-no message}" >&2
