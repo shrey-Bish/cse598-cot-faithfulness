@@ -25,6 +25,8 @@ below the gates are unchanged from it apart from their dates. Where things are:
   Qwen3-8B's Steps 3 and 10 (queued); B17; A18; A38 only if B1 works (RUNBOOK §0).
 - **Pre-registration:** before any run, as always.
 
+**The fix, honestly (Nov 3).** LoRA cuts wrong-hint following by 10 points against base (−10 [−16, −4]) and passes Gate 3 by its rule, as do the other three trained versions. But no trained version beats the one-line instruction in the prompt (prompt_only −13 [−21, −6]; LoRA minus it +3 [−1, +8]). The source tags aren't tool-specific: they help no more on the inserted tool turn than on the pasted block (F28). B1's attention scaling cut following on the inserted turn by 17 points (−17 [−30, −3]) but missed its pre-registered acceptance limit (F38). By hand labels, LoRA's keyword false-disclosure candidates are rarely real (L4 part 1, F28). The main limit is power: 30 questions can't resolve the 5–10 point differences these comparisons turn on (B1's acceptance interval is ±13 points; Gate 3's following differences ±6 to ±7). So the fix round's next step is a bigger, fresh evaluation set fixed before any new result (E2, about 120 questions) and A39 on it (Part 4 of the Nov 3 plan). The verdicts already read on the 30 stay as they are.
+
 ## The story: "Where did that answer come from?"
 
 **A tool's influence loses its source at three levels.**
