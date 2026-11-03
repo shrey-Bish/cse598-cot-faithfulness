@@ -1,0 +1,26 @@
+{
+ "ok": true,
+ "checks": {
+  "all ran": true,
+  "answered": true,
+  "parse": true,
+  "tool path ran": true,
+  "effort reaches the model": true
+ },
+ "jobs": 15,
+ "ran": 15,
+ "status_ok": 15,
+ "statuses": {
+  "ok": 15
+ },
+ "tool_real_called": 1,
+ "tool_real": 3,
+ "answered": 15,
+ "unparsed": 0,
+ "cut_off": 0,
+ "median_output_tokens": {
+  "low": 494,
+  "medium": 1453,
+  "high": 7071
+ }
+}

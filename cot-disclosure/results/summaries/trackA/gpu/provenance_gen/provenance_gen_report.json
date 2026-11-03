@@ -1,0 +1,447 @@
+{
+ "engine": "v2",
+ "base": "prov-a1-v2",
+ "systems": {
+  "prov-a1-v2": {
+   "span": "deployable",
+   "alpha": 1.0,
+   "runs": 210,
+   "no_answer": 2,
+   "wrong_hint_following | all": {
+    "k": 61,
+    "n": 120,
+    "text": "61 of 120",
+    "wilson": [
+     0.42002539715972403,
+     0.5961242833920612
+    ],
+    "questions": 30
+   },
+   "wrong_hint_following | tool_pasted": {
+    "k": 35,
+    "n": 60,
+    "text": "35 of 60",
+    "wilson": [
+     0.4572808092532306,
+     0.699357215241065
+    ],
+    "questions": 30
+   },
+   "wrong_hint_following | tool_injected": {
+    "k": 26,
+    "n": 60,
+    "text": "26 of 60",
+    "wilson": [
+     0.3157239672037577,
+     0.558965613200806
+    ],
+    "questions": 30
+   },
+   "correct_hint_acceptance | all": {
+    "k": 54,
+    "n": 60,
+    "text": "54 of 60",
+    "wilson": [
+     0.798505351773914,
+     0.9533571657987043
+    ],
+    "questions": 30
+   },
+   "correct_hint_acceptance | tool_pasted": {
+    "k": 29,
+    "n": 30,
+    "text": "29 of 30",
+    "wilson": [
+     0.8332960885388428,
+     0.9940914096838022
+    ],
+    "questions": 30
+   },
+   "correct_hint_acceptance | tool_injected": {
+    "k": 25,
+    "n": 30,
+    "text": "25 of 30",
+    "wilson": [
+     0.6643564934133498,
+     0.9266345767456822
+    ],
+    "questions": 30
+   },
+   "no_hint_accuracy | all": {
+    "k": 16,
+    "n": 30,
+    "text": "16 of 30",
+    "wilson": [
+     0.3614229949695976,
+     0.6976761120463056
+    ],
+    "questions": 30
+   }
+  },
+  "prov-deployable-a0.25-v2": {
+   "span": "deployable",
+   "alpha": 0.25,
+   "runs": 210,
+   "no_answer": 9,
+   "wrong_hint_following | all": {
+    "k": 54,
+    "n": 120,
+    "text": "54 of 120",
+    "wilson": [
+     0.36391735019244387,
+     0.5391845664968435
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": -0.05833333333333329,
+     "interval": [
+      -0.15000000000000002,
+      0.033333333333333326
+     ],
+     "questions": 30
+    }
+   },
+   "wrong_hint_following | tool_pasted": {
+    "k": 38,
+    "n": 60,
+    "text": "38 of 60",
+    "wilson": [
+     0.506830005299727,
+     0.7437908338911456
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": 0.04999999999999993,
+     "interval": [
+      -0.09999999999999998,
+      0.18333333333333335
+     ],
+     "questions": 30
+    }
+   },
+   "wrong_hint_following | tool_injected": {
+    "k": 16,
+    "n": 60,
+    "text": "16 of 60",
+    "wilson": [
+     0.17132639941674732,
+     0.3900871319992253
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": -0.16666666666666669,
+     "interval": [
+      -0.30000000000000004,
+      -0.033333333333333326
+     ],
+     "questions": 30
+    }
+   },
+   "correct_hint_acceptance | all": {
+    "k": 51,
+    "n": 60,
+    "text": "51 of 60",
+    "wilson": [
+     0.7388541082856404,
+     0.9190255945904007
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": -0.050000000000000044,
+     "interval": [
+      -0.15000000000000002,
+      0.033333333333333326
+     ],
+     "questions": 30
+    }
+   },
+   "correct_hint_acceptance | tool_pasted": {
+    "k": 28,
+    "n": 30,
+    "text": "28 of 30",
+    "wilson": [
+     0.7867654148312584,
+     0.9815229763754831
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": -0.033333333333333326,
+     "interval": [
+      -0.1333333333333333,
+      0.06666666666666665
+     ],
+     "questions": 30
+    }
+   },
+   "correct_hint_acceptance | tool_injected": {
+    "k": 23,
+    "n": 30,
+    "text": "23 of 30",
+    "wilson": [
+     0.5907167369328042,
+     0.8820761191944214
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": -0.06666666666666665,
+     "interval": [
+      -0.20000000000000007,
+      0.06666666666666665
+     ],
+     "questions": 30
+    }
+   },
+   "no_hint_accuracy | all": {
+    "k": 19,
+    "n": 30,
+    "text": "19 of 30",
+    "wilson": [
+     0.4551356351862472,
+     0.7812607928773656
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": 0.09999999999999998,
+     "interval": [
+      0.0,
+      0.23333333333333328
+     ],
+     "questions": 30
+    }
+   }
+  },
+  "prov-oracle-a0.5-v2": {
+   "span": "oracle",
+   "alpha": 0.5,
+   "runs": 210,
+   "no_answer": 6,
+   "wrong_hint_following | all": {
+    "k": 50,
+    "n": 120,
+    "text": "50 of 120",
+    "wilson": [
+     0.3323835207797361,
+     0.5061196737024096
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": -0.09166666666666662,
+     "interval": [
+      -0.1916666666666667,
+      0.008333333333333304
+     ],
+     "questions": 30
+    }
+   },
+   "wrong_hint_following | tool_pasted": {
+    "k": 33,
+    "n": 60,
+    "text": "33 of 60",
+    "wilson": [
+     0.4249193579032369,
+     0.6690634567933404
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": -0.033333333333333326,
+     "interval": [
+      -0.18333333333333335,
+      0.1333333333333333
+     ],
+     "questions": 30
+    }
+   },
+   "wrong_hint_following | tool_injected": {
+    "k": 17,
+    "n": 60,
+    "text": "17 of 60",
+    "wilson": [
+     0.1850682836411917,
+     0.40767285267364
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": -0.15000000000000002,
+     "interval": [
+      -0.2833333333333334,
+      -0.016666666666666663
+     ],
+     "questions": 30
+    }
+   },
+   "correct_hint_acceptance | all": {
+    "k": 50,
+    "n": 60,
+    "text": "50 of 60",
+    "wilson": [
+     0.7196838673407889,
+     0.906868230636393
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": -0.06666666666666665,
+     "interval": [
+      -0.1499999999999999,
+      0.0
+     ],
+     "questions": 30
+    }
+   },
+   "correct_hint_acceptance | tool_pasted": {
+    "k": 27,
+    "n": 30,
+    "text": "27 of 30",
+    "wilson": [
+     0.7437891726682571,
+     0.9654001115225814
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": -0.06666666666666665,
+     "interval": [
+      -0.19999999999999996,
+      0.06666666666666665
+     ],
+     "questions": 30
+    }
+   },
+   "correct_hint_acceptance | tool_injected": {
+    "k": 23,
+    "n": 30,
+    "text": "23 of 30",
+    "wilson": [
+     0.5907167369328042,
+     0.8820761191944214
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": -0.06666666666666665,
+     "interval": [
+      -0.20000000000000007,
+      0.06666666666666665
+     ],
+     "questions": 30
+    }
+   },
+   "no_hint_accuracy | all": {
+    "k": 19,
+    "n": 30,
+    "text": "19 of 30",
+    "wilson": [
+     0.4551356351862472,
+     0.7812607928773656
+    ],
+    "questions": 30,
+    "minus_alpha1": {
+     "diff": 0.09999999999999998,
+     "interval": [
+      0.0,
+      0.23333333333333328
+     ],
+     "questions": 30
+    }
+   }
+  }
+ },
+ "bootstrap": "paired by question (clustered), 20,000 resamples, seed 0",
+ "set_aside": {
+  "prov-deployable-a0.25": 17
+ },
+ "robustness_engine_check": {
+  "label": "robustness check, not B1's rule: the first engine's alpha = 1 runs against the new engine's, old minus new, paired by question; expected no difference (log 2026-10-30 17:15, deviation of Oct 31)",
+  "runs": {
+   "old": 177,
+   "new": 210
+  },
+  "wrong_hint_following": {
+   "old": {
+    "k": 51,
+    "n": 102,
+    "text": "51 of 102",
+    "wilson": [
+     0.4047444716850327,
+     0.5952555283149673
+    ],
+    "questions": 26
+   },
+   "new": {
+    "k": 61,
+    "n": 120,
+    "text": "61 of 120",
+    "wilson": [
+     0.42002539715972403,
+     0.5961242833920612
+    ],
+    "questions": 30
+   },
+   "old_minus_new": {
+    "diff": -0.028846153846153855,
+    "interval": [
+     -0.10753532182103603,
+     0.04807692307692307
+    ],
+    "questions": 26
+   }
+  },
+  "correct_hint_acceptance": {
+   "old": {
+    "k": 45,
+    "n": 50,
+    "text": "45 of 50",
+    "wilson": [
+     0.7863976845138676,
+     0.956524235343241
+    ],
+    "questions": 25
+   },
+   "new": {
+    "k": 54,
+    "n": 60,
+    "text": "54 of 60",
+    "wilson": [
+     0.798505351773914,
+     0.9533571657987043
+    ],
+    "questions": 30
+   },
+   "old_minus_new": {
+    "diff": 0.020000000000000018,
+    "interval": [
+     0.0,
+     0.06000000000000005
+    ],
+    "questions": 25
+   }
+  },
+  "no_hint_accuracy": {
+   "old": {
+    "k": 14,
+    "n": 25,
+    "text": "14 of 25",
+    "wilson": [
+     0.37067331734646203,
+     0.7333436123222912
+    ],
+    "questions": 25
+   },
+   "new": {
+    "k": 16,
+    "n": 30,
+    "text": "16 of 30",
+    "wilson": [
+     0.3614229949695976,
+     0.6976761120463056
+    ],
+    "questions": 30
+   },
+   "old_minus_new": {
+    "diff": 0.12000000000000005,
+    "interval": [
+     -0.040000000000000036,
+     0.28
+    ],
+    "questions": 25
+   }
+  }
+ }
+}

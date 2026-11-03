@@ -1,6 +1,8 @@
 # Track B handoff: test widely (for Arsha, from Nov 3)
 
-Last updated: 2026-11-01 20:50 (B19 done: the same-day check gives B16's six readings); 2026-11-01 (final for the
+Last updated: 2026-11-03 09:30 (B17 done: no change detected on both primary readings, F37; run after its one-day
+window, kept by Ritik's decision before any result was read, pre-registration §13); 2026-11-01 20:50 (B19 done: the
+same-day check gives B16's six readings); 2026-11-01 (final for the
 Nov 3 handoff: results through B16; B17 prepared and amended; your first
 day and your plan to Nov 18). Earlier versions are in git history (`git log --follow docs/tracks/TRACK_B.md`; it was
 `docs/handoff/TRACK_B.md` until Nov 1). Ritik runs Track B until Nov 3, then it's yours.
@@ -36,7 +38,7 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 |---|---|---|---|
 | Nov 3 | handoff | the first day above | Nov 3 |
 | Nov 4–5 | B16 and B19 | re-read their reports and F35 (`run_b16.py --report`, `run_b19.py --report`; B19's records are in the bundle only if it is rebuilt) | Nov 5 |
-| Nov 4–12 | B17 | Ritik submits the Sol jobs (download, smoke, runs); you copy back the numbers-only files, run `--smoke-check`, and once all 2,430 runs are back, `--report` and its session log and F-entry by the pre-registered rule | Nov 12 |
+| Nov 4–5 | B17 | done Nov 3 (F37; Ritik read it by the rule): re-read F37 and `run_b17.py --report` from the bundle's records; it goes into B18, labelled (temperature 1.0; run after its one-day window, §13) | Nov 5 |
 | Nov 13–18 | B18 | the final Track B table and one figure: B14's table with B16 and B17 (each labelled), Gate 2 on every model | Nov 18 |
 | Nov 18 | the freeze | no new runs after it | — |
 | Nov 19–20 | verdicts and figures | slides 2, 6, 7 and 8 (PLAN's presentation map): the final versions | Nov 20 |
@@ -54,7 +56,7 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 | Qwen3 30B Instruct | Voyager | 0.6 | none | `tool_real` | 810 (F16) |
 | Olmo 3 7B Think | Voyager, pinned format | 0.6 | always | the inserted turn (`tool_injected`) | 810 (F17) |
 | Qwen3-8B | Sol, our vLLM | 0.6 | on and off, same weights | `tool_real` | 1,620 (F29) |
-| gpt-oss-20b (B17) | Sol, our vLLM | **1.0**, its recommended (Ritik, Nov 1) | effort low / medium / high, same weights | `tool_real` | 2,430, not run yet |
+| gpt-oss-20b (B17) | Sol, our vLLM | **1.0**, its recommended (Ritik, Nov 1) | effort low / medium / high, same weights | `tool_real` | 2,430, done Nov 3 (F37) |
 
 Each model at its own recommended temperature: B17's comparisons are within gpt-oss-20b, so its 1.0 is never set
 against Track B's 0.6. Every model: 54 questions (24 pilot puzzles, 30 MMLU-Pro) × 5 conditions (none, user,
@@ -112,8 +114,13 @@ the answer is (X)."; each tool arm minus that, paired by question:
 - **B19 (done Nov 1; B16's pre-registration §9; log 2026-11-01 20:50):** B16's tool arms again with new seeds (repeats
   3–5) and no reply cache, against B16's authority arm; 972 runs. All six readings are B16's; the drift check is real
   now (Thinking's own call: fewer calls than Oct 27–28). `progress/run_b19.py --report` reproduces it.
-- **B17, the thinking dose (prepared; amended Nov 1; pre-registered in the 2026-10-31 22:37 log, section 11 for the
-  amendment):** gpt-oss-20b (`openai/gpt-oss-20b` at `6cee5e81`, Apache 2.0, not gated) on our vLLM server in a Sol
+- **B17, the thinking dose (done Nov 3, F37; pre-registered in the 2026-10-31 22:37 log; amended Nov 1, §11, and
+  Nov 2, §12; run after its one-day window, §13):** **Result:** no change detected on both primary readings
+  (following on the real call +7 [−1, +16]; the bare answer after a call −5 [−10, 0]); the model calls the tool far
+  more at high effort (129 against 37 of 162) but follows less once it has called (descriptive); Gate 2 clear at
+  every effort. The smoke 355632 ran Nov 3 from 00:50 to 01:24 and the main 355650 for 1:57, about 9 h after the
+  one-day mark; Ritik kept B17 before any result was read (§13), so every B17 number carries that label.
+  The design, as run: gpt-oss-20b (`openai/gpt-oss-20b` at `6cee5e81`, Apache 2.0, not gated) on our vLLM server in a Sol
   job, at effort low, medium and high.
   - **Pre-registered:** high minus low, paired by question, on (1) following on the real tool call and (2) the bare
     final answer after a call: rises, falls or no change detected. Per effort, no decision: following per channel,
@@ -158,7 +165,7 @@ table), `providers/` (Voyager, our Sol vLLM, Hugging Face on Sol). The code map:
 | B7, B4, B8, B9, B14, B15 | Voyager runs, Qwen3-8B on Sol, steered cases, Gate 2, the table, the instruction | done (F15–F17, F25, F29) |
 | B16 | Tool or authority? | done Nov 1 (F35); cross-day (T11) |
 | B19 | A same-day check of B16 | done Nov 1 (F35): the same six readings |
-| B17 | Thinking dose: gpt-oss-20b at effort low, medium, high | prepared and amended; the first smoke (245445, Nov 1) stopped at the served-template check before any run, on a blank line the chat template adds and harmony doesn't (the check fixed, pre-registration §12); the second and last try Nov 2; due Nov 12; dropped if the smoke isn't clean within a day |
+| B17 | Thinking dose: gpt-oss-20b at effort low, medium, high | done Nov 3 (F37): no change detected on both; the first smoke (245445, Nov 1) stopped at the served-template check (fixed, §12); the second (355632) ran Nov 3, after the one-day window, kept by Ritik's decision before any result was read (§13) |
 | B18 | The final Track B table and one figure | due Nov 18 (the results freeze) |
 | L5 | Track B's labeling batch (171 rows) | should: after L3 and L4 |
 | B1–B3, B6 | Closed providers; GPQA | blocked: no keys; no paid calls; GPQA's terms not accepted |

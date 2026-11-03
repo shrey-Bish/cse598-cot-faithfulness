@@ -1,6 +1,6 @@
 # Do Thinking Modes Make Chain-of-Thought More Honest?
 
-CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-02.
+CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-03.
 
 We slip a wrong hint into a multiple-choice question, from the user or from a tool, and ask two things: does the hint
 change the model's answer, and does the model say so? Thinking models return their private reasoning and their final
@@ -18,11 +18,14 @@ experiment on that map. Results freeze on Nov 18; the final presentation and rep
 and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The story so far").
 
 1. **Tools sway models more than users, mostly through their claim to be the answer key.** The same wrong hint moves
-   the answer more from a tool than from the user, in all four models tested (Gate 2); a user who claims the answer
+   the answer more from a tool than from the user, in all five models tested (Gate 2); a user who claims the answer
    key's authority moves it about as much, except where the model calls the tool itself every time (B16, F35;
    confirmed same-day, B19).
 2. **After a tool call, the final answer stops explaining.** It becomes a bare letter while the private reasoning
-   names the tool. Disclosure can be prompted, but it doesn't reduce deference to the tool (B15).
+   names the tool. Disclosure can be prompted, but it doesn't reduce deference to the tool (B15). More thinking
+   doesn't change it: in gpt-oss-20b, raising the reasoning effort from low to high changes neither the bare answer
+   after a call nor how often the model follows the tool (no change detected on either; B17, F37, run after its
+   one-day window).
 3. **Inside Olmo 3 7B Think, layers 15, 19 and 23 read the hint straight from the prompt.** They hold 0.90 of the
    drop at the takeover, and the result replicates on questions not used to find them, by two methods (F26, F32).
    It isn't forced by Olmo's sliding windows: in Qwen3-8B, whose layers all see the whole prompt, three layers chosen
@@ -32,8 +35,10 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    citation of the tool's letter as authority (C16–C18).
 5. **The fix, so far:** all four fine-tuned versions pass Gate 3 by its rule, but none beats a one-line
    instruction on following, the source tags don't act where the tool's tokens are, and the LoRA versions'
-   false-disclosure candidates rise (hand labels pending; F28). Inference-time attention scaling (B1) and the trained
-   model's mechanism (A18) are under way.
+   false-disclosure candidates rise (hand labels pending; F28). Inference-time attention scaling (B1, F38) cuts
+   following on the inserted tool turn but costs correct tools beyond its rule's limit ("ignores tools"), and shows
+   no effect across every hint span, so its combination with the instruction (A38) isn't run. The trained model's
+   mechanism (A18) is under way.
 
 ## Read this first
 

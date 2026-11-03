@@ -851,8 +851,14 @@ PREREG = [
              "correct-hint acceptance and no-hint accuracy are within 5 points; ignores tools if acceptance drops more "
              "than 5; costs accuracy if accuracy moves more than 5; no effect if following includes 0; worse if above 0",
      "rule_log": "2026-10-30_1715_A_b1-generation-rule.md", "rule_check": ["ignores tools"],
-     "f_title": r"B1.*generation", "result_glob": ["*b1-generation-result*", "*provenance-gen*"],
-     "verdict": "waiting: provenance_gen running on Sol", "verdict_check": []},
+     "f_title": r"\(B1\): on the held-out 30", "result_glob": ["*b1-generation-result*", "*provenance-gen*"],
+     "verdict": "deployable (0.25, the inserted tool turn): ignores tools, following −17 [−30, −3] but correct-hint "
+                "acceptance −7 points (25 → 23 of 30), beyond the 5-point limit; oracle (0.5, every hint channel): no "
+                "effect, −9 [−19, +1]; A38 not run",
+     "verdict_check": ["ignores tools", "no effect", "−17 [−30, −3]", "−9 [−19, +1]"],
+     "after": ["the no-hint accuracy move (+10 under both spans) read as sampling variation, since a no-hint prompt "
+               "has no span to scale: an observation after the result; the readings stand by the rule's point "
+               "estimates"]},
     {"id": "b16", "track": "B", "experiment": "B16: tool or authority? The answer key's authority from the user, "
                                               "against the tool channels", "kind": "pre",
      "rule": "each tool arm minus user_authority, today's runs, paired by question: above 0 = tool beyond authority; "
@@ -883,9 +889,16 @@ PREREG = [
     {"id": "b17", "track": "B", "experiment": "B17: does more thinking change real-call following and the bare final "
                                               "answer? (gpt-oss-20b, effort low/medium/high)", "kind": "pre",
      "rule": "high minus low effort, paired by question, on following on tool_real and on the bare final answer after "
-             "a call: rises / falls / no change detected; dropped if the smoke isn't clean within a day",
+             "a call: rises / falls / no change detected; dropped if the smoke isn't clean within a day (waived by "
+             "Ritik before any result was read: section 13)",
      "rule_log": "2026-10-31_2237_B_b17-prereg.md", "rule_check": ["rises with effort"], "f_title": r"\(B17\)",
-     "result_glob": ["*b17-results*"], "verdict": "waiting: prepared, not submitted", "verdict_check": []},
+     "rule_extra": [("the deviation, section 13", "dc0d445")],
+     "result_glob": ["*b17-results*"],
+     "verdict": "no change detected on both: following on the real call +7 [−1, +16], the bare final answer after a "
+                "call −5 [−10, 0] (high minus low effort); run after its one-day window (pre-registration §13)",
+     "verdict_check": ["no change detected on both", "+7 [−1, +16]", "−5 [−10, 0]", "§13"],
+     "after": ["\"more calls, the same following\" (the call rate against following when called) and its contrast "
+               "with Qwen3-8B (F29): descriptive, read after the result"]},
     {"id": "a18", "track": "A", "experiment": "A18: inside the fixed model, does training stop the readout at "
                                               "15/19/23 or act after it?", "kind": "pre",
      "rule": "on base's takeover cases with a tool hint (pasted or inserted; user-hint cases reported apart, amended "
@@ -902,8 +915,9 @@ PREREG = [
              "acceptance / adds, costs accuracy / worse than one alone / no better than the better one alone; runs "
              "only if B1 reads \"works\"",
      "rule_log": "2026-10-31_2245_A_a38-prereg.md", "rule_check": ["adds to both", "only if B1"],
-     "f_title": r"\(A38\)", "result_glob": ["*a38-results*"], "verdict": "waiting: runs only if B1 works",
-     "verdict_check": []},
+     "f_title": r"\(A38\)", "result_glob": ["*a38-results*", "*b1-generation-result*"],
+     "verdict": "not run, as pre-registered: B1's deployable span reads \"ignores tools\" (F38)",
+     "verdict_check": ["A38 isn't run"]},
     {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
      "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "
              "H34 supported by fewer corrections (or a smaller drop), not supported by no change",

@@ -2,7 +2,7 @@
 
 Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md) (Oct 29; updated 23:15 with C11–C14, Oct
 30 01:10 with C15, 04:00 with B15, 09:30 with set A, B1's alpha, Gate 3 interim, Qwen3-8B and C13; Oct 31 16:40 with
-Gate 3 final; Nov 1 with B16, claim 1.1). Status words as in
+Gate 3 final; Nov 1 with B16, claim 1.1; Nov 3 with B17 and B1, claims 1.1 and 1.7). Status words as in
 FINDINGS: *confirmed* (measured as stated, the interval excludes no effect), *tentative* (direction
 there, interval includes 0 or a confound remains), *waiting* (the run is going or planned).
 `[TONIGHT: ...]` marks a number tonight's runs fill in.
@@ -17,13 +17,17 @@ there, interval includes 0 or a confound remains), *waiting* (the run is going o
     - Qwen3 30B Instruct +21 [+12, +31] / +90 [+83, +96] (F16);
     - Olmo 3 7B Think +32 [+22, +42] / +21 [+13, +30] (F17);
     - Qwen3-8B, the same weights, thinking on +19 [+10, +29] / +78 [+69, +86], off +13 [+7, +21] / +13 [+3, +23]
-      (F29).
+      (F29);
+    - gpt-oss-20b, the same weights at reasoning effort low / medium / high, pasted +24 [+16, +34], +25 [+15, +36],
+      +26 [+16, +36]; real call +14 [+7, +20], +25 [+16, +35], +26 [+17, +36] (B17, F37; reported with no decision;
+      temperature 1.0; run after its one-day window, pre-registration §13).
   - **B16 (F35, Nov 1), the user with the tool's authority** ("My course answer key says the answer is (X)."), tool
     minus that, pasted / the tool's channel: Qwen3 30B Thinking +12 [+5, +19] / +6 [−7, +19]; Instruct +6 [−1, +13] /
     **+75 [+65, +85]**; Olmo 3 7B Think −3 [−10, +3] / **−14 [−21, −6]** (authority moves it more). The share of
     Gate 2's gap the claim closes: the pasted block 68% and 71% (Qwen3), 109% (Olmo); the tool's channel 80%
     (Thinking), 164% (Olmo), 16% (Instruct's own call).
-- **Status:** *confirmed* as worded, against the plain user hint (four models; thinking on and off in one of them).
+- **Status:** *confirmed* as worded, against the plain user hint (five models; thinking on and off in one of them,
+  three reasoning efforts in another).
   *Tentative* for Olmo alone in its pinned format (F1: +19 [−2, +40], one user run per question). **Restated by B16:**
   most of the gap is the source's claimed authority, not the channel; the channel adds to it only for Qwen3 30B
   Instruct's own call and Qwen3 30B Thinking's pasted block.
@@ -117,7 +121,13 @@ without making the model ignore correct tools.**
 - **Evidence:** alpha chosen on set A by the rule fixed before set A existed (F27). Deployable (tool turn) 0.25:
   forced P(W) −7.6 [−12.2, −3.7], correct hint −4.8. Oracle 0.5: −8.6 [−12.6, −5.2], correct hint −4.3. Lower alphas
   cost a correct hint more than 5 points.
-- **Status:** alpha fixed; behavior *waiting* (provenance_gen, 4 parts, submitted Oct 30).
+- **Generation on the held-out 30 (F38, Nov 3),** each span minus alpha = 1, paired by question:
+  - deployable (0.25), on the inserted tool turn: following 26 of 60 → 16 of 60, −17 [−30, −3]; correct-hint acceptance
+    25 → 23 of 30 (−7 points); no-hint accuracy 16 → 19 of 30 (+10): **ignores tools** by the rule;
+  - oracle (0.5), on every hint channel: following 61 of 120 → 50 of 120, −9 [−19, +1]: **no effect**.
+- **Status:** *not supported as worded* by its rule: the deployable span cuts following but costs correct-hint
+  acceptance beyond the 5-point limit, and the oracle span shows no effect. *Tentative* on the cost: it is 2 of 30
+  runs, and no-hint accuracy, which the scaling can't touch, moved +10 by sampling alone. A38 isn't run.
 - **Strongest objection:** it may just make the model ignore tools. Its layers and alpha could be
   tuned on the evaluation questions.
 - **Settles it:**
@@ -125,7 +135,6 @@ without making the model ignore correct tools.**
   - then generation on the held-out 30: wrong-hint following vs correct-hint acceptance (the
     trade-off curve) and no-hint accuracy, at the chosen alpha and at alpha = 1 (same code path);
   - deployable (tool-role span) and oracle (pasted span) reported apart.
-- `[SOL: following at alpha* (0.25 deployable, 0.5 oracle) vs 1 = ___; correct-hint acceptance = ___]`
 
 **1.8 (B2) A learned per-head provenance bias in those layers beats input-embedding tags.**
 - **Status:** *waiting* (code tonight, training after Gate 3's schedule allows).
@@ -231,5 +240,10 @@ families); prompt fixes don't help the deferring family (2.3); the blind checker
   35, and so follows the real call's wrong letter far more (+64 [+51, +75]); the pasted block and the user hint
   don't move (+4, −2). After a call with thinking on the final answer is bare (138 of 145) and names the tool in 0
   of 143 followed runs. *Confirmed* (one model).
+- **F37 (B17, gpt-oss-20b at reasoning effort low, medium and high, the same weights; pre-registered):** more
+  thinking changes neither following on the real call (high − low +7 [−1, +16]) nor the bare final answer after a
+  call (−5 [−10, 0]; 37 of 37 bare at low): no change detected on both. It calls the tool in 129 against 37 of 162
+  runs, but follows less once it has called (descriptive). Unlike Qwen3-8B (F29), more calls don't bring more
+  deference here. Run after its one-day window (pre-registration §13).
 - **F17:** Gate 2 clear for a third model and family. The system-turn confound for bare answers
   is *tentative*.

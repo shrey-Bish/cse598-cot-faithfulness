@@ -23,7 +23,8 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 
 ## Slide 8: Thinking dose (B17)
 
-- **Figure:** `docs/paper/figures/b17_effort.png` (.svg, .csv). The slide goes if B17 is dropped.
+- **Figure:** `docs/paper/figures/b17_effort.png` (.svg, .csv). **B17 read Nov 3 (F37): its data are in, the figure
+  can be drawn.** Label it "run after its one-day window (pre-registration §13)".
 - **Shows:** one set of weights (gpt-oss-20b) at reasoning effort low, medium and high.
 - **Source:** `cot-disclosure/results/trackB/b17/b17_report.json` (`progress/run_b17.py --report`, from the flags
   copied back from Sol), exported to `results/summaries/trackB/b17_report.json`.
@@ -47,7 +48,8 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
   - A18: Sol `$TRACKA_OUT/a18/a18_readout.json` (`finetune/look/a18.py readout`), copied back to
     `cot-disclosure/results/trackA/a18/`; numbers only.
   - B1: `$TRACKA_OUT/provenance_gen/provenance_gen_report.json` (`provenance_job.py report`; the reading is
-    `b1_verdict`).
+    `b1_verdict`). **Read Nov 3 (F38)**; exported to
+    `results/summaries/trackA/gpu/provenance_gen/provenance_gen_report.json`.
   - Both exported under `results/summaries/trackA/`.
 - **Axes and encodings:**
   - Left: R_lora, what LoRA's weights remove of base's direct effect of the hint, as a dot and interval, with a zero

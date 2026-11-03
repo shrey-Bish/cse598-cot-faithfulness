@@ -7,6 +7,10 @@ Track A, Oct 29. By: Ritik. Code: `finetune/provenance.py` (the mechanism), `fin
 (the Sol jobs), the gate versions in `finetune/train.py`. Tests: `tests/test_provenance.py`,
 `tests/test_provenance_jobs.py` (CPU, a tiny random Olmo 3 with the real tokenizer).
 
+**Result (Nov 3; FINDINGS F38):** B1's generation on the held-out 30, read by its rule: the deployable span (alpha 0.25)
+"ignores tools" (following on the inserted tool turn −17 [−30, −3], correct-hint acceptance −7 points, beyond the
+5-point limit); the oracle span (alpha 0.5) "no effect" (−9 [−19, +1]). A38 isn't run. B2 is not started.
+
 ## Why here
 
 Steps 9 and 10 found where Olmo 3 7B Think reads a hint. In three full-attention layers, 15, 19 and

@@ -1,6 +1,8 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-11-01 15:05 MST (A37 read: replicates, F36; level 1's open question answered, slide 4 drawn);
+Last updated: 2026-11-03 09:30 MST (B17 read: no change detected on both, F37, run after its one-day window; B1 read:
+"ignores tools" and "no effect", F38; A38 dropped as pre-registered); 2026-11-01 15:05 MST (A37 read: replicates,
+F36; level 1's open question answered, slide 4 drawn);
 2026-11-01 (Nov 1: the docs' new folders, the submission folder's date, A18's and B17's
 amendments; before that, 2026-10-31 22:50 MST: the 20-day program, set by Ritik on Oct 31. It replaces the planning reset and
 the Oct 27 timeline: the story, every experiment on its map, owners and dates, the final dates, the final
@@ -16,7 +18,8 @@ below the gates are unchanged from it apart from their dates. Where things are:
 - **Track A:** Ritik, to the end.
 - **Track C:** Shrey's since Oct 30. Its experiments below are prepared now (code, CPU tests, a pre-registration log
   and a dry run each), and Shrey runs them on Voyager from about Nov 4.
-- **Track B:** back to Arsha on Nov 3. B16 ran Oct 31–Nov 1 and is read (F35); B17 is prepared.
+- **Track B:** back to Arsha on Nov 3. B16 ran Oct 31–Nov 1 and is read (F35); B17 ran Nov 3 and is read (F37; run
+  after its one-day window, pre-registration §13).
 - **Sol:** Ritik submits every job, in this order to the freeze (Ritik, Nov 1): B1's bench, then B1's rerun;
   Qwen3-8B's Steps 3 and 10 (queued); B17; A18; A38 only if B1 works (RUNBOOK §0).
 - **Pre-registration:** before any run, as always.
@@ -73,11 +76,11 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | level | # | question | owner | due | state (Oct 31) |
 |---|---|---|---|---|---|
 | 1 inside | A37 | Qwen3-8B, Steps 3 and 10: the readout on a second model; verdict by its rule | Ritik | Nov 3 | **done Nov 1** (F36): replicates; layers 21, 22, 29 (chosen on the puzzles) hold 0.70 [0.60, 0.83] on MMLU-Pro |
-| 1 inside | A30 | B1, provenance-scaled attention: the bench gate, the plan, the verdict by its rule | Ritik | Nov 4 | bench 122956 pending |
+| 1 inside | A30 | B1, provenance-scaled attention: the bench gate, the plan, the verdict by its rule | Ritik | Nov 4 | **done Nov 3** (F38): deployable "ignores tools" (following on the inserted turn −17 [−30, −3], acceptance −7 points), oracle "no effect" (−9 [−19, +1]) |
 | 1 inside | A18 | Inside the fixed model: Steps 9 and 10 on LoRA's evaluation runs. Does training stop the readout at 15/19/23, or act after it? Tool-hint cases only in the primary, user hints apart (amended Nov 1) | Ritik | Nov 10 | prepared |
-| 1 inside | A38 | STRETCH, only if B1 "works": prompt_only's note + B1 deployable, against each alone, same HF stack | Ritik | Nov 14 | prepared; waits for B1's verdict |
+| 1 inside | A38 | STRETCH, only if B1 "works": prompt_only's note + B1 deployable, against each alone, same HF stack | Ritik | Nov 14 | **dropped Nov 3, as pre-registered:** B1's deployable span reads "ignores tools" (F38) |
 | control | B16 | Tool or authority? The answer key's authority in the user's hint, against the tool channels | Ritik; Arsha, from Nov 3 | Nov 3 | **done Nov 1** (F35): tool beyond authority for Qwen3 Instruct's call (+75) and Thinking's pasted block (+12), authority moves Olmo more than its inserted turn (−14), no difference in the other three; cross-day (T11) |
-| 2 words | B17 | Thinking dose: gpt-oss-20b on Sol at reasoning effort low, medium, high | Ritik submits; Arsha, from Nov 3 | Nov 12 | prepared; dropped if it can't run cleanly within one day |
+| 2 words | B17 | Thinking dose: gpt-oss-20b on Sol at reasoning effort low, medium, high | Ritik submits; Arsha, from Nov 3 | Nov 12 | **done Nov 3** (F37): no change detected on both (following on the real call +7 [−1, +16]; bare after a call −5 [−10, 0]); run after its one-day window, kept by Ritik's decision before any result was read (§13) |
 | 2 words | L3 | Gate 2's hand labels (F3 rests on them): kappa per channel | Ritik and Shrey | Nov 6 | packets ready |
 | 2 words | L4 part 1 | Does training teach the model to claim checks it doesn't do? | Ritik and Shrey | Nov 14 | packets ready |
 | 2 words | B18 | The final Track B table and one figure | Ritik; Arsha, from Nov 3 | Nov 18 | — |
@@ -164,13 +167,13 @@ until the result arrives.
    - Status: made Nov 1. Owner: Ritik, then Arsha.
 8. **Thinking dose** (B17; the slide goes if B17 is dropped).
    - Figure: `docs/paper/figures/b17_effort.png` (waiting; spec in `WAITING.md`).
-   - Status: waiting on B17, due Nov 12. Owner: Arsha.
+   - Status: B17 read Nov 3 (F37); the figure is next. Owner: Arsha.
 9. **The fix: training cuts following, but none beats one line** (F28, Gate 3).
    - Figure: `cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png`.
    - Status: done; false disclosure from L4 part 1 (Nov 14); the final statement Nov 20. Owner: Ritik.
 10. **Inside the fixed model.** Does training stop the readout or act after it (A18)? And B1 (A30).
     - Figure: `docs/paper/figures/readout_lora_vs_base.png` (waiting; spec in `WAITING.md`).
-    - Status: waiting on A18 (due Nov 10) and B1's verdict (Nov 4). Owner: Ritik.
+    - Status: waiting on A18 (due Nov 10); B1 read Nov 3 (F38: "ignores tools" and "no effect"). Owner: Ritik.
 11. **Level 3: reviewers defer to the trace, and the citation is the cue.** F18, F22, F24, F30, F31, F33, F34, C19.
     - Figure: `docs/paper/supplement/figures/trackC_reviewers.png` and `docs/paper/figures/reviewer_by_prompt.png`.
     - Status: done; C19 due Nov 7. Owner: Shrey.
@@ -190,7 +193,7 @@ outlines and [`docs/paper/CLAIMS.md`](paper/CLAIMS.md) the claims.
 1. **Introduction:** the question, the three levels, the contributions.
    - Figure: `three_levels.svg`.
 2. **Setup:**
-   - the models (Olmo 3 7B Think, Qwen3 30B Thinking and Instruct, Qwen3-8B, gpt-oss-20b if B17 runs);
+   - the models (Olmo 3 7B Think, Qwen3 30B Thinking and Instruct, Qwen3-8B, gpt-oss-20b in B17);
    - the five channels and the authority hint;
    - the questions;
    - the statistics: X of Y; a bootstrap clustered by question; at least 5 questions.

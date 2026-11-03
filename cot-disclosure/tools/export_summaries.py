@@ -63,6 +63,7 @@ KEEP_PATH = {             # under results/trackA/ -> under results/summaries/ (s
     "setA/step9_attention.json": "trackA/setA/step9_attention.json",        # set A, Step 9
     "setA/step9_fixed_heads.json": "trackA/setA/step9_fixed_heads.json",    # set A, F12's three heads (F32)
     "setA/provenance_forced.json": "trackA/setA/provenance_forced.json",    # B1's forced answers and alpha (F27)
+    "gpu/provenance_gen/provenance_gen_report.json": "trackA/gpu/provenance_gen/provenance_gen_report.json",  # B1 (F38)
     "gpu/eval/eval_report.json": "trackA/gpu/eval/eval_report.json",        # batch 3 (F28)
     "gpu/eval/gate3.json": "trackA/gpu/eval/gate3.json",                    # finetune/gate3.py
     "gpu/eval/gate3_table.md": "trackA/gpu/eval/gate3_table.md",
@@ -77,7 +78,8 @@ OTHER = {                # Tracks B and C: numbers-only reports their scripts wr
     "results/trackB/b15_report.json": "trackB/b15_report.json",                  # B15 (progress/run_b15.py --report)
     "results/trackB/b16_report.json": "trackB/b16_report.json",                  # B16 (progress/run_b16.py --report)
     "results/trackB/b19_report.json": "trackB/b19_report.json",                  # B19 (progress/run_b19.py --report)
-    "results/trackB/b17/b17_report.json": "trackB/b17_report.json",              # B17 (progress/run_b17.py --report), once back
+    "results/trackB/b17/b17_report.json": "trackB/b17_report.json",              # B17 (progress/run_b17.py --report; F37)
+    "results/trackB/b17/smoke_check.json": "trackB/b17_smoke_check.json",        # B17's smoke (--smoke-check)
     # A37 (Qwen3-8B Steps 3 and 10 on Track B's runs; Sol, copied back to results/trackB/qwen8b_mech/; F36)
     "results/trackB/qwen8b_mech/qwen8b_readout.json": "trackA/qwen8b_mech/qwen8b_readout.json",
     "results/trackB/qwen8b_mech/qwen8b_step10_patching.json": "trackA/qwen8b_mech/qwen8b_step10_patching.json",
