@@ -1197,6 +1197,12 @@ DEVIATIONS = [
      "alpha = 1 runs are a robustness check (old minus new), its deployable runs are set aside; written before any B1 "
      "result was read", [log_rel("2026-10-30_1715_A_b1-generation-rule.md")],
      ["Deviation (Oct 31, 12:40, before any B1 result was read)", "All 210 alpha = 1 runs are rerun"]),
+    ("2026-11-03 09:00", "B17's one-day rule", "the fixed smoke (355632) was submitted Nov 2 17:56, about 2 h after the "
+     "one-day mark (the first smoke started Nov 1 ~15:57), and ran Nov 3 00:50-01:24 after Sol's queue; kept by Ritik's "
+     "decision, made before any B17 result was read: the rule was a time-box against a broken setup, not a rule about "
+     "results, and §12 corrected the validity check, not the runs; the smoke must still be clean, and B17's results "
+     "are labelled with this deviation", [log_rel("2026-10-31_2237_B_b17-prereg.md")],
+     ["Deviation (Ritik, Nov 3, before any B17 result was read)", "a time-box against a broken setup"]),
 ]
 DEV_WORDS = re.compile(r"\bCorrected\b|\b[Cc]orrected (?:Oct|\d{1,2}:\d{2})|\bCorrection\b|\b[Rr]efuted\b|"
                        r"\b[Ss]uperseded\b|\b[Dd]ropped\b|\bnot supported\b|\b[Rr]estated\b|\b[Rr]evises\b|"
