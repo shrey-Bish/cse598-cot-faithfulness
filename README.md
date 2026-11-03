@@ -47,7 +47,7 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
 |---|---|---|
 | Ritik (Track A, labels, the report) | [`docs/status/STATUS.md`](docs/status/STATUS.md), [`docs/status/TODO.md`](docs/status/TODO.md) | the newest daily in [`archive/sessions/`](archive/sessions/INDEX.md); [`docs/RUNBOOK.md`](docs/RUNBOOK.md) |
 | Shrey (Track C, from Oct 30) | [`docs/tracks/TRACK_C.md`](docs/tracks/TRACK_C.md) | [`docs/tracks/SOL_SETUP.md`](docs/tracks/SOL_SETUP.md), [`docs/labeling/RATER_GUIDE.md`](docs/labeling/RATER_GUIDE.md), the code map [`cot-disclosure/README.md`](cot-disclosure/README.md) |
-| Arsha (Track B, from Nov 3) | [`docs/tracks/TRACK_B.md`](docs/tracks/TRACK_B.md) | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) §18, the code map |
+| Arsha (Track B, from Nov 6) | [`docs/tracks/TRACK_B.md`](docs/tracks/TRACK_B.md) | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) §18, the code map |
 | A grader | this page, then FINDINGS' "story so far" | [`docs/PLAN.md`](docs/PLAN.md) (the calendar, the presentation map), [`docs/status/STATUS.md`](docs/status/STATUS.md) |
 | A paper reviewer | [`docs/paper/CLAIMS.md`](docs/paper/CLAIMS.md) | [`docs/paper/supplement/EVIDENCE.md`](docs/paper/supplement/EVIDENCE.md) and [`PREREGISTRATIONS.md`](docs/paper/supplement/PREREGISTRATIONS.md) |
 

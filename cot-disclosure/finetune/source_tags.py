@@ -14,7 +14,7 @@ For Olmo 3 use source_ids_from_render: its template is not prefix-stable (a fina
 turn ends in <|endoftext|>, a middle one in <|im_end|>), so source_ids_from_chat refuses it.
 
 Generation with tags needs a decoding loop that tags each new token as "model"; that is
-a documented later step (docs/TRACK_A.md).
+a documented later step (docs/tracks/TRACK_A.md).
 """
 import re
 

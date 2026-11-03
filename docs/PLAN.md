@@ -19,7 +19,7 @@ below the gates are unchanged from it apart from their dates. Where things are:
 - **Track A:** Ritik, to the end.
 - **Track C:** Shrey's since Oct 30. Its experiments below are prepared now (code, CPU tests, a pre-registration log
   and a dry run each), and Shrey runs them on Voyager from about Nov 4.
-- **Track B:** Arsha's from Nov 3 (the bundle and the note sent by Ritik, Nov 3). B16 ran Oct 31–Nov 1 and is read (F35); B17 ran Nov 3 and is read (F37; run
+- **Track B:** Arsha's from Nov 6 (Ritik, Nov 3: moved from Nov 3; the bundle rebuilt and sent Nov 6). B16 ran Oct 31–Nov 1 and is read (F35); B17 ran Nov 3 and is read (F37; run
   after its one-day window, pre-registration §13).
 - **Sol:** Ritik submits every job, in this order to the freeze (Ritik, Nov 1): B1's bench, then B1's rerun;
   Qwen3-8B's Steps 3 and 10 (queued); B17; A18; A38 only if B1 works (RUNBOOK §0).
@@ -80,11 +80,11 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | 1 inside | A30 | B1, provenance-scaled attention: the bench gate, the plan, the verdict by its rule | Ritik | Nov 4 | **done Nov 3** (F38): deployable "ignores tools" (following on the inserted turn −17 [−30, −3], acceptance −7 points), oracle "no effect" (−9 [−19, +1]) |
 | 1 inside | A18 | Inside the fixed model: Steps 9 and 10 on LoRA's evaluation runs. Does training stop the readout at 15/19/23, or act after it? Tool-hint cases only in the primary, user hints apart (amended Nov 1) | Ritik | Nov 10 | prepared |
 | 1 inside | A38 | STRETCH, only if B1 "works": prompt_only's note + B1 deployable, against each alone, same HF stack | Ritik | Nov 14 | **dropped Nov 3, as pre-registered:** B1's deployable span reads "ignores tools" (F38) |
-| control | B16 | Tool or authority? The answer key's authority in the user's hint, against the tool channels | Ritik; Arsha, from Nov 3 | Nov 3 | **done Nov 1** (F35): tool beyond authority for Qwen3 Instruct's call (+75) and Thinking's pasted block (+12), authority moves Olmo more than its inserted turn (−14), no difference in the other three; cross-day (T11) |
-| 2 words | B17 | Thinking dose: gpt-oss-20b on Sol at reasoning effort low, medium, high | Ritik submits; Arsha, from Nov 3 | Nov 12 | **done Nov 3** (F37): no change detected on both (following on the real call +7 [−1, +16]; bare after a call −5 [−10, 0]); run after its one-day window, kept by Ritik's decision before any result was read (§13) |
+| control | B16 | Tool or authority? The answer key's authority in the user's hint, against the tool channels | Ritik; Arsha, from Nov 6 | Nov 3 | **done Nov 1** (F35): tool beyond authority for Qwen3 Instruct's call (+75) and Thinking's pasted block (+12), authority moves Olmo more than its inserted turn (−14), no difference in the other three; cross-day (T11) |
+| 2 words | B17 | Thinking dose: gpt-oss-20b on Sol at reasoning effort low, medium, high | Ritik submits; Arsha, from Nov 6 | Nov 12 | **done Nov 3** (F37): no change detected on both (following on the real call +7 [−1, +16]; bare after a call −5 [−10, 0]); run after its one-day window, kept by Ritik's decision before any result was read (§13) |
 | 2 words | L3 | Gate 2's hand labels (F3 rests on them): kappa per channel | Ritik and Shrey | Nov 6 | **both sheets in Nov 3; kappa under 0.6 in four of six cells** (private 0.63, tool 0.29, user 0.85; final 0.54, tool 0.59, user 0.43): by the plan, settle the 25 disagreements, tighten the guide, label a fresh batch; no acknowledgment claim from labels until then |
 | 2 words | L4 part 1 | Does training teach the model to claim checks it doesn't do? | Ritik and Shrey | Nov 14 | **read Nov 3** (F28; kappa 0.93): 1 to 2 of LoRA's 147 candidates claim a rejection they didn't act on; most say the hint shaped the answer; the raters could tell LoRA's style |
-| 2 words | B18 | The final Track B table and one figure | Ritik; Arsha, from Nov 3 | Nov 18 | — |
+| 2 words | B18 | The final Track B table and one figure | Ritik; Arsha, from Nov 6 | Nov 18 | — |
 | 3 agents | C19 | Is an authority claim the cue (H34)? | Shrey | Nov 7 | prepared |
 | 3 agents | C25 | Across agents (the centerpiece): solver with tool → a writer's handoff note → a decider that never sees the tool | Shrey | Nov 12 | prepared |
 | 3 agents | C20 | Pipeline vs model: a blind reviewer; a tag the system attaches; the solver's own disclosure; the checker | Shrey | Nov 15 | prepared |
@@ -99,7 +99,7 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | when | Track A (Ritik) | Track B | Track C | labels, repo, report |
 |---|---|---|---|---|
 | Oct 31–Nov 2 | A37 on Sol; the B1 bench, then its plan | B16 on Voyager; B17's download, smoke test and template check on Sol (one day) | C19, C25, C20, C26 prepared and dry-run | L3 starts |
-| Nov 3 | A37's verdict | **Handoff to Arsha, Nov 3** | — | — |
+| Nov 3–6 | A37's verdict | **Handoff to Arsha, Nov 6** (moved from Nov 3) | — | — |
 | Nov 4–7 | B1's verdict (Nov 4); A18 on Sol | B17's runs, if its smoke test is clean | C19 (Nov 7) | L3 by Nov 6 |
 | Nov 8–12 | A18's verdict (Nov 10) | B17's verdict (Nov 12) | C25 (Nov 12) | **Gate 2 (Nov 8)**; L4 part 1 |
 | Nov 13–18 | A38, only if B1 works (Nov 14) | the final table and figure (Nov 18) | C20 and C26 (Nov 15) | L4 part 1 by Nov 14 |
@@ -494,7 +494,7 @@ already saved and parts already queued, and uses the measured rate once a part h
 
 ---
 
-## Track B: test widely (Ritik until Nov 3, then Arsha)
+## Track B: test widely (Ritik until Nov 6, then Arsha)
 
 **Question.** Does the failure hold beyond Olmo and Qwen on Voyager? More open and closed thinking
 models, thinking on vs off in the same model, real tool calls, harder questions, 3 runs per

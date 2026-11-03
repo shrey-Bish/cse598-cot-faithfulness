@@ -1,12 +1,13 @@
-# Track B handoff: test widely (for Arsha, from Nov 3)
+# Track B handoff: test widely (for Arsha, from Nov 6)
 
-Last updated: 2026-11-03 10:00 (the handoff done: Ritik sent the bundle `trackB_20261103.tar.gz` and the note;
-slide 8 drawn, `docs/paper/figures/b17_effort.png`); 2026-11-03 09:30 (B17 done: no change detected on both primary readings, F37; run after its one-day
+Last updated: 2026-11-03 11:30 (the handoff moves to **Nov 6** (Ritik): the 10:00 line saying it was done is
+corrected, nothing was sent; the bundle is rebuilt on Nov 6 morning; B18 and slide 2 started for you, §1a);
+2026-11-03 10:00 (slide 8 drawn, `docs/paper/figures/b17_effort.png`); 2026-11-03 09:30 (B17 done: no change detected on both primary readings, F37; run after its one-day
 window, kept by Ritik's decision before any result was read, pre-registration §13); 2026-11-01 20:50 (B19 done: the
 same-day check gives B16's six readings); 2026-11-01 (final for the
-Nov 3 handoff: results through B16; B17 prepared and amended; your first
+handoff (then Nov 3; now Nov 6): results through B16; B17 prepared and amended; your first
 day and your plan to Nov 18). Earlier versions are in git history (`git log --follow docs/tracks/TRACK_B.md`; it was
-`docs/handoff/TRACK_B.md` until Nov 1). Ritik runs Track B until Nov 3, then it's yours.
+`docs/handoff/TRACK_B.md` until Nov 1). Ritik runs Track B until Nov 6, then it's yours.
 
 **The question.** Does the failure seen in the progress round (a wrong hint from a tool moves thinking models more
 than the same hint from the user, and the final answer rarely says so) hold on more models, with thinking on and off
@@ -16,14 +17,14 @@ in the same weights, real tool calls and 3 runs per question?
 evidence for the story's line 1 (tools sway models more than users, mostly through their claim to be the answer key)
 and for level 2 (after a tool call, the final answer stops naming its source).
 
-## 0. Your first day (Nov 3)
+## 0. Your first day (Nov 6)
 
 1. **The repo:** pull `trackB-main` (kept at `main`), then from the repo root
    `python3 -m venv .venv && .venv/bin/pip install -r cot-disclosure/requirements.txt`, then
    `cd cot-disclosure && ../.venv/bin/python -m pytest -q` (CPU only, no network; all should pass).
 2. **The pre-push check,** once per clone ([`RUNBOOK.md`](../RUNBOOK.md) §17). The repo is public, and produced
    data never goes to GitHub.
-3. **The data:** Ritik sends the bundle `trackB_<date>.tar.gz` (`tools/make_handoff_bundle.py --track B`:
+3. **The data:** Ritik sends the bundle `trackB_20261106.tar.gz`, rebuilt on Nov 6 morning (`tools/make_handoff_bundle.py --track B`:
    `results/trackB/` and the canary log, 17 files, ~47.5 MB, a sha256 manifest inside and beside it; B16's runs and
    Qwen3-8B's numbers-only Sol files included, no GPQA). Unpack it into `cot-disclosure/` and check it with
    `../.venv/bin/python tools/make_handoff_bundle.py --verify <the bundle>`.
@@ -37,15 +38,42 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 
 | when | what | yours to do | due |
 |---|---|---|---|
-| Nov 3 | handoff | **done Nov 3:** Ritik sent the bundle (`trackB_20261103.tar.gz`, 50 MB) and the note; the first day above | Nov 3 |
-| Nov 4–5 | B16 and B19 | re-read their reports and F35 (`run_b16.py --report`, `run_b19.py --report`; B19's records are in the bundle only if it is rebuilt) | Nov 5 |
-| Nov 4–5 | B17 | done Nov 3 (F37; Ritik read it by the rule): re-read F37 and `run_b17.py --report` from the bundle's records; it goes into B18, labelled (temperature 1.0; run after its one-day window, §13) | Nov 5 |
-| Nov 13–18 | B18 | the final Track B table and one figure: B14's table with B16 and B17 (each labelled), Gate 2 on every model | Nov 18 |
+| Nov 6 | handoff | Ritik sends the bundle (rebuilt Nov 6 morning) and the note; the first day above | Nov 6 |
+| Nov 6–7 | B16 and B19 | re-read their reports and F35 (`run_b16.py --report`, `run_b19.py --report`; B19's records are in the bundle only if it is rebuilt) | Nov 5 |
+| Nov 6–7 | B17 | done Nov 3 (F37; Ritik read it by the rule): re-read F37 and `run_b17.py --report` from the bundle's records; it is in B18's table, labelled (temperature 1.0; run after its one-day window, §13) | Nov 7 |
+| Nov 6–18 | B18 | started Nov 3 (§1a): you check it, add B20's models when they are read (Nov 17), and finish it | Nov 18 |
 | Nov 18 | the freeze | no new runs after it | — |
 | Nov 19–20 | verdicts and figures | slides 2, 6, 7 and 8 (PLAN's presentation map): the final versions | Nov 20 |
 | Nov 21–22 | the report draft | Track B's section, from PLAN's outline | Nov 22 |
 | Nov 23–24 | rehearsal, then the final presentation and report | — | Nov 24 |
 | should | L5 | Track B's labeling batch (171 rows), only if time allows after L3 and L4 | — |
+
+## 1a. Started for you on Nov 3 (Ritik): B18 and slide 2
+
+**Done:**
+- **B18's table:** `cot-disclosure/tools/trackb_final.py` writes `docs/paper/tables/trackB_final.md` and `.csv` from the
+  tracked summaries only (`results/summaries/trackB/`). It has:
+  - one row per model and setting: Qwen3 30B Thinking and Instruct, Olmo 3 7B Think, Qwen3-8B with thinking on and
+    off, and gpt-oss-20b at three efforts;
+  - each row's temperature and where it was served;
+  - following per channel, X of Y;
+  - Gate 2: each tool channel minus the user's hint, with its clustered interval;
+  - for the three Voyager models, B16's authority arm and each tool arm's reading against it.
+  - B17's rows carry the §13 label.
+- **Slide 2:** `docs/paper/figures/gate2.png` (.svg, .csv), drawn by `tools/slide_figures.py` (`fig_gate2`) from the
+  same rows in the slides' style: the two Gate 2 differences per model and setting.
+- **Tests:** `tests/test_trackb_final.py` (5) checks each number against the reports.
+- **Regenerate:** `../.venv/bin/python tools/trackb_final.py` and `../.venv/bin/python tools/slide_figures.py`.
+
+**Yours from Nov 6:**
+1. Check every row against FINDINGS (F15–F17, F29, F35, F37) and the reports.
+2. **B20** (Track B's open models, Part 3 of the Nov 3 plan): when it is read (Nov 17), add its models to the
+   table's `TRACKB` list and decide whether slide 2 shows them.
+3. **Decide:**
+   - whether the table also shows the 16,000-token cut (every report has it);
+   - whether it shows B19's same-day readings beside B16's;
+   - the figure B18 asks for: slide 2's, or another.
+4. B18's text for the report (Track B's section, from PLAN's outline) by Nov 18, and the final slide 2 by Nov 20.
 
 ## 2. Results (through B16)
 
@@ -199,4 +227,4 @@ table), `providers/` (Voyager, our Sol vLLM, Hugging Face on Sol). The code map:
   `no_mention` by rule in the labeling batch.
 - F15's claim is about the tool call, not hints (C4's good lookups); F35's is about the source's claimed authority.
 - Each experiment pre-registered before any run, with its own records outside Track B's table (B15, B16, B17).
-- Your branch: `trackB-main`, kept at `main` until Nov 3.
+- Your branch: `trackB-main`, kept at `main` until Nov 6.

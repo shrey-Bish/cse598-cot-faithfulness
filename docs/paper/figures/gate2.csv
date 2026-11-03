@@ -1,0 +1,17 @@
+panel,model,arm,measure,k,n,value,low,high,interval,compared_k,compared_n,reading
+a,Qwen3 30B Thinking,thinking always,pasted block minus user,59,162,0.345679012345679,0.24074074074074073,0.45679012345679015,"95% bootstrap clustered by question, paired",3,162,clear
+a,Qwen3 30B Thinking,thinking always,its own call minus user,54,162,0.31481481481481477,0.21604938271604937,0.41975308641975306,"95% bootstrap clustered by question, paired",3,162,clear
+a,Qwen3 30B Instruct,no thinking,pasted block minus user,35,162,0.20987654320987653,0.11728395061728394,0.30864197530864196,"95% bootstrap clustered by question, paired",1,162,clear
+a,Qwen3 30B Instruct,no thinking,its own call minus user,147,162,0.9012345679012346,0.8271604938271605,0.9629629629629629,"95% bootstrap clustered by question, paired",1,162,clear
+a,Olmo 3 7B Think,thinking always,pasted block minus user,64,160,0.3197530864197531,0.22440763745111572,0.42006563525550866,"95% bootstrap clustered by question, paired",13,162,clear
+a,Olmo 3 7B Think,thinking always,inserted tool turn minus user,46,157,0.2127467169930015,0.12850729517396184,0.30211527876071403,"95% bootstrap clustered by question, paired",13,162,clear
+a,Qwen3-8B,thinking on,pasted block minus user,47,162,0.19135802469135804,0.09876543209876543,0.29012345679012347,"95% bootstrap clustered by question, paired",16,162,clear
+a,Qwen3-8B,thinking on,its own call minus user,143,162,0.7839506172839507,0.691358024691358,0.8641975308641976,"95% bootstrap clustered by question, paired",16,162,clear
+a,Qwen3-8B,thinking off,pasted block minus user,41,162,0.13358956440717448,0.06571339271761212,0.2081295131609597,"95% bootstrap clustered by question, paired",19,159,clear
+a,Qwen3-8B,thinking off,its own call minus user,40,162,0.12741672490100162,0.028780864197530842,0.23271604938271603,"95% bootstrap clustered by question, paired",19,159,clear
+a,gpt-oss-20b,effort low,pasted block minus user,57,161,0.24292615596963424,0.15589295299440226,0.3360938578329883,"95% bootstrap clustered by question, paired",18,162,clear
+a,gpt-oss-20b,effort low,its own call minus user,40,162,0.13580246913580246,0.06790123456790123,0.20370370370370372,"95% bootstrap clustered by question, paired",18,162,clear
+a,gpt-oss-20b,effort medium,pasted block minus user,46,162,0.2528947166628326,0.15420596580016868,0.3578329882677709,"95% bootstrap clustered by question, paired",5,161,clear
+a,gpt-oss-20b,effort medium,its own call minus user,46,162,0.2528947166628326,0.16034046468829077,0.35185185185185186,"95% bootstrap clustered by question, paired",5,161,clear
+a,gpt-oss-20b,effort high,pasted block minus user,45,155,0.25742784380305606,0.16331212396658443,0.35706401766004414,"95% bootstrap clustered by question, paired",5,152,clear
+a,gpt-oss-20b,effort high,its own call minus user,48,158,0.2619770580296896,0.17066769919118913,0.3587229763700352,"95% bootstrap clustered by question, paired",5,152,clear

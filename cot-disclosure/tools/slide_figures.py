@@ -15,6 +15,9 @@ summaries (no calls, no gitignored data). One style for every slide: 16:9, white
                     on MMLU-Pro (the test) beside Olmo 3 7B Think's at 15, 19 and 23 and the rule's 0.5; (b, c) the
                     drop by layer at the takeover, puzzles and MMLU-Pro, the chosen layers marked (95% bootstraps
                     clustered by question, as patching.handoff computes them for the rule)
+  gate2             slide 2 (Gate 2; F15-F17, F29, F37): each tool channel minus the user's hint, paired by question, per
+                    model and setting (tools/trackb_final.py's rows, which B18's table uses too), 95% bootstraps
+                    clustered by question; gpt-oss-20b at its own temperature and labelled section 13
   b17_effort        slide 8 (B17, F37): gpt-oss-20b at reasoning effort low, medium and high, the same weights: (a)
                     following on the real tool call, with the call rate behind it; (b) the bare final answer after a
                     call; X of Y with 95% bootstraps clustered by question, the pre-registered high minus low in the
@@ -445,6 +448,66 @@ def fig_b17(out=OUT, report=SUM / "trackB" / "b17_report.json"):
     return paths
 
 
+def gate2_rows():
+    """Each model and setting's two Gate 2 differences (value: tool channel minus user; k/n the tool channel, compared_k/n
+    the user's hint; reading: clear if the interval lies above 0)."""
+    import trackb_final as tf
+    rows = []
+    for r in tf.rows():
+        for name, label, k, n in (("pasted", "pasted block minus user", "pasted_k", "pasted_n"),
+                                  ("tool", f"{r['tool_channel']} minus user", "tool_k", "tool_n")):
+            rows.append({"panel": "a", "model": r["model"], "arm": r["setting"], "measure": label, "k": r[k],
+                         "n": r[n], "value": r[f"gate2_{name}"], "low": r[f"gate2_{name}_low"],
+                         "high": r[f"gate2_{name}_high"], "interval": CLUSTERED + ", paired",
+                         "compared_k": r["user_k"], "compared_n": r["user_n"],
+                         "reading": "clear" if r[f"gate2_{name}_clear"] else "not clear"})
+    return rows
+
+
+def fig_gate2(out=OUT):
+    plt = style()
+    rows = gate2_rows()
+    fig = plt.figure(figsize=SIZE)
+    ax = fig.add_axes([0.27, 0.2, 0.7, 0.6])
+    labels = list(dict.fromkeys((r["model"], r["arm"]) for r in rows))
+    color = {"pasted": ROLE["cue"], "tool": ROLE["damage"]}
+    for y, key in enumerate(reversed(labels)):
+        for r in (x for x in rows if (x["model"], x["arm"]) == key):
+            kind = "pasted" if r["measure"].startswith("pasted") else "tool"
+            dy = 0.14 if kind == "pasted" else -0.14
+            ax.plot([r["low"] * 100, r["high"] * 100], [y + dy, y + dy], color=color[kind], linewidth=2.4,
+                    solid_capstyle="butt")
+            ax.plot(r["value"] * 100, y + dy, "o", color=color[kind], markersize=9, markeredgecolor=WHITE,
+                    markeredgewidth=1.5)
+            ax.annotate(f"{r['value'] * 100:+.0f}".replace("-", "−"), (r["high"] * 100, y + dy), xytext=(6, 0),
+                        textcoords="offset points", va="center", fontsize=10.5, color=INK)
+    ax.axvline(0, color=MUTED, linewidth=1.0)
+    ax.set_xlim(-10, 105)
+    ax.set_ylim(-0.6, len(labels) - 0.4)
+    ax.set_yticks(range(len(labels)), [f"{m}, {a}" + (" (§13)" if m == "gpt-oss-20b" else "")
+                                       for m, a in reversed(labels)], fontsize=12, color=INK)
+    ax.tick_params(axis="y", length=0)
+    ax.spines["left"].set_visible(False)
+    ax.grid(axis="x", color=GRID)
+    ax.grid(axis="y", visible=False)
+    ax.set_xlabel("follows the wrong letter: tool channel minus the user's hint (points)")
+    ax.legend([plt.Line2D([], [], color=ROLE["cue"], marker="o", linewidth=2.4),
+               plt.Line2D([], [], color=ROLE["damage"], marker="o", linewidth=2.4)],
+              ["the tool result pasted in", "the model's own call (Olmo: the inserted tool turn)"],
+              loc="lower right", frameon=False, fontsize=11)
+    fig.text(0.03, 0.93, "Tools pull harder than users: the same wrong hint moves the answer more from a tool,", fontsize=15,
+             color=INK)
+    fig.text(0.03, 0.885, "in every model and setting tested (Gate 2).", fontsize=15, color=INK)
+    fig.text(0.03, 0.012, "Track B (F15-F17, F29) and B17 (F37): 54 questions x 3 runs per model and setting; following = "
+             "answered runs ending on the wrong letter;\nlines: 95% bootstrap clustered by question, paired by question. "
+             "Temperature 0.6 (gpt-oss-20b: 1.0, its recommended).\ngpt-oss-20b ran after its one-day window "
+             "(pre-registration section 13). The table behind it: docs/paper/tables/trackB_final.md (B18).",
+             fontsize=10.5, color=MUTED, linespacing=1.35)
+    paths = save(fig, "gate2", rows, out)
+    plt.close(fig)
+    return paths
+
+
 def fig_qwen8b(out=OUT, summary=QWEN8B / "qwen8b_step10_patching.json", readout=QWEN8B / "qwen8b_readout.json"):
     plt = style()
     rows = qwen8b_rows(summary, readout)
@@ -595,7 +658,7 @@ def fig_levels(out=OUT):
 
 
 def main():
-    for f in (fig_levels, fig_bare, fig_b16, fig_qwen8b, fig_b17, fig_channels):
+    for f in (fig_levels, fig_gate2, fig_bare, fig_b16, fig_qwen8b, fig_b17, fig_channels):
         for p in f():
             print(p.relative_to(CODE.parent))
 

@@ -57,7 +57,7 @@ def png_size(path):
 
 
 def test_each_figure_writes_png_svg_and_its_table_at_16_9(tmp_path):
-    for f in (sf.fig_bare, sf.fig_levels, sf.fig_b16, sf.fig_channels, sf.fig_qwen8b, sf.fig_b17):
+    for f in (sf.fig_bare, sf.fig_levels, sf.fig_b16, sf.fig_channels, sf.fig_qwen8b, sf.fig_b17, sf.fig_gate2):
         paths = f(out=tmp_path)
         assert [p.suffix for p in paths] == [".png", ".svg", ".csv"] and all(p.stat().st_size > 0 for p in paths)
         w, h = png_size(paths[0])

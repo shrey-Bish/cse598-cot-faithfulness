@@ -40,7 +40,8 @@ this table (63 links in 16 files); path mentions in the living docs and the code
 `tools/make_gantt.py` (TODO read from `docs/status/`, the generated files written there), `tools/make_supplement.py`
 (the track docs), `tools/label_kit.py` and `ui/app.py` (the label queue and the results summary).
 
-**Left at the old path until the runs that load them finish** (TODO D12): the docstrings of
+**Updated Nov 3 (TODO D12), once no Sol job was queued:** the three below now name `docs/tracks/TRACK_A.md` and
+`docs/labeling`. Until then they were **left at the old path until the runs that load them finished**: the docstrings of
 `cot-disclosure/finetune/__init__.py` and `finetune/source_tags.py` (they name `docs/TRACK_A.md`) and
 `progress/common.py`'s `DOCS` constant (`docs/progress`), which B16 and Sol's queued jobs import. `analyze_progress.py`
 (the only user of `DOCS`, now with its own `LABELING` path), `build_evidence_viewer.py` and `make_bundle.py` name

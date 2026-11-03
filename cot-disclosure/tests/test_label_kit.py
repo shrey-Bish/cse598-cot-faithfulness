@@ -233,3 +233,74 @@ def test_kappa_reads_the_returned_packet_files(tmp_path):
     assert res["final | tool_injected"]["rows"] == 2
     assert res["guess | rater1 right about the trained model"] == {"right": 3, "of": 4, "accuracy": 0.75}
     assert res["guess | rater2 right about the trained model"] == {"right": 2, "of": 4, "accuracy": 0.5}
+
+
+def _sheet(path, rows, cols=("row", "run_id", "model", "condition", "cue_letter", "private_excerpt", "final_excerpt",
+                             "label_private", "label_final", "note")):
+    with open(path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(cols))
+        w.writeheader()
+        for r in rows:
+            w.writerow({c: r.get(c, "") for c in cols})
+
+
+def test_the_settling_sheet_holds_the_disagreements_side_by_side_and_judges_nothing(tmp_path):
+    """Nov 3 (Ritik): for L3's settling call, every row with a disagreement, both raters' labels and notes side by
+    side, an empty third column pair and an empty "guide rule that decided it"; rows where both agree on both texts
+    are left out."""
+    base = {"model": "m", "condition": "expB cue_user", "cue_letter": "B", "private_excerpt": "p", "final_excerpt": "f"}
+    r1 = [{**base, "row": 1, "run_id": "a", "label_private": "no_mention", "label_final": "mentions_only"},
+          {**base, "row": 2, "run_id": "b", "label_private": "says_changed", "label_final": "rejects_hint", "note": "x"},
+          {**base, "row": 3, "run_id": "c", "label_private": "n/a", "label_final": "mentions_only"}]
+    r2 = [{**base, "row": 1, "run_id": "a", "label_private": "no_mention", "label_final": "mentions_only"},
+          {**base, "row": 2, "run_id": "b", "label_private": "mentions_only", "label_final": "says_changed", "note": "y"},
+          {**base, "row": 3, "run_id": "c", "label_private": "n/a", "label_final": "No_mention "}]
+    _sheet(tmp_path / "r1.csv", r1)
+    _sheet(tmp_path / "r2.csv", r2)
+    out, n = lk.settle(tmp_path / "r1.csv", tmp_path / "r2.csv", tmp_path / "settle.csv")
+    rows = list(csv.DictReader(open(out, encoding="utf-8")))
+    assert n == 3 and [r["row"] for r in rows] == ["2", "3"]
+    two = rows[0]
+    assert (two["rater1_label_private"], two["rater2_label_private"]) == ("says_changed", "mentions_only")
+    assert (two["rater1_note"], two["rater2_note"], two["to_settle"]) == ("x", "y", "private, final")
+    assert rows[1]["to_settle"] == "final" and rows[1]["rater2_label_final"] == "no_mention"
+    for r in rows:
+        assert r["settled_label_private"] == r["settled_label_final"] == r["guide_rule_that_decided_it"] == ""
+        assert r["private_excerpt"] == "p" and r["final_excerpt"] == "f"
+
+
+def test_the_fresh_batch_draws_unlabeled_runs_by_model_and_channel(tmp_path, monkeypatch):
+    """Nov 3: L3's fresh batch from Track B's Voyager runs that are in no sheet: the user's hint or a tool hint, a
+    final answer longer than the bare rule, a seeded draw of the same number per model and channel, mixed in a seeded
+    order; the sheets in L3's format (private n/a for a model with no private reasoning) and a key apart."""
+    import gzip
+
+    def rec(model, cond, i, final="I worked it out: the tool says B, so Answer: (B)", reasoning="the user says B"):
+        return {"experiment": "trackB", "run_id": f"{model}|{cond}|{i}", "provider": "voyager", "model": model,
+                "thinking": None, "format": "served", "set": "s", "item_id": f"q{i}", "condition": cond, "repeat": 0,
+                "hint_letter": "B", "correct_letter": "A", "parsed_letter": "B", "status": "ok", "finish_reason": "stop",
+                "called_tool": cond == "tool_real", "tool_calls_by_model": int(cond == "tool_real"),
+                "final_text": final, "reasoning_text": reasoning, "usage": {"output_tokens": 10}}
+    models = ("olmo3-7b-think", "qwen3-30b-a3b-thinking-2507", "qwen3-30b-a3b-instruct-2507")
+    recs = [rec(m, c, i, reasoning=None if "instruct" in m else "the user says B")
+            for m in models for c in ("user", "tool_pasted", "system", "none") for i in range(6)]
+    recs += [rec(models[0], "tool_injected", i) for i in range(4)]
+    recs += [rec(models[1], "user", 90, final="Answer: (B)")]                   # bare: never drawn
+    path = tmp_path / "voyager.jsonl.gz"
+    with gzip.open(path, "wt") as f:
+        f.write("".join(json.dumps(r) + "\n" for r in recs))
+    taken = {f"{models[1]}|user|0"}                                            # already in a sheet: never drawn
+    rows, kit = lk.fresh(path=path, out=tmp_path / "fresh", per_cell=3, seed="t", exclude=taken)
+    assert len(rows) == 18 and kit["per_cell"] == 3
+    cells = {(r["model"], r["channel"]) for r in rows}
+    assert cells == {(m, ch) for m in models for ch in ("user", "tool")}
+    ids = [r["run_id"] for r in rows]
+    assert len(set(ids)) == 18 and f"{models[1]}|user|0" not in ids and f"{models[1]}|user|90" not in ids
+    assert not any(r["condition"] in ("system", "none") for r in rows)
+    sheet = list(csv.DictReader(open(tmp_path / "fresh" / "rater1.csv")))
+    assert [s["run_id"] for s in sheet] == ids and "keyword_final" not in sheet[0]
+    assert all(s["label_private"] == "n/a" for s in sheet if "instruct" in s["model"])
+    assert all(s["label_private"] == "" for s in sheet if "instruct" not in s["model"])
+    assert open(tmp_path / "fresh" / "rater1.csv").read() == open(tmp_path / "fresh" / "rater2.csv").read()
+    again, _ = lk.fresh(path=path, out=tmp_path / "fresh2", per_cell=3, seed="t", exclude=taken)
+    assert [r["run_id"] for r in again] == ids                                  # the seed fixes the draw

@@ -244,6 +244,111 @@ def build_trackb(path=TRACKB, out=None, seed=SEED):
 TRAINED = {"lora", "tags", "lora_tags", "lora_attn3"}        # L4's key: the fine-tuned systems (finetune/train.py)
 
 
+SETTLE_COLS = ["row", "run_id", "model", "condition", "cue_letter", "private_excerpt", "final_excerpt",
+               "rater1_label_private", "rater2_label_private", "rater1_label_final", "rater2_label_final",
+               "rater1_note", "rater2_note", "to_settle", "settled_label_private", "settled_label_final",
+               "guide_rule_that_decided_it", "settle_note"]
+
+
+def settle(path1, path2, out):
+    """L3's settling sheet (Nov 3, RATER_GUIDE "Below 0.6", step 1): every row where the raters disagree on either text,
+    both raters' labels and notes side by side, which text to settle, and an empty third column pair with an empty
+    "guide rule that decided it" for the raters to fill on their call. Nothing is judged here. Returns (path, number
+    of disagreements); UTF-8 with CRLF line ends, like the packets."""
+    def read(p):
+        with open(p, newline="", encoding="utf-8") as f:
+            return {r["row"]: r for r in csv.DictReader(f)}
+    r1, r2 = read(path1), read(path2)
+    lab = lambda r, col: (r.get(col) or "").strip().lower()  # noqa: E731
+    rows, n = [], 0
+    for k, a in r1.items():
+        b = r2[k]
+        texts = [t for t in ("private", "final") if lab(a, f"label_{t}") in LABELS and lab(b, f"label_{t}") in LABELS
+                 and lab(a, f"label_{t}") != lab(b, f"label_{t}")]
+        if not texts:
+            continue
+        n += len(texts)
+        row = {c: a.get(c, "") for c in SETTLE_COLS[:7]}
+        for t in ("private", "final"):
+            row[f"rater1_label_{t}"], row[f"rater2_label_{t}"] = lab(a, f"label_{t}"), lab(b, f"label_{t}")
+        row.update({"rater1_note": a.get("note", ""), "rater2_note": b.get("note", ""), "to_settle": ", ".join(texts),
+                    "settled_label_private": "", "settled_label_final": "", "guide_rule_that_decided_it": "",
+                    "settle_note": ""})
+        rows.append(row)
+    out = Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with open(out, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=SETTLE_COLS, lineterminator="\r\n")
+        w.writeheader()
+        w.writerows(rows)
+    return out, n
+
+
+FRESH_MODELS = ("olmo3-7b-think", "qwen3-30b-a3b-thinking-2507", "qwen3-30b-a3b-instruct-2507")
+FRESH_CHANNEL = {"user": "user", "tool_pasted": "tool", "tool_real": "tool", "tool_injected": "tool"}
+FRESH_SEED = "L3-fresh-20261103"
+FRESH_PER_CELL = 12
+
+
+def fresh(path=TRACKB, out=None, per_cell=FRESH_PER_CELL, seed=FRESH_SEED, exclude=None):
+    """L3's fresh batch (Nov 3; RATER_GUIDE "Below 0.6", step 3), chosen without looking at any label or keyword:
+    Track B's Voyager runs (Oct 27-28) of the three models L3 has (Olmo 3 7B Think, Qwen3 30B Thinking, Qwen3 30B
+    Instruct), with the user's hint or a tool hint (pasted, the model's own call, Olmo's inserted turn), answered, with
+    a final answer longer than the bare rule (BARE_CHARS: bare replies are no_mention by rule, as in L5), and in no
+    sheet (`exclude`: L5's batch, bare or not, and every run id in L3's and L4's keys). A seeded draw of `per_cell`
+    runs per model and channel (user, tool), then one seeded order mixing them. Writes L3's sheet format (rater1.csv,
+    rater2.csv), key.csv and kit.json to `out`. Returns (rows, kit)."""
+    import trackB_report as tr
+    exclude = set(exclude if exclude is not None else fresh_exclusions())
+    runs = [r for r in latest(load(path)) if r.get("experiment") == "trackB" and r["status"] == "ok" and tr.counts(r)
+            and r["model"] in FRESH_MODELS and r["condition"] in FRESH_CHANNEL and r["run_id"] not in exclude
+            and len((r["final_text"] or "").strip()) > BARE_CHARS]
+    pool, rows = {}, []
+    for m in FRESH_MODELS:
+        for ch in ("user", "tool"):
+            cell = sorted((r for r in runs if r["model"] == m and FRESH_CHANNEL[r["condition"]] == ch),
+                          key=lambda r: r["run_id"])
+            pool[f"{m} | {ch}"] = len(cell)
+            for r in random.Random(f"{seed} {m} {ch}").sample(cell, min(per_cell, len(cell))):
+                pattern = "cue" if ch == "user" else "cue_tool"
+                rows.append({"run_id": r["run_id"], "model": m, "channel": ch, "condition": r["condition"],
+                             "cue_letter": r["hint_letter"], "item_id": r["item_id"], "set": r["set"],
+                             "private_excerpt": excerpt(around(r["reasoning_text"], pattern)) if r["reasoning_text"] else "",
+                             "final_excerpt": excerpt((r["final_text"] or "")[-600:])})
+    random.Random(f"{seed} order").shuffle(rows)
+    out = Path(out or OUT / "fresh")
+    out.mkdir(parents=True, exist_ok=True)
+    cols = ["row", "run_id", "model", "condition", "cue_letter", "private_excerpt", "final_excerpt", "label_private",
+            "label_final", "note"]
+    for rater in ("rater1", "rater2"):
+        with open(out / f"{rater}.csv", "w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=cols, lineterminator="\r\n")
+            w.writeheader()
+            for i, r in enumerate(rows, 1):
+                w.writerow({"row": i, **{c: r[c] for c in cols[1:7]},
+                            "label_private": "" if r["private_excerpt"] else "n/a", "label_final": "", "note": ""})
+    with open(out / "key.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["row", "run_id", "model", "channel", "condition", "item_id", "set"])
+        w.writeheader()
+        for i, r in enumerate(rows, 1):
+            w.writerow({"row": i, **{c: r[c] for c in ("run_id", "model", "channel", "condition", "item_id", "set")}})
+    kit = {"rows": len(rows), "per_cell": per_cell, "seed": seed, "eligible_per_cell": pool, "excluded": len(exclude),
+           "bare_chars": BARE_CHARS, "source": str(Path(path).relative_to(CODE) if Path(path).is_relative_to(CODE)
+                                                    else path)}
+    (out / "kit.json").write_text(json.dumps(kit, indent=1) + "\n")
+    return rows, kit
+
+
+def fresh_exclusions():
+    """Every run id already in a sheet or labeled by rule: L5's whole batch (trackb_rows), L3's key, L4's key."""
+    ids = {r["run_id"] for r in trackb_rows()}
+    for p in (OUT / "key.csv", OUT / "gate3" / "L4" / "key_L4.csv"):
+        if p.exists():
+            with open(p, newline="") as f:
+                ids |= {r["run_id"] for r in csv.DictReader(f)}
+    return ids
+
+
 def cohen_kappa(a, b):
     """(kappa, observed agreement, n) for two equal-length label lists."""
     n = len(a)
@@ -321,7 +426,22 @@ def main():
     k = sub.add_parser("kappa")
     k.add_argument("rater1")
     k.add_argument("rater2")
+    s = sub.add_parser("settle", help="L3's settling sheet: the disagreements side by side (judges nothing)")
+    s.add_argument("rater1")
+    s.add_argument("rater2")
+    s.add_argument("--out", default=str(OUT / "L3_settle.csv"))
+    fr = sub.add_parser("fresh", help="L3's fresh batch: a seeded draw of unlabeled Track B runs")
+    fr.add_argument("--per-cell", type=int, default=FRESH_PER_CELL)
     a = ap.parse_args()
+    if a.cmd == "settle":
+        path, n = settle(a.rater1, a.rater2, a.out)
+        print(f"{n} disagreements -> {path}")
+        return
+    if a.cmd == "fresh":
+        rows, kit = fresh(per_cell=a.per_cell)
+        print(f"{kit['rows']} rows ({kit['per_cell']} per model and channel; eligible: {kit['eligible_per_cell']}; "
+              f"excluded {kit['excluded']} run ids already in a sheet) -> {(OUT / 'fresh').relative_to(CODE)}")
+        return
     if a.cmd == "build":
         n, new = build()
         print(f"{n} rows in {OUT.relative_to(CODE)}; replacements: " + ", ".join(r["run_id"] for r in new))
