@@ -4,7 +4,8 @@ chart with a page per track, and a status page.
 Everything is read from what the repo already holds, so it can be made again any day (no calls, no network):
   - git log of the current branch (read-only): each commit's date, hash, files and subject; whether the
     branch's remote-tracking ref holds HEAD (the push done, as of the last fetch or push)
-  - docs/status/TODO.md (docs/TODO.md until Nov 1, still read if it is there): every task table (each section's own
+  - docs/status/TODO.md (docs/TODO.md until Nov 1, still read if it is there), and from Nov 3 each track's own
+    docs/trackB/TODO_B.md and docs/trackC/TODO_C.md: every task table (each section's own
     header): status, dependency, owner, time
   - docs/PLAN.md: the gates, the timeline (windows for later work, the presentations and the report), the
     handoffs, the date by which all evaluation is done, and the deliverables
@@ -551,10 +552,18 @@ def todo_path(root):
     return p if p.exists() else Path(root) / "docs" / "TODO.md"
 
 
+TRACK_TODOS = ("docs/trackB/TODO_B.md", "docs/trackC/TODO_C.md")   # each track's own rows (Nov 3: Shrey's, Arsha's)
+
+
+def todo_paths(root):
+    """TODO.md, then each track's own TODO where it exists."""
+    return [todo_path(root)] + [Path(root) / p for p in TRACK_TODOS if (Path(root) / p).exists()]
+
+
 def todo_tasks(root, is_pushed=False):
-    """Every row of every TODO task table (any header that has # and Status)."""
+    """Every row of every TODO task table (any header that has # and Status), in TODO.md and the tracks' own TODOs."""
     out = []
-    for heading, header, rows in md_tables(read(todo_path(root))):
+    for heading, header, rows in (t for p in todo_paths(root) for t in md_tables(read(p))):
         ci, cs = column(header, "#"), column(header, "status")
         if ci is None or cs is None:
             continue

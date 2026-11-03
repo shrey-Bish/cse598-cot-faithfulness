@@ -557,3 +557,21 @@ def test_todo_is_read_from_status_or_from_the_old_place(tmp_path):
     (tmp_path / "docs" / "status").mkdir()
     (tmp_path / "docs" / "status" / "TODO.md").write_text("new")
     assert mg.todo_path(tmp_path) == tmp_path / "docs" / "status" / "TODO.md"
+
+
+def test_track_todos_in_their_own_folders_are_read_beside_todo(repo):
+    """Nov 3: Track C's rows move to docs/trackC/TODO_C.md (Shrey's) and Track B's to docs/trackB/TODO_B.md; the Gantt
+    reads them beside docs/status/TODO.md, each table's track from its heading as before."""
+    r = repo[0]
+    (r / "docs" / "trackC").mkdir(parents=True)
+    (r / "docs" / "trackC" / "TODO_C.md").write_text(
+        "# Track C to do\n\n## Track C (Shrey)\n\n| # | Item | From | Status | Owner |\n|---|---|---|---|---|\n"
+        "| C77 | A moved Track C row | Oct 31 | planned; due Nov 7 | Shrey |\n")
+    (r / "docs" / "trackB").mkdir(parents=True)
+    (r / "docs" / "trackB" / "TODO_B.md").write_text(
+        "# Track B to do\n\n## Track B\n\n| # | Item | From | Status | Owner |\n|---|---|---|---|---|\n"
+        "| B77 | A moved Track B row | Nov 3 | done Nov 3 | Ritik |\n")
+    assert [p.name for p in mg.todo_paths(r)] == ["TODO.md", "TODO_B.md", "TODO_C.md"]
+    t = {x["id"]: x for x in mg.todo_tasks(r)}
+    assert t["C77"]["track"] == "C" and t["B77"]["track"] == "B" and t["B77"]["status"] == "done"
+    assert "A1" in t                                                     # TODO.md's rows still read

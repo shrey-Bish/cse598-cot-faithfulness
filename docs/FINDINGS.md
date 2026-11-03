@@ -29,6 +29,10 @@ Track C's C4 added, F15 reworded: after a tool call the final answer is bare whe
 earlier today F14–F16, T9, T10, F10's closest-approach reading refuted, limitations section). Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
+**From Nov 3, each track's new findings are in its own file** (Ritik merges them here at the end): Track C's in
+[`trackC/FINDINGS_C.md`](trackC/FINDINGS_C.md) (FC1, …; Shrey's), Track B's in [`trackB/FINDINGS_B.md`](trackB/FINDINGS_B.md)
+(FB1, …; Arsha's from Nov 6). F18–F24 and F30–F34 (Track C) and F15–F17, F25, F29, F35, F37 (Track B) stay here.
+
 **The story so far (Oct 28; updated Oct 30, Nov 1, Nov 2 and Nov 3).**
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
    from the user, in all three Track B models (Gate 2; 54 questions × 3 runs; tool − user with the

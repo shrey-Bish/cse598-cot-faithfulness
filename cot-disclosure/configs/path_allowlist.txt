@@ -1,0 +1,13 @@
+# Path allowlist: on each branch listed here, a commit may touch only these paths (tools/path_check.py, installed as a
+# pre-commit hook). One rule per line: <branch> <path>; a path ending in / is a folder, anything else a glob. Branches
+# not listed are not checked. This file is read-only on every listed branch (it is outside every list).
+#
+# Track C (Shrey, from Oct 30; set by Ritik on Nov 3). Shared code is read-only there: client.py, detect.py, parse.py,
+# experiments.py, progress/, providers/, tools/, finetune/, configs/ and everything else. A change elsewhere is a new
+# module under cot-disclosure/agents/, or a request to Ritik.
+trackC-main  cot-disclosure/agents/
+trackC-main  cot-disclosure/tests/test_trackC_*
+trackC-main  docs/trackC/
+trackC-main  docs/tracks/TRACK_C.md
+trackC-main  cot-disclosure/results/trackC/
+trackC-main  cot-disclosure/results/summaries/trackC/
