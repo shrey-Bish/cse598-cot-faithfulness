@@ -165,10 +165,11 @@ def test_every_job_script_uses_the_course_account_within_limits(script):
     assert int(next(o.split()[1] for o in opts if o.startswith("-c "))) <= 32
     assert int(next(o.split("=")[1].rstrip("G") for o in opts if o.startswith("--mem="))) <= 320
     gpus = [o for o in opts if o.startswith("-G ")]
-    assert gpus in ([], ["-G a100:1"])
+    n = int(gpus[0].split(":")[1]) if gpus else 0               # Nov 3: A39 runs on 4 GPUs (the class QoS allows 4 a job)
+    assert all(g.startswith("-G a100:") for g in gpus) and n in (0, 1, 4) and n * t <= 960   # the 960 running GPU-minutes
     assert "run.sh" in script.read_text() or "setup_env.sh" in script.read_text() or "setup_vllm.sh" in script.read_text()
     if "run.sh" in script.read_text():                         # Oct 29: step9 and step10 dropped set A's --items-from
-        assert script.read_text().rstrip().endswith(f'run.sh {script.stem} "$@"')
+        assert script.read_text().rstrip().endswith(f'run.sh {script.stem.removesuffix("_1gpu")} "$@"')   # a39_1gpu runs a39
 
 
 def fake_sbatch(tmp_path):
@@ -481,7 +482,8 @@ def test_every_server_command_uses_options_vllm_lists():
     version, opts = vo.load(vo.TRACKED)
     cmds = ej.server_commands()
     assert version == "0.31.0" and len(opts) > 300
-    assert set(cmds) == {f"eval {s}" for s in SYSTEMS} | {"vllm_check plain", "vllm_check tagged"}
+    assert set(cmds) == {f"eval {s}" for s in SYSTEMS} | {"eval data-parallel", "vllm_check plain", "vllm_check tagged"}
+    # ^ A39 (Nov 3): one server over 4 GPUs, --data-parallel-size checked like every other option
     assert vo.problems(cmds, opts) == [] and vo.problems(vo.job_commands(), opts) == []
     assert set(vo.job_commands()) == set(cmds) | {"trackB qwen3-8b", "c13 granite-4.1-30b", "c13 mistral-small-3.2-24b",
                                                   "b17 gpt-oss-20b", "b17 gpt-oss-20b auto"}
@@ -537,7 +539,7 @@ def test_setup_vllm_checks_version_and_commands_against_the_committed_list_witho
     from finetune.gpu import vllm_options as vo
     r, calls = run_setup_vllm(tmp_path / "ok")
     assert r.returncode == 0, r.stderr
-    assert "vLLM 0.31.0 installed = the committed list's 0.31.0; all 13 server commands" in r.stdout
+    assert "vLLM 0.31.0 installed = the committed list's 0.31.0; all 14 server commands" in r.stdout
     assert "python -m pip install --no-input vllm==0.31.0" in calls          # the version comes from the list
     assert "vllm " not in calls.replace("vllm==", "")                         # vllm itself never ran (no --help)
     r, _ = run_setup_vllm(tmp_path / "newer", installed="0.32.0")
@@ -596,7 +598,7 @@ def test_other_differences_on_the_node_are_a_warning_in_the_log(tmp_path, capsys
     vo.gpu_preflight(fake_vllm(tmp_path / "sg018", lines), tmp_path / "sg018", committed=_list(tmp_path, mac))
     out = capsys.readouterr().out
     assert "WARNING: this node's vLLM options differ from the committed 0.31.0 list (choices 1: --mm-processor-device)" in out
-    assert "not in any option or value the 13 server commands use: going on" in out
+    assert "not in any option or value the 14 server commands use: going on" in out
     assert vo.read(tmp_path / "sg018" / "vllm_serve_options_node.txt")[1] == lines           # saved to copy back
     node = [x for x in lines if not x.startswith("--mm-ipc-gpu-memory-gb")] + ["--new-option NEW_OPTION"]
     node = [x.replace("{auto,bfloat16,", "{auto,bfloat16,fp8,") if x.startswith("--dtype") else x for x in node]
@@ -696,7 +698,7 @@ def test_eval_job_on_the_hf_engine_skips_the_vllm_preflight(tmp_path, monkeypatc
     monkeypatch.setattr(ej, "preflight", lambda: order.append("preflight"))
     monkeypatch.setattr(kit, "check_inputs", lambda step: order.append("inputs"))
     monkeypatch.setattr(ej, "evaluate_hf", lambda *a: order.append(("hf",) + a[:2] + a[3:]))
-    monkeypatch.setattr(ej, "evaluate", lambda *a: order.append(("vllm",) + a[:2] + a[3:]))
+    monkeypatch.setattr(ej, "evaluate", lambda *a, **k: order.append(("vllm",) + a[:2] + a[3:]))   # A39's options: k
     monkeypatch.setattr(sys, "argv", ["eval_job.py", "--system", "lora", "--part", "2/4", "--out", str(tmp_path)])
     ej.main()
     assert order == ["inputs", ("hf", "lora", (2, 4), None, "auto")]
@@ -878,3 +880,23 @@ def test_a_second_fold_keeps_the_directory_a_running_part_serves(tmp_path):
     assert json.loads((out / "folded_from.json").read_text())["tag_norm"] == pytest.approx(want)
     assert (new.stat().st_ino, new.stat().st_mtime_ns) != before
     assert sorted(p.name for p in out.parent.iterdir()) == ["tags_folded"]
+
+
+def test_a39_needs_a_system_and_a_question_set_and_fits_the_qos_on_four_gpus(tmp_path):
+    """Nov 3: A39's jobs name a system and E2 or the 30 when submitted (else refused, nothing queued); the 4-GPU
+    script's 2-hour limit is half the class QoS's 960 running GPU-minutes, and the 1-GPU variant runs the same step."""
+    env, log = fake_sbatch(tmp_path)
+    for args, said in ((["a39", "--estimate", "1.5", "--", "e2", "1/2"], "needs one of"),
+                       (["a39", "--estimate", "1.5", "--", "wrap"], "needs a question set"),
+                       (["a39_1gpu", "--estimate", "2", "--", "base", "set_a"], "needs a question set")):
+        r = submit(env, *args)
+        assert r.returncode == 1 and said in r.stderr and not log.exists(), (args, r.stderr)
+    fake_squeue_jobs(tmp_path, {})
+    r = submit(env, "a39", "--estimate", "1.5", "--", "lora_wrap", "e2", "1/2")
+    assert r.returncode == 0, r.stderr
+    args = sbatch_args(log)
+    assert args[-4].endswith("a39.sbatch") and args[-3:] == ["lora_wrap", "e2", "1/2"]
+    assert "2:00:00 x 4 GPU = 480 GPU-minutes" in r.stdout                    # the QoS check counts the four GPUs
+    r = submit(env, "a39_1gpu", "--estimate", "2", "--", "base", "mmlupro_30")
+    assert r.returncode == 0 and sbatch_args(log)[-3].endswith("a39_1gpu.sbatch"), r.stderr
+    assert (SOL / "a39_1gpu.sbatch").read_text().count("export A39_GPUS=1") == 1

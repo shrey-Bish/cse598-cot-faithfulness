@@ -28,6 +28,13 @@ needs vLLM's prompt embeddings together with LoRA.
   python finetune/gpu/eval_job.py --engine vllm --system base --part 1/2 --out /scratch/$USER/trackA/eval
   python finetune/gpu/eval_job.py --check --out /scratch/$USER/trackA/vllm_check     # S2
 
+A39 (Nov 3; vllm only): --design a39 --qset e2|mmlupro_30 (finetune/eval.py's lean design), and its new systems on
+the models above (MODEL_OF: the note and the wrapper change only the prompt): wrap and wrap_note on the base,
+lora_note and lora_wrap on the merged LoRA. --gpus N: one server over N GPUs (--data-parallel-size N) and 48 x N
+runs in flight; --limit K: the part's first K runs (a throughput bench). Its server logs are named like its record
+files (vllm_<system>_a39_<qset>_p<k>of<n>.log).
+  python finetune/gpu/eval_job.py --engine vllm --gpus 4 --design a39 --qset e2 --system lora_wrap --part 1/2 --out OUT
+
 The check (S2): a synthetic tag table and LoRA adapter (seeded), the served versions against the
 Hugging Face reference on 3 held-out prompts, greedy, 48 tokens: base served vs HF base (the bf16
 noise floor), merged LoRA + folded tag + tagged prompt embeddings served vs SourceTaggedLM(LoRA) in HF.
@@ -61,7 +68,9 @@ from finetune.gpu import kit  # noqa: E402
 
 TAGGED = ("tags", "lora_tags")
 LORA = ("lora", "lora_attn3", "lora_tags")
+MODEL_OF = {"wrap": "base", "wrap_note": "base", "lora_note": "lora", "lora_wrap": "lora"}   # A39: the model it runs on
 CHECK_TOKENS = 48
+WORKERS_PER_GPU = 48
 
 
 def out_root():
@@ -91,6 +100,7 @@ def merge_lora(base_dir, adapter_dir, out_dir):
 
 def prepare(system, base_dir, train_root, models_root):
     """(model directory to serve, tags.pt or None) for one system."""
+    system = MODEL_OF.get(system, system)
     if system in ("base", "prompt_only"):
         return Path(base_dir), None
     final = Path(train_root) / system / "final"
@@ -132,16 +142,16 @@ def _stop_now(*_):
 
 class Server:
     """vllm serve as a child process; stopped on exit (and on SIGUSR1 from Slurm, _stop_now). cmd: the
-    caller's own command (Track B's Qwen3-8B), else this job's."""
+    caller's own command (Track B's Qwen3-8B), else this job's; gpus > 1: one server over them (data parallel)."""
 
-    def __init__(self, model_dir, prompt_embeds, port=gen.PORT, log=None, lora=None, cmd=None):
-        self.cmd = cmd or self.command(model_dir, prompt_embeds, port, lora)
+    def __init__(self, model_dir, prompt_embeds, port=gen.PORT, log=None, lora=None, cmd=None, gpus=1):
+        self.cmd = cmd or self.command(model_dir, prompt_embeds, port, lora, gpus)
         self.url, self.log = f"http://localhost:{port}", log
 
     @staticmethod
-    def command(model_dir, prompt_embeds, port=gen.PORT, lora=None):
+    def command(model_dir, prompt_embeds, port=gen.PORT, lora=None, gpus=1):
         return gen.serve_cmd(model_dir, port, lora=lora, prompt_embeds=prompt_embeds,
-                             vllm=os.environ.get("TRACKA_VLLM", "vllm"))
+                             vllm=os.environ.get("TRACKA_VLLM", "vllm")) + ["--data-parallel-size", str(gpus)] * (gpus > 1)
 
     def __enter__(self):
         out = open(self.log, "a") if self.log else subprocess.DEVNULL
@@ -173,9 +183,11 @@ class Server:
 
 
 def server_commands():
-    """Every vllm serve command a job starts (label -> argv): each evaluated system's and the check's two."""
+    """Every vllm serve command a job starts (label -> argv): each evaluated system's (A39's new ones serve base's or
+    lora's model, the same commands), one over 4 GPUs (A39's --gpus 4), and the check's two."""
     from finetune.eval import SYSTEMS
     cmds = {f"eval {s}": Server.command(f"MODEL_{s}", prompt_embeds=s in TAGGED) for s in SYSTEMS}
+    cmds["eval data-parallel"] = Server.command("MODEL_lora", prompt_embeds=False, gpus=4)
     cmds["vllm_check plain"] = Server.command("BASE", prompt_embeds=False)
     cmds["vllm_check tagged"] = Server.command("FOLDED", prompt_embeds=True)
     return cmds
@@ -192,6 +204,7 @@ def preflight():
 
 def hf_parts(system, train_root):
     """(adapter directory or None, tags.pt or None) of a system, for the hf engine (nothing is written)."""
+    system = MODEL_OF.get(system, system)
     if system in ("base", "prompt_only"):
         return None, None
     final = Path(train_root) / system / "final"
@@ -236,22 +249,25 @@ def evaluate_hf(system, part, out, workers=None, engine="auto", load=None):
     _JOB.clear()
 
 
-def server_log(out, system, part=None):
+def server_log(out, system, part=None, qset="mmlupro_30", design="gate3"):
     """One vLLM server log per part, named like its record files: vllm_<system>[_p<k>of<n>].log (Oct 29: two
-    parts sharing vllm_base.log interleaved their lines)."""
-    return Path(out) / (f"vllm_{system}" + (f"_p{part[0]}of{part[1]}" if part else "") + ".log")
+    parts sharing vllm_base.log interleaved their lines); A39's vllm_<system>_a39_<qset>[_p<k>of<n>].log."""
+    from finetune import eval as ev
+    return Path(out) / (f"vllm_{system}{ev.tag(qset, design)}" + (f"_p{part[0]}of{part[1]}" if part else "") + ".log")
 
 
-def evaluate(system, part, out, workers):
+def evaluate(system, part, out, workers, qset="mmlupro_30", design="gate3", gpus=1, limit=None):
     from finetune import eval as ev
     base = kit.snapshot()[0]
     model, tags = prepare(system, base, out_root() / "train", out_root() / "models")
     tagger = gen.Tagger.load(base, tags) if tags else None
     Path(out).mkdir(parents=True, exist_ok=True)
     _JOB.update({"out": str(out), "system": system, "part": part, "model_dir": str(model),
-                 "tags": str(tags) if tags else None, "started_utc": kit.now()})
-    with Server(model, prompt_embeds=tags is not None, log=server_log(out, system, part)) as srv:
-        ev.run(system, gen.server_complete(srv.url, "system", tagger), out, part, workers)
+                 "tags": str(tags) if tags else None, "started_utc": kit.now(), "qset": qset, "design": design,
+                 "gpus": gpus, "workers": workers})
+    with Server(model, prompt_embeds=tags is not None, log=server_log(out, system, part, qset, design), gpus=gpus) as srv:
+        ev.run(system, gen.server_complete(srv.url, "system", tagger), out, part, workers, qset=qset, design=design,
+               limit=limit)
     _job_row(out, environments=kit.environments(server=True))      # which environments ran it
     _JOB.clear()
 
@@ -373,12 +389,18 @@ def main():
     ap.add_argument("--system")
     ap.add_argument("--part")
     ap.add_argument("--out", required=True)
-    ap.add_argument("--workers", type=int, help="runs in flight (default: hf from the GPU's free memory; vllm 48)")
+    ap.add_argument("--workers", type=int, help="runs in flight (default: hf from the GPU's free memory; vllm 48 x GPUs)")
     ap.add_argument("--engine", choices=("hf", "vllm"), default="hf")
     ap.add_argument("--hf-engine", choices=("auto", "continuous", "static"), default="auto",
                     help="auto: continuous batching if its self-check passes, else static batches")
     ap.add_argument("--check", action="store_true", help="S2: the vLLM tag check")
+    ap.add_argument("--qset", choices=("mmlupro_30", "e2"), default="mmlupro_30", help="vllm: the questions (A39: e2)")
+    ap.add_argument("--design", choices=("gate3", "a39"), default="gate3", help="vllm: the jobs (A39: a39)")
+    ap.add_argument("--gpus", type=int, default=1, help="vllm: one server over N GPUs (--data-parallel-size N)")
+    ap.add_argument("--limit", type=int, help="vllm: the part's first K runs only (a throughput bench)")
     a = ap.parse_args()
+    if a.engine == "hf" and not a.check and (a.qset, a.design, a.gpus, a.limit) != ("mmlupro_30", "gate3", 1, None):
+        ap.error("--qset, --design, --gpus and --limit are for --engine vllm (A39)")
     signal.signal(signal.SIGUSR1, _stop_now)
     if os.environ.get("SLURM_JOB_ID"):                       # on Sol, first: the server options on this node
         if a.check or a.engine == "vllm":                    # (vLLM jobs only), then the Mac's bytes (kit manifest)
@@ -391,7 +413,8 @@ def main():
     if a.engine == "hf":
         evaluate_hf(a.system, part, a.out, a.workers, a.hf_engine)
     else:
-        evaluate(a.system, part, a.out, a.workers or 48)
+        evaluate(a.system, part, a.out, a.workers or WORKERS_PER_GPU * a.gpus, qset=a.qset, design=a.design, gpus=a.gpus,
+                 limit=a.limit)
 
 
 if __name__ == "__main__":

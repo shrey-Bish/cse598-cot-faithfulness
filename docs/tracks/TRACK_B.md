@@ -1,6 +1,6 @@
 # Track B handoff: test widely (for Arsha, from Nov 6)
 
-Last updated: 2026-11-03 13:00 (the handoff moves to Nov 6; B18 and slide 2 started for you, §1a; B20 prepared;
+Last updated: 2026-11-03 12:00 (the handoff moves to Nov 6; B18 and slide 2 started for you, §1a; B20 prepared;
 closed models dropped). History: `git log --follow docs/tracks/TRACK_B.md` (it was `docs/handoff/TRACK_B.md` until
 Nov 1). Ritik runs Track B until Nov 6, then it's yours.
 

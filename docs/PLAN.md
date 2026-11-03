@@ -1,6 +1,6 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-11-03 12:30 MST (the Nov 3 session: the fix's honest verdict; E2 and A39; Track B's handoff on
+Last updated: 2026-11-03 12:00 MST (the Nov 3 session: the fix's honest verdict; E2 and A39; Track B's handoff on
 Nov 6; the doc audit). History: `git log -- docs/PLAN.md`; the Oct 31 version and the per-track design notes that
 were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`](../archive/superseded/PLAN_2026-10-31.md). Where things are:
 - progress: [`STATUS.md`](status/STATUS.md);
@@ -83,9 +83,9 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | 2 words | L3 | Gate 2's hand labels (F3 rests on them): kappa per channel | Ritik and Shrey | Nov 6 | **both sheets in Nov 3; kappa under 0.6 in four of six cells** (private 0.63, tool 0.29, user 0.85; final 0.54, tool 0.59, user 0.43): by the plan, settle the 25 disagreements, tighten the guide, label a fresh batch; no acknowledgment claim from labels until then |
 | 2 words | L4 part 1 | Does training teach the model to claim checks it doesn't do? | Ritik and Shrey | Nov 14 | **read Nov 3** (F28; kappa 0.93): 1 to 2 of LoRA's 147 candidates claim a rejection they didn't act on; most say the hint shaped the answer; the raters could tell LoRA's style |
 | 2 words | B18 | The final Track B table and one figure | Ritik; Arsha, from Nov 6 | Nov 18 | started Nov 3 (`tools/trackb_final.py`; slide 2) |
-| 2 words | B20 | Open models from new families on Sol (Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B, Granite 4.2 8B), thinking on and off | Ritik submits; Arsha, from Nov 6 | runs Nov 15, read Nov 17 | being prepared Nov 3 |
+| 2 words | B20 | Open models from new families on Sol (Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B, Granite 4.2 8B), thinking on and off | Ritik submits; Arsha, from Nov 6 | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3 |
 | 1 fix | E2 | A second, larger held-out set: 120 fresh MMLU-Pro questions from the evaluation categories | Ritik | Nov 3 | **done Nov 3** (sha256 `59c5c250…`) |
-| 1 fix | A39 | Fix round 2 on E2: the wrapper, combinations, a powered replication of Gate 3 | Ritik | runs Nov 15, read Nov 17 | pre-registered Nov 3 |
+| 1 fix | A39 | Fix round 2 on E2: the wrapper, combinations, a powered replication of Gate 3 | Ritik | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3 |
 | 1 fix | B1R2 | B1's deployable span on E2 (a labelled replication) | Ritik | Nov 15 | conditional on Sol time |
 | 3 agents | C19 | Is an authority claim the cue (H34)? | Shrey | Nov 7 | prepared |
 | 3 agents | C25 | Across agents (the centerpiece): solver with tool → a writer's handoff note → a decider that never sees the tool | Shrey | Nov 12 | prepared |

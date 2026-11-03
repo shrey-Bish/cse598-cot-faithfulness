@@ -84,6 +84,11 @@
    "sha256": "0abd5efb1e450d5411455dd3a78ef81fb5665ab7c7824acd84429747723f65c0"
   },
   {
+   "path": "data/progress/mmlupro_e2.jsonl",
+   "bytes": 133121,
+   "sha256": "59c5c2502183eebff68989395cc339fb382a38eae9e67ac29bd1ac9e1251ec1b"
+  },
+  {
    "path": "finetune/prompts/guide_note.txt",
    "bytes": 226,
    "sha256": "d2f1233ee9c20e9a7c5f5a530112dca08f22c12e1c05c637311ee719adbd0280"

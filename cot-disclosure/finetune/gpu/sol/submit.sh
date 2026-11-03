@@ -27,7 +27,8 @@
 #
 # train and eval need their argument after --: a version (train), a system and an optional K/N part
 # (eval). Without it they are refused here, not when the job starts hours later. val_loss takes
-# versions only (none: lora tags).
+# versions only (none: lora tags). b20 and get_b20 (B20, Nov 3) need --model M before --, one of
+# b20_models below; without --estimate, b20's limit comes from 1 h for the smoke (-- --smoke) or 6 h for the runs.
 # It always ends with sbatch's "Submitted batch job N", or a clear error and a non-zero exit code.
 set -euo pipefail
 trap 'echo "submit.sh: stopped at line $LINENO ($BASH_COMMAND): exit $?. Nothing was submitted." >&2' ERR
@@ -46,11 +47,16 @@ shift
 script="$HERE/$job.sbatch"
 [ -f "$script" ] || { echo "no such job script: $script" >&2; exit 2; }
 
-estimate="" sb=() jobargs=()
+b20_models="gemma-4-26b-a4b-it nemotron-3-nano-30b-a3b granite-4.2-8b"   # progress/run_b20.py MODELS (tested)
+estimate="" sb=() jobargs=() model=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --estimate) estimate=${2:?--estimate needs hours}; shift 2 ;;
         --estimate=*) estimate=${1#*=}; shift ;;
+        --model|--model=*)                   # B20's kinds only; any other job passes it on to sbatch, as before
+            if [ "$job" != b20 ] && [ "$job" != get_b20 ]; then sb+=("$1"); shift
+            elif [ "$1" = --model ]; then model=${2:?--model needs a name}; shift 2
+            else model=${1#*=}; shift; fi ;;
         --) shift; jobargs=("$@"); break ;;
         -A*|--account*) echo "refusing: the account is set here ($ACCOUNT), not on the command line" >&2; exit 1 ;;
         -q*|--qos*|-p*|--partition*)
@@ -67,10 +73,16 @@ gates="gate3 lora_attn3_gate"              # B2 (Oct 29): trained and measured l
 case "$job" in
     train) want="$versions $gates" ;;
     eval)  want="base prompt_only $versions" ;;
+    a39|a39_1gpu) want="base prompt_only lora lora_note wrap wrap_note lora_wrap" ;;   # finetune/eval.py A39_SYSTEMS (Nov 3)
     *)     want="" ;;
 esac
 if [ -n "$want" ] && ! printf '%s\n' $want | grep -qx -- "${jobargs[0]:-}"; then
     echo "refusing: $job needs one of: $want, after -- (submit.sh $job --estimate H -- ${want%% *});" \
+         "got: '${jobargs[*]:-nothing}'. Nothing was submitted." >&2
+    exit 1
+fi
+if { [ "$job" = a39 ] || [ "$job" = a39_1gpu ]; } && ! printf '%s\n' e2 mmlupro_30 | grep -qx -- "${jobargs[1]:-}"; then
+    echo "refusing: $job needs a question set after the system: e2 or mmlupro_30 (submit.sh $job --estimate 1.5 -- base e2 1/2);" \
          "got: '${jobargs[*]:-nothing}'. Nothing was submitted." >&2
     exit 1
 fi
@@ -81,6 +93,17 @@ if [ "$job" = val_loss ]; then              # versions only (none: lora tags); t
             exit 1
         fi
     done
+fi
+if [ "$job" = b20 ] || [ "$job" = get_b20 ]; then
+    if ! printf '%s\n' $b20_models | grep -qx -- "$model"; then
+        echo "refusing: $job needs --model, one of: $b20_models (submit.sh $job --model ${b20_models%% *});" \
+             "got: '${model:-nothing}'. Nothing was submitted." >&2
+        exit 1
+    fi
+    jobargs=(--model "$model" ${jobargs[@]+"${jobargs[@]}"})
+    if [ "$job" = b20 ] && [ -z "$estimate" ]; then              # the smoke 1 h (limit 1:30), the runs 6 h (8:00)
+        case " ${jobargs[*]} " in *" --smoke "*) estimate=1 ;; *) estimate=6 ;; esac
+    fi
 fi
 
 accounts=$(grep -E '^#SBATCH[[:space:]]+(-A|--account)' "$script" | sed -E 's/^#SBATCH[[:space:]]+(-A[[:space:]]*|--account[=[:space:]]+)//')
@@ -167,6 +190,8 @@ depends_on() {          # the job kinds each job may wait for (plain case: works
         qwen8b_step10) echo "qwen8b_step3" ;;                        # Qwen3-8B Step 10 reads Step 3's cases (Oct 30)
         b17) echo "get_gptoss b17" ;;                                # B17: after its snapshot, or the smoke job (Oct 31)
         a18) echo "a18" ;;                                           # A18: Step 10, the swap, Step 9 after Step 3 (Oct 31)
+        b20) echo "get_b20 b20" ;;                                   # B20: after its snapshot, or its smoke job (Nov 3)
+        a39|a39_1gpu) echo "setup_vllm vllm_check a39 a39_1gpu" ;;     # A39: after vLLM's setup, or the bench (Nov 3)
     esac
 }
 deps=""

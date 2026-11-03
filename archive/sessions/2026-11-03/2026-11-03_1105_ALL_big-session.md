@@ -308,3 +308,189 @@ fixed as below. Line numbers are as of `5f38123`.
 - The supplement: 34 ledger rows (A39 and B1R2 added), none unverified, no log outside it; DEVIATIONS 0 unverified;
   CLAIMS the same 3 old mismatches.
 - `make_gantt --dry-run` parses everything.
+
+**A correction of times (12:20):** several times written today ran ahead of the clock.
+- **"Last updated" lines and the amendment:** PLAN 12:30, FINDINGS 12:40, TODO 12:50, TRACK_B 13:00, and A39's
+  amendment at "13:45". These were corrected to the times the edits were made (about 12:00 and 12:15).
+- **Two commit messages:** `5f38123` says "12:05" and `3ae88c7` says "13:20". Git records them at 11:41 and about
+  12:05. They were left as written, because their hashes are cited in today's docs. **Git's commit times are the
+  record.**
+
+## Part 3: B20, open models instead of closed ones (items 10–11)
+
+**Closed models are dropped for cost** (TODO_B: the closed-provider rows B21–B23 dropped).
+
+**Item 10, the models, from a web check of the Hub's metadata, model cards and vLLM 0.31.0's parser registries**
+(each claim with its source in the pre-registration):
+
+| model | why | licence and gate | reasoning switch | vLLM 0.31.0 parsers |
+|---|---|---|---|---|
+| **Gemma 4 26B-A4B-it** (Google) | a new family; strong; MoE, fits one A100 | Apache-2.0, ungated | `enable_thinking` | `gemma4` (reasoning), `gemma4` (tools) |
+| **Nemotron 3 Nano 30B-A3B** (NVIDIA) | a third lab and another architecture (hybrid Mamba/MoE) | NVIDIA Open Model License, ungated | `enable_thinking` | `nemotron_v3`, `qwen3_coder` |
+| **Granite 4.2 8B** (IBM) | off/low/full modes in one set of weights; the 8B for GPU hours | Apache-2.0, ungated | `enable_thinking` | `granite_thinking_parser` (a plugin from the snapshot, as its card serves it), `qwen3_coder` |
+
+- **Granite's family (4.1) was a Track C reviewer;** this is said in the log.
+- **Excluded:**
+  - Phi-4-reasoning: its chat template drops system and tool messages;
+  - the DeepSeek-R1 distills: no tool calling in vLLM, and the Qwen-based ones are Qwen weights;
+  - SmolLM3: too weak, and served only through Transformers;
+  - Magistral: reasoning always on, and its base model is Mistral Small 3.2, a Track C reviewer.
+- **None needs a licence acceptance on Hugging Face.** Nemotron's licence is NVIDIA's own and should be read.
+
+**Item 11, pre-registered** ([`2026-11-03_1219_B_b20-prereg.md`](2026-11-03_1219_B_b20-prereg.md), before any run):
+- **Design:** Track B's 54 questions × 6 conditions (with B16's `user_authority`) × 3 runs × thinking on and off.
+  1,944 runs a model, 5,832 in all, at each model's recommended sampling.
+- **Readings, per model and setting:**
+  - R1, Gate 2;
+  - R2, tool or authority (B16's rule);
+  - R3a, the bare answer after a call against with the pasted block;
+  - R3b, thinking on minus off on it.
+- **Checks before any run:**
+  - the served-template check, by token ids;
+  - a canary at temperature 0, compared across jobs;
+  - a smoke of the first 12 runs, clean only if all 12 ran, at least 10 answered, everything parses, the tool path ran
+    and the reasoning split is right.
+- **A fallback fixed in advance:** the inserted tool turn, if a model's own call doesn't work.
+- **Revisions pinned in code:** Gemma `4d7ae498…`, Nemotron `bf77c317…`, Granite `a7042144…`.
+- **Code:** `progress/run_b20.py`, `progress/sol_b20.py`, `b20.sbatch` and `get_b20.sbatch`, with `submit.sh` and
+  `run.sh` kinds. Its tests: 29 passed, 1 skipped (the real-template test needs a cached tokenizer). They failed first.
+- **The dry run:** 2.8–13.1 GPU-hours for all three, at 650–1,310 tokens/s (B17's measured rate, and half of it).
+- **Two calls made on the way:**
+  - **Gemma is served with its snapshot's own template,** not vLLM's example one. The check compares against the
+    snapshot's template, so the example one would likely stop the smoke by design. Decided before the log was
+    committed.
+  - **Granite gets its card's parser plugin.**
+- **Runs by Nov 15, read by Nov 17; Arsha's from Nov 6.**
+
+## Part 4, the rest: A39's code, B1R2, and Sol (items 14–17)
+
+**A39's code** (`finetune/eval.py`'s question set, design and systems; `finetune/a39.py`, R1–R4;
+`finetune/gpu/eval_job.py --gpus N` serving one vLLM with `--data-parallel-size N`):
+- Its tests: 22 new ones (all failing first), plus 5 lines of existing tests updated for intended signature changes.
+- Gate 3's own design, files and report are unchanged.
+- **Its dry run:**
+  - E2: 7,200 runs, about 43 GPU-hours, 11 four-GPU jobs;
+  - the 30: 1,800 runs, about 11 GPU-hours;
+  - both at batch 3's 500 tokens/s per A100.
+- **The amendment** (the 11:30 log §9, before any run) makes explicit: no-answer counts beside every reading (and
+  "no-answer imbalance" over 5 points), the wrapper's pooled readings diluted by design, every tool output marked in
+  later rounds too, A39's own experiment name and folder, and the job shapes.
+- **E2's file** is in the Sol kit's eval inputs (`kit.py --manifest`: `inputs_manifest.json`, `sol/inputs.txt`).
+- **Sol kinds:**
+  - `a39` (4 GPUs, one data-parallel server, 192 in flight, a 2-hour limit: half the 960 GPU-minutes);
+  - `a39_1gpu` (the 30's jobs and the bench's 1-GPU shape).
+  - `submit.sh` refuses a missing system or question set.
+  - The kit's account test now checks the class QoS's real limits (up to 4 GPUs, GPUs × limit ≤ 960) instead of
+    "1 GPU". A new `submit.sh` test passes.
+
+**B1R2** stays conditional (11:30 log §5). Its job lines need `provenance_job` on E2, which isn't written. They come
+in an amendment if the calendar leaves about 60 GPU-hours by Nov 15.
+
+**Item 16, Sol used fully.** The limits, from `accounts.conf` (confirmed Oct 27, re-checked Oct 30) and ASU's public
+docs:
+- per job: up to 4 GPUs, 32 cores, 320 GB, 24 h;
+- per user: 2 running, 10 submitted, **960 running GPU-minutes**;
+- every recorded GPU an A100 80 GB;
+- the H100s are listed as privately owned, so probably not ours.
+
+**The shapes:**
+- 2 jobs × 4 GPUs × a 2-hour limit = 960, so **8 A100s at once**;
+- 1-GPU jobs give 2 at once.
+
+**To confirm on a login node** (no job):
+```bash
+sacctmgr -P show qos class format=Name,MaxWall,MaxTRES,MaxTRESPU,MaxTRESRunMinsPU,MaxJobsPU,MaxSubmitPU
+sacctmgr -P show assoc where account=class_cse59888883fall2026 format=Account,User,QOS,GrpTRES,MaxTRES,MaxJobs,MaxSubmit
+sinfo -N -h -O "NodeList:10,PartitionName:10,Gres:32,Features:40" | grep -i -E 'h100|a100' | sort -k3 | uniq -c -f2 | head
+sbatch --test-only -A class_cse59888883fall2026 -p public -q class -G h100:1 -t 1:00:00 --wrap=true   # H100: allowed?
+sbatch --test-only -A class_cse59888883fall2026 -p public -q class -G a100:4 -t 2:00:00 --wrap=true   # 4 A100s: when?
+```
+
+**The bench (TODO R3), before the big runs.** Both count toward base's E2 runs, and nothing is read from them but
+speed:
+```bash
+S=cot-disclosure/finetune/gpu/sol/submit.sh
+$S a39 --estimate 0.75 -- base e2 1/2 --limit 384          # 4 GPUs, data-parallel, 192 in flight (limit 1:00)
+$S a39_1gpu --estimate 0.75 -- base e2 2/2 --limit 96      # 1 GPU, 48 in flight (limit 1:00)
+```
+- **What it measures:** tokens/s from vLLM's "Avg generation throughput" lines
+  (`/scratch/ragarw68/trackA/a39/vllm_*.log`), minutes to start, and each job's wait in the queue.
+- **The rule for the shape:** if 4 GPUs give at least 3× one GPU's tokens/s, E2 runs on 4-GPU jobs. Otherwise it
+  runs on 1-GPU jobs (2 at once), and the calendar below stretches by about 2 days.
+
+**The GPU hours to Nov 15:**
+
+| work | GPU-hours | jobs |
+|---|---|---|
+| A39 on E2 | ~43 | 11 × 4 GPUs, 2 h |
+| A39 on the 30 | ~11 | 7 × 1 GPU |
+| B20 | 3–13 | 3 downloads with no GPU; 3 smokes and 3 mains on 1 GPU |
+| B1R2 (if it fits) | ~60 | 1-GPU jobs of up to 8 h, Hugging Face engine |
+| **in all** | **117–127** | |
+
+At 8 A100s, A39's E2 is about 6 hours of running time. The 1-GPU work, two at a time, is about 2–3 days. **The class
+account fits A39 and B20 by Nov 15 with days to spare. B1R2 fits if queue waits stay under about a day per round.**
+If they don't, the request to Prof. Davulcu for the lab account would be **about 60 GPU-hours on 1 A100 a job (B1R2's
+share) for Nov 9–14**. No other account is used without Ritik's OK.
+
+**Item 17, the Sol calendar to Nov 18** (in Ritik's priority: A39 on E2, then B20, then B1R2):
+
+| when | on Sol | on the Mac |
+|---|---|---|
+| Nov 3 evening | pull; the login-node reads; B20's three downloads (no GPU); the bench | A18's copy-back and reading (its jobs are done) |
+| Nov 4–5 | A39 on E2: 11 four-GPU jobs, two at a time (in waves, at most 10 submitted) | the bench's numbers into the plan |
+| Nov 5–7 | B20: three smokes, then three mains (1 GPU); A39 on the 30 (7 × 1 GPU) | each B20 smoke's check |
+| Nov 8 | the decision on B1R2 (about 60 GPU-hours left by Nov 15?); its amendment and lines if yes | Gate 2 (L3) |
+| Nov 9–14 | B1R2 if it fits; any reruns | A39's reading as parts come back |
+| Nov 15 | runs end | |
+| Nov 17 | | A39 read (Ritik); B20 read (Arsha) |
+| Nov 18 | the freeze | |
+
+## §10. A18's copy-back (item 2; its jobs are done, its outputs not on the Mac)
+
+```bash
+# on the Mac, from cot-disclosure/ (numbers only; the sources stay on Sol)
+H=ragarw68@login.sol.rc.asu.edu:/scratch/ragarw68
+rsync -av --exclude 'sources_*' $H/trackA/a18/ results/trackA/gpu/a18/
+for d in results/trackA/gpu/a18/step10_*; do printf '%3s cuts  %s\n' "$(ls $d/cuts | wc -l | tr -d ' ')" "${d##*/}"; done
+# complete: base_on_base 30, base_on_base_user 22, lora_on_base 30, lora_on_base_user 22, lora_on_lora 18, lora_on_lora_user 12
+ls results/trackA/gpu/a18/step9_lora/step9/
+```
+Then I read the primary (the swap and Step 10) and Step 9's secondary by the 22:44 log's rule, and draw slide 10.
+
+## Judgment calls, each with its cost if wrong
+
+1. **The L3 fresh batch comes from Track B's runs,** not L3's own sources, which have 25 runs left. It uses the same
+   three model types and both channels, in no sheet, with finals over 30 characters.
+   - Cost: a slightly different mix of texts from L3. Kappa is still read per channel by the same rule.
+2. **E2's size is 120 questions,** from Gate 3's own variance: following ±4.9 at worst, acceptance ±3.9.
+   - Cost: if Sol's queue is slow, B1R2 gives way first, not E2.
+3. **A39 adds LoRA + wrapper** (4 runs a question). Nothing else was added, to protect power.
+4. **The wrapper marks tool-role turns only.** The pasted block sits in the user's turn, which a system can't tell is
+   a tool's output, so it serves as the wrapper's control.
+5. **B20's models:** Gemma 4, Nemotron 3 Nano and Granite 4.2 8B.
+   - Granite's family was a Track C reviewer; this is disclosed.
+   - Gemma is served with its own snapshot template.
+6. **Shrey's START_HERE adds a smoke step, label meanings, figures under `docs/trackC/figures/`, halt handling, and
+   "ask Shrey before any Voyager call".**
+   - Cost: none to the rules; they are operational.
+7. **Doc audit L8 left as is:** F28's interim readings stay, because the supplement's DEVIATIONS check reads strings in
+   them.
+8. **The kit's account test now allows 4-GPU jobs** within the 960 GPU-minutes, as item 16 asks. It no longer checks
+   for 1 GPU.
+
+## What's waiting for Ritik
+
+- **Send Shrey** the message (§2b) and `results/handoff/trackC_20261103.tar.gz` through ASU storage.
+- **L3:** the settling call with Shrey (`results/labels/L3_settle.csv`), then the notes for tightening the guide.
+- **Sol, in order** (the first step after this push):
+  1. `git pull --ff-only` on Sol.
+  2. The login-node checks of Part 4: the QoS and H100 lines, and B20's parser grep (the 12:19 log's line 0).
+  3. A18's copy-back on the Mac (§10).
+  4. B20's three downloads (`get_b20`; no GPU).
+  5. The bench (`a39` and `a39_1gpu` with `--limit`).
+  6. After the bench: A39 on E2's 11 jobs; then B20's smokes and mains; then A39 on the 30.
+  7. On Nov 8: the B1R2 decision.
+- **Nov 6 morning:** Arsha's bundle and note (H2).
+- **If H100s turn out to be allowed** (the `--test-only` line), A39's jobs could use them. B17's kernels are tied to
+  the A100, so that would need a bench first.

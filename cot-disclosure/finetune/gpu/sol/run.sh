@@ -19,6 +19,9 @@
 #   cot-disclosure/finetune/gpu/sol/run.sh b17 [--smoke] [args]      # B17: gpt-oss-20b at three efforts, our vLLM (progress/sol_b17.py)
 #   cot-disclosure/finetune/gpu/sol/run.sh get_gptoss                # its snapshot (no GPU; online)
 #   cot-disclosure/finetune/gpu/sol/run.sh a18 step3|step10|swap|step9 [args]   # A18: inside the fixed model (finetune/look/a18.py)
+#   cot-disclosure/finetune/gpu/sol/run.sh b20 --model M [--smoke]   # B20: a new family, thinking on and off, our vLLM (progress/sol_b20.py)
+#   cot-disclosure/finetune/gpu/sol/run.sh get_b20 --model M         # its snapshot (no GPU; online)
+#   cot-disclosure/finetune/gpu/sol/run.sh a39 SYSTEM QSET [K/N] [args] # A39: one system on e2 or mmlupro_30 (A39_GPUS, default 4)
 # Output: $TRACKA_OUT/<step>/ (/scratch/$USER/trackA/<step>/), plus a log of the console there.
 # Every step starts with the import check (finetune/gpu/import_check.py): a broken environment stops the
 # job in seconds, before any model loads.
@@ -28,7 +31,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/env.sh" || exit 1
 set -euo pipefail
 tracka_require_job
 
-step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|val_loss|trackb_qwen8b|get_qwen8b|provenance_forced|provenance_gen|provenance_bench|c13|get_c13|qwen8b_step3|qwen8b_step10|b17|get_gptoss|a18 [args]}
+step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|val_loss|trackb_qwen8b|get_qwen8b|provenance_forced|provenance_gen|provenance_bench|c13|get_c13|qwen8b_step3|qwen8b_step10|b17|get_gptoss|a18|b20|get_b20|a39 [args]}
 shift
 args=("$@")
 case "$step" in
@@ -79,7 +82,17 @@ case "$step" in
     a18)    script=finetune/look/a18.py                           # A18 (Oct 31): Steps 3, 9, 10 and the swap on batch 3's runs
             sub=${1:?usage: run.sh a18 step3|step10|swap|step9 [args]}
             args=("$sub" --out "$TRACKA_OUT" "${@:2}") ;;
-    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, val_loss, trackb_qwen8b, get_qwen8b, provenance_forced, provenance_gen, provenance_bench, c13, get_c13, qwen8b_step3, qwen8b_step10, b17, get_gptoss, a18)" >&2; exit 2 ;;
+    b20)    script=progress/sol_b20.py                            # B20 (Nov 3): one new family, thinking on and off, our vLLM
+            args=(--run --log-dir "$TRACKA_OUT/b20" "$@") ;;
+    get_b20) script=progress/sol_b20.py                           # its snapshot: online, like get_gptoss
+            export HF_HUB_OFFLINE=0 TRANSFORMERS_OFFLINE=0
+            args=(--download --log-dir "$TRACKA_OUT/b20" "$@") ;;
+    a39)    script=finetune/gpu/eval_job.py                       # A39 (Nov 3): the lean design, one server over A39_GPUS (4)
+            system=${1:?usage: run.sh a39 SYSTEM e2|mmlupro_30 [K/N] [args]}
+            qset=${2:?usage: run.sh a39 SYSTEM e2|mmlupro_30 [K/N] [args]}
+            args=(--engine vllm --gpus "${A39_GPUS:-4}" --design a39 --qset "$qset" --system "$system" --out "$TRACKA_OUT/a39")
+            if [ $# -ge 3 ] && [[ "$3" == */* ]]; then args+=(--part "$3" "${@:4}"); else args+=("${@:3}"); fi ;;
+    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, val_loss, trackb_qwen8b, get_qwen8b, provenance_forced, provenance_gen, provenance_bench, c13, get_c13, qwen8b_step3, qwen8b_step10, b17, get_gptoss, a18, b20, get_b20, a39)" >&2; exit 2 ;;
 esac
 mkdir -p "$TRACKA_OUT/$step"
 log="$TRACKA_OUT/$step/console_$(date +%Y%m%d_%H%M%S)_${SLURM_JOB_ID}.log"
@@ -87,10 +100,10 @@ cd "$TRACKA_CODE"
 echo "job $SLURM_JOB_ID ($(tracka_account)) on $(hostname): $script ${args[*]}" | tee "$log"
 # First (Oct 29): the job's imports, each from its own environment, with their versions, in seconds
 # (finetune/gpu/import_check.py): torch, transformers with AutoTokenizer, peft; vllm in vLLM's
-# environment for a vLLM job (vllm_check, c13, b17; eval and trackb_qwen8b with --engine vllm)
+# environment for a vLLM job (vllm_check, c13, b17, b20; eval and trackb_qwen8b with --engine vllm)
 check=(finetune/gpu/import_check.py)
 uses_vllm=0
-if [ "$step" = vllm_check ] || [ "$step" = c13 ] || [ "$step" = b17 ]; then uses_vllm=1; fi
+if [ "$step" = vllm_check ] || [ "$step" = c13 ] || [ "$step" = b17 ] || [ "$step" = b20 ]; then uses_vllm=1; fi
 for i in "${!args[@]}"; do
     if [ "${args[$i]}" = "--engine=vllm" ]; then uses_vllm=1; fi
     if [ "${args[$i]}" = "--engine" ] && [ "${args[$((i + 1))]:-}" = vllm ]; then uses_vllm=1; fi

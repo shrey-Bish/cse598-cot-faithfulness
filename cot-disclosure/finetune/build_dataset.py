@@ -58,6 +58,7 @@ OUT = CODE / "finetune" / "data"
 NOHINT_TRAIN = CODE / "results" / "trackA" / "nohint_train.jsonl.gz"     # Step 6 (pinned format)
 POOL = CODE / "finetune" / "data" / "pool.jsonl"                         # Step 6's training questions
 STEP2B = CODE / "results" / "trackA" / "base_format.jsonl.gz"
+E2 = CODE / "data" / "progress" / "mmlupro_e2.jsonl"                    # A39's evaluation set (finetune/make_e2.py)
 LETTERS = "ABCDEFGHIJ"
 RUNS_NEEDED = 3
 CAP_TOTAL = 32768          # tokens, prompt + reply; a run past it has no answer (decided 2026-10-25)
@@ -119,11 +120,16 @@ def pool_questions(path=POOL):
     return load(path) if Path(path).exists() else []
 
 
-def heldout_questions():
-    for it in load(CODE / "data" / "progress" / "mmlupro_30.jsonl"):
-        yield {"question_set": "mmlupro_30", "item_id": f"mmlupro-{it['question_id']}", "qid": it["question_id"],
+def heldout_questions(path=CODE / "data" / "progress" / "mmlupro_30.jsonl", question_set="mmlupro_30"):
+    for it in load(path):
+        yield {"question_set": question_set, "item_id": f"mmlupro-{it['question_id']}", "qid": it["question_id"],
                "question": block(it["question"], it["options"]), "n_options": len(it["options"]),
                "correct": it["answer"], "hint_letters": [it["cue_letter"]]}
+
+
+def e2_questions(path=E2):
+    """E2 (Nov 3, finetune/make_e2.py): 120 more MMLU-Pro test questions with the 30's fields, read the same way."""
+    return heldout_questions(path, "e2")
 
 
 def pinned_runs(path=NOHINT_TRAIN):

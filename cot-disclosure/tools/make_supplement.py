@@ -918,6 +918,14 @@ PREREG = [
      "f_title": r"\(A38\)", "result_glob": ["*a38-results*", "*b1-generation-result*"],
      "verdict": "not run, as pre-registered: B1's deployable span reads \"ignores tools\" (F38)",
      "verdict_check": ["A38 isn't run"]},
+    {"id": "b20", "track": "B", "experiment": "B20: three open-weight families on Sol (Gemma 4 26B-A4B, Nemotron 3 Nano "
+                                              "30B-A3B, Granite 4.2 8B), thinking on and off", "kind": "pre",
+     "rule": "per model and setting, paired by question: R1 Gate 2 (each tool channel minus user: clear if above 0); R2 B16's "
+             "rule (each tool channel minus user_authority); R3a the bare answer after a call minus with the pasted block; "
+             "R3b thinking on minus off on it; the 16,000 cut beside each",
+     "rule_log": "2026-11-03_1219_B_b20-prereg.md", "rule_check": ["R1, Gate 2", "R2, tool or authority", "R3b, with thinking"],
+     "f_title": r"\(B20\)", "result_glob": ["*b20-results*"], "verdict": "waiting: pre-registered and coded Nov 3, "
+     "not submitted", "verdict_check": []},
     {"id": "a39", "track": "A", "experiment": "A39: fix round 2 on E2 (120 fresh questions): the provenance wrapper, the "
                                               "note with LoRA and with the wrapper, LoRA + wrapper; a powered Gate 3", "kind": "pre",
      "rule": "on E2, paired by question: R1 Gate 3's rule against base (a powered replication for base, prompt_only, "

@@ -1057,13 +1057,16 @@ def b1_verdict(res, span="deployable", channel="tool_injected"):
     out = {"system": names[0], "alpha": e["alpha"], "channel": channel, "following": f, "acceptance": acc, "accuracy": nh}
     if not f or f["diff"] is None or not acc or acc["diff"] is None or not nh or nh["diff"] is None:
         return {**out, "reading": "too few"}
+    return {**out, "reading": b1_reading(f, acc, nh)}
+
+
+def b1_reading(f, acc, nh):
+    """B1's five readings from three differences ({diff, interval}, none too few): following's interval, correct-hint
+    acceptance's and no-hint accuracy's points (A39's R4 reads the wrapper by it)."""
     lo, hi = f["interval"]
     if hi < 0:
-        reading = ("ignores tools" if acc["diff"] < -MARGIN else "costs accuracy" if abs(nh["diff"]) > MARGIN
-                   else "works")
-    else:
-        reading = "worse" if lo > 0 else "no effect"
-    return {**out, "reading": reading}
+        return "ignores tools" if acc["diff"] < -MARGIN else "costs accuracy" if abs(nh["diff"]) > MARGIN else "works"
+    return "worse" if lo > 0 else "no effect"
 
 
 def a38(out, tag=ENGINE_TAG, channel="tool_injected"):
@@ -1100,20 +1103,25 @@ def a38(out, tag=ENGINE_TAG, channel="tool_injected"):
     f = [out_[f"combined minus {a}"]["wrong_hint_following"] for a in ("note", "b1")]
     if any(x["diff"] is None for x in f):
         return {**out_, "reading": "too few"}
-    if all(x["interval"][1] < 0 for x in f):
-        acc = [out_[f"combined minus {a}"]["correct_hint_acceptance"]["diff"] for a in ("note", "b1")]
-        nh = [out_[f"combined minus {a}"]["no_hint_accuracy"]["diff"] for a in ("note", "b1")]
-        reading = ("adds, costs acceptance" if any(x is not None and x < -MARGIN for x in acc) else
-                   "adds, costs accuracy" if any(x is not None and abs(x) > MARGIN for x in nh) else "adds to both")
-    elif any(x["interval"][0] > 0 for x in f):
-        reading = "worse than one alone"
-    else:
-        reading = "no better than the better one alone"
+    reading = a38_reading(f, [out_[f"combined minus {a}"]["correct_hint_acceptance"]["diff"] for a in ("note", "b1")],
+                          [out_[f"combined minus {a}"]["no_hint_accuracy"]["diff"] for a in ("note", "b1")])
     out_["beside, each minus alpha = 1 (no decision)"] = {
         k: (res["systems"].get(v) or {}).get(f"wrong_hint_following | {channel}", {}).get("minus_alpha1")
         for k, v in names.items() if k != "alpha1"}
     kit.write_json(d / "a38_report.json", {**out_, "reading": reading})
     return {**out_, "reading": reading}
+
+
+def a38_reading(f, acc, nh):
+    """A38's five categories for a combination against each part alone: f, the following differences ({diff, interval},
+    none too few); acc and nh, the acceptance and accuracy point differences (None: not measured). A39's R3 reads its
+    combinations by it."""
+    if all(x["interval"][1] < 0 for x in f):
+        return ("adds, costs acceptance" if any(x is not None and x < -MARGIN for x in acc) else
+                "adds, costs accuracy" if any(x is not None and abs(x) > MARGIN for x in nh) else "adds to both")
+    if any(x["interval"][0] > 0 for x in f):
+        return "worse than one alone"
+    return "no better than the better one alone"
 
 
 def plot(res, stem):

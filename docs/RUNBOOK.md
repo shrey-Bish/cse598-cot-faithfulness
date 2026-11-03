@@ -15,7 +15,7 @@ step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md
 
 **The Sol order to the results freeze (Ritik, Nov 3).** B1, A37 and B17 are done; A38 is dropped. One queue, in this
 order: (1) A18's copy-back and reading (its jobs are done); (2) the bench of job shapes (TODO R3); (3) A39 on E2 (runs by
-Nov 15; pre-registration 2026-11-03 11:30); (4) B20 (pre-registration 2026-11-03 13:00); (5) B1R2 only if about 60
+Nov 15; pre-registration 2026-11-03 11:30); (4) B20 (pre-registration 2026-11-03 12:19); (5) B1R2 only if about 60
 GPU-hours remain by Nov 15. Nothing new after Nov 18. The lines are in the Nov 3 session log (11:05).
 
 **Rules that apply to every step.**

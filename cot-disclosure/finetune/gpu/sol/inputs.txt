@@ -1,5 +1,6 @@
 configs/canary/olmo3-7b-think.json
 data/progress/mmlupro_30.jsonl
+data/progress/mmlupro_e2.jsonl
 finetune/data/train_examples.jsonl.gz
 finetune/data/validation_examples.jsonl.gz
 finetune/prompts/guide_note.txt

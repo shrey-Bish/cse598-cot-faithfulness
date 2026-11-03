@@ -48,7 +48,8 @@ NEEDED = {                                                     # result files ea
                "results/trackA/deletion_runs.jsonl", "results/progress/expB_cued.jsonl",
                "data/progress/mmlupro_30.jsonl"],
     "train": ["finetune/data/train_examples.jsonl.gz", "finetune/data/validation_examples.jsonl.gz"],   # S1, S3-S6
-    "eval": ["data/progress/mmlupro_30.jsonl", "finetune/prompts/guide_note.txt"],                       # S2, E1-E6
+    "eval": ["data/progress/mmlupro_30.jsonl", "data/progress/mmlupro_e2.jsonl",                          # S2, E1-E6;
+             "finetune/prompts/guide_note.txt"],                                                        # A39 on E2 (Nov 3)
 }
 
 

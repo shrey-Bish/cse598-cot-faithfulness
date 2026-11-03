@@ -189,7 +189,7 @@ def test_eval_job_hf_engine_runs_a_trained_tag_version_and_records_the_engine(ta
     monkeypatch.setenv("TRACKA_OUT", str(tmp_path))
     monkeypatch.setattr(kit, "snapshot", lambda *a: (Path(d), None))
     two = ev.jobs()[:1] + [j for j in ev.jobs() if j["channel"] == "tool_injected"][:1]
-    monkeypatch.setattr(ev, "jobs", lambda part=None: two)
+    monkeypatch.setattr(ev, "jobs", lambda part=None, **k: two)
     monkeypatch.setattr(olmo_format, "n_tokens", lambda text: 0)
     monkeypatch.setattr(olmo_format, "CAP_TOTAL", 6)                    # 6 new tokens per run on the CPU
     installed = []
