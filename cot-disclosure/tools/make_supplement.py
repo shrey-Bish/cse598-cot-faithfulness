@@ -943,8 +943,12 @@ PREREG = [
              "readings",
      "rule_log": "2026-11-04_0337_B_b24-prereg.md",
      "rule_check": ["wording robustness", "the manual moves it more", "tool beyond authority"],
-     "f_title": r"\(B24\)", "result_glob": ["*b24-results*"], "verdict": "waiting: running on Voyager from Nov 4 "
-     "03:42 (972 runs)", "verdict_check": []},
+     "f_title": r"\(B24\)", "result_glob": ["*b24-results*"],
+     "verdict": "the manual moves it more in all three (manual minus classmate +41 [+31, +51], +12 [+4, +20], +32 [+23, "
+                "+41]); against B16's answer key, the manual higher for Qwen3 30B Thinking (+21 [+14, +29]), no "
+                "difference detected for the other two; authority moves it more than every tool channel for Thinking "
+                "and Olmo, and Instruct's own call is tool beyond authority (+73 [+62, +84])",
+     "verdict_check": ["the manual moves it more", "+41 [+31, +51]", "+21 [+14, +29]", "+73 [+62, +84]"]},
     {"id": "a39", "track": "A", "experiment": "A39: fix round 2 on E2 (120 fresh questions): the provenance wrapper, the "
                                               "note with LoRA and with the wrapper, LoRA + wrapper; a powered Gate 3", "kind": "pre",
      "rule": "on E2, paired by question: R1 Gate 3's rule against base (a powered replication for base, prompt_only, "

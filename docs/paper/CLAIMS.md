@@ -33,8 +33,13 @@ the interval excludes no effect), *tentative* (direction there, interval include
   canary held) and one wording, and "answer key" is also the tool's name for itself.
 - **Settles it:** B19, the same comparison made the same day (new seeds), and a second authority wording.
   **Same day, answered (B19, Nov 1, F35):** new seeds and no reply cache, the same six readings: Thinking +10 [+4,
-  +17] / −2 [−13, +10]; Instruct +4 [−1, +10] / **+75 [+65, +85]**; Olmo −3 [−11, +5] / **−14 [−22, −7]**. A second
-  authority wording is still open.
+  +17] / −2 [−13, +10]; Instruct +4 [−1, +10] / **+75 [+65, +85]**; Olmo −3 [−11, +5] / **−14 [−22, −7]**.
+  **A second wording, answered (B24, Nov 4, F40):** "The official solution manual says the answer is (X)." moves all
+  three more than "A classmate of mine says…" (+41 [+31, +51], +12 [+4, +20], +32 [+23, +41]; same day): the pull
+  grows with the claimed source's authority. Against B16's wording (cross-day): Qwen3 30B Thinking +21 [+14, +29], the
+  manual higher, so the claim holds for B16's wording with that as its limit; Instruct and Olmo no difference detected.
+  With the manual's wording the user's claim pulls as hard as every tool channel, or harder, except Instruct's own
+  call (+73 [+62, +84] beyond it).
 
 **1.2 The private reasoning mentions the hint; the final answer almost never does.**
 - **Evidence:**

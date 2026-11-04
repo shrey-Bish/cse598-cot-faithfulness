@@ -18,8 +18,8 @@ final answer stop naming the tool once the model has called it? It is the eviden
 - **Running on Sol** (Ritik submits, through the feeder): B20, three open-weight families with thinking on and off.
   Amended Nov 4 after its three smokes (§4): Gemma's and Nemotron's tool channel is the inserted tool turn, and
   Granite runs thinking on only. Its runs end by Nov 15.
-- **Running on Voyager** (Ritik's Mac, from Nov 4 03:42): B24, the authority dose (§4a). If it isn't read by Nov 6,
-  it's yours to read.
+- **Read Nov 4 (F40):** B24, the authority dose (§4a): the pull grows from a classmate to the official solution
+  manual in all three models. You re-read it from the bundle.
 
 **Your next steps:**
 
@@ -27,7 +27,7 @@ final answer stop naming the tool once the model has called it? It is the eviden
 |---|---|---|---|
 | 1 | **Setup** (§1): clone, `trackB-main`, the venv, the tests, both hooks, your own Voyager key, the bundle `trackB_20261106.tar.gz` with `--verify`, and the Track B numbers reproduced with no calls | **Fri Nov 6** | **Nov 6** (handoff) |
 | 2 | **Re-read** B16, B19 and B17 by their reports, against F35 and F37 | Sat Nov 7 | — |
-| 2a | **B24's reading** (§4a), if Ritik hasn't read it: its rule, from the bundle's records; a session log and an FB entry | Mon Nov 9 | Nov 12 |
+| 2a | **B24** (§4a): read by Ritik Nov 4 (F40); re-read it from the bundle's records against F40 | Mon Nov 9 | Nov 12 |
 | 3 | **B18**: check every row of the table against FINDINGS; settle its open choices; its figure | Wed Nov 18 | Nov 12, Nov 18 |
 | 4 | **B20's reading**, by its pre-registered rule, from the numbers-only files Ritik copies back (§4): an FB entry, B20 in B18's table, and the decision whether slide 2 shows it | **Tue Nov 17** | Nov 18 |
 | 5 | **Slides 2, 6, 7 and 8**, final (§5), and Track B's section of the report as bullets in `docs/trackB/REPORT_B.md` | **Fri Nov 20** | — |
@@ -127,7 +127,7 @@ halt, or a date that will slip.
 |---|---|
 | **Fri Nov 6** | the handoff: the bundle, setup (§1); **check-in** |
 | Sat Nov 7 | re-read B16, B19 and B17 by their reports |
-| Mon Nov 9 | B24 read by its rule (§4a), if not read before |
+| Mon Nov 9 | B24 re-read against F40 (§4a; read Nov 4) |
 | **Thu Nov 12** | B18: every row checked against FINDINGS; its open choices settled (§5); **check-in and merge** |
 | **Sun Nov 15** | B20's runs end on Sol (Ritik); **check-in and merge** |
 | **Tue Nov 17** | **B20 read** by its rule (§4): an FB entry; B20's rows in B18's table |
@@ -173,7 +173,7 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
   - add B20's models to `tools/trackb_final.py`'s list;
   - decide whether slide 2 shows them.
 
-## 4a. B24's reading (the authority dose; by Nov 9 if not read before)
+## 4a. B24, the authority dose (read Nov 4, F40)
 
 - **What it is:** B16's design (Qwen3 30B Thinking and Instruct, Olmo 3 7B Think; the 54 questions; 3 runs at B19's
   seeds, no reply cache) with two new user arms, where B16's sentence went:
@@ -185,12 +185,16 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
   the classmate, and the classmate minus Track B's plain hint; (c) each of B19's tool arms minus the manual. Paired by
   question, 95% bootstrap clustered by question, the 16,000 cut beside each. Three of the five readings are cross-day,
   and labelled so.
-- **You read** (once all 972 are in; its records come in the Nov 6 bundle):
+- **Read by Ritik, Nov 4 11:12** (`archive/sessions/2026-11-04/2026-11-04_1112_B_b24-results.md`; FINDINGS F40):
+  - the manual moves all three more than the classmate (+41, +12, +32);
+  - against B16's wording, Thinking +21 (the manual higher), the others no difference detected;
+  - the manual's claim pulls as hard as every tool channel, or harder, except Instruct's own call.
+- **You re-read it** from the Nov 6 bundle's records, with no calls:
   ```bash
   ../.venv/bin/python progress/run_b24.py --report
   ```
-  The reading goes in a session log (the command, what it printed, the rule's words) and an FB entry. Its records
-  never enter Track B's table.
+  It must print the log's numbers. Its records never enter Track B's table. Slide 7's figure can take its two arms
+  (PLAN's map).
 
 ## 5. B18 and the slides
 

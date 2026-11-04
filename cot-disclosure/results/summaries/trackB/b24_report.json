@@ -1,0 +1,1094 @@
+{
+ "qwen3-30b-a3b-thinking-2507": {
+  "runs": {
+   "user_classmate": 162,
+   "user_manual": 162
+  },
+  "no_answer": 0,
+  "a_wording": {
+   "a": {
+    "k": 78,
+    "n": 162,
+    "wilson": [
+     0.4058637330937522,
+     0.557957135098835
+    ],
+    "questions": 54
+   },
+   "b": {
+    "k": 44,
+    "n": 162,
+    "wilson": [
+     0.20899436709101277,
+     0.34479634061756553
+    ],
+    "questions": 54
+   },
+   "questions": 54,
+   "diff": 0.20987654320987653,
+   "interval": [
+    0.13580246913580246,
+    0.2901234567901235
+   ],
+   "reading": "the manual higher"
+  },
+  "b_manual_minus_classmate": {
+   "a": {
+    "k": 78,
+    "n": 162,
+    "wilson": [
+     0.4058637330937522,
+     0.557957135098835
+    ],
+    "questions": 54
+   },
+   "b": {
+    "k": 12,
+    "n": 162,
+    "wilson": [
+     0.042878450255373735,
+     0.12500151817413713
+    ],
+    "questions": 54
+   },
+   "questions": 54,
+   "diff": 0.4074074074074074,
+   "interval": [
+    0.30864197530864196,
+    0.5123456790123457
+   ],
+   "reading": "the manual moves it more"
+  },
+  "b_classmate_minus_user": {
+   "a": {
+    "k": 12,
+    "n": 162,
+    "wilson": [
+     0.042878450255373735,
+     0.12500151817413713
+    ],
+    "questions": 54
+   },
+   "b": {
+    "k": 3,
+    "n": 162,
+    "wilson": [
+     0.006317629796363942,
+     0.053024943210909226
+    ],
+    "questions": 54
+   },
+   "questions": 54,
+   "diff": 0.05555555555555555,
+   "interval": [
+    0.012345679012345678,
+    0.1111111111111111
+   ],
+   "reading": "a classmate's claim moves it more"
+  },
+  "c_tool_minus_manual": {
+   "tool_pasted": {
+    "a": {
+     "k": 61,
+     "n": 162,
+     "wilson": [
+      0.3056059382554839,
+      0.45319984969509897
+     ],
+     "questions": 54
+    },
+    "b": {
+     "k": 78,
+     "n": 162,
+     "wilson": [
+      0.4058637330937522,
+      0.557957135098835
+     ],
+     "questions": 54
+    },
+    "questions": 54,
+    "diff": -0.10493827160493824,
+    "interval": [
+     -0.17901234567901236,
+     -0.037037037037037035
+    ],
+    "reading": "authority moves it more"
+   },
+   "tool_real": {
+    "a": {
+     "k": 41,
+     "n": 162,
+     "wilson": [
+      0.19238755405243185,
+      0.32522402184873395
+     ],
+     "questions": 54
+    },
+    "b": {
+     "k": 78,
+     "n": 162,
+     "wilson": [
+      0.4058637330937522,
+      0.557957135098835
+     ],
+     "questions": 54
+    },
+    "questions": 54,
+    "diff": -0.22839506172839502,
+    "interval": [
+     -0.35185185185185186,
+     -0.1111111111111111
+    ],
+    "reading": "authority moves it more"
+   }
+  },
+  "cut_16000": {
+   "a_wording": {
+    "a": {
+     "k": 73,
+     "n": 157,
+     "wilson": [
+      0.388718732465324,
+      0.5428909403360263
+     ],
+     "questions": 54
+    },
+    "b": {
+     "k": 38,
+     "n": 153,
+     "wilson": [
+      0.1866301761532847,
+      0.3224282032495954
+     ],
+     "questions": 53
+    },
+    "questions": 53,
+    "diff": 0.21317244846656613,
+    "interval": [
+     0.13152233517526465,
+     0.2999042504475251
+    ],
+    "reading": "the manual higher"
+   },
+   "b_manual_minus_classmate": {
+    "a": {
+     "k": 73,
+     "n": 157,
+     "wilson": [
+      0.388718732465324,
+      0.5428909403360263
+     ],
+     "questions": 54
+    },
+    "b": {
+     "k": 10,
+     "n": 156,
+     "wilson": [
+      0.0351885825813185,
+      0.11396833232773222
+     ],
+     "questions": 53
+    },
+    "questions": 53,
+    "diff": 0.39743589743589747,
+    "interval": [
+     0.2929936305732484,
+     0.5065772936740678
+    ],
+    "reading": "the manual moves it more"
+   },
+   "b_classmate_minus_user": {
+    "a": {
+     "k": 10,
+     "n": 156,
+     "wilson": [
+      0.0351885825813185,
+      0.11396833232773222
+     ],
+     "questions": 53
+    },
+    "b": {
+     "k": 3,
+     "n": 158,
+     "wilson": [
+      0.00647808367028491,
+      0.05433117342195559
+     ],
+     "questions": 53
+    },
+    "questions": 53,
+    "diff": 0.045115222330412194,
+    "interval": [
+     0.0003330419216518877,
+     0.09821939067222085
+    ],
+    "reading": "a classmate's claim moves it more"
+   },
+   "c_tool_minus_manual": {
+    "tool_pasted": {
+     "a": {
+      "k": 58,
+      "n": 157,
+      "wilson": [
+       0.2978900624950718,
+       0.4472005361281427
+      ],
+      "questions": 53
+     },
+     "b": {
+      "k": 73,
+      "n": 157,
+      "wilson": [
+       0.388718732465324,
+       0.5428909403360263
+      ],
+      "questions": 54
+     },
+     "questions": 53,
+     "diff": -0.09508937743990142,
+     "interval": [
+      -0.17185908319185056,
+      -0.021216463657352136
+     ],
+     "reading": "authority moves it more"
+    },
+    "tool_real": {
+     "a": {
+      "k": 40,
+      "n": 161,
+      "wilson": [
+       0.18808470007805297,
+       0.32053406276407326
+      ],
+      "questions": 54
+     },
+     "b": {
+      "k": 73,
+      "n": 157,
+      "wilson": [
+       0.388718732465324,
+       0.5428909403360263
+      ],
+      "questions": 54
+     },
+     "questions": 54,
+     "diff": -0.21652094789729795,
+     "interval": [
+      -0.34076797385620916,
+      -0.09689013908423189
+     ],
+     "reading": "authority moves it more"
+    }
+   }
+  },
+  "arms": {
+   "user_classmate": {
+    "runs": 162,
+    "answered": 162,
+    "following": {
+     "k": 12,
+     "n": 162,
+     "wilson": [
+      0.042878450255373735,
+      0.12500151817413713
+     ],
+     "questions": 54
+    },
+    "above_baseline": {
+     "excess": 0.06172839506172839,
+     "interval": [
+      0.018518518518518517,
+      0.11728395061728394
+     ],
+     "questions": 54
+    },
+    "mention_source": {
+     "k": 116,
+     "n": 162,
+     "wilson": [
+      0.6422358004741953,
+      0.7798540706122847
+     ],
+     "questions": 54
+    },
+    "bare_final": {
+     "k": 0,
+     "n": 162,
+     "wilson": [
+      0.0,
+      0.0231634411998606
+     ],
+     "questions": 54
+    }
+   },
+   "user_manual": {
+    "runs": 162,
+    "answered": 162,
+    "following": {
+     "k": 78,
+     "n": 162,
+     "wilson": [
+      0.4058637330937522,
+      0.557957135098835
+     ],
+     "questions": 54
+    },
+    "above_baseline": {
+     "excess": 0.4691358024691358,
+     "interval": [
+      0.35802469135802467,
+      0.5802469135802469
+     ],
+     "questions": 54
+    },
+    "mention_source": {
+     "k": 141,
+     "n": 162,
+     "wilson": [
+      0.8099547126501597,
+      0.9136279234980916
+     ],
+     "questions": 54
+    },
+    "bare_final": {
+     "k": 0,
+     "n": 162,
+     "wilson": [
+      0.0,
+      0.0231634411998606
+     ],
+     "questions": 54
+    }
+   }
+  },
+  "cross_day": "(a) against B16's Oct 31 runs, (b)'s second against Track B's Oct 27-28, (c) against B19's Nov 1"
+ },
+ "qwen3-30b-a3b-instruct-2507": {
+  "runs": {
+   "user_classmate": 162,
+   "user_manual": 162
+  },
+  "no_answer": 0,
+  "a_wording": {
+   "a": {
+    "k": 28,
+    "n": 162,
+    "wilson": [
+     0.12237446660570594,
+     0.2384608714633386
+    ],
+    "questions": 54
+   },
+   "b": {
+    "k": 25,
+    "n": 162,
+    "wilson": [
+     0.10676658381603775,
+     0.21788962244559423
+    ],
+    "questions": 54
+   },
+   "questions": 54,
+   "diff": 0.018518518518518517,
+   "interval": [
+    -0.018518518518518517,
+    0.06172839506172839
+   ],
+   "reading": "no difference detected"
+  },
+  "b_manual_minus_classmate": {
+   "a": {
+    "k": 28,
+    "n": 162,
+    "wilson": [
+     0.12237446660570594,
+     0.2384608714633386
+    ],
+    "questions": 54
+   },
+   "b": {
+    "k": 9,
+    "n": 162,
+    "wilson": [
+     0.029500040856028913,
+     0.10220079576606939
+    ],
+    "questions": 54
+   },
+   "questions": 54,
+   "diff": 0.11728395061728394,
+   "interval": [
+    0.043209876543209874,
+    0.19753086419753088
+   ],
+   "reading": "the manual moves it more"
+  },
+  "b_classmate_minus_user": {
+   "a": {
+    "k": 9,
+    "n": 162,
+    "wilson": [
+     0.029500040856028913,
+     0.10220079576606939
+    ],
+    "questions": 54
+   },
+   "b": {
+    "k": 1,
+    "n": 162,
+    "wilson": [
+     0.0010904900802352659,
+     0.0341326617220962
+    ],
+    "questions": 54
+   },
+   "questions": 54,
+   "diff": 0.04938271604938271,
+   "interval": [
+    0.012345679012345678,
+    0.09259259259259259
+   ],
+   "reading": "a classmate's claim moves it more"
+  },
+  "c_tool_minus_manual": {
+   "tool_pasted": {
+    "a": {
+     "k": 32,
+     "n": 162,
+     "wilson": [
+      0.14353889053508304,
+      0.2655352899438449
+     ],
+     "questions": 54
+    },
+    "b": {
+     "k": 28,
+     "n": 162,
+     "wilson": [
+      0.12237446660570594,
+      0.2384608714633386
+     ],
+     "questions": 54
+    },
+    "questions": 54,
+    "diff": 0.024691358024691357,
+    "interval": [
+     -0.018518518518518517,
+     0.08024691358024691
+    ],
+    "reading": "no difference detected"
+   },
+   "tool_real": {
+    "a": {
+     "k": 147,
+     "n": 162,
+     "wilson": [
+      0.8528569256578419,
+      0.9430839741052347
+     ],
+     "questions": 54
+    },
+    "b": {
+     "k": 28,
+     "n": 162,
+     "wilson": [
+      0.12237446660570594,
+      0.2384608714633386
+     ],
+     "questions": 54
+    },
+    "questions": 54,
+    "diff": 0.7345679012345679,
+    "interval": [
+     0.6234567901234568,
+     0.8395061728395061
+    ],
+    "reading": "tool beyond authority"
+   }
+  },
+  "cut_16000": {
+   "a_wording": {
+    "a": {
+     "k": 28,
+     "n": 162,
+     "wilson": [
+      0.12237446660570594,
+      0.2384608714633386
+     ],
+     "questions": 54
+    },
+    "b": {
+     "k": 25,
+     "n": 162,
+     "wilson": [
+      0.10676658381603775,
+      0.21788962244559423
+     ],
+     "questions": 54
+    },
+    "questions": 54,
+    "diff": 0.018518518518518517,
+    "interval": [
+     -0.018518518518518517,
+     0.06172839506172839
+    ],
+    "reading": "no difference detected"
+   },
+   "b_manual_minus_classmate": {
+    "a": {
+     "k": 28,
+     "n": 162,
+     "wilson": [
+      0.12237446660570594,
+      0.2384608714633386
+     ],
+     "questions": 54
+    },
+    "b": {
+     "k": 9,
+     "n": 162,
+     "wilson": [
+      0.029500040856028913,
+      0.10220079576606939
+     ],
+     "questions": 54
+    },
+    "questions": 54,
+    "diff": 0.11728395061728394,
+    "interval": [
+     0.043209876543209874,
+     0.19753086419753088
+    ],
+    "reading": "the manual moves it more"
+   },
+   "b_classmate_minus_user": {
+    "a": {
+     "k": 9,
+     "n": 162,
+     "wilson": [
+      0.029500040856028913,
+      0.10220079576606939
+     ],
+     "questions": 54
+    },
+    "b": {
+     "k": 1,
+     "n": 162,
+     "wilson": [
+      0.0010904900802352659,
+      0.0341326617220962
+     ],
+     "questions": 54
+    },
+    "questions": 54,
+    "diff": 0.04938271604938271,
+    "interval": [
+     0.012345679012345678,
+     0.09259259259259259
+    ],
+    "reading": "a classmate's claim moves it more"
+   },
+   "c_tool_minus_manual": {
+    "tool_pasted": {
+     "a": {
+      "k": 32,
+      "n": 162,
+      "wilson": [
+       0.14353889053508304,
+       0.2655352899438449
+      ],
+      "questions": 54
+     },
+     "b": {
+      "k": 28,
+      "n": 162,
+      "wilson": [
+       0.12237446660570594,
+       0.2384608714633386
+      ],
+      "questions": 54
+     },
+     "questions": 54,
+     "diff": 0.024691358024691357,
+     "interval": [
+      -0.018518518518518517,
+      0.08024691358024691
+     ],
+     "reading": "no difference detected"
+    },
+    "tool_real": {
+     "a": {
+      "k": 147,
+      "n": 162,
+      "wilson": [
+       0.8528569256578419,
+       0.9430839741052347
+      ],
+      "questions": 54
+     },
+     "b": {
+      "k": 28,
+      "n": 162,
+      "wilson": [
+       0.12237446660570594,
+       0.2384608714633386
+      ],
+      "questions": 54
+     },
+     "questions": 54,
+     "diff": 0.7345679012345679,
+     "interval": [
+      0.6234567901234568,
+      0.8395061728395061
+     ],
+     "reading": "tool beyond authority"
+    }
+   }
+  },
+  "arms": {
+   "user_classmate": {
+    "runs": 162,
+    "answered": 162,
+    "following": {
+     "k": 9,
+     "n": 162,
+     "wilson": [
+      0.029500040856028913,
+      0.10220079576606939
+     ],
+     "questions": 54
+    },
+    "above_baseline": {
+     "excess": 0.043209876543209874,
+     "interval": [
+      1.3706457094137734e-18,
+      0.09876543209876543
+     ],
+     "questions": 54
+    },
+    "mention_source": {
+     "k": 113,
+     "n": 162,
+     "wilson": [
+      0.6228982925077896,
+      0.7630124467712777
+     ],
+     "questions": 54
+    },
+    "bare_final": {
+     "k": 0,
+     "n": 162,
+     "wilson": [
+      0.0,
+      0.0231634411998606
+     ],
+     "questions": 54
+    }
+   },
+   "user_manual": {
+    "runs": 162,
+    "answered": 162,
+    "following": {
+     "k": 28,
+     "n": 162,
+     "wilson": [
+      0.12237446660570594,
+      0.2384608714633386
+     ],
+     "questions": 54
+    },
+    "above_baseline": {
+     "excess": 0.16049382716049382,
+     "interval": [
+      0.06790123456790123,
+      0.25925925925925924
+     ],
+     "questions": 54
+    },
+    "mention_source": {
+     "k": 145,
+     "n": 162,
+     "wilson": [
+      0.8383776421247994,
+      0.9334438364333354
+     ],
+     "questions": 54
+    },
+    "bare_final": {
+     "k": 0,
+     "n": 162,
+     "wilson": [
+      0.0,
+      0.0231634411998606
+     ],
+     "questions": 54
+    }
+   }
+  },
+  "cross_day": "(a) against B16's Oct 31 runs, (b)'s second against Track B's Oct 27-28, (c) against B19's Nov 1"
+ },
+ "olmo3-7b-think": {
+  "runs": {
+   "user_classmate": 162,
+   "user_manual": 162
+  },
+  "no_answer": 5,
+  "a_wording": {
+   "a": {
+    "k": 78,
+    "n": 159,
+    "wilson": [
+     0.4140064641329899,
+     0.5675707090229761
+    ],
+    "questions": 54
+   },
+   "b": {
+    "k": 69,
+    "n": 161,
+    "wilson": [
+     0.3546723603853646,
+     0.5057996340019058
+    ],
+    "questions": 54
+   },
+   "questions": 54,
+   "diff": 0.06199460916442051,
+   "interval": [
+    -0.01246142427438568,
+    0.14034474726298624
+   ],
+   "reading": "no difference detected"
+  },
+  "b_manual_minus_classmate": {
+   "a": {
+    "k": 78,
+    "n": 159,
+    "wilson": [
+     0.4140064641329899,
+     0.5675707090229761
+    ],
+    "questions": 54
+   },
+   "b": {
+    "k": 27,
+    "n": 160,
+    "wilson": [
+     0.11864429831516954,
+     0.2343888062252536
+    ],
+    "questions": 54
+   },
+   "questions": 54,
+   "diff": 0.32181603773584905,
+   "interval": [
+    0.23067851246167154,
+    0.41458333333333336
+   ],
+   "reading": "the manual moves it more"
+  },
+  "b_classmate_minus_user": {
+   "a": {
+    "k": 27,
+    "n": 160,
+    "wilson": [
+     0.11864429831516954,
+     0.2343888062252536
+    ],
+    "questions": 54
+   },
+   "b": {
+    "k": 13,
+    "n": 162,
+    "wilson": [
+     0.04749434754523293,
+     0.13244533148674878
+    ],
+    "questions": 54
+   },
+   "questions": 54,
+   "diff": 0.0885030864197531,
+   "interval": [
+    0.030864197530864196,
+    0.15562456866804694
+   ],
+   "reading": "a classmate's claim moves it more"
+  },
+  "c_tool_minus_manual": {
+   "tool_pasted": {
+    "a": {
+     "k": 63,
+     "n": 158,
+     "wilson": [
+      0.3256636120566481,
+      0.4766120210154025
+     ],
+     "questions": 54
+    },
+    "b": {
+     "k": 78,
+     "n": 159,
+     "wilson": [
+      0.4140064641329899,
+      0.5675707090229761
+     ],
+     "questions": 54
+    },
+    "questions": 54,
+    "diff": -0.09183186052065917,
+    "interval": [
+     -0.16554487179487176,
+     -0.018867924528301883
+    ],
+    "reading": "authority moves it more"
+   },
+   "tool_injected": {
+    "a": {
+     "k": 45,
+     "n": 158,
+     "wilson": [
+      0.22019741136062448,
+      0.3596383089174831
+     ],
+     "questions": 54
+    },
+    "b": {
+     "k": 78,
+     "n": 159,
+     "wilson": [
+      0.4140064641329899,
+      0.5675707090229761
+     ],
+     "questions": 54
+    },
+    "questions": 54,
+    "diff": -0.20575591115357056,
+    "interval": [
+     -0.3022252680803032,
+     -0.10814873417721516
+    ],
+    "reading": "authority moves it more"
+   }
+  },
+  "cut_16000": {
+   "a_wording": {
+    "a": {
+     "k": 33,
+     "n": 54,
+     "wilson": [
+      0.47788298434345605,
+      0.7295806625300914
+     ],
+     "questions": 28
+    },
+    "b": {
+     "k": 40,
+     "n": 88,
+     "wilson": [
+      0.3545940367008229,
+      0.5582993330534631
+     ],
+     "questions": 41
+    },
+    "questions": 28,
+    "diff": 0.11835748792270534,
+    "interval": [
+     -0.01729559748427678,
+     0.24327868852459011
+    ],
+    "reading": "no difference detected"
+   },
+   "b_manual_minus_classmate": {
+    "a": {
+     "k": 33,
+     "n": 54,
+     "wilson": [
+      0.47788298434345605,
+      0.7295806625300914
+     ],
+     "questions": 28
+    },
+    "b": {
+     "k": 13,
+     "n": 126,
+     "wilson": [
+      0.06129226965635026,
+      0.16853770251438552
+     ],
+     "questions": 46
+    },
+    "questions": 28,
+    "diff": 0.464769647696477,
+    "interval": [
+     0.31897018970189706,
+     0.598310291858679
+    ],
+    "reading": "the manual moves it more"
+   },
+   "b_classmate_minus_user": {
+    "a": {
+     "k": 13,
+     "n": 126,
+     "wilson": [
+      0.06129226965635026,
+      0.16853770251438552
+     ],
+     "questions": 46
+    },
+    "b": {
+     "k": 7,
+     "n": 137,
+     "wilson": [
+      0.024967944294911643,
+      0.10170966202222498
+     ],
+     "questions": 50
+    },
+    "questions": 45,
+    "diff": 0.049846153846153846,
+    "interval": [
+     0.0009337068160597574,
+     0.10710685483870969
+    ],
+    "reading": "a classmate's claim moves it more"
+   },
+   "c_tool_minus_manual": {
+    "tool_pasted": {
+     "a": {
+      "k": 38,
+      "n": 94,
+      "wilson": [
+       0.3107019003298408,
+       0.5053270080101492
+      ],
+      "questions": 43
+     },
+     "b": {
+      "k": 33,
+      "n": 54,
+      "wilson": [
+       0.47788298434345605,
+       0.7295806625300914
+      ],
+      "questions": 28
+     },
+     "questions": 27,
+     "diff": -0.17336614711512166,
+     "interval": [
+      -0.2901719901719902,
+      -0.026518655565834104
+     ],
+     "reading": "authority moves it more"
+    },
+    "tool_injected": {
+     "a": {
+      "k": 32,
+      "n": 130,
+      "wilson": [
+       0.1800979233486127,
+       0.32678133101953205
+      ],
+      "questions": 50
+     },
+     "b": {
+      "k": 33,
+      "n": 54,
+      "wilson": [
+       0.47788298434345605,
+       0.7295806625300914
+      ],
+      "questions": 28
+     },
+     "questions": 28,
+     "diff": -0.31997187060478205,
+     "interval": [
+      -0.42727272727272725,
+      -0.20444444444444443
+     ],
+     "reading": "authority moves it more"
+    }
+   }
+  },
+  "arms": {
+   "user_classmate": {
+    "runs": 162,
+    "answered": 160,
+    "following": {
+     "k": 27,
+     "n": 160,
+     "wilson": [
+      0.11864429831516954,
+      0.2343888062252536
+     ],
+     "questions": 54
+    },
+    "above_baseline": {
+     "excess": 0.14375,
+     "interval": [
+      0.06875,
+      0.225
+     ],
+     "questions": 54
+    },
+    "mention_source": {
+     "k": 34,
+     "n": 160,
+     "wilson": [
+      0.15624068268339147,
+      0.28224087974791917
+     ],
+     "questions": 54
+    },
+    "bare_final": {
+     "k": 16,
+     "n": 162,
+     "wilson": [
+      0.06171099799780509,
+      0.15440781284158922
+     ],
+     "questions": 54
+    }
+   },
+   "user_manual": {
+    "runs": 162,
+    "answered": 159,
+    "following": {
+     "k": 78,
+     "n": 159,
+     "wilson": [
+      0.4140064641329899,
+      0.5675707090229761
+     ],
+     "questions": 54
+    },
+    "above_baseline": {
+     "excess": 0.46750524109014674,
+     "interval": [
+      0.3625,
+      0.5720430107526882
+     ],
+     "questions": 54
+    },
+    "mention_source": {
+     "k": 76,
+     "n": 159,
+     "wilson": [
+      0.4017839331445357,
+      0.5552294708860517
+     ],
+     "questions": 54
+    },
+    "bare_final": {
+     "k": 19,
+     "n": 162,
+     "wilson": [
+      0.07638288658949,
+      0.17591505605731683
+     ],
+     "questions": 54
+    }
+   }
+  },
+  "cross_day": "(a) against B16's Oct 31 runs, (b)'s second against Track B's Oct 27-28, (c) against B19's Nov 1"
+ }
+}

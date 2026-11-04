@@ -1,6 +1,6 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-11-04 04:06 MST (B20 amended after its first smokes, §15 of its log; B24, the authority dose, running on Voyager; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
+Last updated: 2026-11-04 11:17 MST (B24 read: F40; B20's second amendment, §16; A39's parts at 2:00, its log's §14; earlier Nov 4: B20 amended after its first smokes, §15 of its log; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
 **Edited by:** Ritik. History: `git log -- docs/PLAN.md`; the Oct 31 version and the per-track design notes that
 were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`](../archive/superseded/PLAN_2026-10-31.md). Where things are:
 - progress: [`STATUS.md`](status/STATUS.md);
@@ -16,21 +16,23 @@ were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`
   Voyager from Nov 4. Check-ins, and merges of `trackC-main` into `main`: Nov 7, 12, 15 and 18 (RUNBOOK §16).
 - **Track B:** Arsha's from Nov 6 (`docs/trackB/START_HERE.md`; the bundle rebuilt and sent Nov 6 morning).
   Check-ins Nov 6, 12, 15 and 18; merges of `trackB-main` on the last three. B16 ran Oct 31–Nov 1 and is read (F35); B17 ran Nov 3 and is read (F37; run
-  after its one-day window, pre-registration §13). B24, the authority dose, runs on Voyager from Nov 4 03:42 (Ritik's
-  Mac; pre-registered 03:37); it is read by its rule when done, by Arsha from Nov 6 if not before.
+  after its one-day window, pre-registration §13). B24, the authority dose, ran on Voyager Nov 4 (Ritik's Mac;
+  pre-registered 03:37) and is read (F40): the pull grows from a classmate to the official solution manual.
 - **Sol:** Ritik submits every job, on the course account only (no other account; the H100s aren't available), in
   this order (Ritik, Nov 3; re-planned Nov 4 00:48 for Sol's real limit):
   1. the 1-GPU bench (389340): **done Nov 3**, about 400 tokens/s per A100 (not 500), so E2 is 53.2 GPU-hours;
-  2. B20's smokes, then each model's runs at 1:30 (the B20 log's §14). Granite's and Gemma's smokes weren't clean
-     (Nov 4); the amendment (§15, `2361152`) gives Gemma the inserted tool turn and runs Granite thinking on only;
-     their second smokes are queue lines that wait for that commit on Sol. Nemotron's smoke (460109) was pending;
+  2. B20's smokes, then each model's runs at 1:30 (the B20 log's §14). None of the three smokes was clean (Nov 4).
+     The amendments give Gemma (§15, `2361152`) and Nemotron (§16, `063bc78`) the inserted tool turn, and run Granite
+     thinking on only (§15). Their second smokes are queue lines that wait for those commits on Sol;
   3. A39 on E2 in 1-GPU parts: the 9 parts queued Nov 3 (7 running from that evening); then the core systems' 28
-     sixteenths, the wrapper systems' 15 fifths, and a sweep per system (the A39 log's §12);
+     sixteenths, the wrapper systems' 15 fifths, and a sweep per system (the A39 log's §12). From Nov 4, the parts
+     not submitted by 10:15 run at 2:00 and the sweeps at 3:00: a sixteenth took 1:24:54 of its 1:30 (§14);
   4. A39 on the 30 (22 jobs), unless E2 and B20 miss Nov 11 09:00;
   5. B1R2 last: **decided Nov 4, it runs** (its compute check, moved earlier: the A39 log's §13); 40 parts.
 
   **What binds** is the class QoS's 960 running GPU-minutes (each running job's time left × GPUs) and the 10 submitted
-  jobs, not two running jobs: 7 ran at once on Nov 3. So jobs are 1:30 (10 at once hold 900). **The feeder**
+  jobs, not two running jobs: 7 ran at once on Nov 3. So jobs are 1:30 (10 at once hold 900); A39's parts at 2:00
+  from Nov 4 (8 fresh ones hold 960). **The feeder**
   (`tools/sol_feeder.py`, from Nov 4) submits them from the queue file as places free, day and night (RUNBOOK §0).
   Time estimates come from `squeue --start` on real jobs, not `--test-only`.
 - **Pre-registration:** before any run, as always.
@@ -100,10 +102,10 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | 2 words | L3 | Gate 2's hand labels (F3 rests on them): kappa per channel | Ritik and Shrey | Nov 7 | **both sheets in Nov 3; kappa under 0.6 in four of six cells** (private 0.63, tool 0.29, user 0.85; final 0.54, tool 0.59, user 0.43): by the plan, settle the 25 disagreements, tighten the guide, label a fresh batch; no acknowledgment claim from labels until then |
 | 2 words | L4 part 1 | Does training teach the model to claim checks it doesn't do? | Ritik and Shrey | Nov 14 | **read Nov 3** (F28; kappa 0.93): 1 to 2 of LoRA's 147 candidates claim a rejection they didn't act on; most say the hint shaped the answer; the raters could tell LoRA's style |
 | 2 words | B18 | The final Track B table and one figure | Ritik; Arsha, from Nov 6 | Nov 18 | started Nov 3 (`tools/trackb_final.py`; slide 2) |
-| 2 words | B20 | Open models from new families on Sol (Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B, Granite 4.2 8B), thinking on and off | Ritik submits; Arsha, from Nov 6 | runs Nov 15, read Nov 17 | pre-registered Nov 3; smokes Nov 4: Granite and Gemma not clean, **amended (§15): Gemma the inserted tool turn, Granite thinking on only** (4,860 runs); second smokes after Ritik's Nov 4 pull; Nemotron's smoke pending; runs at 1:30 (§14) |
-| 2 words | B24 | The authority dose: does a second wording hold, and does the pull grow from a classmate to the solution manual? | Ritik runs; Arsha reads from Nov 6 if not before | read when done (by Nov 9) | **pre-registered Nov 4 03:37; running on Voyager from 03:42** (972 runs, about 6 h; B16's design, B19's seeds) |
+| 2 words | B20 | Open models from new families on Sol (Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B, Granite 4.2 8B), thinking on and off | Ritik submits; Arsha, from Nov 6 | runs Nov 15, read Nov 17 | pre-registered Nov 3; smokes Nov 4: none clean, **amended (§15, §16): Gemma and Nemotron the inserted tool turn, Granite thinking on only** (4,860 runs); second smokes after Ritik's Nov 4 pulls; runs at 1:30 (§14) |
+| 2 words | B24 | The authority dose: does a second wording hold, and does the pull grow from a classmate to the solution manual? | Ritik runs; Arsha reads from Nov 6 if not before | read when done (by Nov 9) | **done Nov 4 (F40):** 972 runs on Voyager 03:38–11:12; the manual over the classmate in all three; Thinking's manual over B16's wording |
 | 1 fix | E2 | A second, larger held-out set: 120 fresh MMLU-Pro questions from the evaluation categories | Ritik | Nov 3 | **done Nov 3** (sha256 `59c5c250…`) |
-| 1 fix | A39 | Fix round 2 on E2: the wrapper, combinations, a powered replication of Gate 3 | Ritik | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3; the bench done (400 tokens/s); 9 parts queued Nov 3 (7 running that evening); the rest at 1:30 (§12) |
+| 1 fix | A39 | Fix round 2 on E2: the wrapper, combinations, a powered replication of Gate 3 | Ritik | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3; the bench done (400 tokens/s); 9 parts queued Nov 3 (7 running that evening); then 1:30 parts (§12); from Nov 4, 2:00 parts and 3:00 sweeps (§14) |
 | 1 fix | B1R2 | B1's deployable span on E2 (a labelled replication) | Ritik | runs Nov 15, read Nov 17 | **decided Nov 4: it runs** (A39 log §13; about 181 GPU-hours needed to Nov 15, 0.63 of an A100); 40 parts at 2:30, last |
 | 3 agents | C19 | Is an authority claim the cue (H34)? | Shrey | Nov 7 | prepared |
 | 3 agents | C25 | Across agents (the centerpiece): solver with tool → a writer's handoff note → a decider that never sees the tool | Shrey | Nov 12 | prepared |
@@ -120,8 +122,8 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 |---|---|---|---|---|
 | Oct 31–Nov 3 | A37 done (Nov 1); B1 read (Nov 3); A38 dropped; E2 and A39 pre-registered | B16, B19 done; B17 done (Nov 3) | C19, C25, C20, C26 prepared and dry-run; Shrey's workspace (Nov 3) | L3 and L4 part 1 in (Nov 3) |
 | Nov 3 | A18 read (F39); the bench done; 9 A39 parts queued | B20's downloads done | **final handoff** (START_HERE's Quick start) | the label deadlines set: Nov 7 |
-| Nov 4 | the 9 queued parts end (7 started Nov 3 evening; the last 2 as GPU-minutes free); then, as places free, B20's smokes and runs, E2's 28 sixteenths and the 15 fifths, 1:30 each, up to 10 at once (the Nov 4 log; the feeder from 03:20) | B20's first smokes: Granite and Gemma amended (§15), Nemotron pending; **B24 on Voyager** (from 03:42) | setup (Nov 4); C19 | L3: the settling call |
-| Nov 5–7 | the sweeps; **E2 done (projected Nov 5–6), B20 Nov 6–7**; A39 on the 30 (22 jobs); **B1R2's 40 parts (projected done Nov 6–8)** | **Handoff to Arsha, Nov 6**; B20's second smokes and runs (projected done Nov 6–7: the smokes' runs were about twice the dry run's length); B24 read (by Nov 9) | **C19; check-in and merge (Nov 7)** | **L3's fresh batch (Nov 7)** |
+| Nov 4 | the 9 queued parts end (7 started Nov 3 evening; the last 2 as GPU-minutes free); then, as places free, B20's smokes and runs, E2's 28 sixteenths and the 15 fifths, 1:30 each, up to 10 at once (the Nov 4 log; the feeder from 03:20) | B20's first smokes: Granite and Gemma amended (§15), Nemotron (§16); **B24 on Voyager** (03:38–11:12), **read (F40)** | setup (Nov 4); C19 | L3: the settling call |
+| Nov 5–7 | the sweeps; **E2 done (projected Nov 5–6), B20 Nov 6–7**; A39 on the 30 (22 jobs); **B1R2's 40 parts (projected done Nov 6–8)** | **Handoff to Arsha, Nov 6**; B20's second smokes and runs (projected done Nov 6–7: the smokes' runs were about twice the dry run's length); B24 re-read from the bundle (read Nov 4) | **C19; check-in and merge (Nov 7)** | **L3's fresh batch (Nov 7)** |
 | Nov 8–12 | room for reruns; the 30's rule on Nov 11 09:00 (no effect if E2 and B20 are done) | **check-in and merge (Nov 12)** | **C25; check-in and merge (Nov 12)** | **Gate 2 (Nov 8)** |
 | Nov 13–18 | runs end Nov 15; A39 read Nov 17 | B20 read (Nov 17); B18's table and figure (Nov 18); **check-ins Nov 15, 18** | **C20, C26 (Nov 15); C24 and slides 11–12 (Nov 18); check-ins Nov 15, 18** | the report from Nov 10 |
 | Nov 18 | results freeze: all evaluation done by Nov 18, no new runs after it | | | |
@@ -166,7 +168,7 @@ rows (the report and the supplement keep their own). "Waiting" marks a result no
 | 4 | **Level 1 on a second model.** Qwen3-8B (A37; F36: replicates) | `readout_qwen8b.png` | made Nov 1 | — | Ritik |
 | 5 | **Level 2: the private reasoning names it, the final answer doesn't** (F3, with L3's kappa) | listed: `cue_experiments_slide.png` (the supplement's `cue_experiments`); it shows C16–C18 (F31, F33, F34), not F3 | waiting | L3's settled labels (kappa under 0.6 on Nov 3; the settling call Nov 4, the fresh batch Nov 7); F3 stays a keyword count until then | Ritik and Shrey |
 | 6 | **Level 2: after a tool call, the answer goes bare.** F15, C4's control, F29; one instruction brings the source back without reducing deference (F25) | `bare_after_call.png` | made Nov 1 | — | Arsha |
-| 7 | **Tool or authority?** (B16, F35) | `b16_authority.png` | made Nov 1 | B24, the authority dose (Voyager, running since Nov 4 03:42), added when read: Arsha, from Nov 6 | Ritik, then Arsha |
+| 7 | **Tool or authority?** (B16, F35) | `b16_authority.png` | made Nov 1 | B24, the authority dose (read Nov 4, F40): its two arms beside B16's; Arsha, from Nov 6 | Ritik, then Arsha |
 | 8 | **Thinking dose** (B17, F37; labelled §13) | `b17_effort.png` | made Nov 3 | — | Arsha |
 | 9 | **The fix: training cuts following, but none beats one line** (F28, Gate 3; false disclosure from L4 part 1, read Nov 3) | `gate3_vs_base_slide.png` (`finetune/gate3.py`'s `gate3_vs_base`, the same rows) | made Nov 4 | A39, the powered replication on E2 (read Nov 17); Gate 3's final statement Nov 20 | Ritik |
 | 10 | **Inside the fixed model: training acts in the reasoning** (A18, F39). And B1 at inference (A30, F38) | `readout_lora_vs_base.png` | made Nov 3 | B1R2, B1's labelled replication on E2 (read Nov 17), beside B1 if read | Ritik |
@@ -260,7 +262,7 @@ experiment's pre-registration log, and [`RUNBOOK.md`](RUNBOOK.md).
 
 | risk | what we do |
 |---|---|
-| Sol is busy at times (`public` full on Nov 3 afternoon; htc isn't open to the class QoS) | 1:30 parts, up to 10 at once under the 960 GPU-minute cap, kept full day and night by the feeder (so no longer night shapes); times from `squeue --start`; the 30 is dropped on Nov 11 by its rule if time runs short; B1R2 runs last and is read partial if not done by Nov 15 (its §13) |
+| Sol is busy at times (`public` full on Nov 3 afternoon; htc isn't open to the class QoS) | 1:30 parts (2:00 from Nov 4, the A39 log's §14), up to 10 at once under the 960 GPU-minute cap, kept full day and night by the feeder (so no longer night shapes); times from `squeue --start`; the 30 is dropped on Nov 11 by its rule if time runs short; B1R2 runs last and is read partial if not done by Nov 15 (its §13) |
 | L3's labels don't reach 0.6 again | the plan's steps (settle, tighten, a fresh batch); F3 stays a keyword count and no acknowledgment claim from labels goes in the report |
 | A model in B20 doesn't serve cleanly on vLLM 0.31.0 | its smoke stops it before any run; the fallback is the inserted tool turn, or the model is dropped by an amendment. **Nov 4:** both used (§15): Gemma's fallback; Granite's thinking-off setting dropped, since its off mode still thinks |
 | A teammate's change touches shared code, or Ritik's touches theirs | the path allowlist, both ways (`tools/path_check.py` as pre-commit and pre-merge-commit hooks); Ritik reviews each merge on the check-in days |

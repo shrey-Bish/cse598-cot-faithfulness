@@ -1,4 +1,4 @@
-# Results at a glance (F1–F39)
+# Results at a glance (F1–F40)
 
 **Edited by:** Ritik. Built Nov 4 from [`docs/FINDINGS.md`](../../FINDINGS.md); one row per finding, the numbers as FINDINGS states them (X of Y; differences in points with 95% bootstraps clustered by question, or by item in Track C), the status as FINDINGS words it. The same rows: `results_at_a_glance.csv`. Track B's and Track C's new findings (FB, FC) have no entries yet. The results still running (A39, B1R2, B20, B24, L3, C19, C20, C25, C26) are in [`REPORT.md`](../REPORT.md), with their dates.
 
@@ -43,3 +43,4 @@
 | F37 | B | B17: in gpt-oss-20b more thinking changes neither following on the real call nor the bare answer after a call | high − low: following +7 [−1, +16]; bare −5 [−10, 0]; calls 129 vs 37 of 162 | no change detected on both; Gate 2 per effort reported with no decision; run after its one-day window (§13) | docs/paper/figures/b17_effort.png |
 | F38 | A | B1 on the held-out 30: a real cut on the inserted turn that misses its acceptance limit; every span: no effect | deployable −17 [−30, −3], acceptance 25 → 23 of 30 (−7 points); oracle −9 [−19, +1] | "ignores tools" / "no effect" by the rule; the cut confirmed, the cost tentative; underpowered | docs/paper/figures/readout_lora_vs_base.png |
 | F39 | A | A18: inside the fixed model, training acts in the reasoning | R_LoRA −0.72 [−1.02, −0.39] (28 cases, 13 questions); LoRA's own cases 1.29 [1.10, 1.51] at 15/19/23 | confirmed by the rule; secondaries replicate | docs/paper/figures/readout_lora_vs_base.png |
+| F40 | B | B24: the pull grows with the claimed source's authority; the official solution manual pulls as hard as every tool channel but Instruct's own call | manual − classmate +41 [+31, +51], +12 [+4, +20], +32 [+23, +41]; manual − B16's answer key: Thinking +21 [+14, +29], the others no difference detected | confirmed by the rule (the gradient same day; the rest cross-day) | none yet (slide 7) |
