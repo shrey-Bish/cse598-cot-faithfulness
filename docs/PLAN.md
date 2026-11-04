@@ -1,6 +1,6 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-11-03 22:31 MST (the bench read; the Sol calendar from `squeue --start`; Track C's final handoff).
+Last updated: 2026-11-04 00:51 MST (Sol's real limit is 960 running GPU-minutes, not two jobs: the re-plan at 1:30 a job; B1R2 decided Nov 4).
 **Edited by:** Ritik. History: `git log -- docs/PLAN.md`; the Oct 31 version and the per-track design notes that
 were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`](../archive/superseded/PLAN_2026-10-31.md). Where things are:
 - progress: [`STATUS.md`](status/STATUS.md);
@@ -18,16 +18,17 @@ were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`
   Check-ins Nov 6, 12, 15 and 18; merges of `trackB-main` on the last three. B16 ran Oct 31–Nov 1 and is read (F35); B17 ran Nov 3 and is read (F37; run
   after its one-day window, pre-registration §13).
 - **Sol:** Ritik submits every job, on the course account only (no other account; the H100s aren't available), in
-  this order (Ritik, Nov 3, re-planned 14:50 for the earliest finish):
+  this order (Ritik, Nov 3; re-planned Nov 4 00:48 for Sol's real limit):
   1. the 1-GPU bench (389340): **done Nov 3**, about 400 tokens/s per A100 (not 500), so E2 is 53.2 GPU-hours;
-  2. A39 on E2 in 1-GPU parts: 9 core parts queued (`squeue --start`: the first Nov 4 19:25); then the rest of the core
-     systems (base, prompt_only, LoRA, LoRA + note), the wrapper systems, and a sweep per system for leftovers (the A39
-     log's §11);
-  3. B20's smokes at the head of wave 2, Granite first, then its runs;
-  4. A39 on the 30, only if E2 and B20 finish by Nov 11 09:00;
-  5. B1R2 only if Nov 8's compute check passes (A39 log §10; RUNBOOK §0).
+  2. B20's smokes (Granite's submitted Nov 3, 456999), then each model's runs at 1:30 (the B20 log's §14);
+  3. A39 on E2 in 1-GPU parts: the 9 parts queued Nov 3 (7 running from that evening); then the core systems' 28
+     sixteenths, the wrapper systems' 15 fifths, and a sweep per system (the A39 log's §12);
+  4. A39 on the 30 (22 jobs), unless E2 and B20 miss Nov 11 09:00;
+  5. B1R2 last: **decided Nov 4, it runs** (its compute check, moved earlier: the A39 log's §13); 40 parts.
 
-  Time estimates come from `squeue --start` on real jobs, not `--test-only`.
+  **What binds** is the class QoS's 960 running GPU-minutes (each running job's time left × GPUs) and the 10 submitted
+  jobs, not two running jobs: 7 ran at once on Nov 3. So jobs are 1:30 (10 at once hold 900), with longer shapes
+  before nights. Time estimates come from `squeue --start` on real jobs, not `--test-only`.
 - **Pre-registration:** before any run, as always.
 
 **The fix, honestly (Nov 3).** LoRA cuts wrong-hint following by 10 points against base (−10 [−16, −4]) and passes Gate 3 by its rule, as do the other three trained versions. But no trained version beats the one-line instruction in the prompt (prompt_only −13 [−21, −6]; LoRA minus it +3 [−1, +8]). The source tags aren't tool-specific: they help no more on the inserted tool turn than on the pasted block (F28). B1's attention scaling cut following on the inserted turn by 17 points (−17 [−30, −3]) but missed its pre-registered acceptance limit (F38). By hand labels, LoRA's keyword false-disclosure candidates are rarely real (L4 part 1, F28). The main limit is power: 30 questions can't resolve the 5–10 point differences these comparisons turn on (B1's acceptance interval is ±13 points; Gate 3's following differences ±6 to ±7). So the fix round's next step is a bigger, fresh evaluation set fixed before any new result (E2, about 120 questions) and A39 on it (Part 4 of the Nov 3 plan). The verdicts already read on the 30 stay as they are.
@@ -95,10 +96,10 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | 2 words | L3 | Gate 2's hand labels (F3 rests on them): kappa per channel | Ritik and Shrey | Nov 6 | **both sheets in Nov 3; kappa under 0.6 in four of six cells** (private 0.63, tool 0.29, user 0.85; final 0.54, tool 0.59, user 0.43): by the plan, settle the 25 disagreements, tighten the guide, label a fresh batch; no acknowledgment claim from labels until then |
 | 2 words | L4 part 1 | Does training teach the model to claim checks it doesn't do? | Ritik and Shrey | Nov 14 | **read Nov 3** (F28; kappa 0.93): 1 to 2 of LoRA's 147 candidates claim a rejection they didn't act on; most say the hint shaped the answer; the raters could tell LoRA's style |
 | 2 words | B18 | The final Track B table and one figure | Ritik; Arsha, from Nov 6 | Nov 18 | started Nov 3 (`tools/trackb_final.py`; slide 2) |
-| 2 words | B20 | Open models from new families on Sol (Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B, Granite 4.2 8B), thinking on and off | Ritik submits; Arsha, from Nov 6 | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3; downloads done; smokes at the head of wave 2 |
+| 2 words | B20 | Open models from new families on Sol (Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B, Granite 4.2 8B), thinking on and off | Ritik submits; Arsha, from Nov 6 | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3; downloads done; Granite's smoke submitted (456999); runs at 1:30 (§14) |
 | 1 fix | E2 | A second, larger held-out set: 120 fresh MMLU-Pro questions from the evaluation categories | Ritik | Nov 3 | **done Nov 3** (sha256 `59c5c250…`) |
-| 1 fix | A39 | Fix round 2 on E2: the wrapper, combinations, a powered replication of Gate 3 | Ritik | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3; 1-GPU parts (§10, §11); the bench done (400 tokens/s); 9 parts queued (first start Nov 4 19:25) |
-| 1 fix | B1R2 | B1's deployable span on E2 (a labelled replication) | Ritik | Nov 15 | decided Nov 8 09:00 from GPU-hours delivered against needed (A39 log §10) |
+| 1 fix | A39 | Fix round 2 on E2: the wrapper, combinations, a powered replication of Gate 3 | Ritik | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3; the bench done (400 tokens/s); 9 parts queued Nov 3 (7 running that evening); the rest at 1:30 (§12) |
+| 1 fix | B1R2 | B1's deployable span on E2 (a labelled replication) | Ritik | runs Nov 15, read Nov 17 | **decided Nov 4: it runs** (A39 log §13; about 181 GPU-hours needed to Nov 15, 0.63 of an A100); 40 parts at 2:30, last |
 | 3 agents | C19 | Is an authority claim the cue (H34)? | Shrey | Nov 7 | prepared |
 | 3 agents | C25 | Across agents (the centerpiece): solver with tool → a writer's handoff note → a decider that never sees the tool | Shrey | Nov 12 | prepared |
 | 3 agents | C20 | Pipeline vs model: a blind reviewer; a tag the system attaches; the solver's own disclosure; the checker | Shrey | Nov 15 | prepared |
@@ -114,9 +115,9 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 |---|---|---|---|---|
 | Oct 31–Nov 3 | A37 done (Nov 1); B1 read (Nov 3); A38 dropped; E2 and A39 pre-registered | B16, B19 done; B17 done (Nov 3) | C19, C25, C20, C26 prepared and dry-run; Shrey's workspace (Nov 3) | L3 and L4 part 1 in (Nov 3) |
 | Nov 3 | A18 read (F39); the bench done; 9 A39 parts queued | B20's downloads done | **final handoff** (START_HERE's Quick start) | the label deadlines set: Nov 7 |
-| Nov 4–5 | A39's 9 queued parts: the first starts Nov 4 19:25; with two slots, the last ends about Nov 5 21:00 (`squeue --start`; each job taken to its full 3:00) | — | setup (Nov 4); C19 | L3: the settling call |
-| Nov 6–7 | wave 2 as slots free: B20's three smokes, then the 7 other core parts (3:30), the wrapper systems' 6 halves (3:00), a sweep per system | **Handoff to Arsha, Nov 6**; B20's runs after clean smokes (4:00 a job) | **C19; check-in and merge (Nov 7)** | **L3's fresh batch (Nov 7)** |
-| Nov 8–12 | E2 and B20 done (projected Nov 7–8); A39 on the 30 (7 jobs); **B1R2's decision, Nov 8 09:00**, and its runs if it fits; the 30 dropped if E2 and B20 aren't done by Nov 11 09:00 | B20's leftover runs; **check-in and merge (Nov 12)** | **C25; check-in and merge (Nov 12)** | **Gate 2 (Nov 8)** |
+| Nov 4 | the 9 queued parts end (7 started Nov 3 evening; the last 2 as GPU-minutes free); then, as places free, B20's smokes and runs, E2's 28 sixteenths and the 15 fifths, 1:30 each, up to 10 at once (the Nov 4 log) | — | setup (Nov 4); C19 | L3: the settling call |
+| Nov 5–7 | the sweeps; **E2 and B20 done (projected Nov 5–6)**; A39 on the 30 (22 jobs); **B1R2's 40 parts (projected done Nov 6–8)** | **Handoff to Arsha, Nov 6**; B20 done | **C19; check-in and merge (Nov 7)** | **L3's fresh batch (Nov 7)** |
+| Nov 8–12 | room for reruns; the 30's rule on Nov 11 09:00 (no effect if E2 and B20 are done) | **check-in and merge (Nov 12)** | **C25; check-in and merge (Nov 12)** | **Gate 2 (Nov 8)** |
 | Nov 13–18 | runs end Nov 15; A39 read Nov 17 | B20 read (Nov 17); B18's table and figure (Nov 18); **check-ins Nov 15, 18** | **C20, C26 (Nov 15); C24 and slides 11–12 (Nov 18); check-ins Nov 15, 18** | the report from Nov 10 |
 | Nov 18 | results freeze: all evaluation done by Nov 18, no new runs after it | | | |
 | Nov 19–24 | Gate 3's final statement (Nov 20) | slides 2, 6, 7, 8 final; the report's Track B bullets (Nov 20) | the report's Track C bullets (Nov 20) | the report draft (Nov 22); rehearsal (Nov 23); final presentation and report (Nov 24) |
@@ -280,11 +281,11 @@ experiment's pre-registration log, and [`RUNBOOK.md`](RUNBOOK.md).
 5. **Code and configs** on GitHub; produced data stays local (gitignored) with numbers-only
    summaries tracked. Final presentation and report on Nov 24 (rehearsal Nov 23; the Oct 31 program).
 
-## Risks (Nov 3)
+## Risks (Nov 4)
 
 | risk | what we do |
 |---|---|
-| Sol is busy (`public` full on Nov 3; htc isn't open to the class QoS) and two jobs run at a time | 1-GPU parts sized to start early; times from `squeue --start`; the 30 is dropped on Nov 11 and B1R2 not run on Nov 8 by their rules if time runs short |
+| Sol is busy at times (`public` full on Nov 3 afternoon; htc isn't open to the class QoS) | 1:30 parts, up to 10 at once under the 960 GPU-minute cap, longer shapes before nights; times from `squeue --start`; the 30 is dropped on Nov 11 by its rule if time runs short; B1R2 runs last and is read partial if not done by Nov 15 (its §13) |
 | L3's labels don't reach 0.6 again | the plan's steps (settle, tighten, a fresh batch); F3 stays a keyword count and no acknowledgment claim from labels goes in the report |
 | A model in B20 doesn't serve cleanly on vLLM 0.31.0 | its smoke stops it before any run; the fallback is the inserted tool turn, or the model is dropped by an amendment |
 | A teammate's change touches shared code, or Ritik's touches theirs | the path allowlist, both ways (`tools/path_check.py` as pre-commit and pre-merge-commit hooks); Ritik reviews each merge on the check-in days |

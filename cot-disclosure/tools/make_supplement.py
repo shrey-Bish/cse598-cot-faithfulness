@@ -927,8 +927,8 @@ PREREG = [
              "rule (each tool channel minus user_authority); R3a the bare answer after a call minus with the pasted block; "
              "R3b thinking on minus off on it; the 16,000 cut beside each",
      "rule_log": "2026-11-03_1219_B_b20-prereg.md", "rule_check": ["R1, Gate 2", "R2, tool or authority", "R3b, with thinking"],
-     "f_title": r"\(B20\)", "result_glob": ["*b20-results*"], "verdict": "waiting: pre-registered and coded Nov 3, "
-     "not submitted", "verdict_check": []},
+     "f_title": r"\(B20\)", "result_glob": ["*b20-results*"], "verdict": "waiting: Granite's smoke submitted Nov 3 "
+     "(456999); the runs at 1:30 (section 14)", "verdict_check": []},
     {"id": "a39", "track": "A", "experiment": "A39: fix round 2 on E2 (120 fresh questions): the provenance wrapper, the "
                                               "note with LoRA and with the wrapper, LoRA + wrapper; a powered Gate 3", "kind": "pre",
      "rule": "on E2, paired by question: R1 Gate 3's rule against base (a powered replication for base, prompt_only, "
@@ -937,16 +937,17 @@ PREREG = [
              "the 30 reported beside it",
      "rule_log": "2026-11-03_1130_A_e2-a39-prereg.md", "rule_check": ["powered replication of Gate 3", "R4, the wrapper"],
      "rule_extra": [("the amendment, section 10 (job shapes, the 30's and B1R2's decisions)", "9fc52d6")],
-     "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: pre-registered and amended Nov 3; "
-     "the 1-GPU bench (389340) queued", "verdict_check": []},
-    {"id": "b1r2", "track": "A", "experiment": "B1R2: B1's deployable span on E2 (a labelled replication; only if Sol "
-                                               "has room by Nov 15)", "kind": "pre",
+     "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: running on Sol (9 parts from Nov 3; "
+     "the rest at 1:30, section 12)", "verdict_check": []},
+    {"id": "b1r2", "track": "A", "experiment": "B1R2: B1's deployable span on E2 (a labelled replication; decided "
+                                               "Nov 4: it runs)", "kind": "pre",
      "rule": "alpha 0.25 against alpha = 1 on E2's inserted tool turn, by B1's rule (b1_verdict) unchanged; B1's verdict "
              "(F38) stays primary",
      "rule_log": "2026-11-03_1130_A_e2-a39-prereg.md", "rule_check": ["B1R2: B1's deployable span on E2"],
-     "rule_extra": [("its decision rule, section 10 (Nov 8 09:00, compute only)", "9fc52d6")],
-     "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "waiting: decided Nov 8 09:00 from Sol "
-     "time",
+     "rule_extra": [("its decision rule, section 10 (Nov 8 09:00, compute only)", "9fc52d6"),
+                    ("the amendment, section 13 (decided Nov 4: it runs; its job lines)", "21e0386")],
+     "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "waiting: decided Nov 4, it runs, last "
+     "in the Sol order",
      "verdict_check": []},
     {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
      "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "

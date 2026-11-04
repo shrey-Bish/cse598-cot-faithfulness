@@ -14,4 +14,6 @@
 # learned biases. Batched Hugging Face generation, no vLLM; every run is saved as it ends, so a rerun resumes.
 # Submit only through submit.sh (split by --part to stay under the limit):
 #   cot-disclosure/finetune/gpu/sol/submit.sh provenance_gen --estimate 5.5 --dependency=afterok:<forced job> -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --part 1/3
+# B1R2 (Nov 4; the A39 log's section 13): B1's deployable span on E2, 40 parts of 3 questions, into $TRACKA_OUT/b1r2:
+#   cot-disclosure/finetune/gpu/sol/submit.sh provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 1/40
 cd "$SLURM_SUBMIT_DIR" && exec cot-disclosure/finetune/gpu/sol/run.sh provenance_gen "$@"

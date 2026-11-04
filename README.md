@@ -1,6 +1,6 @@
 # Do Thinking Modes Make Chain-of-Thought More Honest?
 
-CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-03. **Edited by:** Ritik.
+CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-04. **Edited by:** Ritik.
 
 We slip a wrong hint into a multiple-choice question, from the user or from a tool, and ask two things: does the hint
 change the model's answer, and does the model say so? Thinking models return their private reasoning and their final
@@ -41,7 +41,7 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    the budget allowed (B1R) couldn't settle it, so neither it nor A38 is run. Inside the trained model (A18, F39), training
    acts in the reasoning, not on the readout: given base's own reasoning, LoRA's weights pull toward the hint's letter
    harder, not less, and when LoRA follows it is through the same three layers. A39 tests a provenance wrapper and
-   combinations on E2, 120 fresh questions (B1's replication there, B1R2, runs only if Sol has room by Nov 15: decided Nov 8).
+   combinations on E2, 120 fresh questions; B1's replication there (B1R2) runs too, decided Nov 4 by its compute check.
 
 ## Read this first
 

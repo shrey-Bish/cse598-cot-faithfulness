@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-03 22:33 (the track lists; A39 next). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-04 00:52 (B1R2 decided: it runs). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -106,7 +106,8 @@ stay here.
    removed; the hint's letter in 30 of 30 cases); when LoRA follows, it is through the same three layers, and F12's
    heads still separate its followed runs from its resisted ones. What training changed is the reasoning LoRA writes.
    **Next (A39, E2):** a provenance wrapper and combinations on 120 fresh questions, with a powered replication of
-   Gate 3 (runs by Nov 15, read Nov 17); B1R2, B1's span on E2, runs only if Nov 8's compute check passes (R4).
+   Gate 3 (runs by Nov 15, read Nov 17); B1R2, B1's span on E2, runs too: its compute check, moved to Nov 4, passed
+   (R4; the A39 log's §13).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`); hand labels decide

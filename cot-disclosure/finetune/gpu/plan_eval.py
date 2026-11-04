@@ -24,8 +24,8 @@ requests in flight. Hours low = low tokens at the high rate; high = high tokens 
 mid tokens at the middle rate.
 Jobs: a system is split into the fewest N parts (eval.py --part k/N, every N-th run, so every part has
 some of each question's runs) whose high end x 1.3 is at most 8 h each; each part's --estimate is its own high end, and its limit
-that x 1.3 rounded up to 30 minutes (submit.sh does it). The class QoS runs two at once (MaxJobsPU 2;
-two 8 h limits are its 960 GPU-minutes) and holds ten (MaxSubmitPU); the rest wait for room.
+that x 1.3 rounded up to 30 minutes (submit.sh does it). The class QoS's 960 running GPU-minutes hold two
+8 h jobs at once, and it holds ten (MaxSubmitPU); the rest wait for room (Nov 4: those two bind, not MaxJobsPU).
 Order (decided Oct 28): base and prompt_only first (vllm: afterok on the check); each trained version
 afterok on its training job. On Sol the plan also reads: squeue (a dependency still queued stays in
 --dependency; your job count against MaxSubmitPU), sacct (how a finished dependency ended),

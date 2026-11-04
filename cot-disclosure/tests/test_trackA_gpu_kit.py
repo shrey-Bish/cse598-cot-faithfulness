@@ -285,17 +285,39 @@ def test_running_jobs_count_their_gpus_and_pending_ones_are_listed(tmp_path):
     fake_queue(tmp_path, env, ["101 RUNNING 7:00:00 8:00:00 gres/gpu:a100:1 2026-10-29T18:00:00",
                                "102 RUNNING 6:00:00 8:00:00 gres/gpu:a100:1 2026-10-29T17:00:00"])
     r = submit(env, "step9", "--estimate", "6")                # 420 + 360 + 480 = 1,260
-    assert r.returncode == 0 and "both slots are taken" in r.stdout and "job 102 ends (2026-10-29T17:00:00)" in r.stdout
+    assert r.returncode == 0 and "180 of 960 GPU-minutes free now" in r.stdout and "7 of 10 places left" in r.stdout
     assert "over the 960 GPU-minute limit by 300" in r.stdout and "about 150 min" in r.stdout
+    assert "slot" not in r.stdout, r.stdout                    # Nov 4: two running jobs isn't what binds
     fake_queue(tmp_path, env, ["101 RUNNING 7:00:00 8:00:00 gres/gpu:a100:1 2026-10-29T18:00:00",
                                "102 RUNNING 1:00:00 2:00:00 N/A 2026-10-29T12:00:00 trackB-get-b20"]
                + [f"{i} PENDING 0:00 3:00:00 gres/gpu:a100:1 N/A trackA-a39-1gpu" for i in range(110, 117)])
     r = submit(env, "step9", "--estimate", "6")                # 420 + 0 (no GPU) + 480 = 900; the pending not added
     assert r.returncode == 0 and "total 900 of 960" in r.stdout and "WARNING" not in r.stdout, r.stdout
-    assert "pending 7 (1260 requested" in r.stdout and "both slots are taken (1 by a job without a GPU)" in r.stdout
+    assert "pending 7 (1260 requested" in r.stdout and "0 of 10 places left after this one (2 running, 7 pending)" in r.stdout
     fake_queue(tmp_path, env, [f"{i} PENDING 0:00 1:00:00 N/A N/A" for i in range(10)])
     r = submit(env, "step9")
     assert r.returncode == 1 and "more than 10 jobs" in r.stdout
+
+
+def test_seven_running_jobs_the_limit_is_gpu_minutes_and_places_not_two_slots(tmp_path):
+    """Nov 3, late evening (Ritik's squeue): 7 one-GPU A39 parts ran at once and the two pending ones showed
+    MaxGRESRunMinsPerUser, so MaxJobsPU 2 doesn't bind; the 960 running GPU-minutes and the 10 submitted do. The message
+    says those two, and that a pending job that fits may start first; "both slots are taken" was wrong."""
+    env, log = fake_sbatch(tmp_path)
+    left = ["1:44:41", "1:44:41", "1:54:14", "1:54:14", "1:54:14", "2:53:16", "2:55:51"]
+    fake_queue(tmp_path, env, [f"42{i} RUNNING {t} 3:00:00 gres/gpu:a100:1 2026-11-04T03:00:00 trackA-a39-1gpu"
+                               for i, t in enumerate(left)]
+               + ["428330 PENDING 0:00 3:00:00 gres/gpu:a100:1 N/A trackA-a39-1gpu",
+                  "428332 PENDING 0:00 3:00:00 gres/gpu:a100:1 N/A trackA-a39-1gpu"])
+    r = submit(env, "b20", "--model", "granite-4.2-8b", "--", "--smoke")   # 1 h -> 1:30, 90 GPU-minutes
+    assert r.returncode == 0 and "running 7 (901 GPU-minutes left)" in r.stdout and "total 991 of 960" in r.stdout, r.stdout
+    assert "59 of 960 GPU-minutes free now" in r.stdout and "this job needs 90" in r.stdout
+    assert "0 of 10 places left after this one (7 running, 2 pending)" in r.stdout
+    assert "over the 960 GPU-minute limit by 31" in r.stdout and "about 5 min" in r.stdout
+    assert "a pending job that fits may start first" in r.stdout and "slot" not in r.stdout
+    rows = [line.split() for line in (SOL / "accounts.conf").read_text().splitlines()
+            if line.strip() and not line.startswith("#")]
+    assert rows[0][4] == rows[0][5] == "10"                    # max_jobs: the 10 submitted binds, not 2
 
 
 def test_a_job_asking_gpus_per_job_counts_them_from_its_requested_tres(tmp_path):
@@ -326,14 +348,15 @@ def fake_queue_and_jobs(tmp_path, env, lines):
 
 
 def test_a_second_download_waits_for_the_first(tmp_path):
-    """Nov 3: the class QoS's two running slots count jobs without a GPU too, and three B20 downloads took both. A
-    download (get_*) while another is running or pending is refused unless it waits for it (afterany), so downloads
-    hold at most one slot. Other jobs aren't affected."""
+    """Nov 3: three B20 downloads ran at once. A download (get_*) while another is running or pending is refused unless it
+    waits for it (afterany), so downloads run one at a time, each holding one of the 10 places (Nov 4: two running jobs
+    isn't a limit). Other jobs aren't affected."""
     env, log = fake_sbatch(tmp_path)
     fake_queue_and_jobs(tmp_path, env, ["201 RUNNING 1:00:00 2:00:00 N/A 2026-11-03T16:00:00 trackB-get-b20",
                                         "202 PENDING 0:00 3:00:00 gres/gpu:a100:1 N/A trackA-a39-1gpu"])
     r = submit(env, "get_b20", "--model", "gemma-4-26b-a4b-it")
     assert r.returncode == 1 and "--dependency=afterany:201" in r.stdout and not log.exists(), r.stdout + r.stderr
+    assert "one at a time" in r.stdout and "slot" not in r.stdout
     r = submit(env, "get_b20", "--model", "gemma-4-26b-a4b-it", "--dependency=afterany:201")
     assert r.returncode == 0 and "dependency ok: job 201" in r.stdout, r.stdout + r.stderr
     assert "--dependency=afterany:201" in sbatch_args(log)
@@ -451,7 +474,7 @@ def test_only_listed_accounts(tmp_path):
     assert r.returncode == 1 and "not listed" in r.stderr and not log.exists()
     conf = (SOL / "accounts.conf").read_text()
     rows = [line.split() for line in conf.splitlines() if line.strip() and not line.startswith("#")]
-    assert rows == [[ACCOUNT, "public", "class", "960", "2", "10", "24", "4"]]   # Nov 3: htc isn't open to the class QoS
+    assert rows == [[ACCOUNT, "public", "class", "960", "10", "10", "24", "4"]]  # Nov 3: no htc; Nov 4: max_jobs 10
 
 
 @pytest.mark.parametrize("env_vars,ok", [({"SLURM_JOB_ID": "5", "SLURM_JOB_ACCOUNT": ACCOUNT}, True),

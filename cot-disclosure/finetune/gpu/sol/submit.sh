@@ -11,16 +11,17 @@
 #
 # The class QoS (accounts.conf) counts each running job's remaining time x GPUs against 960
 # GPU-minutes, the requested time is what counts, and DenyOnLimit rejects at submission any job whose
-# own request is over it. So, for a job in the account's QoS:
+# own request is over it. That cap and the 10 submitted jobs are what bind (Nov 3: 7 one-GPU jobs ran at
+# once; MaxJobsPU 2 didn't bind). So, for a job in the account's QoS:
 #   --estimate H   the time limit becomes H x 1.3, rounded up to the next 30 minutes (else the script's -t)
 #   refused here first: a limit x GPUs over the QoS's GPU-minutes, or over its MaxWall
 #   before submitting: this job's GPU-minutes + the remaining GPU-minutes of your running jobs in that
 #   QoS (squeue; a job's GPUs from %b, else its ReqTRES, and a job without a GPU counts 0; pending jobs
-#   are listed, not added, since Slurm counts a job only once it runs: Nov 3); over the limit: a
-#   warning, and when the job can start; both slots taken: when the second slot frees up (jobs without
-#   a GPU take slots too)
+#   are listed, not added, since Slurm counts a job only once it runs: Nov 3); then the two limits: the
+#   GPU-minutes free now and the places left in the 10; over the GPU-minutes: a warning, and when the
+#   job can start (a pending job that fits may start before it)
 #   a download (get_*) while another is running or pending: refused unless it waits for it
-#   (--dependency=afterany:N), so downloads hold at most one of the two running slots (Nov 3)
+#   (--dependency=afterany:N), so downloads run one at a time (Nov 3)
 #   --htc   refused (Nov 3): htc's AllowQos is public,debug, so the class QoS can't use it
 #
 # The job script's partition and QoS must be a pair accounts.conf lists for the account (Oct 28: the
@@ -149,7 +150,7 @@ else
 fi
 limit=$(printf '%d:%02d:00' $((limit_min / 60)) $((limit_min % 60)))
 need=$((limit_min * gpus))
-dl=0 dl_names=""                              # Nov 3: a download takes one of the two running slots, like any job
+dl=0 dl_names=""                              # Nov 3: downloads run one at a time (each holds one of the 10 places)
 case "$job" in get_*) dl=1 ;; esac
 for f in "$HERE"/get_*.sbatch; do dl_names="$dl_names $(opt '(-J|--job-name)' "$f")"; done
 deps=""
@@ -182,7 +183,7 @@ if true; then                                 # always a listed QoS (checked abo
             echo "$id $st $left $lim $gres $end $name"
         done)
         printf '%s\n' "$queue" | awk -v need="$need" -v cap="$GPU_RUN_MIN" \
-            -v maxjobs="$MAX_JOBS" -v maxsub="$MAX_SUBMIT" -v limit="$limit" -v gpus="$gpus" \
+            -v maxsub="$MAX_SUBMIT" -v limit="$limit" -v gpus="$gpus" \
             -v dl="$dl" -v dlnames="$dl_names" -v deps="$deps" '
             BEGIN { n = split(dlnames, a, " "); for (i = 1; i <= n; i++) dlname[a[i]] = 1
                     n = split(deps, a, /[^0-9]+/); for (i = 1; i <= n; i++) if (a[i] != "") dep[a[i]] = 1 }
@@ -192,8 +193,7 @@ if true; then                                 # always a listed QoS (checked abo
             function ngpu(g,   a, b, n, m, i) { n = split(g, a, ",")     # gres/gpu:a100:4, gres/gpu=4, gpu:1; none: 0
                 for (i = 1; i <= n; i++) if (a[i] ~ /gpu/) { m = split(a[i], b, /[:=]/); return (b[m] ~ /^[0-9]+$/) ? b[m] : 1 }
                 return 0 }
-            $2 == "RUNNING" { g = ngpu($5); used += mins($3) * g; rate += g; running++; nogpu += (g == 0)
-                              if (first == "" || $6 < first) { first = $6; firstid = $1 } }
+            $2 == "RUNNING" { g = ngpu($5); used += mins($3) * g; rate += g; running++ }
             $2 == "PENDING" { pend += mins($4) * ngpu($5); pending++ }
             dl && ($2 == "RUNNING" || $2 == "PENDING") && ($7 in dlname) && !($1 in dep) {
                 held = held (held == "" ? "" : ":") $1; heldinfo = heldinfo (heldinfo == "" ? "" : ", ") $1 " (" $7 ", " $2 ")" }
@@ -201,13 +201,14 @@ if true; then                                 # always a listed QoS (checked abo
                 printf "QoS check: this job %s x %d GPU = %d GPU-minutes; running %d (%d GPU-minutes left), pending %d (%d requested, counted once they run); total %d of %d\n",
                        limit, gpus, need, running, used, pending, pend, total, cap
                 if (running + pending + 1 > maxsub) { print "refusing: you would have more than " maxsub " jobs in the QoS"; exit 3 }
-                if (held != "") { printf "refusing: download job %s is running or pending; a second download waits for it, so downloads hold at most one of your %d running slots: add --dependency=afterany:%s. Nothing was submitted.\n",
-                                         heldinfo, maxjobs, held; exit 4 }
-                if (running >= maxjobs) printf "both slots are taken%s: the second slot frees up when job %s ends (%s)\n",
-                                               (nogpu ? " (" nogpu " by a job without a GPU)" : ""), firstid, first
+                if (held != "") { printf "refusing: download job %s is running or pending; downloads run one at a time (each holds one of your %d places): add --dependency=afterany:%s. Nothing was submitted.\n",
+                                         heldinfo, maxsub, held; exit 4 }
+                printf "limits: %d of %d GPU-minutes free now (this job needs %d); %d of %d places left after this one (%d running, %d pending)\n",
+                       (int(used) < cap ? cap - int(used) : 0), cap, need, maxsub - running - pending - 1, maxsub, running, pending
                 if (total > cap) {
                     printf "WARNING: over the %d GPU-minute limit by %d: the job waits", cap, total - cap
                     if (rate > 0) printf " about %d min, until the running jobs have used that much of their time", (total - cap) / rate + 0.999
+                    if (pending > 0) printf " (or longer: a pending job that fits may start first)"
                     print "" } }' || exit 1
     else
         echo "squeue not found or failed: running and pending jobs not checked"

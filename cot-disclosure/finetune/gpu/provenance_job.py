@@ -13,6 +13,9 @@ generate   Generation on the held-out 30 MMLU-Pro questions (finetune/eval.py's 
            correct tool hint, no hint; the pasted block (tool_progress) and the inserted tool turn
            (inserted_study_guide). Batched Hugging Face generation: batches of up to 8 that fit the
            key/value cache at full length, and finished rows leave the batch every 512 tokens (Oct 31).
+           B1R2 (Nov 4; the A39 log's section 13): --b1r2 runs alpha = 1 and the deployable span on E2's 120
+           questions instead, the inserted tool turn only (2 wrong, 2 correct, 1 no-hint run a question), with
+           the same engine and settings, into OUT/b1r2, never beside B1's runs.
 report     generate's measures per configuration and against alpha = 1 (paired by question), the
            trade-off figure (wrong-hint following against correct-hint acceptance across alpha). Oct 31: on the
            fixed engine's configurations only (prov-a1-v2, ...); the first engine's alpha = 1 runs (prov-a1) are
@@ -40,7 +43,8 @@ The rule for alpha (written Oct 29, before any set A number exists), per span, a
   python finetune/gpu/provenance_job.py choose OUT/provenance_forced/provenance_forced.json
   python finetune/gpu/provenance_job.py generate --alpha-from OUT/provenance_forced/provenance_forced.json --out OUT [--part 1/2]
   python finetune/gpu/provenance_job.py generate --version gate3 --checkpoint TRAIN/gate3/epoch2 --out OUT
-  python finetune/gpu/provenance_job.py report --out OUT/provenance_gen          # numbers + the figure
+  python finetune/gpu/provenance_job.py generate --alpha-from .../provenance_forced.json --b1r2 --out OUT [--part 1/40]
+  python finetune/gpu/provenance_job.py report --out OUT/provenance_gen          # numbers + the figure (B1R2: OUT/b1r2)
   python finetune/gpu/provenance_job.py bench --out OUT --items-from SETA_ITEMS --alpha-from OUT/provenance_forced/provenance_forced.json
   python finetune/gpu/provenance_job.py plan --out OUT --alpha-from OUT/provenance_forced/provenance_forced.json
   python finetune/gpu/provenance_job.py plan --out OUT --alpha-from ... --note     # A38's lines, only if B1 works
@@ -92,6 +96,8 @@ ENGINE_TAG = "v2"                    # Oct 31 (Ritik): every configuration rerun
 GATE = 1.5                           # Oct 31 (Ritik): no resubmit unless the bench's new engine is >= 1.5x the old one
 NOTE = "prov-note"                   # A38 (Oct 31): prompt_only's note (finetune/eval.renderer) at alpha = 1, and with B1
 NOTE_WORDINGS = ("inserted_study_guide",)   # A38 reads the inserted tool turn, where the deployable span acts
+B1R2 = {"qset": "e2", "wordings": ("inserted_study_guide",), "wrong_runs": 2, "correct_runs": 2}   # Nov 4 (A39 log §13)
+B1R2_DIR = "b1r2"                    # its own folder under OUT, never provenance_gen (B1's runs on the 30)
 MARGIN = 0.05                        # 5 points: B1's rule and A38's, as Gate 3
 ELIGIBLE_DC = -0.05
 TIE = 0.01
@@ -529,11 +535,11 @@ class Batched:
         return out
 
 
-def gen_jobs(part=None, wordings=GEN_WORDINGS, wrong_runs=WRONG_RUNS, qs=None):
-    """Per question: the wrong hint in each wording x wrong_runs, the correct hint in each wording x 1, no
-    hint x 1 (finetune/eval.py's job() for each, so the runs are evaluation runs); and the pasted blocks'
+def gen_jobs(part=None, wordings=GEN_WORDINGS, wrong_runs=WRONG_RUNS, qs=None, correct_runs=1):
+    """Per question: the wrong hint in each wording x wrong_runs, the correct hint in each wording x correct_runs
+    (B1: 1), no hint x 1 (finetune/eval.py's job() for each, so the runs are evaluation runs); and the pasted blocks'
     character ranges in their user messages (for the oracle span). qs: the 30 held-out questions unless given
-    (the bench gives set A's)."""
+    (the bench gives set A's, B1R2 E2's)."""
     from finetune import eval as ev
     qs = ev.questions() if qs is None else qs
     if part:
@@ -544,7 +550,7 @@ def gen_jobs(part=None, wordings=GEN_WORDINGS, wrong_runs=WRONG_RUNS, qs=None):
         wrong = q["hint_letters"][0]
         none = ev.job(q, None, None, 0)
         js = [ev.job(q, w, wrong, r) for w in wordings for r in range(wrong_runs)]
-        js += [ev.job(q, w, q["correct"], 0) for w in wordings] + [none]
+        js += [ev.job(q, w, q["correct"], r) for w in wordings for r in range(correct_runs)] + [none]
         u0 = [m for m in none["messages"] if m["role"] == "user"][-1]["content"]
         for j in js:
             if j["channel"] == "tool_pasted":
@@ -563,6 +569,21 @@ def configs(chosen, extra_alphas=(), tag=ENGINE_TAG):
         for a in sorted({chosen.get(span, 1.0), *extra_alphas} - {1.0}, reverse=True):
             out.append((f"prov-{span}-a{a:g}{sfx}", span, a))
     return out
+
+
+def b1r2_jobs(part=None):
+    """B1R2's runs (the A39 log's section 13): E2's questions, the inserted tool turn, 2 wrong, 2 correct, 1 no hint each;
+    part k/n of the questions."""
+    from finetune import eval as ev
+    return gen_jobs(part, wordings=B1R2["wordings"], wrong_runs=B1R2["wrong_runs"], qs=ev.questions(B1R2["qset"]),
+                    correct_runs=B1R2["correct_runs"])
+
+
+def b1r2_configs(chosen, tag=ENGINE_TAG):
+    """B1R2: alpha = 1 and the deployable span at its chosen alpha (set A's, not re-chosen); no oracle span."""
+    if chosen.get("deployable", 1.0) == 1.0:
+        raise SystemExit("B1R2 compares the deployable span's chosen alpha with alpha = 1; the summary gives 1 (no fix)")
+    return [c for c in configs(chosen, tag=tag) if c[1] == "deployable"]
 
 
 def note_configs(chosen, tag=ENGINE_TAG):
@@ -589,15 +610,20 @@ def load_gen_model(path, device, version=None, checkpoint=None):
 
 def generate(out, alphas=None, alpha_from=None, part=None, model=None, device="auto", layers=pv.READOUT, heads=None,
              version=None, checkpoint=None, wrong_runs=WRONG_RUNS, max_batch=8, token_budget=110000, workers=None,
-             dry_run=False, limit=None, max_new=None, kv_gib=KV_GIB, shrink_every=SHRINK_EVERY, note=False):
+             dry_run=False, limit=None, max_new=None, kv_gib=KV_GIB, shrink_every=SHRINK_EVERY, note=False, b1r2=False):
     from finetune import eval as ev
+    if b1r2 and (note or version is not None or alphas):
+        raise SystemExit("--b1r2 is B1's deployable span on E2 as pre-registered: not with --note, --version or --alphas")
     if version is not None:
         cfgs = [(f"prov-{version}-{ENGINE_TAG}", "deployable", None)]   # the learned gates, on tool-tagged keys
     else:
         chosen = json.loads(Path(alpha_from).read_text())["chosen"] if alpha_from else {}
         chosen = {k: (v["alpha"] if isinstance(v, dict) else v) for k, v in chosen.items()}
-        cfgs = note_configs(chosen) if note else configs(chosen, alphas or ())
-    jobs, pasted = gen_jobs(part, wordings=NOTE_WORDINGS if note else GEN_WORDINGS, wrong_runs=wrong_runs)
+        cfgs = b1r2_configs(chosen) if b1r2 else note_configs(chosen) if note else configs(chosen, alphas or ())
+    if b1r2:
+        jobs, pasted = b1r2_jobs(part)
+    else:
+        jobs, pasted = gen_jobs(part, wordings=NOTE_WORDINGS if note else GEN_WORDINGS, wrong_runs=wrong_runs)
     if limit:
         jobs = jobs[:limit]
     tokens = len(jobs) * len(cfgs) * REPLY_TOKENS
@@ -607,7 +633,7 @@ def generate(out, alphas=None, alpha_from=None, part=None, model=None, device="a
           f"at {GEN_TOK_PER_S[0]}-{GEN_TOK_PER_S[1]} tokens/s (batched; bench and plan measure it)")
     if dry_run:
         return None
-    d = kit.out_dir("provenance_gen", out)
+    d = kit.out_dir(B1R2_DIR if b1r2 else "provenance_gen", out)
     path, commit = kit.snapshot(model)
     dev = kit.pick_device(device)
     m = load_gen_model(path, dev, version, checkpoint)
@@ -639,7 +665,8 @@ def generate(out, alphas=None, alpha_from=None, part=None, model=None, device="a
                     continue
                 rec.update({"span": span, "alpha": alpha, "layers": list(layers), "heads": heads, "version": version,
                             "snapshot_commit": commit, "engine_tag": ENGINE_TAG,
-                            "batching": {"max_batch": max_batch, "kv_gib": kv_gib, "shrink_every": shrink_every}})
+                            "batching": {"max_batch": max_batch, "kv_gib": kv_gib, "shrink_every": shrink_every},
+                            **({"design": "b1r2"} if b1r2 else {})})
                 ev.save(d, rec, part)
                 n_tok += rec.get("completion_tokens") or 0
                 if i % 20 == 0 or i == len(todo):
@@ -1192,6 +1219,9 @@ def main(argv=None):
     g.add_argument("--shrink-every", type=int, default=SHRINK_EVERY, help="tokens between checks for rows that ended (0: never)")
     g.add_argument("--note", action="store_true", help="A38: the note at alpha = 1 and with the deployable span, inserted "
                                                        "tool turn only (only after B1 works)")
+    g.add_argument("--b1r2", action="store_true", help="B1R2 (Nov 4, the A39 log's section 13): alpha = 1 and the deployable "
+                                                       "span on E2, inserted tool turn only, 2 wrong + 2 correct + 1 no "
+                                                       "hint a question; into OUT/b1r2")
     b = sub.add_parser("bench")
     b.add_argument("--out", required=True)
     b.add_argument("--items-from", required=True, help="set A's questions (finetune/setA.py's items.jsonl), never the 30")
@@ -1250,7 +1280,7 @@ def main(argv=None):
         sys.exit("--version (learned gates) or --alpha-from (B1), not both")
     return generate(a.out, alphas, a.alpha_from, part, a.model, a.device, layers, a.heads, a.version, a.checkpoint,
                     a.wrong_runs, a.max_batch, a.token_budget, dry_run=a.dry_run, limit=a.limit,
-                    kv_gib=a.kv_gib or None, shrink_every=a.shrink_every or None, note=a.note)
+                    kv_gib=a.kv_gib or None, shrink_every=a.shrink_every or None, note=a.note, b1r2=a.b1r2)
 
 
 if __name__ == "__main__":

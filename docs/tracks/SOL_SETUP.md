@@ -53,16 +53,17 @@ allowlist on `trackC-main`, so ask Ritik to add it on `main` if it should be tra
 
 ```bash
 mkdir -p cot-disclosure/finetune/gpu/sol/accounts.d
-echo "<your course account>  public  class  960  2  10  24  4" > cot-disclosure/finetune/gpu/sol/accounts.d/$USER.conf
+echo "<your course account>  public  class  960  10  10  24  4" > cot-disclosure/finetune/gpu/sol/accounts.d/$USER.conf
 ```
 
 The columns are `accounts.conf`'s: account, partition, QoS, then that QoS's limits: GPU-minutes
-(MaxTRESRunMinsPU), running jobs (MaxJobsPU), queued jobs (MaxSubmitPU), MaxWall in hours, GPUs per job. Use the
-numbers `sacctmgr` printed; the ones above are the class QoS's (checked Oct 30). If your partition or QoS isn't
+(MaxTRESRunMinsPU), running jobs, queued jobs (MaxSubmitPU), MaxWall in hours, GPUs per job. Use the numbers
+`sacctmgr` printed, except running jobs: list 10, the same as queued (Nov 4: `sacctmgr` lists MaxJobsPU 2, but 7 of
+Ritik's jobs ran at once, so it doesn't bind). If your partition or QoS isn't
 the job scripts' `-p public -q class`, `submit.sh` passes yours instead.
 
 **4. The environments and the import check** (a CPU allocation under your account; while open it takes one of
-your 2 job slots):
+your 10 places):
 
 ```bash
 salloc -A <your course account> -p public -q class -c 4 --mem=16G -t 1:30:00
@@ -125,20 +126,21 @@ rsync -av $S/team_c13_mistral.jsonl results/trackC/team_c13_mistral_$(date +%m%d
 The other jobs work the same way under your user; their lines and outputs are in the GPU README
 (`/scratch/$USER/trackA/<step>/`; on the Mac, `$SOL_USER` in place of a user name).
 
-## Limits (the class QoS, per user; `sacctmgr`, Oct 30)
+## Limits (the class QoS, per user; `sacctmgr`, Oct 30; what binds, Nov 4)
 
 | Field | Value |
 |---|---|
 | MaxTRES (per job) | cpu=32, gres/gpu=4, mem=320G |
 | MaxWall | 24 h |
-| MaxJobsPU (running) | 2 (an open `salloc` counts) |
-| MaxSubmitPU (running + pending) | 10 |
-| MaxTRESRunMinsPU | gres/gpu=960: each running job's remaining time × GPUs; one 1-GPU job up to 16 h |
+| MaxJobsPU (running) | listed as 2, but doesn't bind: 7 of Ritik's jobs ran at once on Nov 3 |
+| MaxSubmitPU (running + pending) | 10 (an open `salloc` counts): **binds** |
+| MaxTRESRunMinsPU | gres/gpu=960: each running job's remaining time × GPUs; one 1-GPU job up to 16 h: **binds** (10 one-GPU jobs of 1:30 hold 900) |
 | Flags | DenyOnLimit: a job whose own request is over the limit is rejected at submission |
 
 `submit.sh` sets each limit to the estimate × 1.3, refuses a job over your row's GPU-minutes or MaxWall, and
-counts your running and pending jobs (`squeue -u $USER`) before it submits. Since Nov 3:
-- a job without a GPU counts 0 GPU-minutes, but still takes one of the two running slots;
+counts your running and pending jobs (`squeue -u $USER`) before it submits, then prints the two limits: the
+GPU-minutes free now and the places left in the 10 (Nov 4). Since Nov 3:
+- a job without a GPU counts 0 GPU-minutes, but holds one of the 10 places;
 - only running jobs count toward the 960 GPU-minutes, as Slurm counts them;
 - a second download (`get_*`) is refused unless it waits for the first (`--dependency=afterany:N`);
 - `htc` isn't open to the class QoS (its AllowQos is public,debug; checked Nov 3): `--htc` is refused.

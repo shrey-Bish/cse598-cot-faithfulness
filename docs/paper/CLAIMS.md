@@ -1,7 +1,7 @@
 # Candidate claims: evidence, status, objection, what settles it
 
-Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-03 (B17, B1, the hand
-labels, A18; **edited by:** Ritik; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
+Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-04 (B17, B1, the hand
+labels, A18, B1R2 decided; **edited by:** Ritik; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
 the interval excludes no effect), *tentative* (direction there, interval includes 0 or a confound remains), *waiting*
 (the run is going or planned), *not supported*, *dropped*.
 
@@ -136,8 +136,8 @@ without making the model ignore correct tools.**
   following on the inserted turn that misses its pre-registered acceptance limit; underpowered at 30 questions.
   *Tentative* on the cost: it is 2 of 30 runs, and no-hint accuracy, which the scaling can't touch, moved +10 by
   sampling alone. **A replication (B1R) isn't run:** 35 GPU-hours fit 70 fresh questions, an acceptance half-width
-  of 6 to 9 points; ±5 needs about 107 to 245 questions (53 to 122 GPU-hours; F38). A38 isn't run. B1R2 (on E2) is
-  conditional: decided Nov 8 09:00 from Sol time (R4).
+  of 6 to 9 points; ±5 needs about 107 to 245 questions (53 to 122 GPU-hours; F38). A38 isn't run. B1R2 (on E2) runs:
+  its compute check, moved to Nov 4, passed (R4); read by Nov 17, partial if not done by Nov 15.
 - **Strongest objection:** it may just make the model ignore tools. Its layers and alpha could be
   tuned on the evaluation questions.
 - **Settles it:**

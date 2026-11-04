@@ -30,7 +30,7 @@ Smoke and Steps 8–10 ran in the Oct 26 interactive session; Step 9's follow-up
   outside a Slurm job (login nodes). Don't call `sbatch` directly.
 - **Where.** `-p public -q class -G a100:1`. Quick script tests and setup
   without a GPU use the same `-p public -q class`: the course account has only the class QoS, and
-  a job without a GPU still takes one of its 2 job slots (Oct 28). Batch jobs resume from their own checkpoints.
+  a job without a GPU still holds one of its 10 places. Batch jobs resume from their own checkpoints.
 - **The class QoS** (`sacctmgr -P show qos class`, confirmed Oct 27; re-checked Oct 30, unchanged; MaxTRESPU is
   empty):
 
@@ -38,20 +38,21 @@ Smoke and Steps 8–10 ran in the Oct 26 interactive session; Step 9's follow-up
   |---|---|
   | MaxTRES (per job) | cpu=32, gres/gpu=4, mem=320G |
   | MaxWall | 24 h |
-  | MaxJobsPU (running) | 2 |
+  | MaxJobsPU (running) | listed as 2, but doesn't bind (Nov 3: 7 ran at once) |
   | MaxSubmitPU (running + pending) | 10 |
   | MaxTRESRunMinsPU | gres/gpu=960 |
   | Flags | DenyOnLimit |
 
   Slurm counts each running job's *remaining* time × GPUs against the 960 GPU-minutes, and the
-  *requested* time is what counts. So one 1-GPU job can run alone with a limit up to 16 h; two run
-  at once only if their remaining times add up to 16 h or less (a second job can start partway
-  through the first). Interactive sessions count too: while one is open, run in it. DenyOnLimit
+  *requested* time is what counts. So one 1-GPU job can run alone with a limit up to 16 h, and
+  shorter jobs run more at once: 10 one-GPU jobs of 1:30 hold 900. That cap and the 10 submitted
+  are what bind (Nov 4; MaxJobsPU 2 doesn't). Interactive sessions count too: while one is open, run in it. DenyOnLimit
   rejects at submission any job whose own request is over 960 GPU-minutes. Each job's limit is
   its estimate × 1.3, rounded up to the next 30 minutes; resume makes short limits safe. The
   checks `submit.sh` makes before submitting (TODO A12, done Oct 27): refuse a job over 960
   GPU-minutes; add its GPU-minutes to the remaining GPU-minutes of your running and pending jobs
-  (`squeue`), warn if the total is over 960, and say when the second slot frees up; accounts,
+  (`squeue`), print the GPU-minutes free now and the places left in the 10, and warn if the total
+  is over 960 (Nov 4); accounts,
   partitions and QoS come from one config file per user (`accounts.conf`, or `accounts.d/<user>.conf`),
   and only the accounts listed there are allowed.
 - **Python.** Always the project environment's, by full path: `sol/env.sh` sets
@@ -553,6 +554,7 @@ Hugging Face only: vLLM can't apply it, so `submit.sh eval` refuses the gate ver
 | B1 generation, the held-out 30 | the lines `provenance_job.py plan` prints (parts that fit 6:00 at the bench's rate; a rerun resumes) | 6:00 | `provenance_gen/eval_prov-*_runs.jsonl` (numbers), texts beside them (stay on Sol) |
 | B2 train | `submit.sh train --estimate 3.07 -- gate3` (and `lora_attn3_gate`) | 4:00 | `train/<version>/` as the other versions; `final/gate.pt`, `gate.json` |
 | B2 generation | `submit.sh provenance_gen --estimate 4.5 -- --version gate3 --checkpoint …/train/gate3/epoch<k> --part K/2` | 6:00 | as B1's, system `prov-gate3` |
+| B1R2, B1's span on E2 (Nov 4; the A39 log's §13) | `submit.sh provenance_gen --estimate 1.6 -- --alpha-from …/provenance_forced/provenance_forced.json --b1r2 --part K/40`, K = 1–40, then `--part K/4` sweeps | 2:30 | `b1r2/eval_prov-*_runs.jsonl` (numbers; never beside B1's), texts beside them (stay on Sol) |
 
 Back on the Mac: `provenance_forced.json` and the `eval_prov-*_runs.jsonl` files (numbers only), then
 `python finetune/gpu/provenance_job.py report --out <dir>`: the measures against alpha = 1, paired by

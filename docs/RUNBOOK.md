@@ -2,7 +2,7 @@
 
 **Edited by:** Ritik.
 
-Last updated: 2026-11-03 (the Sol order, §0; labels, §15; the pre-commit hook, §17; history: `git log -- docs/RUNBOOK.md`). One page per step: what it does, where it runs, the commands in order,
+Last updated: 2026-11-04 (the Sol order and its real limit, §0; labels, §15; the pre-commit hook, §17; history: `git log -- docs/RUNBOOK.md`). One page per step: what it does, where it runs, the commands in order,
 inputs and outputs, how long it takes, and what to check. Written so anyone in the group can run a
 step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md); open work in
 [`TODO.md`](status/TODO.md), [`TODO_B.md`](trackB/TODO_B.md) and [`TODO_C.md`](trackC/TODO_C.md).
@@ -15,22 +15,26 @@ step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md
 
 ## 0. Read this first
 
-**The Sol order to the results freeze (Ritik, Nov 3, re-planned 14:50 for the earliest finish).** The course account
+**The Sol order to the results freeze (Ritik, Nov 3; re-planned Nov 4 00:48 for Sol's real limit).** The course account
 only (no other account; the H100s aren't available). B1, A37, B17 and A18 are done (A18 read Nov 3, F39); A38 is
 dropped. One queue, in this order:
 1. the 1-GPU bench (389340): done Nov 3, about 400 tokens/s per A100 (KV-cache bound), so E2 is 53.2 GPU-hours;
-2. A39 on E2 in 1-GPU parts, the core systems first, round-robin, then the wrapper systems and a sweep per system
-   (pre-registration 2026-11-03 11:30, §10 and §11); 9 parts queued Nov 3, the first starting Nov 4 19:25;
-3. B20's smokes at the head of wave 2, Granite first, then each model's runs (2026-11-03 12:19, §13);
-4. A39 on the 30, only if E2 and B20 finish by Nov 11 09:00;
-5. B1R2 only if Nov 8's compute check passes (the A39 log's §10).
+2. B20's smokes (Granite's, 456999, submitted Nov 3), then each model's runs after its clean smoke (2026-11-03
+   12:19, §13 and §14);
+3. A39 on E2 in 1-GPU parts: the 9 parts queued Nov 3 (running from about 22:45), then the core systems' sixteenths,
+   round-robin, the wrapper systems' fifths and a sweep per system (pre-registration 2026-11-03 11:30, §10–§12);
+4. A39 on the 30 (quarters and halves), unless E2 and B20 miss Nov 11 09:00;
+5. B1R2 last: decided Nov 4 by its rule's compute check, which it passed (the A39 log's §13): 40 parts of 3 questions.
 
-Nothing new after Nov 18. The lines, in waves: the Nov 3 session logs (wave 2 onward: the 22:16 log). Keep at most 10
-jobs submitted (running and pending, downloads included); when one ends, submit the next line. **Times** come from
-`squeue --start -u $USER` on real jobs, not `sbatch --test-only`. **`submit.sh`** (Nov 3):
+Nothing new after Nov 18. The lines, in order: the Nov 4 session log (`2026-11-04_0026`). **What binds** (Nov 4) is
+the class QoS's 960 running GPU-minutes (each running job's time left × GPUs) and the 10 submitted jobs: 7 one-GPU jobs
+ran at once on Nov 3, so MaxJobsPU 2 doesn't bind. So most jobs are 1:30 (10 at once hold 900); keep 10 submitted and
+submit the next line when one ends. Before a night away, the longer shapes in the A39 log's §12.5 and §13.5 keep the
+GPUs busy longer. **Times** come from `squeue --start -u $USER` on real jobs, not `sbatch --test-only`. **`submit.sh`**
+(Nov 3–4):
+- it prints the two limits before each job: the GPU-minutes free now and the places left in the 10;
 - **htc** isn't open to the class QoS (its AllowQos is public,debug), so `--htc` is refused;
-- a second download is refused unless it waits for the first (`--dependency=afterany:N`), since a job without a GPU
-  still takes one of the two running slots;
+- a second download is refused unless it waits for the first (`--dependency=afterany:N`): one at a time;
 - only running jobs count toward the 960 GPU-minutes.
 
 **Pulling on Sol while jobs are queued.** A queued job reads its code from Sol's clone when it starts. Before a
@@ -336,8 +340,8 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
   ../.venv/bin/python tools/export_summaries.py                           # -> results/summaries/trackA/
   ```
   `submit.sh` sets each limit to the estimate × 1.3 (rounded up to 30 min), refuses a job over 960
-  GPU-minutes, and before submitting prints the GPU-minutes of your running and pending jobs and when
-  the second slot frees up. Evaluation report (any machine with the copied-back `_runs.jsonl` files):
+  GPU-minutes, and before submitting prints the GPU-minutes of your running and pending jobs, the
+  GPU-minutes free now and the places left in the 10 (Nov 4). Evaluation report (any machine with the copied-back `_runs.jsonl` files):
   `../.venv/bin/python finetune/eval.py --report --out <dir>`; the Phase 6 rows: `--label-sample`.
 - **In → out:** `finetune/data/{train,validation}_examples.jsonl.gz` → `/scratch/ragarw68/trackA/train/
   <version>/` (`latest/`, `epoch1/`, `epoch2/`, `chosen.json`, `final/`); `timing/timing.jsonl`;
@@ -375,6 +379,24 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
   "$TRACKA_PY" cot-disclosure/finetune/gpu/provenance_job.py plan --out "$TRACKA_OUT" \
     --alpha-from "$TRACKA_OUT/provenance_forced/provenance_forced.json" --note     # ~4 provenance_gen ... --note lines
   ```
+- **B1R2, B1's deployable span on E2** (a labelled replication; decided Nov 4 by its compute check, the A39 log's §13).
+  - **What:** alpha 0.25 (set A's choice) against alpha = 1 on E2's 120 questions, the inserted tool turn only: 2
+    wrong-hint, 2 correct-hint and 1 no-hint run a question in each configuration, 1,200 runs. B1's engine and
+    settings (`-v2`), Hugging Face, one A100.
+  - **Where:** Sol, after a pull (the `--b1r2` option is new on Nov 4), and last in the order (§0).
+  - **The lines,** k = 1 to 40 in order, 3 questions each (about 1.4 GPU-hours with the load; limit 2:30):
+    ```bash
+    $S provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part k/40
+    ```
+    After all 40 end, the same line with `--part k/4` (k = 1 to 4) sweeps what's left. Before a night away, `--part
+    k/20` at `--estimate 3` (4:00) may replace parts k and k+20 of 40, if neither has been submitted.
+  - **Out:** `$TRACKA_OUT/b1r2/eval_prov-a1-v2_p<k>of40_runs.jsonl` and `eval_prov-deployable-a0.25-v2_...`
+    (numbers only; texts in `.jsonl.gz` beside them, which stay on Sol). Never beside B1's runs.
+  - **Check:** `"$TRACKA_PY" cot-disclosure/finetune/gpu/provenance_job.py generate --alpha-from ... --b1r2 --part
+    1/40 --out "$TRACKA_OUT" --dry-run` prints "15 runs x 2 configurations".
+  - **The reading** (Nov 16–17): `provenance_job.py report --out <copied-back b1r2 folder>`, then B1's rule
+    (`b1_verdict`), paired by question. Not done by Nov 15 23:59: read on the questions with every run of both
+    configurations, labelled "partial: N of 120 questions".
 
 ## 15. Labels
 
