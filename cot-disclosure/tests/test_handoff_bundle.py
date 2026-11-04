@@ -53,3 +53,21 @@ def test_gpqa_only_when_asked_and_verify_catches_changes(tmp_path):
             import io
             dst.addfile(mem, io.BytesIO(data))
     assert hb.verify(bad) == ["different bytes: results/voyager_canary.jsonl"]
+
+
+def test_b20s_sol_records_with_text_never_travel_only_its_numbers_only_files(tmp_path):
+    """B20's log (§3): its records stay on Sol, and only the numbers-only files come back. If a record file reaches the
+    Mac anyway (Nov 4: the two smokes' b20_sol_vllm.jsonl.gz), Track B's bundle leaves it out and says so."""
+    tree(tmp_path)
+    for rel in ("results/trackB/b20/granite-4.2-8b/b20_sol_vllm.jsonl.gz", "results/trackB/b20/granite-4.2-8b/b20_flags.jsonl",
+                "results/trackB/b20/granite-4.2-8b/smoke_check.json", "results/trackB/b17/b17_sol_vllm.jsonl.gz"):
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("x")
+    tar, manifest = hb.build("B", out_dir=tmp_path / "out", root=tmp_path, stamp="t")
+    paths = {f["path"] for f in manifest["files"]}
+    assert "results/trackB/b20/granite-4.2-8b/b20_flags.jsonl" in paths and "results/trackB/b20/granite-4.2-8b/smoke_check.json" in paths
+    assert not any(p.endswith("_sol_vllm.jsonl.gz") for p in paths)
+    assert manifest["sol_records_left_out"] == ["results/trackB/b17/b17_sol_vllm.jsonl.gz",
+                                                "results/trackB/b20/granite-4.2-8b/b20_sol_vllm.jsonl.gz"]
+    assert "results/trackB/sub/x.jsonl.gz" in paths                       # Voyager's records still travel

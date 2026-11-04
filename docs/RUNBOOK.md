@@ -492,7 +492,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
   ```
   (`--not-in main` leaves local `main`'s commits alone.)
 - **Push** (Ritik): `git push origin trackA-nosol:main trackA-nosol:trackA-nosol`; the hook checks it first. From Nov 3
-  `trackC-main` is Shrey's and from Nov 6 `trackB-main` is Arsha's: Ritik no longer pushes his branch to them.
+  `trackC-main` is Shrey's and from Nov 6 `trackB-main` is Arsha's: Ritik no longer pushes trackA-nosol to them.
 - **The path guard, both ways** (Nov 3; `configs/path_allowlist.txt`, `tools/path_check.py`):
   - Install it in each clone, as the pre-commit and pre-merge-commit hooks:
     `python3 cot-disclosure/tools/path_check.py --install`.

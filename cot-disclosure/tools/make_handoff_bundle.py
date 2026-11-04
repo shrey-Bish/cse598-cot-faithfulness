@@ -8,7 +8,8 @@ a track gets it from this tar.gz (shared through ASU storage), not from GitHub.
 Each bundle holds the track's gitignored results (below), paths relative to cot-disclosure/, and a
 manifest (MANIFEST.json inside, and a copy beside the tar.gz) with every file's bytes and sha256.
 GPQA files (any path with "gpqa" in its name) are never included unless --include-gpqa is given, on
-Ritik's say. Files still being written by a running job are bundled as they are at that moment; the
+Ritik's say. Sol's records with text (results/trackB/b17/ and b20/ *.jsonl.gz) never travel: their logs keep them on
+Sol and only the numbers-only files come back (Nov 4: two B20 smoke records had reached the Mac). Files still being written by a running job are bundled as they are at that moment; the
 manifest records the time. --verify checks an unpacked or packed bundle against its manifest.
 """
 import argparse
@@ -29,6 +30,7 @@ TRACKS = {
     "C": ["results/trackC", "results/trackB/steered_cases.jsonl"],     # labels go to the raters directly (Oct 30)
 }
 GPQA = re.compile(r"gpqa", re.IGNORECASE)
+SOL_RECORDS = re.compile(r"^results/trackB/b(17|20)/.*\.jsonl\.gz$")       # B17's and B20's text stays on Sol
 
 
 def sha256(path):
@@ -39,14 +41,23 @@ def sha256(path):
     return h.hexdigest()
 
 
+def sol_records(track, root=CODE):
+    """The Sol record files (with text) under the track's folders, which are never bundled."""
+    return sorted(str(p.relative_to(root)) for rel in TRACKS[track] for p in ((root / rel).rglob("*.jsonl.gz")
+                  if (root / rel).is_dir() else []) if SOL_RECORDS.match(str(p.relative_to(root))))
+
+
 def files_for(track, include_gpqa=False, root=CODE):
-    """[(relative path, absolute path)] of the track's produced files, and the GPQA paths left out."""
+    """[(relative path, absolute path)] of the track's produced files, and the GPQA paths left out. Sol's records
+    with text (SOL_RECORDS) are left out too (sol_records lists them)."""
     out, skipped = [], []
     for rel in TRACKS[track]:
         base = root / rel
         found = [base] if base.is_file() else sorted(p for p in base.rglob("*") if p.is_file()) if base.exists() else []
         for p in found:
             r = str(p.relative_to(root))
+            if SOL_RECORDS.match(r):
+                continue
             if GPQA.search(r) and not include_gpqa:
                 skipped.append(r)
             else:
@@ -59,6 +70,7 @@ def build(track, include_gpqa=False, out_dir=OUT, root=CODE, stamp=None):
     stamp = stamp or datetime.now().strftime("%Y%m%d")
     manifest = {"track": track, "created_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 "root": "cot-disclosure/", "gpqa_included": include_gpqa, "gpqa_left_out": skipped,
+                "sol_records_left_out": sol_records(track, root),
                 "files": [{"path": r, "bytes": p.stat().st_size, "sha256": sha256(p)} for r, p in files]}
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -112,7 +124,8 @@ def main():
     files, skipped = files_for(a.track, a.include_gpqa)
     total = sum(p.stat().st_size for _, p in files)
     print(f"track {a.track}: {len(files)} files, {total / 2 ** 20:.1f} MB from {', '.join(TRACKS[a.track])}"
-          + (f"; GPQA files left out: {len(skipped)}" if skipped else ""))
+          + (f"; GPQA files left out: {len(skipped)}" if skipped else "")
+          + (f"; Sol records left out (they stay on Sol): {len(sol_records(a.track))}" if sol_records(a.track) else ""))
     if a.dry_run:
         return 0
     tar, manifest = build(a.track, a.include_gpqa)
