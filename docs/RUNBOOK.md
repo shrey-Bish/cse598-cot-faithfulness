@@ -21,10 +21,11 @@ dropped. One queue, in this order:
 1. the 1-GPU bench (389340): done Nov 3, about 400 tokens/s per A100 (KV-cache bound), so E2 is 53.2 GPU-hours;
 2. B20's smokes, then each model's runs after its clean smoke (2026-11-03 12:19, §13 and §14). On Nov 4 Granite's
    (456999) and Gemma's (457471) weren't clean. The amendment of Nov 4 (§15, `2361152`) gives Gemma the inserted tool
-   turn and runs Granite thinking on only. Their second smokes are queue lines that wait for that commit on Sol;
-   Nemotron's (460109) was pending;
+   turn and runs Granite thinking on only; the second (§16, `063bc78`) gives Nemotron the inserted tool turn too.
+   Granite's second smoke passed (466399, Nov 4); Gemma's and Nemotron's wait for places;
 3. A39 on E2 in 1-GPU parts: the 9 parts queued Nov 3 (running from about 22:45), then the core systems' sixteenths,
-   round-robin, the wrapper systems' fifths and a sweep per system (pre-registration 2026-11-03 11:30, §10–§12);
+   round-robin, the quarters' leftovers as sixteenths, the wrapper systems' fifths and a sweep per system
+   (pre-registration 2026-11-03 11:30, §10–§12 and §15);
 4. A39 on the 30 (quarters and halves), unless E2 and B20 miss Nov 11 09:00;
 5. B1R2 last: decided Nov 4 by its rule's compute check, which it passed (the A39 log's §13): 40 parts of 3 questions.
 
@@ -65,7 +66,19 @@ Its log is `/scratch/$USER/trackA/feeder.log`; its state `/scratch/$USER/trackA/
   - One part's runs left, by hand: `$P $F --runs-left a39:SYSTEM:QSET:K/N` (for example
     `a39:prompt_only:e2:4/16`), which prints a number.
 - **A39's limits (Nov 4, the A39 log's §14):** the parts not submitted by 10:15 run at 2:00 (`--estimate 1.5`) and the
-  sweeps at 3:00 (`--estimate 2.3`). A sixteenth took 1:24:54 of its 1:30. At 2:00, 8 fresh jobs fill the 960.
+  sweeps at 3:00 (`--estimate 2.3`). A sixteenth took 1:24:54 of its 1:30 (it shared a GPU with another job; alone,
+  40–69 minutes: §15). At 2:00, 8 fresh jobs fill the 960.
+- **One port a job, and each run saved as it finishes (Nov 4, the A39 log's §15, `36c639b`).** Until then every
+  server listened on 8011, and Sol puts one-GPU jobs on one node. Six times one server took two jobs' requests, and
+  three parts' runs came from another model.
+  - Each server now takes `generate.free_port`'s port (from 20000 + the job id mod 10000); so does B20's.
+  - `eval.run` saves each run as it finishes, so a stop loses only the runs in flight.
+  - **Check a part's server once it has run.** Its log, `trackA/a39/vllm_<system>_a39_<qset>_p<K>of<N>.log`, should
+    name `--port 2xxxx` in its start line and count its own requests:
+    `grep -c "POST /v1/completions" <log>` is not 0.
+  - The set-aside runs are in `/scratch/$USER/trackA/a39_wrong_server/`, unread. §15 says how to undo the move.
+  - **The quarters' leftovers** run as 28 sixteenth lines before the fifths (quarter k/4 is sixteenths k, k+4, k+8
+    and k+12).
 - **The daily digest** (Nov 4): the first tick after 07:00 mails `$USER@asu.edu` (the alerts' mail path; Sol's
   `MailProg` is goslmailer) and writes `/scratch/$USER/trackA/feeder/digest.txt`. It covers:
   - what finished and what failed in the last 24 h, and what runs and waits;

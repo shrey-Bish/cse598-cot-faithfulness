@@ -933,7 +933,8 @@ PREREG = [
                      "model's own call read for no model)", "063bc78")],
      "f_title": r"\(B20\)", "result_glob": ["*b20-results*"], "verdict": "waiting: the first smokes Nov 4, all three "
      "not clean; amended before any rerun (sections 15 and 16): Gemma 4 and Nemotron 3 the inserted tool turn, Granite "
-     "4.2 thinking on only; the second smokes after the Nov 4 pulls; the runs at 1:30 (section 14)", "verdict_check": []},
+     "4.2 thinking on only; Granite's second smoke passed Nov 4, Gemma's and Nemotron's wait; the runs at 1:30 (section "
+     "14)", "verdict_check": []},
     {"id": "b24", "track": "B", "experiment": "B24: the authority dose, a classmate's and the official solution manual's "
                                               "claim from the user (B16's design)", "kind": "pre",
      "rule": "per model, paired by question, B16's statistics, the 16,000 cut beside: (a) user_manual minus B16's "
@@ -956,9 +957,12 @@ PREREG = [
              "combination against each of its parts by A38's reading; R4 the wrapper on the inserted turn by B1's rule; "
              "the 30 reported beside it",
      "rule_log": "2026-11-03_1130_A_e2-a39-prereg.md", "rule_check": ["powered replication of Gate 3", "R4, the wrapper"],
-     "rule_extra": [("the amendment, section 10 (job shapes, the 30's and B1R2's decisions)", "9fc52d6")],
+     "rule_extra": [("the amendment, section 10 (job shapes, the 30's and B1R2's decisions)", "9fc52d6"),
+                    ("the data ruling, section 15 (340 runs another model's server served set aside, unread; a port "
+                     "of each job's own)", "54291fd")],
      "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: running on Sol (9 parts from Nov 3; "
-     "16 sixteenths at 1:30 from Nov 4, section 12; the parts after them at 2:00 and the sweeps at 3:00, section 14)",
+     "16 sixteenths at 1:30 from Nov 4, section 12; the parts after them at 2:00 and the sweeps at 3:00, section 14; "
+     "the quarters' leftovers as 28 sixteenths, section 15)",
      "verdict_check": []},
     {"id": "b1r2", "track": "A", "experiment": "B1R2: B1's deployable span on E2 (a labelled replication; decided "
                                                "Nov 4: it runs)", "kind": "pre",
