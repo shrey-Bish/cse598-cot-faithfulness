@@ -751,7 +751,9 @@ class Feeder:
             else:
                 word = "to submit"
                 deps = [self._shown(k, l, L) for k in ("afterok", "afterany", "again") if k in l.opts]
-                extra = ["%s %s" % (k, l.opts[k]) for k in ("needs", "left") if k in l.opts]
+                extra = ["needs %s: %s" % (l.opts["needs"], "on Sol" if self.sol.has_commit(l.opts["needs"])
+                                                    else "not on Sol yet")] if "needs" in l.opts else []
+                extra += ["left %s" % l.opts["left"]] if "left" in l.opts else []
                 rows.append("%-28s to submit%s" % (l.label, (" (" + "; ".join(deps + extra) + ")") if deps or extra else ""))
             counts[word] = counts.get(word, 0) + 1
         out.append("%d lines: %s" % (len(self.lines), ", ".join("%d %s" % (v, k) for k, v in sorted(counts.items()))))

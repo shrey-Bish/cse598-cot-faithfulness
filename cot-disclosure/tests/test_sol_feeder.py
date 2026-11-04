@@ -427,6 +427,16 @@ def test_status_shows_sacct_state_and_exit_for_every_job_and_never_a_question_ma
     assert "not known to sacct" in next(x for x in text.splitlines() if x.startswith("l2 "))
 
 
+def test_status_says_whether_a_needed_commit_is_on_sol(tmp_path):
+    """Nov 4, 12:52: after Ritik's pull brought 063bc78, --status still printed "to submit (needs 063bc78)" beside
+    Nemotron's second smoke, which reads as waiting for a pull; it was waiting for a place. It now says which."""
+    sol = FakeSol()
+    f = feeder(tmp_path, q("l1 | needs=063bc78 | b20 --model x -- --smoke", "l2 | needs=abc1234 | b20 --model y"), sol)
+    sol.commits.add("063bc78")
+    rows = {x.split()[0]: x for x in f.status_text().splitlines() if x.startswith("l")}
+    assert rows["l1"].endswith("(needs 063bc78: on Sol)") and rows["l2"].endswith("(needs abc1234: not on Sol yet)")
+
+
 def test_status_piped_to_head_ends_quietly(tmp_path):
     queue = tmp_path / "q.txt"
     queue.write_text(q(*[f"line-{i:05d} | - | a39_1gpu --estimate 1 -- base e2 {i % 16 + 1}/16" for i in range(4000)]))
