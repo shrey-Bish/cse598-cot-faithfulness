@@ -308,11 +308,13 @@ def test_the_queue_file_follows_the_plan():
     assert all("needs" in l.opts for l in todo if l.argv[0] == "provenance_gen")
     parts = [(l.argv[-3], l.argv[-1]) for l in todo if l.argv[0] == "a39_1gpu" and l.argv[-2] == "e2"
              and l.argv[-1].endswith("/16")]
-    assert len(parts) == 28 and {p for _, p in parts} == {f"{k}/16" for k in (3, 4, 7, 8, 11, 12, 15, 16)}
-    from finetune import eval as ev
-    for system, quarters in {"base": [4], "prompt_only": [3, 4], "lora": [3, 4], "lora_note": [3, 4]}.items():
-        mine = {p for s, p in parts if s == system}
-        assert mine == {f"{q + 4 * i}/16" for q in quarters for i in range(4)}, system
+    assert len(parts) == 56
+    # the 00:26 plan's 7 core quarters as sixteenths, and (the A39 log's section 15, Nov 4) the 7 quarters that left
+    # runs, as theirs: every quarter but base 2/4 and lora_note 2/4, which finished; quarter k/4 is k, k+4, k+8, k+12
+    for system, quarters in {"base": [1, 3, 4], "prompt_only": [1, 2, 3, 4], "lora": [1, 2, 3, 4],
+                             "lora_note": [1, 3, 4]}.items():
+        mine = sorted(p for s, p in parts if s == system)
+        assert mine == sorted(f"{q + 4 * i}/16" for q in quarters for i in range(4)), system
     fifths = [l for l in todo if l.argv[-2] == "e2" and l.argv[-1].endswith("/5")]
     assert len(fifths) == 15
     thirty = [l for l in todo if "mmlupro_30" in l.argv and re.search(r"/\d+$", l.argv[-1])]
@@ -652,7 +654,7 @@ def test_every_a39_and_b1r2_line_in_the_queue_has_a_countable_spec():
 def test_a39_parts_not_yet_submitted_get_2_00_and_the_sweeps_3_00():
     """The A39 log's section 14 (Nov 4, 10:43): a sixteenth took 1:24:54 of its 1:30 (460114), so the parts not yet
     submitted by 10:15 get 2:00 and the sweeps, whose size is the leftovers, 3:00; the 16 sixteenths already submitted
-    keep their 1:30."""
+    keep their 1:30. Section 15's 28 sixteenths (the quarters' leftovers) get 2:00 as well."""
     lines = sf.parse_queue(sf.QUEUE.read_text())
     a39 = [l for l in lines if l.argv[0] == "a39_1gpu" and "job" not in l.opts]
     first = next(i for i, l in enumerate(a39) if l.label == "e2-lora_note-11of16")
@@ -660,4 +662,4 @@ def test_a39_parts_not_yet_submitted_get_2_00_and_the_sweeps_3_00():
     later = a39[first:]
     assert {sf.limit_hours(l.argv) for l in later if "left" not in l.opts} == {2.0}
     assert {sf.limit_hours(l.argv) for l in later if "left" in l.opts} == {3.0}
-    assert sum("left" not in l.opts for l in later) == 49 and sum("left" in l.opts for l in later) == 14
+    assert sum("left" not in l.opts for l in later) == 49 + 28 and sum("left" in l.opts for l in later) == 14

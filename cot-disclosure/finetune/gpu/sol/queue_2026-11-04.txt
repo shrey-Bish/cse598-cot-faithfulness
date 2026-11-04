@@ -108,6 +108,38 @@ e2-base-16of16             | -                                        | a39_1gpu
 e2-prompt_only-16of16      | -                                        | a39_1gpu --estimate 1.5 -- prompt_only e2 16/16
 e2-lora-16of16             | -                                        | a39_1gpu --estimate 1.5 -- lora e2 16/16
 e2-lora_note-16of16        | -                                        | a39_1gpu --estimate 1.5 -- lora_note e2 16/16
+# Nov 4, 13:16 (the A39 log's section 15, operational): what the 9 quarters left, as their sixteenths. Quarter k/4
+# is sixteenths k, k+4, k+8 and k+12 (parts are strided), and a part resumes from every saved run of its system, so
+# each line runs only what its quarter left: base 1/4 and 3/4, prompt_only 1/4 and 2/4, lora 1/4 and 2/4, lora_note
+# 1/4 (prompt_only 2/4's, lora 1/4's and lora_note 1/4's runs were set aside: another job's server served them).
+e2-base-1of16              | -                                        | a39_1gpu --estimate 1.5 -- base e2 1/16
+e2-base-5of16              | -                                        | a39_1gpu --estimate 1.5 -- base e2 5/16
+e2-base-9of16              | -                                        | a39_1gpu --estimate 1.5 -- base e2 9/16
+e2-base-13of16             | -                                        | a39_1gpu --estimate 1.5 -- base e2 13/16
+e2-base-3of16              | -                                        | a39_1gpu --estimate 1.5 -- base e2 3/16
+e2-base-7of16              | -                                        | a39_1gpu --estimate 1.5 -- base e2 7/16
+e2-base-11of16             | -                                        | a39_1gpu --estimate 1.5 -- base e2 11/16
+e2-base-15of16             | -                                        | a39_1gpu --estimate 1.5 -- base e2 15/16
+e2-prompt_only-1of16       | -                                        | a39_1gpu --estimate 1.5 -- prompt_only e2 1/16
+e2-prompt_only-5of16       | -                                        | a39_1gpu --estimate 1.5 -- prompt_only e2 5/16
+e2-prompt_only-9of16       | -                                        | a39_1gpu --estimate 1.5 -- prompt_only e2 9/16
+e2-prompt_only-13of16      | -                                        | a39_1gpu --estimate 1.5 -- prompt_only e2 13/16
+e2-prompt_only-2of16       | -                                        | a39_1gpu --estimate 1.5 -- prompt_only e2 2/16
+e2-prompt_only-6of16       | -                                        | a39_1gpu --estimate 1.5 -- prompt_only e2 6/16
+e2-prompt_only-10of16      | -                                        | a39_1gpu --estimate 1.5 -- prompt_only e2 10/16
+e2-prompt_only-14of16      | -                                        | a39_1gpu --estimate 1.5 -- prompt_only e2 14/16
+e2-lora-1of16              | -                                        | a39_1gpu --estimate 1.5 -- lora e2 1/16
+e2-lora-5of16              | -                                        | a39_1gpu --estimate 1.5 -- lora e2 5/16
+e2-lora-9of16              | -                                        | a39_1gpu --estimate 1.5 -- lora e2 9/16
+e2-lora-13of16             | -                                        | a39_1gpu --estimate 1.5 -- lora e2 13/16
+e2-lora-2of16              | -                                        | a39_1gpu --estimate 1.5 -- lora e2 2/16
+e2-lora-6of16              | -                                        | a39_1gpu --estimate 1.5 -- lora e2 6/16
+e2-lora-10of16             | -                                        | a39_1gpu --estimate 1.5 -- lora e2 10/16
+e2-lora-14of16             | -                                        | a39_1gpu --estimate 1.5 -- lora e2 14/16
+e2-lora_note-1of16         | -                                        | a39_1gpu --estimate 1.5 -- lora_note e2 1/16
+e2-lora_note-5of16         | -                                        | a39_1gpu --estimate 1.5 -- lora_note e2 5/16
+e2-lora_note-9of16         | -                                        | a39_1gpu --estimate 1.5 -- lora_note e2 9/16
+e2-lora_note-13of16        | -                                        | a39_1gpu --estimate 1.5 -- lora_note e2 13/16
 e2-wrap-1of5               | -                                        | a39_1gpu --estimate 1.5 -- wrap e2 1/5
 e2-wrap_note-1of5          | -                                        | a39_1gpu --estimate 1.5 -- wrap_note e2 1/5
 e2-lora_wrap-1of5          | -                                        | a39_1gpu --estimate 1.5 -- lora_wrap e2 1/5
@@ -123,10 +155,10 @@ e2-lora_wrap-4of5          | -                                        | a39_1gpu
 e2-wrap-5of5               | -                                        | a39_1gpu --estimate 1.5 -- wrap e2 5/5
 e2-wrap_note-5of5          | -                                        | a39_1gpu --estimate 1.5 -- wrap_note e2 5/5
 e2-lora_wrap-5of5          | -                                        | a39_1gpu --estimate 1.5 -- lora_wrap e2 5/5
-e2-base-sweep              | afterany=@e2-base-1of4:@e2-base-3of4:@e2-base-2of4:@e2-base-4of16:@e2-base-8of16:@e2-base-12of16:@e2-base-16of16 left=a39:base:e2 | a39_1gpu --estimate 2.3 -- base e2
-e2-prompt_only-sweep       | afterany=@e2-prompt_only-1of4:@e2-prompt_only-2of4:@e2-prompt_only-3of16:@e2-prompt_only-4of16:@e2-prompt_only-7of16:@e2-prompt_only-8of16:@e2-prompt_only-11of16:@e2-prompt_only-12of16:@e2-prompt_only-15of16:@e2-prompt_only-16of16 left=a39:prompt_only:e2 | a39_1gpu --estimate 2.3 -- prompt_only e2
-e2-lora-sweep              | afterany=@e2-lora-1of4:@e2-lora-2of4:@e2-lora-3of16:@e2-lora-4of16:@e2-lora-7of16:@e2-lora-8of16:@e2-lora-11of16:@e2-lora-12of16:@e2-lora-15of16:@e2-lora-16of16 left=a39:lora:e2 | a39_1gpu --estimate 2.3 -- lora e2
-e2-lora_note-sweep         | afterany=@e2-lora_note-1of4:@e2-lora_note-2of4:@e2-lora_note-3of16:@e2-lora_note-4of16:@e2-lora_note-7of16:@e2-lora_note-8of16:@e2-lora_note-11of16:@e2-lora_note-12of16:@e2-lora_note-15of16:@e2-lora_note-16of16 left=a39:lora_note:e2 | a39_1gpu --estimate 2.3 -- lora_note e2
+e2-base-sweep              | afterany=@e2-base-1of4:@e2-base-3of4:@e2-base-2of4:@e2-base-4of16:@e2-base-8of16:@e2-base-12of16:@e2-base-16of16:@e2-base-1of16:@e2-base-5of16:@e2-base-9of16:@e2-base-13of16:@e2-base-3of16:@e2-base-7of16:@e2-base-11of16:@e2-base-15of16 left=a39:base:e2 | a39_1gpu --estimate 2.3 -- base e2
+e2-prompt_only-sweep       | afterany=@e2-prompt_only-1of4:@e2-prompt_only-2of4:@e2-prompt_only-3of16:@e2-prompt_only-4of16:@e2-prompt_only-7of16:@e2-prompt_only-8of16:@e2-prompt_only-11of16:@e2-prompt_only-12of16:@e2-prompt_only-15of16:@e2-prompt_only-16of16:@e2-prompt_only-1of16:@e2-prompt_only-5of16:@e2-prompt_only-9of16:@e2-prompt_only-13of16:@e2-prompt_only-2of16:@e2-prompt_only-6of16:@e2-prompt_only-10of16:@e2-prompt_only-14of16 left=a39:prompt_only:e2 | a39_1gpu --estimate 2.3 -- prompt_only e2
+e2-lora-sweep              | afterany=@e2-lora-1of4:@e2-lora-2of4:@e2-lora-3of16:@e2-lora-4of16:@e2-lora-7of16:@e2-lora-8of16:@e2-lora-11of16:@e2-lora-12of16:@e2-lora-15of16:@e2-lora-16of16:@e2-lora-1of16:@e2-lora-5of16:@e2-lora-9of16:@e2-lora-13of16:@e2-lora-2of16:@e2-lora-6of16:@e2-lora-10of16:@e2-lora-14of16 left=a39:lora:e2 | a39_1gpu --estimate 2.3 -- lora e2
+e2-lora_note-sweep         | afterany=@e2-lora_note-1of4:@e2-lora_note-2of4:@e2-lora_note-3of16:@e2-lora_note-4of16:@e2-lora_note-7of16:@e2-lora_note-8of16:@e2-lora_note-11of16:@e2-lora_note-12of16:@e2-lora_note-15of16:@e2-lora_note-16of16:@e2-lora_note-1of16:@e2-lora_note-5of16:@e2-lora_note-9of16:@e2-lora_note-13of16 left=a39:lora_note:e2 | a39_1gpu --estimate 2.3 -- lora_note e2
 e2-wrap-sweep              | afterany=@e2-wrap-1of5:@e2-wrap-2of5:@e2-wrap-3of5:@e2-wrap-4of5:@e2-wrap-5of5 left=a39:wrap:e2 | a39_1gpu --estimate 2.3 -- wrap e2
 e2-wrap_note-sweep         | afterany=@e2-wrap_note-1of5:@e2-wrap_note-2of5:@e2-wrap_note-3of5:@e2-wrap_note-4of5:@e2-wrap_note-5of5 left=a39:wrap_note:e2 | a39_1gpu --estimate 2.3 -- wrap_note e2
 e2-lora_wrap-sweep         | afterany=@e2-lora_wrap-1of5:@e2-lora_wrap-2of5:@e2-lora_wrap-3of5:@e2-lora_wrap-4of5:@e2-lora_wrap-5of5 left=a39:lora_wrap:e2 | a39_1gpu --estimate 2.3 -- lora_wrap e2
