@@ -29,6 +29,7 @@ class FakeSol:
     def __init__(self, places=10, cap=960):
         self.jobs, self.next, self.places, self.cap = {}, 100, places, cap
         self.submitted, self.mails, self.commits, self.left, self.checks = [], [], set(), {}, 0
+        self.usage_rows = []
 
     @staticmethod
     def need(argv):
@@ -67,6 +68,9 @@ class FakeSol:
     def mail(self, to, subject, body):
         self.mails.append((to, subject, body))
         return "mailed"
+
+    def usage(self, since):
+        return list(self.usage_rows)
 
     # test helpers
     def end(self, jid, state="COMPLETED", exit="0:0"):
@@ -358,3 +362,122 @@ def test_one_tick_through_the_real_submit_sh(tmp_path):
     assert "--comment=feeder:one" in args and args[-3:] == ["base", "e2", "3/16"] and "--mail-type=FAIL" in args
     st = json.loads((tmp_path / "state" / "state.json").read_text())
     assert st["lines"]["one"]["job"] == "1" and "two" not in st["lines"]
+
+
+# ---------------------------------------------------------------- Nov 4 overnight: B20's reruns, --status, the digest
+def test_b20s_reruns_wait_for_the_amendment_on_sol_and_come_before_e2():
+    lines = sf.parse_queue(sf.QUEUE.read_text())
+    by = {l.label: l for l in lines}
+    labels = [l.label for l in lines]
+    first_a39 = next(i for i, l in enumerate(lines) if l.argv[0] == "a39_1gpu" and "job" not in l.opts)
+    for model, name in (("granite", "granite-4.2-8b"), ("gemma", "gemma-4-26b-a4b-it")):
+        smoke = by[f"b20-{model}-smoke-r2"]
+        assert smoke.opts == {"needs": "2361152"} and smoke.argv == ["b20", "--model", name, "--", "--smoke"]
+        assert by[f"b20-{model}-r2-1"].opts == {"afterok": f"@b20-{model}-smoke-r2"}
+        assert [by[f"b20-{model}-r2-{k}"].opts["again"] for k in range(2, 13)] == [f"@b20-{model}-r2-{k}" for k in range(1, 12)]
+        assert all(labels.index(f"b20-{model}-r2-{k}") < first_a39 for k in range(1, 13))
+    assert subprocess.run(["git", "merge-base", "--is-ancestor", "2361152", "HEAD"], cwd=CODE).returncode == 0
+    assert "b20-nemotron-smoke-r2" not in by                              # Nemotron's smoke hasn't failed
+
+
+class Clock:
+    """A settable local time for the digest and the health check."""
+
+    def __init__(self, text):
+        from datetime import datetime
+        self.t = datetime.fromisoformat(text).astimezone()
+
+    def __call__(self):
+        return self.t
+
+    def add(self, **kw):
+        from datetime import timedelta
+        self.t = self.t + timedelta(**kw)
+
+
+def test_status_shows_sacct_state_and_exit_for_every_job_and_never_a_question_mark(tmp_path):
+    sol = FakeSol()
+    f = feeder(tmp_path, SIX, sol)
+    f.adopt("l1", "457471")                                               # no tick yet: the state knows no job state
+    sol.jobs["457471"] = {"state": "FAILED", "exit": "5:0", "need": 90, "comment": ""}
+    f.adopt("l2", "999")                                                  # sacct doesn't know it
+    text = f.status_text()
+    row = next(x for x in text.splitlines() if x.startswith("l1 "))
+    assert "FAILED" in row and "exit 5:0" in row and "?" not in text
+    assert "not known to sacct" in next(x for x in text.splitlines() if x.startswith("l2 "))
+
+
+def test_status_piped_to_head_ends_quietly(tmp_path):
+    queue = tmp_path / "q.txt"
+    queue.write_text(q(*[f"line-{i:05d} | - | a39_1gpu --estimate 1 -- base e2 {i % 16 + 1}/16" for i in range(4000)]))
+    env = {**os.environ, "PATH": str(tmp_path / "nobin")}                # no sacct here: nothing to ask
+    p1 = subprocess.Popen([sys.executable, str(CODE / "tools" / "sol_feeder.py"), "--status", "--queue", str(queue),
+                           "--out", str(tmp_path / "out")], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    p2 = subprocess.Popen(["head", "-1"], stdin=p1.stdout, stdout=subprocess.PIPE)
+    p1.stdout.close()
+    first = p2.communicate()[0].decode()
+    err = p1.stderr.read().decode()
+    p1.wait()
+    assert first.startswith("last tick") and "BrokenPipeError" not in err and "Traceback" not in err, err
+
+
+def test_the_daily_digest_goes_once_a_day_after_seven(tmp_path):
+    sol = FakeSol()
+    clock = Clock("2026-11-05T06:50:00")
+    text = q("e2-a | - | a39_1gpu --estimate 1 -- base e2 3/16", "e2-b | - | a39_1gpu --estimate 1 -- base e2 4/16",
+             "b20-x | - | b20 --model granite-4.2-8b --estimate 1.1")
+    f = feeder(tmp_path, text, sol, now=clock)
+    f.tick()
+    sol.end("100")                                                        # e2-a done, e2-b failed, b20-x runs
+    sol.end("101", "FAILED", "1:0")
+    sol.run_all()
+    sol.usage_rows = [{"job": "100", "start": clock.t.timestamp() - 3600, "end": clock.t.timestamp(), "gpus": 1},
+                      {"job": "102", "start": clock.t.timestamp() - 1800, "end": None, "gpus": 1}]
+    sol.mails.clear()
+    f.tick()                                                              # 06:50: not yet
+    assert not any("digest" in s for _, s, _ in sol.mails)
+    clock.add(minutes=12)                                                 # 07:02
+    f.tick()
+    digests = [(s, b) for _, s, b in sol.mails if "digest" in s]
+    assert len(digests) == 1
+    body = digests[0][1]
+    for want in ("finished in the last 24 h", "e2-a", "failed in the last 24 h", "e2-b", "running", "b20-x",
+                 "GPU-hours in the last 24 h: 1.7", "A39 on E2", "B20"):
+        assert want in body, want
+    clock.add(minutes=5)
+    f.tick()
+    assert len([s for _, s, _ in sol.mails if "digest" in s]) == 1        # once a day
+    clock.add(days=1)
+    f.tick()
+    assert len([s for _, s, _ in sol.mails if "digest" in s]) == 2
+    assert "digest mailed" in (tmp_path / "feeder.log").read_text()
+
+
+def test_a_gap_of_over_30_minutes_between_ticks_is_said_in_the_log_the_status_and_the_digest(tmp_path):
+    sol = FakeSol()
+    clock = Clock("2026-11-05T05:00:00")
+    f = feeder(tmp_path, SIX, sol, now=clock)
+    f.tick()
+    clock.add(minutes=10)
+    f.tick()
+    assert "minutes since the last tick" not in (tmp_path / "feeder.log").read_text()
+    clock.add(minutes=47)                                                 # the scrontab job waited at Priority
+    f.tick()
+    log = (tmp_path / "feeder.log").read_text()
+    assert "47 minutes since the last tick" in log and "nohup" in log
+    clock.add(minutes=40)
+    assert "40 minutes ago" in f.status_text() and "late" in f.status_text()
+    clock.add(hours=2)                                                    # 07:37: the digest lists the gaps
+    f.tick()
+    body = next(b for _, s, b in sol.mails if "digest" in s)
+    assert "gaps over 30 minutes" in body and "47 min" in body
+
+
+def test_a_digest_that_fails_never_stops_the_tick(tmp_path):
+    sol = FakeSol()
+    sol.usage = lambda since: 1 / 0
+    f = feeder(tmp_path, SIX, sol, now=Clock("2026-11-05T07:10:00"))
+    assert f.tick() == ["l1", "l2", "l3", "l4", "l5", "l6"]
+    body = next(b for _, s, b in sol.mails if "digest" in s)
+    assert "The digest failed" in body and "ZeroDivisionError" in body
+    assert json.loads((tmp_path / "state" / "state.json").read_text())["heartbeat"]["at"].startswith("2026-11-05 07:10")

@@ -35,6 +35,35 @@ b20-nemotron-5             | again=@b20-nemotron-4                    | b20 --mo
 b20-granite-6              | again=@b20-granite-5                     | b20 --model granite-4.2-8b --estimate 1.1
 b20-gemma-6                | again=@b20-gemma-5                       | b20 --model gemma-4-26b-a4b-it --estimate 1.1
 b20-nemotron-6             | again=@b20-nemotron-5                    | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+# B20's reruns (Nov 4, 03:55): the B20 log's section 15 amended Gemma (the inserted tool turn) and Granite (thinking
+# on only) in 2361152; each second smoke waits until Sol's clone has it (the morning pull), then up to 12 run jobs a
+# model, each again only after a stop at the limit with runs left. The lines above stay as the feeder left them.
+b20-granite-smoke-r2       | needs=2361152                            | b20 --model granite-4.2-8b -- --smoke
+b20-gemma-smoke-r2         | needs=2361152                            | b20 --model gemma-4-26b-a4b-it -- --smoke
+b20-granite-r2-1           | afterok=@b20-granite-smoke-r2            | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-1             | afterok=@b20-gemma-smoke-r2              | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+b20-granite-r2-2           | again=@b20-granite-r2-1                  | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-2             | again=@b20-gemma-r2-1                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+b20-granite-r2-3           | again=@b20-granite-r2-2                  | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-3             | again=@b20-gemma-r2-2                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+b20-granite-r2-4           | again=@b20-granite-r2-3                  | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-4             | again=@b20-gemma-r2-3                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+b20-granite-r2-5           | again=@b20-granite-r2-4                  | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-5             | again=@b20-gemma-r2-4                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+b20-granite-r2-6           | again=@b20-granite-r2-5                  | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-6             | again=@b20-gemma-r2-5                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+b20-granite-r2-7           | again=@b20-granite-r2-6                  | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-7             | again=@b20-gemma-r2-6                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+b20-granite-r2-8           | again=@b20-granite-r2-7                  | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-8             | again=@b20-gemma-r2-7                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+b20-granite-r2-9           | again=@b20-granite-r2-8                  | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-9             | again=@b20-gemma-r2-8                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+b20-granite-r2-10          | again=@b20-granite-r2-9                  | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-10            | again=@b20-gemma-r2-9                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+b20-granite-r2-11          | again=@b20-granite-r2-10                 | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-11            | again=@b20-gemma-r2-10                   | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+b20-granite-r2-12          | again=@b20-granite-r2-11                 | b20 --model granite-4.2-8b --estimate 1.1
+b20-gemma-r2-12            | again=@b20-gemma-r2-11                   | b20 --model gemma-4-26b-a4b-it --estimate 1.1
 e2-prompt_only-3of16       | -                                        | a39_1gpu --estimate 1 -- prompt_only e2 3/16
 e2-lora-3of16              | -                                        | a39_1gpu --estimate 1 -- lora e2 3/16
 e2-lora_note-3of16         | -                                        | a39_1gpu --estimate 1 -- lora_note e2 3/16

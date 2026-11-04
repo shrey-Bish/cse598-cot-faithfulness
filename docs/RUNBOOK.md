@@ -44,7 +44,33 @@ nohup $P $F --loop >> /scratch/$USER/trackA/feeder.out 2>&1 &     # start (login
 touch /scratch/$USER/trackA/feeder.stop                            # stop (rm it before starting again)
 $P $F --adopt LABEL JOBID; $P $F --skip LABEL; $P $F --reset LABEL  # your own changes to a line
 ```
-Its log is `/scratch/$USER/trackA/feeder.log`; its state `/scratch/$USER/trackA/feeder/state.json`. **Times** come from
+Its log is `/scratch/$USER/trackA/feeder.log`; its state `/scratch/$USER/trackA/feeder/state.json`.
+- **It runs under scrontab** (since Nov 4; `ScronParameters=enable`): `scrontab -l` shows the entry,
+  `squeue -u $USER -n trackA-feeder` its job. Between ticks that job waits in the queue (`BeginTime`) and holds one of
+  the 10 places.
+- **`--status`** asks sacct for every line's job now: its state and exit, not the last tick's copy. A job sacct doesn't
+  know says so. Piping it to `head` is fine (Nov 4).
+- **The daily digest** (Nov 4): the first tick after 07:00 mails `$USER@asu.edu` (the alerts' mail path; Sol's
+  `MailProg` is goslmailer) and writes `/scratch/$USER/trackA/feeder/digest.txt`. It covers:
+  - what finished and what failed in the last 24 h, and what runs and waits;
+  - the GPU-hours delivered in the last 24 h (sacct: each job's time in the window × its GPUs);
+  - any gap over 30 minutes between ticks;
+  - a rough finish for A39 on E2, A39 on the 30, B20 and B1R2: the GPU-hours the queue holds up to each group's last
+    open line at the last 24 h's pace. It is at most, since B20's later again-lines may never be needed.
+- **Health: when the scrontab job waits.** A tick that comes over 30 minutes after the one before says so in the log
+  (`N minutes since the last tick`). `--status` then says "late", and the next digest lists the gap. If it keeps
+  happening (the scron job stuck at `Priority`), **switch to the nohup loop**, which takes no place in the queue but
+  stops if its login node restarts:
+  ```bash
+  scrontab -r                                                          # remove the scron entry (its job goes too)
+  rm -f /scratch/$USER/trackA/feeder.stop
+  nohup $P $F --loop >> /scratch/$USER/trackA/feeder.out 2>&1 &       # note the login node: hostname
+  echo "pid $! on $(hostname)"
+  ```
+  The state file is the same, so the loop carries on where scrontab left off. Check it with `--status`: its last tick
+  is under 5 minutes old. If that login node restarts, start the loop again; it resumes.
+
+**Times** come from
 `squeue --start -u $USER` on real jobs, not `sbatch --test-only`. **`submit.sh`** (Nov 3–4):
 - it prints the two limits before each job: the GPU-minutes free now and the places left in the 10; `--check` does every
   check and submits nothing (the feeder asks it before each line);

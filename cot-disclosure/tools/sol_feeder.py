@@ -18,6 +18,12 @@ job holds one of the 10 places waiting, and none waits forever behind a failed j
 ended: `--reset LABEL` (yours) lets a line go in again.
 Alerts: the log, the state file (--status) and one mail a tick to $TRACKA_MAIL (default $USER@asu.edu) through the
 login node's `mail`, if it has one.
+The daily digest (Nov 4): the first tick after 07:00 (local time) mails what finished and what failed in the last 24 h,
+what runs and waits, the GPU-hours delivered in the last 24 h (sacct: each job's time in the window x its GPUs), any gap
+between ticks, and a rough finish for A39 on E2, A39 on the 30, B20 and B1R2: the GPU-hours the queue still holds up to
+each group's last line (at each line's limit), at the last 24 h's pace. Also written to <out>/feeder/digest.txt.
+Health: a tick that comes over 30 minutes after the one before says so in the log, the status and the next digest (the
+scrontab job waited in Sol's queue; RUNBOOK section 0 has the nohup loop for that case).
 
   python3 cot-disclosure/tools/sol_feeder.py --status
   python3 cot-disclosure/tools/sol_feeder.py --dry-run             # what a tick would submit now; changes nothing
@@ -67,6 +73,8 @@ TRACKA_OUT = Path(os.environ.get("TRACKA_OUT") or "/scratch/%s/trackA" % USER)
 OPTIONS = ("job", "afterok", "afterany", "again", "needs", "left")
 ACTIVE = {"PENDING", "RUNNING", "REQUEUED", "RESIZING", "SUSPENDED", "CONFIGURING", "COMPLETING", "STOPPED"}
 HELD = ("skipped", "not needed", "unknown", "submitting", "submit failed")
+GAP_MIN = 30                                       # minutes between ticks before the next one says so
+DIGEST_HOUR = 7                                    # the daily digest: the first tick at or after 07:00, local time
 LEFT = re.compile(r"(a39:[a-z_]+:(e2|mmlupro_30)(:\d+/\d+)?|b1r2:\d+/\d+)$")
 Line = namedtuple("Line", "n label opts argv")
 
@@ -126,6 +134,48 @@ def with_flags(argv, *flags):
 
 def now_text():
     return datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+
+
+def stamp_of(t):
+    return t.strftime("%Y-%m-%d %H:%M:%S %Z")
+
+
+def epoch_of(text):
+    """A stamp this feeder wrote ("2026-11-04 03:20:35 MST"), as seconds; None if it can't be read."""
+    try:
+        return time.mktime(time.strptime(text[:19], "%Y-%m-%d %H:%M:%S"))
+    except (TypeError, ValueError):
+        return None
+
+
+def sacct_time(text):
+    """sacct's Start or End ("2026-11-04T03:20:35", local time) as seconds; None for Unknown, None or empty."""
+    try:
+        return time.mktime(time.strptime(text.strip(), "%Y-%m-%dT%H:%M:%S"))
+    except ValueError:
+        return None
+
+
+def limit_hours(argv):
+    """The time limit submit.sh gives a line: its estimate (B20's smoke: 1 h; B20's runs: 6 h) x 1.3, rounded up to
+    the next half hour."""
+    if "--estimate" in argv:
+        est = float(argv[argv.index("--estimate") + 1])
+    else:
+        est = 1.0 if "--smoke" in argv else 6.0 if argv[0] == "b20" else 1.0
+    return -(-est * 1.3 // 0.5) * 0.5
+
+
+def group_of(line):
+    """The digest's groups: A39 on E2, A39 on the 30, B20, B1R2."""
+    a = line.argv
+    if a[0] == "b20":
+        return "B20"
+    if a[0] == "provenance_gen":
+        return "B1R2"
+    if a[0].startswith("a39"):
+        return "A39 on E2" if "e2" in a else "A39 on the 30"
+    return None
 
 
 def ended(job):
@@ -216,6 +266,19 @@ class Sol:
         except (ValueError, IndexError):
             return None
 
+    def usage(self, since):
+        """[{job, start, end (None while it runs), gpus}] of your jobs that ran since `since` (a datetime), from sacct."""
+        r = self._run(["sacct", "-X", "-n", "-P", "-u", self.user, "-S", since.strftime("%Y-%m-%dT%H:%M:%S"),
+                       "-E", "now", "-o", "JobID,Start,End,AllocTRES"])
+        rows = []
+        for row in r.stdout.splitlines():
+            f = row.strip().split("|")
+            if len(f) < 4 or sacct_time(f[1]) is None:
+                continue
+            m = re.search(r"gres/gpu=(\d+)", f[3]) or re.search(r"gres/gpu:[^=,]+=(\d+)", f[3])
+            rows.append({"job": f[0], "start": sacct_time(f[1]), "end": sacct_time(f[2]), "gpus": int(m.group(1)) if m else 0})
+        return rows
+
     def mail(self, to, subject, body):
         prog = shutil.which("mail") or shutil.which("mailx")
         if prog:
@@ -253,8 +316,10 @@ def runs_left_here(spec, argv, out_root, alpha_from=None):
 
 # ---------------------------------------------------------------- the feeder
 class Feeder:
-    def __init__(self, lines, state_dir, sol, log_path, stop_file, mail_to, clock=now_text, echo=False):
-        self.lines, self.sol, self.clock, self.echo = lines, sol, clock, echo
+    def __init__(self, lines, state_dir, sol, log_path, stop_file, mail_to, clock=None, echo=False, now=None):
+        self.now = now or (lambda: datetime.now().astimezone())             # a datetime: the digest and the health check
+        self.lines, self.sol, self.echo = lines, sol, echo
+        self.clock = clock or (lambda: stamp_of(self.now()))
         self.by = {l.label: l for l in lines}
         self.state_dir, self.log_path, self.stop_file, self.mail_to = Path(state_dir), Path(log_path), Path(stop_file), mail_to
         self.state_path = self.state_dir / "state.json"
@@ -318,7 +383,16 @@ class Feeder:
         if dry:
             st = copy.deepcopy(st)
         L, J, alerts, stamp = st["lines"], st["jobs"], [], self.clock()
+        now_ts = self.now().timestamp()
         say = lambda text: self.log(text, dry)  # noqa: E731
+        prev = st.get("heartbeat") or {}
+        prev_ts = prev.get("ts") or epoch_of(prev.get("at"))
+        if prev_ts and now_ts - prev_ts > GAP_MIN * 60:                  # health: the scrontab job waited?
+            gap = int(round((now_ts - prev_ts) / 60))
+            say("%d minutes since the last tick (%s): the scrontab job may have waited in Sol's queue (squeue -u $USER "
+                "-n trackA-feeder); if it keeps happening, run the nohup loop instead (RUNBOOK section 0)"
+                % (gap, prev.get("at", "?")))
+            st["gaps"] = (st.get("gaps", []) + [{"at": stamp, "ts": now_ts, "minutes": gap}])[-50:]
 
         def alert(text):
             alerts.append(text)
@@ -351,7 +425,7 @@ class Feeder:
             name = "job %s (%s)" % (jid, label_of.get(jid, "not in the queue"))
             if not ended(j):
                 continue
-            j["ended"] = stamp
+            j["ended"], j["ended_ts"] = stamp, now_ts
             if ok(j):
                 say("%s done" % name)
             elif ex == "2:0" and label_of.get(jid) in self.again_of:
@@ -418,17 +492,99 @@ class Feeder:
             say("submitted %s as job %s (%s): submit.sh %s" % (l.label, jid, why, " ".join(shlex.quote(a) for a in args)))
             submitted.append(l.label)
         # 4. the record, and one mail for this tick's alerts
-        st["heartbeat"] = {"at": stamp, "host": socket.gethostname(), "pid": os.getpid()}
+        st["heartbeat"] = {"at": stamp, "ts": now_ts, "host": socket.gethostname(), "pid": os.getpid()}
         if alerts:
             st["alerts"] = (st["alerts"] + [{"at": stamp, "text": a} for a in alerts])[-100:]
             if not dry and self.mail_to and self.mail_to != "none":
                 body = "\n".join(alerts) + "\n\nThe log: %s\nStatus: python3 cot-disclosure/tools/sol_feeder.py --status\n" \
                        % self.log_path
                 say(self.sol.mail(self.mail_to, "Sol feeder: %d alert%s" % (len(alerts), "s" * (len(alerts) > 1)), body))
+        today = self.now().strftime("%Y-%m-%d")
+        if not dry and self.now().hour >= DIGEST_HOUR and st.get("digest_day") != today:
+            try:
+                body = self.digest(st)
+            except Exception:                                            # a digest never stops a tick
+                body = "The digest failed (the tick went on):\n" + traceback.format_exc()
+            st["digest_day"] = today
+            self.state_dir.mkdir(parents=True, exist_ok=True)
+            (self.state_dir / "digest.txt").write_text(body + "\n")
+            if self.mail_to and self.mail_to != "none":
+                say("digest mailed (%s): %s" % (self.sol.mail(self.mail_to, "Sol feeder: daily digest, %s" % today, body),
+                                                 self.state_dir / "digest.txt"))
+            else:
+                say("digest written: %s" % (self.state_dir / "digest.txt"))
         if not dry:
             self.save(st)
             say("tick: %d submitted%s" % (len(submitted), (": " + ", ".join(submitted)) if submitted else ""))
         return submitted
+
+    # -- the daily digest
+    def digest(self, st):
+        """What the digest says (module docstring), from the state, sacct's usage and the queue."""
+        L, J, now = st["lines"], st["jobs"], self.now()
+        now_ts, since = now.timestamp(), now.timestamp() - 24 * 3600
+        label_of = {s["job"]: lab for lab, s in L.items() if s.get("job")}
+
+        def end_ts(j):
+            return j.get("ended_ts") or epoch_of(j.get("ended"))
+        recent = [(jid, j) for jid, j in J.items() if ended(j) and (end_ts(j) or 0) >= since]
+        done = ["%s (job %s)" % (label_of.get(jid, "not in the queue"), jid) for jid, j in recent if ok(j)]
+        bad = ["%s (job %s): %s, exit %s" % (label_of.get(jid, "not in the queue"), jid, j.get("state"), j.get("exit"))
+               for jid, j in recent if not ok(j)]
+        running = ["%s (job %s)" % (lab, s["job"]) for lab, s in L.items() if s.get("job")
+                   and J.get(s["job"], {}).get("state") == "RUNNING"]
+        pending = ["%s (job %s)" % (lab, s["job"]) for lab, s in L.items() if s.get("job")
+                   and J.get(s["job"], {}).get("state") == "PENDING"]
+        use = self.sol.usage(datetime.fromtimestamp(since))
+        started = {u["job"]: u["start"] for u in use}
+        gpu_h = sum(max(0.0, min(u["end"] or now_ts, now_ts) - max(u["start"], since)) * u["gpus"] for u in use) / 3600
+        gaps = [g for g in st.get("gaps", []) if g.get("ts", 0) >= since]
+        out = ["Sol feeder, daily digest, %s" % stamp_of(now), "",
+               "finished in the last 24 h (%d): %s" % (len(done), ", ".join(done) or "none"),
+               "failed in the last 24 h (%d): %s" % (len(bad), "; ".join(bad) or "none"),
+               "running (%d): %s" % (len(running), ", ".join(running) or "none"),
+               "pending (%d): %s" % (len(pending), ", ".join(pending) or "none"),
+               "GPU-hours in the last 24 h: %.1f (sacct: each job's time in the window x its GPUs)" % gpu_h,
+               "gaps over 30 minutes between ticks in the last 24 h: %s"
+               % (", ".join("%d min before %s" % (g["minutes"], g["at"]) for g in gaps) or "none"), "",
+               "Rough finish (the GPU-hours the queue holds up to each group's last open line, each line at its limit; at "
+               "the last 24 h's pace; B20's again-lines counted as if all were needed, so at most):"]
+        held, last = 0.0, {}
+        tally = {}
+        for l in self.lines:
+            g, s = group_of(l), L.get(l.label, {})
+            j = J.get(s.get("job"), {}) if s.get("job") else {}
+            if s.get("job") and ended(j):
+                word = "done" if ok(j) else "ended badly"
+            elif s.get("job"):
+                word = (j.get("state") or "submitted").lower()
+                left = limit_hours(l.argv) - ((now_ts - started[s["job"]]) / 3600 if s["job"] in started else 0)
+                held += max(left, 0.0)
+            elif s.get("status"):
+                word = s["status"]
+            else:
+                word = "to submit"
+                held += limit_hours(l.argv)
+            if g:
+                tally.setdefault(g, {})
+                tally[g][word] = tally[g].get(word, 0) + 1
+                if word in ("to submit", "pending", "running", "submitted"):
+                    last[g] = held
+        for g in ("A39 on E2", "A39 on the 30", "B20", "B1R2"):
+            if g not in tally:
+                continue
+            counts = ", ".join("%d %s" % (v, k) for k, v in sorted(tally[g].items()))
+            if g not in last:
+                out.append("  %s: %s; nothing left in the queue" % (g, counts))
+            elif gpu_h > 0:
+                eta = datetime.fromtimestamp(now_ts + last[g] / gpu_h * 24 * 3600).strftime("%b %d %H:%M")
+                out.append("  %s: %s; at most %.0f GPU-hours up to its last line; at %.1f GPU-hours a day, by about %s"
+                           % (g, counts, last[g], gpu_h, eta))
+            else:
+                out.append("  %s: %s; at most %.0f GPU-hours up to its last line; no pace yet (nothing ran in 24 h)"
+                           % (g, counts, last[g]))
+        out += ["", "The log: %s" % self.log_path, "Status: python3 cot-disclosure/tools/sol_feeder.py --status"]
+        return "\n".join(out)
 
     def resolve(self, ref, L):
         """(job id or None, the line's held status or None) of a reference."""
@@ -532,15 +688,24 @@ class Feeder:
         st = self.load()
         L, J = st["lines"], st["jobs"]
         hb = st.get("heartbeat") or {}
-        out = ["last tick: %s on %s (pid %s); stop file %s: %s" % (hb.get("at", "never"), hb.get("host", "?"),
-               hb.get("pid", "?"), self.stop_file, "present" if self.stop_file.exists() else "absent")]
+        ago = None
+        if hb.get("ts") or epoch_of(hb.get("at")):
+            ago = int(round((self.now().timestamp() - (hb.get("ts") or epoch_of(hb.get("at")))) / 60))
+        late = ("; late: over %d minutes, so the scrontab job may be waiting (squeue -u $USER -n trackA-feeder; the "
+                "nohup loop: RUNBOOK section 0)" % GAP_MIN) if ago is not None and ago > GAP_MIN else ""
+        out = ["last tick: %s%s on %s (pid %s)%s; stop file %s: %s" % (
+               hb.get("at", "never"), " (%d minutes ago)" % ago if ago is not None else "", hb.get("host", "-"),
+               hb.get("pid", "-"), late, self.stop_file, "present" if self.stop_file.exists() else "absent")]
+        live = self.sol.states(sorted({s["job"] for s in L.values() if s.get("job")}))    # sacct now, not the last tick
         counts, rows = {}, []
         for l in self.lines:
             s = L.get(l.label, {})
             if s.get("job"):
-                j = J.get(s["job"], {})
-                word = "ok" if ok(j) else (j.get("state") or "submitted").lower()
-                rows.append("%-28s job %-8s %-11s exit %s" % (l.label, s["job"], j.get("state", "?"), j.get("exit", "?")))
+                state, ex = live.get(s["job"]) or (J.get(s["job"], {}).get("state"), J.get(s["job"], {}).get("exit"))
+                j = {"state": state, "exit": ex}
+                word = "ok" if ok(j) else (state or "not known to sacct").lower()
+                rows.append("%-28s job %-8s %-11s %s" % (l.label, s["job"], state or "not known to sacct",
+                                                          "exit %s" % ex if state else "(not yet in sacct, or a typo)"))
             elif s.get("status"):
                 word = s["status"]
                 rows.append("%-28s %s: %s" % (l.label, s["status"], s.get("why", "")))
@@ -601,4 +766,8 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except BrokenPipeError:                                              # --status | head: the reader left; that's fine
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        sys.exit(0)
