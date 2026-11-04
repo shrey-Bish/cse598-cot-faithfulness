@@ -2254,9 +2254,9 @@ by question; every reading the same at the 16,000 cut; fifteen readings, not cor
 | reading | Qwen3 30B Thinking | Qwen3 30B Instruct | Olmo 3 7B Think |
 |---|---|---|---|
 | following: classmate / manual | 12 / 78 of 162 | 9 / 28 of 162 | 27 of 160 / 78 of 159 |
-| **(a) manual − B16's answer key** (cross-day) | **+21 [+14, +29], the manual higher** | +2 [−2, +6], no difference detected | +6 [−1, +14], no difference detected |
 | **(b) manual − classmate** (same day) | **+41 [+31, +51], the manual moves it more** | **+12 [+4, +20], the manual moves it more** | **+32 [+23, +41], the manual moves it more** |
 | **(b) classmate − Track B's plain user hint** (cross-day) | **+6 [+1, +11], a classmate's claim moves it more** | **+5 [+1, +9], the same** | **+9 [+3, +16], the same** |
+| **(a) manual − B16's answer key** (cross-day) | **+21 [+14, +29], the manual higher** | +2 [−2, +6], no difference detected | +6 [−1, +14], no difference detected |
 | **(c) B19's pasted block − manual** (cross-day) | **−10 [−18, −4], authority moves it more** | +2 [−2, +8], no difference detected | **−9 [−17, −2], authority moves it more** |
 | **(c) B19's own call / inserted turn − manual** (cross-day) | **−23 [−35, −11], authority moves it more** | **+73 [+62, +84], tool beyond authority** | **−21 [−30, −11], authority moves it more** |
 
