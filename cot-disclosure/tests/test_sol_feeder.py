@@ -755,12 +755,55 @@ def test_nov6_waits_a_tick_when_sacct_fails(tmp_path):
 
 
 def test_the_queue_tags_the_30_to_drop_and_b1r2_to_hold_by_nov6():
-    """The A39 log's section 16: the 30's 29 lines carry dropif=nov6, B1R2's 44 holdif=nov6, and nothing else either."""
+    """The A39 log's sections 16 and 17: the 30's 29 lines carry dropif=nov6:nov11, B1R2's 44 holdif=nov6, and
+    nothing else either."""
     lines = sf.parse_queue(sf.QUEUE.read_text())
-    drop = {l.label for l in lines if l.opts.get("dropif") == "nov6"}
+    drop = {l.label for l in lines if l.opts.get("dropif") == "nov6:nov11"}
     hold = {l.label for l in lines if l.opts.get("holdif") == "nov6"}
     assert drop == {l.label for l in lines if "mmlupro_30" in l.argv} and len(drop) == 29
     assert hold == {l.label for l in lines if l.argv[0] == "provenance_gen" and "--b1r2" in l.argv} and len(hold) == 44
     with pytest.raises(sf.QueueError, match="no such decision"):
         sf.parse_queue("x | dropif=nov7 | a39_1gpu -- base e2 1/16\n")
+
+
+NOV11 = q("e2-base-1of16 | - | a39_1gpu --estimate 1.5 -- base e2 1/16",
+          "b20-g-1 | - | b20 --model granite-4.2-8b --estimate 1.1",
+          "b20-g-2 | again=@b20-g-1 | b20 --model granite-4.2-8b --estimate 1.1",
+          "m30-base-1of4 | dropif=nov6:nov11 | a39_1gpu --estimate 1.5 -- base mmlupro_30 1/4")
+
+
+def test_nov11_drops_the_30_when_e2_or_b20_isnt_finished(tmp_path):
+    """The A39 log's section 10.2, applied by the feeder (section 17): at the first tick at or after Nov 11 09:00, if
+    any E2 or B20 line has no ended job and isn't settled, the 30's lines are dropped ("not run: no GPU time by
+    Nov 12"). Lines already submitted run on. Nov 6's decision came out no cut here."""
+    sol, clock = FakeSol(places=2), Clock("2026-11-06T07:01:00")
+    f = feeder(tmp_path, NOV11, sol, now=clock)
+    nov6_usage(sol, 30)
+    f.tick()                                                              # Nov 6: no cut; e2 and b20-g-1 go in
+    clock.add(days=5, hours=2)                                            # Nov 11 09:01; b20-g-1 still runs
+    f.tick()
+    st = json.loads((tmp_path / "state" / "state.json").read_text())
+    assert st["decisions"]["nov6"]["branch"] == "no cut" and st["decisions"]["nov11"]["branch"] == "cut"
+    assert st["lines"]["m30-base-1of4"]["status"] == "dropped" and "nov11" in st["lines"]["m30-base-1of4"]["why"]
+    assert "decision nov11" in f.status_text()
+
+
+def test_nov11_keeps_the_30_when_e2_and_b20_are_finished(tmp_path):
+    sol, clock = FakeSol(places=2), Clock("2026-11-11T08:50:00")
+    f = feeder(tmp_path, NOV11, sol, now=clock)
+    nov6_usage(sol, 30)                                                   # Nov 6's decision (made now): no cut
+    f.tick()
+    sol.end("100")
+    sol.end("101")                                                        # b20-g-1 finished: b20-g-2 not needed
+    clock.add(minutes=15)                                                 # 09:05
+    f.tick()
+    st = json.loads((tmp_path / "state" / "state.json").read_text())
+    assert st["decisions"]["nov11"]["branch"] == "no cut" and "m30-base-1of4" in sol.labels()
+
+
+def test_a_line_can_name_two_decisions():
+    lines = sf.parse_queue("x | dropif=nov6:nov11 | a39_1gpu -- base mmlupro_30 1/4\n")
+    assert lines[0].opts["dropif"] == "nov6:nov11"
+    with pytest.raises(sf.QueueError, match="no such decision"):
+        sf.parse_queue("x | dropif=nov6:nov12 | a39_1gpu -- base mmlupro_30 1/4\n")
 

@@ -5,7 +5,8 @@
 # waits for them itself, so no pending job holds a place); again=@LABEL (B20: only after a stop at the limit with runs
 # left); needs=COMMIT (Sol's clone has it); left=SPEC (a sweep only if runs are left); dropif=/holdif=NAME (a decision
 # the feeder makes once at its time: nov6, the A39 log's section 16, drops the 30's lines and holds B1R2's if Sol gave
-# under 10 GPU-hours from Nov 4 12:36 to Nov 6 07:00).
+# under 10 GPU-hours from Nov 4 12:36 to Nov 6 07:00; nov11, section 10.2 as section 17 applies it, drops the 30's
+# lines if E2's and B20's jobs haven't all finished by Nov 11 09:00).
 # Pre-registered shapes: the A39 log's sections 10-13 and the B20 log's sections 13-14 (2026-11-03 logs).
 e2-base-1of4               | job=426582                               | a39_1gpu --estimate 2.3 -- base e2 1/4
 e2-prompt_only-1of4        | job=428294                               | a39_1gpu --estimate 2.3 -- prompt_only e2 1/4
@@ -164,35 +165,35 @@ e2-lora_note-sweep         | afterany=@e2-lora_note-1of4:@e2-lora_note-2of4:@e2-
 e2-wrap-sweep              | afterany=@e2-wrap-1of5:@e2-wrap-2of5:@e2-wrap-3of5:@e2-wrap-4of5:@e2-wrap-5of5 left=a39:wrap:e2 | a39_1gpu --estimate 2.3 -- wrap e2
 e2-wrap_note-sweep         | afterany=@e2-wrap_note-1of5:@e2-wrap_note-2of5:@e2-wrap_note-3of5:@e2-wrap_note-4of5:@e2-wrap_note-5of5 left=a39:wrap_note:e2 | a39_1gpu --estimate 2.3 -- wrap_note e2
 e2-lora_wrap-sweep         | afterany=@e2-lora_wrap-1of5:@e2-lora_wrap-2of5:@e2-lora_wrap-3of5:@e2-lora_wrap-4of5:@e2-lora_wrap-5of5 left=a39:lora_wrap:e2 | a39_1gpu --estimate 2.3 -- lora_wrap e2
-m30-base-1of4              | dropif=nov6                              | a39_1gpu --estimate 1.5 -- base mmlupro_30 1/4
-m30-prompt_only-1of4       | dropif=nov6                              | a39_1gpu --estimate 1.5 -- prompt_only mmlupro_30 1/4
-m30-lora-1of4              | dropif=nov6                              | a39_1gpu --estimate 1.5 -- lora mmlupro_30 1/4
-m30-lora_note-1of4         | dropif=nov6                              | a39_1gpu --estimate 1.5 -- lora_note mmlupro_30 1/4
-m30-base-2of4              | dropif=nov6                              | a39_1gpu --estimate 1.5 -- base mmlupro_30 2/4
-m30-prompt_only-2of4       | dropif=nov6                              | a39_1gpu --estimate 1.5 -- prompt_only mmlupro_30 2/4
-m30-lora-2of4              | dropif=nov6                              | a39_1gpu --estimate 1.5 -- lora mmlupro_30 2/4
-m30-lora_note-2of4         | dropif=nov6                              | a39_1gpu --estimate 1.5 -- lora_note mmlupro_30 2/4
-m30-base-3of4              | dropif=nov6                              | a39_1gpu --estimate 1.5 -- base mmlupro_30 3/4
-m30-prompt_only-3of4       | dropif=nov6                              | a39_1gpu --estimate 1.5 -- prompt_only mmlupro_30 3/4
-m30-lora-3of4              | dropif=nov6                              | a39_1gpu --estimate 1.5 -- lora mmlupro_30 3/4
-m30-lora_note-3of4         | dropif=nov6                              | a39_1gpu --estimate 1.5 -- lora_note mmlupro_30 3/4
-m30-base-4of4              | dropif=nov6                              | a39_1gpu --estimate 1.5 -- base mmlupro_30 4/4
-m30-prompt_only-4of4       | dropif=nov6                              | a39_1gpu --estimate 1.5 -- prompt_only mmlupro_30 4/4
-m30-lora-4of4              | dropif=nov6                              | a39_1gpu --estimate 1.5 -- lora mmlupro_30 4/4
-m30-lora_note-4of4         | dropif=nov6                              | a39_1gpu --estimate 1.5 -- lora_note mmlupro_30 4/4
-m30-wrap-1of2              | dropif=nov6                              | a39_1gpu --estimate 1.5 -- wrap mmlupro_30 1/2
-m30-wrap_note-1of2         | dropif=nov6                              | a39_1gpu --estimate 1.5 -- wrap_note mmlupro_30 1/2
-m30-lora_wrap-1of2         | dropif=nov6                              | a39_1gpu --estimate 1.5 -- lora_wrap mmlupro_30 1/2
-m30-wrap-2of2              | dropif=nov6                              | a39_1gpu --estimate 1.5 -- wrap mmlupro_30 2/2
-m30-wrap_note-2of2         | dropif=nov6                              | a39_1gpu --estimate 1.5 -- wrap_note mmlupro_30 2/2
-m30-lora_wrap-2of2         | dropif=nov6                              | a39_1gpu --estimate 1.5 -- lora_wrap mmlupro_30 2/2
-m30-base-sweep             | afterany=@m30-base-1of4:@m30-base-2of4:@m30-base-3of4:@m30-base-4of4 left=a39:base:mmlupro_30 dropif=nov6 | a39_1gpu --estimate 2.3 -- base mmlupro_30
-m30-prompt_only-sweep      | afterany=@m30-prompt_only-1of4:@m30-prompt_only-2of4:@m30-prompt_only-3of4:@m30-prompt_only-4of4 left=a39:prompt_only:mmlupro_30 dropif=nov6 | a39_1gpu --estimate 2.3 -- prompt_only mmlupro_30
-m30-lora-sweep             | afterany=@m30-lora-1of4:@m30-lora-2of4:@m30-lora-3of4:@m30-lora-4of4 left=a39:lora:mmlupro_30 dropif=nov6 | a39_1gpu --estimate 2.3 -- lora mmlupro_30
-m30-lora_note-sweep        | afterany=@m30-lora_note-1of4:@m30-lora_note-2of4:@m30-lora_note-3of4:@m30-lora_note-4of4 left=a39:lora_note:mmlupro_30 dropif=nov6 | a39_1gpu --estimate 2.3 -- lora_note mmlupro_30
-m30-wrap-sweep             | afterany=@m30-wrap-1of2:@m30-wrap-2of2 left=a39:wrap:mmlupro_30 dropif=nov6 | a39_1gpu --estimate 2.3 -- wrap mmlupro_30
-m30-wrap_note-sweep        | afterany=@m30-wrap_note-1of2:@m30-wrap_note-2of2 left=a39:wrap_note:mmlupro_30 dropif=nov6 | a39_1gpu --estimate 2.3 -- wrap_note mmlupro_30
-m30-lora_wrap-sweep        | afterany=@m30-lora_wrap-1of2:@m30-lora_wrap-2of2 left=a39:lora_wrap:mmlupro_30 dropif=nov6 | a39_1gpu --estimate 2.3 -- lora_wrap mmlupro_30
+m30-base-1of4              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- base mmlupro_30 1/4
+m30-prompt_only-1of4       | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- prompt_only mmlupro_30 1/4
+m30-lora-1of4              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- lora mmlupro_30 1/4
+m30-lora_note-1of4         | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- lora_note mmlupro_30 1/4
+m30-base-2of4              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- base mmlupro_30 2/4
+m30-prompt_only-2of4       | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- prompt_only mmlupro_30 2/4
+m30-lora-2of4              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- lora mmlupro_30 2/4
+m30-lora_note-2of4         | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- lora_note mmlupro_30 2/4
+m30-base-3of4              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- base mmlupro_30 3/4
+m30-prompt_only-3of4       | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- prompt_only mmlupro_30 3/4
+m30-lora-3of4              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- lora mmlupro_30 3/4
+m30-lora_note-3of4         | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- lora_note mmlupro_30 3/4
+m30-base-4of4              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- base mmlupro_30 4/4
+m30-prompt_only-4of4       | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- prompt_only mmlupro_30 4/4
+m30-lora-4of4              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- lora mmlupro_30 4/4
+m30-lora_note-4of4         | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- lora_note mmlupro_30 4/4
+m30-wrap-1of2              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- wrap mmlupro_30 1/2
+m30-wrap_note-1of2         | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- wrap_note mmlupro_30 1/2
+m30-lora_wrap-1of2         | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- lora_wrap mmlupro_30 1/2
+m30-wrap-2of2              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- wrap mmlupro_30 2/2
+m30-wrap_note-2of2         | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- wrap_note mmlupro_30 2/2
+m30-lora_wrap-2of2         | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- lora_wrap mmlupro_30 2/2
+m30-base-sweep             | afterany=@m30-base-1of4:@m30-base-2of4:@m30-base-3of4:@m30-base-4of4 left=a39:base:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- base mmlupro_30
+m30-prompt_only-sweep      | afterany=@m30-prompt_only-1of4:@m30-prompt_only-2of4:@m30-prompt_only-3of4:@m30-prompt_only-4of4 left=a39:prompt_only:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- prompt_only mmlupro_30
+m30-lora-sweep             | afterany=@m30-lora-1of4:@m30-lora-2of4:@m30-lora-3of4:@m30-lora-4of4 left=a39:lora:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- lora mmlupro_30
+m30-lora_note-sweep        | afterany=@m30-lora_note-1of4:@m30-lora_note-2of4:@m30-lora_note-3of4:@m30-lora_note-4of4 left=a39:lora_note:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- lora_note mmlupro_30
+m30-wrap-sweep             | afterany=@m30-wrap-1of2:@m30-wrap-2of2 left=a39:wrap:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- wrap mmlupro_30
+m30-wrap_note-sweep        | afterany=@m30-wrap_note-1of2:@m30-wrap_note-2of2 left=a39:wrap_note:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- wrap_note mmlupro_30
+m30-lora_wrap-sweep        | afterany=@m30-lora_wrap-1of2:@m30-lora_wrap-2of2 left=a39:lora_wrap:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- lora_wrap mmlupro_30
 b1r2-01of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 1/40
 b1r2-02of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 2/40
 b1r2-03of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 3/40

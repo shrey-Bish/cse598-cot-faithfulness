@@ -24,10 +24,11 @@ between ticks, and a rough finish for A39 on E2, A39 on the 30, B20 and B1R2: th
 each group's last line (at each line's limit), at the last 24 h's pace. Also written to <out>/feeder/digest.txt.
 Health: a tick that comes over 30 minutes after the one before says so in the log, the status and the next digest (the
 scrontab job waited in Sol's queue; RUNBOOK section 0 has the nohup loop for that case).
-Decisions (Nov 4, the A39 log's section 16): a decision the queue names (dropif=, holdif=) is made once, at the first
-tick at or after its time, from compute only: the GPU-hours your jobs got in its window (as the digest counts them),
-"cut" if under its threshold. It goes in the log, the state, an alert mail, the digest and --status. If sacct fails,
-the next tick decides, over the same window.
+Decisions (Nov 4, the A39 log's sections 16 and 17): a decision the queue names (dropif=, holdif=) is made once, at
+the first tick at or after its time, from compute only: nov6, the GPU-hours your jobs got in its window (as the digest
+counts them), "cut" if under its threshold; nov11, whether every E2 and B20 line has an ended job or is settled, "cut"
+if not. It goes in the log, the state, an alert mail, the digest and --status. If sacct fails, the next tick decides,
+over the same window.
 
   python3 cot-disclosure/tools/sol_feeder.py --status
   python3 cot-disclosure/tools/sol_feeder.py --dry-run             # what a tick would submit now; changes nothing
@@ -47,7 +48,7 @@ OPTIONS ("-" for none):
                   not needed; else skipped (and you're told)
   needs=COMMIT    Sol's clone has COMMIT (git merge-base --is-ancestor), else the line waits for a pull
   left=SPEC       run only if runs are left: a39:SYSTEM:QSET[:K/N] (finetune/eval.py's resume) or b1r2:K/N
-  dropif=NAME     dropped if decision NAME (DECISIONS) comes out "cut"
+  dropif=NAMES    dropped if any decision named (DECISIONS; colon-separated) comes out "cut"
   holdif=NAME     if decision NAME comes out "cut", waits until the lines it names are submitted or settled
 REFS are colon-separated: @LABEL is an earlier line (its job id once submitted), a bare number a job id. $USER (any
 environment variable) in the arguments is expanded, so the file names no Sol user.
@@ -90,6 +91,10 @@ DECISIONS = {                                      # Nov 4: made by the feeder o
              "cut": "the 30's lines are dropped (cut 1), and B1R2's wait until E2's sweeps and B20's lines are "
                     "submitted or settled (cut 2); cut 3 is Ritik's",
              "no cut": "no cut: the 30's own rule (Nov 11 09:00) and B1R2's (partial at Nov 15 23:59) stand"},
+    "nov11": {"rule": "the A39 log's section 10.2 (applied as section 17 says)", "kind": "finished",
+              "at": "2026-11-11T09:00:00", "lines": r"(e2-|b20-)", "what": "E2's and B20's jobs",
+              "cut": "the 30's lines are dropped, recorded \"not run: no GPU time by Nov 12\"",
+              "no cut": "the 30 runs"},
 }
 Line = namedtuple("Line", "n label opts argv")
 
@@ -135,7 +140,7 @@ def parse_queue(text):
         if "left" in opts and not LEFT.match(opts["left"]):
             raise QueueError("queue line %d: left=%s: a39:SYSTEM:QSET[:K/N] or b1r2:K/N" % (n, opts["left"]))
         for k in ("dropif", "holdif"):
-            if k in opts and opts[k] not in DECISIONS:
+            if k in opts and any(name not in DECISIONS for name in opts[k].split(":")):
                 raise QueueError("queue line %d: %s=%s: no such decision (%s)" % (n, k, opts[k], ", ".join(DECISIONS)))
         lines.append(Line(n, label, opts, [os.path.expandvars(a) for a in shlex.split(args)]))   # $USER: yours
         seen.add(label)
@@ -220,9 +225,18 @@ def spec_of(line):
 
 
 # ---------------------------------------------------------------- Sol's commands
+def decision_names(lines):
+    """Every decision a queue line names (dropif=, holdif=; colon-separated)."""
+    return sorted({n for l in lines for o in ("dropif", "holdif") if o in l.opts for n in l.opts[o].split(":")})
+
+
 def decided_text(name, made):
-    """One line for a decision made: its GPU-hours, its window and threshold, its branch and what that does."""
+    """One line for a decision made: what it measured, its branch and what that does."""
     d = DECISIONS[name]
+    if d.get("kind") == "finished":
+        return "at %s, %s: %s" % (d["at"].replace("T", " ")[:16], "%s not all finished (%d lines open, first %s)" % (
+            d["what"], made["open"], made["first"]) if made["branch"] == "cut" else "%s all finished" % d["what"],
+            d[made["branch"]])
     return "%.1f GPU-hours from %s to %s, %s %g: %s" % (
         made["gpu_hours"], d["since"].replace("T", " ")[:16], d["at"].replace("T", " ")[:16],
         "under" if made["branch"] == "cut" else "not under", d["below"], d[made["branch"]])
@@ -650,11 +664,22 @@ class Feeder:
         jobs got from its "since" to its "at" (each job's time in that window x its GPUs, as the digest counts them;
         a job running at "at" counts up to it), "cut" if under "below". A failed sacct leaves it for the next tick."""
         made = st.setdefault("decisions", {})
-        for k in sorted({l.opts[o] for l in self.lines for o in ("dropif", "holdif") if o in l.opts} - set(made)):
+        for k in [n for n in decision_names(self.lines) if n not in made]:
             d = DECISIONS[k]
-            a, b = sacct_time(d["since"]), sacct_time(d["at"])
-            if self.now().timestamp() < b:
+            if self.now().timestamp() < sacct_time(d["at"]):
                 continue
+            if d.get("kind") == "finished":                  # nov11: every such line ended or settled?
+                L, J, pat = st["lines"], st["jobs"], re.compile(d["lines"])
+                open_ = [l.label for l in self.lines if pat.match(l.label) and not (
+                    (L.get(l.label, {}).get("job") and ended(J.get(L[l.label]["job"], {})))
+                    or L.get(l.label, {}).get("status") in SETTLED
+                    or (not L.get(l.label, {}).get("job") and not L.get(l.label, {}).get("status")
+                        and self.readiness(l, L, J)[0] in ("not needed", "skip")))]   # this tick would settle it
+                made[k] = {"at": self.clock(), "open": len(open_), "first": open_[0] if open_ else None,
+                           "branch": "cut" if open_ else "no cut"}
+                alert("decision %s (%s): %s" % (k, d["rule"], decided_text(k, made[k])))
+                continue
+            a, b = sacct_time(d["since"]), sacct_time(d["at"])
             try:
                 use = self.sol.usage(datetime.fromtimestamp(a))
             except FeederError as err:
@@ -676,9 +701,9 @@ class Feeder:
     def readiness(self, l, L, J):
         """("ready" | "wait" | "skip" | "not needed" | "drop", why), with each reference as its job id."""
         made = getattr(self, "decided", {})
-        if "dropif" in l.opts and made.get(l.opts["dropif"], {}).get("branch") == "cut":
-            k = l.opts["dropif"]
-            return "drop", "by %s: %s" % (DECISIONS[k]["rule"], decided_text(k, made[k]))
+        for k in l.opts.get("dropif", "").split(":") if "dropif" in l.opts else []:
+            if made.get(k, {}).get("branch") == "cut":
+                return "drop", "by %s, decision %s: %s" % (DECISIONS[k]["rule"], k, decided_text(k, made[k]))
         if "holdif" in l.opts and made.get(l.opts["holdif"], {}).get("branch") == "cut":
             d, pat = DECISIONS[l.opts["holdif"]], re.compile(DECISIONS[l.opts["holdif"]]["hold_until"])
             for x in self.lines:
@@ -799,7 +824,7 @@ class Feeder:
         out = ["last tick: %s%s on %s (pid %s)%s; stop file %s: %s" % (
                hb.get("at", "never"), " (%d minutes ago)" % ago if ago is not None else "", hb.get("host", "-"),
                hb.get("pid", "-"), late, self.stop_file, "present" if self.stop_file.exists() else "absent")]
-        for k in sorted({l.opts[o] for l in self.lines for o in ("dropif", "holdif") if o in l.opts}):
+        for k in decision_names(self.lines):
             made = st.get("decisions", {}).get(k)
             out.append("decision %s (%s): %s" % (k, DECISIONS[k]["rule"], decided_text(k, made) if made else
                                                  "not made yet; at the first tick at or after %s" % DECISIONS[k]["at"]))
