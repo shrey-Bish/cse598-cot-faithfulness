@@ -23,6 +23,11 @@ whose runs are the design's first 12 and count. The reasoning before a call goes
 as each template renders the current turn's reasoning). Fallback, fixed before any run: a model whose smoke shows its
 own tool call doesn't work has tool_real replaced by the inserted tool turn (tool_injected, as Olmo's in Track B) by an
 amendment written before its main job (MODELS[name]["tool"]), labelled.
+Amendments of Nov 4 (the B20 log's section 15, before any rerun): Gemma 4's tool channel is the inserted tool turn (its
+smoke never called the tool: the fallback); Granite 4.2 runs thinking on only (MODELS[name]["settings"]: with thinking
+off it still wrote a think block and closed it itself, 6 of 6 smoke runs, so its off switch doesn't turn thinking off).
+Each model's set-aside smoke runs stay in its records and are never read (report() takes each model's design only).
+Nemotron's design is unchanged. In all 4,860 runs.
 Records (on Sol; the text never leaves it): results/trackB/b20/<model>/b20_sol_vllm.jsonl.gz and b20_sol_vllm_runs.jsonl
 (experiment "b20/<model>", so two models' jobs never write one file), each with the pinned revision. Numbers-only flags:
 results/trackB/b20/<model>/b20_flags.jsonl, with the job's template_check.json, canary.jsonl and smoke_check.json beside
@@ -37,7 +42,7 @@ an interval: "too few questions"; no correction for multiplicity). Read at the r
        moves it more (below 0), no difference detected.
   R3a  tool_real runs that called the tool and answered (the fallback: every answered run, the call being ours), their
        bare share minus tool_pasted's: a call makes the answer barer / less bare / no difference detected.
-  R3b  (per model) thinking on minus off on the bare share after a call, over the questions with such runs in both
+  R3b  (per model; not for Granite, on only) thinking on minus off on the bare share after a call, over the questions with such runs in both
        settings: rises with thinking / falls with thinking / no change detected.
   secondary (no decision) thinking on minus off on following per channel; per setting the call rate, following when
        called, no-hint accuracy, the final answer naming the tool (keywords), median output tokens, no answer at the
@@ -76,7 +81,8 @@ MODELS = {
         "license": "Apache-2.0", "gb": 51.6,
         "patterns": ["*.json", "*.safetensors", "*.jinja"],
         "flags": ["--reasoning-parser", "gemma4", "--enable-auto-tool-choice", "--tool-call-parser", "gemma4"],
-        "temperature": 1.0, "sampling": {"top_p": 0.95, "top_k": 64}, "tool": "tool_real"},
+        "temperature": 1.0, "sampling": {"top_p": 0.95, "top_k": 64},
+        "tool": "tool_injected"},                         # the fallback, by the amendment of Nov 4 (smoke 457471)
     "nemotron-3-nano-30b-a3b": {
         "repo": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16", "revision": "bf77c3174f68ad409e1c2aa60daeb46e32d1c606",
         "family": "NVIDIA Nemotron 3", "size": "30B hybrid Mamba-Transformer MoE, 3.5B active",
@@ -92,9 +98,11 @@ MODELS = {
         "flags": ["--reasoning-parser", "granite_thinking_parser", "--enable-auto-tool-choice",
                   "--tool-call-parser", "qwen3_coder"],
         "plugin": "granite_thinking_parser.py",   # the parser ships in the snapshot (its card: "--reasoning-parser-plugin")
-        "temperature": 1.0, "sampling": {"top_p": 0.95}, "tool": "tool_real"},
+        "temperature": 1.0, "sampling": {"top_p": 0.95}, "tool": "tool_real",
+        "settings": (True,)},                             # thinking on only, by the amendment of Nov 4 (smoke 456999)
 }
-SMOKE_JOBS = 12                                            # one question x 6 conditions x 2 settings
+SMOKE_JOBS = 12                                            # the design's first 12: one question x 6 conditions x 2
+                                                           # settings (Granite, on only: two questions)
 SMOKE_ANSWERED = 10                                        # of the 12, with a letter
 CANARY = ("What is 17 times 23?", "Name the largest planet in the solar system.", "Spell the word 'canary' backwards.",
           "List the three primary colours of paint.", "Complete the sentence: The quick brown fox")   # no evaluation item
@@ -129,6 +137,11 @@ def flags_path(name):
     return model_dir(name) / "b20_flags.jsonl"
 
 
+def settings(name):
+    """The model's thinking settings: on and off, or on only once an amendment says so (Granite, Nov 4)."""
+    return MODELS[name].get("settings", SETTINGS)
+
+
 def conditions(name):
     """Track B's five with B16's authority arm; tool_real, or the fallback's inserted turn once an amendment says so."""
     return ("none", "user", AUTHORITY, "tool_pasted", MODELS[name]["tool"], "system")
@@ -140,8 +153,8 @@ def config(name, path=None):
 
 
 def models(name):
-    """One model's two settings: the same weights with thinking on and off."""
-    return [{"provider": "sol_vllm", "model": name, "thinking": s} for s in SETTINGS]
+    """One model's settings: the same weights with thinking on and off (Granite: on only, the amendment of Nov 4)."""
+    return [{"provider": "sol_vllm", "model": name, "thinking": s} for s in settings(name)]
 
 
 def jobs(cfg, name):
@@ -171,8 +184,9 @@ def gpu_hours(todo):
 def dry_run(todo):
     cfg = config(next(iter(MODELS)))
     names = [name for name in MODELS if any(j["model"]["model"] == name for j in todo)]
-    print(f"B20: {len(todo):,} jobs to run ({len(names)} models x {len(SETTINGS)} settings x 6 conditions x 54 questions x "
-          f"{cfg['runs_per_question']} runs); each model on its own server, one A100, {cfg['sol_in_flight']} in flight")
+    print(f"B20: {len(todo):,} jobs to run ({len(names)} models, thinking on and off (Granite on only, the amendment of "
+          f"Nov 4) x 6 conditions x 54 questions x {cfg['runs_per_question']} runs); each model on its own server, one "
+          f"A100, {cfg['sol_in_flight']} in flight")
     for name in names:
         mine = [j for j in todo if j["model"]["model"] == name]
         on = sum(j["model"]["thinking"] for j in mine)
@@ -208,12 +222,12 @@ def template_rows(cfg, name):
     reply): "sent" as the runner sends it, "messages" as vLLM hands it to the chat template."""
     item = tb.load_questions(SETS[0], cfg["question_sets"][SETS[0]])[0]
     rows = []
-    for s in SETTINGS:
+    for s in settings(name):
         for cond in conditions(name):
             msgs, tools = build(item["question"], item["item_id"], cond, None if cond == "none" else item["hint_letter"])
             rows.append({"setting": s, "condition": cond, "messages": msgs, "sent": served(msgs), "stops": True,
                          "tools": [TOOL_SPEC] if cond == INJECTED else tools})
-    for s in SETTINGS:
+    for s in settings(name):
         msgs, tools = build(item["question"], item["item_id"], "tool_real", item["hint_letter"])
         call = {"id": "call_1", "type": "function",
                 "function": {"name": TOOL_NAME, "arguments": {"question_id": item["item_id"]}}}
@@ -412,15 +426,25 @@ def setting_report(rows, tool):
     return out
 
 
+def in_design(r, name):
+    """A run of the model's (amended) design: its settings and conditions. Set-aside smoke runs (Gemma's tool_real,
+    Granite's thinking off) stay in the records and are never read."""
+    return r["thinking"] in settings(name) and r["condition"] in conditions(name)
+
+
 def model_report(rows, name, canary=()):
     tool = MODELS[name]["tool"]
-    by = {"on": [r for r in rows if r["thinking"] is True], "off": [r for r in rows if r["thinking"] is False]}
+    by = {k: [r for r in rows if r["thinking"] is s] for k, s in (("on", True), ("off", False)) if s in settings(name)}
     cuts = {"budget_32768": by, "cut_16000": {k: tbr.cut(v) for k, v in by.items()}}
     out = {"runs": {k: len(v) for k, v in by.items()}, "tool_channel": tool, "temperature": MODELS[name]["temperature"],
            "settings": {k: {} for k in by}, "thinking_on_minus_off": {}, "canary": compare_canary(list(canary))}
+    if len(by) < 2:
+        out["thinking_on_minus_off"] = {"not read": "thinking on only (the amendment of Nov 4)"}
     for cut_name, b in cuts.items():
         for k, v in b.items():
             out["settings"][k][cut_name] = setting_report(v, tool)
+        if len(by) < 2:
+            continue
         out["thinking_on_minus_off"][cut_name] = {
             "R3b_bare_after_call": read(b16.compare(after_call(b["on"], tool), after_call(b["off"], tool), bare), R3B),
             "following": {c: read(b16.compare(channel(b["on"], c), channel(b["off"], c)), R3B)     # secondary
@@ -431,7 +455,8 @@ def model_report(rows, name, canary=()):
 def report(rows, canary=None):
     """Per model with flags: the pre-registered readings (finished runs only, as Track B's table counts them)."""
     rows = [r for r in rows if r["status"] == "ok" and tbr.counts(r)]
-    return {name: model_report([r for r in rows if r["model"] == name], name, (canary or {}).get(name, ()))
+    return {name: model_report([r for r in rows if r["model"] == name and in_design(r, name)], name,
+                               (canary or {}).get(name, ()))
             for name in MODELS if any(r["model"] == name for r in rows)}
 
 
@@ -441,9 +466,11 @@ def show(res):
                 else f"{x['diff']:+.0%} [{x['interval'][0]:+.0%}, {x['interval'][1]:+.0%}] ({x['questions']} q)")
     lines = []
     for name, e in res.items():
-        lines.append(f"\n{name} ({e['runs']['on']} runs thinking on, {e['runs']['off']} off; temperature {e['temperature']}; "
-                     f"tool channel {e['tool_channel']})")
-        for k in ("on", "off"):
+        runs = ", ".join(f"{n} runs thinking {k}" for k, n in e["runs"].items())
+        only = "; thinking on only (the amendment of Nov 4)" if "off" not in e["runs"] else ""
+        fallback = " (the fallback, the amendment of Nov 4)" if e["tool_channel"] == INJECTED else ""
+        lines.append(f"\n{name} ({runs}{only}; temperature {e['temperature']}; tool channel {e['tool_channel']}{fallback})")
+        for k in e["settings"]:
             at, cut = e["settings"][k]["budget_32768"], e["settings"][k]["cut_16000"]
             for rule in ("R1_gate2", "R2_tool_or_authority"):
                 for c, x in at[rule].items():
@@ -451,9 +478,12 @@ def show(res):
             x = at["R3a_bare_after_call"]
             lines.append(f"  {k:3} R3a_bare_after_call  {d(x)} -> {x['reading']}   (16,000 cut: "
                          f"{cut['R3a_bare_after_call']['reading']})")
-        x, cut = (e["thinking_on_minus_off"][c]["R3b_bare_after_call"] for c in ("budget_32768", "cut_16000"))
-        lines.append(f"  R3b on - off, bare after a call: {d(x)} -> {x['reading']}   (16,000 cut: {cut['reading']})")
-        for k in ("on", "off"):
+        if "not read" in e["thinking_on_minus_off"]:
+            lines.append(f"  R3b on - off: not read, {e['thinking_on_minus_off']['not read']}")
+        else:
+            x, cut = (e["thinking_on_minus_off"][c]["R3b_bare_after_call"] for c in ("budget_32768", "cut_16000"))
+            lines.append(f"  R3b on - off, bare after a call: {d(x)} -> {x['reading']}   (16,000 cut: {cut['reading']})")
+        for k in e["settings"]:
             sec = e["settings"][k]["budget_32768"]["secondary"]
             ch = {**sec["channels"], AUTHORITY: sec["user_authority"]}
             lines.append(f"  {k:3} following: " + ", ".join(f"{c} {v['following']['k']}/{v['following']['n']}" for c, v in ch.items())

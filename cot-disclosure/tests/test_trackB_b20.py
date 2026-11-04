@@ -37,17 +37,20 @@ def opt(cmd, name):
 
 
 def test_the_design_is_track_bs_questions_in_six_conditions_on_and_off_for_three_models():
+    """As pre-registered (5,832 runs), with the amendments of Nov 4: Granite thinking on only (4,860 runs)."""
     assert list(rb.MODELS) == [GEMMA, NEMOTRON, GRANITE]
     every = rb.all_jobs()
-    assert len(every) == 3 * 54 * 6 * 2 * 3 == 5832 and len({j["run_id"] for j in every}) == 5832
+    assert len(every) == 2 * 54 * 6 * 2 * 3 + 54 * 6 * 3 == 4860 and len({j["run_id"] for j in every}) == 4860
     for name in rb.MODELS:
         js = rb.jobs(rb.config(name), name)
-        assert len(js) == 1944 and {j["experiment"] for j in js} == {f"b20/{name}"}
-        first = js[:rb.SMOKE_JOBS]                                        # the smoke: one question, every cell
-        assert {j["item"]["item_id"] for j in first} == {"pilot-0"} and {j["repeat"] for j in first} == {0}
+        n = len(rb.settings(name))
+        assert len(js) == 972 * n and {j["experiment"] for j in js} == {f"b20/{name}"}
+        first = js[:rb.SMOKE_JOBS]                                        # the smoke: the design's first 12
+        assert {j["item"]["item_id"] for j in first} == ({"pilot-0"} if n == 2 else {"pilot-0", "pilot-1"})
+        assert {j["repeat"] for j in first} == {0}
         assert {(j["model"]["thinking"], j["condition"]) for j in first} == \
-            {(s, c) for s in (True, False) for c in rb.conditions(name)}
-        assert max(j["repeat"] for j in js[:648]) == 0 and js[648]["repeat"] == 1      # repeat by repeat
+            {(s, c) for s in rb.settings(name) for c in rb.conditions(name)}
+        assert max(j["repeat"] for j in js[:324 * n]) == 0 and js[324 * n]["repeat"] == 1      # repeat by repeat
         assert [j["repeat"] for j in js] == sorted(j["repeat"] for j in js)
     assert rb.conditions(GRANITE) == ("none", "user", AUTHORITY, "tool_pasted", "tool_real", "system")
     assert tb.model_tag(rb.jobs(rb.config(GRANITE), GRANITE)[0]["model"]) == "granite-4.2-8b|think=True"
@@ -57,7 +60,7 @@ def test_the_design_is_track_bs_questions_in_six_conditions_on_and_off_for_three
 
 def test_each_model_is_pinned_and_runs_at_its_recommended_temperature():
     for name, m in rb.MODELS.items():
-        assert len(m["revision"]) == 40 and m["tool"] == "tool_real"
+        assert len(m["revision"]) == 40 and m["tool"] == (INJECTED if name == GEMMA else "tool_real")   # Nov 4
         cfg = rb.config(name)
         assert cfg["temperature"] == 1.0 and {**cfg, "temperature": 0.6} == CFG      # nothing else differs
         assert tb.TOKENIZERS[name] == m["repo"] and tb.TOKENIZER_REVISIONS[name] == m["revision"]
@@ -175,18 +178,18 @@ def test_a_b20_run_records_the_pinned_snapshot_and_its_files_stay_out_of_track_b
 
 def test_the_runner_runs_the_smoke_through_run_trackB_with_b20s_run_one_and_restores_it(server, tmp_path):
     kept = tb.run_one
-    assert rb.run(GRANITE, limit=rb.SMOKE_JOBS) == 0 and tb.run_one is kept
-    here = tmp_path / "b20" / GRANITE
+    assert rb.run(NEMOTRON, limit=rb.SMOKE_JOBS) == 0 and tb.run_one is kept
+    here = tmp_path / "b20" / NEMOTRON
     assert (here / "b20_sol_vllm.jsonl.gz").exists() and (here / "b20_sol_vllm_runs.jsonl").exists()
-    n = rb.export_flags(GRANITE)
-    flags = [json.loads(x) for x in rb.flags_path(GRANITE).read_text().splitlines()]
-    assert n == 12 and rb.flags_path(GRANITE) == here / "b20_flags.jsonl"
-    assert {f["revision"] for f in flags} == {rb.MODELS[GRANITE]["revision"]} and {f["temperature"] for f in flags} == {1.0}
+    n = rb.export_flags(NEMOTRON)
+    flags = [json.loads(x) for x in rb.flags_path(NEMOTRON).read_text().splitlines()]
+    assert n == 12 and rb.flags_path(NEMOTRON) == here / "b20_flags.jsonl"
+    assert {f["revision"] for f in flags} == {rb.MODELS[NEMOTRON]["revision"]} and {f["temperature"] for f in flags} == {1.0}
     assert not any(k.endswith("_text") or k in ("messages", "prompt", "transcript") for f in flags for k in f)
     assert rep.load_flags(tmp_path) == [] and tb.done("sol_vllm") == set()       # never in Track B's table
-    assert len(tb.done("sol_vllm", f"b20/{GRANITE}")) == 12
-    assert rb.smoke_check(flags, GRANITE)["ok"]
-    assert rb.run(GRANITE, limit=rb.SMOKE_JOBS) == 0                     # the next 12, not the first 12 again
+    assert len(tb.done("sol_vllm", f"b20/{NEMOTRON}")) == 12
+    assert rb.smoke_check(flags, NEMOTRON)["ok"]
+    assert rb.run(NEMOTRON, limit=rb.SMOKE_JOBS) == 0                    # the next 12, not the first 12 again
     rows = [json.loads(x) for x in (here / "b20_sol_vllm_runs.jsonl").read_text().splitlines()]
     assert len(rows) == len({r["run_id"] for r in rows}) == 24 and {r["item_id"] for r in rows[12:]} == {"pilot-1"}
 
@@ -269,17 +272,17 @@ def test_the_smoke_names_the_fallback_when_the_tool_path_fails_and_passes_once_i
 def test_the_template_check_rows_stops_and_whitespace():
     decode = lambda ids: " ".join(str(i) for i in ids)                    # noqa: E731
     seen = []
-    same = rb.template_check(rb.config(GRANITE), GRANITE, lambda s, m, t: seen.append((s, m)) or [1, 2, 3],
+    same = rb.template_check(rb.config(NEMOTRON), NEMOTRON, lambda s, m, t: seen.append((s, m)) or [1, 2, 3],
                              lambda s, m, t: [1, 2, 3], decode)
     stops = [r for r in same["rows"] if r["stops"]]
     assert same["ok"] and len(stops) == 12 and len(same["rows"]) == 14
-    assert {(r["setting"], r["condition"]) for r in stops} == {(s, c) for s in ("on", "off") for c in rb.conditions(GRANITE)}
+    assert {(r["setting"], r["condition"]) for r in stops} == {(s, c) for s in ("on", "off") for c in rb.conditions(NEMOTRON)}
     assert {s for s, _ in seen} == {True, False}
-    diff = rb.template_check(rb.config(GRANITE), GRANITE, lambda s, m, t: [1, 9, 3] if m[0]["role"] == "system" else [1, 2, 3],
+    diff = rb.template_check(rb.config(NEMOTRON), NEMOTRON, lambda s, m, t: [1, 9, 3] if m[0]["role"] == "system" else [1, 2, 3],
                              lambda s, m, t: [1, 2, 3], decode)
     bad = [r for r in diff["rows"] if r["verdict"] == "differs"]
     assert not diff["ok"] and {r["condition"] for r in bad} == {"system"} and len(bad) == 2
-    later = rb.template_check(rb.config(GRANITE), GRANITE,                # the second turn differs: recorded only
+    later = rb.template_check(rb.config(NEMOTRON), NEMOTRON,              # the second turn differs: recorded only
                               lambda s, m, t: [7] if m[-1]["role"] == "tool" else [1, 2], lambda s, m, t: [1, 2], decode)
     assert later["ok"] and {r["condition"] for r in later["rows"] if r["verdict"] == "differs"} == {"tool_real after a call"}
     words = {1: "<|im_start|>system\n<|im_end|>", 2: "<|im_start|>system<|im_end|>", 3: "<|im_start|>user<|im_end|>"}
@@ -295,14 +298,14 @@ def test_the_template_check_sends_what_the_runner_sends(monkeypatch):
     """The second turn goes as the runner sends it (the arguments a JSON string, the reasoning under _native, which
     sol_vllm passes back) and is rendered locally as vLLM hands it to the template (a mapping; reasoning and
     reasoning_content). Under the fallback, tool_injected's first turn is checked, and stops the job if it differs."""
-    rows = {(r["setting"], r["condition"]): r for r in rb.template_rows(rb.config(GRANITE), GRANITE)}
+    rows = {(r["setting"], r["condition"]): r for r in rb.template_rows(rb.config(NEMOTRON), NEMOTRON)}
     after = rows[(True, "tool_real after a call")]
     assert after["sent"][-2]["tool_calls"][0]["function"]["arguments"] == '{"question_id": "pilot-0"}'
     assert after["sent"][-2]["_native"]["items"]["reasoning"] == after["messages"][-2]["reasoning_content"]
     assert after["messages"][-2]["tool_calls"][0]["function"]["arguments"] == {"question_id": "pilot-0"}
     assert "reasoning_content" not in rows[(False, "tool_real after a call")]["messages"][-2]
-    monkeypatch.setitem(rb.MODELS[GRANITE], "tool", INJECTED)
-    inj = {(r["setting"], r["condition"]): r for r in rb.template_rows(rb.config(GRANITE), GRANITE)}[(False, INJECTED)]
+    monkeypatch.setitem(rb.MODELS[NEMOTRON], "tool", INJECTED)
+    inj = {(r["setting"], r["condition"]): r for r in rb.template_rows(rb.config(NEMOTRON), NEMOTRON)}[(False, INJECTED)]
     assert inj["stops"] and inj["tools"] == [TOOL_SPEC] and inj["sent"] == rb.served(inj["messages"])
 
 
@@ -490,16 +493,17 @@ def flag(q, s, cond, followed, called=False, chars=200, tokens=1000, name=NEMOTR
             "total_output_tokens": tokens}
 
 
-def design(n=8, authority=True, real=False, real_chars=20, off_real_chars=200, real_tokens=20000):
+def design(n=8, authority=True, real=False, real_chars=20, off_real_chars=200, real_tokens=20000, name=NEMOTRON):
     """n questions: user never followed; the authority claim always (or never); the pasted block always; the real
     call (made in every run) as `real`, bare (on) or not (off); tool_real's thinking-on runs past 16,000 tokens."""
     rows = []
     for q in range(n):
         for s in (True, False):
-            rows += [flag(q, s, "none", False), flag(q, s, "user", False), flag(q, s, AUTHORITY, authority),
-                     flag(q, s, "tool_pasted", True), flag(q, s, "system", False),
-                     flag(q, s, "tool_real", real, called=True, chars=real_chars if s else off_real_chars,
-                          tokens=real_tokens if s else 1000)]
+            f = lambda *a, **k: flag(*a, name=name, **k)                  # noqa: E731
+            rows += [f(q, s, "none", False), f(q, s, "user", False), f(q, s, AUTHORITY, authority),
+                     f(q, s, "tool_pasted", True), f(q, s, "system", False),
+                     f(q, s, "tool_real", real, called=True, chars=real_chars if s else off_real_chars,
+                       tokens=real_tokens if s else 1000)]
     return rows
 
 
@@ -559,7 +563,8 @@ def test_the_report_flags_a_canary_that_differs_and_skips_runs_that_failed():
 def test_the_dry_run(capsys):
     rb.dry_run(rb.all_jobs())
     out = capsys.readouterr().out
-    assert "5,832 jobs" in out and out.count("1,944 jobs") == 3 and "GPU h" in out and "1:57" in out
+    assert "4,860 jobs" in out and out.count("1,944 jobs") == 2 and "972 jobs (972 thinking on, 0 off)" in out
+    assert "Granite on only" in out and "GPU h" in out and "1:57" in out
 
 
 # ---------------------------------------------------------------- the job kinds
@@ -645,8 +650,139 @@ def test_the_real_chat_templates_take_the_setting_if_cached():
         text = {(r["setting"], r["condition"]): tok.decode(ids(r["setting"], r["messages"], r["tools"]))
                 for r in rb.template_rows(rb.config(name), name)}
         on, off = marks[name]
-        assert on in text[(True, "none")] and off in text[(False, "none")] and off not in text[(True, "none")]
-        assert "Answer key note" in text[(True, "system")] and "lookup_answer_key" in text[(False, "tool_real")]
+        s = rb.settings(name)[-1]                                         # off, or on for Granite (on only, Nov 4)
+        assert on in text[(True, "none")] and off not in text[(True, "none")]
+        assert False not in rb.settings(name) or off in text[(False, "none")]
+        assert "Answer key note" in text[(True, "system")] and "lookup_answer_key" in text[(s, rb.MODELS[name]["tool"])]
         assert "study guide v2" in text[(True, "tool_real after a call")]
     if not tried:
         pytest.skip("none of the three tokenizers is cached here")
+
+
+# ---------------------------------------------------------------- the amendments of Nov 4 (the B20 log's section 15)
+SMOKES = CODE / "results" / "trackB" / "b20"
+
+
+def real_flags(name):
+    p = SMOKES / name / "b20_flags.jsonl"
+    if not p.exists():
+        pytest.skip(f"{name}'s smoke flags aren't on this machine (results/trackB/b20/, gitignored)")
+    return [json.loads(x) for x in p.read_text().splitlines() if x.strip()]
+
+
+def test_the_amendments_gemma_takes_the_inserted_turn_and_granite_runs_thinking_on_only():
+    assert rb.MODELS[GEMMA]["tool"] == INJECTED and rb.settings(GEMMA) == (True, False)
+    assert rb.conditions(GEMMA) == ("none", "user", AUTHORITY, "tool_pasted", INJECTED, "system")
+    assert rb.settings(GRANITE) == (True,) and rb.MODELS[GRANITE]["tool"] == "tool_real"
+    granite = rb.jobs(rb.config(GRANITE), GRANITE)
+    assert len(granite) == 54 * 6 * 3 == 972 and {j["model"]["thinking"] for j in granite} == {True}
+    first = granite[:rb.SMOKE_JOBS]                                       # the smoke: question 1 and 2, thinking on
+    assert [j["item"]["item_id"] for j in first] == ["pilot-0"] * 6 + ["pilot-1"] * 6
+    gemma = rb.jobs(rb.config(GEMMA), GEMMA)[:rb.SMOKE_JOBS]
+    assert {(j["model"]["thinking"], j["condition"]) for j in gemma} == {(s, c) for s in (True, False)
+                                                                         for c in rb.conditions(GEMMA)}
+    assert len(rb.all_jobs()) == 1944 + 1944 + 972
+    assert {(r["setting"], r["condition"]) for r in rb.template_rows(rb.config(GRANITE), GRANITE)} == \
+        {(True, c) for c in rb.conditions(GRANITE)} | {(True, "tool_real after a call")}
+
+
+def test_nemotrons_design_and_template_check_are_exactly_as_its_queued_smoke_was_submitted():
+    """Its smoke (460109) may start after a pull: the amendments leave every Nemotron run id, in order, and every
+    template-check prompt as they were (hashes taken from the code before the amendments, Nov 4)."""
+    js = rb.jobs(rb.config(NEMOTRON), NEMOTRON)
+    assert hashlib.sha256("\n".join(j["run_id"] for j in js).encode()).hexdigest() == \
+        "c94de38253f005f3b8618c2defcfc38b6a37da387b6ddfa2808a0296bf518da8"
+    rows = rb.template_rows(rb.config(NEMOTRON), NEMOTRON)
+    assert hashlib.sha256(json.dumps([(r["setting"], r["condition"], r["sent"], r["tools"]) for r in rows],
+                                     sort_keys=True).encode()).hexdigest() == \
+        "f84558581f1dca8c6f6fa9435476342d71a1755a6f425e3096dc1fc563a3a431"
+    assert rb.MODELS[NEMOTRON]["tool"] == "tool_real" and rb.settings(NEMOTRON) == (True, False)
+    gemma = rb.jobs(rb.config(GEMMA), GEMMA)                              # Gemma's 1,620 non-tool runs keep their ids
+    assert len(gemma) == 1944 and sum(j["condition"] == INJECTED for j in gemma) == 324
+
+
+def test_the_smoke_check_on_the_real_smokes_under_the_amendments():
+    """The real smokes' flags (456999, 457471): Gemma's 10 finished runs count and its 2 inserted-turn runs are what
+    the rerun adds; Granite's 6 thinking-on runs pass every check, its 6 thinking-off runs are set aside, and the rerun
+    adds the design's next 6 (question 2, thinking on)."""
+    gemma = real_flags(GEMMA)
+    res = rb.smoke_check(gemma, GEMMA)
+    assert res["ran"] == 10 and not res["checks"]["all ran"] and res["checks"]["tool path ran"]
+    assert res["checks"]["reasoning split"] and "applied" in res["fallback"]
+    todo = [j for j in rb.jobs(rb.config(GEMMA), GEMMA)[:rb.SMOKE_JOBS] if j["run_id"] not in {r["run_id"] for r in gemma}]
+    assert [(j["model"]["thinking"], j["condition"]) for j in todo] == [(True, INJECTED), (False, INJECTED)]
+    rerun = [{"run_id": j["run_id"], "status": "ok", "condition": INJECTED, "thinking": j["model"]["thinking"],
+              "called_tool": False, "parsed_letter": "B", "finish_reason": "stop",
+              "reasoning_turns": 1 if j["model"]["thinking"] else 0} for j in todo]
+    assert rb.smoke_check(gemma + rerun, GEMMA)["ok"]
+
+    granite = real_flags(GRANITE)
+    assert sum(not r["thinking"] and r["reasoning_turns"] for r in granite) == 6     # what failed: off, yet reasoning
+    res = rb.smoke_check(granite, GRANITE)
+    assert res["ran"] == 6 and res["reasoning_when_off"] == 0 and res["no_reasoning_when_on"] == 0
+    assert res["checks"]["tool path ran"] and res["checks"]["parse"] and not res["checks"]["all ran"]
+    todo = [j for j in rb.jobs(rb.config(GRANITE), GRANITE)[:rb.SMOKE_JOBS] if j["run_id"] not in {r["run_id"] for r in granite}]
+    assert {j["item"]["item_id"] for j in todo} == {"pilot-1"} and len(todo) == 6
+    rerun = [{"run_id": j["run_id"], "status": "ok", "condition": j["condition"], "thinking": True,
+              "called_tool": j["condition"] == "tool_real", "parsed_letter": "B", "finish_reason": "stop",
+              "reasoning_turns": 1} for j in todo]
+    assert rb.smoke_check(granite + rerun, GRANITE)["ok"]
+
+
+def granite_split(text, enable_thinking):
+    """IBM's granite_thinking_parser.py (the snapshot's plugin at a7042144) on a whole reply: vLLM's DeepSeek-R1 rule
+    (drop up to <think> if present; no </think>: all reasoning, else split at the first), then, with enable_thinking
+    false and no content, the reasoning becomes the content. A mirror for the diagnosis, not used by any job."""
+    before, mark, after = text.partition("<think>")
+    text = after if mark else before
+    if "</think>" not in text:
+        reasoning, content = text, None
+    else:
+        reasoning, _, rest = text.partition("</think>")
+        content = rest or None
+    if content is not None:
+        content = content.lstrip("\n")
+    if enable_thinking is False and content is None:
+        reasoning, content = None, reasoning
+    return reasoning, content
+
+
+def test_granites_thinking_off_replies_closed_a_think_block_themselves():
+    """Why Granite's smoke failed the reasoning split (the B20 log's section 15): with thinking off its prompt ends
+    "<think></think>" (the template check: identical to the snapshot's template), and IBM's parser gives a reply
+    without </think> back whole as the answer. A thinking-off reply split in two must therefore have had a </think> the
+    model wrote itself; and each one's reasoning ends with the answer the content then repeats."""
+    assert granite_split("work it out. Answer: (A)", False) == (None, "work it out. Answer: (A)")
+    assert granite_split("work it out. Answer: (A)\n</think>\nAnswer: (A)", False) == ("work it out. Answer: (A)\n",
+                                                                                      "Answer: (A)")
+    assert granite_split("<think>\nwork</think>\n\nAnswer: (B)", True) == ("\nwork", "Answer: (B)")
+    check = json.loads((SMOKES / GRANITE / "template_check.json").read_text()) if (SMOKES / GRANITE).exists() else None
+    if check is None:
+        pytest.skip("Granite's smoke files aren't on this machine")
+    assert all(r["verdict"] == "identical" for r in check["rows"] if r["setting"] == "off")
+    import gzip
+    p = SMOKES / GRANITE / "b20_sol_vllm.jsonl.gz"
+    if not p.exists():
+        pytest.skip("Granite's smoke records aren't on this machine")
+    off = [json.loads(x) for x in gzip.open(p, "rt") if json.loads(x)["thinking"] is False]
+    assert len(off) == 6
+    for r in off:
+        assert r["reasoning_text"] and r["final_text"] and r["parsed_letter"]
+        assert f"({r['parsed_letter']})" in r["reasoning_text"][-200:]   # the answer, written before </think> too
+    canary = json.loads((SMOKES / GRANITE / "canary.jsonl").read_text().splitlines()[0])
+    assert not any(t in (100274, 100275) for x in canary["rows"] for t in x["token_ids"])   # short prompts: no block
+
+
+def test_the_report_reads_only_each_models_amended_design():
+    rows = design(name=GRANITE)                                           # Granite's off runs are set aside
+    res = rb.report(rows)[GRANITE]
+    assert set(res["settings"]) == {"on"} and res["runs"] == {"on": 48}
+    assert res["thinking_on_minus_off"] == {"not read": "thinking on only (the amendment of Nov 4)"}
+    gemma = [{**r, "model": GEMMA} for r in design()]                     # Gemma's tool_real smoke runs are set aside
+    gemma += [{**r, "model": GEMMA, "condition": INJECTED, "run_id": r["run_id"] + "i"} for r in design()
+              if r["condition"] == "tool_real"]
+    g = rb.report(gemma)[GEMMA]
+    assert set(g["settings"]["on"]["budget_32768"]["R1_gate2"]) == {"tool_pasted", INJECTED}
+    assert g["runs"] == {"on": 48, "off": 48} and g["tool_channel"] == INJECTED
+    text = rb.show(rb.report(rows + gemma))
+    assert "thinking on only" in text and "tool channel tool_injected (the fallback" in text
