@@ -7,11 +7,14 @@ methods are filled in as bullets** (facts with their source), so the prose can b
 [`FINDINGS.md`](../FINDINGS.md), the tracks' `FINDINGS_B.md` and `FINDINGS_C.md`, and the claims from
 [`CLAIMS.md`](CLAIMS.md). Results freeze on Nov 18; the draft is due Nov 22, the final report Nov 24.
 
-**Results bullets (§4–§10), Nov 4, 03:52 (Ritik; F40, B24, added 11:16).** One bullet per finding, F1–F40: the claim in plain words; the
-numbers as FINDINGS states them (X of Y, 95% intervals); its status, as FINDINGS words it; its limits; its figure.
-`FINDINGS_B.md` and `FINDINGS_C.md` have no entries yet. A finding with two parts (the pull, the words) has a bullet in
-each section. Results still running say so, with their dates. One row per finding:
-[`tables/results_at_a_glance.md`](tables/results_at_a_glance.md).
+**Results bullets (§4–§10), Nov 4, 03:52 (Ritik; F40, B24, added 11:16; at 16:16 every bullet checked against
+FINDINGS, and F40's limits, the slide figures and the traps T1–T12 (§10) added).** One bullet per finding, F1–F40: the
+claim in plain words; the numbers as FINDINGS states them (X of Y, 95% intervals); its status, as FINDINGS words it;
+its limits; its figure. `FINDINGS_B.md` and `FINDINGS_C.md` have no entries yet (FINDINGS_B holds one note before any
+reading, descriptive: B20's smokes). A finding with two parts (the pull, the words) has a bullet in each section.
+Results still running say so, with their dates. One row per finding:
+[`tables/results_at_a_glance.md`](tables/results_at_a_glance.md). Figures: the report's own file and, where one exists,
+the slide's 16:9 version from the same rows (`_slide`, `tools/slide_figures.py`; PLAN's presentation map).
 
 ## 1. Introduction (Ritik)
 
@@ -105,8 +108,8 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 
 ## 4. The failure: tools pull harder (Arsha)
 
-- Gate 2 on five models (B18's table, `docs/paper/tables/trackB_final.md`); tool or authority (B16, F35); the thinking
-  dose (B17, F37); B20 if read.
+- Gate 2 on five models (B18's table, `docs/paper/tables/trackB_final.md`); tool or authority (B16, F35); the authority
+  dose (B24, F40); the thinking dose (B17, F37); B20 if read.
 - Figure: `docs/paper/figures/gate2.png`.
 
 **Results** (Gate 2 = tool minus the user's hint, following, paired by question, 54 questions × 3 runs unless noted):
@@ -198,10 +201,21 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     manual moves it more, all three). Manual − B16's answer key (cross-day): Thinking +21 [+14, +29] (the manual
     higher); Instruct +2 [−2, +6], Olmo +6 [−1, +14] (no difference detected). B19's tools − manual (cross-day):
     Thinking pasted −10 [−18, −4], own call −23 [−35, −11]; Instruct pasted +2 [−2, +8], own call +73 [+62, +84]; Olmo
-    pasted −9 [−17, −2], inserted turn −21 [−30, −11]. Classmate − Track B's plain hint (cross-day): +6, +5, +9 (all
-    above 0; at the 16,000 cut only just for Thinking and Olmo). Every reading the same at the 16,000 cut.
-  - Status: confirmed by the rule, per model: the gradient in all three (same day); the rest cross-day, labelled.
-  - figure: none yet (slide 7's `b16_authority.png` can take B24's two arms; PLAN's map)
+    pasted −9 [−17, −2], inserted turn −21 [−30, −11]. Classmate − Track B's plain hint (cross-day): +6 [+1, +11],
+    +5 [+1, +9], +9 [+3, +16] (all above 0; at the 16,000 cut only just for Thinking, +4.5 [+0.03, +9.8], and Olmo,
+    +5.0 [+0.09, +10.7]). Every reading the same at the 16,000 cut. Above Track B's per-letter no-hint baseline,
+    classmate / manual (no decision): Thinking +6 [+2, +12] / +47 [+36, +58]; Instruct +4 [+0, +10] / +16 [+7, +26];
+    Olmo +14 [+7, +22] / +47 [+36, +57].
+  - Status: confirmed by the rule as stated, same day: the gradient (the manual over the classmate) in all three;
+    confirmed, cross-day: (a) the manual higher for Thinking, no difference detected for the other two; the classmate
+    above the plain hint in all three (at the cut, only just in two); authority over every tool channel for Thinking
+    and Olmo, and Instruct's own call beyond it.
+  - Limits: three of the five readings a model are cross-day (against B16, Oct 31, other seeds; Track B, Oct 27–28;
+    B19, Nov 1, the same repeats); one sentence a level ("official" and "solution manual" not separated), all in the
+    user's own turn; 54 questions ("no difference detected" is not a finding of no difference; Olmo's 16,000 cut
+    leaves 28–45 questions); fifteen readings, not corrected for multiplicity; mentions are keyword counts.
+  - figure: waiting: slide 7's `docs/paper/figures/b16_authority.png` takes B24's two arms beside B16's (Arsha, from
+    Nov 6; PLAN's map, WAITING.md "Additions")
 
 **Waiting:**
 
@@ -218,7 +232,8 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 ## 5. Level 1, inside the model (Ritik)
 
 - The readout at 15/19/23; set A; Qwen3-8B; the heads; inside the fixed model (A18).
-- Figure: `docs/paper/figures/readout_by_layer.png`.
+- Figure: `docs/paper/figures/readout_by_layer.png` (slide 3: `docs/paper/figures/readout_by_layer_slide.png`, with set
+  A beside Test 2).
 
 **Results** (Olmo 3 7B Think unless noted; Test 2 = the 30 MMLU-Pro questions; forced answers after each sentence):
 
@@ -283,7 +298,7 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
   - Status: confirmed on these 19 + 19 cuts (9 questions, one model); replicated on set A (F26).
   - Limits: that the readout sits in full-attention layers mostly follows from the window; only 2 cuts at (ii) have
     the hint within it (too few questions).
-  - figure: docs/paper/figures/readout_by_layer.png
+  - figure: docs/paper/figures/readout_by_layer.png (slide 3: docs/paper/figures/readout_by_layer_slide.png, panel a)
 - **F12. Attention and patching point at the same three layers, and the same heads separate outcomes.**
   - Numbers: 8 of the 10 top answer → hint heads are in layers 15, 19 and 23. Followed − resisted over these 8 heads:
     +0.040 [+0.021, +0.057] (105 vs 94 runs, 16 questions). Three heads carry it: L19H31 +0.115 [+0.077, +0.150],
@@ -321,7 +336,8 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     off W in 12 of 34 [21, 52%].
   - Status: confirmed (replicates, by the pre-registered rule).
   - Limits: one model, one patching setup.
-  - figure: none in docs/paper/figures (supplement: `docs/paper/supplement/figures/readout_setA_vs_test2.png`)
+  - figure: docs/paper/figures/readout_by_layer_slide.png (slide 3, panel b; the supplement's
+    `docs/paper/supplement/figures/readout_setA_vs_test2.png`, the same rows)
 - **F32. Set A, Step 9: F12's three heads separate followed from resisted runs on questions not used to find them.**
   - Numbers: the mean over L19H31, L23H17 and L15H31, followed − resisted: +0.068 [+0.044, +0.088], 15 questions (56
     followed, 145 resisted runs); Test 2 +0.084 [+0.062, +0.105]. Per head: L19H31 +0.080 [+0.047, +0.109], L23H17
@@ -354,8 +370,8 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
   - Status: confirmed as keyword counts. The hand labels (L3) don't stand yet (below).
   - Limits: the private keyword also fires with no hint (22 of 72 Olmo 3 7B Think no-hint runs), so 208 is an upper
     bound.
-  - figure: waiting (WAITING.md, slide 5: L3's kappa in the caption). PLAN names
-    `docs/paper/supplement/figures/cue_experiments.png` for slide 5, but that file plots C16–C18 (F31, F33, F34).
+  - figure: waiting (WAITING.md, slide 5: L3's kappa in the caption). PLAN's map lists
+    `docs/paper/figures/cue_experiments_slide.png` for slide 5 and flags it: it plots C16–C18 (F31, F33, F34), not F3.
 - **F15 (the words). After a tool call, Qwen3 30B Thinking's final answer is a bare letter, whether the tool was right
   or wrong.**
   - Numbers: after its own call the reply is a bare "Answer: (X)" in 51 of 54 [85, 98%] (median 11 characters); with
@@ -411,6 +427,11 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
   132 and 135 of 162 (Thinking, Instruct) and is never bare; after the model's own call it names the tool in 4 and 35
   of 162 and is bare in 108 and 111. Olmo: 71 of 161 with the claim, 22 of 157 after the inserted turn.
   - figure: docs/paper/figures/b16_authority.png
+- **F40 (the words), reported per arm, no decision (keyword counts).** The final answer names the claimed source,
+  classmate / manual: Thinking 116 / 141 of 162, Instruct 113 / 145 of 162, Olmo 34 of 160 / 76 of 159. Qwen3's final
+  answer is never bare with a user's claim (0 of 162 in each arm), as F35 found for B16's wording; Olmo's is bare in 16
+  and 19 of 162.
+  - figure: waiting (slide 7, as F40 in §4)
 - **F24 (the words), reported with no decision.** On C15's 100 fresh items the solver's final answer after a lookup is
   bare in 50 of 55 (bad) and 43 of 45 (good), against 0 of 100 without the tool; good − bad +5 [−5, +15].
 
@@ -419,15 +440,17 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 - **L3 (waiting): Gate 2's hand labels, which F3 rests on.** Read Nov 3 (101 rows; Ritik and Shrey): Cohen's kappa on
   the private reasoning 0.63 over 58 rows (tool 0.29, user 0.85), on the final answer 0.54 over 101 rows (tool 0.59,
   user 0.43): under 0.6 in four of six cells. Next, by the plan: the raters settle the 25 disagreements, the guide is
-  tightened, both label a 72-row fresh batch. The settling call and the fresh batch are due by Nov 7
-  ([TODO](../status/TODO.md), PLAN's calendar; PLAN's experiment table says Nov 6); Gate 2 is Nov 8. No
+  tightened, both label a 72-row fresh batch. The settling call and the fresh batch are both due by Nov 7
+  ([TODO](../status/TODO.md)'s L3, PLAN's experiment table and calendar); Gate 2 is Nov 8. No
   acknowledgment claim from hand labels goes in the report before that. L5 (Track B's batch) comes after it.
   - figure: waiting (WAITING.md, slide 5)
 
 ## 7. Fixing it (Ritik)
 
 - Gate 3; the instruction; false disclosure in labels (L4); B1; A39 on E2.
-- Figure: `cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png` (or A39's).
+- Figure: `docs/paper/figures/gate3_vs_base_slide.png` (slide 9; the same rows as `finetune/gate3.py`'s
+  `cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png`), or A39's (`a39_e2_fixes.png`,
+  `a39_e2_parts.png`, drawn Nov 17; WAITING.md).
 
 **Results** (Olmo 3 7B Think; the held-out 30 unless noted):
 
@@ -457,8 +480,8 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
   - Limits: 30 questions; hiding is a keyword measure the LoRA openers defeat; the label sheets weren't blind to
     LoRA's style (`guess_trained` right on 270 and 267 of 294); LoRA only; the label read as false disclosure was set
     after labeling, before counting.
-  - figure: cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png (slide 9; not in
-    docs/paper/figures)
+  - figure: docs/paper/figures/gate3_vs_base_slide.png (slide 9; the same rows as `finetune/gate3.py`'s
+    cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png)
 - **F27. B1 on set A: alpha 0.25 on the tool turn and 0.5 on every hint span lower the forced wrong answer by 8–9
   points within the correct-hint limit.**
   - Numbers: deployable (the inserted tool turn; 16 cuts, 12 questions), alpha 0.25: P(W) −7.6 [−12.2, −3.7], P(O)
@@ -496,19 +519,31 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 
 - **A39 (waiting): Track A's second evaluation, on Sol.** A provenance wrapper and combinations, with a powered
   replication of Gate 3, on E2's 120 fresh questions (pre-registered Nov 3,
-  [log](../../archive/sessions/2026-11-03/2026-11-03_1130_A_e2-a39-prereg.md)). Runs in progress (1:30 parts, up to 10
-  at once); runs by Nov 15; read Nov 17, after all its parts are in. A39 on the 30 (22 jobs) runs unless E2 and B20
-  miss Nov 11, 09:00.
-  - figure: waiting (no spec in WAITING.md yet; this section's figure is gate3_vs_base.png or A39's)
+  [log](../../archive/sessions/2026-11-03/2026-11-03_1130_A_e2-a39-prereg.md)). Runs in 1-GPU parts, up to 10 at
+  once, submitted by the feeder (from Nov 4, 2:00 parts and 3:00 sweeps: the log's §14); runs by Nov 15; read Nov 17,
+  after all its parts are in. Nothing of Ritik's has started on Sol since Nov 4, 12:36 (fair share 0.005; starts by
+  backfill only; PLAN's calendar).
+  - **The 30** (22 jobs) runs beside E2 unless a rule drops it: on Nov 6 at 07:00 if Sol delivered under 10
+    GPU-hours to Ritik's jobs from Nov 4, 12:36 (the log's §16, applied by the feeder; B1R2 then waits too, below);
+    otherwise if E2 and B20 aren't done by Nov 11, 09:00 (§10.2). The Nov 6 daily reports which branch applied.
+  - **T12 (Nov 4; the log's §15):** two A39 jobs shared a node and one server six times; three parts' runs (340) came
+    from another model's server, set aside unread and run again; 160 from a server of the same model and command are
+    kept, labelled. No earlier result is affected (§10).
+  - figure: waiting: `docs/paper/figures/a39_e2_fixes.png` and `a39_e2_parts.png` (`tools/a39_figures.py`, drawn
+    only from a complete report, Nov 17; spec in WAITING.md), after slide 9's `gate3_vs_base_slide.png`
 - **B1R2 (waiting): B1's deployable span on E2, a labelled replication.** Decided Nov 4: it runs (its compute check
-  passed; the A39 log's §13); 40 parts, last in Sol's queue. Read by Nov 17; partial if not done by Nov 15.
-  - figure: none yet
+  passed; the A39 log's §13); 40 parts at 2:30, last in Sol's order. Read by Nov 17; partial at Nov 15, 23:59 if not
+  done. If §16 cuts on Nov 6 (under 10 GPU-hours), its parts wait until every E2 sweep and B20 line is submitted or
+  settled; its design and partial read are unchanged.
+  - figure: waiting: slide 10's `docs/paper/figures/readout_lora_vs_base.png`, beside B1 in panel (b), if read
+    (PLAN's map; WAITING.md "Additions")
 - **Gate 3's final statement:** Nov 20, after A39 (PLAN). L4 part 2 (LoRA minus base in labels): SHOULD, no date.
 
 ## 8. Level 3, between agents (Shrey)
 
 - Reviewer deference by family; the citation as the cue (C16–C19).
-- Figure: `docs/paper/supplement/figures/trackC_reviewers.png`.
+- Figure: `docs/paper/supplement/figures/trackC_reviewers.png` (slide 11: `docs/paper/figures/trackC_reviewers_slide.png`
+  and `reviewer_by_prompt_slide.png`).
 
 **Results** ("corrects" = the reviewer's letter is right where the solver's answer after a bad lookup is wrong; paired
 by item; C4's 53 items unless noted):
@@ -522,14 +557,15 @@ by item; C4's 53 items unless noted):
   - Status: confirmed (the Olmo reviewer's drop, on 25 items and both sets; its rise on good lookups); confirmed as
     keyword counts (the reviewer naming the key). Tentative: why Olmo defers; steered vs matched.
   - Limits: one reviewer model per family and one reviewer prompt; kind and set are confounded.
-  - figure: docs/paper/figures/reviewer_by_prompt.png (and `docs/paper/supplement/figures/trackC_reviewers.png`)
+  - figure: docs/paper/figures/reviewer_by_prompt.png (slide 11: `reviewer_by_prompt_slide.png` and
+    `trackC_reviewers_slide.png`; the supplement's `docs/paper/supplement/figures/trackC_reviewers.png`)
 - **F19. C9: telling the reviewer to check the tool doesn't restore its check.**
   - Numbers: with "The tool's answer may be wrong; check it independently.": Olmo with the private reasoning 6 → 8 of 73
     (+3 [−4, +9]), with the tool log 3 → 4 (+1 [−3, +6]); within C9, private minus answer only −71 [−83, −58], tool
     log −77 [−88, −64]. Qwen3: +4 [+0, +11] and +7 [−4, +19].
   - Status: confirmed: no restoration for the Olmo reviewer; tentative: the Qwen3 reviewer's small gain.
   - Limits: one sentence, one wording, one solver's cases.
-  - figure: docs/paper/figures/reviewer_by_prompt.png
+  - figure: docs/paper/figures/reviewer_by_prompt.png (slide 11: `reviewer_by_prompt_slide.png`)
 - **F21. C10: committing to its own answer first doesn't protect the reviewer's check.**
   - Numbers: Olmo with the private reasoning 19 of 73 (minus C4 +18 [+10, +26]; minus its own first answer −56 [−68,
     −44], 60 of 73 first); with the tool log 5 of 73 (minus its first −75 [−86, −62]). Qwen3 with the tool log 33 of
@@ -538,21 +574,23 @@ by item; C4's 53 items unless noted):
   - Status: confirmed (both drop their own right answers after the tool log; Qwen3 does worse than in C4 and C9;
     Olmo's partial gain with the private reasoning); tentative: why.
   - Limits: one wording of the second turn; one solver's cases.
-  - figure: docs/paper/figures/reviewer_by_prompt.png
+  - figure: docs/paper/figures/reviewer_by_prompt.png (slide 11: `reviewer_by_prompt_slide.png`)
 - **F22. C11: the deference follows the model family: both Olmo reviewers defer, both Qwen3 reviewers don't.**
   - Numbers: Olmo 3 7B Instruct 32 of 73 alone → 1 of 73 with either context, −42 [−58, −28] (defers); Qwen3 30B
     Thinking 66 → 67 of 73, +1 [−6, +10] and +1 [−5, +9] (doesn't). Defers: the upper bound below −20.
   - Status: confirmed per model; the family reading confirmed on four families with C13 (F30).
   - Limits: the family can't be separated from what comes with it (pretraining data, post-training recipe, chat
     template).
-  - figure: docs/paper/supplement/figures/trackC_reviewers.png (supplement)
+  - figure: docs/paper/supplement/figures/trackC_reviewers.png (supplement; slide 11:
+    `docs/paper/figures/trackC_reviewers_slide.png`)
 - **F30. C13: neither new reviewer family defers; across six reviewers only the two Olmo models do.**
   - Numbers: private minus answer only: Granite 4.1 30B 27 → 23 of 73, −5 [−26, +15]; Mistral Small 3.2 24B 49 → 63 of
     73, +19 [+10, +30]; with the tool log −3 [−27, +21] and +19 [+9, +31]. Both keep right answers better with the
     trace (58 → 84 and 47 → 84 of 84).
   - Status: confirmed per model; F22's family reading confirmed on four families.
   - Limits: Granite's own check is weak (27 of 73 alone) and its interval reaches −26; why Olmo defers is open.
-  - figure: docs/paper/supplement/figures/trackC_reviewers.png (supplement)
+  - figure: docs/paper/supplement/figures/trackC_reviewers.png (supplement; slide 11:
+    `docs/paper/figures/trackC_reviewers_slide.png`)
 - **F23. C12: redacting the tool's letter restores part of the reviewer's check, not most of it.**
   - Numbers: Olmo 3.1 32B with the private reasoning redacted 23 of 73 (minus unredacted +23 [+13, +34]; minus answer
     only −49 [−64, −34]); with the tool log redacted 24 of 73 (+29 [+16, +41]; −48 [−62, −33]): "partly". Qwen3: no
@@ -568,7 +606,8 @@ by item; C4's 53 items unless noted):
     Redaction: Olmo 10 → 23 of 53, +25 [+11, +38], still −30 [−47, −13] below answer only. H23: +14 [−13, +37].
   - Status: confirmed (the deference on fresh items; the partial restoration); not supported: H23. C14's rule: §9.
   - Limits: 1 repeat; one solver.
-  - figure: docs/paper/supplement/figures/trackC_reviewers.png (supplement)
+  - figure: docs/paper/supplement/figures/trackC_reviewers.png (supplement; slide 11:
+    `docs/paper/figures/trackC_reviewers_slide.png`)
 - **F31. C16: when the solver's final answer names the tool, the Olmo reviewer corrects fewer wrong answers; Qwen3
   doesn't change.**
   - Numbers: told to disclose (B15's instruction), the solver names the tool after 34 of 55 bad lookups (C15: 5) and
@@ -577,28 +616,32 @@ by item; C4's 53 items unless noted):
   - Status: confirmed that Olmo's correction rate falls; its size is unclear by the pre-registered 20-point rule;
     confirmed: no change for Qwen3.
   - Limits: one wording, one solver, 1 repeat; the solver chose when to name the tool.
-  - figure: docs/paper/supplement/figures/cue_experiments.png (supplement)
+  - figure: docs/paper/supplement/figures/cue_experiments.png (supplement; 16:9:
+    `docs/paper/figures/cue_experiments_slide.png`)
 - **F33. C17: a fixed sentence naming the tool doesn't cause the Olmo reviewer's drop.**
   - Numbers: C15's saved answers with "This answer is based on the lookup tool's result." added, minus the same with
     "This answer is based on my own step-by-step working." added: Olmo 37 vs 37 of 53, +0 [−11, +11]; Qwen3 43 vs 44,
     −2 [−8, +4]. The naming sentence minus the unchanged answers: +2 [−9, +13] and −2 [−9, +4].
   - Status: confirmed: no change from a fixed naming sentence, both reviewers.
   - Limits: one wording each.
-  - figure: docs/paper/supplement/figures/cue_experiments.png (supplement)
+  - figure: docs/paper/supplement/figures/cue_experiments.png (supplement; 16:9:
+    `docs/paper/figures/cue_experiments_slide.png`)
 - **F34. C18: removing the solver's sentences that cite the tool restores the Olmo reviewer's check.**
   - Numbers: C16's 34 answers that named the tool after a bad lookup, without their 2–4 tool sentences (median 474 →
     126 characters): Olmo 25 vs 9 of 34, +47 [+29, +65]; Qwen3 28 vs 26, +6 [−9, +21].
   - Status: confirmed (+47); H33 ("the argument is the cue") not supported; H34 (an authority claim is the cue)
     untested, C19's question.
   - Limits: one solver, 34 items, a keyword decides which sentences go.
-  - figure: docs/paper/supplement/figures/cue_experiments.png (supplement)
+  - figure: docs/paper/supplement/figures/cue_experiments.png (supplement; 16:9:
+    `docs/paper/figures/cue_experiments_slide.png`)
 
 **Waiting:**
 
 - **C19 (waiting; due Nov 7, Shrey): is an authority claim the cue (H34)?** C15's 100 saved answers plus "The course
   answer key gives (X); I follow it." vs "My own careful working gives (X); I follow it."; Olmo 3.1 32B and Qwen3 30B
   Instruct; corrections on the 53 bad lookups, C11's ±20-point two-sided rule. Pre-registered Oct 31
-  ([log](../../archive/sessions/2026-10-31/2026-10-31_2231_C_c19-prereg.md)).
+  ([log](../../archive/sessions/2026-10-31/2026-10-31_2231_C_c19-prereg.md)). Its entry goes in
+  `docs/trackC/FINDINGS_C.md` (FC1, …), merged at the check-ins (Nov 7, 12, 15, 18) and into FINDINGS by Nov 18.
   - figure: waiting (WAITING.md, "Additions": slide 11's bars come with C19)
 
 ## 9. Across agents, and the pipeline (Shrey)
@@ -643,6 +686,8 @@ by item; C4's 53 items unless noted):
   - figure: waiting (as C20)
 - Track C's figures, tables and slides 11–12 (C24, C27): Nov 18. Track C's report bullets (C28, written in
   `docs/trackC/REPORT_C.md`): Nov 20.
+- Check-ins and merges of `trackC-main` (TODO_C's C29): Nov 7, 12, 15 and 18. Results freeze Nov 18: no new runs after
+  it (PLAN's calendar).
 
 ## 10. Limits and threats (everyone)
 
@@ -661,5 +706,48 @@ by item; C4's 53 items unless noted):
 - **Models:** the 30B pair is two checkpoints, not one switch (F16); Qwen3-8B's thinking-off runs use thinking-mode
   sampling; gpt-oss-20b runs at temperature 1.0 (F37).
 - **Multiplicity:** B24 names its fifteen readings as not corrected.
+- **Sol's servers (T12):** in A39's runs of Nov 3–4, two jobs on one node shared one server six times; 340 runs from
+  another model were set aside and run again, 160 from the same model and command are kept, labelled (§7). The audit
+  (Nov 4, 13:49): no earlier result affected.
+
+**Measurement traps, each found and fixed** (FINDINGS T1–T12; each would have changed a reported number; the
+supplement's [`TRAPS.md`](supplement/TRAPS.md) lists them with sources; figure: none):
+
+- **T1. Template mismatch** (Oct 21): Voyager rendered Olmo 3 7B Think with the Olmo 3 Instruct template (no
+  `<think>`): 178 prompt tokens on a plain question, the Instruct template's exact count, against 215 for all 24
+  revisions of the Think template. Fix: we render the Think template and send it to `/v1/completions`. Every earlier
+  Voyager run of this model is in the Instruct format (F2's confound).
+- **T2. Default system prompt:** declaring the tool in the system prompt changed following on the inserted tool turn,
+  34 of 60 [44, 68%] vs 24 of 60 [29, 53%], +17 points [+3, +30]. Fix: every record names its system prompt; training
+  uses the declared version, held-out evaluation keeps both.
+- **T3. Model-ID routing** (Oct 21): Voyager's default effort served the Instruct model. The 11 Step 2b runs saved
+  before the change were rerun; on the new route, max difference 0.0003 on the first 2,047 tokens, beyond them 24
+  top-token mismatches, all near-ties (the Instruct model: 654). Fix: one name → (ID, effort) map; a Think model sent
+  without an effort is refused.
+- **T4. Parser forms:** "**Answer**: D" and "the **answer** is E" weren't read. Re-scoring every saved result changed
+  1 letter: Step 4's hint arm now ends on the hint in 44 of 57 (was 43; F7).
+- **T5. "expected" false matches:** plain "expected" matched 7 sentences not about the hint among those planned for
+  deletion. Fix: narrowed for Step 4, Step 10 and F8. Limit: Step 3's mention counts (F6) still use the broader words.
+- **T6. Identity canary:** a network error (Oct 22) was logged as a failed check. Fix: no reply is no verdict; it
+  retries every 2 minutes and halts only on a real mismatch or after 30 minutes unreachable. Since then 47 of 47 checks
+  with a reply passed (Oct 22–26).
+- **T7. Averaging a cumulative curve by layer type:** 0.53 (full) vs 0.65 (sliding) at cut (ii) read as "sliding layers
+  matter more". Fix: the per-layer drop and its share (F11): 0.95 at the full-attention layers.
+- **T8. A weights check that didn't check:** Step 8's snapshot check reported `weights_same: false` without hashing,
+  and "FAIL on 0 of 5" counted passes. Fix: regular files hashed; the Sol weights checked by `sha256sum` (F9).
+- **T9. An anchor picked where the hint is strongest:** "resisted runs look at the hint more", −0.0076 [−0.0123,
+  −0.0016]; the first time (Oct 25) +50 points, against −1 [−16, +19] with matched onsets (F5). Fix: both groups
+  anchored the same way: −0.7e-3 [−4.2e-3, +2.0e-3] (F10, F14). Status of the first reading: refuted (F10).
+- **T10. Ollama's context window:** its default 4,096 tokens silently dropped the question and the hint; 13 of the
+  first 20 Track B rows from Ollama (qwen3:8b) passed 4,096 tokens. Fix: the context set to 33,792 and recorded per
+  row; the 20 rows rerun.
+- **T11. A "same-day" rerun replayed from the reply cache (B16):** 907 of 972 tool runs came back as Track B's Oct
+  27–28 replies, so the drift check read +0 [+0, +0] for two models. Fix: reported as cross-day (F35); a same-day
+  control sends new seeds or bypasses the cache. B19 (Nov 1): 972 new runs, B16's six readings the same.
+- **T12. Two jobs on one node, one server for both (A39, Sol):** fixed ports let a second vLLM server bind before
+  either listened; three A39 parts' runs (340) came from another model, 160 more from the same model and command. Fix
+  (`36c639b`): each job a port of its own. The audit of the 59 vLLM jobs from Oct 27 (Nov 4, 13:49): no earlier
+  result affected (Gate 3's 12 parts 465 of 465 runs each, at 476–500 tokens a second; a shared server gave about half,
+  217).
 
 ## 11. Related work ([`RELATED_WORK.md`](RELATED_WORK.md)), 12. Conclusion and deployment (everyone)

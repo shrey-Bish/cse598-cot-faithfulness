@@ -1,6 +1,6 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-11-04 11:17 MST (B24 read: F40; B20's second amendment, §16; A39's parts at 2:00, its log's §14; earlier Nov 4: B20 amended after its first smokes, §15 of its log; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
+Last updated: 2026-11-04 16:38 MST (Gate 2's statement; the presentation map and the submission checklist; the 30's Nov 6 and Nov 11 rules applied by the feeder, the A39 log's §16 and §17; earlier: B24 read: F40; B20's second amendment, §16; A39's parts at 2:00, its log's §14; earlier Nov 4: B20 amended after its first smokes, §15 of its log; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
 **Edited by:** Ritik. History: `git log -- docs/PLAN.md`; the Oct 31 version and the per-track design notes that
 were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`](../archive/superseded/PLAN_2026-10-31.md). Where things are:
 - progress: [`STATUS.md`](status/STATUS.md);
@@ -122,7 +122,7 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 |---|---|---|---|---|
 | Oct 31–Nov 3 | A37 done (Nov 1); B1 read (Nov 3); A38 dropped; E2 and A39 pre-registered | B16, B19 done; B17 done (Nov 3) | C19, C25, C20, C26 prepared and dry-run; Shrey's workspace (Nov 3) | L3 and L4 part 1 in (Nov 3) |
 | Nov 3 | A18 read (F39); the bench done; 9 A39 parts queued | B20's downloads done | **final handoff** (START_HERE's Quick start) | the label deadlines set: Nov 7 |
-| Nov 4 | the 9 queued parts end (7 started Nov 3 evening; the last 2 as GPU-minutes free); then, as places free, B20's smokes and runs, E2's 28 sixteenths and the 15 fifths, 1:30 each, up to 10 at once (the Nov 4 log; the feeder from 03:20); one port for every job found and fixed, 340 runs from another model's server set aside (the A39 log's §15) | B20's first smokes: Granite and Gemma amended (§15), Nemotron (§16); **B24 on Voyager** (03:38–11:12), **read (F40)** | setup (Nov 4); C19 | L3: the settling call |
+| Nov 4 | the 9 queued parts end (7 started Nov 3 evening; the last 2 as GPU-minutes free); then, as places free, B20's smokes and runs, E2's 28 sixteenths and the 15 fifths, 1:30 each, up to 10 at once (the Nov 4 log; the feeder from 03:20); one port for every job found and fixed, 340 runs from another model's server set aside (the A39 log's §15) | B20's first smokes: Granite and Gemma amended (§15), Nemotron (§16); **B24 on Voyager** (03:38–11:12), **read (F40)** | setup (Nov 4); C19 | L3: the settling call (not held Nov 4; it and the fresh batch by Nov 7) |
 | Nov 5–7 | the quarters' leftovers (28 sixteenths) and the sweeps; **E2 and B20 done (projected about Nov 7 at the last 24 hours' pace, Nov 10 at half; nothing ran from Nov 4 12:36, first start estimated Nov 5 06:25: our fair share is 0.005 against others' up to about 0.9, so we start only by backfill; the A39 log's §15, FINDINGS T12)**; A39 on the 30 (22 jobs; about Nov 8); **B1R2's 40 parts (projected about Nov 9–10; Nov 14 at half the pace)** | **Handoff to Arsha, Nov 6**; B20's second smokes and runs (projected done Nov 6–7: the smokes' runs were about twice the dry run's length); B24 re-read from the bundle (read Nov 4) | **C19; check-in and merge (Nov 7)** | **L3's fresh batch (Nov 7)** |
 | Nov 8–12 | room for reruns; the 30's rule on Nov 11 09:00 (no effect if E2 and B20 are done), unless the 30 was dropped on Nov 6 07:00 by the A39 log's §16 (under 10 GPU-hours from Nov 4 12:36; B1R2 then held until E2's sweeps and B20's lines are in) | **check-in and merge (Nov 12)** | **C25; check-in and merge (Nov 12)** | **Gate 2 (Nov 8)** |
 | Nov 13–18 | runs end Nov 15; A39 read Nov 17 | B20 read (Nov 17); B18's table and figure (Nov 18); **check-ins Nov 15, 18** | **C20, C26 (Nov 15); C24 and slides 11–12 (Nov 18); check-ins Nov 15, 18** | the report from Nov 10 |
@@ -138,7 +138,26 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 - **Gate 2 (Nov 8).** Is the tool-vs-user gap still clear with 3 runs per question and more models (Track B)?
   Answered: clear for all five models (B9; gpt-oss-20b at every effort, F37). And are the hand labels in, with Cohen's
   kappa per channel? L3: both sheets in Nov 3, kappa under 0.6 in four of six cells, so the label part isn't passed yet
-  (settle, tighten the guide, a fresh batch; F3). If the gap isn't clear, the headline becomes the private-vs-final gap, the mechanism (Track A) and the agent
+  (settle, tighten the guide, a fresh batch; F3).
+  - **The statement, as of Nov 4, 16:38 (filled in on Nov 8).**
+    - **The tool-vs-user gap is answered:** clear for all five models (B9; F15–F17, F29; gpt-oss-20b at every effort,
+      F37).
+    - **The hand labels aren't passed yet.** On the original independent sheets (L3, read Nov 3; they stay the record),
+      Cohen's kappa is under 0.6 in four of six cells:
+      - the private reasoning: 0.627 overall, 0.288 on tool runs, 0.850 on user runs;
+      - the final answer: 0.543, 0.589 and 0.425.
+    - Shrey's Nov 4 "final" sheets carry Ritik's labels on the 25 disagreement cells. So they are his input for the
+      settling call, not settled labels.
+    - **Left, all by Nov 7:**
+      - the call (Ritik and Shrey; `results/labels/L3_call_sheet_20261104.md`);
+      - the guide tightened from the call's rules, which Ritik approves;
+      - the 72-row fresh batch (seed `L3-fresh-20261103`), labeled by both raters with that guide;
+      - its kappa per cell.
+    - **On Nov 8, fill in:**
+      - the fresh batch's kappa, private ___ / ___ / ___ and final ___ / ___ / ___ (all / tool / user);
+      - every cell at 0.6 or more: passed / not passed;
+      - if not passed, F3 stays a keyword count and no acknowledgment claim rests on hand labels.
+    - L4 part 1 (Gate 3's labels, kappa 0.930) is not part of Gate 2. If the gap isn't clear, the headline becomes the private-vs-final gap, the mechanism (Track A) and the agent
   results.
 - **Gate 3 (Nov 20), its final statement.** Does a trained version follow fewer wrong hints on held-out questions
   without losing accuracy? Success:
@@ -160,18 +179,25 @@ SVG, and a CSV of every plotted number). A `_slide` file is the 16:9 version of 
 rows (the report and the supplement keep their own). "Waiting" marks a result not in yet: its spec is in
 [`docs/paper/figures/WAITING.md`](paper/figures/WAITING.md), and nothing is drawn from it until it arrives.
 
+**Nov 4, 16:20:** 10 slides made (1–4, 6–11), 2 waiting (5: L3; 12: C25, C20, C26), slide 13 written Nov 21–22.
+Five made slides still wait on a later result (2: B20; 7: B24's two arms; 9: A39, in figures of its own; 10: B1R2;
+11: C19). Every made figure was regenerated by its script at 16:14 (`tools/slide_figures.py`,
+`tools/paper_figures.py`): PNGs and CSVs byte-identical, so no number changed. The report's own three
+(`readout_by_layer`, `reviewer_by_prompt`, `taught_loss`, from `tools/paper_figures.py`) keep the report's palette, not
+this style; `taught_loss` (F20) has no 16:9 version.
+
 | # | slide | figure (in `docs/paper/figures/`) | status | waits on | owner |
 |---|---|---|---|---|---|
 | 1 | **Where did that answer come from?** The question and the three levels | `three_levels.png` (a diagram, no data) | made Nov 1 | — | Ritik |
 | 2 | **Tools pull harder than users.** Gate 2 on five models (F15–F17, F29, F37) | `gate2.png` (B18's rows) | made Nov 3 | B20, added if read (read Nov 17); final by Nov 20 | Arsha |
 | 3 | **Level 1: three layers read the tool's letter.** F11, replicated on set A (F26); the heads (F12, F32) | `readout_by_layer_slide.png` (the report's `readout_by_layer` and the supplement's `readout_setA_vs_test2`) | made Nov 4 | — | Ritik |
 | 4 | **Level 1 on a second model.** Qwen3-8B (A37; F36: replicates) | `readout_qwen8b.png` | made Nov 1 | — | Ritik |
-| 5 | **Level 2: the private reasoning names it, the final answer doesn't** (F3, with L3's kappa) | listed: `cue_experiments_slide.png` (the supplement's `cue_experiments`); it shows C16–C18 (F31, F33, F34), not F3 | waiting | L3's settled labels (kappa under 0.6 on Nov 3; the settling call Nov 4, the fresh batch Nov 7); F3 stays a keyword count until then | Ritik and Shrey |
+| 5 | **Level 2: the private reasoning names it, the final answer doesn't** (F3, with L3's kappa) | listed: `cue_experiments_slide.png` (the supplement's `cue_experiments`); it shows C16–C18 (F31, F33, F34), not F3 | waiting | L3's settled labels (kappa under 0.6 on Nov 3; the settling call and the 72-row fresh batch both by Nov 7; Gate 2 Nov 8); F3 stays a keyword count until then | Ritik and Shrey |
 | 6 | **Level 2: after a tool call, the answer goes bare.** F15, C4's control, F29; one instruction brings the source back without reducing deference (F25) | `bare_after_call.png` | made Nov 1 | — | Arsha |
-| 7 | **Tool or authority?** (B16, F35) | `b16_authority.png` | made Nov 1 | B24, the authority dose (read Nov 4, F40): its two arms beside B16's; Arsha, from Nov 6 | Ritik, then Arsha |
+| 7 | **Tool or authority?** (B16, F35; the authority dose, B24, F40) | `b16_authority.png` | made Nov 1 | B24's two arms beside B16's (B24 read Nov 4, F40; spec in WAITING.md's additions); Arsha, from Nov 6; final by Nov 20 | Ritik, then Arsha |
 | 8 | **Thinking dose** (B17, F37; labelled §13) | `b17_effort.png` | made Nov 3 | — | Arsha |
-| 9 | **The fix: training cuts following, but none beats one line** (F28, Gate 3; false disclosure from L4 part 1, read Nov 3) | `gate3_vs_base_slide.png` (`finetune/gate3.py`'s `gate3_vs_base`, the same rows) | made Nov 4 | A39, the powered replication on E2 (read Nov 17); Gate 3's final statement Nov 20 | Ritik |
-| 10 | **Inside the fixed model: training acts in the reasoning** (A18, F39). And B1 at inference (A30, F38) | `readout_lora_vs_base.png` | made Nov 3 | B1R2, B1's labelled replication on E2 (read Nov 17), beside B1 if read | Ritik |
+| 9 | **The fix: training cuts following, but none beats one line** (F28, Gate 3; false disclosure from L4 part 1, read Nov 3) | `gate3_vs_base_slide.png` (`finetune/gate3.py`'s `gate3_vs_base`, the same rows) | made Nov 4 | A39, the powered replication on E2 (runs by Nov 15, read Nov 17; its own figures `a39_e2_fixes.png` and `a39_e2_parts.png`, spec in WAITING.md); Gate 3's final statement Nov 20 | Ritik |
+| 10 | **Inside the fixed model: training acts in the reasoning** (A18, F39). And B1 at inference (A30, F38) | `readout_lora_vs_base.png` | made Nov 3 | B1R2, B1's labelled replication on E2 (read Nov 17; partial at Nov 15, 23:59 if not done; held behind E2 and B20 if the A39 log's §16 cuts on Nov 6, 07:00), beside B1 if read | Ritik |
 | 11 | **Level 3: reviewers defer to the trace, and the citation is the cue.** F18, F22, F24, F30, F31, F33, F34, C19 | `trackC_reviewers_slide.png` and `reviewer_by_prompt_slide.png` (the supplement's `trackC_reviewers`, the report's `reviewer_by_prompt`) | made Nov 4 | C19, added when in (Nov 7) | Shrey |
 | 12 | **Across agents, and what holds.** The handoff note loses the source (C25); pipeline vs model (C20); a realistic tool (C26); the checker | `c25_hops.png` (spec in `WAITING.md`; Shrey draws it under `docs/trackC/figures/`, Ritik places it at merge) | waiting | C25 (Nov 12), C20 and C26 (Nov 15); slides 11–12 Nov 18 | Shrey |
 | 13 | **What to do about it, and the limits** | none | Nov 21–22 | — | everyone |
@@ -220,6 +246,23 @@ outlines and [`docs/paper/CLAIMS.md`](paper/CLAIMS.md) the claims.
     authority. Figure: none.
 
 **The supplement** is made by `tools/make_supplement.py`: pre-registrations, deviations, evidence and traps.
+
+## Submission checklist, Nov 19–24
+
+Added Nov 4, 16:20. What the course submission needs, who makes each and by when; everything reads only the results
+frozen on Nov 18. The course's exact requirements (formats, length and time limits, where and how to submit, the form
+of the contribution statement and of the AI-use disclosure) are not in the repo: each row says "confirm against the
+course page". "Proposed" marks an owner or date set nowhere else in the repo, for Ritik to confirm.
+
+| file | what | who | by when |
+|---|---|---|---|
+| the report: [`docs/paper/REPORT.md`](paper/REPORT.md) → the final report file | the prose from REPORT's bullets (numbers only from FINDINGS and CLAIMS), one figure a section (the outline above); each section by the owner its heading names (Ritik §1, §2, §3, §5, §7; Arsha §4, and §6 with Ritik, from `docs/trackB/REPORT_B.md`; Shrey §8, §9, from `docs/trackC/REPORT_C.md`; everyone §10–12); format and length: confirm against the course page | everyone; Ritik merges | Track B's and Track C's bullets Nov 20; the draft Nov 22; final Nov 24 |
+| the supplement (`docs/paper/supplement/`) | regenerated from the frozen results by `tools/make_supplement.py` (TODO D6); whether it goes in as an appendix: confirm against the course page | Ritik | Nov 20 (D6) |
+| the slides | the 13 slides of the presentation map above, figures from `docs/paper/figures/`, each slide by its owner (Ritik 1, 3, 4, 9, 10; Arsha 2, 6, 7, 8; Ritik and Shrey 5; Shrey 11, 12; everyone 13); the speaker notes by the team; one deck (proposed: Ritik assembles it); format and time limit: confirm against the course page | each slide's owner; the deck Ritik (proposed) | 11–12 Nov 18; 2 by Nov 20, 6–8 in Nov 19–24 (the calendar); 9 after Gate 3's final statement (Nov 20); 13 Nov 21–22; rehearsal Nov 23; presented Nov 24 |
+| the code link | https://github.com/shrey-Bish/cse598-cot-faithfulness (`git remote get-url origin`): `main` with `trackB-main` and `trackC-main` merged at the Nov 18 check-in; the README's test and recompute commands; produced data local (gitignored), the numbers-only summaries tracked (Deliverables, 5); the graders' access: confirm against the course page | Ritik (the merges and the push) | the last merge Nov 18; in the submission folder Nov 21 |
+| a contribution statement | who did what, by track and date, from "Who runs what" (top of this file) and each track's TODO: Track A Ritik; Track B Ritik to Nov 6, Arsha from Nov 6; Track C Shrey from Oct 30; the hand labels Ritik and Shrey (L3, L4); the report's sections and the slides by owner (above); form: confirm against the course page | each member their own lines; Ritik merges (proposed) | with the draft, Nov 22 (proposed) |
+| an AI-use disclosure | which AI tools each member used, for what (code, analysis, writing), and what was checked by hand; how the hand labels were made, as each rater reports it (ask both raters before writing it); form and policy: confirm against the course page | each member for their own work; Ritik merges (proposed) | with the draft, Nov 22 (proposed) |
+| the submission folder (TODO D13) | the report and slide files, the code link, the statement and the disclosure in one place | Ritik | Nov 21 (D13); submitted Nov 24 |
 
 ---
 
