@@ -4,6 +4,7 @@ run on a small repo made in a temp folder."""
 import csv
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -331,7 +332,7 @@ def test_end_to_end_on_the_real_repo(tmp_path):
     for f in ms.findings((ms.REPO / ms.FINDINGS_REL).read_text()):
         assert f"### F{f['n']}. " in evidence
     every = "".join(p.read_text() for p in out.rglob("*") if p.suffix in (".md", ".csv", ".svg"))
-    assert "Claude Code" not in every and "co-authored" not in every.lower()          # authorship: the team's only
+    assert not re.search(r"co-authored|generated with|noreply@", every, re.I)        # authorship: the team's only
     assert ms.check_outputs(out, ms.question_starts()) == {}
 
 

@@ -1,5 +1,7 @@
 # Slide figures waiting on a result: the specs
 
+**Edited by:** Ritik (Shrey's slide 12 spec is his to follow, not to edit).
+
 Written Nov 1 for the final presentation map in [`docs/PLAN.md`](../../PLAN.md); updated Nov 3 (slides 4, 7, 8, 2 and 10
 are made; slide 12 is drawn by Shrey). Nothing here is drawn from fake or partial numbers. Ritik's slides are added to
 `cot-disclosure/tools/slide_figures.py` in the style of `bare_after_call` (16:9, white, colors by role, X of Y on the
@@ -70,7 +72,7 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
     readout layers", "before them" or "spread over 0–23".
   - "Acts after the readout" if the reverse holds; else "either half suffices" or "unclear".
   - B1's rule (Oct 30 17:15): "works", "ignores tools", "costs accuracy", "no effect" or "worse".
-- **Owner and date:** Ritik; A18 due Nov 10; B1 read Nov 3 (F38).
+- **Owner and date:** Ritik; made Nov 3 (A18 read, F39; B1 read, F38).
 
 ## Slide 12: Across agents, and what holds (C25; C20, C26)
 

@@ -1,5 +1,7 @@
 # Labeling guide: does the text mention the hint, and what does it say about it?
 
+**Edited by:** Ritik.
+
 Last updated: 2026-10-31 22:30 (the two rules below accepted by Ritik as written; 20:50 the rater packets: this guide for the raters, with two or three examples per label from
 set A's runs, which are in no sheet; two rules, on noting a conflict and on cut text. Oct 28 21:50: the Track B batch: bare replies labeled by rule, a 10% spot check, and 20 rows of private reasoning as a keyword check: 171 rows; the queue first. Earlier: the 10 replacement rows, the kit).
 

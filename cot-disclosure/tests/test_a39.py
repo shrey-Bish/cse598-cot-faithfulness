@@ -328,3 +328,20 @@ def test_the_report_borrows_the_shared_runs_and_writes_numbers_only(tmp_path, ca
     out = capsys.readouterr().out
     assert "R1" in out and "R2" in out and "R3" in out and "R4" in out
     assert a39.systems(tmp_path, "mmlupro_30")["base"][0]["item_id"] in {q["item_id"] for q in ev.questions()}
+
+
+def test_the_bench_s_runs_count_once_beside_the_production_parts(tmp_path):
+    """Nov 3: the bench (389340) ran base's part 2/2 with --limit (its file eval_base_a39_e2_p2of2_runs.jsonl); the
+    production parts are k/4. Run ids carry no part, so parts 2/4 and 4/4 skip what the bench finished, and the report
+    reads one record per run."""
+    ev.run("base", reply, tmp_path, part=(2, 2), workers=2, n_tokens=lambda t: 10, qset="e2", design="a39", limit=8)
+    bench = {r["run_id"] for r in load(tmp_path / "eval_base_a39_e2_p2of2_runs.jsonl")}
+    sent = []
+    for k in (2, 4):
+        ev.run("base", lambda m, p, **kw: sent.append(p) or reply(m, p), tmp_path, part=(k, 4), workers=2,
+               n_tokens=lambda t: 10, qset="e2", design="a39", limit=6)
+    later = {r["run_id"] for k in (2, 4) for r in load(tmp_path / f"eval_base_a39_e2_p{k}of4_runs.jsonl")}
+    first = {ev.job_id("base", j) for k in (2, 4) for j in ev.jobs((k, 4), qset="e2", design="a39", system="base")[:6]}
+    assert bench <= first and not bench & later and later == first - bench and len(sent) == len(later)
+    rows = a39.systems(tmp_path, "e2")["base"]
+    assert len(rows) == len({r["run_id"] for r in rows}) == len(bench | later)

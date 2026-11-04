@@ -1,6 +1,7 @@
 # Track B handoff: test widely (for Arsha, from Nov 6)
 
-Last updated: 2026-11-03 12:00 (the handoff moves to Nov 6; B18 and slide 2 started for you, §1a; B20 prepared;
+**Edited by:** Ritik until Nov 6, then Arsha. **Start with [`docs/trackB/START_HERE.md`](../trackB/START_HERE.md)** (its Quick
+start and plan hold where this page differs). Last updated: 2026-11-03 22:33 (START_HERE written; the handoff moves to Nov 6; B18 and slide 2 started for you, §1a; B20 prepared;
 closed models dropped). History: `git log --follow docs/tracks/TRACK_B.md` (it was `docs/handoff/TRACK_B.md` until
 Nov 1). Ritik runs Track B until Nov 6, then it's yours.
 
@@ -25,7 +26,7 @@ and for level 2 (after a tool call, the final answer stops naming its source).
    `../.venv/bin/python tools/make_handoff_bundle.py --verify <the bundle>`.
 4. **Reproduce the numbers, no calls:** `progress/trackB_report.py` (the Track B table, F15–F17, F29),
    `progress/run_b15.py --report` (F25) and `progress/run_b16.py --report` (F35). Each should match FINDINGS.
-5. **Read:** this page, then [`FINDINGS.md`](../FINDINGS.md) F15, F16, F17, F25, F29, F35 and traps T1–T11.
+5. **Read:** this page, then [`FINDINGS.md`](../FINDINGS.md) F15, F16, F17, F25, F29, F35, F37 and traps T1–T11.
 6. **Voyager:** only for a new run (none is planned; B19 ran Nov 1). Your own key goes in `cot-disclosure/.env`
    (`.env.example`); never share it, log it or commit it.
 
@@ -191,7 +192,7 @@ table), `providers/` (Voyager, our Sol vLLM, Hugging Face on Sol). The code map:
 | B19 | A same-day check of B16 | done Nov 1 (F35): the same six readings |
 | B17 | Thinking dose: gpt-oss-20b at effort low, medium, high | done Nov 3 (F37): no change detected on both; the first smoke (245445, Nov 1) stopped at the served-template check (fixed, §12); the second (355632) ran Nov 3, after the one-day window, kept by Ritik's decision before any result was read (§13) |
 | B18 | The final Track B table and one figure | in progress: started Nov 3 (§1a); due Nov 18 |
-| B20 | Open models from new families on Sol, thinking on and off | pre-registered and coded Nov 3; runs by Nov 15, yours to read by Nov 17 |
+| B20 | Open models from new families on Sol, thinking on and off | pre-registered and coded Nov 3; downloads done; smokes at the head of Sol's wave 2, Granite first; each model's runs at a 4:00 limit (B20 log §13); runs by Nov 15, yours to read by Nov 17 (START_HERE §4) |
 | L5 | Track B's labeling batch (171 rows) | should: after L3 and L4 |
 | B21–B23 | Closed providers (were B1–B3; renamed Nov 3 so B1 means only the attention scaling) | dropped (cost, Nov 3): open models on Sol replace them (B20) |
 | B6 | GPQA Diamond | blocked: its terms not accepted |

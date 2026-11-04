@@ -342,39 +342,16 @@ def test_a_second_download_waits_for_the_first(tmp_path):
     assert r.returncode == 0 and log.exists(), r.stdout + r.stderr
 
 
-def fake_sbatch_calls(tmp_path, test_only_fails=False):
-    """A fake sbatch logging every call's arguments, one line a call; --test-only answers as Slurm does (stderr)."""
+def test_htc_is_refused_and_not_listed(tmp_path):
+    """Nov 3: htc's AllowQos is public,debug, so the class QoS can't use it (Ritik's check; --test-only rerouted the job to
+    public). --htc is refused before sbatch, and accounts.conf lists no htc row."""
     env, log = fake_sbatch(tmp_path)
-    calls = tmp_path / "sbatch_calls"
-    fail = ('echo "sbatch: error: Batch job submission failed: Invalid qos specification" >&2; exit 1'
-            if test_only_fails else 'echo "sbatch: Job 9 to start at 2026-11-03T16:30:00 using 8 processors on nodes '
-                                    'sg040 in partition htc" >&2; exit 0')
-    (tmp_path / "bin" / "sbatch").write_text(
-        f'#!/bin/bash\necho "$@" >> {calls}\ncase " $* " in *" --test-only "*) {fail} ;; esac\n'
-        f'echo "$@" > {log}\necho "Submitted batch job 1"\n')
-    return env, log, calls
-
-
-def test_htc_is_offered_beside_public_once_sbatch_test_only_accepts_it(tmp_path):
-    """Nov 3: --htc lets a job of 4 hours or less start on public or htc (-p public,htc), a pair accounts.conf lists;
-    sbatch --test-only must accept the same request first, else nothing is submitted. Over 4 hours: refused."""
-    env, log, calls = fake_sbatch_calls(tmp_path)
     fake_squeue_jobs(tmp_path, {})
     r = submit(env, "a39_1gpu", "--htc", "--estimate", "2.3", "--", "base", "e2", "1/4")
-    assert r.returncode == 0, r.stdout + r.stderr
-    first, second = calls.read_text().splitlines()
-    assert "--test-only" in first.split() and first.replace("--test-only ", "") == second
-    assert second.split()[:8] == ["-A", ACCOUNT, "-p", "public,htc", "-q", "class", "-t", "3:00:00"]
-    assert "to start at 2026-11-03T16:30:00" in r.stdout and "Submitted batch job 1" in r.stdout
-    r = submit(env, "a39_1gpu", "--htc", "--estimate", "3.5", "--", "base", "e2", "1/4")     # 4.55 h -> 5:00
-    assert r.returncode == 1 and "4 h" in r.stderr and len(calls.read_text().splitlines()) == 2
-    refused = tmp_path / "refused"
-    refused.mkdir()
-    env, log, calls = fake_sbatch_calls(refused, test_only_fails=True)
-    fake_squeue_jobs(refused, {})
-    r = submit(env, "a39_1gpu", "--htc", "--estimate", "2.3", "--", "base", "e2", "1/4")
-    assert r.returncode == 1 and "Invalid qos specification" in r.stderr and "without --htc" in r.stderr
-    assert len(calls.read_text().splitlines()) == 1 and not log.exists()
+    assert r.returncode == 1 and "AllowQos" in r.stderr and not log.exists(), r.stdout + r.stderr
+    rows = [line.split() for line in (SOL / "accounts.conf").read_text().splitlines()
+            if line.strip() and not line.startswith("#")]
+    assert [row[1] for row in rows] == ["public"]
 
 
 def fake_squeue_jobs(tmp_path, jobs):
@@ -474,8 +451,7 @@ def test_only_listed_accounts(tmp_path):
     assert r.returncode == 1 and "not listed" in r.stderr and not log.exists()
     conf = (SOL / "accounts.conf").read_text()
     rows = [line.split() for line in conf.splitlines() if line.strip() and not line.startswith("#")]
-    assert rows == [[ACCOUNT, "public", "class", "960", "2", "10", "24", "4"],
-                    [ACCOUNT, "htc", "class", "960", "2", "10", "4", "4"]]     # Nov 3: htc's 4 h, only with --htc
+    assert rows == [[ACCOUNT, "public", "class", "960", "2", "10", "24", "4"]]   # Nov 3: htc isn't open to the class QoS
 
 
 @pytest.mark.parametrize("env_vars,ok", [({"SLURM_JOB_ID": "5", "SLURM_JOB_ACCOUNT": ACCOUNT}, True),

@@ -101,3 +101,47 @@ def test_a_failed_voyager_guard_halts_every_voyager_job(tmp_path, monkeypatch):
     g.step([a, b, c], True, 100, T0, None, clock=200)
     assert sa == [1] and sb == [1] and sc == [] and b.proc is None
     assert all(g.settled(j, [a, b, c]) for j in (a, b, c))
+
+
+def no_pmset(*a, **kw):
+    raise AssertionError("pmset must not run off macOS")
+
+
+def test_off_macos_the_power_checks_are_skipped_with_a_message(monkeypatch, capsys):
+    """Nov 3 (Shrey's machine may not be a Mac): on Linux or Windows/WSL there is no pmset, so the battery and sleep
+    checks are skipped, said once at the start, and every job counts as on the charger."""
+    monkeypatch.setattr(g.sys, "platform", "linux")
+    monkeypatch.setattr(g.subprocess, "run", no_pmset)
+    assert not g.power_checks() and g.battery() == (True, None)
+    assert g.allowed("local", *g.battery(), T0) and g.allowed("voyager", *g.battery(), T0)
+    g.say("start x", *g.battery())
+    assert "[" not in capsys.readouterr().out                       # no made-up battery level in the log
+    assert "skipped" in g.POWER_SKIPPED and "plugged in" in g.POWER_SKIPPED and "stop file" in g.POWER_SKIPPED
+
+
+def test_on_macos_the_battery_is_read_with_pmset(monkeypatch):
+    monkeypatch.setattr(g.sys, "platform", "darwin")
+    monkeypatch.setattr(g.shutil, "which", lambda name: "/usr/bin/pmset")
+    monkeypatch.setattr(g.subprocess, "run", lambda *a, **kw: type("R", (), {
+        "stdout": "Now drawing from 'Battery Power'\n -InternalBattery-0 (id=1)\t42%; discharging;"})())
+    assert g.power_checks() and g.battery() == (False, 42)
+
+
+def test_off_macos_the_stop_file_and_the_voyager_halt_still_work(tmp_path, monkeypatch, capsys):
+    """The guard's own stop file and a Voyager halt (code 3) don't depend on the platform; main() says the checks are
+    skipped and stops on logs/stop_guard."""
+    monkeypatch.setattr(g.sys, "platform", "linux")
+    monkeypatch.setattr(g.subprocess, "run", no_pmset)
+    a, sa = job("voyager:qwen3think=progress/run_trackB.py --run --model a", tmp_path, monkeypatch)
+    b, sb = job("voyager:c4=agents/run_team.py --live", tmp_path, monkeypatch)
+    g.step([a, b], *g.battery(), T0, None, clock=0)
+    a.proc.returncode = 3
+    g.step([a, b], *g.battery(), T0, None, clock=10)
+    assert a.halted and b.stop.read_text() == "Voyager halted"
+    monkeypatch.setattr(g, "LOGS", tmp_path)
+    monkeypatch.setattr(g, "TICK_S", 0)
+    monkeypatch.setattr(g.time, "sleep", lambda s: (tmp_path / "stop_guard").write_text("stop"))
+    monkeypatch.setattr(g.Job, "start", lambda self, on_ac, pct: setattr(self, "proc", FakeProc(0)))
+    assert g.main(["--job", "voyager:x=progress/run_trackB.py --run"]) == 0
+    out = capsys.readouterr().out
+    assert g.POWER_SKIPPED in out and ("guard stopped" in out or "guard ended" in out)

@@ -1,6 +1,6 @@
 # Outlines (bullets; the team writes the prose)
 
-Last updated 2026-11-03 (results through F38, L3 and L4 part 1; B2 dropped). The report's skeleton, with setup and
+Last updated 2026-11-03 (results through F39, L3 and L4 part 1; B2 dropped). **Edited by:** Ritik. The report's skeleton, with setup and
 methods filled in, is [`REPORT.md`](REPORT.md).
 
 Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
@@ -32,7 +32,7 @@ Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
    - The title question in the same weights (F29): thinking puts the tool in the private reasoning
      (141 of 145) and not the final answer (0 of 143), and raises the call rate.
    - Disclosure can be prompted, but it doesn't reduce deference (B15, F25).
-   - **Missing:** hand labels (L3, L5).
+   - **Missing:** L3 labels that stand (kappa under 0.6 on Nov 3; the settling call and a fresh batch by Nov 7); L5.
 4. **When the hint takes over** (F4, F5, F14; early answering)
    - Takeover curves; late takeovers on few questions; the lead swings.
    - **Missing:** more questions (set A adds some).
@@ -54,8 +54,8 @@ Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
    - **Gate 3, final (F28):** all four trained versions pass by the rule, none beats a one-line instruction
      (each minus it +3 to +7, not pre-registered), the tags prediction isn't borne out, and the LoRA versions'
      false-disclosure candidates rise (+10 [+2, +18], +10 [+2, +19]) while the instruction's fall.
-     Candidate cautionary claim: fine-tuning for disclosure reduced hint-following no more than an
-     instruction, and may have taught the model to claim checks it didn't do.
+     The cautionary claim, read with L4 part 1 (F28): fine-tuning reduced hint-following no more than an
+     instruction (stands); "taught the model to claim checks it didn't do" is not supported for claimed disagreement.
    - B1's alpha from set A (F27): 0.25 deployable, 0.5 oracle.
    - Hand labels (L4 part 1, F28): LoRA's false-disclosure candidates are rarely real.
    - B1's generation (F38): a real cut on the inserted turn that misses its acceptance limit; underpowered.
@@ -118,9 +118,12 @@ Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
    - Two reviewers in the deferring family; Granite's own check is weak, so its "doesn't defer" has less
      room.
 
-## Figures available now (`docs/paper/figures/`, from the tracked summaries; `tools/paper_figures.py`)
+## Figures available now (`docs/paper/figures/`, from the tracked summaries)
 
-- `reviewer_by_prompt`: thread 2, sections 3–4.
-- `readout_by_layer`: thread 1, section 5 (F11).
-- `taught_loss`: thread 1, section 6 (F20).
+- By `tools/paper_figures.py`:
+  - `reviewer_by_prompt`: thread 2, sections 3–4;
+  - `readout_by_layer`: thread 1, section 5 (F11);
+  - `taught_loss`: thread 1, section 6 (F20).
+- By `tools/slide_figures.py` (the slides; PLAN's presentation map): `three_levels`, `channels`, `gate2`,
+  `readout_qwen8b`, `bare_after_call`, `b16_authority`, `b17_effort`, `readout_lora_vs_base` (slide 10, A18, F39).
 - Each has a CSV with every plotted number.

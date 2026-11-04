@@ -1,6 +1,7 @@
 # Questions a reviewer would ask that we can't answer yet
 
-Each question: why it matters, and which runs answer it. Updated Nov 1: B16 (F35) on question 3. Oct 31 16:40: Gate 3 final (F28). Oct 30 09:30: set A (F26), B1's alpha (F27), Gate 3
+Each question: why it matters, and which runs answer it. **Edited by:** Ritik. Updated Nov 3: B1 (F38) on questions 3
+and 4, L4 part 1 (F28) on 7, A37 (F36) on 8, L3 on 9. Nov 1: B16 (F35) on question 3. Oct 31 16:40: Gate 3 final (F28). Oct 30 09:30: set A (F26), B1's alpha (F27), Gate 3
 interim (F28), Qwen3-8B (F29) and C13 (F30) are in; C16 running. Oct 30 04:00: C15 (F24) and B15 (F25);
 Oct 29 23:15: C11 and C12 (F22, F23); added C13 (Sol), C14 (exploratory).
 The runs of Oct 28–29:
@@ -37,11 +38,13 @@ The runs of Oct 28–29:
 3. **Does a fix that downweights the tool span just make the model ignore tools?**
    - **Answered by B1:** the trade-off curve, wrong-hint following against correct-hint acceptance,
      and no-hint accuracy at the chosen alpha and at alpha = 1.
-   - `[following ___ → ___; acceptance ___ → ___; no-hint accuracy ___ → ___]`
+   - **Read Nov 3 (F38):** deployable span on the inserted turn: following 26 → 16 of 60 (−17 [−30, −3]); acceptance
+     25 → 23 of 30 (−7 points); no-hint accuracy 16 → 19 of 30 (+10, sampling): "ignores tools" by the rule.
 4. **Can a real system apply it?**
    - The deployable version acts only on tool-role spans (the inserted tool turn), which the
      framework knows. The oracle also marks a pasted block.
-   - **Answered by B1**, reported apart. `[deployable ___; oracle ___]`
+   - **Answered by B1** (F38), reported apart: deployable "ignores tools" (−17 [−30, −3]); oracle "no effect" (−9
+     [−19, +1]).
 5. **Was alpha tuned on the test set?**
    - No, by design. Alpha is chosen on set A's forced answers before any generation on the
      held-out 30.
@@ -50,19 +53,19 @@ The runs of Oct 28–29:
 6. **Why should a per-head bias beat input-embedding tags?**
    - The tags did nothing measurable in loss (F20). B2 puts the provenance signal where the hint is
      read.
-   - **Answered by B2's training** (loss by part as in S7, then behavior), not tonight.
+   - Not answered: B2 was dropped for scope (Oct 31).
 7. **Does training change behavior, not just loss?**
    - **Answered in part (F28, final):** all four trained versions follow fewer wrong hints with no-hint accuracy
      within 3 points (Gate 3 met by the rule; LoRA −10 [−16, −4]). But an independent one-line instruction in the
      prompt does as well or better (each version minus prompt_only +3 to +7, not pre-registered), and the LoRA
-     versions' false-disclosure candidates rise (+10 [+2, +18], +10 [+2, +19]) while the instruction's fall (−9). Candidate cautionary claim, waiting on labels: fine-tuning for disclosure reduced hint-following no
-     more than an instruction, and may have taught the model to claim checks it didn't do.
+     versions' false-disclosure candidates rise (+10 [+2, +18], +10 [+2, +19]) while the instruction's fall (−9). Read with hand labels (L4 part 1, F28): the claimed-disagreement half of the cautionary claim is not
+     supported (1 to 2 of LoRA's 147 candidates).
 8. **One model?**
-   - The mechanism is Olmo 3 7B Think only. Behavior (Gate 2) holds for 3 models.
-   - Not answered tonight. Next: Steps 9/10 on a second open model.
+   - **Answered in part:** the readout replicates in Qwen3-8B (A37, F36); Gate 2 holds for 5 models (F15–F17, F29,
+     F37). B20 adds three new families (read Nov 17).
 9. **Are the mention counts real acknowledgments?**
-   - Keyword counts until the hand labels (L3, L5). Not answered yet; the raters' one-page guide is ready
-     (`docs/labeling/RATER_GUIDE.md`).
+   - Keyword counts until the hand labels stand. L3 came back Nov 3 with kappa under 0.6, so by the plan: the
+     settling call, a tightened guide and a fresh batch (by Nov 7; `docs/labeling/RATER_GUIDE.md`).
 10. **Couldn't you just ask the model to say where its answer came from?** (F15: after a tool call the final answer
     is a bare letter.)
     - **Answered by B15 (F25): yes, for disclosure; no, for following.** After a call, Thinking names the tool in 33

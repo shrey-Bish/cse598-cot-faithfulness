@@ -1,5 +1,7 @@
 # The report: skeleton (the team writes the prose from Nov 10)
 
+**Edited by:** Ritik; each section's bullets by its owner (Track B's: Arsha, from `docs/trackB/REPORT_B.md`; Track C's: Shrey, from `docs/trackC/REPORT_C.md`), merged by Ritik.
+
 Started Nov 3 by Ritik. Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
 methods are filled in as bullets** (facts with their source), so the prose can be written from them. Numbers come from
 [`FINDINGS.md`](../FINDINGS.md), the tracks' `FINDINGS_B.md` and `FINDINGS_C.md`, and the claims from

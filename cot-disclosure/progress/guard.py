@@ -1,5 +1,6 @@
 """Keep long runs going on this Mac within Ritik's power rules (Oct 27), and restart them after a sleep.
 
+On macOS (caffeinate keeps the Mac awake; on Linux or Windows/WSL drop "caffeinate -i", see below):
   nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \\
       --job "voyager:qwen3think=progress/run_trackB.py --run --model qwen3-30b-a3b-thinking-2507" \\
       --job "local:ollama=progress/run_trackB.py --run --model qwen3:8b --order core-first" \\
@@ -20,9 +21,16 @@ counted as "no answer") restarts after a minute; code 0 means all its jobs are d
 Voyager guard failed (an identity canary or the model catalog; client.py writes logs/voyager_halted):
 it is not restarted, every other Voyager job pauses, and nothing waiting on them starts. Every start, pause,
 resume and end is logged with the battery level (stdout, appended to logs/guard.log).
+
+Off macOS (Nov 3: Linux, or Windows through WSL) there is no pmset: the battery and sleep checks are skipped, said once
+at the start (POWER_SKIPPED), and every job counts as on the charger. Keep the machine plugged in and awake yourself
+(Linux: prefix the command with `systemd-inhibit --what=idle:sleep`; Windows: set sleep to Never while runs go). The
+stop files, the Voyager halt (code 3), AFTER and the 4-in-flight slots (progress/common.slot) work the same everywhere.
+Native Windows Python isn't supported (the slots use POSIX file locks): use WSL.
 """
 import argparse
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -35,10 +43,20 @@ LOGS = CODE / "logs"
 BATTERY_EVERY_S = 300
 TICK_S = 60
 LOCAL_MIN, VOYAGER_MIN = 30, 15
+POWER_SKIPPED = ("battery and sleep checks skipped: this isn't macOS (no pmset), so the guard can't see the battery or "
+                 "keep the machine awake; keep it plugged in and set it not to sleep. The stop file, the Voyager halt "
+                 "and the 4-in-flight slots work as on a Mac.")
+
+
+def power_checks():
+    """True on macOS with pmset (Ritik's Mac); elsewhere the battery and sleep checks are skipped (Nov 3)."""
+    return sys.platform == "darwin" and shutil.which("pmset") is not None
 
 
 def battery(text=None):
-    """(on_ac, percent) from `pmset -g batt`."""
+    """(on_ac, percent) from `pmset -g batt`; off macOS (True, None): no battery reading, every job may run."""
+    if text is None and not power_checks():
+        return True, None
     text = text if text is not None else subprocess.run(["pmset", "-g", "batt"], capture_output=True, text=True).stdout
     m = re.search(r"(\d+)%", text)
     return "AC Power" in text, int(m.group(1)) if m else 100
@@ -138,11 +156,13 @@ def main(argv=None):
     guard_stop = LOGS / "stop_guard"
     guard_stop.unlink(missing_ok=True)
     on_ac, pct = battery()
+    if not power_checks():
+        say(POWER_SKIPPED)
     say(f"guard started: {', '.join(f'{j.kind}:{j.name}' for j in jobs)}; local jobs on battery until {until}", on_ac, pct)
     last_check = time.monotonic()
     while not all(settled(j, jobs) for j in jobs):
         clock = time.monotonic()
-        if clock - last_check >= BATTERY_EVERY_S:
+        if clock - last_check >= BATTERY_EVERY_S and power_checks():
             on_ac, pct = battery()
             last_check = clock
             say("battery check", on_ac, pct)

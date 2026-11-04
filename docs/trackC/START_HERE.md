@@ -1,12 +1,66 @@
 # Track C: start here (Shrey, owner from Oct 30)
 
+**Edited by:** Shrey, on `trackC-main` (written by Ritik for the final handoff, Nov 3, 2026).
+
+## Quick start (one page)
+
+**Track C** is the project's third level of "Where did that answer come from?": when agents pass work along, does a
+downstream agent lose the fact that an answer came from a tool, and defer to it anyway? Track C is yours from Oct 30.
+
+**Done** (Ritik's, in [`docs/FINDINGS.md`](../FINDINGS.md), F18–F24 and F30–F34):
+- a reviewer shown the solver's tool trace defers to it in one model family (Olmo 3 32B), not the other (Qwen3 30B);
+- a checker that never sees the tool held every time;
+- the solver citing the tool's letter as authority is the cue (C16–C18).
+
+**Prepared for you** (code, CPU tests, a committed pre-registration and a dry run each): C19, C25, C20 and C26 (§3).
+
+**Your next five steps:**
+
+| # | what | by | check-in |
+|---|---|---|---|
+| 1 | **Setup** (§4): clone, `trackC-main`, the venv, the tests (47 Track C), both hooks, your own Voyager key, the bundle `trackC_20261103.tar.gz` with `--verify`, and F18, F24 and F34 reproduced with no calls | Wed Nov 4 | — |
+| 2 | **Labels** (separate from Track C; for Gate 2 on Nov 8): the L3 settling call with Ritik on `results/labels/L3_settle.csv` (23 rows, 25 disagreements; the sheet comes from Ritik, never GitHub), then the fresh batch of 72 rows once the guide is tightened from the call (about 85 minutes; [`RATER_GUIDE`](../labeling/RATER_GUIDE.md)) | **Sat Nov 7** | the call itself |
+| 3 | **C19** (§3.1), with its FC entry, summary and slide 11's bars (§6) | **Sat Nov 7** | **Nov 7** |
+| 4 | **C25** with its 20-row hand spot check (§3.2) | **Thu Nov 12** | **Nov 12** |
+| 5 | **C20 and C26** (§3.3, §3.4) | **Sun Nov 15** | **Nov 15** |
+
+Then, to the freeze:
+- **C24** (Track C's figures and tables) and **slides 11–12**, by **Wed Nov 18** (check-in Nov 18; the results freeze);
+- **Track C's section of the report**, as bullets in `docs/trackC/REPORT_C.md`, by **Fri Nov 20**. Ritik merges it into
+  `docs/paper/REPORT.md`.
+- **An FC entry** in `docs/trackC/FINDINGS_C.md` as each experiment finishes.
+
+**Check-ins with Ritik: Nov 7, 12, 15 and 18.**
+- Bring what finished (session logs, FC entries, summaries, figures), what's next, and anything blocked.
+- On those days Ritik merges `trackC-main` into `main`, after its checks (§6). Then you merge `origin/main` back into
+  `trackC-main`.
+
+**How you work** (§5 has the detail):
+- **Your branch and paths:** only on `trackC-main`, and only these paths:
+  - `cot-disclosure/agents/`, except `agents/__init__.py` and `agents/sol_c13.py`, which Sol's jobs import;
+  - `cot-disclosure/tests/test_trackC_*`;
+  - `docs/trackC/`, `docs/tracks/TRACK_C.md`;
+  - `cot-disclosure/results/trackC/`, `cot-disclosure/results/summaries/trackC/`.
+  The hooks enforce this, both ways: Ritik's branches can't change your paths except by merging yours.
+- **The rules:** pre-register before any run; Voyager only, nothing paid; at most 4 requests in flight; every run under
+  the power guard; no LLM judging; data never on GitHub; your commits carry no attribution lines.
+- **Your machine:** a Mac, Linux, or Windows through WSL. On a Mac the guard watches the battery. Elsewhere it skips that
+  check and says so, so keep the machine plugged in and awake yourself. Native Windows Python isn't supported.
+
+**Where to ask:** Ritik, by ASU email or the team's channel. Ask about anything outside your paths, a Voyager halt, or a
+date that will slip. A coding assistant starts from §7.
+
+---
+
+## About this page
+
 From Ritik, Nov 3, 2026. Track C is yours from Oct 30. The work through C18 is Ritik's. C19, C25, C20 and C26 were
 prepared by Ritik on Oct 31 (code, CPU tests, a pre-registration log and a dry run each), and they are yours to run.
 
 This page is meant to be complete on its own. You, or a coding assistant you hand it to, should be able to work from it
 without asking anyone. Every file it names is in the repo, except the data bundle (§4, step 6).
 
-**How to use it.** Read §1–§3 once. Do §4 on your first day. Keep §5 open while you work. Use §6 when a result is done.
+**How to use it.** The Quick start above is the summary. Read §1–§3 once. Do §4 on your first day. Keep §5 open while you work. Use §6 when a result is done.
 Paste §7 to start a coding session. §8 has the dates.
 
 ---
@@ -479,14 +533,15 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
    ../.venv/bin/python -m pytest -q tests/test_trackC_*.py   # Track C's 8 files: 47 passed (checked Nov 3)
    cd ..
    ```
-4. **The two hooks**, once per clone, from the repo root:
+4. **The hooks**, once per clone, from the repo root:
    ```bash
-   printf '#!/bin/sh\nexec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/path_check.py" "$@"\n' > .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+   python3 cot-disclosure/tools/path_check.py --install       # the path check: pre-commit and pre-merge-commit hooks
    printf '#!/bin/sh\nexec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/prepush_check.py" "$@"\n' > .git/hooks/pre-push && chmod +x .git/hooks/pre-push
    python3 cot-disclosure/tools/path_check.py                 # the staged files, as the hook checks them
    python3 cot-disclosure/tools/prepush_check.py --rev HEAD   # what a push would be checked for
    ```
-   - The **pre-commit hook** refuses a commit on `trackC-main` that touches any path outside the allowlist (§5).
+   - The **path check** (pre-commit for a commit, pre-merge-commit for a clean merge) refuses a commit on
+     `trackC-main` that touches any path outside the allowlist (§5).
    - The **pre-push hook** (RUNBOOK §17) refuses a push that adds anything under a produced-data folder
      (`results/trackA/`, `results/trackB/`, `results/trackC/`, `results/labels/`, `results/handoff/`,
      `results/voyager_canary.jsonl`, `finetune/data/`), any file with "gpqa" in its name (code and docs excepted), or a
@@ -595,7 +650,8 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
   `trackA-nosol` or `trackB-main`, and never force-push.
 - **The path allowlist** (`cot-disclosure/configs/path_allowlist.txt`, tracked, read-only for you). On `trackC-main` you
   may change only:
-  - `cot-disclosure/agents/`
+  - `cot-disclosure/agents/`, except `agents/__init__.py` and `agents/sol_c13.py`: every Sol vLLM job imports them
+    (`finetune/gpu/vllm_options.job_commands`), so a change there could stop Ritik's queued jobs
   - `cot-disclosure/tests/test_trackC_*`
   - `docs/trackC/`
   - `docs/tracks/TRACK_C.md`
@@ -605,9 +661,11 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
   `providers/`, `tools/`, `finetune/`, `configs/`, and every other path. Running and importing it is fine; changing it
   isn't. If you need a change there, write a new module under `agents/` (for example `agents/myhelper.py`), or ask
   Ritik.
-- **The check** is `cot-disclosure/tools/path_check.py`, installed as the pre-commit hook (§4, step 4). It refuses a
-  commit on `trackC-main` that touches anything outside the allowlist. During a merge of `main` into `trackC-main`,
-  files outside the list pass only if taken unchanged from `main`. To stay current: `git fetch origin && git merge
+- **The check** is `cot-disclosure/tools/path_check.py`, installed by `--install` as the pre-commit and pre-merge-commit
+  hooks (§4, step 4). It refuses a commit on `trackC-main` that touches anything outside the allowlist. During a merge
+  of `main` into `trackC-main`, files outside the list pass only if taken unchanged from `main`. **The other way**
+  (Nov 3): on Ritik's branches the same hook refuses any change to your paths except a merge of `trackC-main`, taken
+  unchanged, so nobody edits your files under you. To stay current: `git fetch origin && git merge
   origin/main` on `trackC-main`. Check by hand at any time:
   `python3 cot-disclosure/tools/path_check.py --range origin/main..HEAD`.
 - Never bypass a hook (no `--no-verify`). If a hook refuses, fix what it names.
@@ -641,8 +699,13 @@ opens C25's spot-check sheet or key.
 - **At most 4 requests in flight** across every process on the machine: `progress/common.slot()` holds one of four lock
   files in `logs/.slots/` while a request is open. `run_team.py`'s `--workers` defaults to 4; don't raise it for
   Voyager.
-- **The power guard** (`progress/guard.py`, run under `caffeinate -i` so the Mac stays awake):
-  - checks `pmset -g batt` at start and every 5 minutes: Voyager jobs run on the charger, or on battery at 15% or more;
+- **The power guard** (`progress/guard.py`; on a Mac, run under `caffeinate -i` so it stays awake):
+  - on a Mac, checks `pmset -g batt` at start and every 5 minutes: Voyager jobs run on the charger, or on battery at 15%
+    or more;
+  - **on Linux or Windows/WSL** (Nov 3) there is no `pmset`: it skips the battery and sleep checks and says so once at the
+    start. Run the guard line without `caffeinate -i`. Keep the machine plugged in, and stop it sleeping: on Linux, prefix
+    the line with `systemd-inhibit --what=idle:sleep`; on Windows, set sleep to Never while runs go. Everything below works
+    the same. Native Windows Python isn't supported (the 4 slots use POSIX file locks): use WSL;
   - a job that may not run is paused gracefully (its stop file `logs/stop_<name>`: no new case starts, the requests in
     flight finish, exit code 2) and restarts when the rules allow;
   - exit 1 (work left, e.g. a request lost to a sleep) restarts after a minute; exit 0 means done;
@@ -650,8 +713,6 @@ opens C25's spot-check sheet or key.
   - `KIND:NAME:AFTER` starts a job only after job AFTER finished all its work;
   - `touch logs/stop_guard` stops every job (requests in flight finish) and the guard exits;
   - it logs to `logs/guard.log`, and each job's output to `logs/guard_<name>.log`.
-  - It reads the battery with macOS's `pmset`, and `caffeinate` is macOS's: run on a Mac. If you can't, tell Ritik
-    before your first run.
 - **Identity canaries** (`client.py`): before a model's first call, and hourly, an echo call must match
   `configs/canary/<model>.json`, and the model catalog must still list the model. A failure writes
   `logs/voyager_halted` and halts all Voyager work (exit 3).
@@ -779,7 +840,8 @@ Project: CSE 598 Group 10, Track C. Written and committed before any CNN call; n
    and any deviation or halt.
 6. Ritik runs the allowlist check over the range
    (`python3 cot-disclosure/tools/path_check.py --range origin/main..origin/trackC-main --branch trackC-main`), reviews,
-   and merges into `main`. Then you merge `origin/main` back into `trackC-main`.
+   and merges into `main` on the check-in days (Nov 7, 12, 15, 18; RUNBOOK §16). Then you merge `origin/main` back into
+   `trackC-main` (`git fetch origin && git merge origin/main`; the hook passes `main`'s files only unchanged).
 
 ---
 
@@ -811,7 +873,8 @@ Rules:
   questions an experiment is evaluated on.
 - Voyager only, no paid calls; leave every paid key empty; never read, print or log the key in cot-disclosure/.env.
   At most 4 requests in flight (the code's default; never raise --workers). Every run goes under the power guard
-  (progress/guard.py) as START_HERE shows. Ask Shrey before any command that calls Voyager; dry runs and readings
+  (progress/guard.py) as START_HERE shows (off macOS it skips the battery checks and says so; drop "caffeinate -i").
+  Ask Shrey before any command that calls Voyager; dry runs and readings
   need no asking.
 - No LLM judging: you never label, classify, score or summarize model text (questions, replies, notes) for a result.
   Labels are Shrey's, by hand. Never open results/trackC/c25_spotcheck_sheet.csv or c25_spotcheck_key.csv.
@@ -825,7 +888,8 @@ Rules:
   current.
 
 Task 1 (setup, no calls): follow START_HERE section 4. Make the venv, run the tests (the Track C subset should give
-47 passed), install both hooks, check that cot-disclosure/.env exists and is gitignored (don't open it), check that the
+47 passed), install both hooks (python3 cot-disclosure/tools/path_check.py --install, and the pre-push line),
+check that cot-disclosure/.env exists and is gitignored (don't open it), check that the
 bundle is unpacked and that --verify prints "bundle matches its manifest", then reproduce F18, F24 and F34 with the
 three no-call commands in section 4 step 7. Compare what they print with START_HERE, and confirm each cmp prints
 nothing. Report any difference before going on.
@@ -851,15 +915,14 @@ slide 11 bars as START_HERE section 6 describes, for Shrey to review.
 
 | date | what |
 |---|---|
-| Tue Nov 3 | this handoff; the bundle `trackC_20261103.tar.gz` |
-| from Wed Nov 4 | you run C19, C25, C20, C26 |
-| **Sat Nov 7** | **C19** due (and slide 11's C19 bars) |
-| **Thu Nov 12** | **C25** due, with its 20-row spot check |
-| **Sun Nov 15** | **C20 and C26** due |
-| **Wed Nov 18** | **results freeze:** all evaluation done; no new runs after it |
-| Thu Nov 19 | C24: Track C's figures and tables |
-| **Fri Nov 20** | **slides 11–12 final** |
-| **Sun Nov 22** | **report draft** |
+| Tue Nov 3 | the final handoff; the bundle `trackC_20261103.tar.gz` (still current: Track C's data hasn't changed) |
+| Wed Nov 4 | setup (§4), then C19 |
+| **Sat Nov 7** | **C19** due (and slide 11's C19 bars); **the L3 call and the fresh batch** done (Gate 2 on Nov 8); **check-in and merge** |
+| **Thu Nov 12** | **C25** due, with its 20-row spot check; **check-in and merge** |
+| **Sun Nov 15** | **C20 and C26** due; **check-in and merge** |
+| **Wed Nov 18** | **results freeze** (no new runs after it); **C24** (Track C's figures and tables) and **slides 11–12** due; **check-in and merge** |
+| **Fri Nov 20** | **Track C's section of the report**, as bullets in `docs/trackC/REPORT_C.md` |
+| Sun Nov 22 | the report draft (Ritik merges the sections) |
 | Mon Nov 23 | rehearsal of the final presentation |
 | **Tue Nov 24** | **final presentation and report** |
 

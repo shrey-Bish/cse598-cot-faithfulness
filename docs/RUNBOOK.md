@@ -1,5 +1,7 @@
 # Runbook: how to run every step
 
+**Edited by:** Ritik.
+
 Last updated: 2026-11-03 (the Sol order, §0; labels, §15; the pre-commit hook, §17; history: `git log -- docs/RUNBOOK.md`). One page per step: what it does, where it runs, the commands in order,
 inputs and outputs, how long it takes, and what to check. Written so anyone in the group can run a
 step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md); open work in
@@ -16,18 +18,24 @@ step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md
 **The Sol order to the results freeze (Ritik, Nov 3, re-planned 14:50 for the earliest finish).** The course account
 only (no other account; the H100s aren't available). B1, A37, B17 and A18 are done (A18 read Nov 3, F39); A38 is
 dropped. One queue, in this order:
-1. the 1-GPU bench (389340);
-2. A39 on E2 in 1-GPU parts, the core systems first, round-robin, then the wrapper systems (pre-registration
-   2026-11-03 11:30, §10);
-3. B20's smokes after A39's first wave, Granite first, then each model's runs (2026-11-03 12:19, §13);
+1. the 1-GPU bench (389340): done Nov 3, about 400 tokens/s per A100 (KV-cache bound), so E2 is 53.2 GPU-hours;
+2. A39 on E2 in 1-GPU parts, the core systems first, round-robin, then the wrapper systems and a sweep per system
+   (pre-registration 2026-11-03 11:30, §10 and §11); 9 parts queued Nov 3, the first starting Nov 4 19:25;
+3. B20's smokes at the head of wave 2, Granite first, then each model's runs (2026-11-03 12:19, §13);
 4. A39 on the 30, only if E2 and B20 finish by Nov 11 09:00;
 5. B1R2 only if Nov 8's compute check passes (the A39 log's §10).
 
-Nothing new after Nov 18. The lines, in waves: the Nov 3 session log (15:14). Keep at most 10 jobs submitted (running
-and pending, downloads included); when one ends, submit the next line. **Times** come from `squeue --start -u $USER` on
-real jobs, not `sbatch --test-only`. **`submit.sh`** (Nov 3): `--htc` lets a job of 4 hours or less start on htc as
-well as public (checked by `sbatch --test-only` first); a second download is refused unless it waits for the first
-(`--dependency=afterany:N`), since a job without a GPU still takes one of the two running slots.
+Nothing new after Nov 18. The lines, in waves: the Nov 3 session logs (wave 2 onward: the 22:16 log). Keep at most 10
+jobs submitted (running and pending, downloads included); when one ends, submit the next line. **Times** come from
+`squeue --start -u $USER` on real jobs, not `sbatch --test-only`. **`submit.sh`** (Nov 3):
+- **htc** isn't open to the class QoS (its AllowQos is public,debug), so `--htc` is refused;
+- a second download is refused unless it waits for the first (`--dependency=afterany:N`), since a job without a GPU
+  still takes one of the two running slots;
+- only running jobs count toward the 960 GPU-minutes.
+
+**Pulling on Sol while jobs are queued.** A queued job reads its code from Sol's clone when it starts. Before a
+`git pull` there, check that no file a queued job loads has changed: §16's list of the files they load, then
+`git diff --stat <Sol's HEAD>..origin/main -- <those files>` must print nothing.
 
 **Rules that apply to every step.**
 - **Dry run first.** Every script that calls a model has `--dry-run` (calls, time, nothing sent).
@@ -54,7 +62,7 @@ well as public (checked by `sbatch --test-only` first); a second download is ref
 cd ~/Documents/Projects/ODL/cse598-cot-faithfulness
 python3 -m venv .venv && .venv/bin/pip install -r cot-disclosure/requirements.txt
 cp cot-disclosure/.env.example cot-disclosure/.env        # add RC_LLM_API_KEY (Voyager)
-cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (813 on Nov 3), no network, ~7 min
+cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (823 on Nov 3), no network, ~7 min
 ```
 **Check:** every test passes. Then install the pre-push check (page 17).
 
@@ -291,7 +299,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
   embeddings, tagged prompt embeddings). Step 13 evaluates 930 runs per system (`finetune/eval.py`)
   and reports the measures. The job order, hours and limits: PLAN (Track A, the Gate 3 job plan).
 - **Where:** Sol, each job on Ritik's "go". **Status:** batch 2 trained Oct 28; batch 3 evaluated, Gate 3 final Oct 31
-  (F28); A18 ran Nov 2–3 (not read); A39 on E2 pre-registered Nov 3.
+  (F28); A18 read Nov 3 (F39); A39 on E2 queued Nov 3 (its lines: the Nov 3 session logs, 15:14 and 22:16).
 - **Commands** (first the inputs from the Mac, then on Sol from the clone's root):
   ```bash
   # Mac, repo root: the inputs (training examples included) to Sol
@@ -417,7 +425,42 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
   python3 tools/untrack_produced.py --not-in main --run --backup ~/backup-before-rewrite.bundle
   ```
   (`--not-in main` leaves local `main`'s commits alone.)
-- **Push** (Ritik): `git push origin main trackA-nosol`; the hook checks it first.
+- **Push** (Ritik): `git push origin trackA-nosol:main trackA-nosol:trackA-nosol`; the hook checks it first. From Nov 3
+  `trackC-main` is Shrey's and from Nov 6 `trackB-main` is Arsha's: Ritik no longer pushes his branch to them.
+- **The path guard, both ways** (Nov 3; `configs/path_allowlist.txt`, `tools/path_check.py`):
+  - Install it in each clone, as the pre-commit and pre-merge-commit hooks:
+    `python3 cot-disclosure/tools/path_check.py --install`.
+  - On `trackC-main` (Shrey) and `trackB-main` (Arsha), a commit may touch only that track's paths.
+  - On Ritik's branches, a track's paths change only through a merge of its branch, taken unchanged.
+  - For a change the owner agreed to: `PATH_CHECK_ALLOW=trackC-main git commit ...`. It passes with a warning; say so
+    in the commit.
+- **Merging a teammate's branch** (Ritik, on the check-in days: Track C Nov 7, 12, 15, 18; Track B Nov 12, 15, 18):
+  ```bash
+  git fetch origin
+  python3 cot-disclosure/tools/path_check.py --range origin/main..origin/trackC-main --branch trackC-main   # nothing outside
+  git log --oneline origin/main..origin/trackC-main          # what came; read the session logs and FC entries it adds
+  git diff --stat origin/main...origin/trackC-main           # only their paths
+  git checkout trackA-nosol && git merge --no-ff origin/trackC-main -m "Merge trackC-main (Shrey, <date>): <what>"
+  cd cot-disclosure && ../.venv/bin/python -m pytest -q && ../.venv/bin/python tools/export_summaries.py --check && cd ..
+  ../.venv/bin/python cot-disclosure/tools/make_gantt.py     # their TODO rows feed STATUS and the Gantt
+  git push origin trackA-nosol:main trackA-nosol:trackA-nosol
+  ```
+  - The hook passes the merge only if their files come in unchanged. If they conflict with Ritik's, take theirs and
+    ask them.
+  - **Then place their figures:** copy `docs/trackC/figures/*` (or `docs/trackB/figures/*`) into `docs/paper/figures/`
+    in a commit of Ritik's.
+  - **Then tell them to merge `origin/main` back:** `git fetch origin && git merge origin/main` on their branch. The
+    hook passes `main`'s files only unchanged.
+  - **Files Sol's queued jobs load** (A39 and B20; `tests/test_path_check.py`, FROZEN_FOR_SOL):
+    - `finetune/` (eval.py, generate.py, continuation.py, olmo_format.py, hf_engine.py, gpu/);
+    - `progress/common.py`, `progress/sol_trackB.py`, `progress/sol_b17.py`, `progress/sol_b20.py`,
+      `progress/run_b20.py`;
+    - `agents/__init__.py`, `agents/sol_c13.py`;
+    - `client.py`, `parse.py`, `detect.py`, `experiments.py`, `tasks.py`, `tools/answer_key.py`, `providers/`,
+      `configs/`, `data/`;
+    - the Sol kit's `run.sh`, `env.sh`, `guard.sh` and `accounts.conf`.
+
+    A merge that changes one of these waits for the queued jobs to start before Ritik pulls on Sol.
 - **Data handoff:** `python3 tools/make_handoff_bundle.py --track B` (or A, C): a tar.gz of the track's
   gitignored results with a sha256 manifest, in `results/handoff/`; GPQA files never included unless
   Ritik says so. The receiver checks it: `--verify <file>.tar.gz`.

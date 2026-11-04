@@ -1,13 +1,35 @@
-# Path allowlist: on each branch listed here, a commit may touch only these paths (tools/path_check.py, installed as a
-# pre-commit hook). One rule per line: <branch> <path>; a path ending in / is a folder, anything else a glob. Branches
-# not listed are not checked. This file is read-only on every listed branch (it is outside every list).
+# Path allowlist, both ways (tools/path_check.py, installed as the pre-commit and pre-merge-commit hooks with
+# `python3 cot-disclosure/tools/path_check.py --install`). One rule per line: <branch> <path>; a path ending in / is a
+# folder, anything else a glob; "!" before a path excludes it from that branch's list.
+# - Forward: on a listed branch, a commit may touch only that branch's paths.
+# - Reverse (Nov 3): on every other branch (Ritik's trackA-nosol and main), a path a listed branch owns changes only
+#   through a merge from that branch, taken unchanged (or PATH_CHECK_ALLOW=<branch> for a change its owner agreed to).
+# Everything not listed (shared code: client.py, detect.py, parse.py, experiments.py, progress/common.py, providers/,
+# finetune/, tools/, configs/, the Sol kit, README, PLAN, FINDINGS, TODO, ...) is Ritik's. This file is outside every
+# list, so only Ritik changes it.
 #
-# Track C (Shrey, from Oct 30; set by Ritik on Nov 3). Shared code is read-only there: client.py, detect.py, parse.py,
-# experiments.py, progress/, providers/, tools/, finetune/, configs/ and everything else. A change elsewhere is a new
-# module under cot-disclosure/agents/, or a request to Ritik.
+# Track C (Shrey, from Oct 30; final handoff Nov 3). Not his: agents/__init__.py and agents/sol_c13.py, which every
+# Sol vLLM job imports (finetune/gpu/vllm_options.job_commands), so a change there could stop Ritik's queued jobs.
 trackC-main  cot-disclosure/agents/
+trackC-main  !cot-disclosure/agents/__init__.py
+trackC-main  !cot-disclosure/agents/sol_c13.py
 trackC-main  cot-disclosure/tests/test_trackC_*
 trackC-main  docs/trackC/
 trackC-main  docs/tracks/TRACK_C.md
 trackC-main  cot-disclosure/results/trackC/
 trackC-main  cot-disclosure/results/summaries/trackC/
+#
+# Track B (Arsha, from Nov 6). Her runners, report and table code; not the Sol job code (progress/sol_trackB.py,
+# sol_b17.py, sol_b20.py: Ritik submits Sol jobs, and every vLLM job imports the first two). run_b20.py is also B20's
+# Sol runner: until B20's runs end (Nov 15), only its report functions change (her START_HERE).
+trackB-main  docs/trackB/
+trackB-main  docs/tracks/TRACK_B.md
+trackB-main  cot-disclosure/results/trackB/
+trackB-main  cot-disclosure/results/summaries/trackB/
+trackB-main  cot-disclosure/tests/test_trackB*
+trackB-main  cot-disclosure/tests/test_trackb_final.py
+trackB-main  cot-disclosure/progress/run_trackB.py
+trackB-main  cot-disclosure/progress/run_b1[5-9].py
+trackB-main  cot-disclosure/progress/run_b20.py
+trackB-main  cot-disclosure/progress/trackB_report.py
+trackB-main  cot-disclosure/tools/trackb_final.py

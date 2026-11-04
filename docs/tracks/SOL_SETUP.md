@@ -1,6 +1,6 @@
 # Sol setup for a second user (Shrey, Track C)
 
-Last updated: 2026-10-30 17:20 MST. How to run the Sol kit (`cot-disclosure/finetune/gpu/sol/`) under your own
+Last updated: 2026-11-03 (submit.sh's Nov 3 rules). **Edited by:** Ritik. How to run the Sol kit (`cot-disclosure/finetune/gpu/sol/`) under your own
 Sol user and course account: C13-style jobs (reviewers served by our own vLLM) and the rest. The kit's rules and
 every job are in `cot-disclosure/finetune/gpu/README.md`; this page is what a second user does differently.
 
@@ -141,7 +141,7 @@ counts your running and pending jobs (`squeue -u $USER`) before it submits. Sinc
 - a job without a GPU counts 0 GPU-minutes, but still takes one of the two running slots;
 - only running jobs count toward the 960 GPU-minutes, as Slurm counts them;
 - a second download (`get_*`) is refused unless it waits for the first (`--dependency=afterany:N`);
-- `--htc` lets a job of 4 hours or less start on `htc` as well as `public`, after `sbatch --test-only` accepts it.
+- `htc` isn't open to the class QoS (its AllowQos is public,debug; checked Nov 3): `--htc` is refused.
 
 Times come from `squeue --start -u $USER` on real jobs, not from `--test-only`.
 

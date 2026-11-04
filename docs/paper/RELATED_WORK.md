@@ -1,5 +1,7 @@
 # Related work (verified references only)
 
+**Edited by:** Ritik.
+
 Each entry was checked against its arXiv, proceedings or publisher page on 2026-10-29. The link given
 is the one checked. "Differs" says precisely what our work does that the paper doesn't, or the
 reverse. Our methods, for comparison:

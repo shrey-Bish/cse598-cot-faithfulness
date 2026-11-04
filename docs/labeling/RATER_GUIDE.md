@@ -1,5 +1,7 @@
 # Rater guide, one page: labeling L4, L3 and L5
 
+**Edited by:** Ritik.
+
 For the two raters, Ritik and Shrey. Last updated 2026-11-03 (both L3 and L4 part 1 sheets returned; L3's settling and
 fresh batch; the kappa rule's wording aligned with PLAN; history: `git log -- docs/labeling/RATER_GUIDE.md`). The full definitions and one example per
 label are in [`LABELING_GUIDE.md`](LABELING_GUIDE.md). Read it once before the first row.
@@ -9,8 +11,8 @@ label are in [`LABELING_GUIDE.md`](LABELING_GUIDE.md). Read it once before the f
 | Order | Batch | Rows | What each row is | Time per rater |
 |---|---|---|---|---|
 | 1 | **L3, the queue** (F3 rests on it) | 101 | one hinted run: its private reasoning and its final answer | ~2 h; **returned Nov 3** (kappa under 0.6) |
-| 1a | **L3, settling** (`results/labels/L3_settle.csv`): the 25 disagreements side by side; fill the third column pair and the guide rule that decided each | 23 rows | the two labels and notes | on a call, before Nov 6 |
-| 1b | **L3, the fresh batch** (`results/labels/fresh/`), after the guide is tightened from the call's notes | 72 | as L3 (Track B runs in no sheet) | ~85 min; before Gate 2 on Nov 8 |
+| 1a | **L3, settling** (`results/labels/L3_settle.csv`): the 25 disagreements side by side; fill the third column pair and the guide rule that decided each | 23 rows | the two labels and notes | on a call, by Nov 7 |
+| 1b | **L3, the fresh batch** (`results/labels/fresh/`), after the guide is tightened from the call's notes | 72 | as L3 (Track B runs in no sheet) | ~85 min; by Nov 7 (Gate 2 on Nov 8) |
 | 2 | **L4, Gate 3's sample, part 1** (rows 1–294; **returned Nov 3**, kappa 0.930) | 294 | one final answer to a hinted question (no private reasoning) | ~6 h (~1¼ min a row) |
 | 3 | **L4, part 2** (rows 295–586) | 292 | the same as part 1 | ~6 h |
 | 4 | **L5, Track B**, group 1 (rows 1–68) | 68 | Qwen3 30B Thinking after a real tool call or with the pasted block: both texts | ~2 h |
@@ -67,7 +69,8 @@ For each text, put exactly one of these in `label_private` or `label_final`:
 - **Keep the packet's file names:** `L3_<initials>.csv` and `L4_part1_<initials>.csv` (Shrey `SB`, Ritik `RA`).
 - **Send them to Ritik directly** (ASU email, or a shared folder Ritik names), **never** in a commit or pull
   request.
-- **Deadlines** (Ritik, Oct 31): L3 by **Nov 6**, L4 part 1 by **Nov 14**; L4 part 2 and L5 after.
+- **Deadlines** (Ritik, Oct 31; Nov 3): L3 returned Nov 3; its settling call and the 72-row fresh batch by **Nov 7**
+  (Gate 2, Nov 8); L4 part 1 returned Nov 3; L4 part 2 and L5 after.
 
 ## How agreement is computed (Ritik runs it; no AI involved)
 

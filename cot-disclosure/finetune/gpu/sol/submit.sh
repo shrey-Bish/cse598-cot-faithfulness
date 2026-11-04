@@ -21,8 +21,7 @@
 #   a GPU take slots too)
 #   a download (get_*) while another is running or pending: refused unless it waits for it
 #   (--dependency=afterany:N), so downloads hold at most one of the two running slots (Nov 3)
-#   --htc   the job may also start on htc (-p public,htc; Nov 3): its limit 4 h or less (htc's row in
-#   accounts.conf), and sbatch --test-only must accept the same request first
+#   --htc   refused (Nov 3): htc's AllowQos is public,debug, so the class QoS can't use it
 #
 # The job script's partition and QoS must be a pair accounts.conf lists for the account (Oct 28: the
 # course account has only the class QoS; "-q public" was rejected by sbatch); else refused here, before
@@ -54,12 +53,13 @@ script="$HERE/$job.sbatch"
 [ -f "$script" ] || { echo "no such job script: $script" >&2; exit 2; }
 
 b20_models="gemma-4-26b-a4b-it nemotron-3-nano-30b-a3b granite-4.2-8b"   # progress/run_b20.py MODELS (tested)
-estimate="" sb=() jobargs=() model="" htc=0
+estimate="" sb=() jobargs=() model=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --estimate) estimate=${2:?--estimate needs hours}; shift 2 ;;
         --estimate=*) estimate=${1#*=}; shift ;;
-        --htc) htc=1; shift ;;
+        --htc) echo "refusing: --htc: the htc partition isn't open to the class QoS (its AllowQos is public,debug;" \
+                    "Ritik's check, Nov 3). Submit without it. Nothing was submitted." >&2; exit 1 ;;
         --model|--model=*)                   # B20's kinds only; any other job passes it on to sbatch, as before
             if [ "$job" != b20 ] && [ "$job" != get_b20 ]; then sb+=("$1"); shift
             elif [ "$1" = --model ]; then model=${2:?--model needs a name}; shift 2
@@ -149,20 +149,6 @@ else
 fi
 limit=$(printf '%d:%02d:00' $((limit_min / 60)) $((limit_min % 60)))
 need=$((limit_min * gpus))
-if [ "$htc" = 1 ]; then                       # Nov 3: may also start on htc (4 h), checked by sbatch --test-only below
-    htc_row=$(printf '%s\n' "$rows" | awk -v q="$QOS" '$1 == "htc" && $2 == q' | head -1)
-    if [ -z "$htc_row" ]; then
-        echo "refusing: --htc, but $TRACKA_ACCOUNTS_NAME lists no htc row for $ACCOUNT's $QOS QoS. Nothing was submitted." >&2
-        exit 1
-    fi
-    htc_wall=$(echo "$htc_row" | awk '{print $6}')
-    if [ "$limit_min" -gt $((htc_wall * 60)) ]; then
-        echo "refusing: --htc with a $limit limit, over htc's $htc_wall h; ask for less (the job resumes), or submit without --htc." \
-             "Nothing was submitted." >&2
-        exit 1
-    fi
-    override=(-p "$PARTITION,htc" -q "$QOS")
-fi
 dl=0 dl_names=""                              # Nov 3: a download takes one of the two running slots, like any job
 case "$job" in get_*) dl=1 ;; esac
 for f in "$HERE"/get_*.sbatch; do dl_names="$dl_names $(opt '(-J|--job-name)' "$f")"; done
@@ -272,15 +258,6 @@ unset SBATCH_ACCOUNT SLURM_ACCOUNT
 mkdir -p "${TRACKA_SLURM_LOGS:-/scratch/${USER:-$(id -un)}/trackA/slurm}"   # the scripts' -o directory (/scratch/%u/...)
 cd "$REPO"                                   # the job starts here ($SLURM_SUBMIT_DIR)
 trap - ERR
-if [ "$htc" = 1 ]; then
-    if ! tout=$(sbatch --test-only -A "$ACCOUNT" "${override[@]}" -t "$limit" ${sb[@]+"${sb[@]}"} "$script" \
-                ${jobargs[@]+"${jobargs[@]}"} 2>&1); then
-        echo "refusing: sbatch --test-only rejected -p $PARTITION,htc: ${tout:-no message}. Submit without --htc." \
-             "Nothing was submitted." >&2
-        exit 1
-    fi
-    echo "htc check (sbatch --test-only): $tout"
-fi
 if ! out=$(sbatch -A "$ACCOUNT" ${override[@]+"${override[@]}"} -t "$limit" ${sb[@]+"${sb[@]}"} "$script" \
            ${jobargs[@]+"${jobargs[@]}"} 2>&1); then
     echo "sbatch refused the job: ${out:-no message}" >&2

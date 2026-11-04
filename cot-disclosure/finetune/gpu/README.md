@@ -1,6 +1,8 @@
 # Track A GPU kit: ASU Sol
 
-Last updated: 2026-10-30 17:15 MST (another user: every path from `$USER`, accounts per user). The look-inside steps that need the weights (Steps 8–10, done
+Last updated: 2026-10-30 17:15 MST (another user: every path from `$USER`, accounts per user). **Edited by:** Ritik.
+Job kinds and `submit.sh` rules from Oct 31 on (a18, a39, a39_1gpu, b17, b20, get_b20; one download at a time; htc
+refused): `docs/RUNBOOK.md` §0, §14, §18, and the session logs. The look-inside steps that need the weights (Steps 8–10, done
 Oct 26–27), the Sol plumbing every GPU step reuses, and the jobs of Steps 11–13 (code done Oct 27,
 not run yet). The job plan is in `docs/PLAN.md` (Track A) and the status in `docs/status/TODO.md`. The Sol commands below run from the clone's root
 (`/scratch/$USER/cse598-cot-faithfulness`); the scripts move into `cot-disclosure/` and the

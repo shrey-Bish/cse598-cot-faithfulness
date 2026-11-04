@@ -1,5 +1,7 @@
 # Track C: the agent team (for Shrey, owner from Oct 30)
 
+**Edited by:** Shrey (from Oct 30; in his path allowlist). Where it differs from `docs/trackC/START_HERE.md`, START_HERE holds.
+
 Final, Oct 30, 2026; §5 updated Oct 31 to the 20-day program (C19, C25, C20, C26 prepared and ready to run; C21 and C23
 dropped; results freeze Nov 18). The work through C18 is Ritik's; from Oct 30 Track C is yours. Branch `trackC-main`. The data
 comes as a bundle through ASU storage (§7), never through GitHub.

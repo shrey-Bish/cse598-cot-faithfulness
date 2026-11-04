@@ -1,13 +1,14 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-03 15:09 (A18 read: F39). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-03 22:33 (the track lists; A39 next). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
 **From Nov 3, each track's new findings are in its own file** (Ritik merges them here at the end): Track C's in
 [`trackC/FINDINGS_C.md`](trackC/FINDINGS_C.md) (FC1, …; Shrey's), Track B's in [`trackB/FINDINGS_B.md`](trackB/FINDINGS_B.md)
-(FB1, …; Arsha's from Nov 6). F18–F24 and F30–F34 (Track C) and F15–F17, F25, F29, F35, F37 (Track B) stay here.
+(FB1, …; Arsha's from Nov 6). F18, F19, F21–F24, F30, F31, F33 and F34 (Track C) and F15–F17, F25, F29, F35, F37 (Track B)
+stay here.
 
 **The story so far (Oct 28; updated Oct 30, Nov 1, Nov 2 and Nov 3).**
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
@@ -104,10 +105,12 @@ the session logs. Design and plans:
    reasoning, LoRA's weights pull the answer toward the hint's letter harder, not less (−0.72 logits [−1.02, −0.39]
    removed; the hint's letter in 30 of 30 cases); when LoRA follows, it is through the same three layers, and F12's
    heads still separate its followed runs from its resisted ones. What training changed is the reasoning LoRA writes.
+   **Next (A39, E2):** a provenance wrapper and combinations on 120 fresh questions, with a powered replication of
+   Gate 3 (runs by Nov 15, read Nov 17); B1R2, B1's span on E2, runs only if Nov 8's compute check passes (R4).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
-  a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`) until the hand
-  labels exist.
+  a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`); hand labels decide
+  only where they stand (L4 part 1 in F28, kappa 0.93; L3's, under 0.6 on Nov 3, don't yet).
 - **Too few questions** (decided Oct 26). A clustered interval resting on fewer than 5 questions
   degenerates (it can have zero width), so none is reported: the point is followed by "too few
   questions", and no direction is read from it. Group sizes are given in questions as well as

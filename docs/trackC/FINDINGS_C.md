@@ -1,7 +1,7 @@
 # Track C findings from Nov 3 (Shrey's)
 
 New Track C findings go here, numbered **FC1, FC2, …**, so they never collide with [`FINDINGS.md`](../FINDINGS.md)'s
-F-numbers. Track C's findings so far, F18–F24 and F30–F34, stay in FINDINGS.md. Ritik merges these into FINDINGS.md at
+F-numbers. Track C's findings so far, F18, F19, F21–F24, F30, F31, F33 and F34, stay in FINDINGS.md. Ritik merges these into FINDINGS.md at
 the end (by Nov 18), renumbering them as F-entries and keeping each FC number as an alias.
 
 **Each entry** has the same parts as FINDINGS.md:

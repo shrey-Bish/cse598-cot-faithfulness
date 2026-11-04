@@ -1,7 +1,7 @@
 # Candidate claims: evidence, status, objection, what settles it
 
 Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-03 (B17, B1, the hand
-labels; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
+labels, A18; **edited by:** Ritik; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
 the interval excludes no effect), *tentative* (direction there, interval includes 0 or a confound remains), *waiting*
 (the run is going or planned), *not supported*, *dropped*.
 
@@ -107,8 +107,11 @@ the interval excludes no effect), *tentative* (direction there, interval include
   `rejects_hint` (the answer says the hint is wrong, yet ends on it); 97 and 89 say the hint shaped the answer. The
   "worked independently" half has no label; the raters could tell LoRA's style (`guess_trained` right on 270 and
   267 of 294). The reading was set after labeling, before counting (the L4 log, §6).
-- **Settles it:** the label sample (false disclosure; what the trained answer says); LoRA on 15/19/23 and the tag
-  versions (Gate 3, all six systems).
+- **Inside the fixed model (A18, F39, Nov 3): "acts in the reasoning".** On base's own reasoning, LoRA's weights pull
+  toward the hint's letter harder, not less (R_LoRA −0.72 [−1.02, −0.39]; 28 cases, 13 questions; the hint's letter in
+  30 of 30); its own following runs through the same readout, and F12's heads still separate outcomes (both
+  secondaries replicate). So the fix acts through what the model writes, not on the readout.
+- **Settles it:** L4 part 2 (LoRA minus base in labels); A39's powered replication of Gate 3 on E2 (read Nov 17).
 
 **1.6 Input-embedding provenance tags don't help.**
 - **Evidence:** F20.
@@ -133,7 +136,8 @@ without making the model ignore correct tools.**
   following on the inserted turn that misses its pre-registered acceptance limit; underpowered at 30 questions.
   *Tentative* on the cost: it is 2 of 30 runs, and no-hint accuracy, which the scaling can't touch, moved +10 by
   sampling alone. **A replication (B1R) isn't run:** 35 GPU-hours fit 70 fresh questions, an acceptance half-width
-  of 6 to 9 points; ±5 needs about 107 to 245 questions (53 to 122 GPU-hours; F38). A38 isn't run.
+  of 6 to 9 points; ±5 needs about 107 to 245 questions (53 to 122 GPU-hours; F38). A38 isn't run. B1R2 (on E2) is
+  conditional: decided Nov 8 09:00 from Sol time (R4).
 - **Strongest objection:** it may just make the model ignore tools. Its layers and alpha could be
   tuned on the evaluation questions.
 - **Settles it:**

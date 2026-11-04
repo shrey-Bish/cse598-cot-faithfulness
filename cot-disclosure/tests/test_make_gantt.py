@@ -520,7 +520,7 @@ def test_status_page(model, repo):
     assert "- **Nov 8: Gate 2: the gap (B3) and the labels (L1)**. Needs:" in ms
     assert "  - **B2** Voyager runs, 3 per question: done (Ritik; done Oct 28) (B3 waits on it (TODO))" in ms
     assert "- **Oct 30: Track C to Shrey** (today)" in ms and "Nov 8: Gate 2" in md
-    assert not re.search(r"Acme|Claude|assistant|\bAI\b", md)
+    assert not re.search(r"Acme|assistant|\bAI\b|co-authored|noreply@", md, re.I)
 
 
 def test_a_dropped_item_is_closed_and_listed_apart(model):
