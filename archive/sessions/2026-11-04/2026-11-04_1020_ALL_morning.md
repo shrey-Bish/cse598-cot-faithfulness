@@ -139,7 +139,20 @@ I can't run `sacct` from here. What is known:
 
 ## 7. Checks and push
 
-(Filled in at the end.)
+On the final tree (`2d8d0bb`, before this record):
+- **The full suite:** 906 passed, 2 skipped (CPU, no network). The skips are Nemotron's real smoke, until its flags
+  come back, and one from before.
+- **Links:** 0 broken.
+- **`export_summaries --check`:** numbers only.
+- **The supplement's `--check`:** 36 rows, none unverified, no log outside the ledger. CLAIMS: 198 numbers, 182 exact;
+  the same 3 mismatches (the known C14 ones), the same weak matches, 12 source problems.
+- **The Gantt's dry run:** passes.
+- **The bundle dry runs:** Track B 46 files, 73.8 MB (now with B24's records), 2 Sol records left out; Track C 43
+  files, 31.3 MB.
+- **The pre-push check:** nothing produced, GPQA or over 50 MB.
+- **Nothing missing:** 743 of 743 files tracked at the last push (`f0f90a0`).
+- **Commits:** all of `f0f90a0..` are Ritik's, with no attribution line.
+- **Pushed:** `main`, `trackA-nosol`, `trackB-main` and `trackC-main`, then the local branches fast-forwarded.
 
 ## 8. Judgment calls, with their cost if wrong
 
