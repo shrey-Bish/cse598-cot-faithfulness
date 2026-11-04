@@ -20,7 +20,9 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
 1. **Tools sway models more than users, mostly through their claim to be the answer key.** The same wrong hint moves
    the answer more from a tool than from the user, in all five models tested (Gate 2); a user who claims the answer
    key's authority moves it about as much, except where the model calls the tool itself every time (B16, F35;
-   confirmed same-day, B19).
+   confirmed same-day, B19). Running Nov 4: whether that holds for a second wording and grows from a classmate to the
+   solution manual (B24, Voyager), and three new open-weight families on Sol (B20; amended Nov 4: Gemma with the
+   inserted tool turn, Granite thinking on only).
 2. **After a tool call, the final answer stops explaining.** It becomes a bare letter while the private reasoning
    names the tool. Disclosure can be prompted, but it doesn't reduce deference to the tool (B15). More thinking
    doesn't change it: in gpt-oss-20b, raising the reasoning effort from low to high changes neither the bare answer

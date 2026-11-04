@@ -1,6 +1,6 @@
 # Track B: start here (Arsha, from Nov 6)
 
-**Edited by:** Arsha, on `trackB-main`, from Nov 6. Written by Ritik on Nov 3; Ritik keeps it until then.
+**Edited by:** Arsha, on `trackB-main`, from Nov 6. Written by Ritik on Nov 3 (updated Nov 4: B20's amendment, B24); Ritik keeps it until then.
 
 ## Quick start (one page)
 
@@ -15,7 +15,11 @@ final answer stop naming the tool once the model has called it? It is the eviden
 - most of the pull is the tool's claim to be the answer key (B16, confirmed same-day by B19);
 - more thinking changes neither (B17, labelled §13).
 - **Started for you:** B18's table and slide 2 ([`TRACK_B.md`](../tracks/TRACK_B.md) §1a).
-- **Running on Sol** (Ritik submits): B20, three open-weight families with thinking on and off. Its runs end by Nov 15.
+- **Running on Sol** (Ritik submits, through the feeder): B20, three open-weight families with thinking on and off.
+  Amended Nov 4 after two smokes (§4): Gemma's tool channel is the inserted tool turn, and Granite runs thinking on
+  only. Its runs end by Nov 15.
+- **Running on Voyager** (Ritik's Mac, from Nov 4 03:42): B24, the authority dose (§4a). If it isn't read by Nov 6,
+  it's yours to read.
 
 **Your next steps:**
 
@@ -23,6 +27,7 @@ final answer stop naming the tool once the model has called it? It is the eviden
 |---|---|---|---|
 | 1 | **Setup** (§1): clone, `trackB-main`, the venv, the tests, both hooks, your own Voyager key, the bundle `trackB_20261106.tar.gz` with `--verify`, and the Track B numbers reproduced with no calls | **Fri Nov 6** | **Nov 6** (handoff) |
 | 2 | **Re-read** B16, B19 and B17 by their reports, against F35 and F37 | Sat Nov 7 | — |
+| 2a | **B24's reading** (§4a), if Ritik hasn't read it: its rule, from the bundle's records; a session log and an FB entry | Mon Nov 9 | Nov 12 |
 | 3 | **B18**: check every row of the table against FINDINGS; settle its open choices; its figure | Wed Nov 18 | Nov 12, Nov 18 |
 | 4 | **B20's reading**, by its pre-registered rule, from the numbers-only files Ritik copies back (§4): an FB entry, B20 in B18's table, and the decision whether slide 2 shows it | **Tue Nov 17** | Nov 18 |
 | 5 | **Slides 2, 6, 7 and 8**, final (§5), and Track B's section of the report as bullets in `docs/trackB/REPORT_B.md` | **Fri Nov 20** | — |
@@ -43,7 +48,7 @@ final answer stop naming the tool once the model has called it? It is the eviden
   The hooks enforce this, both ways: Ritik's branches can't change your paths except by merging yours.
 - **The rules:** pre-register before any run; Voyager only, nothing paid; at most 4 requests in flight; every run under
   the power guard; no LLM judging; data never on GitHub; your commits carry no attribution lines.
-- **Sol:** jobs are Ritik's. The Sol job code stays his (`progress/sol_trackB.py`, `sol_b17.py`, `sol_b20.py`).
+- **Sol:** jobs are Ritik's. The Sol job code stays Ritik's (`progress/sol_trackB.py`, `sol_b17.py`, `sol_b20.py`).
 - **Your machine:** a Mac, Linux, or Windows through WSL. Off a Mac the power guard skips its battery check and says so.
 
 **Where to ask:** Ritik, by ASU email or the team's channel. Ask about anything outside your paths, a Sol job, a Voyager
@@ -73,7 +78,7 @@ halt, or a date that will slip.
    - **The pre-push check** (RUNBOOK §17) refuses a push that adds produced data, a GPQA file or a file over 50 MB.
 4. **Your own Voyager key:** `cp cot-disclosure/.env.example cot-disclosure/.env`. Put your key in `RC_LLM_API_KEY`
    and leave every paid key line empty. Never share, print, log or commit it.
-5. **The data bundle.** Ritik sends `trackB_20261106.tar.gz` through ASU storage, never GitHub. He rebuilds it on Nov 6
+5. **The data bundle.** Ritik sends `trackB_20261106.tar.gz` through ASU storage, never GitHub. Ritik rebuilds it on Nov 6
    morning and checks it on a fresh clone first.
    ```bash
    tar --exclude MANIFEST.json -xzf <where you saved it>/trackB_20261106.tar.gz -C cot-disclosure
@@ -111,7 +116,7 @@ halt, or a date that will slip.
   Running and importing it is fine. For a change there, ask Ritik, or write the change in one of your own files.
 - **The other way:** on Ritik's branches the same hook refuses any change to your paths except a merge of
   `trackB-main`, taken unchanged. Between now and Nov 6, Ritik may still update your files (TODO_B, this page), and
-  says so in his commit.
+  says so in the commit.
 - **To stay current:** `git fetch origin && git merge origin/main` on `trackB-main`. The hook passes `main`'s files
   only unchanged. Check by hand at any time: `python3 cot-disclosure/tools/path_check.py --range origin/main..HEAD`.
 - Never bypass a hook (no `--no-verify`).
@@ -122,6 +127,7 @@ halt, or a date that will slip.
 |---|---|
 | **Fri Nov 6** | the handoff: the bundle, setup (§1); **check-in** |
 | Sat Nov 7 | re-read B16, B19 and B17 by their reports |
+| Mon Nov 9 | B24 read by its rule (§4a), if not read before |
 | **Thu Nov 12** | B18: every row checked against FINDINGS; its open choices settled (§5); **check-in and merge** |
 | **Sun Nov 15** | B20's runs end on Sol (Ritik); **check-in and merge** |
 | **Tue Nov 17** | **B20 read** by its rule (§4): an FB entry; B20's rows in B18's table |
@@ -136,7 +142,15 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
 
 - **What it is:** Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B and Granite 4.2 8B on our vLLM on Sol, thinking on and off,
   Track B's design plus B16's authority arm. Pre-registered in `archive/sessions/2026-11-03/2026-11-03_1219_B_b20-prereg.md`
-  (its §13: the order of the jobs).
+  (its §13 and §14: the jobs; its §15: the amendment of Nov 4).
+- **The amendment of Nov 4 (§15), after both smokes exited 5:**
+  - **Gemma's tool channel is the inserted tool turn** (`tool_injected`), the pre-registered fallback. Its smoke never
+    called the tool. Label it "the inserted tool turn (the fallback)".
+  - **Granite runs thinking on only** (972 runs). With thinking off it still wrote a think block and closed it
+    itself, in 6 of 6 smoke runs. R3b isn't read for Granite, and the report says "thinking on only".
+  - Their set-aside smoke runs (Gemma's 2 `tool_real`, Granite's 6 thinking-off) stay in the records and are never
+    read: `run_b20.py --report` reads each model's amended design only.
+  - Nemotron is unchanged. The design is now 4,860 runs.
 - **The rule:**
   - **R1:** Gate 2, each tool channel minus the user's hint.
   - **R2:** tool or authority, each tool channel minus `user_authority`.
@@ -144,7 +158,7 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
   - **R3b:** thinking on minus off, on that bare answer.
   - Each is paired by question with a 95% bootstrap clustered by question, with the 16,000-token cut beside it.
 - **Ritik runs the jobs and copies back** each model's numbers-only files (`results/trackB/b20/<model>/`, without the
-  `*.jsonl.gz` records). He sends them to you through ASU storage by Nov 16.
+  `*.jsonl.gz` records). Ritik sends them to you through ASU storage by Nov 16.
 - **You read:**
   ```bash
   ../.venv/bin/python progress/run_b20.py --report
@@ -153,6 +167,25 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
   Then:
   - add B20's models to `tools/trackb_final.py`'s list;
   - decide whether slide 2 shows them.
+
+## 4a. B24's reading (the authority dose; by Nov 9 if not read before)
+
+- **What it is:** B16's design (Qwen3 30B Thinking and Instruct, Olmo 3 7B Think; the 54 questions; 3 runs at B19's
+  seeds, no reply cache) with two new user arms, where B16's sentence went:
+  - "A classmate of mine says the answer is (X)." (`user_classmate`);
+  - "The official solution manual says the answer is (X)." (`user_manual`).
+  Pre-registered in `archive/sessions/2026-11-04/2026-11-04_0337_B_b24-prereg.md` before any call. 972 runs on Voyager,
+  from Nov 4 03:42 on Ritik's Mac.
+- **The rule** (its §3): (a) the manual minus B16's answer key (expected: no difference detected); (b) the manual minus
+  the classmate, and the classmate minus Track B's plain hint; (c) each of B19's tool arms minus the manual. Paired by
+  question, 95% bootstrap clustered by question, the 16,000 cut beside each. Three of the five readings are cross-day,
+  and labelled so.
+- **You read** (once all 972 are in; its records come in the Nov 6 bundle):
+  ```bash
+  ../.venv/bin/python progress/run_b24.py --report
+  ```
+  The reading goes in a session log (the command, what it printed, the rule's words) and an FB entry. Its records
+  never enter Track B's table.
 
 ## 5. B18 and the slides
 
@@ -166,7 +199,7 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
   - slide 7: tool or authority (`b16_authority.png`);
   - slide 8: the thinking dose (`b17_effort.png`).
 
-  Ritik drew all four from the tracked summaries with `tools/slide_figures.py` (his file). To change one:
+  Ritik drew all four from the tracked summaries with `tools/slide_figures.py` (Ritik's file). To change one:
   - the numbers only: ask Ritik to rerun it;
   - the design: draw yours with a script in your own files, into `docs/trackB/figures/` (PNG, SVG and a CSV of every
     plotted number). Ritik places it at merge.
@@ -199,7 +232,7 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
 - **Merges** (RUNBOOK §16):
   - On Nov 12, 15 and 18, Ritik checks the range
     (`python3 cot-disclosure/tools/path_check.py --range origin/main..origin/trackB-main --branch trackB-main`) and runs
-    the tests. He merges `trackB-main` into `main`, and places your figures.
+    the tests. Ritik merges `trackB-main` into `main`, and places your figures.
   - Then you run `git fetch origin && git merge origin/main`.
 
 ## 7. First-session brief (paste this to start your coding assistant)
@@ -216,7 +249,7 @@ including the Sol job code and tools/slide_figures.py, is read-only: running or 
 Rules: pre-register before any run; never choose anything by looking at results; Voyager only, no paid calls, never
 read, print or log the key in cot-disclosure/.env; at most 4 requests in flight; runs under progress/guard.py; no LLM
 judging: never label, classify, score or summarize model text for a result; produced data never goes on GitHub;
-report X of Y with 95% intervals and bootstraps clustered by question; commits only when Arsha asks, authored by her,
+report X of Y with 95% intervals and bootstraps clustered by question; commits only when Arsha asks, authored by Arsha,
 with no attribution lines of any kind (no co-author trailers, no "generated with" lines, nothing naming a tool). Keep a
 session log in docs/trackB/sessions/ with a row in its INDEX.md, and keep TODO_B.md and FINDINGS_B.md current.
 Task 1 (no calls): START_HERE section 1: the venv, the tests, both hooks, .env exists and is gitignored (don't open
