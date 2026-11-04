@@ -71,6 +71,8 @@ KEEP_PATH = {             # under results/trackA/ -> under results/summaries/ (s
     "gpu/eval/gate3_table.md": "trackA/gpu/eval/gate3_table.md",
     **{f"gpu/eval/figures/{f}.{x}": f"trackA/gpu/eval/figures/{f}.{x}"
        for f in ("gate3_following", "gate3_vs_base") for x in ("png", "svg", "csv")},
+    "gpu/a39/a39_e2.json": "trackA/gpu/a39/a39_e2.json",                    # A39 on E2 (finetune/a39.py; Nov 17)
+    "gpu/a39/a39_mmlupro_30.json": "trackA/gpu/a39/a39_mmlupro_30.json",    # A39 on the 30, beside it
 }
 LATER = ["nohint_train_runs.jsonl", "targets_runs.jsonl", "target_samples_runs.jsonl", "targets_prefill_runs.jsonl",
          "target_samples_prefill_runs.jsonl"]                    # Steps 6-7: after the run finishes
@@ -82,6 +84,8 @@ OTHER = {                # Tracks B and C: numbers-only reports their scripts wr
     "results/trackB/b19_report.json": "trackB/b19_report.json",                  # B19 (progress/run_b19.py --report)
     "results/trackB/b17/b17_report.json": "trackB/b17_report.json",              # B17 (progress/run_b17.py --report; F37)
     "results/trackB/b17/smoke_check.json": "trackB/b17_smoke_check.json",        # B17's smoke (--smoke-check)
+    "results/trackB/b20/b20_report.json": "trackB/b20_report.json",              # B20 (progress/run_b20.py --report; Nov 17)
+    "results/trackB/b24_report.json": "trackB/b24_report.json",                  # B24 (progress/run_b24.py --report)
     # A37 (Qwen3-8B Steps 3 and 10 on Track B's runs; Sol, copied back to results/trackB/qwen8b_mech/; F36)
     "results/trackB/qwen8b_mech/qwen8b_readout.json": "trackA/qwen8b_mech/qwen8b_readout.json",
     "results/trackB/qwen8b_mech/qwen8b_step10_patching.json": "trackA/qwen8b_mech/qwen8b_step10_patching.json",

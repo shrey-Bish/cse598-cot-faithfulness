@@ -194,3 +194,14 @@ def test_summaries_are_numbers_only():
     sys.path.insert(0, str(CODE / "progress"))
     import export_summaries
     assert export_summaries.main(["--check"])
+
+
+def test_the_reports_still_to_come_are_exported_once_they_exist():
+    """A39's (Nov 17), B20's (Nov 17) and B24's reports are numbers-only and go to results/summaries/ by
+    export_summaries.py when they appear, so no hand copy is needed (Nov 4)."""
+    sys.path.insert(0, str(CODE / "tools"))
+    import export_summaries as es
+    assert es.KEEP_PATH["gpu/a39/a39_e2.json"] == "trackA/gpu/a39/a39_e2.json"
+    assert es.KEEP_PATH["gpu/a39/a39_mmlupro_30.json"] == "trackA/gpu/a39/a39_mmlupro_30.json"
+    assert es.OTHER["results/trackB/b20/b20_report.json"] == "trackB/b20_report.json"
+    assert es.OTHER["results/trackB/b24_report.json"] == "trackB/b24_report.json"

@@ -1,6 +1,6 @@
 # Slide figures waiting on a result: the specs
 
-**Edited by:** Ritik (Shrey's slide 12 spec is his to follow, not to edit).
+**Edited by:** Ritik (Shrey's slide 12 spec is Shrey's to follow, not to edit).
 
 Written Nov 1 for the final presentation map in [`docs/PLAN.md`](../../PLAN.md); updated Nov 3 (slides 4, 7, 8, 2 and 10
 are made; slide 12 is drawn by Shrey). Nothing here is drawn from fake or partial numbers. Ritik's slides are added to
@@ -73,6 +73,46 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
   - "Acts after the readout" if the reverse holds; else "either half suffices" or "unclear".
   - B1's rule (Oct 30 17:15): "works", "ignores tools", "costs accuracy", "no effect" or "worse".
 - **Owner and date:** Ritik; made Nov 3 (A18 read, F39; B1 read, F38).
+
+## A39: the fix round on E2 (after slide 9; the report's section 6)
+
+- **Figures:** `docs/paper/figures/a39_e2_fixes.png` and `docs/paper/figures/a39_e2_parts.png` (.svg, .csv), drawn by
+  `cot-disclosure/tools/a39_figures.py` (written Nov 4, 04:05) in `bare_after_call`'s style. The 30, reported beside
+  E2, gives `a39_mmlupro_30_fixes` and `a39_mmlupro_30_parts` for the supplement.
+- **Drawn only after all A39 parts are in (Nov 17).** The tool refuses a report whose `complete` is false (its
+  `completeness` lists the runs missing per system). `--draft` stamps "DRAFT"; a draft never goes on a slide.
+- **Source:** `finetune/a39.py --report --qset e2` writes `a39_e2.json` (numbers only) from the run files copied back
+  from Sol's `$TRACKA_OUT/a39/` (`eval_*_a39_e2*_runs.jsonl`). It is exported to
+  `results/summaries/trackA/gpu/a39/a39_e2.json`, the tool's default `--report`.
+- **(a) `a39_e2_fixes`:** one row per system (base, prompt_only, LoRA, LoRA + note, wrapper, wrapper + note, LoRA +
+  wrapper), pooled over the channels.
+  - Left, R1 (system minus base): `r1.<system>.following_vs_base` and `.acceptance_vs_base` (acceptance is beside,
+    not read). Under each row: `verdict` and `failed`.
+  - Right, R2 (system minus prompt_only): `r2.<system>.following` and `.acceptance`. Under each row: `reading`.
+  - Row labels: the system's own X of Y, `systems.<system>.following.pooled` and `.acceptance.pooled`.
+- **(b) `a39_e2_parts`, left:** R3, each combination minus each part alone. The keys are
+  `r3.<combination>["minus <part>"]`'s `following`, `acceptance` and `accuracy`, with its `reading` (A38's) and
+  `channel`.
+  - LoRA + note is pooled; the wrapper combinations are on the inserted tool turn.
+  - Row labels: `systems.<system>.following.<channel>`, X of Y against the part's.
+- **(c) `a39_e2_parts`, right:** R4, wrap minus base on the inserted tool turn: `r4.following`, `r4.acceptance` and
+  `r4.accuracy`, with `r4.reading` (B1's).
+  - The check: `r4.pasted_check.following_minus_base`, which must be exactly 0 (`exactly_zero`).
+- **Encodings and labels:**
+  - Dots are the paired difference; lines are the report's 95% bootstrap clustered by question. The x axis is
+    "difference (points)", with a zero line.
+  - Following, "follows the wrong hint": damage #9C6C06, a circle. Acceptance, "takes the correct hint": correct
+    #14826A, a diamond. No-hint accuracy and the check: comparison #8893A6, a square (the check hollow).
+  - A wrapper system's R1 and R2 markers are hollow, "diluted by design" (`note`; the amendment's 9.2).
+  - A dagger marks a difference whose sides' no-answer shares are more than 5 points apart
+    (`no_answer.imbalance`; 9.1). The counts are in the CSV.
+  - "too few questions" and "missing runs" are written where a dot would be.
+  - The headline lines come from the readings only. The slide's own sentence is written once A39 is read.
+- **The comparison:** R1–R4 as pre-registered Nov 3, with the amendment (the A39 log's section 9), both before any
+  run; `finetune/a39.py`'s docstring.
+- **Tested only on synthetic reports**, written to a temporary folder (`tests/test_a39_figures.py`). Nothing is drawn
+  into this folder before Nov 17.
+- **Owner and date:** Ritik. The runs end Nov 15; A39 is read and drawn Nov 17.
 
 ## Slide 12: Across agents, and what holds (C25; C20, C26)
 
