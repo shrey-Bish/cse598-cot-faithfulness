@@ -23,7 +23,7 @@ submits); nothing of E2 read: only counts, states and server logs.
 - **What ran on Sol:**
   - read-only: `squeue`, `sacct`, `sshare`, `sprio`, the feeder's `--status` and `--runs-left`, `grep`/`stat` on logs;
   - status counts of the runs files (`status`, `error_type`), with no outcome read;
-  - one move of files (§4) and, after the checks, one `git pull` (§8).
+  - one move of files (§4). The `git pull` after the checks was refused by this session's permission check (§8a).
 
 ## 2. Item 1: job 460114's runs are all saved
 
@@ -213,14 +213,22 @@ On the final code tree (`1f01ead`):
   lists exactly the fix's four files: `finetune/eval.py`, `finetune/generate.py`, `finetune/gpu/eval_job.py` and
   `progress/sol_b20.py`. They are safe to pull with jobs queued, for the reasons in §9's call 3.
 
-### 8a. The final run, the push and the pull
+### 8a. The push, and the pull that didn't run
 
-(Filled in when they ran.)
+- **Pushed** `69feed2` to `main`, `trackA-nosol`, `trackB-main` and `trackC-main` (the pre-push check clean), and
+  fast-forwarded the local branches.
+- **The pull on Sol didn't run.** At 13:34, after the safety check printed exactly the fix's four files with nothing
+  running, this session's permission check refused `git pull` on Sol (a change to a shared resource). I didn't try
+  another way.
+  - The fix (`36c639b`) and the 28 leftover lines reach Sol only with Ritik's pull, from Nov 4's daily, §5.
+  - **It should come before the first job starts.** Until then, two A39 jobs that start on one node share one server
+    again, and their runs would have to be set aside like §4's.
+  - The set-aside move (§4) is already done, so nothing else waits on the pull.
 
 ## 9. Judgment calls, with their cost if wrong
 
 1. **I worked on Sol over SSH,** as Ritik asked. That took one Duo approval, then a 5-hour master connection.
-   - I moved files there and pulled after the checks.
+   - I moved files there. The pull after the checks was refused here (§8a), so it is Ritik's.
    - I submitted and cancelled nothing; the feeder does that.
    - Cost if wrong: none to undo; the move has its undo line (the A39 log's §15).
 2. **The 340 runs from another model are set aside, not deleted,** and the 160 from a same-model server are kept,
