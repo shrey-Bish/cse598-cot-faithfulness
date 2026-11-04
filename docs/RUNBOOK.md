@@ -26,13 +26,29 @@ dropped. One queue, in this order:
 4. A39 on the 30 (quarters and halves), unless E2 and B20 miss Nov 11 09:00;
 5. B1R2 last: decided Nov 4 by its rule's compute check, which it passed (the A39 log's §13): 40 parts of 3 questions.
 
-Nothing new after Nov 18. The lines, in order: the Nov 4 session log (`2026-11-04_0026`). **What binds** (Nov 4) is
-the class QoS's 960 running GPU-minutes (each running job's time left × GPUs) and the 10 submitted jobs: 7 one-GPU jobs
-ran at once on Nov 3, so MaxJobsPU 2 doesn't bind. So most jobs are 1:30 (10 at once hold 900); keep 10 submitted and
-submit the next line when one ends. Before a night away, the longer shapes in the A39 log's §12.5 and §13.5 keep the
-GPUs busy longer. **Times** come from `squeue --start -u $USER` on real jobs, not `sbatch --test-only`. **`submit.sh`**
-(Nov 3–4):
-- it prints the two limits before each job: the GPU-minutes free now and the places left in the 10;
+Nothing new after Nov 18. **What binds** (Nov 4) is the class QoS's 960 running GPU-minutes (each running job's time
+left × GPUs) and the 10 submitted jobs: 7 one-GPU jobs ran at once on Nov 3, so MaxJobsPU 2 doesn't bind. So most jobs
+are 1:30 (10 at once hold 900).
+
+**The feeder submits them** (Nov 4; `tools/sol_feeder.py`, the session log `2026-11-04_0124`). It runs on Sol and keeps
+the 10 places full from the queue file `finetune/gpu/sol/queue_2026-11-04.txt`: the 00:26 log's lines, in its order,
+dependencies by label. Every 5 minutes it reads the jobs' states (sacct), then submits the next lines through
+`submit.sh` while places and GPU-minutes allow. It records each line's job id before the next, so a restart never
+submits a line twice. It waits for dependencies itself, so no pending job holds a place, and it skips (and mails you) a
+line whose `afterok` dependency failed. It never resubmits a job that ended. From the clone's root:
+```bash
+P=/scratch/$USER/envs/olmo/bin/python; F=cot-disclosure/tools/sol_feeder.py
+$P $F --dry-run        # what a tick would submit now; changes nothing
+$P $F --status         # last tick, counts, alerts, every line's job and state
+nohup $P $F --loop >> /scratch/$USER/trackA/feeder.out 2>&1 &     # start (login node); or scrontab with --once
+touch /scratch/$USER/trackA/feeder.stop                            # stop (rm it before starting again)
+$P $F --adopt LABEL JOBID; $P $F --skip LABEL; $P $F --reset LABEL  # your own changes to a line
+```
+Its log is `/scratch/$USER/trackA/feeder.log`; its state `/scratch/$USER/trackA/feeder/state.json`. **Times** come from
+`squeue --start -u $USER` on real jobs, not `sbatch --test-only`. **`submit.sh`** (Nov 3–4):
+- it prints the two limits before each job: the GPU-minutes free now and the places left in the 10; `--check` does every
+  check and submits nothing (the feeder asks it before each line);
+- every job mails on failure (`--mail-type=FAIL`) to `$USER@asu.edu`, or `$TRACKA_MAIL` (`none`: off);
 - **htc** isn't open to the class QoS (its AllowQos is public,debug), so `--htc` is refused;
 - a second download is refused unless it waits for the first (`--dependency=afterany:N`): one at a time;
 - only running jobs count toward the 960 GPU-minutes.

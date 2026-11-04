@@ -27,8 +27,9 @@ were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`
   5. B1R2 last: **decided Nov 4, it runs** (its compute check, moved earlier: the A39 log's §13); 40 parts.
 
   **What binds** is the class QoS's 960 running GPU-minutes (each running job's time left × GPUs) and the 10 submitted
-  jobs, not two running jobs: 7 ran at once on Nov 3. So jobs are 1:30 (10 at once hold 900), with longer shapes
-  before nights. Time estimates come from `squeue --start` on real jobs, not `--test-only`.
+  jobs, not two running jobs: 7 ran at once on Nov 3. So jobs are 1:30 (10 at once hold 900). **The feeder**
+  (`tools/sol_feeder.py`, from Nov 4) submits them from the queue file as places free, day and night (RUNBOOK §0).
+  Time estimates come from `squeue --start` on real jobs, not `--test-only`.
 - **Pre-registration:** before any run, as always.
 
 **The fix, honestly (Nov 3).** LoRA cuts wrong-hint following by 10 points against base (−10 [−16, −4]) and passes Gate 3 by its rule, as do the other three trained versions. But no trained version beats the one-line instruction in the prompt (prompt_only −13 [−21, −6]; LoRA minus it +3 [−1, +8]). The source tags aren't tool-specific: they help no more on the inserted tool turn than on the pasted block (F28). B1's attention scaling cut following on the inserted turn by 17 points (−17 [−30, −3]) but missed its pre-registered acceptance limit (F38). By hand labels, LoRA's keyword false-disclosure candidates are rarely real (L4 part 1, F28). The main limit is power: 30 questions can't resolve the 5–10 point differences these comparisons turn on (B1's acceptance interval is ±13 points; Gate 3's following differences ±6 to ±7). So the fix round's next step is a bigger, fresh evaluation set fixed before any new result (E2, about 120 questions) and A39 on it (Part 4 of the Nov 3 plan). The verdicts already read on the 30 stay as they are.

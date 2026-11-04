@@ -144,6 +144,8 @@ GPU-minutes free now and the places left in the 10 (Nov 4). Since Nov 3:
 - only running jobs count toward the 960 GPU-minutes, as Slurm counts them;
 - a second download (`get_*`) is refused unless it waits for the first (`--dependency=afterany:N`);
 - `htc` isn't open to the class QoS (its AllowQos is public,debug; checked Nov 3): `--htc` is refused.
+- (Nov 4) `submit.sh --check` runs every check and submits nothing; every job mails you on failure
+  (`--mail-type=FAIL`, to `$USER@asu.edu`; `TRACKA_MAIL=<address>` for another, `none` for no mail).
 
 Times come from `squeue --start -u $USER` on real jobs, not from `--test-only`.
 

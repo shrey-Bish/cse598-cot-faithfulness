@@ -556,6 +556,8 @@ Hugging Face only: vLLM can't apply it, so `submit.sh eval` refuses the gate ver
 | B2 generation | `submit.sh provenance_gen --estimate 4.5 -- --version gate3 --checkpoint …/train/gate3/epoch<k> --part K/2` | 6:00 | as B1's, system `prov-gate3` |
 | B1R2, B1's span on E2 (Nov 4; the A39 log's §13) | `submit.sh provenance_gen --estimate 1.6 -- --alpha-from …/provenance_forced/provenance_forced.json --b1r2 --part K/40`, K = 1–40, then `--part K/4` sweeps | 2:30 | `b1r2/eval_prov-*_runs.jsonl` (numbers; never beside B1's), texts beside them (stay on Sol) |
 
+**The feeder (Nov 4):** `tools/sol_feeder.py` submits the queue file `sol/queue_2026-11-04.txt` through `submit.sh`, keeping the 10 places full (RUNBOOK §0). `submit.sh --check` runs every check and submits nothing; every job mails on failure (`--mail-type=FAIL`, `$USER@asu.edu` or `$TRACKA_MAIL`).
+
 Back on the Mac: `provenance_forced.json` and the `eval_prov-*_runs.jsonl` files (numbers only), then
 `python finetune/gpu/provenance_job.py report --out <dir>`: the measures against alpha = 1, paired by
 question, and the trade-off figure.

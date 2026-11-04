@@ -320,6 +320,25 @@ def test_seven_running_jobs_the_limit_is_gpu_minutes_and_places_not_two_slots(tm
     assert rows[0][4] == rows[0][5] == "10"                    # max_jobs: the 10 submitted binds, not 2
 
 
+def test_check_only_submits_nothing_and_every_job_mails_its_owner_on_failure(tmp_path):
+    """Nov 4: the feeder (tools/sol_feeder.py) asks `submit.sh --check` before each line: every check runs, nothing is
+    submitted. Every job mails on failure (--mail-type=FAIL) to $USER@asu.edu, or $TRACKA_MAIL; "none" turns it off.
+    It's on the sbatch line, so no job script and no tracked file holds an address."""
+    env, log = fake_sbatch(tmp_path)
+    fake_queue(tmp_path, env, ["101 RUNNING 1:00:00 2:00:00 gres/gpu:a100:1 2026-11-04T03:00:00 trackA-a39-1gpu"])
+    r = submit(env, "a39_1gpu", "--check", "--estimate", "1", "--", "base", "e2", "3/16")
+    assert r.returncode == 0 and "check only: nothing submitted" in r.stdout and not log.exists(), r.stdout + r.stderr
+    assert "limits: 900 of 960 GPU-minutes free now (this job needs 90); 8 of 10 places left" in r.stdout
+    r = submit(env, "a39_1gpu", "--estimate", "1", "--", "base", "e2", "3/16")
+    args = sbatch_args(log)
+    assert r.returncode == 0 and args[:4] == ["-A", ACCOUNT, "-t", "1:30:00"] and args[-3:] == ["base", "e2", "3/16"]
+    assert "--mail-type=FAIL" in args and f"--mail-user={RITIK}@asu.edu" in args
+    submit({**env, "TRACKA_MAIL": "someone@example.org"}, "a39_1gpu", "--estimate", "1", "--", "base", "e2", "3/16")
+    assert "--mail-user=someone@example.org" in sbatch_args(log)
+    submit({**env, "TRACKA_MAIL": "none"}, "a39_1gpu", "--estimate", "1", "--", "base", "e2", "3/16")
+    assert not any(a.startswith("--mail") for a in sbatch_args(log))
+
+
 def test_a_job_asking_gpus_per_job_counts_them_from_its_requested_tres(tmp_path):
     """Nov 3: squeue's %b is the GPUs asked per node; a job asking them per job (-G, as every script here does) may
     show N/A there, so its ReqTRES (scontrol) gives the count: A39's 4-GPU job counts 4, a download 0."""

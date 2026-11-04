@@ -1,6 +1,9 @@
 #!/bin/bash
 # Submit one Track A batch job under an account listed in accounts.conf, and refuse anything else.
-#   cot-disclosure/finetune/gpu/sol/submit.sh JOB [--estimate HOURS] [sbatch options] [-- job arguments]
+#   cot-disclosure/finetune/gpu/sol/submit.sh JOB [--estimate HOURS] [--check] [sbatch options] [-- job arguments]
+# --check (Nov 4): every check below, then "check only: nothing submitted" (the feeder, tools/sol_feeder.py, asks
+# it before each line). Every job mails on failure (--mail-type=FAIL) to $USER@asu.edu, or $TRACKA_MAIL; "none"
+# turns that off. It goes on the sbatch command line, so no job script and no tracked file holds an address.
 # JOB is JOB.sbatch in this folder. The account always comes from here: the first one in
 # accounts.conf, or TRACKA_SUBMIT_ACCOUNT if it names another listed one (-A on the sbatch command
 # line beats SBATCH_ACCOUNT and the script). An account option among the extras, or a script that
@@ -54,11 +57,12 @@ script="$HERE/$job.sbatch"
 [ -f "$script" ] || { echo "no such job script: $script" >&2; exit 2; }
 
 b20_models="gemma-4-26b-a4b-it nemotron-3-nano-30b-a3b granite-4.2-8b"   # progress/run_b20.py MODELS (tested)
-estimate="" sb=() jobargs=() model=""
+estimate="" sb=() jobargs=() model="" check=0
 while [ $# -gt 0 ]; do
     case "$1" in
         --estimate) estimate=${2:?--estimate needs hours}; shift 2 ;;
         --estimate=*) estimate=${1#*=}; shift ;;
+        --check) check=1; shift ;;
         --htc) echo "refusing: --htc: the htc partition isn't open to the class QoS (its AllowQos is public,debug;" \
                     "Ritik's check, Nov 3). Submit without it. Nothing was submitted." >&2; exit 1 ;;
         --model|--model=*)                   # B20's kinds only; any other job passes it on to sbatch, as before
@@ -255,11 +259,18 @@ if [ -n "$deps" ]; then
     done
 fi
 
+if [ "$check" = 1 ]; then
+    echo "check only: nothing submitted"
+    exit 0
+fi
+mail_to=${TRACKA_MAIL:-${USER:-$(id -un)}@asu.edu}
+mail=()
+[ "$mail_to" = none ] || mail=(--mail-type=FAIL "--mail-user=$mail_to")
 unset SBATCH_ACCOUNT SLURM_ACCOUNT
 mkdir -p "${TRACKA_SLURM_LOGS:-/scratch/${USER:-$(id -un)}/trackA/slurm}"   # the scripts' -o directory (/scratch/%u/...)
 cd "$REPO"                                   # the job starts here ($SLURM_SUBMIT_DIR)
 trap - ERR
-if ! out=$(sbatch -A "$ACCOUNT" ${override[@]+"${override[@]}"} -t "$limit" ${sb[@]+"${sb[@]}"} "$script" \
+if ! out=$(sbatch -A "$ACCOUNT" ${override[@]+"${override[@]}"} -t "$limit" ${mail[@]+"${mail[@]}"} ${sb[@]+"${sb[@]}"} "$script" \
            ${jobargs[@]+"${jobargs[@]}"} 2>&1); then
     echo "sbatch refused the job: ${out:-no message}" >&2
     exit 1
