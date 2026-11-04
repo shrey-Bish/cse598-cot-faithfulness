@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-04 11:15 (F40: B24, the authority dose, read). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-04 13:53 (T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -2419,6 +2419,39 @@ Each one would have changed a reported number.
   pre-registration says which.
 - *Checked.* B19 (Nov 1) did both: 972 new runs, the cache unchanged, B16's six readings the same (F35).
 - *Source.* `cot-disclosure/client.py` (`_request`, the cache), the Nov 1 10:45 and 20:50 session logs.
+
+**T12. Two jobs on one node, one server for both (A39, Sol).**
+- *What.* Every vLLM job served on a fixed port: 8011 for Track A's evaluations, 8012 for Track B's, 8013 for C13's.
+  Sol puts one-GPU jobs on one node, and vLLM binds its port with `SO_REUSEADDR` at its start and listens minutes
+  later. Linux lets a second such socket bind before either listens, so when two of our jobs on one port shared a
+  node, one server answered both jobs' requests and the other job's GPU sat idle. Track A's servers are all named
+  "system", so a request the wrong system's server answered failed nothing: it came back as a valid run of another
+  model.
+- *Found* Nov 4, on Sol: the 9 A39 quarters had left 1,823 runs. Six times, two A39 jobs had shared a node, and each
+  time the later server's log held no request, or a failed bind.
+  - Three parts' runs (340) came from another model. They were set aside unread and run again (the A39 log's §15).
+  - 160 more came from a server of the same model and command, and are kept, labelled.
+- *Fix* (`36c639b`): each job takes a port of its own (`generate.free_port`, from 20000 + the job id mod 10000; B20's
+  jobs too). A39's evaluation also saves each run as it finishes.
+- *Checked: no earlier result is affected* (the audit, Nov 4 13:49; `sacct` for the 59 vLLM jobs that ran from Oct 27,
+  and each server's own log, split by its start lines):
+  - **No two of our vLLM jobs on one port overlapped on one node,** except the six A39 pairs of Nov 3–4.
+  - **Each earlier job's own server logged its own requests,** with no failed bind:
+    - Gate 3's 12 parts (F28): 465 of 465 runs each, no reply missing, and 476–500 tokens a second. A server
+      answering two jobs gave each about half that rate (217 for A39's 460114).
+      - lora's, tags', lora_tags' and lora_attn3's parts each logged 490–536 requests.
+      - base's two parts, and prompt_only's two, wrote to one log name each (no part in the name then), each part
+        from its own node, with no other job of ours on it: 1,020 and 994 requests for 930 runs.
+    - Qwen3-8B (F29): 1,799 requests. C13's two reviewers (F30): 477 each. B17 (F37): 31 and 2,679.
+    - B20's smokes: 26–33 each. The vLLM check. A39's bench: 98.
+  - **On one node at once, but on different ports** (sg038, Oct 29–30: Gate 3's lora part 1/2 on 8011, Qwen3-8B on
+    8012, C13 on 8013): each server logged its own requests.
+  - **Another user's server** on our port would have failed our requests rather than answered them, since none serves
+    our model names. Gate 3's parts missed no reply.
+  - **B1 (F38) and A18 (F39)** ran on Hugging Face only, with no server; their vLLM inputs are Gate 3's runs, clean
+    above.
+- *Rule.* A server's port is the job's own. After a part runs, its server log counts its own requests (RUNBOOK §0).
+- *Source.* The A39 log's §15; the session logs of Nov 4 12:52 and 13:49.
 
 **Also:**
 - Cut-off replies leak when not streamed (the reasoning landed in the answer in 8 of 8).

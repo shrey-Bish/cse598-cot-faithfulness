@@ -1,257 +1,140 @@
-# Session log: Nov 4 afternoon, on Sol by SSH: one port for every job, runs set aside, the quarters' leftovers, Nemotron's count (2026-11-04 12:52 MST)
+# Session log: the shared-port audit, the Sol access rule, the queue (2026-11-04 13:49 MST)
 
-**By:** Ritik. Ritik pasted the afternoon's Sol output at 12:52 and asked for 2–3 hours of work on Sol over SSH,
-without interruption. Voyager only from this Mac; no paid calls; no Sol job submitted or cancelled by hand (the feeder
-submits); nothing of E2 read: only counts, states and server logs.
+**By:** Ritik. Ritik pulled `f8b61af` on Sol at about 13:47 and asked for an audit of every earlier vLLM job. On Sol
+only read-only commands ran: `sacct`, `squeue`, `sprio`, `git log`, and reading logs and records. Nothing was
+submitted, cancelled, moved or pulled from here. No paid calls; nothing of E2 read.
 
 ## 0. What Ritik asked
 
-1. **460114:** confirm from `--runs-left` that its runs are all saved.
-2. **A39's limits:** keep or revert `1af93fc`, by the rule set this morning (revert if all the ended sixteenths took
-   under about 75 minutes with no runs left).
-3. **After the pull:** confirm `063bc78` is on Sol and Nemotron's second smoke is queued. Run
-   `test_nemotrons_real_smoke_under_its_amendment` on the copied files, and give the "offered the tool, never called
-   it" note the real count.
-4. **The queue:** if nothing has run for more than about 12 hours, say so in the daily, with the effect on A39's
-   finish date and on B1R2.
-5. **The standing rules.** Work on Sol directly, keep the logs and the Gantt, and keep the project clean.
+1. **A Sol access rule,** kept in local memory and never committed:
+   - allowed: read-only commands, and `git pull --ff-only` once the safety diff prints nothing;
+   - ask first: before submitting, cancelling, moving, renaming or deleting anything on Sol;
+   - the 340 runs already moved: fine, with the one-line undo kept in §15.
+2. **Confirm the fix is in place** for the next jobs that start.
+3. **The audit.** Ports 8011, 8012 and 8013 were shared before Nov 4. Check every earlier vLLM job and report per
+   finding (F28, F29, F30, F37, F38's inputs) whether it is clean or affected. Set aside nothing without asking. If all
+   are clean, add a trap with the evidence.
+4. **The queue:** keep the projected dates current. If GPU time stays this scarce, propose what to cut first to
+   protect A39 on E2 and B20, without changing any pre-registered rule. Ritik decides.
+5. **Arsha's bundle** is built from Ritik's first message on Nov 6.
+6. **The standing rules.**
 
-## 1. On Sol by SSH
+## 1. The access rule
 
-- **The connection.** One Duo approval opened an SSH master connection (`~/.ssh/config`'s `ControlMaster`, kept for 5
-  hours). Every command after it ran without a prompt.
-- **What ran on Sol:**
-  - read-only: `squeue`, `sacct`, `sshare`, `sprio`, the feeder's `--status` and `--runs-left`, `grep`/`stat` on logs;
-  - status counts of the runs files (`status`, `error_type`), with no outcome read;
-  - one move of files (§4). The `git pull` after the checks was refused by this session's permission check (§8a).
+Saved in local memory (`work-on-sol-by-ssh`), not in the repo, in the words above. The SSH master connection
+stays as it was; `ssh -O exit login.sol.rc.asu.edu` cuts it.
 
-## 2. Item 1: job 460114's runs are all saved
+One lapse to record: between 13:49 and 13:53, a read-only count wrote and removed a temporary file under Sol's
+`/tmp`. From now on
+such counts go through pipes.
 
-- `--runs-left a39:prompt_only:e2:4/16` printed **0** (Ritik's run, and mine at 12:54).
-- The feeder counted it at its first tick after the pull: "12:50:41 job 460114 (e2-prompt_only-4of16): exit 138 at
-  Slurm's warning with all its runs saved: done". `--status` now counts 3 failed (the three first B20 smokes), not 4.
+## 2. The fix is in place
 
-## 3. Item 2: A39's limits stay (`1af93fc`)
+Checked between 13:49 and 13:53:
+- Sol's clone is at `f8b61af`, and `36c639b` (the port and the saving), `54291fd` (the leftover lines) and `1f01ead`
+  (the status) are all in it.
+- `generate.free_port`, `eval_job.Server`'s use of it, `eval.run`'s `as_completed`, and `sol_b20.py`'s port are in
+  the files.
+- Ritik's `--status` counts 220 lines (192 + 28). Nothing is running.
+- The 9 queued jobs (7 A39, 2 B20) load these files when they start, so every next job serves on its own port.
+  - They keep the batch scripts they were submitted with: 1:30 limits, and the old `a39_1gpu.sbatch` without the
+    exit-0 wrapper.
+  - The feeder already treats an exit 138 with no runs left as done.
 
-- **By the rule:** 16 sixteenths had ended by 12:40.
-  - Four ran over 75 minutes: 460111 1:19:04, 460112 1:16:03, 460113 1:24:50, 460114 1:24:54.
-  - Two left runs: lora_note 3/16 20, base 4/16 1 (it ended at 1:24:50, within the warning's minute).
-  - So `1af93fc` (2:00 parts, 3:00 sweeps) stays.
-- **Why those four:** they were the two pairs that shared a GPU (§4). The other twelve, each on its own GPU, took
-  40–69 minutes. With the port fixed, 2:00 is a margin rather than a need. It is kept: the A39 log's §14 put its cost
-  at no more than one place in nine.
+## 3. The audit: no earlier result is affected
 
-## 4. What the check turned up: one port for every job (the A39 log's §15)
+**Method:**
+- `sacct` for every job from Oct 20. 69 vLLM jobs are by name, of which 59 ran: 8011 for `trackA-eval`, `vllm_check`
+  and `a39*`; 8012 for `trackB-qwen3-8b`, `b17` and `b20`; 8013 for `trackC-c13`.
+- Every pair on the same port and the same node, overlapping in time.
+- Every vLLM log on Sol, split at its start lines (each names its job), counting the requests that server received
+  (`POST /v1/`) and any failed bind.
 
-The runs-left check over every ended part found the 9 quarters (3:00) had left **1,823 runs**, not the few §11
-expected. The cause:
+**Same port, same node, same time:** only the six A39 pairs of Nov 3–4, already handled (the A39 log's §15). Nothing
+earlier.
 
-- **Every server listened on port 8011, and Sol puts one-GPU jobs on one node.**
-  - Six times, two A39 jobs shared a node while their servers ran (three at once on sg013).
-  - vLLM binds its port with `SO_REUSEADDR` at its start and listens minutes later. Linux lets a second such socket
-    bind the same port before either listens: checked on Sol's login node with plain sockets.
-  - The later job's `wait_ready` got its answer from the other job's server, and every request went there.
-  - The evidence is in each server's log. In 5 of the 6 cases the later server ran the job's whole length with no
-    `POST /v1/completions`. In the sixth (460112) its bind failed (`OSError: [Errno 98] Address already in use`).
+**Each result's own servers:**
 
-| node | job whose own server got no request | served by | model that served it | "ok" runs |
+| finding | jobs | nodes | what each job's own server logged | verdict |
 |---|---|---|---|---|
-| sg037 | 428295, lora 1/4 | 426582, base 1/4 | **base's, not lora's** | 197 |
-| sg013 | 428296, lora_note 1/4 | 428297, base 3/4 | **base's, not lora's** | 108 |
-| sg013 | 428294, prompt_only 1/4 | 428297, base 3/4 | base's (its own) | 0 |
-| sg004 | 428298, prompt_only 2/4 | 428299, lora 2/4 | **lora's, not base's** | 35 |
-| sg004 | 460112, lora_note 3/16 | 460111, lora 3/16 | lora's (its own) | 70 |
-| sg001 | 460114, prompt_only 4/16 | 460113, base 4/16 | base's (its own) | 90 |
+| **F28, Gate 3** | 12 parts: base, prompt_only, lora, tags, lora_tags and lora_attn3, 1/2 and 2/2 (66932942–66989539, Oct 29–31) | one node each, no other job of ours on it at the time | 465 of 465 runs a part, no reply missing, 476–500 tokens a second; lora's, tags', lora_tags' and lora_attn3's parts logged 490–536 requests each; base's two and prompt_only's two shared a log name (no part in it then), 1,020 and 994 requests for 930 runs | **clean** |
+| **F29, Qwen3-8B (B4)** | 66954217 (Oct 29–30) | sg038, beside Gate 3's lora 1/2 on 8011 | 1,799 requests, on 8012 | **clean** |
+| **F30, C13** | 66954278 (Oct 30) | sg038, 4 minutes beside lora 1/2 | 477 requests to each of its two reviewers, on 8013 | **clean** |
+| **F37, B17** | 355632, 355650 (Nov 3) | sg023, sg236, alone | 31 and 2,679 requests | **clean** |
+| **F38, B1** and **F39, A18** | Hugging Face jobs, no server | | their vLLM inputs are Gate 3's runs, above | **clean** |
+| B20's smokes (§15–§16 rest on them) | 456999, 457471, 460109, 466399 | each beside A39 jobs, but on 8012 | 33, 31, 32 and 26 requests | **clean** |
+| A39's bench, and every A39 part outside the six pairs | 389340 and the rest | | each logged its own requests (bench 98) | **clean** |
+| the vLLM check | 66928369 | sg014 | 3 and 3 | clean (a check, no finding) |
 
-- **One GPU did two or three jobs' work** while the others sat idle. That is where the quarters' 3,600-second
-  timeouts (`not_run`, `connection: timed out`) and the slow sixteenths came from.
-- **Second cause: runs saved in the order sent.**
-  - `eval.run` saved through `pool.map`, so a finished run waited for every run sent before it, and Slurm's warning
-    (`_stop_now`, `os._exit`) lost every one still waiting.
-  - prompt_only 1/4 kept one record (a timeout at 00:32) in 2.5 hours of generation.
-- **B20 was spared.** Its jobs used 8012, and no two B20 jobs shared a node. Each A39 job beside a B20 smoke was on
-  8011.
+- **Two more signals:**
+  - A server answering two jobs halved each job's rate (A39's 460114: 217 tokens a second, against 476–500 for
+    Gate 3's parts).
+  - Another user's server on our port would have failed our requests, since none serves our model names. Gate 3's
+    parts missed no reply.
+- **Two jobs had no log segment, and neither matters.**
+  - 66932942 (base 1/2) shared `vllm_base.log` with base 2/2. They were on two nodes, and base 2/2's start line
+    replaced base 1/2's in the shared file.
+  - 66920318 ran the Hugging Face engine and was cancelled.
+- **Jobs that failed before any run** have empty segments: 66932943 (Qwen3-8B), and 66920320's tagged server (its
+  known out-of-memory failure).
+- **So nothing is "under audit".** FINDINGS gets trap **T12** (the shared port) with this evidence.
 
-**The ruling** (the A39 log's §15):
-- **Set aside:** the 340 "ok" runs that another model's server served (lora 1/4, lora_note 1/4, prompt_only 2/4).
-  - By 13:13 their files had been moved, unread, from `/scratch/$USER/trackA/a39/` to
-    `/scratch/$USER/trackA/a39_wrong_server/`.
-  - `--runs-left` then gave 360 for each: they run again.
-- **Kept, labelled:** the 160 served by a server of the same model and command (lora_note on lora's, prompt_only on
-  base's: `eval_job.MODEL_OF`).
+## 4. The queue
 
-**The fixes** (`36c639b`):
-- **Each job serves on a port of its own.** `generate.free_port` starts from 20000 + the job id mod 10000 and takes
-  the first port a plain bind gets.
-  - `eval_job.Server` takes it unless its caller gives one.
-  - B20's job takes one too: its models run side by side.
-- **Each run is saved as it finishes** (`as_completed`).
-- **Tests:** 4 new, each failing first:
-  - the port search, with a socket bound but not listening;
-  - two jobs on one node;
-  - B20's port, its URL and the runner's;
-  - a run saved while one sent before it still waits.
-- A39's limit test now compares the set of runs, not their order.
+- **Nothing has run since 12:36:14.** By 13:53 Sol gave our 9 jobs no start estimate (`squeue --start`: N/A).
+- **Why, from `sprio` and `squeue`:**
+  - 226 GPU jobs are pending on the public partition, 212 of them above ours.
+  - 219 of the 226 are in the `public` QoS, whose priority factor (weight 200 M) takes them up to about 98 M. Our
+    `class` QoS has a factor of 0, so our priority (about 0.76 M) is waiting time plus fair share (0.005).
+  - So our jobs start only in backfill gaps, or when the public GPU queue runs dry. The last 24 hours' 38.8
+    GPU-hours came in a quieter spell.
+- **The projected dates** (daily, §6), with about 184 GPU-hours left (A39 61, B20 at most 57, B1R2 66), counted from
+  whenever jobs start again:
+  - at the last 24 hours' pace: E2 and B20 about 2.6 days after the restart, the 30 3.0, B1R2 4.7;
+  - at half that pace: 5.2, 6.1 and 9.5 days.
+- **The two deadlines,** from a restart at Nov 5 00:00:
+  - the 30's rule (E2 and B20 by Nov 11 09:00) needs about 16 GPU-hours a day, 41% of the last 24 hours' pace;
+  - B1R2 by Nov 15 23:59 (the A39 log's §13.8) needs about 17 a day, 43%.
+  - At 12:52 I put the second at 47%, counting to the start of Nov 15. Corrected in both logs.
 
-**The leftovers** (`54291fd`):
-- 28 sixteenth lines for the 7 quarters with runs left (2,163 runs at 13:15), at 2:00, after the core sixteenths. The
-  four sweeps also wait for them.
-- Quarter k/4 is sixteenths k, k+4, k+8 and k+12 (parts are strided). A part resumes from every saved run of its
-  system, so each line runs only what its quarter left.
-- The queue tests: 56 sixteenths, each quarter's set exactly; 77 parts at 2:00.
+**What to cut first, if GPU time stays this scarce (a proposal; no rule changed; Ritik decides):**
+- **Nothing yet.** The order and two rules already protect E2 and B20:
+  - E2's and B20's lines come first in the feeder;
+  - the 30 drops itself if E2 and B20 aren't done by Nov 11 09:00;
+  - B1R2 runs last and is read partial at Nov 15 23:59.
+- **Where they still compete.** B20 runs as three chains, one job a model at a time, so the 30's and B1R2's parts can
+  take the places in between. A B20 line that becomes ready then waits for a place (up to 2:00–2:30).
+- **If nothing has started by the Nov 6 digest, in this order:**
+  1. **Drop the 30 early.** An amendment to §10.2; it frees about 17–21 GPU-hours (22 jobs) and costs the 30's
+     readings beside A39. Its rule may drop it on Nov 11 anyway.
+  2. **Hold B1R2's parts until E2's sweeps and B20's last lines are submitted.** An operational order change, in line
+     with §13.6's "B1R2 is last". It costs places left idle while B20's chains run one job at a time.
+  3. **Cut B1R2 to fewer parts** (say 20 of 40). An amendment to §13. It helps E2 and B20 least, since B1R2 already
+     runs last and its partial rule cuts it at the deadline.
 
-## 5. Item 3: Sol after the pull, B20, and Nemotron's count
+## 5. Arsha
 
-- **`063bc78` is on Sol:** Ritik's pull brought `f0f90a0..cf1206a`, and `git merge-base --is-ancestor 063bc78 HEAD`
-  holds there.
-- **Nemotron's second smoke is queued:**
-  - every tick since 12:50 logs "the queue is full (10 places): b20-nemotron-smoke-r2 waits";
-  - it is the next line to go;
-  - `--status` still printed "(needs 063bc78)" beside it, which read as waiting for a pull. It now says "needs
-    063bc78: on Sol" (`1f01ead`; the feeder runs fresh each tick, so no queued job loads it; 1 test, failing first).
-- **Granite's second smoke passed every check** (466399, 11:50–12:03):
-  - 12 of 12 ran and answered;
-  - the tool path ran: 2 of 2 offered runs called it and answered;
-  - its runs are queued (468897).
-  - Gemma's second smoke (466400) is pending.
-- **Nemotron's flags** (on the Mac: Ritik's copy, which my `rsync` found already up to date):
-  - **offered the tool, it called it in 1 of 2 runs.**
-  - Thinking on, it called the tool, then reached the length limit without an answer. Thinking off, it answered with
-    no call.
-  - So the B20 log's §16 count stands: none called it and answered, which is what the smoke's check counts.
-  - But "never called" was wrong for Nemotron.
-- **The test:** `test_nemotrons_real_smoke_under_its_amendment` asserted "never called" and failed on the real flags.
-  It now asserts the count and passes, with the rest of its checks unchanged (10 of 12 ran under the amendment; the
-  rerun adds the 2 inserted-turn runs).
-- **Granite's test:**
-  - `test_the_smoke_check_on_the_real_smokes_under_the_amendments` now reads its first smoke as question 1's rows,
-    since Ritik's copy holds both smokes (24 rows);
-  - it checks the second smoke passes, with 2 of 2 calls.
-- **Updated:**
-  - FINDINGS_B's note, now titled "Granite called the tool every time, Gemma never, and Nemotron once, in a run that
-    never answered";
-  - TRACK_B, START_HERE and TODO_B;
-  - the B20 log's §17 (`cc6bee5`).
+Her bundle is built from Ritik's first message on Nov 6, as Nov 5's daily says. Nothing is built now. The Track B
+bundle's dry run (§7) holds 51 files, with Nemotron's numbers-only files.
 
-## 6. Item 4: the queue
+## 6. Docs
 
-- **Nothing has run since 12:36:14,** when 464192 (`e2-lora-11of16`) ended.
-- **Pending (Priority):** 9 jobs, 466400 to 470273, and the feeder (BeginTime). They are 1:30 jobs, submitted before
-  the pull.
-- **Sol's estimates** (`squeue --start`) moved later within the half hour:
-  - at 12:54: 21:30 to 23:30;
-  - at 13:20: **23:40 for the first** and Nov 5 08:50 for the ninth.
-  - at 13:27: **no estimate at all ("N/A")**, with 1,894 of the public partition's 1,949 pending jobs ranked above
-    ours.
-  - So the gap is at least about 11 hours, against the 12 Ritik named. If nothing starts by 00:36 Nov 5, it passes 12,
-    and the dates below move by as much. It is in the daily.
-- **Why:** our fair share is 0.005 (`sshare`). Ritik's usage is 29.2 M of the class account's 36.7 M raw usage, so
-  priority (about 0.6–0.7 M, `sprio`) now comes almost all from waiting time.
-- **What's left** (`--runs-left`, 13:15):
+- FINDINGS: T12, with the audit's evidence; the header's time.
+- The 12:52 log and DAILY_2026-11-04 §5: B1R2's margin, 43% (to Nov 15 23:59), not 47%.
+- DAILY_2026-11-04 §6; DAILY_2026-11-05's carry-over (the pull is done; the queue's cause; the cut proposal); INDEX;
+  LATEST; TODO's A39 row; STATUS and the Gantt; the supplement (T12 reaches its traps list).
 
-| | E2 | the 30 |
-|---|---|---|
-| base | 705 | 360 |
-| prompt_only | 990 | 360 |
-| lora | 821 | 360 |
-| lora_note | 740 | 360 |
-| wrap, wrap_note, lora_wrap | 480 each | 120 each |
-| total | 4,696 | 1,800 |
+## 7. Checks and push
 
-- **What that costs:** a sixteenth on its own ran about 107 runs a GPU-hour (12 of them, startup included). So:
-  - A39 needs about 61 GPU-hours (E2 44, the 30 17);
-  - B20 at most about 57 (38 jobs at 1:30, fewer if its runs end sooner);
-  - B1R2 about 66 (its compute check, R4);
-  - in all about 184.
-- **The pace:** the last 24 hours delivered 38.8 GPU-hours (the 10:20 digest; sacct gives about 43 to 13:15).
-- **The effect** (projected, at that pace, from a restart around midnight):
+(Filled in when they ran.)
 
-| | the 00:26 log's calendar | now, at 38.8 GPU-h a day | now, at half that pace |
-|---|---|---|---|
-| E2 and B20 (101 GPU-h) | Nov 5–6 | about Nov 7 | about Nov 10 |
-| the 30 (+17) | by then | about Nov 8 | about Nov 11 |
-| B1R2 (+66) | Nov 6–8 | about Nov 9–10 | about Nov 14 |
+## 8. Judgment calls, with their cost if wrong
 
-- **The 30's rule** (Nov 11, 09:00: E2 and B20 done) holds while the pace stays above about 40% of the last
-  24 hours'.
-- **B1R2** finishes before Nov 15 down to about 47% of that pace. Below it, B1R2 is read partial at Nov 15, by its
-  rule (the A39 log's §13).
-- **The reads stay Nov 17.**
-
-## 7. Docs
-
-- RUNBOOK §0: one port a job and each run saved as it finishes; checking a part's server (its log counts its own
-  `POST`s); the set-aside folder; the leftovers; B20's second smokes; the order (§15).
-- TODO: A39's row, the afternoon; R5, 460114 counted and the leftover lines.
-- PLAN's calendar: Nov 4 (the port found and fixed) and Nov 5–7 (the leftovers; the projected dates, at the last
-  24 hours' pace and at half).
-- The two logs: the A39 log's §15, the B20 log's §17.
-- DAILY_2026-11-04 §5; DAILY_2026-11-05's carry-over; INDEX; LATEST; STATUS and the Gantt.
-
-## 8. Checks, push, and the pull on Sol
-
-On the final code tree (`1f01ead`):
-- **The full suite:** 912 passed, 1 skipped (CPU, no network). The first run, before the last two commits, gave
-  911 and 1.
-  - That is 6 more than this morning's 906: the 5 new tests, plus Nemotron's real smoke, now run on its flags.
-  - The skip is the one from before.
-- **Links:** 0 broken, 0 missing RUNBOOK scripts.
-- **`export_summaries --check`:** numbers only.
-- **The supplement** (regenerated, `21a8e61`; `--check` passes): 36 rows, none unverified, no log outside the ledger.
-  CLAIMS: 198 numbers, the same 3 mismatches (the known C14 ones), 13 weak matches, 12 source problems.
-- **The Gantt's dry run:** passes.
-- **The bundle dry runs:**
-  - Track B: 51 files, 73.8 MB. Nemotron's 5 numbers-only files are in; 3 Sol records with text are left out.
-  - Track C: 43 files, 31.3 MB.
-- **The pre-push check:** nothing produced, GPQA or over 50 MB.
-- **Nothing missing:** all 746 files tracked at `origin/main` (`cf1206a`) are still here.
-- **On Sol, before the pull:** `free_port`'s code under Sol's Python on its login node.
-  - With 26401 held, job 466401 took 26402, both while the held socket was bound but not listening and while it
-    listened.
-  - Released, it took 26401; job 466402 took 26402.
-- **The safety diff** (`cf1206a..HEAD` over RUNBOOK §16's list, less `a39.py`, the queue file and `a39_1gpu.sbatch`)
-  lists exactly the fix's four files: `finetune/eval.py`, `finetune/generate.py`, `finetune/gpu/eval_job.py` and
-  `progress/sol_b20.py`. They are safe to pull with jobs queued, for the reasons in §9's call 3.
-
-### 8a. The push, and the pull that didn't run
-
-- **Pushed** `69feed2` to `main`, `trackA-nosol`, `trackB-main` and `trackC-main` (the pre-push check clean), and
-  fast-forwarded the local branches.
-- **The pull on Sol didn't run.** At 13:34, after the safety check printed exactly the fix's four files with nothing
-  running, this session's permission check refused `git pull` on Sol (a change to a shared resource). I didn't try
-  another way.
-  - The fix (`36c639b`) and the 28 leftover lines reach Sol only with Ritik's pull, from Nov 4's daily, §5.
-  - **It should come before the first job starts.** Until then, two A39 jobs that start on one node share one server
-    again, and their runs would have to be set aside like §4's.
-  - The set-aside move (§4) is already done, so nothing else waits on the pull.
-
-## 9. Judgment calls, with their cost if wrong
-
-1. **I worked on Sol over SSH,** as Ritik asked. That took one Duo approval, then a 5-hour master connection.
-   - I moved files there. The pull after the checks was refused here (§8a), so it is Ritik's.
-   - I submitted and cancelled nothing; the feeder does that.
-   - Cost if wrong: none to undo; the move has its undo line (the A39 log's §15).
-2. **The 340 runs from another model are set aside, not deleted,** and the 160 from a same-model server are kept,
-   labelled.
-   - Cost if wrong: 160 runs re-run.
-3. **The fix changes files the queued jobs load** (`finetune/`, `progress/sol_b20.py`).
-   - RUNBOOK §16 asks for that to wait. But nothing is running, the change touches no run id, prompt, seed or record
-     field, and not pulling would let the next jobs that share a node mix models again.
-   - As with this morning's `run_b20.py` change, the pinned designs pass.
-   - Cost if wrong: a job that fails at its server's start (visible at once, alerted by the feeder), not wrong data.
-4. **`1af93fc` stays by the rule,** though the cause was the shared GPU.
-   - Cost if wrong: at most one place in nine.
-5. **The leftovers go in as sixteenths, not bigger sweeps.** They run in parallel, and each fits 2:00.
-   - Cost if wrong: about 28 job starts (10–20 minutes each) instead of 7.
-6. **The 30's and B1R2's dates are projections,** not plan changes. Nothing in a rule moves until Nov 11, 09:00.
-7. **Granite's first-smoke test reads question 1's rows,** since the copied file now holds both smokes.
-   - Cost if wrong: none; the second smoke is checked too.
-8. **Track B's paths were committed with `PATH_CHECK_ALLOW=trackB-main`,** as the guard asks: Ritik owns Track B
-   until Nov 6. Each commit says so.
-9. **`free_port` doesn't hold the port until vLLM binds it.**
-   - Two jobs whose ids differ by one could pick the same port only if the first's own port were already taken and
-     both started in the same minute.
-   - Cost if wrong: the same sharing as before, for that one pair. The check in RUNBOOK §0 (each server counts its
-     own requests) would show it.
-10. **Two commit messages were reworded before any push,** to set their times to the clock (13:17, not 13:18 and
-    13:19). The cited hash `af91a22` became `36c639b`, and §15 cites the new one.
+1. **The audit counts each server's requests from its own log** rather than reading any run's text or outcome.
+   - Cost if wrong: none for the verdict where nodes differ; the two shared log names are covered by the node and
+     reply checks.
+2. **F38 and F39 are clean by construction:** Hugging Face only, with Gate 3's runs as their vLLM inputs.
+   - Cost if wrong: a re-check of their input lists.
+3. **No cut is proposed for now.** The rules already put E2 and B20 first.
+   - Cost if wrong: about a day, if the queue stays empty past Nov 6 and the 30's parts take places B20's chain needs.
+4. **The projections are counted from the restart,** since Sol gives no start estimate.
