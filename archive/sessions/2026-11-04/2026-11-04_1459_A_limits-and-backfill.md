@@ -102,7 +102,17 @@ STATUS and the Gantt; the supplement.
 
 ## 5. Checks and push
 
-(Filled in when they ran.)
+On the final tree (`df2f119`):
+- **The full suite:** 912 passed, 1 skipped (CPU, no network).
+- **Links:** 0 broken.
+- **`export_summaries --check`:** numbers only.
+- **The supplement** (regenerated, `df2f119`; `--check` passes): 36 rows, none unverified, no log outside the ledger.
+  CLAIMS unchanged.
+- **The Gantt's dry run:** passes.
+- **The bundles:** Track B 51 files, Track C 43.
+- **The pre-push check:** clean.
+- **Nothing missing:** all 748 files tracked at `origin/main` (`67dbe36`) are still here.
+- **No file a Sol job loads changed,** so no pull is needed.
 
 ## 6. Judgment calls, with their cost if wrong
 
