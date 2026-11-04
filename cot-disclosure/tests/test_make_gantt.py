@@ -523,6 +523,18 @@ def test_status_page(model, repo):
     assert not re.search(r"Acme|assistant|\bAI\b|co-authored|noreply@", md, re.I)
 
 
+def test_the_plain_words_page_goes_on_top(model, repo):
+    """Nov 4 (Ritik): a page in plain words at the top of STATUS.md, written by hand in docs/status/ONE_PAGE.md; the
+    rest stays generated. Without the file, nothing is added."""
+    assert "In plain words" not in mg.status_md(model)
+    page = repo[0] / "docs" / "status" / "ONE_PAGE.md"
+    page.parent.mkdir(parents=True, exist_ok=True)
+    page.write_text("## In plain words\n\nDone: the gap. Waiting: the labels.\n")
+    md = mg.status_md(model)
+    assert md.index("do not edit by hand") < md.index("## In plain words") < md.index("## Done, per track")
+    assert "Done: the gap." in md and md.count("## In plain words") == 1
+
+
 def test_a_dropped_item_is_closed_and_listed_apart(model):
     """Ritik, Oct 31: dropped items are marked "dropped (scope, Oct 31)" in TODO, never deleted; they are neither
     done nor open, and the status page lists them in a section of their own."""
