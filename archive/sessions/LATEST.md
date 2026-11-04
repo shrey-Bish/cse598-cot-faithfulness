@@ -78,7 +78,7 @@ The amendment is the B20 log's §15, committed `2361152` (03:54) before any reru
 
 ## 3. B24 on Voyager: the authority dose (Part 3)
 
-- **Pre-registered** in [`2026-11-04_0337_B_b24-prereg.md`](2026-11-04_0337_B_b24-prereg.md), committed `d1a56f1`
+- **Pre-registered** in [`2026-11-04_0337_B_b24-prereg.md`](2026-11-04/2026-11-04_0337_B_b24-prereg.md), committed `d1a56f1`
   (03:38) before any call.
 - **The arms:**
   - `user_classmate`: "A classmate of mine says the answer is (X).";
@@ -237,7 +237,7 @@ The team writes the prose and the slides (course policy); these are the material
 - **A pull on Sol is safe for the running and queued jobs.** Of the files they load (RUNBOOK §16), only
   `progress/run_b20.py` changed. Nemotron's design in it is unchanged, pinned by hashes taken before the change. The
   daily's command checks this on Sol; run against tonight's commits here, it prints nothing.
-- **Checks:** the full suite 892 passed, 1 skipped (CPU, no network; run before the supplement's commit and again on the final tree before the push); 0 broken links; `export_summaries --check`: numbers-only; the supplement's `--check`: 36 rows, none unverified, no log outside the ledger, CLAIMS 3 mismatches (the known C14 ones), 12 source problems (the same list as committed); the Gantt's dry run; the bundle dry runs: Track B 45 files, 63.4 MB, 2 Sol records left out; Track C 43 files, 31.3 MB; the pre-push check: nothing produced, GPQA or over 50 MB; nothing missing (717 of 717 files tracked at the last push, `3e12055`); every commit Ritik's, with no attribution line. B24 at the close: 76 of 972 runs at 04:17.
+- **Checks:** the full suite on the final tree (after the supplement's commit, `5f6411a`) 893 passed, 1 skipped (CPU, no network; 892 in an earlier run before the last test was added); 0 broken links (LATEST, a copy one folder up, had one relative link to B24's log, rewritten in the copy); `export_summaries --check`: numbers-only; the supplement's `--check`: 36 rows, none unverified, no log outside the ledger, CLAIMS 3 mismatches (the known C14 ones), 12 source problems (the same list as committed); the Gantt's dry run; the bundle dry runs: Track B 45 files, 63.4 MB, 2 Sol records left out; Track C 43 files, 31.3 MB; the pre-push check: nothing produced, GPQA or over 50 MB; nothing missing (717 of 717 files tracked at the last push, `3e12055`); every commit Ritik's, with no attribution line. B24 at the close: 76 of 972 runs at 04:17.
 
 ## 9. Judgment calls, with their cost if wrong
 
