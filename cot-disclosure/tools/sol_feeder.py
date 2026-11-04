@@ -76,6 +76,7 @@ HELD = ("skipped", "not needed", "unknown", "submitting", "submit failed")
 GAP_MIN = 30                                       # minutes between ticks before the next one says so
 DIGEST_HOUR = 7                                    # the daily digest: the first tick at or after 07:00, local time
 LEFT = re.compile(r"(a39:[a-z_]+:(e2|mmlupro_30)(:\d+/\d+)?|b1r2:\d+/\d+)$")
+WARN_EXIT = "138:0"                                # 128 + SIGUSR1: Slurm's warning ended the job script's wait
 Line = namedtuple("Line", "n label opts argv")
 
 
@@ -183,7 +184,22 @@ def ended(job):
 
 
 def ok(job):
-    return job.get("state") == "COMPLETED" and job.get("exit") == "0:0"
+    """COMPLETED with exit 0, or (Nov 4) a part that ended at Slurm's warning with every one of its runs saved."""
+    return (job.get("state") == "COMPLETED" and job.get("exit") == "0:0") or job.get("saved") is True
+
+
+def spec_of(line):
+    """The runs-left spec (left=) of a line whose runs the feeder can count: an A39 part or sweep
+    (a39:SYSTEM:QSET[:K/N]) or a B1R2 part (b1r2:K/N); else None."""
+    a = line.argv
+    if a[0] in ("a39", "a39_1gpu") and "--" in a and len(a) >= a.index("--") + 3:
+        system, qset, *rest = a[a.index("--") + 1:]
+        spec = "a39:%s:%s" % (system, qset) + (":" + rest[0] if rest and "/" in rest[0] else "")
+    elif a[0] == "provenance_gen" and "--b1r2" in a and "--part" in a[:-1]:
+        spec = "b1r2:" + a[a.index("--part") + 1]
+    else:
+        return None
+    return spec if LEFT.match(spec) else None
 
 
 # ---------------------------------------------------------------- Sol's commands
@@ -426,12 +442,19 @@ class Feeder:
             if not ended(j):
                 continue
             j["ended"], j["ended_ts"] = stamp, now_ts
-            if ok(j):
-                say("%s done" % name)
+            self.count_left(jid, j, label_of.get(jid))                   # Nov 4: an A39 or B1R2 part's runs left
+            left = j.get("left")
+            if j.get("saved"):
+                say("%s ended %s, exit 138 at Slurm's warning with all its runs saved: done" % (name, state))
+            elif ok(j):
+                say("%s done%s" % (name, "; %d of its runs left (stopped at its limit?)" % left if left else ""))
             elif ex == "2:0" and label_of.get(jid) in self.again_of:
                 say("%s stopped at its limit with runs left (exit 2): its next line runs it again" % name)
             else:
-                alert("%s ended %s, exit %s" % (name, state, ex))
+                alert("%s ended %s, exit %s%s" % (name, state, ex, "; %d of its runs left" % left if left else ""))
+        for jid, j in J.items():                         # a part that ended 138 before this check (460114): once
+            if ended(j) and j.get("exit") == WARN_EXIT and "left" not in j and self.count_left(jid, j, label_of.get(jid)):
+                say("job %s (%s): exit 138 at Slurm's warning with all its runs saved: done" % (jid, label_of[jid]))
         # 3. the lines, in order
         submitted, used_places, used_min = [], 0, 0
         for l in self.lines:
@@ -528,7 +551,9 @@ class Feeder:
         def end_ts(j):
             return j.get("ended_ts") or epoch_of(j.get("ended"))
         recent = [(jid, j) for jid, j in J.items() if ended(j) and (end_ts(j) or 0) >= since]
-        done = ["%s (job %s)" % (label_of.get(jid, "not in the queue"), jid) for jid, j in recent if ok(j)]
+        done = ["%s (job %s%s)" % (label_of.get(jid, "not in the queue"), jid, "; %d of its runs left" % j["left"]
+                                   if j.get("left") else "; exit 138 at the warning" if j.get("saved") else "")
+                for jid, j in recent if ok(j)]
         bad = ["%s (job %s): %s, exit %s" % (label_of.get(jid, "not in the queue"), jid, j.get("state"), j.get("exit"))
                for jid, j in recent if not ok(j)]
         running = ["%s (job %s)" % (lab, s["job"]) for lab, s in L.items() if s.get("job")
@@ -643,6 +668,18 @@ class Feeder:
             shown.append("%s runs left" % n if n is not None else "runs left not counted")
         return "ready", "; ".join(shown) or "no dependency"
 
+    def count_left(self, jid, j, label):
+        """Nov 4: count an ended A39 or B1R2 part's runs left once (j["left"]; None if they couldn't be counted). A
+        part that ended at Slurm's warning (exit 138) with none left is done: j["saved"]. True if it was saved."""
+        line = self.by.get(label)
+        spec = spec_of(line) if line else None
+        if not spec:
+            return False
+        j["left"] = self.sol.runs_left(spec, line.argv)
+        if j.get("exit") == WARN_EXIT and j["left"] == 0:
+            j["saved"] = True
+        return bool(j.get("saved"))
+
     # -- the loop, and your commands
     def loop(self, interval=300):
         self.log("loop started on %s, pid %d, a tick every %d s" % (socket.gethostname(), os.getpid(), interval))
@@ -702,10 +739,12 @@ class Feeder:
             s = L.get(l.label, {})
             if s.get("job"):
                 state, ex = live.get(s["job"]) or (J.get(s["job"], {}).get("state"), J.get(s["job"], {}).get("exit"))
-                j = {"state": state, "exit": ex}
+                j = {**J.get(s["job"], {}), "state": state, "exit": ex}
                 word = "ok" if ok(j) else (state or "not known to sacct").lower()
-                rows.append("%-28s job %-8s %-11s %s" % (l.label, s["job"], state or "not known to sacct",
-                                                          "exit %s" % ex if state else "(not yet in sacct, or a typo)"))
+                note = (" (done: exit 138 at the warning, all its runs saved)" if j.get("saved") else
+                        " (%d of its runs left)" % j["left"] if ended(j) and j.get("left") else "")
+                rows.append("%-28s job %-8s %-11s %s%s" % (l.label, s["job"], state or "not known to sacct",
+                                                            "exit %s" % ex if state else "(not yet in sacct, or a typo)", note))
             elif s.get("status"):
                 word = s["status"]
                 rows.append("%-28s %s: %s" % (l.label, s["status"], s.get("why", "")))
@@ -767,7 +806,9 @@ def main(argv=None):
 
 if __name__ == "__main__":
     try:
-        sys.exit(main())
+        rc = main()
+        sys.stdout.flush()                       # here, not at exit: a short output waits in the buffer until then
     except BrokenPipeError:                                              # --status | head: the reader left; that's fine
         os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
-        sys.exit(0)
+        rc = 0
+    sys.exit(rc)

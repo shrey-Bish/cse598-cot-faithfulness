@@ -64,6 +64,22 @@ b20-granite-r2-11          | again=@b20-granite-r2-10                 | b20 --mo
 b20-gemma-r2-11            | again=@b20-gemma-r2-10                   | b20 --model gemma-4-26b-a4b-it --estimate 1.1
 b20-granite-r2-12          | again=@b20-granite-r2-11                 | b20 --model granite-4.2-8b --estimate 1.1
 b20-gemma-r2-12            | again=@b20-gemma-r2-11                   | b20 --model gemma-4-26b-a4b-it --estimate 1.1
+# Nemotron's rerun (Nov 4, 10:31): the B20 log's section 16 amended Nemotron (the inserted tool turn) in 063bc78; its
+# second smoke waits until Sol's clone has it, then up to 12 run jobs, each again only after a stop at the limit with
+# runs left. The b20-nemotron lines above stay as the feeder left them.
+b20-nemotron-smoke-r2      | needs=063bc78                            | b20 --model nemotron-3-nano-30b-a3b -- --smoke
+b20-nemotron-r2-1          | afterok=@b20-nemotron-smoke-r2           | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+b20-nemotron-r2-2          | again=@b20-nemotron-r2-1                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+b20-nemotron-r2-3          | again=@b20-nemotron-r2-2                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+b20-nemotron-r2-4          | again=@b20-nemotron-r2-3                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+b20-nemotron-r2-5          | again=@b20-nemotron-r2-4                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+b20-nemotron-r2-6          | again=@b20-nemotron-r2-5                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+b20-nemotron-r2-7          | again=@b20-nemotron-r2-6                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+b20-nemotron-r2-8          | again=@b20-nemotron-r2-7                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+b20-nemotron-r2-9          | again=@b20-nemotron-r2-8                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+b20-nemotron-r2-10         | again=@b20-nemotron-r2-9                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+b20-nemotron-r2-11         | again=@b20-nemotron-r2-10                | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+b20-nemotron-r2-12         | again=@b20-nemotron-r2-11                | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
 e2-prompt_only-3of16       | -                                        | a39_1gpu --estimate 1 -- prompt_only e2 3/16
 e2-lora-3of16              | -                                        | a39_1gpu --estimate 1 -- lora e2 3/16
 e2-lora_note-3of16         | -                                        | a39_1gpu --estimate 1 -- lora_note e2 3/16

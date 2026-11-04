@@ -722,7 +722,7 @@ def test_nemotrons_first_design_is_as_its_smoke_ran_it(monkeypatch):
 def test_gemmas_and_granites_designs_are_exactly_as_their_second_smokes_were_queued():
     """Their second smokes (b20-*-smoke-r2) may be queued or running when Nemotron's amendment reaches Sol: it leaves
     every Gemma and Granite run id, in order, and every template-check prompt as they were (hashes taken from the code
-    of 2361152, before the change, Nov 4 10:2x)."""
+    of 2361152, before the change)."""
     assert design_hashes(GEMMA) == ("84042f48f3f2e101538a994bdaca5fd56b0db5697726874e90dafe6b89dbcfd1",
                                     "1a1c81291ef57e712963b6b1772229a0e9cf403e124e166bf20af845701dcd5b")
     assert design_hashes(GRANITE) == ("c0fc7b4a0db86d5b7beaec3216fe0aee606ea7ba2053ba9fdff1e1914ff45a49",

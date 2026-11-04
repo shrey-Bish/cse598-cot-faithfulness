@@ -87,6 +87,7 @@ class FakeSol:
 
 
 def feeder(tmp_path, text, sol, **kw):
+    kw.setdefault("now", Clock("2026-11-04T03:00:00"))     # before the digest's hour, whenever the tests run (Nov 4)
     return sf.Feeder(sf.parse_queue(text), tmp_path / "state", sol, log_path=tmp_path / "feeder.log",
                      stop_file=tmp_path / "feeder.stop", mail_to="me@example.org", **kw)
 
@@ -377,7 +378,24 @@ def test_b20s_reruns_wait_for_the_amendment_on_sol_and_come_before_e2():
         assert [by[f"b20-{model}-r2-{k}"].opts["again"] for k in range(2, 13)] == [f"@b20-{model}-r2-{k}" for k in range(1, 12)]
         assert all(labels.index(f"b20-{model}-r2-{k}") < first_a39 for k in range(1, 13))
     assert subprocess.run(["git", "merge-base", "--is-ancestor", "2361152", "HEAD"], cwd=CODE).returncode == 0
-    assert "b20-nemotron-smoke-r2" not in by                              # Nemotron's smoke hasn't failed
+
+
+def test_nemotrons_rerun_waits_for_its_amendment_on_sol_and_comes_before_e2():
+    """Nov 4, 10:31: Nemotron's smoke (460109) failed the tool path; its amendment (the B20 log's section 16) is
+    063bc78, which its second smoke needs on Sol; its runs follow as Gemma's and Granite's do."""
+    lines = sf.parse_queue(sf.QUEUE.read_text())
+    by, labels = {l.label: l for l in lines}, [l.label for l in lines]
+    first_a39 = next(i for i, l in enumerate(lines) if l.argv[0] == "a39_1gpu" and "job" not in l.opts)
+    name = "nemotron-3-nano-30b-a3b"
+    smoke = by["b20-nemotron-smoke-r2"]
+    assert smoke.opts == {"needs": "063bc78"} and smoke.argv == ["b20", "--model", name, "--", "--smoke"]
+    assert by["b20-nemotron-r2-1"].opts == {"afterok": "@b20-nemotron-smoke-r2"}
+    assert [by[f"b20-nemotron-r2-{k}"].opts["again"] for k in range(2, 13)] == [f"@b20-nemotron-r2-{k}" for k in range(1, 12)]
+    assert all(by[f"b20-nemotron-r2-{k}"].argv == ["b20", "--model", name, "--estimate", "1.1"] for k in range(1, 13))
+    assert labels.index("b20-gemma-r2-12") < labels.index("b20-nemotron-smoke-r2") < labels.index("b20-nemotron-r2-12") < first_a39
+    commit = subprocess.run(["git", "log", "-1", "--format=%B", "063bc78"], cwd=CODE, capture_output=True, text=True)
+    assert commit.returncode == 0 and "Nemotron" in commit.stdout and "section 16" in commit.stdout
+    assert subprocess.run(["git", "merge-base", "--is-ancestor", "063bc78", "HEAD"], cwd=CODE).returncode == 0
 
 
 class Clock:
@@ -419,6 +437,19 @@ def test_status_piped_to_head_ends_quietly(tmp_path):
     err = p1.stderr.read().decode()
     p1.wait()
     assert first.startswith("last tick") and "BrokenPipeError" not in err and "Traceback" not in err, err
+
+
+def test_status_into_a_pipe_whose_reader_left_ends_quietly(tmp_path):
+    """Nov 4, 10:18 on Sol: `--status | head -40` still printed "Exception ignored ... BrokenPipeError". The output was
+    small enough to wait in Python's buffer until exit, so the error came at the final flush, outside the try."""
+    queue = tmp_path / "q.txt"
+    queue.write_text(q(*[f"line-{i:02d} | - | a39_1gpu --estimate 1 -- base e2 {i % 16 + 1}/16" for i in range(60)]))
+    env = {**os.environ, "PATH": str(tmp_path / "nobin")}                # no sacct here: nothing to ask
+    p = subprocess.Popen([sys.executable, str(CODE / "tools" / "sol_feeder.py"), "--status", "--queue", str(queue),
+                          "--out", str(tmp_path / "out")], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    p.stdout.close()                                                      # the reader leaves before a byte is written
+    err = p.stderr.read().decode()
+    assert p.wait() == 0 and "BrokenPipeError" not in err and "Exception ignored" not in err, err
 
 
 def test_the_daily_digest_goes_once_a_day_after_seven(tmp_path):
@@ -481,3 +512,138 @@ def test_a_digest_that_fails_never_stops_the_tick(tmp_path):
     body = next(b for _, s, b in sol.mails if "digest" in s)
     assert "The digest failed" in body and "ZeroDivisionError" in body
     assert json.loads((tmp_path / "state" / "state.json").read_text())["heartbeat"]["at"].startswith("2026-11-05 07:10")
+
+
+# ---------------------------------------------------------------- Nov 4 morning: exit 138 at the warning (job 460114)
+def a39_job(tmp_path, saved, warn=True, own_exit=None):
+    """The real a39_1gpu.sbatch over a fake run.sh that "saves" `saved` of part 4/16's prompt_only runs and then, on
+    Slurm's warning, ends 138 as 460114's did (or ends `own_exit` by itself). The runs are counted by the real
+    finetune/eval.py from TRACKA_CODE. Returns (exit code, the job's output)."""
+    import signal
+    import time
+    from common import append
+    from finetune import eval as ev
+    repo = tmp_path / "repo"
+    sol = repo / "cot-disclosure" / "finetune" / "gpu" / "sol"
+    sol.mkdir(parents=True)
+    (sol / "a39_1gpu.sbatch").write_text((CODE / "finetune" / "gpu" / "sol" / "a39_1gpu.sbatch").read_text())
+    started = tmp_path / "started"
+    (sol / "run.sh").write_text("#!/bin/bash\ntrap 'exit 138' USR1\ntouch %s\n%s\nwhile true; do sleep 0.1; done\n"
+                                % (started, "exit %d" % own_exit if own_exit is not None else ""))
+    (sol / "run.sh").chmod(0o755)
+    out = tmp_path / "out"
+    (sol / "env.sh").write_text(f"TRACKA_PY={sys.executable}\nTRACKA_CODE={CODE}\nTRACKA_OUT={out}\n")
+    js = ev.jobs((4, 16), "e2", "a39", "prompt_only")
+    (out / "a39").mkdir(parents=True)
+    for j in js[:saved]:
+        append(out / "a39" / (ev.stem("prompt_only", (4, 16), "e2", "a39") + "_runs.jsonl"),
+               {"run_id": ev.job_id("prompt_only", j), "status": "ok", "system": "prompt_only"})
+    env = {**{k: v for k, v in os.environ.items() if not k.startswith("SLURM_")}, "SLURM_SUBMIT_DIR": str(repo)}
+    p = subprocess.Popen(["bash", str(sol / "a39_1gpu.sbatch"), "prompt_only", "e2", "4/16"], env=env,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    for _ in range(100):
+        if started.exists() or p.poll() is not None:
+            break
+        time.sleep(0.05)
+    time.sleep(0.2)                                                       # the job script is in its wait
+    if warn and p.poll() is None:
+        p.send_signal(signal.SIGUSR1)                                     # --signal=B:USR1: the batch shell only
+    text = p.communicate(timeout=60)[0]
+    return p.returncode, text, len(js)
+
+
+def test_a_job_warned_after_its_last_run_is_saved_exits_0(tmp_path):
+    rc, text, n = a39_job(tmp_path, saved=None)
+    assert n == 90 and rc == 0, text
+    assert "after Slurm's warning, with none of the part's runs left: the job exits 0" in text
+
+
+def test_a_job_warned_with_runs_left_keeps_its_exit_and_says_how_many(tmp_path):
+    rc, text, n = a39_job(tmp_path, saved=60)
+    assert rc == 138 and "runs left: 30" in text, text
+
+
+def test_a_job_that_ends_by_itself_keeps_its_exit_code(tmp_path):
+    rc, text, _ = a39_job(tmp_path, saved=None, warn=False, own_exit=3)  # every run saved, but no warning came
+    assert rc == 3 and "warning" not in text, text
+
+
+def test_an_a39_part_that_ends_138_with_all_its_runs_saved_is_done(tmp_path):
+    """Nov 4: 460114 (e2-prompt_only-4of16) saved 90 of 90, then ended FAILED, exit 138 (the warning, as it ended).
+    The feeder counts the part's runs (left=a39:prompt_only:e2:4/16, finetune/eval.py's resume): none left is done."""
+    sol = FakeSol()
+    f = feeder(tmp_path, q("po4 | - | a39_1gpu --estimate 1 -- prompt_only e2 4/16",
+                           "after | afterok=@po4 | a39_1gpu --estimate 1 -- base e2 5/16"), sol)
+    f.tick()
+    sol.left["a39:prompt_only:e2:4/16"] = 0
+    sol.end("100", "FAILED", "138:0")
+    f.tick()
+    st = json.loads((tmp_path / "state" / "state.json").read_text())
+    assert st["jobs"]["100"]["saved"] is True and st["alerts"] == [] and sol.mails == []
+    assert sol.labels() == ["po4", "after"]                               # afterok: it counts as done
+    log = (tmp_path / "feeder.log").read_text()
+    assert "exit 138 at Slurm's warning with all its runs saved: done" in log
+    row = next(x for x in f.status_text().splitlines() if x.startswith("po4 "))
+    assert "done: exit 138 at the warning, all its runs saved" in row and "1 ok" in f.status_text()
+
+
+def test_an_a39_part_that_ends_138_with_runs_left_is_an_alert_with_the_count(tmp_path):
+    sol = FakeSol()
+    f = feeder(tmp_path, q("po4 | - | a39_1gpu --estimate 1 -- prompt_only e2 4/16"), sol)
+    f.tick()
+    sol.left["a39:prompt_only:e2:4/16"] = 30
+    sol.end("100", "FAILED", "138:0")
+    f.tick()
+    st = json.loads((tmp_path / "state" / "state.json").read_text())
+    assert "saved" not in st["jobs"]["100"] and st["jobs"]["100"]["left"] == 30
+    assert [a["text"] for a in st["alerts"]] == ["job 100 (po4) ended FAILED, exit 138:0; 30 of its runs left"]
+
+
+def test_a_part_that_completes_with_runs_left_says_so_without_an_alert(tmp_path):
+    """A part stopped at its limit exits 0 (eval_job's stop) when the race doesn't hit: the log says how many are left,
+    for the sweep, so a limit that is too short shows."""
+    sol = FakeSol()
+    f = feeder(tmp_path, q("po4 | - | a39_1gpu --estimate 1 -- prompt_only e2 4/16",
+                           "b1 | - | provenance_gen --estimate 1.6 -- --alpha-from /x.json --b1r2 --part 3/40"), sol)
+    f.tick()
+    sol.left.update({"a39:prompt_only:e2:4/16": 12, "b1r2:3/40": 0})
+    sol.end("100")
+    sol.end("101")
+    f.tick()
+    log = (tmp_path / "feeder.log").read_text()
+    assert "job 100 (po4) done; 12 of its runs left (stopped at its limit?)\n" in log
+    assert "job 101 (b1) done\n" in log                                  # none left: nothing to say
+    assert json.loads((tmp_path / "state" / "state.json").read_text())["alerts"] == []
+
+
+def test_a_part_that_ended_138_before_this_check_is_checked_once(tmp_path):
+    """460114's alert came at 06:55, before this check existed: the next tick counts its runs once, and calls it
+    done if none are left (the old alert stays in the log)."""
+    sol = FakeSol()
+    f = feeder(tmp_path, q("po4 | job=460114 | a39_1gpu --estimate 1 -- prompt_only e2 4/16"), sol)
+    sol.jobs["460114"] = {"state": "FAILED", "exit": "138:0", "need": 90, "comment": ""}
+    st = {"lines": {"po4": {"job": "460114", "how": "submitted", "at": "x"}},
+          "jobs": {"460114": {"state": "FAILED", "exit": "138:0", "ended": "x", "ended_ts": 1.0}},
+          "alerts": [{"at": "x", "text": "job 460114 (po4) ended FAILED, exit 138:0"}]}
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state" / "state.json").write_text(json.dumps(st))
+    sol.left["a39:prompt_only:e2:4/16"] = 0
+    f.tick()
+    sol.left["a39:prompt_only:e2:4/16"] = 5                               # never counted again
+    f.tick()
+    st = json.loads((tmp_path / "state" / "state.json").read_text())
+    assert st["jobs"]["460114"]["saved"] is True and len(st["alerts"]) == 1
+    assert "job 460114 (po4): exit 138 at Slurm's warning with all its runs saved: done" in (tmp_path / "feeder.log").read_text()
+
+
+def test_every_a39_and_b1r2_line_in_the_queue_has_a_countable_spec():
+    lines = sf.parse_queue(sf.QUEUE.read_text())
+    for l in lines:
+        spec = sf.spec_of(l)
+        if l.argv[0] == "a39_1gpu" or "--b1r2" in l.argv:
+            assert spec and sf.LEFT.match(spec), l.label
+            if "left" in l.opts:                                          # a sweep counts what its own left= counts
+                assert spec == l.opts["left"], l.label
+        else:
+            assert spec is None, l.label
+    assert sf.spec_of(next(l for l in lines if l.label == "e2-prompt_only-4of16")) == "a39:prompt_only:e2:4/16"

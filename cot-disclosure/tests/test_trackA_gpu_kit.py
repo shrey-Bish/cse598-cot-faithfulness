@@ -170,7 +170,11 @@ def test_every_job_script_uses_the_course_account_within_limits(script):
     assert n <= 1 or "-N 1" in opts                           # Nov 3: one vLLM server over the GPUs needs them on one node
     assert "run.sh" in script.read_text() or "setup_env.sh" in script.read_text() or "setup_vllm.sh" in script.read_text()
     if "run.sh" in script.read_text():                         # Oct 29: step9 and step10 dropped set A's --items-from
-        assert script.read_text().rstrip().endswith(f'run.sh {script.stem.removesuffix("_1gpu")} "$@"')   # a39_1gpu runs a39
+        call = f'run.sh {script.stem.removesuffix("_1gpu")} "$@"'                                     # a39_1gpu runs a39
+        if script.name == "a39_1gpu.sbatch":                   # Nov 4: run.sh as its child, the warning passed on (460114)
+            assert f"/{call} &" in script.read_text() and script.read_text().rstrip().endswith('exit "$rc"')
+        else:
+            assert script.read_text().rstrip().endswith(call)
 
 
 def fake_sbatch(tmp_path):
