@@ -1,6 +1,6 @@
 # Track B: start here (Arsha, from Nov 6)
 
-**Edited by:** Arsha, on `trackB-main`, from Nov 6. Written by Ritik on Nov 3 (updated Nov 4: B20's amendment, B24); Ritik keeps it until then.
+**Edited by:** Arsha, on `trackB-main`, from Nov 6. Written by Ritik on Nov 3 (updated Nov 4: B20's two amendments, B24); Ritik keeps it until then.
 
 ## Quick start (one page)
 
@@ -16,8 +16,8 @@ final answer stop naming the tool once the model has called it? It is the eviden
 - more thinking changes neither (B17, labelled §13).
 - **Started for you:** B18's table and slide 2 ([`TRACK_B.md`](../tracks/TRACK_B.md) §1a).
 - **Running on Sol** (Ritik submits, through the feeder): B20, three open-weight families with thinking on and off.
-  Amended Nov 4 after two smokes (§4): Gemma's tool channel is the inserted tool turn, and Granite runs thinking on
-  only. Its runs end by Nov 15.
+  Amended Nov 4 after its three smokes (§4): Gemma's and Nemotron's tool channel is the inserted tool turn, and
+  Granite runs thinking on only. Its runs end by Nov 15.
 - **Running on Voyager** (Ritik's Mac, from Nov 4 03:42): B24, the authority dose (§4a). If it isn't read by Nov 6,
   it's yours to read.
 
@@ -142,7 +142,7 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
 
 - **What it is:** Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B and Granite 4.2 8B on our vLLM on Sol, thinking on and off,
   Track B's design plus B16's authority arm. Pre-registered in `archive/sessions/2026-11-03/2026-11-03_1219_B_b20-prereg.md`
-  (its §13 and §14: the jobs; its §15: the amendment of Nov 4).
+  (its §13 and §14: the jobs; its §15 and §16: the amendments of Nov 4).
 - **The amendment of Nov 4 (§15), after both smokes exited 5:**
   - **Gemma's tool channel is the inserted tool turn** (`tool_injected`), the pre-registered fallback. Its smoke never
     called the tool. Label it "the inserted tool turn (the fallback)".
@@ -150,7 +150,12 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
     itself, in 6 of 6 smoke runs. R3b isn't read for Granite, and the report says "thinking on only".
   - Their set-aside smoke runs (Gemma's 2 `tool_real`, Granite's 6 thinking-off) stay in the records and are never
     read: `run_b20.py --report` reads each model's amended design only.
-  - Nemotron is unchanged. The design is now 4,860 runs.
+  - **Nemotron's tool channel is the inserted tool turn too** (§16, Nov 4, 10:30): its smoke failed the tool path only,
+    the case §15 had decided before it was seen. Its 2 `tool_real` smoke runs are set aside like Gemma's. Only Granite
+    keeps the model's own call, so R3b on the model's own call is read for no model.
+  - The design is now 4,860 runs.
+  - **Descriptive, read by no rule:** offered the tool, Granite called it in 2 of 2 smoke runs, Gemma in 0 of 2,
+    Nemotron in none that answered (FINDINGS_B's note).
 - **The rule:**
   - **R1:** Gate 2, each tool channel minus the user's hint.
   - **R2:** tool or authority, each tool channel minus `user_authority`.

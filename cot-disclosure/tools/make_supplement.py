@@ -928,10 +928,12 @@ PREREG = [
              "R3b thinking on minus off on it; the 16,000 cut beside each",
      "rule_log": "2026-11-03_1219_B_b20-prereg.md", "rule_check": ["R1, Gate 2", "R2, tool or authority", "R3b, with thinking"],
      "rule_extra": [("the amendment, section 15 (Gemma's fallback; Granite thinking on only, so no R3b for it; "
-                     "Nemotron's rule decided before its smoke)", "2361152")],
-     "f_title": r"\(B20\)", "result_glob": ["*b20-results*"], "verdict": "waiting: the first smokes Nov 4; amended "
-     "before any rerun (section 15): Gemma 4 the inserted tool turn, Granite 4.2 thinking on only; the second smokes "
-     "after the Nov 4 pull; the runs at 1:30 (section 14)", "verdict_check": []},
+                     "Nemotron's rule decided before its smoke)", "2361152"),
+                    ("the second amendment, section 16 (Nemotron's fallback, as section 15 decided; R3b on the "
+                     "model's own call read for no model)", "063bc78")],
+     "f_title": r"\(B20\)", "result_glob": ["*b20-results*"], "verdict": "waiting: the first smokes Nov 4, all three "
+     "not clean; amended before any rerun (sections 15 and 16): Gemma 4 and Nemotron 3 the inserted tool turn, Granite "
+     "4.2 thinking on only; the second smokes after the Nov 4 pulls; the runs at 1:30 (section 14)", "verdict_check": []},
     {"id": "b24", "track": "B", "experiment": "B24: the authority dose, a classmate's and the official solution manual's "
                                               "claim from the user (B16's design)", "kind": "pre",
      "rule": "per model, paired by question, B16's statistics, the 16,000 cut beside: (a) user_manual minus B16's "
@@ -952,7 +954,8 @@ PREREG = [
      "rule_log": "2026-11-03_1130_A_e2-a39-prereg.md", "rule_check": ["powered replication of Gate 3", "R4, the wrapper"],
      "rule_extra": [("the amendment, section 10 (job shapes, the 30's and B1R2's decisions)", "9fc52d6")],
      "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: running on Sol (9 parts from Nov 3; "
-     "the rest at 1:30, section 12)", "verdict_check": []},
+     "16 sixteenths at 1:30 from Nov 4, section 12; the parts after them at 2:00 and the sweeps at 3:00, section 14)",
+     "verdict_check": []},
     {"id": "b1r2", "track": "A", "experiment": "B1R2: B1's deployable span on E2 (a labelled replication; decided "
                                                "Nov 4: it runs)", "kind": "pre",
      "rule": "alpha 0.25 against alpha = 1 on E2's inserted tool turn, by B1's rule (b1_verdict) unchanged; B1's verdict "

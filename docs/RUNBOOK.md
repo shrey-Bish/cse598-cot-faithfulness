@@ -51,7 +51,21 @@ Its log is `/scratch/$USER/trackA/feeder.log`; its state `/scratch/$USER/trackA/
   `squeue -u $USER -n trackA-feeder` its job. Between ticks that job waits in the queue (`BeginTime`) and holds one of
   the 10 places.
 - **`--status`** asks sacct for every line's job now: its state and exit, not the last tick's copy. A job sacct doesn't
-  know says so. Piping it to `head` is fine (Nov 4).
+  know says so. Piping it to `head` is fine (Nov 4; the 10:18 run still printed a BrokenPipeError at exit, fixed in
+  `85c2691`).
+- **A part warned as it ends (Nov 4, from job 460114).** Slurm's warning (USR1, 5 minutes before the limit, or up to a
+  minute earlier) can come as an A39 part ends. Python then exits at once, and `run.sh`'s wait returns 138
+  (128 + USR1), so the job shows FAILED, exit 138, though every run is saved.
+  - **The feeder** counts each ended A39 or B1R2 part's runs left once, as `left=` does. Exit 138 with none left is
+    done: no alert, and `--status` says "done: exit 138 at the warning, all its runs saved". With runs left, the alert
+    says how many. A part that ends COMPLETED with runs left (stopped at its limit) says so in the log and the digest.
+  - **`a39_1gpu.sbatch`** (from `85c2691`, for jobs submitted after that pull) runs `run.sh` as its child and passes
+    the warning on. A warned job with none of its part's runs left exits 0; its Slurm log says so.
+  - `run.sh` is unchanged while queued jobs load it.
+  - One part's runs left, by hand: `$P $F --runs-left a39:SYSTEM:QSET:K/N` (for example
+    `a39:prompt_only:e2:4/16`), which prints a number.
+- **A39's limits (Nov 4, the A39 log's §14):** the parts not submitted by 10:15 run at 2:00 (`--estimate 1.5`) and the
+  sweeps at 3:00 (`--estimate 2.3`). A sixteenth took 1:24:54 of its 1:30. At 2:00, 8 fresh jobs fill the 960.
 - **The daily digest** (Nov 4): the first tick after 07:00 mails `$USER@asu.edu` (the alerts' mail path; Sol's
   `MailProg` is goslmailer) and writes `/scratch/$USER/trackA/feeder/digest.txt`. It covers:
   - what finished and what failed in the last 24 h, and what runs and waits;
