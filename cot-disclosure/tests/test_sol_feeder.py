@@ -29,7 +29,7 @@ class FakeSol:
     def __init__(self, places=10, cap=960):
         self.jobs, self.next, self.places, self.cap = {}, 100, places, cap
         self.submitted, self.mails, self.commits, self.left, self.checks = [], [], set(), {}, 0
-        self.usage_rows = []
+        self.usage_rows, self.usage_fails = [], False
 
     @staticmethod
     def need(argv):
@@ -70,6 +70,8 @@ class FakeSol:
         return "mailed"
 
     def usage(self, since):
+        if self.usage_fails:
+            raise sf.FeederError("sacct failed (code 1): slurm_load_jobs error")
         return list(self.usage_rows)
 
     # test helpers
@@ -673,3 +675,92 @@ def test_a39_parts_not_yet_submitted_get_2_00_and_the_sweeps_3_00():
     assert {sf.limit_hours(l.argv) for l in later if "left" not in l.opts} == {2.0}
     assert {sf.limit_hours(l.argv) for l in later if "left" in l.opts} == {3.0}
     assert sum("left" not in l.opts for l in later) == 49 + 28 and sum("left" in l.opts for l in later) == 14
+
+
+NOV6 = q("e2-base-1of16 | - | a39_1gpu --estimate 1.5 -- base e2 1/16",
+         "b20-g-1 | - | b20 --model granite-4.2-8b --estimate 1.1",
+         "b20-g-2 | again=@b20-g-1 | b20 --model granite-4.2-8b --estimate 1.1",
+         "e2-base-sweep | afterany=@e2-base-1of16 left=a39:base:e2 | a39_1gpu --estimate 2.3 -- base e2",
+         "m30-base-1of4 | dropif=nov6 | a39_1gpu --estimate 1.5 -- base mmlupro_30 1/4",
+         "b1r2-01of40 | holdif=nov6 | provenance_gen --estimate 1.6 -- --b1r2 --part 1/40")
+
+
+def nov6_usage(sol, hours_in_window):
+    """One job of 1 GPU that ran from an hour before Nov 4 12:36 until HOURS after it, and one of 2 GPUs still running
+    from an hour before Nov 6 07:00: the window counts HOURS + 2."""
+    a, b = sf.sacct_time("2026-11-04T12:36:00"), sf.sacct_time("2026-11-06T07:00:00")
+    sol.usage_rows = [{"job": "1", "start": a - 3600, "end": a + hours_in_window * 3600, "gpus": 1},
+                      {"job": "2", "start": b - 3600, "end": None, "gpus": 2}]
+
+
+def test_nov6_under_10_gpu_hours_drops_the_30_and_holds_b1r2(tmp_path):
+    """The A39 log's section 16 (Nov 4): at the first tick at or after Nov 6 07:00, the GPU-hours Sol delivered to
+    Ritik's jobs from Nov 4 12:36 to Nov 6 07:00 decide, once. Under 10: the 30's lines are dropped, and B1R2's wait
+    until E2's sweeps and B20's lines are submitted or settled. Jobs running across 07:00 count up to 07:00 only."""
+    sol, clock = FakeSol(places=2), Clock("2026-11-06T06:55:00")
+    f = feeder(tmp_path, NOV6, sol, now=clock)
+    nov6_usage(sol, 3)                                                    # 3 + 2 = 5 GPU-hours
+    f.tick()                                                              # 06:55: no decision yet
+    assert sol.labels() == ["e2-base-1of16", "b20-g-1"]
+    assert not json.loads((tmp_path / "state" / "state.json").read_text()).get("decisions")
+    sol.mails.clear()
+    sol.places = 6                                                        # room for everything from here
+    clock.add(minutes=7)                                                  # 07:02: the digest's tick
+    f.tick()
+    st = json.loads((tmp_path / "state" / "state.json").read_text())
+    assert st["decisions"]["nov6"]["branch"] == "cut" and st["decisions"]["nov6"]["gpu_hours"] == 5.0
+    assert st["lines"]["m30-base-1of4"]["status"] == "dropped"
+    assert "b1r2-01of40" not in st["lines"] and "b1r2-01of40" not in sol.labels()      # held, with places free
+    alerts = [b for _, subj, b in sol.mails if "alert" in subj]
+    assert alerts and "decision nov6" in alerts[0] and "5.0 GPU-hours" in alerts[0]
+    assert "decision nov6" in next(b for _, subj, b in sol.mails if "digest" in subj)
+    assert "decision nov6" in f.status_text() and "cut" in f.status_text()
+    nov6_usage(sol, 40)                                                   # made once: later usage changes nothing
+    sol.end("100")
+    sol.end("101")                                                        # b20-g-1 finished: b20-g-2 isn't needed
+    f.tick()                                                              # the sweep goes in, b20-g-2 is settled,
+    assert sol.labels()[-2:] == ["e2-base-sweep", "b1r2-01of40"]          # so B1R2 goes right after it
+    assert json.loads((tmp_path / "state" / "state.json").read_text())["decisions"]["nov6"]["gpu_hours"] == 5.0
+
+
+def test_nov6_with_10_gpu_hours_or_more_cuts_nothing(tmp_path):
+    sol, clock = FakeSol(places=2), Clock("2026-11-06T06:55:00")
+    f = feeder(tmp_path, NOV6, sol, now=clock)
+    nov6_usage(sol, 8)                                                    # 8 + 2 = 10: not under 10
+    f.tick()
+    clock.add(minutes=7)
+    f.tick()
+    st = json.loads((tmp_path / "state" / "state.json").read_text())
+    assert st["decisions"]["nov6"]["branch"] == "no cut" and st["decisions"]["nov6"]["gpu_hours"] == 10.0
+    sol.end("100")
+    sol.end("101")
+    f.tick()
+    f.tick()
+    assert "m30-base-1of4" in sol.labels() and "dropped" not in json.dumps(st["lines"])
+
+
+def test_nov6_waits_a_tick_when_sacct_fails(tmp_path):
+    """A failed sacct must not read as no GPU-hours (a cut): the decision waits for the next tick, same window."""
+    sol, clock = FakeSol(places=2), Clock("2026-11-06T07:01:00")
+    f = feeder(tmp_path, NOV6, sol, now=clock)
+    nov6_usage(sol, 30)
+    sol.usage_fails = True
+    f.tick()
+    st = json.loads((tmp_path / "state" / "state.json").read_text())
+    assert "nov6" not in st.get("decisions", {}) and "decision nov6 waits" in (tmp_path / "feeder.log").read_text()
+    sol.usage_fails = False
+    clock.add(minutes=5)
+    f.tick()
+    assert json.loads((tmp_path / "state" / "state.json").read_text())["decisions"]["nov6"]["branch"] == "no cut"
+
+
+def test_the_queue_tags_the_30_to_drop_and_b1r2_to_hold_by_nov6():
+    """The A39 log's section 16: the 30's 29 lines carry dropif=nov6, B1R2's 44 holdif=nov6, and nothing else either."""
+    lines = sf.parse_queue(sf.QUEUE.read_text())
+    drop = {l.label for l in lines if l.opts.get("dropif") == "nov6"}
+    hold = {l.label for l in lines if l.opts.get("holdif") == "nov6"}
+    assert drop == {l.label for l in lines if "mmlupro_30" in l.argv} and len(drop) == 29
+    assert hold == {l.label for l in lines if l.argv[0] == "provenance_gen" and "--b1r2" in l.argv} and len(hold) == 44
+    with pytest.raises(sf.QueueError, match="no such decision"):
+        sf.parse_queue("x | dropif=nov7 | a39_1gpu -- base e2 1/16\n")
+
