@@ -174,10 +174,11 @@ the answer is (X)."; each tool arm minus that, paired by question:
     channel is the inserted tool turn too, by the rule §15 set before its smoke was seen. Label it "the inserted tool
     turn (the fallback)". Only Granite keeps the model's own call, so R3b on the model's own call is read for no model.
   - **Descriptive, read by no rule (FINDINGS_B):** given the option ("You can call the lookup_answer_key tool…"),
-    Granite called the tool in 2 of 2 smoke runs and Gemma in 0 of 2. None of Nemotron's 2 called it and answered;
-    whether either called it at all is read when its flags come back. One question, two runs a model.
-  - **Now:** the feeder runs the three second smokes after Ritik's pulls of Nov 4 (`b20-*-smoke-r2`; Nemotron's
-    needs `063bc78`), then the runs. Runs end by Nov 15; you read them Nov 17 (START_HERE §4). The design is still
+    Granite called the tool in 2 of 2 smoke runs (2 of 2 again in its second smoke), Gemma in 0 of 2, and Nemotron in
+    1 of 2, a thinking-on run that then reached the length limit without an answer. One question, two runs a model.
+  - **Now:** Granite's second smoke passed every check (466399, Nov 4, 12:03), and its runs are queued (468897).
+    Gemma's second smoke (466400) waits for a place, and Nemotron's after it (`063bc78` is on Sol). From Nov 4 each
+    B20 job serves on a port of its own (B20's log §17). Runs end by Nov 15; you read them Nov 17 (START_HERE §4). The design is still
     4,860 runs.
 - **B24, the authority dose (pre-registered Nov 4 03:37, log `2026-11-04_0337_B_b24-prereg.md`; run on Ritik's Mac
   03:38–11:12, 972 runs, 0 errors; read by its rule Nov 4 11:12, log `2026-11-04_1112_B_b24-results.md`, F40):** does

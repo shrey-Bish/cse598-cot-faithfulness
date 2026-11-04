@@ -760,7 +760,7 @@ def test_the_second_amendment_nemotron_takes_the_inserted_turn(monkeypatch):
 
 def test_nemotrons_real_smoke_under_its_amendment():
     """Nemotron's smoke (460109): 10 of the amended design's first 12 ran and the tool path is now the inserted turn;
-    the rerun adds the 2 inserted-turn runs (question 1, thinking on and off). Its flags (on the Mac Nov 4, 13:10):
+    the rerun adds the 2 inserted-turn runs (question 1, thinking on and off). Its flags (on the Mac from Nov 4):
     offered the tool, it called it once, thinking on, and that run reached the length limit with no answer; thinking
     off, it answered without a call. Skipped until its flags are copied back."""
     flags = real_flags(NEMOTRON)

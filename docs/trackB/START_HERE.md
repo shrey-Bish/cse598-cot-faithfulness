@@ -155,7 +155,7 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
     keeps the model's own call, so R3b on the model's own call is read for no model.
   - The design is now 4,860 runs.
   - **Descriptive, read by no rule:** offered the tool, Granite called it in 2 of 2 smoke runs, Gemma in 0 of 2,
-    Nemotron in none that answered (FINDINGS_B's note).
+    Nemotron in 1 of 2, a run that then reached the length limit without an answer (FINDINGS_B's note).
 - **The rule:**
   - **R1:** Gate 2, each tool channel minus the user's hint.
   - **R2:** tool or authority, each tool channel minus `user_authority`.
