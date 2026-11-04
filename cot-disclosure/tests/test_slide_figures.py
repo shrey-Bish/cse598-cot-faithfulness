@@ -184,3 +184,89 @@ def test_a18_rows_are_the_pre_registered_readings():
     assert (dep["k"], dep["n"], dep["compared_k"], dep["compared_n"]) == (16, 60, 26, 60) and dep["reading"] == "ignores tools"
     assert round(dep["value"] * 100) == -17 and round(ora["value"] * 100) == -9 and ora["reading"] == "no effect"
 
+
+
+# ---------------------------------------------------------------- one style for every finished slide (Nov 4)
+SLIDE_NAMES = {"three_levels", "gate2", "readout_by_layer_slide", "readout_qwen8b", "bare_after_call", "b16_authority",
+               "b17_effort", "gate3_vs_base_slide", "readout_lora_vs_base", "reviewer_by_prompt_slide",
+               "trackC_reviewers_slide", "cue_experiments_slide", "channels"}
+
+
+def test_every_slide_figure_is_2000_by_1125_with_its_csv(tmp_path):
+    """Every figure a finished slide uses (and the report's channels) comes out of slide_figures at 2000 x 1125 pixels,
+    with its SVG and a CSV of every plotted number; main() makes each one."""
+    made = {}
+    for f in sf.SLIDE_FIGURES:
+        paths = f(out=tmp_path)
+        assert [p.suffix for p in paths] == [".png", ".svg", ".csv"] and all(p.stat().st_size > 0 for p in paths)
+        assert png_size(paths[0]) == (2000, 1125), paths[0].name
+        table = list(csv.DictReader(open(paths[2])))
+        assert table and not any(len(str(v)) > 80 for row in table for v in row.values())
+        made[paths[0].stem] = f
+    assert set(made) == SLIDE_NAMES
+
+
+def drawn(monkeypatch, f, tmp_path):
+    """The figure f draws, caught as it is saved."""
+    figs = []
+    real = sf.save
+
+    def keep(fig, name, rows, out):
+        figs.append(fig)
+        return real(fig, name, rows, out)
+    monkeypatch.setattr(sf, "save", keep)
+    f(out=tmp_path)
+    return figs[0]
+
+
+def test_one_style_text_in_ink_headline_key_and_note_in_place(monkeypatch, tmp_path):
+    """Ritik's brief: text in ink, never a series color; the headline at the same place and size in every figure;
+    a key (when there is one) is the figure's, one place under the headline, never inside a panel; the note at the
+    foot; panel titles left, one size."""
+    from matplotlib.colors import to_hex
+    from matplotlib.text import Text
+    ink = {to_hex(sf.INK), to_hex(sf.MUTED)}
+    for f in sf.SLIDE_FIGURES:
+        fig = drawn(monkeypatch, f, tmp_path)
+        texts = [t for t in fig.findobj(Text) if t.get_text().strip() and t.get_visible()]
+        bad = {(t.get_text()[:30], to_hex(t.get_color())) for t in texts if to_hex(t.get_color()) not in ink}
+        assert not bad, (f.__name__, bad)
+        head = [t for t in fig.texts if t.get_position() == (sf.LEFT, sf.HEAD[0])]
+        assert len(head) == 1 and head[0].get_fontsize() == sf.HEAD_SIZE, f.__name__
+        assert all(ax.get_legend() is None for ax in fig.axes), f.__name__
+        for lg in fig.legends:
+            box = lg.get_bbox_to_anchor().transformed(fig.transFigure.inverted())
+            assert (round(box.x0, 3), round(box.y1, 3)) == (sf.LEFT, sf.KEY_TOP), f.__name__
+        notes = [t for t in fig.texts if t.get_position() == (sf.LEFT, sf.NOTE_Y)]
+        assert len(notes) <= 1 and all(t.get_fontsize() == sf.NOTE_SIZE for t in notes), f.__name__
+        for ax in fig.axes:
+            t = ax.title if ax.title.get_text() else ax._left_title
+            if t.get_text():
+                assert t is ax._left_title and t.get_fontsize() == sf.TITLE_SIZE, (f.__name__, t.get_text())
+
+
+def csv_rows(path):
+    return [r for r in csv.reader(open(path)) if r and not r[0].startswith("# ")]
+
+
+def test_slide_versions_keep_their_sources_numbers(tmp_path):
+    """The slide versions of figures made elsewhere plot the same rows: the report's readout_by_layer and
+    reviewer_by_prompt (tools/paper_figures.py), the supplement's readout_setA_vs_test2, trackC_reviewers and
+    cue_experiments (tools/make_supplement.py, imported read-only) and Gate 3's gate3_vs_base (finetune/gate3.py)."""
+    import paper_figures as pf
+    import make_supplement as ms
+    from finetune import gate3
+    src, mine = tmp_path / "src", tmp_path / "mine"
+    rows = sf.layers_slide_rows()
+    a = [{k: r[k] for k in ("layer", "kind", "share", "low", "high", "questions", "cuts")} for r in rows if r["panel"] == "a"]
+    assert a == pf.layer_rows()
+    setA = csv_rows(ms.fig_readout(src, SUM)[2])
+    b = [[str(r[k]) for k in setA[0]] for r in rows if r["panel"] == "b"]
+    assert [setA[0]] + b == setA
+    assert csv_rows(sf.fig_reviewer_slide(out=mine)[2]) == csv_rows(pf.fig_reviewer(out=src)[2])
+    assert csv_rows(sf.fig_reviewers_slide(out=mine)[2]) == csv_rows(ms.fig_reviewers(src, ms.reviewer_rows(SUM))[2])
+    assert csv_rows(sf.fig_cues_slide(out=mine)[2]) == csv_rows(ms.fig_cues(src, ms.cue_rows(SUM)[0])[2])
+    tracked = SUM / "trackA" / "gpu" / "eval" / "figures" / "gate3_vs_base.csv"
+    assert csv_rows(sf.fig_gate3_slide(out=mine)[2]) == csv_rows(tracked)
+    rep = json.loads((SUM / "trackA" / "gpu" / "eval" / "eval_report.json").read_text())
+    assert sf.gate3_slide_rows() == gate3.vs_base_rows(rep)

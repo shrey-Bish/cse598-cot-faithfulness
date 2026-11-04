@@ -16,7 +16,8 @@
 
 Each figure has a CSV beside it with every plotted number (the table view). Colors: the first three
 slots of a validated categorical palette (blue, orange, aqua; colorblind-safe as a set); full-attention
-layers blue, sliding layers a neutral grey.
+layers blue, sliding layers a neutral grey. These are the report's versions; the slides use 16:9 versions in the slide
+style from these same rows (tools/slide_figures.py: readout_by_layer_slide, reviewer_by_prompt_slide).
 """
 import csv
 import json

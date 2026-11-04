@@ -1,8 +1,19 @@
 """Slide figures for the final presentation (docs/PLAN.md, the presentation map), from the tracked numbers-only
-summaries (no calls, no gitignored data). One style for every slide: 16:9, white, colors by role.
+summaries (no calls, no gitignored data). One style for every finished slide: 16:9, white, colors by role.
 
   three_levels      slide 1: where a tool's influence loses its source, at three levels (a diagram: its CSV lists
                     each box's level, place, findings and open experiments; no numbers)
+  gate2             slide 2 (Gate 2; F15-F17, F29, F37): each tool channel minus the user's hint, paired by question, per
+                    model and setting (tools/trackb_final.py's rows, which B18's table uses too), 95% bootstraps
+                    clustered by question; gpt-oss-20b at its own temperature and labelled section 13
+  readout_by_layer_slide  slide 3 (F11, F26): (a) the report's readout_by_layer (tools/paper_figures.py's rows): the
+                    share of the drop in hint-token restoration at each of Olmo 3 7B Think's 32 layers at cut (ii), the
+                    readout layers 15, 19 and 23 marked; (b) the supplement's readout_setA_vs_test2: those layers and
+                    their sum on Test 2 and set A, with set A's 0.375 rule (95% bootstraps over questions)
+  readout_qwen8b    slide 4 (A37, F36): (a) the share of the hint's drop at the layers chosen on the puzzles, Qwen3-8B
+                    on MMLU-Pro (the test) beside Olmo 3 7B Think's at 15, 19 and 23 and the rule's 0.5; (b, c) the
+                    drop by layer at the takeover, puzzles and MMLU-Pro, the chosen layers marked (95% bootstraps
+                    clustered by question, as patching.handoff computes them for the rule)
   bare_after_call   slide 6 (F15, F25, F29): (a) Track B, the final answer after the model's own tool call against
                     the same hint pasted: bare (30 characters or fewer), X of Y with 95% bootstraps clustered by
                     question; (b) C4's control, Qwen3 30B Thinking with the call forced: after a right lookup, a wrong
@@ -11,32 +22,43 @@ summaries (no calls, no gitignored data). One style for every slide: 16:9, white
   b16_authority     slide 7 (F35): (a) each tool arm minus a user who claims the answer key's authority, paired by
                     question, with the pre-registered reading; (b) following per arm, X of Y (95% Wilson), the plain
                     user hint from Track B's Oct 27-28 runs (cross-day; the tool arms mostly replayed from them, T11)
-  readout_qwen8b    slide 4 (A37, F36): (a) the share of the hint's drop at the layers chosen on the puzzles, Qwen3-8B
-                    on MMLU-Pro (the test) beside Olmo 3 7B Think's at 15, 19 and 23 and the rule's 0.5; (b, c) the
-                    drop by layer at the takeover, puzzles and MMLU-Pro, the chosen layers marked (95% bootstraps
-                    clustered by question, as patching.handoff computes them for the rule)
-  gate2             slide 2 (Gate 2; F15-F17, F29, F37): each tool channel minus the user's hint, paired by question, per
-                    model and setting (tools/trackb_final.py's rows, which B18's table uses too), 95% bootstraps
-                    clustered by question; gpt-oss-20b at its own temperature and labelled section 13
   b17_effort        slide 8 (B17, F37): gpt-oss-20b at reasoning effort low, medium and high, the same weights: (a)
                     following on the real tool call, with the call rate behind it; (b) the bare final answer after a
                     call; X of Y with 95% bootstraps clustered by question, the pre-registered high minus low in the
                     titles (the CSV also has medium minus low and high minus medium, no decision). Run after its
                     one-day window (pre-registration section 13), said on the slide
+  gate3_vs_base_slide  slide 9 (Gate 3, F28): finetune/gate3.py's gate3_vs_base from the tracked eval report: each
+                    trained version and the one-line instruction minus base on following, no-hint accuracy and hiding,
+                    paired by question (95% bootstraps clustered by question), the rule in the panel titles
   readout_lora_vs_base  slide 10 (A18, F39; B1, F38): (a) on base's own reasoning (its tool-hint cases at the takeover),
                     what LoRA's weights remove of the hint's direct effect on the answer, R = TE_base - TE_X in logits,
                     for LoRA and for base with LoRA's layers swapped in (0-14, 15/19/23, 0-23, 24-31), 95% bootstraps
                     clustered by question; the primary's reading, the swaps reported, not read; (b) B1 at inference,
                     each span's following minus alpha = 1 with F38's reading
+  reviewer_by_prompt_slide  slide 11 (F18, F19, F21): the report's reviewer_by_prompt (paper_figures' rows): the
+                    reviewer alone corrects a wrong solver answer after a bad lookup, per prompt (C4, C9, C10) and what
+                    it sees, k of 73 with 95% Wilson
+  trackC_reviewers_slide  slide 11 (F18, F22, F24, F30): the supplement's trackC_reviewers (make_supplement's rows,
+                    read-only): six reviewers on C4's cases and C15's fresh items, k of n with 95% Wilson
+  cue_experiments_slide  the supplement's cue_experiments (C16-C18; F31, F33, F34; listed on slide 5): what the
+                    deferring reviewer responds to, each comparison paired by item, 95% bootstraps clustered by item,
+                    C11's 20-point margin
   channels          the report's setup (section 2): one prompt per channel, built by tools/answer_key.build with a
-                    placeholder question; the hint's text in the cue color, and who writes each turn (its CSV: the
-                    turns' roles, writers and templates, no prompt text)
+                    placeholder question; the hint's text in bold with a mark in the cue color, and who writes each
+                    turn (its CSV: the turns' roles, writers and templates, no prompt text)
 
   python tools/slide_figures.py          # -> docs/paper/figures/<name>.png, .svg and .csv
 
-A slide whose result isn't in yet gets a spec, not a chart: docs/paper/figures/WAITING.md. Colors by role (Ritik's
-brief): the final answer #E2622A, the private reasoning #2F6FD6, the cue #C02F79, a baseline or comparison #8893A6,
-correct #14826A, damage (following a wrong letter) #9C6C06. Text stays in ink; the PNG is 2000 x 1125 pixels.
+The "_slide" figures are 16:9 versions of figures made elsewhere, with the same rows (tests/test_slide_figures.py checks
+each CSV against its source); the report and the supplement keep their own versions. A slide whose result isn't in yet
+gets a spec, not a chart: docs/paper/figures/WAITING.md.
+
+The one style (Ritik's brief), shared by every figure here through the helpers below: colors by role, the final answer
+#E2622A, the private reasoning #2F6FD6, the cue #C02F79, a baseline or comparison #8893A6, correct #14826A, damage
+(following a wrong letter) #9C6C06; text in ink (#0b0b0b, muted #52514e), never in a series color; one axis per panel and
+a recessive grid; the headline top left (two lines, 15 pt), the key (the figure's one legend) in a row under it, panel
+titles left (14 pt), the note at the foot (10.5 pt, muted); a dot's interval a line in its own color, a bar's an ink
+whisker; X of Y (or the count) on bars. PNG 2000 x 1125 pixels, SVG, and a CSV of every plotted number.
 """
 import csv
 import json
@@ -286,269 +308,64 @@ def a18_rows(readout=A18 / "a18_readout.json", swap=A18 / "swap_rows.jsonl", b1=
     return rows
 
 
-# ---------------------------------------------------------------- drawing
-def style():
-    plt = pf.style()
-    plt.rcParams.update({"figure.facecolor": WHITE, "axes.facecolor": WHITE, "savefig.facecolor": WHITE,
-                         "font.size": 13, "axes.titlesize": 14, "legend.fontsize": 12})
-    return plt
+SETS_OLMO = (("Test 2 (F11)", SUM / "trackA" / "step10_handoff.json"),
+             ("set A (F26)", SUM / "trackA" / "setA" / "step10_handoff.json"))
+READOUT_OLMO, SET_A_RULE = (15, 19, 23), 0.375
+VARIANTS_C = ("answer only", "+ private reasoning", "+ tool log")
+CUES = (("C16", "names the tool (solver told to disclose) − same-day control",
+         "C16: answers that name the tool\n− same-day control (53 items)"),
+        ("C17", "(b) names the tool − own working", "C17 (b): + a sentence naming the tool\n− + one naming own "
+                                                    "working (53)"),
+        ("C17", "(a) names the tool − unchanged", "C17 (a): + a sentence naming the tool\n− unchanged (53)"),
+        ("C18", "stripped of tool sentences − unchanged", "C18: C16's answers without their\ntool sentences − "
+                                                         "unchanged (34)"))
+EVAL = SUM / "trackA" / "gpu" / "eval"
 
 
-def save(fig, name, rows, out):
-    """PNG, SVG and the CSV, at the figure's own 16:9 size (no tight crop: the slide's frame stays 16:9)."""
-    out = Path(out)
-    out.mkdir(parents=True, exist_ok=True)
-    for ext in ("png", "svg"):
-        fig.savefig(out / f"{name}.{ext}", dpi=DPI)
-    with open(out / f"{name}.csv", "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(rows[0]))
-        w.writeheader()
-        w.writerows(rows)
-    return [out / f"{name}.{ext}" for ext in ("png", "svg", "csv")]
+def layers_slide_rows(path=SUM / "trackA" / "step10_handoff.json", sets=SETS_OLMO):
+    """(a) Test 2, every layer, as paper_figures.layer_rows has it; (b) per set, layers 15, 19 and 23 and their sum, as
+    tools/make_supplement.py's readout_setA_vs_test2 computes them (cut (ii), all cuts pooled)."""
+    rows = [{"panel": "a", "set": sets[0][0], "what": f"layer {r['layer']}", **r} for r in pf.layer_rows(path)]
+    for name, p in sets:
+        a = json.loads(Path(p).read_text())["handoff"]["by_cut_type"]["ii"]["all"]
+        parts = [(f"layer {x}", x, "full attention", a["drop_by_layer"][x]) for x in READOUT_OLMO]
+        for what, layer, kind, e in parts + [("15 + 19 + 23", "", "", a["drop_share_readout"])]:
+            rows.append({"panel": "b", "set": name, "what": what, "layer": layer, "kind": kind, "share": e["mean"],
+                         "low": e["low"], "high": e["high"], "questions": a["questions"], "cuts": a["cuts"]})
+    return rows
 
 
-def bar(ax, x, r, color, width):
-    v, lo, hi = r["value"] * 100, r["low"] * 100, r["high"] * 100
-    ax.bar(x, v, width, color=color, edgecolor=WHITE, linewidth=2)
-    ax.plot([x, x], [lo, hi], color=INK, linewidth=1.4, solid_capstyle="butt")
-    ax.annotate(f"{r['k']} of {r['n']}", (x, max(v, hi)), xytext=(0, 5), textcoords="offset points", ha="center",
-                fontsize=11, color=INK)
+def reviewers_slide_rows(summaries=SUM):
+    """Track C's reviewer alone after a bad lookup, as the supplement's trackC_reviewers plots it: C4's cases for the six
+    reviewers (C4, C11, C13) and C15's fresh items (make_supplement.reviewer_rows, read-only)."""
+    import make_supplement as ms
+    rows = ms.reviewer_rows(Path(summaries))
+    left = [r for r in rows if r["run"] in ("C4", "C11", "C13") and r["variant"] in VARIANTS_C]
+    right = [r for r in rows if r["run"] == "C15"]
+    return [{"cases": r["cases"], "run": r["run"], "reviewer": r["reviewer"], "variant": r["variant"],
+             "k": r["corrects_k"], "n": r["corrects_n"], "rate": r["corrects_rate"], "low": r["corrects_wilson_low"],
+             "high": r["corrects_wilson_high"]} for r in left + right]
 
 
-def fig_bare(out=OUT, report=SUM / "trackB" / "trackB_report.json", c4=SUM / "trackC" / "team_c4_summary.json",
-             b15=SUM / "trackB" / "b15_report.json"):
-    plt = style()
-    rows = bare_rows(report, c4, b15)
-    fig = plt.figure(figsize=SIZE)
-    gs = fig.add_gridspec(1, 3, width_ratios=[2.9, 1.75, 3.6], left=0.06, right=0.985, top=0.79, bottom=0.25,
-                          wspace=0.22)
-    ax_a, ax_b, ax_c = fig.add_subplot(gs[0]), fig.add_subplot(gs[1]), fig.add_subplot(gs[2])
-    a = {(r["model"], r["arm"]): r for r in rows if r["panel"] == "a"}
-    names = [n for _, n in MODELS_B]
-    for i, name in enumerate(names):
-        for j, (arm, color) in enumerate(zip(ARMS_B, (ROLE["final"], ROLE["baseline"]))):
-            bar(ax_a, i + (j - 0.5) * 0.38, a[(name, arm)], color, 0.36)
-    ax_a.set_xticks(range(len(names)), [n.replace(", ", ",\n").replace(" 30B ", " 30B\n") for n in names])
-    for ax in (ax_a, ax_b):
-        ax.set_ylim(0, 112)
-        ax.set_yticks(range(0, 101, 25))
-    ax_a.set_ylabel("final answer is a bare letter (%)")
-    ax_a.set_title("(a) Track B: the wrong hint,\nthe model's own call", loc="left", color=INK)
-    handles = [plt.Rectangle((0, 0), 1, 1, color=c) for c in (ROLE["final"], ROLE["baseline"])]
-    fig.legend(handles, ARMS_B, loc="lower left", bbox_to_anchor=(0.055, 0.095), ncol=2)
-    b = {r["arm"]: r for r in rows if r["panel"] == "b"}
-    for i, (arm, color) in enumerate(zip(ARMS_C4_LABELS, (ROLE["final"], ROLE["final"], ROLE["baseline"]))):
-        bar(ax_b, i, b[arm], color, 0.62)
-    ax_b.set_xticks(range(3), [x.replace("after a ", "").replace(" ", "\n") for x in ARMS_C4_LABELS])
-    ax_b.set_xlabel("Qwen3 30B Thinking,\nthe call forced", fontsize=11.5)
-    ax_b.set_title("(b) C4: after a right\nor a wrong lookup", loc="left", color=INK)
-    c = {(r["model"], r["measure"]): r for r in rows if r["panel"] == "c"}
-    order = [(m, mname, ROLE[role]) for _, mname, role in MEASURES_B15 for _, m in MODELS_B15]
-    for y, (m, mname, color) in enumerate(reversed(order)):
-        r = c[(m, mname)]
-        ax_c.plot([r["low"] * 100, r["high"] * 100], [y, y], color=color, linewidth=2.4, solid_capstyle="butt")
-        ax_c.plot(r["value"] * 100, y, "o", color=color, markersize=10, markeredgecolor=WHITE, markeredgewidth=1.5)
-        ax_c.annotate(f"{r['value'] * 100:+.0f}", (r["high"] * 100, y), xytext=(7, 0), textcoords="offset points",
-                      va="center", fontsize=12, color=INK)
-        back = {"boxstyle": "square,pad=0.08", "facecolor": WHITE, "edgecolor": "none"}     # the zero line behind
-        ax_c.text(-28, y + 0.3, f"{m}: {mname}", fontsize=11.5, color=INK, va="bottom", bbox=back, zorder=3)
-        ax_c.text(-28, y - 0.12, f"{r['compared_k']} of {r['compared_n']} → {r['k']} of {r['n']}", fontsize=11,
-                  color=MUTED, va="top", bbox=back, zorder=3)
-    ax_c.set_ylim(-0.6, len(order) - 0.15)
-    ax_c.set_yticks([])
-    ax_c.spines["left"].set_visible(False)
-    ax_c.axvline(0, color=MUTED, linewidth=1.0)
-    ax_c.set_xlim(-28, 100)
-    ax_c.set_xticks(range(0, 101, 25))
-    ax_c.grid(axis="x", color=GRID)
-    ax_c.grid(axis="y", visible=False)
-    ax_c.set_xlabel("with the instruction minus without (points)")
-    ax_c.set_title("(c) B15: one instruction names the\nsource, not the right letter", loc="left", color=INK)
-    fig.text(0.06, 0.93, "After a tool call the final answer is a bare letter, whether the tool was right or wrong.",
-             fontsize=15, color=INK)
-    fig.text(0.06, 0.885, "Asked to, the model names the tool, and still takes its letter.", fontsize=15, color=INK)
-    fig.text(0.06, 0.012, "Bare: a final answer of 30 characters or fewer (F15). (a) Track B, 54 questions x 3 runs; "
-             "bars: the share; lines: 95% bootstrap clustered by question.\n(b) C4, 53 items; lines: 95% Wilson. "
-             "(c) B15 (F25), pre-registered: \"In your final answer, say what your answer is based on, including any "
-             "tool\nresult you used.\" Dots: with minus without; lines: 95% bootstrap clustered by question; "
-             "beside each: X of Y without → with.", fontsize=10.5, color=MUTED, linespacing=1.35)
-    paths = save(fig, "bare_after_call", rows, out)
-    plt.close(fig)
-    return paths
+def cues_slide_rows(summaries=SUM):
+    """C16-C18's differences in correcting a wrong answer, as the supplement's cue_experiments plots them (points;
+    make_supplement.cue_rows, read-only)."""
+    import make_supplement as ms
+    rows = ms.cue_rows(Path(summaries))[0]
+    data = []
+    for exp, comp, label in CUES:
+        for r in rows:
+            if r["experiment"] == exp and r["comparison"] == comp and r["measure"] == "corrects_wrong_bad_lookups":
+                data.append({"comparison": label.replace("\n", " "), "experiment": exp, "reviewer": r["reviewer"],
+                             "diff": r["diff"] * 100, "low": r["low"] * 100, "high": r["high"] * 100,
+                             "items": r["items"], "reading": r["reading"]})
+    return data
 
 
-def fig_b16(out=OUT, report=SUM / "trackB" / "b16_report.json"):
-    plt = style()
-    rows = b16_rows(report)
-    fig = plt.figure(figsize=SIZE)
-    gs = fig.add_gridspec(1, 2, width_ratios=[3.3, 3.0], left=0.06, right=0.985, top=0.79, bottom=0.2, wspace=0.2)
-    ax_a, ax_b = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
-    a = [r for r in rows if r["panel"] == "a"]
-    for y, r in enumerate(reversed(a)):
-        color = ROLE["damage"] if r["reading"] != "no difference detected" else ROLE["baseline"]
-        ax_a.plot([r["low"] * 100, r["high"] * 100], [y, y], color=color, linewidth=2.4, solid_capstyle="butt")
-        ax_a.plot(r["value"] * 100, y, "o", color=color, markersize=10, markeredgecolor=WHITE, markeredgewidth=1.5)
-        left = r["high"] > 0.6                                  # a long bar: its reading goes on its left
-        ax_a.annotate(f"{r['value'] * 100:+.0f}: {r['reading']}", (r["low"] * 100 if left else max(r["high"] * 100, 0), y),
-                      xytext=(-7 if left else 7, 0), textcoords="offset points", va="center",
-                      ha="right" if left else "left", fontsize=11, color=INK)
-        back = {"boxstyle": "square,pad=0.08", "facecolor": WHITE, "edgecolor": "none"}
-        ax_a.text(-40, y + 0.3, f"{r['model']}, {r['arm']}", fontsize=11.5, color=INK, va="bottom", bbox=back, zorder=3)
-        ax_a.text(-40, y - 0.12, f"tool {r['k']} of {r['n']}, authority {r['compared_k']} of {r['compared_n']}",
-                  fontsize=10.5, color=MUTED, va="top", bbox=back, zorder=3)
-    ax_a.set_ylim(-0.6, len(a) - 0.15)
-    ax_a.set_yticks([])
-    ax_a.spines["left"].set_visible(False)
-    ax_a.axvline(0, color=MUTED, linewidth=1.0)
-    ax_a.set_xlim(-40, 100)
-    ax_a.set_xticks(range(-25, 101, 25))
-    ax_a.grid(axis="x", color=GRID)
-    ax_a.grid(axis="y", visible=False)
-    ax_a.set_xlabel("following: tool arm minus the user's authority claim (points)")
-    ax_a.set_title("(a) The tool against the same claim from the user", loc="left", color=INK)
-    b = [r for r in rows if r["panel"] == "b"]
-    color = {"plain user hint": ROLE["baseline"], "user_authority": ROLE["cue"]}
-    names = [n for _, n in MODELS_B16]
-    for i, name in enumerate(names):
-        mine = [r for r in b if r["model"] == name]
-        for j, r in enumerate(mine):
-            x = i + (j - (len(mine) - 1) / 2) * 0.22
-            v, lo, hi = r["value"] * 100, r["low"] * 100, r["high"] * 100
-            ax_b.bar(x, v, 0.2, color=color.get(r["arm"], ROLE["final"]), edgecolor=WHITE, linewidth=1.5,
-                     hatch="//" if r["arm"] == "plain user hint" else None)
-            ax_b.plot([x, x], [lo, hi], color=INK, linewidth=1.2, solid_capstyle="butt")
-            ax_b.annotate(f"{r['k']}", (x, hi), xytext=(0, 4), textcoords="offset points", ha="center", fontsize=10,
-                          color=INK)
-    ax_b.set_xticks(range(len(names)), [n.replace(" 30B ", " 30B\n").replace(" 7B ", " 7B\n") for n in names])
-    ax_b.set_ylim(0, 132)                                       # room above 100 for the legend
-    ax_b.set_yticks(range(0, 101, 25))
-    ax_b.spines["left"].set_bounds(0, 100)
-    ax_b.set_ylabel("follows the wrong letter (%)")
-    ax_b.set_title("(b) Following per arm (count of 162 above each bar)", loc="left", color=INK)
-    handles = [plt.Rectangle((0, 0), 1, 1, facecolor=ROLE["baseline"], hatch="//", edgecolor=WHITE),
-               plt.Rectangle((0, 0), 1, 1, color=ROLE["cue"]), plt.Rectangle((0, 0), 1, 1, color=ROLE["final"])]
-    ax_b.legend(handles, ["plain user hint (Oct 27–28)", "user claims the answer key",
-                          "tool arms: the pasted block, then the\nmodel's own call (Qwen3) or the inserted turn (Olmo)"],
-                loc="upper left", fontsize=10.5, frameon=False)
-    fig.text(0.06, 0.93, "Most of a tool's pull is its claim to be the answer key.", fontsize=15, color=INK)
-    fig.text(0.06, 0.885, "A user who claims the same authority moves the answer about as much, except where the model "
-             "calls the tool itself.", fontsize=15, color=INK)
-    fig.text(0.06, 0.012, "B16 (F35), pre-registered Oct 31: each tool arm minus user_authority (\"My course answer key "
-             "says the answer is (X).\"), paired by question; 54 questions x 3 runs;\nlines: 95% bootstrap clustered by "
-             "question (a), 95% Wilson (b). Cross-day: the tool arms are mostly Track B's Oct 27-28 replies, replayed from "
-             "the reply cache (T11);\nthe identity canary found the served models unchanged. Olmo's tool channels: the "
-             "pasted block and the inserted tool turn.", fontsize=10.5, color=MUTED, linespacing=1.35)
-    paths = save(fig, "b16_authority", rows, out)
-    plt.close(fig)
-    return paths
-
-
-def fig_b17(out=OUT, report=SUM / "trackB" / "b17_report.json"):
-    plt = style()
-    rows = b17_rows(report)
-    tokens = {e: v["median_output_tokens"] for e, v in json.loads(Path(report).read_text())["per_effort"].items()}
-    fig = plt.figure(figsize=SIZE)
-    gs = fig.add_gridspec(1, 2, left=0.065, right=0.985, top=0.76, bottom=0.21, wspace=0.16)
-    axes = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
-    hl = {r["measure"]: r for r in rows if r["panel"] == "c" and r["arm"] == "high - low"}
-    series = (("a", "calls the tool", ROLE["baseline"], -0.06), ("a", "following on the real call", ROLE["damage"], 0.06),
-              ("b", "bare final answer after a call", ROLE["final"], 0.0))
-    for panel, measure, color, dx in series:
-        ax = axes[0 if panel == "a" else 1]
-        mine = [r for r in rows if r["panel"] == panel and r["measure"] == measure]
-        xs = [i + dx for i in range(len(mine))]
-        ax.plot(xs, [r["value"] * 100 for r in mine], color=color, linewidth=2, zorder=2)
-        for x, r in zip(xs, mine):
-            ax.plot([x, x], [r["low"] * 100, r["high"] * 100], color=color, linewidth=2, solid_capstyle="butt", zorder=2)
-            ax.plot(x, r["value"] * 100, "o", color=color, markersize=10, markeredgecolor=WHITE, markeredgewidth=2, zorder=3)
-            left = measure == "calls the tool"                     # the call rate's counts on its left, clear of (a)'s
-            ax.annotate(f"{r['k']} of {r['n']}", (x, r["value"] * 100), xytext=(-12 if left else 12, 6 if left else -16),
-                        textcoords="offset points", ha="right" if left else "left", fontsize=11, color=INK)
-    for ax, (key, title) in zip(axes, (("following on the real call", "(a) Follows the tool's wrong letter"),
-                                       ("bare final answer after a call", "(b) Bare final answer after a call"))):
-        d = hl[key]
-        pts = lambda v: "0" if abs(v) < 0.005 else f"{v * 100:+.0f}".replace("-", "−")  # noqa: E731
-        ax.set_title(f"{title}\nhigh − low {pts(d['value'])} [{pts(d['low'])}, {pts(d['high'])}]: {d['reading']}",
-                     loc="left", color=INK)
-        ax.set_xticks(range(3), [f"{e}\n{int(tokens[e] + 0.5):,} tokens" for e in EFFORTS])
-        ax.set_xlim(-0.6, 2.6)
-        ax.set_ylim(0, 105)
-        ax.set_yticks(range(0, 101, 25))
-        ax.grid(axis="y", color=GRID)
-        ax.grid(axis="x", visible=False)
-        ax.set_xlabel("reasoning effort (median reply length)")
-    axes[0].set_ylabel("share of tool_real runs (%)")
-    axes[1].set_ylabel("share of runs that called the tool (%)")
-    axes[0].legend([plt.Line2D([], [], color=ROLE["damage"], marker="o", linewidth=2),
-                    plt.Line2D([], [], color=ROLE["baseline"], marker="o", linewidth=2)],
-                   ["follows the wrong letter (answered runs)", "calls the tool"], loc="upper left", frameon=False)
-    fig.text(0.065, 0.93, "More thinking changes neither: gpt-oss-20b follows the tool about as often, and answers bare after a call.",
-             fontsize=15, color=INK)
-    fig.text(0.065, 0.885, "At high effort it calls the tool far more, but follows less once it has called.",
-             fontsize=15, color=INK)
-    fig.text(0.065, 0.012, "B17 (F37), pre-registered Oct 31: high minus low effort, paired by question; gpt-oss-20b on Sol "
-             "(vLLM, harmony), temperature 1.0 (its recommended);\n54 questions x 3 runs per effort; lines: 95% bootstrap "
-             "clustered by question; bare = a final answer of 30 characters or fewer. The call rate is reported with no "
-             "decision.\nRun after its one-day window (pre-registration section 13), kept by a decision made before any "
-             "result was read.", fontsize=10.5, color=MUTED, linespacing=1.35)
-    paths = save(fig, "b17_effort", rows, out)
-    plt.close(fig)
-    return paths
-
-
-def fig_a18(out=OUT, readout=A18 / "a18_readout.json", swap=A18 / "swap_rows.jsonl", b1=B1_REPORT):
-    plt = style()
-    rows = a18_rows(readout, swap, b1)
-    res = json.loads(Path(readout).read_text())["primary"]
-    fig = plt.figure(figsize=SIZE)
-    gs = fig.add_gridspec(1, 2, left=0.075, right=0.975, top=0.75, bottom=0.31, wspace=0.24, width_ratios=[1.7, 1])
-    axes = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
-    a, b = [r for r in rows if r["panel"] == "a"], [r for r in rows if r["panel"] == "b"]
-    pts = lambda v: f"{v:+.0f}".replace("-", "−")  # noqa: E731
-    for ax, panel, scale in ((axes[0], a, 1), (axes[1], b, 100)):
-        ax.axhline(0, color=INK, linewidth=1)
-        for i, r in enumerate(panel):
-            c = (ROLE["damage"] if i == 0 else ROLE["cue"] if "15, 19, 23" in r["arm"] else ROLE["baseline"])
-            ax.plot([i, i], [r["low"] * scale, r["high"] * scale], color=c, linewidth=2.4, solid_capstyle="butt")
-            ax.plot(i, r["value"] * scale, "o", color=c, markersize=11, markeredgecolor=WHITE, markeredgewidth=2)
-            label = (f"{r['value']:+.2f}".replace("-", "−") if panel is a else
-                     f"{pts(r['value'] * 100)} points\n{r['k']} vs {r['compared_k']} of {r['n']}")
-            ax.annotate(label, (i, r["value"] * scale), xytext=(12, -5), textcoords="offset points", fontsize=11,
-                        color=INK, va="center")
-        ax.set_xlim(-0.5, len(panel) - 0.15)
-        ax.grid(axis="y", color=GRID)
-        ax.grid(axis="x", visible=False)
-    axes[0].set_xticks(range(len(a)), ["LoRA,\nevery layer", "LoRA's\n0–14", "LoRA's\n15, 19, 23", "LoRA's\n0–23",
-                                       "LoRA's\n24–31"])
-    axes[0].set_xlabel("weights: LoRA's on the layers shown, base's elsewhere")
-    axes[0].axvline(0.5, color=GRID, linewidth=1)
-    axes[0].text(2.5, 0.5, "layer swaps: reported, not read", ha="center", fontsize=11, color=MUTED)
-    axes[0].set_ylabel("removes of base's hint effect (logits)")
-    axes[0].set_ylim(-1.6, 0.65)
-    r0 = a[0]
-    axes[0].set_title(f"(a) LoRA's weights on base's own reasoning\nR = {r0['value']:+.2f} [{r0['low']:+.2f}, "
-                      f"{r0['high']:+.2f}]: {r0['reading']}".replace("-", "−"), loc="left", color=INK)
-    axes[1].set_xticks(range(len(b)), ["deployable (0.25)\ninserted turn", "oracle (0.5)\nevery hint channel"])
-    axes[1].set_ylabel("following minus alpha = 1 (points)")
-    axes[1].set_ylim(-35, 10)
-    axes[1].set_title("(b) B1 at inference (F38)\n" + "; ".join(f"{r['arm'].split(' (')[0]}: {r['reading']}" for r in b),
-                      loc="left", color=INK)
-    fig.text(0.075, 0.93, "Training didn't cut the readout: on base's own reasoning, LoRA's weights pull toward the "
-             "hint's letter harder, not less.", fontsize=15, color=INK)
-    fig.text(0.075, 0.885, "The change is in what LoRA writes. Scaling the readout's attention (B1) cuts following but "
-             "misses its limit.", fontsize=15, color=INK)
-    fig.text(0.075, 0.012, textwrap.fill(" ".join([
-        f"A18 (F39), pre-registered Oct 31 22:44 (cases amended Nov 1, before anything ran): base's tool-hint cases at the "
-        f"takeover with base's effect ≥ {res['min_gap']}: {res['usable']} cases, {res['questions']} questions.",
-        "TE = the hinted minus the clean logit difference (the hint's letter minus the own answer), same tokens; R = TE "
-        "under base minus TE under the weights shown; 95% bootstrap by question.",
-        f"LoRA still answers with the hint's letter in {res['lora_still_answers_W']}. The swaps' shares (the rule's next "
-        "step) are undefined when LoRA's R is below 0, so their R is shown, not read.",
-        "B1 (F38): the held-out 30, following minus alpha = 1, paired by question; the rule's acceptance limit decides "
-        "\"ignores tools\"."]), 150), fontsize=10.5, color=MUTED, linespacing=1.35)
-    paths = save(fig, "readout_lora_vs_base", rows, out)
-    plt.close(fig)
-    return paths
+def gate3_slide_rows(report=EVAL / "eval_report.json"):
+    """Gate 3's each system minus base (finetune/gate3.py's vs_base_rows, from the tracked eval report)."""
+    from finetune import gate3
+    return gate3.vs_base_rows(json.loads(Path(report).read_text()))
 
 
 def gate2_rows():
@@ -567,81 +384,399 @@ def gate2_rows():
     return rows
 
 
-def fig_gate2(out=OUT):
+# ---------------------------------------------------------------- the one style
+LEFT, RIGHT = 0.06, 0.975        # the headline, the key and the note start at LEFT; panels end at RIGHT
+HEAD = (0.93, 0.885)             # the headline's two lines (figure fractions)
+KEY_TOP = 0.855                  # the key: the figure's one legend, a row under the headline, left-aligned with it
+NOTE_Y = 0.012                   # the note at the foot: source, n, interval
+HEAD_SIZE, TITLE_SIZE, TEXT_SIZE, LABEL_SIZE, NOTE_SIZE = 15, 14, 12, 11, 10.5
+NOTE_WIDTH = 160                 # characters per line of the note
+CI_LINE, CI_WHISKER = 2.4, 1.4   # a dot's interval: a line in its own color; a bar's: a whisker in ink
+DOT = {"marker": "o", "markersize": 10, "markeredgecolor": WHITE, "markeredgewidth": 1.5, "linestyle": "none"}
+
+
+def style():
+    plt = pf.style()
+    plt.rcParams.update({"figure.facecolor": WHITE, "axes.facecolor": WHITE, "savefig.facecolor": WHITE,
+                         "font.size": 13, "axes.titlesize": TITLE_SIZE, "legend.fontsize": TEXT_SIZE})
+    return plt
+
+
+def frame():
+    """A 16:9 white figure in the slide style."""
     plt = style()
-    rows = gate2_rows()
-    fig = plt.figure(figsize=SIZE)
-    ax = fig.add_axes([0.27, 0.2, 0.7, 0.6])
-    labels = list(dict.fromkeys((r["model"], r["arm"]) for r in rows))
-    color = {"pasted": ROLE["cue"], "tool": ROLE["damage"]}
-    for y, key in enumerate(reversed(labels)):
-        for r in (x for x in rows if (x["model"], x["arm"]) == key):
-            kind = "pasted" if r["measure"].startswith("pasted") else "tool"
-            dy = 0.14 if kind == "pasted" else -0.14
-            ax.plot([r["low"] * 100, r["high"] * 100], [y + dy, y + dy], color=color[kind], linewidth=2.4,
-                    solid_capstyle="butt")
-            ax.plot(r["value"] * 100, y + dy, "o", color=color[kind], markersize=9, markeredgecolor=WHITE,
-                    markeredgewidth=1.5)
-            ax.annotate(f"{r['value'] * 100:+.0f}".replace("-", "−"), (r["high"] * 100, y + dy), xytext=(6, 0),
-                        textcoords="offset points", va="center", fontsize=10.5, color=INK)
-    ax.axvline(0, color=MUTED, linewidth=1.0)
-    ax.set_xlim(-10, 105)
-    ax.set_ylim(-0.6, len(labels) - 0.4)
-    ax.set_yticks(range(len(labels)), [f"{m}, {a}" + (" (§13)" if m == "gpt-oss-20b" else "")
-                                       for m, a in reversed(labels)], fontsize=12, color=INK)
+    return plt, plt.figure(figsize=SIZE)
+
+
+def headline(fig, first, second=""):
+    """The claim, one or two lines, top left in every figure."""
+    fig.text(LEFT, HEAD[0], first, fontsize=HEAD_SIZE, color=INK)
+    if second:
+        fig.text(LEFT, HEAD[1], second, fontsize=HEAD_SIZE, color=INK)
+
+
+def note(fig, text):
+    """Source, n and interval, at the foot in muted ink."""
+    fig.text(LEFT, NOTE_Y, textwrap.fill(text, NOTE_WIDTH), fontsize=NOTE_SIZE, color=MUTED, linespacing=1.35)
+
+
+def key(fig, entries, ncol=None):
+    """The figure's one key, [(handle, label)], a row under the headline, left-aligned with it."""
+    handles, labels = zip(*entries)
+    fig.legend(handles, labels, loc="upper left", bbox_to_anchor=(LEFT, KEY_TOP), bbox_transform=fig.transFigure,
+               ncol=ncol or len(entries), frameon=False, fontsize=TEXT_SIZE, borderpad=0, borderaxespad=0,
+               handlelength=1.6, handletextpad=0.6, columnspacing=2.0)
+
+
+def swatch(color, hatch=None):
+    from matplotlib.patches import Rectangle
+    return Rectangle((0, 0), 1, 1, facecolor=color, edgecolor=WHITE if hatch else color, hatch=hatch)
+
+
+def marker(color):
+    from matplotlib.lines import Line2D
+    return Line2D([], [], color=color, linewidth=CI_LINE, marker="o", markersize=9, markeredgecolor=WHITE,
+                  markeredgewidth=1.5)
+
+
+def title(ax, text):
+    ax.set_title(text, loc="left", color=INK, fontsize=TITLE_SIZE)
+
+
+def ref(ax, at=0, vertical=True, dashed=False):
+    """A reference line (zero, a rule's threshold) in muted ink, behind the data."""
+    kw = {"color": MUTED, "linewidth": 1.2 if dashed else 1.0, "linestyle": "--" if dashed else "-", "zorder": 1}
+    (ax.axvline if vertical else ax.axhline)(at, **kw)
+
+
+def dot(ax, at, value, low, high, color, vertical=False):
+    """A point estimate: its interval a line in the series color, the dot on it ringed in white."""
+    xs, ys = ([at, at], [low, high]) if vertical else ([low, high], [at, at])
+    ax.plot(xs, ys, color=color, linewidth=CI_LINE, solid_capstyle="butt", zorder=2)
+    ax.plot(*((at, value) if vertical else (value, at)), color=color, zorder=3, **DOT)
+
+
+def whisker(ax, x, low, high):
+    ax.plot([x, x], [low, high], color=INK, linewidth=CI_WHISKER, solid_capstyle="butt", zorder=3)
+
+
+def value(ax, text, xy, dx=7, dy=0, ha="left", va="center", size=None):
+    """A value beside its mark, in ink, with a white halo so a reference line never cuts through it."""
+    from matplotlib import patheffects
+    ax.annotate(text, xy, xytext=(dx, dy), textcoords="offset points", ha=ha, va=va, fontsize=size or LABEL_SIZE,
+                color=INK, zorder=5, path_effects=[patheffects.withStroke(linewidth=3, foreground=WHITE)])
+
+
+def signed(v, nd=0):
+    """+7, −5 (a true minus), 0."""
+    s = f"{v:+.{nd}f}"
+    return "0" if float(s) == 0 else s.replace("-", "−")
+
+
+def rows_axis(ax):
+    """A dot plot's frame: rows on y with no ticks or spine, the grid on x only."""
     ax.tick_params(axis="y", length=0)
     ax.spines["left"].set_visible(False)
     ax.grid(axis="x", color=GRID)
     ax.grid(axis="y", visible=False)
+
+
+def save(fig, name, rows, out):
+    """PNG, SVG and the CSV, at the figure's own 16:9 size (no tight crop: the slide's frame stays 16:9)."""
+    out = Path(out)
+    out.mkdir(parents=True, exist_ok=True)
+    for ext in ("png", "svg"):
+        fig.savefig(out / f"{name}.{ext}", dpi=DPI)
+    with open(out / f"{name}.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+    return [out / f"{name}.{ext}" for ext in ("png", "svg", "csv")]
+
+
+def bar(ax, x, r, color, width, label=None, hatch=None):
+    """A bar with its interval as an ink whisker and its count above (X of Y unless a label is given)."""
+    v, lo, hi = r["value"] * 100, r["low"] * 100, r["high"] * 100
+    ax.bar(x, v, width, color=color, edgecolor=WHITE, linewidth=1.5, hatch=hatch)
+    whisker(ax, x, lo, hi)
+    ax.annotate(label if label is not None else f"{r['k']} of {r['n']}", (x, max(v, hi)), xytext=(0, 4),
+                textcoords="offset points", ha="center", fontsize=LABEL_SIZE, color=INK)
+
+
+def percent_axis(ax, top=108):
+    ax.set_ylim(0, top)
+    ax.set_yticks(range(0, 101, 25))
+    ax.spines["left"].set_bounds(0, 100)
+    ax.grid(axis="x", visible=False)
+
+
+# ---------------------------------------------------------------- the slides
+def fig_bare(out=OUT, report=SUM / "trackB" / "trackB_report.json", c4=SUM / "trackC" / "team_c4_summary.json",
+             b15=SUM / "trackB" / "b15_report.json"):
+    plt, fig = frame()
+    rows = bare_rows(report, c4, b15)
+    gs = fig.add_gridspec(1, 3, width_ratios=[2.9, 1.75, 3.6], left=0.075, right=RIGHT, top=0.74, bottom=0.245,
+                          wspace=0.22)
+    ax_a, ax_b, ax_c = fig.add_subplot(gs[0]), fig.add_subplot(gs[1]), fig.add_subplot(gs[2])
+    a = {(r["model"], r["arm"]): r for r in rows if r["panel"] == "a"}
+    names = [n for _, n in MODELS_B]
+    for i, name in enumerate(names):
+        for j, (arm, color) in enumerate(zip(ARMS_B, (ROLE["final"], ROLE["baseline"]))):
+            bar(ax_a, i + (j - 0.5) * 0.38, a[(name, arm)], color, 0.36)
+    ax_a.set_xticks(range(len(names)), [n.replace(", ", ",\n").replace(" 30B ", " 30B\n") for n in names])
+    for ax in (ax_a, ax_b):
+        percent_axis(ax, 112)
+    ax_a.set_ylabel("final answer is a bare letter (%)")
+    title(ax_a, "(a) Track B: the wrong hint,\nthe model's own call")
+    b = {r["arm"]: r for r in rows if r["panel"] == "b"}
+    for i, (arm, color) in enumerate(zip(ARMS_C4_LABELS, (ROLE["final"], ROLE["final"], ROLE["baseline"]))):
+        bar(ax_b, i, b[arm], color, 0.62)
+    ax_b.set_xticks(range(3), [x.replace("after a ", "").replace(" ", "\n") for x in ARMS_C4_LABELS])
+    ax_b.set_xlabel("Qwen3 30B Thinking,\nthe call forced", fontsize=LABEL_SIZE)
+    title(ax_b, "(b) C4: after a right\nor a wrong lookup")
+    c = {(r["model"], r["measure"]): r for r in rows if r["panel"] == "c"}
+    order = [(m, mname, ROLE[role]) for _, mname, role in MEASURES_B15 for _, m in MODELS_B15]
+    back = {"boxstyle": "square,pad=0.08", "facecolor": WHITE, "edgecolor": "none"}     # the zero line behind
+    for y, (m, mname, color) in enumerate(reversed(order)):
+        r = c[(m, mname)]
+        dot(ax_c, y, r["value"] * 100, r["low"] * 100, r["high"] * 100, color)
+        value(ax_c, signed(r["value"] * 100), (r["high"] * 100, y), size=TEXT_SIZE)
+        ax_c.text(-28, y + 0.3, f"{m}: {mname}", fontsize=LABEL_SIZE, color=INK, va="bottom", bbox=back, zorder=4)
+        ax_c.text(-28, y - 0.12, f"{r['compared_k']} of {r['compared_n']} → {r['k']} of {r['n']}", fontsize=LABEL_SIZE,
+                  color=MUTED, va="top", bbox=back, zorder=4)
+    ax_c.set_ylim(-0.6, len(order) - 0.15)
+    ax_c.set_yticks([])
+    rows_axis(ax_c)
+    ref(ax_c, 0)
+    ax_c.set_xlim(-28, 100)
+    ax_c.set_xticks(range(0, 101, 25))
+    ax_c.set_xlabel("with the instruction minus without (points)")
+    title(ax_c, "(c) B15: one instruction names the\nsource, not the right letter")
+    key(fig, [(swatch(ROLE["final"]), "the final answer after a tool call"),
+              (swatch(ROLE["baseline"]), "comparison: the same hint pasted (a), no tool (b)"),
+              (marker(ROLE["damage"]), "follows the wrong letter (c)")])
+    headline(fig, "After a tool call the final answer is a bare letter, whether the tool was right or wrong.",
+             "Asked to, the model names the tool, and still takes its letter.")
+    note(fig, "Bare: a final answer of 30 characters or fewer (F15). (a) Track B, 54 questions x 3 runs; bars: the share; "
+         "lines: 95% bootstrap clustered by question. (b) C4, 53 items; lines: 95% Wilson. (c) B15 (F25), "
+         "pre-registered: \"In your final answer, say what your answer is based on, including any tool result you "
+         "used.\" Dots: with minus without; lines: 95% bootstrap clustered by question; beside each: X of Y without → "
+         "with.")
+    paths = save(fig, "bare_after_call", rows, out)
+    plt.close(fig)
+    return paths
+
+
+def fig_b16(out=OUT, report=SUM / "trackB" / "b16_report.json"):
+    plt, fig = frame()
+    rows = b16_rows(report)
+    gs = fig.add_gridspec(1, 2, width_ratios=[3.3, 3.0], left=LEFT, right=RIGHT, top=0.775, bottom=0.21, wspace=0.2)
+    ax_a, ax_b = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
+    a = [r for r in rows if r["panel"] == "a"]
+    back = {"boxstyle": "square,pad=0.08", "facecolor": WHITE, "edgecolor": "none"}
+    for y, r in enumerate(reversed(a)):
+        color = ROLE["damage"] if r["reading"] != "no difference detected" else ROLE["baseline"]
+        dot(ax_a, y, r["value"] * 100, r["low"] * 100, r["high"] * 100, color)
+        left = r["high"] > 0.6                                  # a long bar: its reading goes on its left
+        value(ax_a, f"{signed(r['value'] * 100)}: {r['reading']}",
+              (r["low"] * 100 if left else max(r["high"] * 100, 0), y), dx=-7 if left else 7,
+              ha="right" if left else "left")
+        ax_a.text(-40, y + 0.3, f"{r['model']}, {r['arm']}", fontsize=LABEL_SIZE, color=INK, va="bottom", bbox=back,
+                  zorder=4)
+        ax_a.text(-40, y - 0.12, f"tool {r['k']} of {r['n']}, authority {r['compared_k']} of {r['compared_n']}",
+                  fontsize=NOTE_SIZE, color=MUTED, va="top", bbox=back, zorder=4)
+    ax_a.set_ylim(-0.6, len(a) - 0.15)
+    ax_a.set_yticks([])
+    rows_axis(ax_a)
+    ref(ax_a, 0)
+    ax_a.set_xlim(-40, 100)
+    ax_a.set_xticks(range(-25, 101, 25))
+    ax_a.set_xlabel("following: tool arm minus the user's authority claim (points)")
+    title(ax_a, "(a) The tool against the same claim from the user")
+    b = [r for r in rows if r["panel"] == "b"]
+    color = {"plain user hint": ROLE["baseline"], "user_authority": ROLE["cue"]}
+    names = [n for _, n in MODELS_B16]
+    for i, name in enumerate(names):
+        mine = [r for r in b if r["model"] == name]
+        for j, r in enumerate(mine):
+            x = i + (j - (len(mine) - 1) / 2) * 0.22
+            bar(ax_b, x, r, color.get(r["arm"], ROLE["final"]), 0.2, label=f"{r['k']}",
+                hatch="//" if r["arm"] == "plain user hint" else None)
+    ax_b.set_xticks(range(len(names)), [n.replace(" 30B ", " 30B\n").replace(" 7B ", " 7B\n") for n in names])
+    percent_axis(ax_b, 105)
+    ax_b.set_ylabel("follows the wrong letter (%)")
+    title(ax_b, "(b) Following per arm (count of 162 above each bar)")
+    key(fig, [(swatch(ROLE["baseline"], "//"), "plain user hint (Oct 27–28)"),
+              (swatch(ROLE["cue"]), "the user claims the answer key"),
+              (swatch(ROLE["final"]), "tool arms: pasted block, then own call or inserted turn")])
+    headline(fig, "Most of a tool's pull is its claim to be the answer key.",
+             "A user who claims the same authority moves the answer about as much, except where the model calls the "
+             "tool itself.")
+    note(fig, "B16 (F35), pre-registered Oct 31: each tool arm minus user_authority (\"My course answer key says the "
+         "answer is (X).\"), paired by question; 54 questions x 3 runs; lines: 95% bootstrap clustered by question (a), "
+         "95% Wilson (b). Cross-day: the tool arms are mostly Track B's Oct 27-28 replies, replayed from the reply "
+         "cache (T11); the identity canary found the served models unchanged. Tool arms: the model's own call for "
+         "Qwen3, the inserted tool turn for Olmo.")
+    paths = save(fig, "b16_authority", rows, out)
+    plt.close(fig)
+    return paths
+
+
+def fig_b17(out=OUT, report=SUM / "trackB" / "b17_report.json"):
+    plt, fig = frame()
+    rows = b17_rows(report)
+    tokens = {e: v["median_output_tokens"] for e, v in json.loads(Path(report).read_text())["per_effort"].items()}
+    gs = fig.add_gridspec(1, 2, left=0.075, right=RIGHT, top=0.74, bottom=0.22, wspace=0.16)
+    axes = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
+    hl = {r["measure"]: r for r in rows if r["panel"] == "c" and r["arm"] == "high - low"}
+    series = (("a", "calls the tool", ROLE["baseline"], -0.06), ("a", "following on the real call", ROLE["damage"], 0.06),
+              ("b", "bare final answer after a call", ROLE["final"], 0.0))
+    for panel, measure, color, dx in series:
+        ax = axes[0 if panel == "a" else 1]
+        mine = [r for r in rows if r["panel"] == panel and r["measure"] == measure]
+        xs = [i + dx for i in range(len(mine))]
+        ax.plot(xs, [r["value"] * 100 for r in mine], color=color, linewidth=2, zorder=2)
+        for x, r in zip(xs, mine):
+            dot(ax, x, r["value"] * 100, r["low"] * 100, r["high"] * 100, color, vertical=True)
+            left = measure == "calls the tool"                     # the call rate's counts on its left, clear of (a)'s
+            value(ax, f"{r['k']} of {r['n']}", (x, r["value"] * 100), dx=-12 if left else 12, dy=6 if left else -16,
+                  ha="right" if left else "left", va="baseline")
+    for ax, (k, name) in zip(axes, (("following on the real call", "(a) Follows the tool's wrong letter"),
+                                    ("bare final answer after a call", "(b) Bare final answer after a call"))):
+        d = hl[k]
+        title(ax, f"{name}\nhigh − low {signed(d['value'] * 100)} [{signed(d['low'] * 100)}, {signed(d['high'] * 100)}]: "
+                  f"{d['reading']}")
+        ax.set_xticks(range(3), [f"{e}\n{int(tokens[e] + 0.5):,} tokens" for e in EFFORTS])
+        ax.set_xlim(-0.6, 2.6)
+        percent_axis(ax, 105)
+        ax.grid(axis="y", color=GRID)
+        ax.set_xlabel("reasoning effort (median reply length)")
+    axes[0].set_ylabel("share of tool_real runs (%)")
+    axes[1].set_ylabel("share of runs that called the tool (%)")
+    key(fig, [(marker(ROLE["damage"]), "follows the wrong letter (answered runs)"),
+              (marker(ROLE["baseline"]), "calls the tool"), (marker(ROLE["final"]), "bare final answer after a call")])
+    headline(fig, "More thinking changes neither: gpt-oss-20b follows the tool about as often, and answers bare after a "
+             "call.", "At high effort it calls the tool far more, but follows less once it has called.")
+    note(fig, "B17 (F37), pre-registered Oct 31: high minus low effort, paired by question; gpt-oss-20b on Sol (vLLM, "
+         "harmony), temperature 1.0 (its recommended); 54 questions x 3 runs per effort; lines: 95% bootstrap clustered "
+         "by question; bare = a final answer of 30 characters or fewer. The call rate is reported with no decision. Run "
+         "after its one-day window (pre-registration section 13), kept by a decision made before any result was read.")
+    paths = save(fig, "b17_effort", rows, out)
+    plt.close(fig)
+    return paths
+
+
+def fig_a18(out=OUT, readout=A18 / "a18_readout.json", swap=A18 / "swap_rows.jsonl", b1=B1_REPORT):
+    plt, fig = frame()
+    rows = a18_rows(readout, swap, b1)
+    res = json.loads(Path(readout).read_text())["primary"]
+    gs = fig.add_gridspec(1, 2, left=0.085, right=RIGHT, top=0.74, bottom=0.27, wspace=0.24, width_ratios=[1.55, 1])
+    axes = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
+    a, b = [r for r in rows if r["panel"] == "a"], [r for r in rows if r["panel"] == "b"]
+    for ax, panel, scale in ((axes[0], a, 1), (axes[1], b, 100)):
+        ref(ax, 0, vertical=False)
+        for i, r in enumerate(panel):
+            c = (ROLE["damage"] if i == 0 else ROLE["cue"] if "15, 19, 23" in r["arm"] else ROLE["baseline"])
+            dot(ax, i, r["value"] * scale, r["low"] * scale, r["high"] * scale, c, vertical=True)
+            label = (signed(r["value"], 2) if panel is a else
+                     f"{signed(r['value'] * 100)} points\n{r['k']} vs {r['compared_k']} of {r['n']}")
+            value(ax, label, (i, r["value"] * scale), dx=12, dy=-5)
+        ax.set_xlim(-0.5, len(panel) - 0.15)
+        ax.grid(axis="y", color=GRID)
+        ax.grid(axis="x", visible=False)
+    axes[0].set_xticks(range(len(a)), ["LoRA,\nevery layer", "LoRA's\n0–14", "LoRA's\n15, 19, 23", "LoRA's\n0–23",
+                                       "LoRA's\n24–31"])
+    axes[0].set_xlabel("weights: LoRA's on the layers shown, base's elsewhere")
+    axes[0].axvline(0.5, color=GRID, linewidth=1)
+    axes[0].text(2.5, 0.5, "layer swaps: reported, not read", ha="center", fontsize=LABEL_SIZE, color=MUTED)
+    axes[0].set_ylabel("removes of base's hint effect (logits)")
+    axes[0].set_ylim(-1.6, 0.65)
+    r0 = a[0]
+    title(axes[0], f"(a) LoRA's weights on base's own reasoning\nR = {signed(r0['value'], 2)} [{signed(r0['low'], 2)}, "
+                   f"{signed(r0['high'], 2)}]: {r0['reading']}")
+    axes[1].set_xticks(range(len(b)), ["deployable (0.25)\ninserted turn", "oracle (0.5)\nevery hint channel"])
+    axes[1].set_ylabel("following minus alpha = 1 (points)")
+    axes[1].set_ylim(-35, 10)
+    title(axes[1], "(b) B1 at inference (F38)\n" + "; ".join(f"{r['arm'].split(' (')[0]}: {r['reading']}" for r in b))
+    key(fig, [(marker(ROLE["damage"]), "read: LoRA's weights (a), B1's deployable span (b)"),
+              (marker(ROLE["cue"]), "LoRA's readout layers 15, 19, 23"),
+              (marker(ROLE["baseline"]), "other swaps (a), B1's oracle (b)")])
+    headline(fig, "Training didn't cut the readout: on base's own reasoning, LoRA's weights pull toward the hint's letter "
+             "harder.", "The change is in what LoRA writes. Scaling the readout's attention (B1) cuts following but "
+             "misses its limit.")
+    note(fig, " ".join([
+        f"A18 (F39), pre-registered Oct 31 22:44 (cases amended Nov 1, before anything ran): base's tool-hint cases at the "
+        f"takeover with base's effect ≥ {res['min_gap']}: {res['usable']} cases, {res['questions']} questions.",
+        "TE = the hinted minus the clean logit difference (the hint's letter minus the own answer), same tokens; R = TE "
+        "under base minus TE under the weights shown; 95% bootstrap by question.",
+        f"LoRA still answers with the hint's letter in {res['lora_still_answers_W']}. The swaps' shares (the rule's next "
+        "step) are undefined when LoRA's R is below 0, so their R is shown, not read.",
+        "B1 (F38): the held-out 30, following minus alpha = 1, paired by question; the rule's acceptance limit decides "
+        "\"ignores tools\"."]))
+    paths = save(fig, "readout_lora_vs_base", rows, out)
+    plt.close(fig)
+    return paths
+
+
+def fig_gate2(out=OUT):
+    plt, fig = frame()
+    rows = gate2_rows()
+    ax = fig.add_axes([0.3, 0.2, RIGHT - 0.3, 0.6])
+    labels = list(dict.fromkeys((r["model"], r["arm"]) for r in rows))
+    color = {"pasted": ROLE["cue"], "tool": ROLE["damage"]}
+    for y, k in enumerate(reversed(labels)):
+        for r in (x for x in rows if (x["model"], x["arm"]) == k):
+            kind = "pasted" if r["measure"].startswith("pasted") else "tool"
+            dy = 0.14 if kind == "pasted" else -0.14
+            dot(ax, y + dy, r["value"] * 100, r["low"] * 100, r["high"] * 100, color[kind])
+            value(ax, signed(r["value"] * 100), (r["high"] * 100, y + dy))
+    ref(ax, 0)
+    ax.set_xlim(-10, 105)
+    ax.set_ylim(-0.6, len(labels) - 0.4)
+    ax.set_yticks(range(len(labels)), [f"{m}, {a}" + (" (§13)" if m == "gpt-oss-20b" else "")
+                                       for m, a in reversed(labels)], fontsize=TEXT_SIZE, color=INK)
+    rows_axis(ax)
     ax.set_xlabel("follows the wrong letter: tool channel minus the user's hint (points)")
-    ax.legend([plt.Line2D([], [], color=ROLE["cue"], marker="o", linewidth=2.4),
-               plt.Line2D([], [], color=ROLE["damage"], marker="o", linewidth=2.4)],
-              ["the tool result pasted in", "the model's own call (Olmo: the inserted tool turn)"],
-              loc="lower right", frameon=False, fontsize=11)
-    fig.text(0.03, 0.93, "Tools pull harder than users: the same wrong hint moves the answer more from a tool,", fontsize=15,
-             color=INK)
-    fig.text(0.03, 0.885, "in every model and setting tested (Gate 2).", fontsize=15, color=INK)
-    fig.text(0.03, 0.012, "Track B (F15-F17, F29) and B17 (F37): 54 questions x 3 runs per model and setting; following = "
-             "answered runs ending on the wrong letter;\nlines: 95% bootstrap clustered by question, paired by question. "
-             "Temperature 0.6 (gpt-oss-20b: 1.0, its recommended).\ngpt-oss-20b ran after its one-day window "
-             "(pre-registration section 13). The table behind it: docs/paper/tables/trackB_final.md (B18).",
-             fontsize=10.5, color=MUTED, linespacing=1.35)
+    key(fig, [(marker(ROLE["cue"]), "the tool result pasted in"),
+              (marker(ROLE["damage"]), "the model's own call (Olmo: the inserted tool turn)")])
+    headline(fig, "Tools pull harder than users: the same wrong hint moves the answer more from a tool,",
+             "in every model and setting tested (Gate 2).")
+    note(fig, "Track B (F15-F17, F29) and B17 (F37): 54 questions x 3 runs per model and setting; following = answered "
+         "runs ending on the wrong letter; lines: 95% bootstrap clustered by question, paired by question. Temperature "
+         "0.6 (gpt-oss-20b: 1.0, its recommended). gpt-oss-20b ran after its one-day window (pre-registration section "
+         "13). The table behind it: docs/paper/tables/trackB_final.md (B18).")
     paths = save(fig, "gate2", rows, out)
     plt.close(fig)
     return paths
 
 
 def fig_qwen8b(out=OUT, summary=QWEN8B / "qwen8b_step10_patching.json", readout=QWEN8B / "qwen8b_readout.json"):
-    plt = style()
+    plt, fig = frame()
     rows = qwen8b_rows(summary, readout)
     r = json.loads(Path(readout).read_text())
     loc, rep = r["localization"], r["replication"]
-    fig = plt.figure(figsize=SIZE)
-    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 2.6], left=0.075, right=0.985, top=0.8, bottom=0.17,
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 2.6], left=0.075, right=RIGHT, top=0.775, bottom=0.2,
                           hspace=0.62, wspace=0.08)
     ax_a = fig.add_subplot(gs[0, :])
     a = [x for x in rows if x["panel"] == "a"]
     for y, x in enumerate(reversed(a)):
         color = ROLE["cue"] if x["what"].startswith("Qwen3-8B") else ROLE["baseline"]
-        ax_a.plot([x["low"], x["high"]], [y, y], color=color, linewidth=2.4, solid_capstyle="butt")
-        ax_a.plot(x["value"], y, "o", color=color, markersize=10, markeredgecolor=WHITE, markeredgewidth=1.5)
+        dot(ax_a, y, x["value"], x["low"], x["high"], color)
         ax_a.annotate(f"{x['value']:.2f} [{x['low']:.2f}, {x['high']:.2f}], {x['questions']} questions"
                       + (f": {x['reading']}" if x["reading"] else ""), (x["high"], y), xytext=(8, 0),
-                      textcoords="offset points", va="center", fontsize=11, color=INK)
-        ax_a.text(-0.6, y, f"{x['what']}, at {x['measure'].rsplit(' at ', 1)[1]}", fontsize=11, color=INK,
-                  va="center")
+                      textcoords="offset points", va="center", fontsize=LABEL_SIZE, color=INK)
+        ax_a.annotate(f"{x['what']}, at {x['measure'].rsplit(' at ', 1)[1]}", xy=(LEFT, y),
+                      xycoords=("figure fraction", "data"), fontsize=LABEL_SIZE, color=INK, va="center")
     ax_a.set_yticks([])
-    ax_a.spines["left"].set_visible(False)
-    ax_a.axvline(rep["threshold"], color=MUTED, linewidth=1.2, linestyle="--")
+    rows_axis(ax_a)
+    ref(ax_a, rep["threshold"], dashed=True)
     ax_a.annotate("the rule: lower bound above 0.5", (rep["threshold"], len(a) - 0.5), xytext=(-6, 0),
-                  textcoords="offset points", ha="right", va="center", fontsize=10.5, color=MUTED)
+                  textcoords="offset points", ha="right", va="center", fontsize=LABEL_SIZE, color=MUTED)
     ax_a.set_xlim(-0.6, 1.5)
     ax_a.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
     ax_a.spines["bottom"].set_bounds(0, 1.0)
     ax_a.set_ylim(-0.6, len(a) - 0.2)
-    ax_a.grid(axis="x", color=GRID)
-    ax_a.grid(axis="y", visible=False)
-    ax_a.set_title("(a) Share of the hint's drop at the takeover held by three layers", loc="left", color=INK)
+    title(ax_a, "(a) Share of the hint's drop at the takeover held by three layers")
     b = [x for x in rows if x["panel"] == "b"]
     axes = [fig.add_subplot(gs[1, 0])]
     axes.append(fig.add_subplot(gs[1, 1], sharey=axes[0]))
@@ -653,115 +788,339 @@ def fig_qwen8b(out=OUT, summary=QWEN8B / "qwen8b_step10_patching.json", readout=
             pick = x["chosen"] == "yes"
             ax.bar(x["layer"], x["value"], 0.8, color=ROLE["cue"] if pick else ROLE["baseline"], edgecolor=WHITE,
                    linewidth=1)
-            ax.plot([x["layer"]] * 2, [x["low"], x["high"]], color=INK, linewidth=1.0, solid_capstyle="butt")
+            whisker(ax, x["layer"], x["low"], x["high"])
             if pick:
                 ax.annotate(str(x["layer"]), (x["layer"], x["high"]), xytext=(0, 4), textcoords="offset points",
-                            ha="center", fontsize=11, color=INK)
-        ax.axhline(0, color=MUTED, linewidth=1.0)
+                            ha="center", fontsize=LABEL_SIZE, color=INK)
+        ref(ax, 0, vertical=False)
         ax.set_xlim(-1, 36)
         ax.set_ylim(-0.25, 0.47)
         ax.set_xticks(range(0, 36, 5))
         ax.set_xlabel("layer (all 36 see the whole prompt)")
         ax.grid(axis="y", color=GRID)
         ax.grid(axis="x", visible=False)
-        ax.set_title(titles[half], loc="left", color=INK)
+        title(ax, titles[half])
     axes[0].set_ylabel("drop in hint-token\nrestoration (share)")
     axes[1].tick_params(labelleft=False)
-    fig.text(0.075, 0.93, "Qwen3-8B also reads the tool's letter at a few layers, though all 36 see the whole prompt.",
-             fontsize=15, color=INK)
-    fig.text(0.075, 0.885, f"Layers {', '.join(map(str, loc['layers']))}, chosen on the puzzles, hold "
-             f"{rep['share_at_layers']['mean']:.2f} of the drop on new questions: it {rep['verdict']}.", fontsize=15,
-             color=INK)
-    fig.text(0.075, 0.012, textwrap.fill(
-        "A37 (F36), pre-registered Oct 30: Qwen3-8B, thinking on, after its own tool call (tool_real). Step 10's "
-        "activation patching at the takeover (cut (ii)): the 3 layers with the largest mean drop on the 24 pilot puzzles, "
-        "tested on MMLU-Pro (replicates: lower bound above 0.5, and each within one layer of MMLU-Pro's top 3). Lines: "
-        "95% bootstrap clustered by question. Olmo 3 7B Think: layers 15, 19 and 23, 3 of its 8 full-attention layers "
-        "(24 of its 32 slide over 4,096 tokens).", 160), fontsize=10.5, color=MUTED, linespacing=1.35)
+    key(fig, [(swatch(ROLE["cue"]), f"Qwen3-8B: the layers chosen on the puzzles ({', '.join(map(str, loc['layers']))})"),
+              (swatch(ROLE["baseline"]), "Olmo 3 7B Think's 15, 19, 23 (a); the other layers (b, c)")])
+    headline(fig, "Qwen3-8B also reads the tool's letter at a few layers, though all 36 see the whole prompt.",
+             f"Layers {', '.join(map(str, loc['layers']))}, chosen on the puzzles, hold "
+             f"{rep['share_at_layers']['mean']:.2f} of the drop on new questions: it {rep['verdict']}.")
+    note(fig, "A37 (F36), pre-registered Oct 30: Qwen3-8B, thinking on, after its own tool call (tool_real). Step 10's "
+         "activation patching at the takeover (cut (ii)): the 3 layers with the largest mean drop on the 24 pilot puzzles, "
+         "tested on MMLU-Pro (replicates: lower bound above 0.5, and each within one layer of MMLU-Pro's top 3). Lines: "
+         "95% bootstrap clustered by question. Olmo 3 7B Think: layers 15, 19 and 23, 3 of its 8 full-attention layers "
+         "(24 of its 32 slide over 4,096 tokens).")
     paths = save(fig, "readout_qwen8b", rows, out)
     plt.close(fig)
     return paths
 
 
 def fig_channels(out=OUT):
-    plt = style()
+    plt, fig = frame()
     from matplotlib.patches import FancyBboxPatch
     turns = channel_turns()
-    fig = plt.figure(figsize=SIZE)
-    fig.text(0.03, 0.95, "One wrong hint, seven ways in", fontsize=20, color=INK, weight="bold", va="top")
-    fig.text(0.03, 0.895, "Each prompt as our code builds it (tools/answer_key.py), the hint's text in color; (B) is the "
-             "hint's wrong letter.", fontsize=12, color=MUTED, va="top")
-    w, h, x0, y0, gx, gy = 0.232, 0.385, 0.03, 0.83, 0.012, 0.03
+    headline(fig, "One wrong hint, seven ways in: each prompt as our code builds it (tools/answer_key.py).",
+             "The hint's text in bold, marked in the cue color; (B) is the hint's wrong letter.")
+    gx, gy, top, h = 0.012, 0.03, 0.835, 0.39
+    w = (RIGHT - LEFT - 3 * gx) / 4
     short = {"STEPS (the answer instruction)": "[the answer instruction]"}
-    for k, (cond, title, where) in enumerate(CHANNELS):
+    for k, (cond, name, where) in enumerate(CHANNELS):
         r, c = divmod(k, 4)
-        ax = fig.add_axes([x0 + c * (w + gx), y0 - (r + 1) * h - r * gy, w, h])
+        ax = fig.add_axes([LEFT + c * (w + gx), top - (r + 1) * h - r * gy, w, h])
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
         ax.axis("off")
         ax.add_patch(FancyBboxPatch((0.01, 0.01), 0.98, 0.98, boxstyle="round,pad=0,rounding_size=0.03",
                                     facecolor=WHITE, edgecolor=GRID, linewidth=1.3))
-        ax.text(0.05, 0.93, f"{k + 1}  {title}", fontsize=12.5, color=INK, weight="bold", va="top")
+        ax.text(0.05, 0.93, f"{k + 1}  {name}", fontsize=TEXT_SIZE, color=INK, weight="bold", va="top")
         ax.text(0.05, 0.845, f"{cond} ({where})", fontsize=10, color=MUTED, va="top")
         y = 0.76
         for t in turns[cond]:
             text = short.get(t["template"], t["text"])
-            lines = textwrap.wrap(text, 26 if t["hint"] else 29) or [""]
-            color = ROLE["cue"] if t["hint"] else MUTED if text.startswith("[") else INK
+            lines = textwrap.wrap(text, 24 if t["hint"] else 28) or [""]
+            color = INK if t["hint"] or not text.startswith("[") else MUTED
             by = {"the model": "\n(the model)", "us (written in)": "\n(by us)"}.get(t["writer"], "")
             ax.text(0.05, y, t["role"] + by, fontsize=8.8, color=MUTED, va="top", style="italic", linespacing=1.25)
-            ax.text(0.31, y, "\n".join(lines), fontsize=9.2, color=color, va="top", linespacing=1.25,
+            ax.text(0.32, y, "\n".join(lines), fontsize=9.2, color=color, va="top", linespacing=1.25,
                     weight="bold" if t["hint"] else "normal")
+            if t["hint"]:                                          # the cue's mark: color on a mark, not on the text
+                ax.plot([0.3, 0.3], [y - 0.004, y - 0.0545 * len(lines) + 0.006], color=ROLE["cue"], linewidth=3,
+                        solid_capstyle="butt")
             y -= 0.052 * max(len(lines), 2 if by else 1) + 0.025
-    ax = fig.add_axes([x0 + 3 * (w + gx), y0 - 2 * h - gy, w, h])
+    ax = fig.add_axes([LEFT + 3 * (w + gx), top - 2 * h - gy, w, h])
     ax.axis("off")
     ax.text(0.04, 0.9, textwrap.fill("The same letter, from the user, the system turn or a tool. In channel 6 the "
                                      "model decides to call the tool; in 7 we write the call and the reply into "
-                                     "the conversation (Olmo 3 7B Think never calls a tool itself).", 40),
-            fontsize=10.5, color=INK, va="top", linespacing=1.4)
+                                     "the conversation (Olmo 3 7B Think never calls a tool itself).", 38),
+            fontsize=NOTE_SIZE, color=INK, va="top", linespacing=1.4)
     ax.text(0.04, 0.38, textwrap.fill("Measured: following (the final answer is the hint's letter), whether the final "
-                                      "answer or the private reasoning names the hint, and the bare final answer.", 40),
-            fontsize=10.5, color=MUTED, va="top", linespacing=1.4)
+                                      "answer or the private reasoning names the hint, and the bare final answer.", 38),
+            fontsize=NOTE_SIZE, color=MUTED, va="top", linespacing=1.4)
     paths = save(fig, "channels", channel_rows(), out)
     plt.close(fig)
     return paths
 
 
 def fig_levels(out=OUT):
-    plt = style()
+    plt, fig = frame()
     from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
-    fig = plt.figure(figsize=SIZE)
     ax = fig.add_axes([0, 0, 1, 1])
     ax.set_xlim(0, 16)
     ax.set_ylim(0, 9)
     ax.axis("off")
-    ax.text(0.6, 8.2, "Where did that answer come from?", fontsize=26, color=INK, weight="bold")
-    ax.text(0.6, 7.55, "A tool's wrong letter, and where its source gets lost", fontsize=16, color=MUTED)
-    ax.add_patch(FancyBboxPatch((0.6, 3.55), 1.5, 1.3, boxstyle="round,pad=0.08,rounding_size=0.15",
+    headline(fig, "Where did that answer come from?", "A tool's wrong letter, and where its source gets lost.")
+    x_left = LEFT * 16
+    ax.add_patch(FancyBboxPatch((x_left + 0.08, 3.55), 1.5, 1.3, boxstyle="round,pad=0.08,rounding_size=0.15",
                                 facecolor=WHITE, edgecolor=ROLE["cue"], linewidth=2.2))
-    ax.text(1.35, 4.2, "a tool:\n\"the answer\nis (B)\"", ha="center", va="center", fontsize=12.5, color=INK)
-    x0, w, gap = 2.9, 4.05, 0.38
+    ax.text(x_left + 0.83, 4.2, "a tool:\n\"the answer\nis (B)\"", ha="center", va="center", fontsize=TEXT_SIZE, color=INK)
+    x0, gap = x_left + 2.25, 0.36
+    w = (RIGHT * 16 - x0 - 2 * gap) / 3
     for i, (n, where, text, ev, op) in enumerate(LEVELS):
         x = x0 + i * (w + gap)
-        ax.add_patch(FancyBboxPatch((x, 1.6), w, 5.2, boxstyle="round,pad=0.02,rounding_size=0.2",
+        ax.add_patch(FancyBboxPatch((x, 1.5), w, 5.4, boxstyle="round,pad=0.02,rounding_size=0.2",
                                     facecolor=WHITE, edgecolor=GRID, linewidth=1.6))
-        ax.text(x + 0.25, 6.3, f"{n}  {where}", fontsize=17, color=INK, weight="bold", va="center")
-        ax.text(x + 0.25, 5.7, textwrap.fill(text, 31), fontsize=12.5, color=INK, va="top", linespacing=1.45)
-        ax.text(x + 0.25, 2.85, f"Evidence: {ev}", fontsize=11.5, color=MUTED, va="center")
-        ax.text(x + 0.25, 2.45, textwrap.fill(f"Open: {op}", 36), fontsize=11.5, color=MUTED, va="top",
+        ax.text(x + 0.25, 6.4, f"{n}  {where}", fontsize=HEAD_SIZE, color=INK, weight="bold", va="center")
+        ax.text(x + 0.25, 5.8, textwrap.fill(text, 32), fontsize=TEXT_SIZE, color=INK, va="top", linespacing=1.45)
+        ax.text(x + 0.25, 2.75, f"Evidence: {ev}", fontsize=LABEL_SIZE, color=MUTED, va="center")
+        ax.text(x + 0.25, 2.35, textwrap.fill(f"Open: {op}", 36), fontsize=LABEL_SIZE, color=MUTED, va="top",
                 linespacing=1.35)
-        start = (2.2, 4.2) if i == 0 else (x - gap - 0.05, 4.2)
+        start = (x_left + 1.75, 4.2) if i == 0 else (x - gap - 0.03, 4.2)
         ax.add_patch(FancyArrowPatch(start, (x - 0.05, 4.2), arrowstyle="-|>", mutation_scale=18,
                                      color=ROLE["cue"], linewidth=2.2))
-    ax.text(0.6, 0.75, "The tool's letter travels on (arrows); its source does not: read inside the model, unnamed in "
-            "the final answer, unrecognized by the next agent.", fontsize=12.5, color=MUTED)
+    note(fig, "The tool's letter travels on (arrows); its source does not: read inside the model, unnamed in the final "
+         "answer, unrecognized by the next agent.")
     paths = save(fig, "three_levels", level_rows(), out)
     plt.close(fig)
     return paths
 
 
+# ---------------------------------------------------------------- slide versions of figures made elsewhere
+def fig_layers_slide(out=OUT, path=SUM / "trackA" / "step10_handoff.json"):
+    """Slide 3: the report's readout_by_layer (paper_figures) beside the supplement's set A replication, one style."""
+    plt, fig = frame()
+    rows = layers_slide_rows(path)
+    a, b = [r for r in rows if r["panel"] == "a"], [r for r in rows if r["panel"] == "b"]
+    gs = fig.add_gridspec(1, 2, width_ratios=[2.25, 1], left=0.075, right=RIGHT, top=0.775, bottom=0.2, wspace=0.3)
+    ax_a, ax_b = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
+    for r in a:
+        pick = r["layer"] in READOUT_OLMO
+        ax_a.bar(r["layer"], r["share"], 0.8, color=ROLE["cue"] if pick else ROLE["baseline"], edgecolor=WHITE,
+                 linewidth=1)
+        whisker(ax_a, r["layer"], r["low"], r["high"])
+        if pick:
+            ax_a.annotate(f"{r['layer']}: {r['share']:.2f}", (r["layer"], r["high"]), xytext=(0, 4),
+                          textcoords="offset points", ha="center", fontsize=LABEL_SIZE, color=INK)
+    ref(ax_a, 0, vertical=False)
+    ax_a.set_xticks([r["layer"] for r in a if r["kind"] == "full attention"])
+    ax_a.set_xlim(-1, len(a))
+    ax_a.grid(axis="x", visible=False)
+    ax_a.set_xlabel("layer (ticks: the 8 full-attention layers; the other 24 slide over 4,096 tokens)")
+    ax_a.set_ylabel("share of the drop at the hint's tokens")
+    title(ax_a, f"(a) Test 2, every layer: {a[0]['cuts']} cuts, {a[0]['questions']} questions")
+    whats = list(dict.fromkeys(r["what"] for r in b))
+    at = {(r["set"], r["what"]): r for r in b}
+    (t2, _), (sa, _) = SETS_OLMO
+    for y, what in enumerate(reversed(whats)):
+        for s, color, dy in ((t2, ROLE["baseline"], 0.16), (sa, ROLE["cue"], -0.16)):
+            r = at[(s, what)]
+            dot(ax_b, y + dy, r["share"], r["low"], r["high"], color)
+            value(ax_b, f"{r['share']:.2f}", (r["high"], y + dy))
+    ax_b.plot([SET_A_RULE] * 2, [-0.45, 0.45], color=MUTED, linewidth=1.2, linestyle="--", zorder=1)
+    ax_b.set_yticks(range(len(whats)), list(reversed(whats)), fontsize=TEXT_SIZE, color=INK)
+    rows_axis(ax_b)
+    ax_b.set_ylim(-0.6, len(whats) - 0.4)
+    ax_b.set_xlim(0, 1.32)
+    ax_b.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
+    ax_b.spines["bottom"].set_bounds(0, 1.0)
+    ax_b.set_xlabel("share of the drop (dashed: set A's rule,\nthe sum's lower bound above 0.375)")
+    s = at[(sa, whats[-1])]
+    title(ax_b, f"(b) Set A: {s['questions']} new questions")
+    key(fig, [(swatch(ROLE["cue"]), "layers 15, 19, 23 (a); set A, the replication (b)"),
+              (swatch(ROLE["baseline"]), "the other layers (a); Test 2, where they were found (b)")])
+    total = {r["set"]: r["share"] for r in b if r["what"] == whats[-1]}
+    headline(fig, "Level 1: in Olmo 3 7B Think, three layers read the tool's letter straight from the prompt.",
+             f"Layers 15, 19 and 23 hold {total[t2]:.2f} of the hint's drop at the takeover, and {total[sa]:.2f} on "
+             f"{s['questions']} questions not used to find them.")
+    note(fig, f"F11 (Step 10, Test 2) and F26 (set A, {s['cuts']} cuts). Olmo 3 7B Think after the tool hint; "
+         "activation patching at the "
+         "takeover (cut (ii)), all cuts pooled: the share of the drop in hint-token restoration at each layer. Lines: 95% "
+         "bootstrap over questions. Panel (a) is the report's readout_by_layer; (b) the supplement's "
+         "readout_setA_vs_test2.")
+    paths = save(fig, "readout_by_layer_slide", rows, out)
+    plt.close(fig)
+    return paths
+
+
+SEES = (("answer only", "final"), ("+ private reasoning", "private"), ("+ tool log", "cue"))
+
+
+def fig_reviewer_slide(out=OUT, summaries=SUM / "trackC"):
+    """Slide 11: the report's reviewer_by_prompt (paper_figures), one style: per prompt, what the reviewer sees."""
+    plt, fig = frame()
+    rows = pf.reviewer_rows(summaries)
+    at = {(r["reviewer"], r["variant"], r["run"]): r for r in rows}
+    runs = [run for _, run in pf.RUNS]
+    gs = fig.add_gridspec(1, 2, left=0.075, right=RIGHT, top=0.775, bottom=0.2, wspace=0.06)
+    axes = [fig.add_subplot(gs[0])]
+    axes.append(fig.add_subplot(gs[1], sharey=axes[0]))
+    for ax, letter, (_, name) in zip(axes, "ab", pf.REVIEWERS):
+        for i, run in enumerate(runs):
+            for j, (v, role) in enumerate(SEES):
+                r = at.get((name, v, run))
+                if r is not None:
+                    bar(ax, i + (j - 1) * 0.27, {"value": r["rate"], "low": r["low"], "high": r["high"]}, ROLE[role],
+                        0.25, label=f"{r['k']}")
+        ax.set_xticks(range(len(runs)), [run.split(": ")[0] + "\n" + textwrap.fill(run.split(": ")[1], 16)
+                                         for run in runs], fontsize=LABEL_SIZE)
+        percent_axis(ax)
+        title(ax, f"({letter}) {name} (count of {rows[0]['n']} above each bar)")
+    axes[0].set_ylabel("corrects the wrong solver answer (%)")
+    axes[1].tick_params(labelleft=False)
+    key(fig, [(swatch(ROLE["final"]), "the solver's answer only"),
+              (swatch(ROLE["private"]), "+ the solver's private reasoning"), (swatch(ROLE["cue"]), "+ the tool log")])
+    headline(fig, "Alone, the Olmo reviewer corrects a wrong tool answer; shown the trace, it stops (F18).",
+             "Telling it to check the tool (C9) or to answer first itself (C10) doesn't bring the check back (F19, F21).")
+    note(fig, "Track C, the reviewer alone after a bad lookup: C4's 73 wrong solver answers on 25 questions. C4: the "
+         "original prompt; C9: + \"The tool's answer may be wrong; check it independently.\"; C10: the reviewer commits to "
+         "its own answer first (no answer-only bar: its first turn is C9's answer-only review). Bars: the share corrected; "
+         "lines: 95% Wilson. The report's version: reviewer_by_prompt.")
+    paths = save(fig, "reviewer_by_prompt_slide", rows, out)
+    plt.close(fig)
+    return paths
+
+
+def fig_reviewers_slide(out=OUT, summaries=SUM):
+    """Slide 11: the supplement's trackC_reviewers, one style: six reviewers on C4's cases, and C15's fresh items."""
+    plt, fig = frame()
+    rows = reviewers_slide_rows(summaries)
+    left = [r for r in rows if r["run"] != "C15"]
+    right = [r for r in rows if r["run"] == "C15"]
+    gs = fig.add_gridspec(1, 2, width_ratios=[6, 2.2], left=0.075, right=RIGHT, top=0.775, bottom=0.22, wspace=0.06)
+    axes = [fig.add_subplot(gs[0])]
+    axes.append(fig.add_subplot(gs[1], sharey=axes[0]))
+    looks = {"answer only": (ROLE["final"], None), "+ private reasoning": (ROLE["private"], None),
+             "+ tool log": (ROLE["cue"], None), "+ tool log, redacted": (ROLE["cue"], "//")}
+    for ax, part, name in ((axes[0], left, f"(a) C4's cases, six reviewers (C4, C11, C13): count of {left[0]['n']} "
+                                           "above each bar"),
+                           (axes[1], right, f"(b) C15: {right[0]['n']} fresh items")):
+        cats = list(dict.fromkeys(r["reviewer"] for r in part))
+        series = list(dict.fromkeys(r["variant"] for r in part))
+        for r in part:
+            j, i = series.index(r["variant"]), cats.index(r["reviewer"])
+            color, hatch = looks[r["variant"]]
+            bar(ax, i + (j - (len(series) - 1) / 2) * 0.27, {"value": r["rate"], "low": r["low"], "high": r["high"]},
+                color, 0.25, label=f"{r['k']}", hatch=hatch)
+        ax.set_xticks(range(len(cats)), [textwrap.fill(c, 13) for c in cats], fontsize=LABEL_SIZE)
+        percent_axis(ax)
+        title(ax, name)
+    axes[0].set_ylabel("corrects the wrong solver answer (%)")
+    axes[1].tick_params(labelleft=False)
+    key(fig, [(swatch(ROLE["final"]), "answer only"), (swatch(ROLE["private"]), "+ private reasoning"),
+              (swatch(ROLE["cue"]), "+ tool log"), (swatch(ROLE["cue"], "//"), "+ tool log, letter redacted (b)")])
+    headline(fig, "Deference follows the model family: both Olmo reviewers stop correcting once they see the trace.",
+             "Qwen3, Granite and Mistral don't. On fresh items (C15) it replicates (F22, F24, F30).")
+    note(fig, "Track C, the reviewer alone after a bad lookup. (a) C4's 73 wrong solver answers on 25 items, reviewed by "
+         "Olmo 3.1 32B and Qwen3 30B Instruct (C4), Olmo 3 7B Instruct and Qwen3 30B Thinking (C11), Granite 4.1 30B and "
+         "Mistral Small 3.2 24B (C13). (b) C15, 53 fresh items. Bars: the share corrected; lines: 95% Wilson. The "
+         "supplement's version: trackC_reviewers.")
+    paths = save(fig, "trackC_reviewers_slide", rows, out)
+    plt.close(fig)
+    return paths
+
+
+def fig_cues_slide(out=OUT, summaries=SUM):
+    """The supplement's cue_experiments (C16-C18), one style."""
+    plt, fig = frame()
+    rows = cues_slide_rows(summaries)
+    labels = [lab for _, _, lab in CUES if any(d["comparison"] == lab.replace("\n", " ") for d in rows)]
+    reviewers = list(dict.fromkeys(d["reviewer"] for d in rows))
+    ax = fig.add_axes([0.36, 0.2, RIGHT - 0.36, 0.6])
+    ax.axvspan(-20, 20, color=GRID, alpha=0.6, linewidth=0, zorder=0)
+    ref(ax, 0)
+    colors = [ROLE["correct"]] + [ROLE["baseline"]] * (len(reviewers) - 1)
+    for i, lab in enumerate(labels):
+        for j, rev in enumerate(reviewers):
+            d = next((d for d in rows if d["comparison"] == lab.replace("\n", " ") and d["reviewer"] == rev), None)
+            if not d:
+                continue
+            y = len(labels) - 1 - i + (0.15 if j == 0 else -0.15)
+            dot(ax, y, d["diff"], d["low"], d["high"], colors[j])
+            value(ax, f"{signed(d['diff'])}: {d['reading'].split(';')[0]}", (d["high"], y))
+    ax.set_yticks(range(len(labels)), labels[::-1], fontsize=TEXT_SIZE, color=INK)
+    rows_axis(ax)
+    ax.set_ylim(-0.6, len(labels) - 0.4)
+    ax.set_xlim(-40, 100)
+    ax.set_xticks(range(-40, 81, 20))
+    ax.set_xlabel("corrects a wrong answer: difference (points), paired by item")
+    key(fig, [(marker(colors[0]), reviewers[0]), *((marker(ROLE["baseline"]), r) for r in reviewers[1:]),
+              (swatch(GRID), "C11's ±20-point margin")])
+    headline(fig, "The cue is the citation: removing the sentences that cite the tool restores the Olmo reviewer's check.",
+             "A sentence naming the tool doesn't cause the drop by itself (C17); Qwen3 changes in none (F31, F33, F34).")
+    note(fig, "Track C, C16-C18, pre-registered: the reviewer alone after a bad lookup, each comparison paired by item "
+         "(items in its label); lines: 95% bootstrap clustered by item; read by C16's two-sided rule with C11's 20-point "
+         "margin (C18's H33 reading in the CSV). The supplement's version: cue_experiments.")
+    paths = save(fig, "cue_experiments_slide", rows, out)
+    plt.close(fig)
+    return paths
+
+
+GATE3_PANELS = (("wrong-hint following", "(a) Follows a wrong hint\nrule: the interval below 0", "damage"),
+                ("no-hint accuracy", "(b) No-hint accuracy\nrule: within 5 points (dashed)", "correct"),
+                ("hiding", "(c) Hiding\nrule: reaches 0 or below", "final"))
+
+
+def fig_gate3_slide(out=OUT, report=EVAL / "eval_report.json"):
+    """Slide 9: finetune/gate3.py's gate3_vs_base, one style."""
+    plt, fig = frame()
+    rows = gate3_slide_rows(report)
+    systems = list(dict.fromkeys(r["system"] for r in rows))
+    gs = fig.add_gridspec(1, 3, left=0.215, right=RIGHT, top=0.74, bottom=0.2, wspace=0.14)
+    axes = [fig.add_subplot(gs[i]) for i in range(3)]
+    for ax, (m, name, role) in zip(axes, GATE3_PANELS):
+        mine = [r for r in rows if r["measure"] == m and r["diff"] is not None]
+        for r in mine:
+            y = len(systems) - 1 - systems.index(r["system"])
+            dot(ax, y, r["diff"] * 100, r["low"] * 100, r["high"] * 100, ROLE[role])
+            value(ax, signed(r["diff"] * 100), (r["high"] * 100, y))
+        for r in rows:
+            if r["measure"] == m and r["diff"] is None:
+                ax.annotate("too few questions", (0, len(systems) - 1 - systems.index(r["system"])), ha="center",
+                            va="center", fontsize=LABEL_SIZE, color=MUTED)
+        lo, hi = min([r["low"] * 100 for r in mine] + [0]), max([r["high"] * 100 for r in mine] + [0])
+        ax.set_xlim(lo - 0.08 * (hi - lo), hi + 0.22 * (hi - lo))
+        ref(ax, 0)
+        if m == "no-hint accuracy":
+            for x in (-5, 5):
+                ref(ax, x, dashed=True)
+        ax.set_ylim(-0.6, len(systems) - 0.4)
+        ax.set_yticks([])
+        rows_axis(ax)
+        ax.set_xlabel("minus base (points)")
+        title(ax, name)
+    one = next(r for r in rows if r["system"] == "prompt only" and r["measure"] == "wrong-hint following")
+    axes[0].set_yticks(range(len(systems)), [s + (" (one line)" if s == "prompt only" else "")
+                                             for s in reversed(systems)], fontsize=TEXT_SIZE, color=INK)
+    headline(fig, "The fix: every trained version follows fewer wrong hints, and none beats one line of prompt.",
+             "All four pass Gate 3's rule on the 30 held-out questions (F28); the one-line instruction alone cuts "
+             f"following by {-one['diff'] * 100:.0f} points.")
+    note(fig, "Track A, Gate 3 (batch 3; F28): each system minus base on the 30 held-out questions, paired by question. "
+         "Dots: the difference; lines: 95% bootstrap clustered by question. A version passes when its following's "
+         "interval lies below 0, its no-hint accuracy is within 5 points of base (the point difference) and its hiding's "
+         "interval reaches 0 or below. Hiding: followed the hint and the final answer doesn't mention it. The source "
+         "figure: finetune/gate3.py's gate3_vs_base.")
+    paths = save(fig, "gate3_vs_base_slide", rows, out)
+    plt.close(fig)
+    return paths
+
+
+SLIDE_FIGURES = (fig_levels, fig_gate2, fig_layers_slide, fig_qwen8b, fig_bare, fig_b16, fig_b17, fig_gate3_slide,
+                 fig_a18, fig_reviewer_slide, fig_reviewers_slide, fig_cues_slide, fig_channels)
+
+
 def main():
-    for f in (fig_levels, fig_gate2, fig_bare, fig_b16, fig_qwen8b, fig_b17, fig_a18, fig_channels):
+    for f in SLIDE_FIGURES:
         for p in f():
             print(p.relative_to(CODE.parent))
 
