@@ -27,7 +27,8 @@ Amendments of Nov 4 (the B20 log's section 15, before any rerun): Gemma 4's tool
 smoke never called the tool: the fallback); Granite 4.2 runs thinking on only (MODELS[name]["settings"]: with thinking
 off it still wrote a think block and closed it itself, 6 of 6 smoke runs, so its off switch doesn't turn thinking off).
 Each model's set-aside smoke runs stay in its records and are never read (report() takes each model's design only).
-Nemotron's design is unchanged. In all 4,860 runs.
+Amendment of Nov 4, 10:30 (the log's section 16, before its rerun): Nemotron 3's tool channel is the inserted tool turn
+too (its smoke never called the tool: the fallback, as section 15 decided before the smoke was seen). In all 4,860 runs.
 Records (on Sol; the text never leaves it): results/trackB/b20/<model>/b20_sol_vllm.jsonl.gz and b20_sol_vllm_runs.jsonl
 (experiment "b20/<model>", so two models' jobs never write one file), each with the pinned revision. Numbers-only flags:
 results/trackB/b20/<model>/b20_flags.jsonl, with the job's template_check.json, canary.jsonl and smoke_check.json beside
@@ -90,7 +91,8 @@ MODELS = {
         "patterns": ["*.json", "*.safetensors", "*.jinja", "*.py"],          # its remote code (--trust-remote-code)
         "flags": ["--trust-remote-code", "--reasoning-parser", "nemotron_v3", "--enable-auto-tool-choice",
                   "--tool-call-parser", "qwen3_coder", "--mamba-ssm-cache-dtype", "float32"],
-        "temperature": 1.0, "sampling": {"top_p": 1.0}, "tool": "tool_real"},
+        "temperature": 1.0, "sampling": {"top_p": 1.0},
+        "tool": "tool_injected"},                         # the fallback, by the amendment of Nov 4, 10:30 (smoke 460109)
     "granite-4.2-8b": {
         "repo": "ibm-granite/granite-4.2-8b", "revision": "a7042144125ce5ae64f89610e8289647fc000b9a",
         "family": "IBM Granite 4.2", "size": "8B dense", "license": "Apache-2.0", "gb": 17.6,
@@ -427,7 +429,7 @@ def setting_report(rows, tool):
 
 
 def in_design(r, name):
-    """A run of the model's (amended) design: its settings and conditions. Set-aside smoke runs (Gemma's tool_real,
+    """A run of the model's (amended) design: its settings and conditions. Set-aside smoke runs (Gemma's and Nemotron's tool_real,
     Granite's thinking off) stay in the records and are never read."""
     return r["thinking"] in settings(name) and r["condition"] in conditions(name)
 

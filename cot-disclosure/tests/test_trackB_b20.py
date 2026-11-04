@@ -36,6 +36,13 @@ def opt(cmd, name):
     return cmd[cmd.index(name) + 1]
 
 
+@pytest.fixture
+def tool_real_nemotron(monkeypatch):
+    """The pre-registered design's tool_real path in both settings: Nemotron as it was before its amendment of Nov 4,
+    10:30 (no model has both now: Granite, the one tool_real model, runs thinking on only). For the mechanics tests."""
+    monkeypatch.setitem(rb.MODELS[NEMOTRON], "tool", "tool_real")
+
+
 def test_the_design_is_track_bs_questions_in_six_conditions_on_and_off_for_three_models():
     """As pre-registered (5,832 runs), with the amendments of Nov 4: Granite thinking on only (4,860 runs)."""
     assert list(rb.MODELS) == [GEMMA, NEMOTRON, GRANITE]
@@ -60,7 +67,7 @@ def test_the_design_is_track_bs_questions_in_six_conditions_on_and_off_for_three
 
 def test_each_model_is_pinned_and_runs_at_its_recommended_temperature():
     for name, m in rb.MODELS.items():
-        assert len(m["revision"]) == 40 and m["tool"] == (INJECTED if name == GEMMA else "tool_real")   # Nov 4
+        assert len(m["revision"]) == 40 and m["tool"] == ("tool_real" if name == GRANITE else INJECTED)   # Nov 4
         cfg = rb.config(name)
         assert cfg["temperature"] == 1.0 and {**cfg, "temperature": 0.6} == CFG      # nothing else differs
         assert tb.TOKENIZERS[name] == m["repo"] and tb.TOKENIZER_REVISIONS[name] == m["revision"]
@@ -161,6 +168,7 @@ def server(monkeypatch, tmp_path):
     return NS(bodies=bodies, counted=counted, state=state)
 
 
+@pytest.mark.usefixtures("tool_real_nemotron")
 def test_a_b20_run_records_the_pinned_snapshot_and_its_files_stay_out_of_track_bs_table(server, tmp_path):
     cfg = rb.config(NEMOTRON)
     jobs = {(j["model"]["thinking"], j["condition"]): j for j in rb.jobs(cfg, NEMOTRON)[:rb.SMOKE_JOBS]}
@@ -225,6 +233,7 @@ def smoke_rows(name=NEMOTRON, statuses=None, called=True):
     return rows
 
 
+@pytest.mark.usefixtures("tool_real_nemotron")
 def test_the_smoke_check():
     ok = rb.smoke_check(smoke_rows(), NEMOTRON)
     assert ok["ok"] and ok["status_ok"] == 12 and ok["tool_real_called"] == 2 and ok["fallback"] is None
@@ -260,6 +269,7 @@ def test_the_smoke_checks_the_reasoning_split_both_ways():
     assert not res["checks"]["reasoning split"] and res["reasoning_when_off"] == 1
 
 
+@pytest.mark.usefixtures("tool_real_nemotron")
 def test_the_smoke_names_the_fallback_when_the_tool_path_fails_and_passes_once_it_is_amended(monkeypatch):
     res = rb.smoke_check(smoke_rows(called=False), NEMOTRON)
     assert not res["ok"] and not res["checks"]["tool path ran"] and "amendment" in res["fallback"]
@@ -269,6 +279,7 @@ def test_the_smoke_names_the_fallback_when_the_tool_path_fails_and_passes_once_i
     assert {r["condition"] for r in smoke_rows()} == set(rb.conditions(NEMOTRON))
 
 
+@pytest.mark.usefixtures("tool_real_nemotron")
 def test_the_template_check_rows_stops_and_whitespace():
     decode = lambda ids: " ".join(str(i) for i in ids)                    # noqa: E731
     seen = []
@@ -383,6 +394,7 @@ def smoke_job(tmp_path, monkeypatch):
     return run
 
 
+@pytest.mark.usefixtures("tool_real_nemotron")
 def test_the_smoke_job_exits_non_zero_when_any_check_fails(smoke_job):
     """As B17's (Nov 1): the main job chains on the smoke (afterok), so the smoke job exits 0 only when every check
     passes: the served template (4), then all ran, answered, parse, the tool path and the reasoning split (5)."""
@@ -507,6 +519,7 @@ def design(n=8, authority=True, real=False, real_chars=20, off_real_chars=200, r
     return rows
 
 
+@pytest.mark.usefixtures("tool_real_nemotron")
 def test_the_readings_r1_r2_r3a_r3b():
     res = rb.report(design())[NEMOTRON]
     on = res["settings"]["on"]["budget_32768"]
@@ -526,6 +539,7 @@ def test_the_readings_r1_r2_r3a_r3b():
     assert res["thinking_on_minus_off"]["budget_32768"]["following"]["tool_pasted"]["reading"] == "no change detected"
 
 
+@pytest.mark.usefixtures("tool_real_nemotron")
 def test_the_other_readings_and_too_few_questions():
     res = rb.report(design(authority=False, real=True, real_chars=200, off_real_chars=20))[NEMOTRON]
     on = res["settings"]["on"]["budget_32768"]
@@ -551,6 +565,7 @@ def test_the_fallbacks_readings_use_the_inserted_turn(monkeypatch):
     assert on["R3a_bare_after_call"]["reading"] == "a call makes the answer barer"   # every answered run had our call
 
 
+@pytest.mark.usefixtures("tool_real_nemotron")
 def test_the_report_flags_a_canary_that_differs_and_skips_runs_that_failed():
     rows = design() + [{**flag(0, True, "user", True), "run_id": "x", "status": "api_error", "answered": False}]
     canary = {NEMOTRON: [{"job": "1", "rows": [{"prompt": 0, "token_ids": [1]}]},
@@ -686,19 +701,63 @@ def test_the_amendments_gemma_takes_the_inserted_turn_and_granite_runs_thinking_
         {(True, c) for c in rb.conditions(GRANITE)} | {(True, "tool_real after a call")}
 
 
-def test_nemotrons_design_and_template_check_are_exactly_as_its_queued_smoke_was_submitted():
-    """Its smoke (460109) may start after a pull: the amendments leave every Nemotron run id, in order, and every
-    template-check prompt as they were (hashes taken from the code before the amendments, Nov 4)."""
-    js = rb.jobs(rb.config(NEMOTRON), NEMOTRON)
-    assert hashlib.sha256("\n".join(j["run_id"] for j in js).encode()).hexdigest() == \
-        "c94de38253f005f3b8618c2defcfc38b6a37da387b6ddfa2808a0296bf518da8"
-    rows = rb.template_rows(rb.config(NEMOTRON), NEMOTRON)
-    assert hashlib.sha256(json.dumps([(r["setting"], r["condition"], r["sent"], r["tools"]) for r in rows],
-                                     sort_keys=True).encode()).hexdigest() == \
-        "f84558581f1dca8c6f6fa9435476342d71a1755a6f425e3096dc1fc563a3a431"
-    assert rb.MODELS[NEMOTRON]["tool"] == "tool_real" and rb.settings(NEMOTRON) == (True, False)
+def design_hashes(name):
+    """(run ids in order, template-check prompts) of a model's design, each as one sha256."""
+    js = rb.jobs(rb.config(name), name)
+    rows = rb.template_rows(rb.config(name), name)
+    return (hashlib.sha256("\n".join(j["run_id"] for j in js).encode()).hexdigest(),
+            hashlib.sha256(json.dumps([(r["setting"], r["condition"], r["sent"], r["tools"]) for r in rows],
+                                      sort_keys=True).encode()).hexdigest())
+
+
+def test_nemotrons_first_design_is_as_its_smoke_ran_it(monkeypatch):
+    """Nemotron's smoke (460109) ran the design before the amendment of Nov 4, 10:xx (the B20 log's section 16): with
+    tool_real put back, every run id, in order, and every template-check prompt are as they were (hashes taken from the
+    code before the first amendments, Nov 4), so the second amendment changed only its tool channel."""
+    monkeypatch.setitem(rb.MODELS[NEMOTRON], "tool", "tool_real")
+    assert design_hashes(NEMOTRON) == ("c94de38253f005f3b8618c2defcfc38b6a37da387b6ddfa2808a0296bf518da8",
+                                       "f84558581f1dca8c6f6fa9435476342d71a1755a6f425e3096dc1fc563a3a431")
+
+
+def test_gemmas_and_granites_designs_are_exactly_as_their_second_smokes_were_queued():
+    """Their second smokes (b20-*-smoke-r2) may be queued or running when Nemotron's amendment reaches Sol: it leaves
+    every Gemma and Granite run id, in order, and every template-check prompt as they were (hashes taken from the code
+    of 2361152, before the change, Nov 4 10:2x)."""
+    assert design_hashes(GEMMA) == ("84042f48f3f2e101538a994bdaca5fd56b0db5697726874e90dafe6b89dbcfd1",
+                                    "1a1c81291ef57e712963b6b1772229a0e9cf403e124e166bf20af845701dcd5b")
+    assert design_hashes(GRANITE) == ("c0fc7b4a0db86d5b7beaec3216fe0aee606ea7ba2053ba9fdff1e1914ff45a49",
+                                      "14fc54d713cadc1672b3a28859b0f4a76979fa9d7c0fd170618ba96688761f81")
     gemma = rb.jobs(rb.config(GEMMA), GEMMA)                              # Gemma's 1,620 non-tool runs keep their ids
     assert len(gemma) == 1944 and sum(j["condition"] == INJECTED for j in gemma) == 324
+
+
+def test_the_second_amendment_nemotron_takes_the_inserted_turn(monkeypatch):
+    """Nemotron's smoke (460109) failed the tool path only: the fallback, as section 15 decided before it was seen."""
+    assert rb.MODELS[NEMOTRON]["tool"] == INJECTED and rb.settings(NEMOTRON) == (True, False)
+    assert rb.conditions(NEMOTRON) == ("none", "user", AUTHORITY, "tool_pasted", INJECTED, "system")
+    now = rb.jobs(rb.config(NEMOTRON), NEMOTRON)
+    assert {(j["model"]["thinking"], j["condition"]) for j in now[:rb.SMOKE_JOBS]} == {
+        (s, c) for s in (True, False) for c in rb.conditions(NEMOTRON)}
+    monkeypatch.setitem(rb.MODELS[NEMOTRON], "tool", "tool_real")
+    before = rb.jobs(rb.config(NEMOTRON), NEMOTRON)
+    keep = lambda js, tool: [j["run_id"] for j in js if j["condition"] != tool]  # noqa: E731
+    assert keep(now, INJECTED) == keep(before, "tool_real") and len(keep(now, INJECTED)) == 1620   # the rest keep their ids
+    assert sum(j["condition"] == INJECTED for j in now) == 324
+    monkeypatch.undo()
+    assert len(rb.all_jobs()) == 1944 + 1944 + 972
+
+
+def test_nemotrons_real_smoke_under_its_amendment():
+    """Nemotron's smoke (460109): 10 of the amended design's first 12 ran and the tool path is now the inserted turn;
+    the rerun adds the 2 inserted-turn runs (question 1, thinking on and off). Skipped until its flags are copied back."""
+    flags = real_flags(NEMOTRON)
+    real = [r for r in flags if r["condition"] == "tool_real"]
+    assert len(real) == 2 and not any(r["called_tool"] for r in real)    # what failed: offered the tool, never called
+    res = rb.smoke_check(flags, NEMOTRON)
+    assert res["ran"] == 10 and res["checks"]["tool path ran"] and res["checks"]["reasoning split"]
+    assert res["checks"]["parse"] and "applied" in res["fallback"]
+    todo = [j for j in rb.jobs(rb.config(NEMOTRON), NEMOTRON)[:rb.SMOKE_JOBS] if j["run_id"] not in {r["run_id"] for r in flags}]
+    assert [(j["model"]["thinking"], j["condition"]) for j in todo] == [(True, INJECTED), (False, INJECTED)]
 
 
 def test_the_smoke_check_on_the_real_smokes_under_the_amendments():
