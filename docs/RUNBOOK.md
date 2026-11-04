@@ -79,6 +79,13 @@ Its log is `/scratch/$USER/trackA/feeder.log`; its state `/scratch/$USER/trackA/
   - The set-aside runs are in `/scratch/$USER/trackA/a39_wrong_server/`, unread. §15 says how to undo the move.
   - **The quarters' leftovers** run as 28 sixteenth lines before the fifths (quarter k/4 is sixteenths k, k+4, k+8
     and k+12).
+- **Nov 6 07:00, decided by the feeder (the A39 log's §16).** At its first tick at or after Nov 6 07:00, it counts the
+  GPU-hours your jobs got from Nov 4 12:36 to Nov 6 07:00, as the digest does.
+  - **Under 10:** the 30's lines (`dropif=nov6`) are dropped, and B1R2's (`holdif=nov6`) wait until every E2 sweep and
+    B20 line is submitted or settled.
+  - **10 or more:** nothing changes.
+  - The branch and the number go in the log, an alert mail, the digest and `--status` (`decision nov6`). A failed
+    sacct waits a tick.
 - **The daily digest** (Nov 4): the first tick after 07:00 mails `$USER@asu.edu` (the alerts' mail path; Sol's
   `MailProg` is goslmailer) and writes `/scratch/$USER/trackA/feeder/digest.txt`. It covers:
   - what finished and what failed in the last 24 h, and what runs and waits;

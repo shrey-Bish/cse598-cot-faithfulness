@@ -959,7 +959,9 @@ PREREG = [
      "rule_log": "2026-11-03_1130_A_e2-a39-prereg.md", "rule_check": ["powered replication of Gate 3", "R4, the wrapper"],
      "rule_extra": [("the amendment, section 10 (job shapes, the 30's and B1R2's decisions)", "9fc52d6"),
                     ("the data ruling, section 15 (340 runs another model's server served set aside, unread; a port "
-                     "of each job's own)", "54291fd")],
+                     "of each job's own)", "54291fd"),
+                    ("the amendment, section 16 (on Nov 6 07:00, under 10 GPU-hours since Nov 4 12:36: the 30 dropped, "
+                     "B1R2 held until E2's sweeps and B20's lines are in)", "ee14295")],
      "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: running on Sol (9 parts from Nov 3; "
      "16 sixteenths at 1:30 from Nov 4, section 12; the parts after them at 2:00 and the sweeps at 3:00, section 14; "
      "the quarters' leftovers as 28 sixteenths, section 15)",
