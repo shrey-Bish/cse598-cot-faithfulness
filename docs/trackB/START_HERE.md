@@ -2,6 +2,10 @@
 
 **Edited by:** Arsha, on `trackB-main`, from Nov 6. Written by Ritik on Nov 3 (updated Nov 4: B20's two amendments, B24); Ritik keeps it until then.
 
+**Final as of Nov 4, 16:25** (Ritik): B24 read (F40); B20 and Sol's queue as of the feeder's 15:56 tick (§4); the
+bundle built and checked on a fresh clone (§1, step 5). On Nov 6 only the bundle is rebuilt; Ritik's note gives its
+file count and sha256.
+
 ## Quick start (one page)
 
 **Track B** tests the project's question widely: does a wrong hint from a tool move thinking models more than the same
@@ -9,15 +13,16 @@ hint from the user, with thinking on and off in the same weights, real tool call
 final answer stop naming the tool once the model has called it? It is the evidence for the story's line 1 and level 2
 ([`PLAN.md`](../PLAN.md)).
 
-**Done** (Ritik's; [`docs/FINDINGS.md`](../FINDINGS.md) F15–F17, F25, F29, F35, F37):
+**Done** (Ritik's; [`docs/FINDINGS.md`](../FINDINGS.md) F15–F17, F25, F29, F35, F37, F40):
 - tools pull harder than users in all five models (Gate 2);
 - after a tool call, the final answer goes bare;
 - most of the pull is the tool's claim to be the answer key (B16, confirmed same-day by B19);
 - more thinking changes neither (B17, labelled §13).
 - **Started for you:** B18's table and slide 2 ([`TRACK_B.md`](../tracks/TRACK_B.md) §1a).
-- **Running on Sol** (Ritik submits, through the feeder): B20, three open-weight families with thinking on and off.
+- **On Sol** (Ritik submits, through the feeder): B20, three open-weight families with thinking on and off.
   Amended Nov 4 after its three smokes (§4): Gemma's and Nemotron's tool channel is the inserted tool turn, and
-  Granite runs thinking on only. Its runs end by Nov 15.
+  Granite runs thinking on only. Granite's second smoke passed and its runs are queued; Gemma's and Nemotron's
+  second smokes wait in Sol's queue. Its runs end by Nov 15; you read them Nov 17.
 - **Read Nov 4 (F40):** B24, the authority dose (§4a): the pull grows from a classmate to the official solution
   manual in all three models. You re-read it from the bundle.
 
@@ -79,7 +84,18 @@ halt, or a date that will slip.
 4. **Your own Voyager key:** `cp cot-disclosure/.env.example cot-disclosure/.env`. Put your key in `RC_LLM_API_KEY`
    and leave every paid key line empty. Never share, print, log or commit it.
 5. **The data bundle.** Ritik sends `trackB_20261106.tar.gz` through ASU storage, never GitHub. Ritik rebuilds it on Nov 6
-   morning and checks it on a fresh clone first.
+   morning and runs `--verify` on it before sending it.
+   - **What's in it:** `results/trackB/` and the canary log, with a sha256 manifest inside and beside it:
+     - the Voyager records and reports: Track B's three models, B15, B16, B19 and B24;
+     - the numbers-only files of the Sol runs: Qwen3-8B (B4), B17, and B20's smokes so far;
+     - A37's Qwen3-8B files (`qwen8b_mech/`).
+   - **Left out:** GPQA (none), and B20's three record files with text, which stay on Sol.
+   - **Checked Nov 4** on Nov 4's build (`trackB_20261104.tar.gz`: 51 files, 73.8 MB, 60.1 MB packed), in a fresh clone of
+     `trackB-main` with the commands below:
+     - it printed "bundle matches its manifest";
+     - step 6's reports, and `run_b24.py --report`, wrote their files byte for byte as in the bundle, and B18's table
+       came out unchanged;
+     - the Track B tests: 113 passed, 2 skipped (no cached tokenizers; Granite's records, which stay on Sol).
    ```bash
    tar --exclude MANIFEST.json -xzf <where you saved it>/trackB_20261106.tar.gz -C cot-disclosure
    cd cot-disclosure && ../.venv/bin/python tools/make_handoff_bundle.py --verify <where you saved it>/trackB_20261106.tar.gz
@@ -92,10 +108,11 @@ halt, or a date that will slip.
    ../.venv/bin/python progress/run_b16.py --report       # F35
    ../.venv/bin/python progress/run_b19.py --report       # F35, same-day
    ../.venv/bin/python progress/run_b17.py --report       # F37 (labelled §13)
+   ../.venv/bin/python progress/run_b24.py --report       # F40
    ../.venv/bin/python tools/trackb_final.py              # B18's table: docs/paper/tables/trackB_final.md
    ```
 7. **Read:** this page, [`TRACK_B.md`](../tracks/TRACK_B.md) (results, how to run each step, known traps, decisions
-   you inherit), then FINDINGS F15–F17, F25, F29, F35, F37 and traps T1–T11.
+   you inherit), then FINDINGS F15–F17, F25, F29, F35, F37, F40 and traps T1–T12.
 
 ## 2. Your paths, and the hooks both ways
 
@@ -142,7 +159,19 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
 
 - **What it is:** Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B and Granite 4.2 8B on our vLLM on Sol, thinking on and off,
   Track B's design plus B16's authority arm. Pre-registered in `archive/sessions/2026-11-03/2026-11-03_1219_B_b20-prereg.md`
-  (its §13 and §14: the jobs; its §15 and §16: the amendments of Nov 4).
+  (its §13 and §14: the jobs; its §15 and §16: the amendments of Nov 4; its §17: one port a job, and Granite's second
+  smoke).
+- **Where it stands (Nov 4, at the feeder's 15:56 tick):**
+  - **Granite:** its second smoke passed every check (466399, Nov 4, 11:50–12:03); its runs are queued (468897).
+  - **Gemma:** its second smoke (466400) is pending in Sol's queue.
+  - **Nemotron:** its second smoke waits for a place in the feeder's queue (10 places, all taken). Its amendment
+    (§16, `063bc78`) is on Sol.
+  - **Each B20 job serves on a port of its own** (§17). The shared-port audit found no earlier result affected
+    (FINDINGS T12): each B20 smoke had its own server.
+  - **Sol's queue is slow for us.** Nothing of Ritik's has started since Nov 4 12:36: our fair share is 0.005, so our
+    jobs start only by backfill. Sol last estimated the first start at Nov 5 06:25.
+  - **The Nov 6 07:00 rule** (the A39 log's §16) may drop A39 on the old 30 and hold B1R2, both Ritik's. It never
+    touches B20: B20's lines stay ahead of both.
 - **The amendment of Nov 4 (§15), after both smokes exited 5:**
   - **Gemma's tool channel is the inserted tool turn** (`tool_injected`), the pre-registered fallback. Its smoke never
     called the tool. Label it "the inserted tool turn (the fallback)".

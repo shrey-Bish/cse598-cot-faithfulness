@@ -1,10 +1,14 @@
 # Track B handoff: test widely (for Arsha, from Nov 6)
 
 **Edited by:** Ritik until Nov 6, then Arsha. **Start with [`docs/trackB/START_HERE.md`](../trackB/START_HERE.md)** (its Quick
-start and plan hold where this page differs). Last updated: 2026-11-04 11:16 (B24 read: F40, §3; Nemotron's smoke and B20's second amendment, §3; earlier: B20's smokes and its amendment of Nov 4, §3; B24, the authority dose, running on
-Voyager and yours to read from Nov 6, §3; earlier: START_HERE, B18 and slide 2 started for you, §1a; closed models
-dropped). History: `git log --follow docs/tracks/TRACK_B.md` (it was `docs/handoff/TRACK_B.md` until
+start and plan hold where this page differs). Last updated: 2026-11-04 16:25 (final as of today: B20 and Sol's queue, §3;
+the bundle built and checked, §0; B20 in the plan, §1; T12, §6; earlier: B24 read: F40, §3; Nemotron's smoke and B20's
+second amendment, §3; B20's smokes and its amendment of Nov 4, §3; START_HERE, B18 and slide 2 started for you, §1a;
+closed models dropped). History: `git log --follow docs/tracks/TRACK_B.md` (it was `docs/handoff/TRACK_B.md` until
 Nov 1). Ritik runs Track B until Nov 6, then it's yours.
+
+**Final as of Nov 4, 16:25** (Ritik). B20 and Sol's queue are as of the feeder's 15:56 tick. On Nov 6 only the bundle
+is rebuilt; Ritik's note gives its file count and sha256.
 
 **The question.** Does the failure seen in the progress round (a wrong hint from a tool moves thinking models more
 than the same hint from the user, and the final answer rarely says so) hold on more models, with thinking on and off
@@ -19,16 +23,20 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 1. **The repo:** pull `trackB-main` (kept at `main`), then from the repo root
    `python3 -m venv .venv && .venv/bin/pip install -r cot-disclosure/requirements.txt`, then
    `cd cot-disclosure && ../.venv/bin/python -m pytest -q` (CPU only, no network; all should pass).
-2. **The pre-push check,** once per clone ([`RUNBOOK.md`](../RUNBOOK.md) §17). The repo is public, and produced
-   data never goes to GitHub.
+2. **The hooks,** once per clone: the path check (`python3 cot-disclosure/tools/path_check.py --install`; it refuses a
+   commit on `trackB-main` outside your paths) and the pre-push check ([`RUNBOOK.md`](../RUNBOOK.md) §17). The repo is
+   public, and produced data never goes to GitHub.
 3. **The data:** Ritik sends the bundle `trackB_20261106.tar.gz`, rebuilt on Nov 6 morning (`tools/make_handoff_bundle.py --track B`:
-   `results/trackB/` and the canary log, with B16's, B17's and B19's records and A37's Qwen3-8B files; a sha256
-   manifest inside and beside it; no GPQA; its file count and size are written when it is built on Nov 6). Unpack it into `cot-disclosure/` and check it with
-   `../.venv/bin/python tools/make_handoff_bundle.py --verify <the bundle>`.
+   `results/trackB/` and the canary log: the Voyager records and reports of Track B, B15, B16, B19 and B24; the
+   numbers-only files of Qwen3-8B, B17 and B20's smokes so far; A37's Qwen3-8B files; a sha256 manifest inside and
+   beside it; no GPQA; B20's records with text stay on Sol). Nov 4's build was 51 files, 73.8 MB (60.1 MB packed), and
+   it checked clean in a fresh clone (START_HERE §1, step 5). Unpack it into `cot-disclosure/` (the `tar` line in
+   START_HERE §1, step 5) and check it with `../.venv/bin/python tools/make_handoff_bundle.py --verify <the bundle>`.
 4. **Reproduce the numbers, no calls:** `progress/trackB_report.py` (the Track B table, F15–F17, F29),
-   `progress/run_b15.py --report` (F25) and `progress/run_b16.py --report` (F35). Each should match FINDINGS.
-5. **Read:** this page, then [`FINDINGS.md`](../FINDINGS.md) F15, F16, F17, F25, F29, F35, F37 and traps T1–T11.
-6. **Voyager:** only for a new run (none is planned; B19 ran Nov 1). Your own key goes in `cot-disclosure/.env`
+   `progress/run_b15.py --report` (F25), `progress/run_b16.py --report` (F35), and the rest of START_HERE §1, step 6
+   (B19, B17, B24, B18's table). Each should match FINDINGS.
+5. **Read:** this page, then [`FINDINGS.md`](../FINDINGS.md) F15, F16, F17, F25, F29, F35, F37, F40 and traps T1–T12.
+6. **Voyager:** only for a new run (none is planned; the last, B24, ran Nov 4). Your own key goes in `cot-disclosure/.env`
    (`.env.example`); never share it, log it or commit it.
 
 ## 1. Your plan to Nov 18
@@ -40,6 +48,8 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 | Nov 6–7 | B17 | done Nov 3 (F37; Ritik read it by the rule): re-read F37 and `run_b17.py --report` from the bundle's records; it is in B18's table, labelled (temperature 1.0; run after its one-day window, §13) | Nov 7 |
 | Nov 6–9 | B24 | the authority dose (§3): **read by Ritik Nov 4 (F40)**; re-read it from the bundle's records (`run_b24.py --report`) against F40 | Nov 9 |
 | Nov 6–18 | B18 | started Nov 3 (§1a): you check it, add B20's models when they are read (Nov 17), and finish it | Nov 18 |
+| Nov 15–17 | B20 | its runs end on Sol by Nov 15 (Ritik submits them, and copies back the numbers-only files by Nov 16); you read it by its rule (START_HERE §4): an FB entry, its rows in B18's table | Nov 17 |
+| Nov 12, 15, 18 | check-ins and merges | Ritik merges `trackB-main` into `main` after its checks; then you merge `origin/main` back (START_HERE §6) | — |
 | Nov 18 | the freeze | no new runs after it | — |
 | Nov 19–20 | verdicts and figures | slides 2, 6, 7 and 8 (PLAN's presentation map): the final versions | Nov 20 |
 | Nov 21–22 | the report draft | Track B's section, from PLAN's outline | Nov 22 |
@@ -157,9 +167,9 @@ the answer is (X)."; each tool arm minus that, paired by question:
     the tool path ran, and the output grows with effort. Its exit code is 0 only then, so the runs job waits on it
     with `afterok`.
   - **The one-day rule:** dropped if the smoke isn't clean 24 hours after it first starts.
-  - **Ritik submits** (RUNBOOK §18): `get_gptoss`, then `b17 --smoke`, then `b17`. **You read:** copy back
-    `results/trackB/b17/` and `b17_sol_vllm_runs.jsonl` (numbers only), then `progress/run_b17.py --smoke-check`
-    and, when all 2,430 are back, `--report`, into a session log and an F-entry.
+  - **Ritik submitted** (RUNBOOK §18): `get_gptoss`, then `b17 --smoke`, then `b17`. **Read by Ritik, Nov 3** (F37),
+    with `progress/run_b17.py --smoke-check` and `--report`, from `results/trackB/b17/` and `b17_sol_vllm_runs.jsonl`
+    (numbers only, in the bundle). Its records with text stay on Sol.
 - **B20, three new open-weight families on Sol (pre-registered Nov 3; amended Nov 4, its log's §15 and §16):** Gemma 4 26B-A4B,
   Nemotron 3 Nano 30B-A3B and Granite 4.2 8B, thinking on and off, Track B's design with B16's authority arm.
   - **The smokes (Nov 4):** all three exited 5, "not clean": Granite's (456999), Gemma's (457471) and Nemotron's
@@ -176,10 +186,16 @@ the answer is (X)."; each tool arm minus that, paired by question:
   - **Descriptive, read by no rule (FINDINGS_B):** given the option ("You can call the lookup_answer_key tool…"),
     Granite called the tool in 2 of 2 smoke runs (2 of 2 again in its second smoke), Gemma in 0 of 2, and Nemotron in
     1 of 2, a thinking-on run that then reached the length limit without an answer. One question, two runs a model.
-  - **Now:** Granite's second smoke passed every check (466399, Nov 4, 12:03), and its runs are queued (468897).
-    Gemma's second smoke (466400) waits for a place, and Nemotron's after it (`063bc78` is on Sol). From Nov 4 each
-    B20 job serves on a port of its own (B20's log §17). Runs end by Nov 15; you read them Nov 17 (START_HERE §4). The design is still
-    4,860 runs.
+  - **Now (Nov 4, at the feeder's 15:56 tick):**
+    - Granite's second smoke passed every check (466399, Nov 4, 11:50–12:03), and its runs are queued (468897).
+    - Gemma's second smoke (466400) is pending in Sol's queue.
+    - Nemotron's second smoke waits for a place in the feeder's queue (10 places, all taken); `063bc78` is on Sol.
+    - From Nov 4 each B20 job serves on a port of its own (B20's log §17). The shared-port audit found no earlier
+      result affected, B20's smokes included (FINDINGS T12).
+    - Sol's queue is slow for us: nothing of Ritik's has started since Nov 4 12:36 (our fair share is 0.005, so our
+      jobs start only by backfill). Sol last estimated the first start at Nov 5 06:25.
+    - The Nov 6 07:00 rule (the A39 log's §16) may drop A39 on the old 30 and hold B1R2. It never touches B20.
+    - Runs end by Nov 15; you read them Nov 17 (START_HERE §4). The design is still 4,860 runs.
 - **B24, the authority dose (pre-registered Nov 4 03:37, log `2026-11-04_0337_B_b24-prereg.md`; run on Ritik's Mac
   03:38–11:12, 972 runs, 0 errors; read by its rule Nov 4 11:12, log `2026-11-04_1112_B_b24-results.md`, F40):** does
   a second high-authority wording move the models as much as B16's, and does the pull grow from a classmate to the
@@ -223,19 +239,19 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py --job "voyager:NAME
 
 **Code:** `progress/run_trackB.py` (one runner for every provider; fixed run ids; restarts skip finished jobs),
 `configs/trackB.yaml` (the design), `progress/trackB_report.py` (the table), `progress/run_b15.py`, `run_b16.py`,
-`run_b17.py` and `sol_b17.py` (each experiment's design, checks and report; their records never enter Track B's
-table), `providers/` (Voyager, our Sol vLLM, Hugging Face on Sol). The code map: [`cot-disclosure/README.md`](../../cot-disclosure/README.md).
+`run_b17.py`, `run_b19.py`, `run_b20.py`, `run_b24.py`, `sol_b17.py` and `sol_b20.py` (each experiment's design, checks
+and report; their records never enter Track B's table), `providers/` (Voyager, our Sol vLLM, Hugging Face on Sol). The code map: [`cot-disclosure/README.md`](../../cot-disclosure/README.md).
 
 ## 5. Open items ([`TODO_B.md`](../trackB/TODO_B.md), Track B's own rows since Nov 3)
 
-| # | Item | Status (Nov 3) |
+| # | Item | Status (Nov 4) |
 |---|---|---|
 | B7, B4, B8, B9, B14, B15 | Voyager runs, Qwen3-8B on Sol, steered cases, Gate 2, the table, the instruction | done (F15–F17, F25, F29) |
 | B16 | Tool or authority? | done Nov 1 (F35); confirmed same-day (B19) |
 | B19 | A same-day check of B16 | done Nov 1 (F35): the same six readings |
 | B17 | Thinking dose: gpt-oss-20b at effort low, medium, high | done Nov 3 (F37): no change detected on both; the first smoke (245445, Nov 1) stopped at the served-template check (fixed, §12); the second (355632) ran Nov 3, after the one-day window, kept by Ritik's decision before any result was read (§13) |
 | B18 | The final Track B table and one figure | in progress: started Nov 3 (§1a); due Nov 18 |
-| B20 | Open models from new families on Sol, thinking on and off | pre-registered Nov 3; smokes Nov 4: all three not clean, amended (§15, `2361152`: Gemma the inserted tool turn, Granite thinking on only; §16, `063bc78`: Nemotron the inserted tool turn); their second smokes and runs through the feeder after the Nov 4 pulls; runs by Nov 15, yours to read by Nov 17 (START_HERE §4) |
+| B20 | Open models from new families on Sol, thinking on and off | pre-registered Nov 3; smokes Nov 4: all three not clean, amended (§15, `2361152`: Gemma the inserted tool turn, Granite thinking on only; §16, `063bc78`: Nemotron the inserted tool turn); Granite's second smoke passed (466399) and its runs are queued (468897); Gemma's second smoke (466400) pending and Nemotron's waiting for a place, as of the feeder's 15:56 tick (§3); runs by Nov 15, yours to read by Nov 17 (START_HERE §4) |
 | B24 | The authority dose: a classmate's and the solution manual's claim (B16's design) | **done Nov 4 (F40):** pre-registered 03:37; 972 runs on Voyager 03:38–11:12; read by its rule at 11:12: the manual over the classmate in all three; Thinking's manual over B16's wording |
 | L5 | Track B's labeling batch (171 rows) | should: after L3 and L4 |
 | B21–B23 | Closed providers (were B1–B3; renamed Nov 3 so B1 means only the attention scaling) | dropped (cost, Nov 3): open models on Sol replace them (B20) |
@@ -253,6 +269,10 @@ table), `providers/` (Voyager, our Sol vLLM, Hugging Face on Sol). The code map:
 - **4 requests in flight** across every process on the Mac (Track C shares them); the Mac plugged in, lid open.
 - **Olmo 3 7B Think never calls the tool,** and its final answer goes bare whenever the system turn changes (F17).
 - **Sol's clone pulls from GitHub;** never `git reset --hard` there (the GPU README says why).
+- **Two jobs on one node, one server for both (T12).** Fixed Nov 4: each vLLM job serves on a port of its own, B20's
+  too. The audit found no earlier result affected.
+- **Sol's queue is slow for us** (our fair share was 0.005 on Nov 4, so our jobs start only by backfill). Sol's dates
+  are Ritik's: ask before planning on one.
 - **B15's "before" and B16's tool arms are Track B's Oct 27–28 replies** (the canary held both times).
 
 ## 7. Decisions you inherit
