@@ -542,7 +542,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
   git diff --stat origin/main...origin/trackC-main           # only their paths
   git checkout trackA-nosol && git merge --no-ff origin/trackC-main -m "Merge trackC-main (Shrey, <date>): <what>"
   cd cot-disclosure && ../.venv/bin/python -m pytest -q && ../.venv/bin/python tools/export_summaries.py --check && cd ..
-  ../.venv/bin/python cot-disclosure/tools/make_gantt.py     # their TODO rows feed STATUS and the Gantt
+  .venv/bin/python cot-disclosure/tools/make_gantt.py        # their TODO rows feed STATUS and the Gantt (from the repo root)
   git push origin trackA-nosol:main trackA-nosol:trackA-nosol
   ```
   - The hook passes the merge only if their files come in unchanged. If they conflict with Ritik's, take theirs and
