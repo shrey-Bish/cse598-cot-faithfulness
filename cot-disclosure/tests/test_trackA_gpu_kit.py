@@ -872,6 +872,34 @@ def test_the_server_starts_without_flashinfers_sampler_and_takes_track_bs_comman
     assert env["TRACKA_VLLM"] == "/envs/olmo-vllm/bin/vllm" and stop_b == stop_a == "terminated"
 
 
+def test_two_jobs_on_one_node_serve_on_their_own_ports(tmp_path, monkeypatch):
+    """Nov 4: jobs 460111 (lora 3/16) and 460112 (lora_note 3/16) ran on sg004 at once, both on 8011; 460112's server
+    couldn't bind, and its runs went to 460111's. Each server now takes a port of its own (finetune/generate.py's
+    free_port, from the job id) and its URL is that port; a caller's own port and command (Track B's) are kept."""
+    from finetune.gpu import eval_job as ej
+
+    class Proc:
+        def poll(self):
+            return None
+
+        def terminate(self):
+            pass
+
+        def wait(self, timeout=None):
+            return 0
+    monkeypatch.setattr(ej.subprocess, "Popen", lambda cmd, env=None, **kw: Proc())
+    monkeypatch.setattr(ej.gen, "wait_ready", lambda *a, **k: True)
+    monkeypatch.setattr(ej, "_SERVERS", [])
+    served = []
+    for job in ("460111", "460112"):
+        monkeypatch.setenv("SLURM_JOB_ID", job)
+        with ej.Server("/lora_merged", False, log=tmp_path / f"vllm_{job}.log") as srv:
+            served.append((srv.cmd[srv.cmd.index("--port") + 1], srv.url))
+    assert served == [("20111", "http://localhost:20111"), ("20112", "http://localhost:20112")]
+    qwen = ej.Server(None, False, port=8012, cmd=["vllm", "serve", "/qwen", "--port", "8012"])
+    assert qwen.url == "http://localhost:8012" and qwen.cmd == ["vllm", "serve", "/qwen", "--port", "8012"]
+
+
 def test_the_hf_reference_frees_its_model_before_emptying_the_cache(tmp_path, monkeypatch):
     """Oct 29 (vllm_check 66920320): SourceTaggedLM held the tagged reference's model past `del model`, so
     empty_cache came too early and the model stayed in PyTorch's cache: 14.5 GiB of the A100, and the

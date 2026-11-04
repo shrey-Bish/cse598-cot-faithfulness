@@ -62,7 +62,7 @@ import re
 import sys
 import time
 from collections import Counter, defaultdict
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -259,8 +259,9 @@ def run(system, complete_fn, out, part=None, workers=48, n_tokens=None, qset=QSE
             break
         print(f"{system}: pass {attempt + 1}, {len(todo)} runs, {workers} at a time", flush=True)
         failed, tokens, t0 = 0, 0, time.monotonic()
-        with ThreadPoolExecutor(workers) as pool:
-            for i, rec in enumerate(pool.map(lambda j: run_one(system, j, complete_fn, n_tokens), todo), 1):
+        with ThreadPoolExecutor(workers) as pool:          # Nov 4: each run saved as it finishes, not in the order sent
+            sent = [pool.submit(run_one, system, j, complete_fn, n_tokens) for j in todo]
+            for i, rec in enumerate((f.result() for f in as_completed(sent)), 1):
                 save(out, rec, part, qset, design)
                 failed += rec["status"] != "ok"
                 tokens += rec.get("completion_tokens") or 0

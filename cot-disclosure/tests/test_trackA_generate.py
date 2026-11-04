@@ -135,6 +135,29 @@ def test_wait_ready_shows_the_end_of_the_server_log(tmp_path):
         gen.wait_ready("http://localhost:1", proc=Exited(), log=tmp_path / "none.log")
 
 
+def test_each_job_serves_on_a_port_no_other_socket_holds(monkeypatch):
+    """Nov 4 (jobs 426582 and 428295 on sg037, 428294, 428296 and 428297 on sg013, 428298 and 428299 on sg004): every
+    job served on 8011, and Sol puts one-GPU jobs on one node. vLLM binds its port with SO_REUSEADDR at its start and
+    listens minutes later, so a second job's server could bind the same port; one server then took both jobs'
+    requests (lora's runs came from base's model). Each job now searches from its own job id and takes the first port
+    a plain bind gets: that bind fails while any socket holds the port, listening or not."""
+    import socket
+    held = socket.socket()
+    held.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    held.bind(("", 0))                                     # bound, not yet listening: a vLLM server loading its model
+    try:
+        assert gen.free_port(held.getsockname()[1]) != held.getsockname()[1]
+    finally:
+        held.close()
+    monkeypatch.delenv("SLURM_JOB_ID", raising=False)
+    assert gen.free_port() >= gen.PORT                     # off Slurm: from the caller's port, as before
+    ports = []
+    for job in ("460111", "460112"):                       # two jobs on one node
+        monkeypatch.setenv("SLURM_JOB_ID", job)
+        ports.append(gen.free_port())
+    assert ports == [20111, 20112]
+
+
 def test_eval_job_prepares_merged_and_folded_models(tagged, tmp_path):
     """lora_tags: the chosen epoch's LoRA merged into the base, then tag[model] folded into the embeddings."""
     from transformers import AutoModelForCausalLM

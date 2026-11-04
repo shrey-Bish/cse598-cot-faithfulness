@@ -76,6 +76,26 @@ def test_run_saves_numbers_apart_and_resumes(tmp_path, monkeypatch):
         "eval_base_p1of15_runs.jsonl", "eval_base_p1of30_runs.jsonl"]
 
 
+def test_run_saves_each_run_as_it_finishes(tmp_path):
+    """Nov 4 (job 428294, E2 prompt_only 1/4): runs were saved in the order they were sent, so every finished run
+    behind one still going waited in memory, and Slurm's warning (eval_job._stop_now) lost them all; 2.5 hours left
+    one record. Each run is saved as it finishes: here the first run sent waits until the other 30 are saved (or 10 s)."""
+    import threading
+    import time
+    runs, first, seen = tmp_path / "eval_base_p1of30_runs.jsonl", threading.Lock(), []
+
+    def complete(model, prompt, **kw):
+        if first.acquire(blocking=False):                 # the first call only
+            t0 = time.monotonic()
+            while time.monotonic() - t0 < 10 and (runs.read_text().count("\n") if runs.exists() else 0) < 30:
+                time.sleep(0.02)
+            seen.append(runs.read_text().count("\n") if runs.exists() else 0)
+        return {"error": None, "content": "Done.</think>\n\nAnswer: (A)", "finish": "stop", "reasoning": "",
+                "usage": {"prompt_tokens": 10, "completion_tokens": 5}}
+    ev.run("base", complete, tmp_path, part=(1, 30), workers=4, n_tokens=lambda t: 10)
+    assert seen == [30] and len(load(runs)) == 31
+
+
 def synthetic(system, follow, nq=6, mention=True, correct_nohint=True):
     rows = []
     for q in range(nq):

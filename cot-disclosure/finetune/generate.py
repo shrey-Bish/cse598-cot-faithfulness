@@ -27,6 +27,7 @@ import json
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -208,6 +209,23 @@ def log_tail(path, n=30, causes=8):
     head = ("error lines in this start (the likely root cause):\n  " + "\n  ".join(errs[-causes:]) + "\n") if errs else ""
     tail = lines[-n:]
     return f"{head}the last {len(tail)} lines of {path}:\n" + "\n".join(tail)
+
+
+def free_port(default=PORT, tries=200):
+    """A port no socket on this node holds: on Sol from 20000 + the job id mod 10000 (jobs sharing a node start apart),
+    else from default; the first a plain bind gets. Nov 4: every job served on 8011, and vLLM binds with SO_REUSEADDR
+    at its start but listens minutes later, so two jobs on one node could hold one port and one server took both
+    jobs' requests. A bind without SO_REUSEADDR fails while any socket holds the port, listening or not."""
+    job = os.environ.get("SLURM_JOB_ID", "")
+    start = 20000 + int(job) % 10000 if job.isdigit() else default
+    for port in range(start, start + tries):
+        with socket.socket() as s:
+            try:
+                s.bind(("", port))
+            except OSError:
+                continue
+        return port
+    raise RuntimeError(f"no free port in {start}-{start + tries - 1}")
 
 
 def wait_ready(url, timeout=1800, proc=None, log=None):

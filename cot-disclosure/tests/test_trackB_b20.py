@@ -367,8 +367,8 @@ def smoke_job(tmp_path, monkeypatch):
     seen = {}
 
     class FakeServer:
-        def __init__(self, *a, cmd=None, **kw):
-            seen["cmd"] = cmd
+        def __init__(self, *a, cmd=None, port=None, **kw):
+            seen["cmd"], seen["port"] = cmd, port
 
         def __enter__(self):
             return self
@@ -430,6 +430,17 @@ def test_the_smoke_job_writes_its_checks_and_canary_and_runs_the_first_12(smoke_
     assert len(canary) == 2 and canary[0]["revision"] == rb.MODELS[GEMMA]["revision"]   # one a job
     assert smoke_job(GEMMA, smoke_rows(GEMMA), served_ids=(1, 9)) == 4
     assert len((here / "canary.jsonl").read_text().splitlines()) == 2    # stopped at the check: no canary, no run
+
+
+def test_each_b20_job_serves_on_its_own_port(smoke_job, monkeypatch):
+    """Nov 4: every B20 job served on 8012, and B20's models run side by side, one GPU each, so two can share a node
+    (A39's parts did, on 8011: the second server's requests went to the first's). The served command, the server's
+    port and the runner's TRACKB_VLLM_URL now take one port of the job's own (finetune/generate.py's free_port)."""
+    monkeypatch.setenv("SLURM_JOB_ID", "466400")
+    assert smoke_job(GEMMA, smoke_rows(GEMMA)) == 0
+    seen = smoke_job.seen
+    assert seen["cmd"][seen["cmd"].index("--port") + 1] == "26400" and seen["port"] == 26400
+    assert seen["env"]["TRACKB_VLLM_URL"] == "http://localhost:26400/v1"
 
 
 def test_the_job_driver_order(tmp_path, monkeypatch):
@@ -749,10 +760,12 @@ def test_the_second_amendment_nemotron_takes_the_inserted_turn(monkeypatch):
 
 def test_nemotrons_real_smoke_under_its_amendment():
     """Nemotron's smoke (460109): 10 of the amended design's first 12 ran and the tool path is now the inserted turn;
-    the rerun adds the 2 inserted-turn runs (question 1, thinking on and off). Skipped until its flags are copied back."""
+    the rerun adds the 2 inserted-turn runs (question 1, thinking on and off). Its flags (on the Mac Nov 4, 13:10):
+    offered the tool, it called it once, thinking on, and that run reached the length limit with no answer; thinking
+    off, it answered without a call. Skipped until its flags are copied back."""
     flags = real_flags(NEMOTRON)
-    real = [r for r in flags if r["condition"] == "tool_real"]
-    assert len(real) == 2 and not any(r["called_tool"] for r in real)    # what failed: offered the tool, never called
+    real = [(r["thinking"], r["called_tool"], r["finish_reason"]) for r in flags if r["condition"] == "tool_real"]
+    assert real == [(True, True, "length"), (False, False, "stop")]     # what failed: no run called the tool and answered
     res = rb.smoke_check(flags, NEMOTRON)
     assert res["ran"] == 10 and res["checks"]["tool path ran"] and res["checks"]["reasoning split"]
     assert res["checks"]["parse"] and "applied" in res["fallback"]
@@ -775,7 +788,8 @@ def test_the_smoke_check_on_the_real_smokes_under_the_amendments():
               "reasoning_turns": 1 if j["model"]["thinking"] else 0} for j in todo]
     assert rb.smoke_check(gemma + rerun, GEMMA)["ok"]
 
-    granite = real_flags(GRANITE)
+    every = real_flags(GRANITE)
+    granite = [r for r in every if r["item_id"] == "pilot-0"]                 # the first smoke's (question 1)
     assert sum(not r["thinking"] and r["reasoning_turns"] for r in granite) == 6     # what failed: off, yet reasoning
     res = rb.smoke_check(granite, GRANITE)
     assert res["ran"] == 6 and res["reasoning_when_off"] == 0 and res["no_reasoning_when_on"] == 0
@@ -786,6 +800,9 @@ def test_the_smoke_check_on_the_real_smokes_under_the_amendments():
               "called_tool": j["condition"] == "tool_real", "parsed_letter": "B", "finish_reason": "stop",
               "reasoning_turns": 1} for j in todo]
     assert rb.smoke_check(granite + rerun, GRANITE)["ok"]
+    if len(every) > len(granite):                                             # Granite's second smoke (466399) is in
+        res = rb.smoke_check(every, GRANITE)
+        assert res["ok"] and (res["tool_real"], res["tool_real_called"]) == (2, 2)
 
 
 def granite_split(text, enable_thinking):

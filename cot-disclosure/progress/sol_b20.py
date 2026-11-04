@@ -200,6 +200,7 @@ def runner_cmd(name, limit=None):
 def run(log_dir, name, smoke=False, limit=None):
     from transformers import AutoTokenizer
     from common import append, load
+    from finetune import generate as gen
     from finetune.gpu import eval_job, kit
     m, here, out = rb.MODELS[name], Path(log_dir) / name, rb.model_dir(name)
     vllm = os.environ.get("TRACKA_VLLM", "vllm")
@@ -210,13 +211,14 @@ def run(log_dir, name, smoke=False, limit=None):
     if template:                                                          # Granite's served template; Gemma's is vLLM's
         shutil.copy(template, here / "served_chat_template.jinja")
         tpl_sha = hashlib.sha256(Path(template).read_bytes()).hexdigest()
-    cmd = serve_cmd(name, snap, vllm=vllm, template=template)
+    port = gen.free_port(sol_vllm.PORT)                                   # Nov 4: a port of this job's own
+    cmd = serve_cmd(name, snap, vllm=vllm, port=port, template=template)
     STOP.parent.mkdir(parents=True, exist_ok=True)
     STOP.unlink(missing_ok=True)
     signal.signal(signal.SIGUSR1, lambda *_: STOP.write_text("Slurm's time-limit warning"))
     out.mkdir(parents=True, exist_ok=True)
-    url = f"http://localhost:{sol_vllm.PORT}/v1"
-    with eval_job.Server(None, False, port=sol_vllm.PORT, log=here / "vllm.log", cmd=cmd):
+    url = f"http://localhost:{port}/v1"
+    with eval_job.Server(None, False, port=port, log=here / "vllm.log", cmd=cmd):
         tok = AutoTokenizer.from_pretrained(str(snap))
         check = rb.template_check(rb.config(name), name, server_ids(url, name), local_ids(tok), tok.decode)
         (out / "template_check.json").write_text(json.dumps({**check, "revision": m["revision"], "server": cmd[3:],

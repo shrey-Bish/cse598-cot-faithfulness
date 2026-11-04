@@ -118,7 +118,7 @@ def test_limit_runs_the_first_k_jobs_of_the_part_into_a39_s_own_files(tmp_path):
            n_tokens=lambda t: 10, qset="e2", design="a39", limit=5)
     rows = load(tmp_path / "eval_wrap_note_a39_e2_p2of3_runs.jsonl")
     want = ev.jobs((2, 3), qset="e2", design="a39", system="wrap_note")[:5]
-    assert [r["run_id"] for r in rows] == [ev.job_id("wrap_note", j) for j in want]
+    assert sorted(r["run_id"] for r in rows) == sorted(ev.job_id("wrap_note", j) for j in want)   # saved as each ends
     assert all(r["experiment"] == ev.A39_EXPERIMENT and r["channel"] == "tool_injected" for r in rows)
     assert len(sent) == 5 and all(ev.WRAP in p and ev.NOTE in p for p in sent)
     ev.run("wrap_note", reply, tmp_path, part=(2, 3), workers=2, n_tokens=lambda t: 10, qset="e2", design="a39", limit=5)

@@ -144,7 +144,8 @@ class Server:
     """vllm serve as a child process; stopped on exit (and on SIGUSR1 from Slurm, _stop_now). cmd: the
     caller's own command (Track B's Qwen3-8B), else this job's; gpus > 1: one server over them (data parallel)."""
 
-    def __init__(self, model_dir, prompt_embeds, port=gen.PORT, log=None, lora=None, cmd=None, gpus=1):
+    def __init__(self, model_dir, prompt_embeds, port=None, log=None, lora=None, cmd=None, gpus=1):
+        port = port or gen.free_port()                             # Nov 4: a port of this job's own (free_port)
         self.cmd = cmd or self.command(model_dir, prompt_embeds, port, lora, gpus)
         self.url, self.log = f"http://localhost:{port}", log
 
