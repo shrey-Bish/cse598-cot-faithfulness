@@ -432,8 +432,8 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
     ```bash
     $S provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part k/40
     ```
-    After all 40 end, the same line with `--part k/4` (k = 1 to 4) sweeps what's left. Before a night away, `--part
-    k/20` at `--estimate 3` (4:00) may replace parts k and k+20 of 40, if neither has been submitted.
+    After all 40 end, the same line with `--part k/4` (k = 1 to 4) sweeps what's left. The feeder submits all of
+    these from its queue file (§0), day and night, so the night shape (`--part k/20` at `--estimate 3`) isn't needed.
   - **Out:** `$TRACKA_OUT/b1r2/eval_prov-a1-v2_p<k>of40_runs.jsonl` and `eval_prov-deployable-a0.25-v2_...`
     (numbers only; texts in `.jsonl.gz` beside them, which stay on Sol). Never beside B1's runs.
   - **Check:** `"$TRACKA_PY" cot-disclosure/finetune/gpu/provenance_job.py generate --alpha-from ... --b1r2 --part

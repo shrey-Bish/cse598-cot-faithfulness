@@ -927,8 +927,22 @@ PREREG = [
              "rule (each tool channel minus user_authority); R3a the bare answer after a call minus with the pasted block; "
              "R3b thinking on minus off on it; the 16,000 cut beside each",
      "rule_log": "2026-11-03_1219_B_b20-prereg.md", "rule_check": ["R1, Gate 2", "R2, tool or authority", "R3b, with thinking"],
-     "f_title": r"\(B20\)", "result_glob": ["*b20-results*"], "verdict": "waiting: Granite's smoke submitted Nov 3 "
-     "(456999); the runs at 1:30 (section 14)", "verdict_check": []},
+     "rule_extra": [("the amendment, section 15 (Gemma's fallback; Granite thinking on only, so no R3b for it; "
+                     "Nemotron's rule decided before its smoke)", "2361152")],
+     "f_title": r"\(B20\)", "result_glob": ["*b20-results*"], "verdict": "waiting: the first smokes Nov 4; amended "
+     "before any rerun (section 15): Gemma 4 the inserted tool turn, Granite 4.2 thinking on only; the second smokes "
+     "after the Nov 4 pull; the runs at 1:30 (section 14)", "verdict_check": []},
+    {"id": "b24", "track": "B", "experiment": "B24: the authority dose, a classmate's and the official solution manual's "
+                                              "claim from the user (B16's design)", "kind": "pre",
+     "rule": "per model, paired by question, B16's statistics, the 16,000 cut beside: (a) user_manual minus B16's "
+             "user_authority: the manual higher / lower / no difference detected (expected); (b) user_manual minus "
+             "user_classmate: the manual moves it more / the classmate moves it more / no difference detected; "
+             "user_classmate minus Track B's plain user hint; (c) each of B19's tool arms minus user_manual: B16's "
+             "readings",
+     "rule_log": "2026-11-04_0337_B_b24-prereg.md",
+     "rule_check": ["wording robustness", "the manual moves it more", "tool beyond authority"],
+     "f_title": r"\(B24\)", "result_glob": ["*b24-results*"], "verdict": "waiting: running on Voyager from Nov 4 "
+     "03:42 (972 runs)", "verdict_check": []},
     {"id": "a39", "track": "A", "experiment": "A39: fix round 2 on E2 (120 fresh questions): the provenance wrapper, the "
                                               "note with LoRA and with the wrapper, LoRA + wrapper; a powered Gate 3", "kind": "pre",
      "rule": "on E2, paired by question: R1 Gate 3's rule against base (a powered replication for base, prompt_only, "
