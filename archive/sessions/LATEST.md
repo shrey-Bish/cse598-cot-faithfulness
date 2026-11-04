@@ -1,156 +1,115 @@
-# Session log: the shared-port audit, the Sol access rule, the queue (2026-11-04 13:49 MST)
+# Session log: would shorter limits start more often? The backfill evidence (2026-11-04 14:59 MST)
 
-**By:** Ritik. Ritik pulled `f8b61af` on Sol at about 13:47 and asked for an audit of every earlier vLLM job. On Sol
-only read-only commands ran: `sacct`, `squeue`, `sprio`, `git log`, and reading logs and records. Nothing was
-submitted, cancelled, moved or pulled from here. No paid calls; nothing of E2 read.
+**By:** Ritik. Ritik asked at 14:59. Sol at `f8b61af`; the feeder ticking (last 14:56), the queue full (9 jobs and the
+feeder, all pending, Priority); nothing has run since 12:36. On Sol only read-only commands ran: `sacct`, `sprio`,
+`squeue --start`, `scontrol show config/partition/node`, `sacctmgr show qos`, and reading the jobs' Slurm logs. All
+counting went through pipes; nothing was written on Sol. No queue edit, no commit to code, no pull needed.
 
 ## 0. What Ritik asked
 
-1. **A Sol access rule,** kept in local memory and never committed:
-   - allowed: read-only commands, and `git pull --ff-only` once the safety diff prints nothing;
-   - ask first: before submitting, cancelling, moving, renaming or deleting anything on Sol;
-   - the 340 runs already moved: fine, with the one-line undo kept in §15.
-2. **Confirm the fix is in place** for the next jobs that start.
-3. **The audit.** Ports 8011, 8012 and 8013 were shared before Nov 4. Check every earlier vLLM job and report per
-   finding (F28, F29, F30, F37, F38's inputs) whether it is clean or affected. Set aside nothing without asking. If all
-   are clean, add a trap with the evidence.
-4. **The queue:** keep the projected dates current. If GPU time stays this scarce, propose what to cut first to
-   protect A39 on E2 and B20, without changing any pre-registered rule. Ritik decides.
-5. **Arsha's bundle** is built from Ritik's first message on Nov 6.
-6. **The standing rules.**
+- Our class QoS gets no priority boost, so our jobs start almost only by backfill, and backfill favours short limits.
+  `1af93fc` raised the remaining parts to 2:00 and the sweeps to 3:00.
+- Weigh it with evidence from Sol: would 1:00–1:30 start more often, now that each run is saved as it finishes?
+- Recommend keep or change, with the cost (start-up per job). If change: queue edits for the lines not yet submitted
+  only, in their own commit, and say before any pull is needed.
 
-## 1. The access rule
+## 1. The evidence
 
-Saved in local memory (`work-on-sol-by-ssh`), not in the repo, in the words above. The SSH master connection
-stays as it was; `ssh -O exit login.sol.rc.asu.edu` cuts it.
+**Every GPU job of ours since Nov 1 was started by backfill** (sacct's `Flags`: `SchedBackfill`, 51 of 51).
 
-One lapse to record: between 13:49 and 13:53, a read-only count wrote and removed a temporary file under Sol's
-`/tmp`. From now on
-such counts go through pipes.
+**The waits, by limit** (sacct: submit to start):
 
-## 2. The fix is in place
+| limit | jobs | when submitted | wait |
+|---|---|---|---|
+| 1:00 | 378041, 389340 | Nov 3 day | 0.1, 0.7 h |
+| 1:00, 1:30 | 334085, 334084 | Nov 2 13:57 | 1.1, 0.8 h, while others of the same submission, with the same limits, waited 10.9 h (below) |
+| 1:00 | 355632, 355747, 334114/5 | Nov 2 | 6.9–10.9 h, starting in the same minute (Nov 3 00:50–00:51) as the 1:30 and 2:30 jobs below |
+| 1:30 / 2:30 | 334111–334113 | Nov 2 13:57 | 10.9–11.6 h, the same wave |
+| 2:00 / 2:30 | 378051–378053 | Nov 3 08:50 | 0.2–0.3 h |
+| 3:00 | the 9 quarters | Nov 3 21:02–21:24 | 1.8–4.4 h |
+| 1:30 | the 16 sixteenths, 4 B20 jobs | Nov 4 00:23–10:25 | 0.1–4.8 h (the sixteenths 1.8–4.8) |
+| 5:30, 8:00 | B1's generation, B17's main job | Nov 1–2 | 8.2–19.3 h; the 8:00 started 5 hours after the 1:00 jobs submitted with it |
 
-Checked between 13:49 and 13:53:
-- Sol's clone is at `f8b61af`, and `36c639b` (the port and the saving), `54291fd` (the leftover lines) and `1f01ead`
-  (the status) are all in it.
-- `generate.free_port`, `eval_job.Server`'s use of it, `eval.run`'s `as_completed`, and `sol_b20.py`'s port are in
-  the files.
-- Ritik's `--status` counts 220 lines (192 + 28). Nothing is running.
-- The 9 queued jobs (7 A39, 2 B20) load these files when they start, so every next job serves on its own port.
-  - They keep the batch scripts they were submitted with: 1:30 limits, and the old `a39_1gpu.sbatch` without the
-    exit-0 wrapper.
-  - The feeder already treats an exit 138 with no runs left as done.
+- From 1:00 to 3:00 the jobs started in waves, together, whatever their limit. Only the very long limits (5:30, 8:00)
+  clearly waited longer.
 
-## 3. The audit: no earlier result is affected
+**The scheduler** (`scontrol show config`):
+- backfill tests every job: `bf_max_job_test=150000`, and 25 per association against our 9;
+- `bf_window` is 30 days, at a 5-minute resolution;
+- `bf_max_time=120` with `bf_continue`. That would explain why our jobs' estimates come and go (21:30, 23:40, N/A,
+  06:25, N/A).
 
-**Method:**
-- `sacct` for every job from Oct 20. 69 vLLM jobs are by name, of which 59 ran: 8011 for `trackA-eval`, `vllm_check`
-  and `a39*`; 8012 for `trackB-qwen3-8b`, `b17` and `b20`; 8013 for `trackC-c13`.
-- Every pair on the same port and the same node, overlapping in time.
-- Every vLLM log on Sol, split at its start lines (each names its job), counting the requests that server received
-  (`POST /v1/`) and any failed bind.
+**The priority** (`sprio`, `sacctmgr`):
+- Neither QoS adds any: `public` and `class` are both 0.
+- The pending jobs on top are almost all fair share (weight 100 M): 89 M, 82 M and 80 M for the first three.
+- Ours is 0.83 M: fair share 0.0057 and 4.5 hours of waiting. Age adds at most 10 M after 7 days.
+- So 212–218 of the 226–232 pending GPU jobs rank above ours, from 25 users.
 
-**Same port, same node, same time:** only the six A39 pairs of Nov 3–4, already handled (the A39 log's §15). Nothing
-earlier.
+**Right now** (between 14:59 and 15:02): every A100 in the public partition is allocated, except two drained nodes (sg008, sg044). No
+gap is open, at any limit.
 
-**Each result's own servers:**
+**The jobs ahead** (218):
+- 80 wait on a dependency and 10 on a node or array limit. About 128 could start.
+- They ask for 1 GPU (188), 4 (23) or 2 (5).
+- Their limits: 9 at 2 hours or less, 68 at 4 or less, 85 at 12 or less, 8 at a day or less, 48 over a day.
 
-| finding | jobs | nodes | what each job's own server logged | verdict |
-|---|---|---|---|---|
-| **F28, Gate 3** | 12 parts: base, prompt_only, lora, tags, lora_tags and lora_attn3, 1/2 and 2/2 (66932942–66989539, Oct 29–31) | one node each, no other job of ours on it at the time | 465 of 465 runs a part, no reply missing, 476–500 tokens a second; lora's, tags', lora_tags' and lora_attn3's parts logged 490–536 requests each; base's two and prompt_only's two shared a log name (no part in it then), 1,020 and 994 requests for 930 runs | **clean** |
-| **F29, Qwen3-8B (B4)** | 66954217 (Oct 29–30) | sg038, beside Gate 3's lora 1/2 on 8011 | 1,799 requests, on 8012 | **clean** |
-| **F30, C13** | 66954278 (Oct 30) | sg038, 4 minutes beside lora 1/2 | 477 requests to each of its two reviewers, on 8013 | **clean** |
-| **F37, B17** | 355632, 355650 (Nov 3) | sg023, sg236, alone | 31 and 2,679 requests | **clean** |
-| **F38, B1** and **F39, A18** | Hugging Face jobs, no server | | their vLLM inputs are Gate 3's runs, above | **clean** |
-| B20's smokes (§15–§16 rest on them) | 456999, 457471, 460109, 466399 | each beside A39 jobs, but on 8012 | 33, 31, 32 and 26 requests | **clean** |
-| A39's bench, and every A39 part outside the six pairs | 389340 and the rest | | each logged its own requests (bench 98) | **clean** |
-| the vLLM check | 66928369 | sg014 | 3 and 3 | clean (a check, no finding) |
+**The gaps to come.** 22 nodes are held for 36 pending multi-GPU jobs, with planned starts. On those nodes, 49 GPUs
+free up before the node's held start, between 16:43 today and Nov 5 13:04. A job shorter than the gap can use it:
 
-- **Two more signals:**
-  - A server answering two jobs halved each job's rate (A39's 460114: 217 tokens a second, against 476–500 for
-    Gate 3's parts).
-  - Another user's server on our port would have failed our requests, since none serves our model names. Gate 3's
-    parts missed no reply.
-- **Two jobs had no log segment, and neither matters.**
-  - 66932942 (base 1/2) shared `vllm_base.log` with base 2/2. They were on two nodes, and base 2/2's start line
-    replaced base 1/2's in the shared file.
-  - 66920318 ran the Hugging Face engine and was cancelled.
-- **Jobs that failed before any run** have empty segments: 66932943 (Qwen3-8B), and 66920320's tagged server (its
-  known out-of-memory failure).
-- **So nothing is "under audit".** FINDINGS gets trap **T12** (the shared port) with this evidence.
+| our limit | gaps that fit |
+|---|---|
+| 1:00 | 43 |
+| 1:30 | 41 |
+| 2:00 | 41 |
+| 3:00 | 40 |
 
-## 4. The queue
+- The median gap is 12 hours.
+- Backfill offers each gap in priority order, and most jobs ahead of ours (4–12 hours) fit a 12-hour gap.
+- So what holds us back is our place in the order, not our limit. Shortening from 2:00 to 1:30 gains no gap; to
+  1:00, 2 of 49, and the 9 jobs ahead at 2 hours or less compete for those.
 
-- **Nothing has run since 12:36:14.** By 13:53 Sol gave our 9 jobs no start estimate (`squeue --start`: N/A).
-- **Why, from `sprio` and `squeue`:**
-  - 226 GPU jobs are pending on the public partition, 212 of them above ours.
-  - 219 of the 226 are in the `public` QoS, whose priority factor (weight 200 M) takes them up to about 98 M. Our
-    `class` QoS has a factor of 0, so our priority (about 0.76 M) is waiting time plus fair share (0.005).
-  - So our jobs start only in backfill gaps, or when the public GPU queue runs dry. The last 24 hours' 38.8
-    GPU-hours came in a quieter spell.
-- **The projected dates** (daily, §6), with about 184 GPU-hours left (A39 61, B20 at most 57, B1R2 66), counted from
-  whenever jobs start again:
-  - at the last 24 hours' pace: E2 and B20 about 2.6 days after the restart, the 30 3.0, B1R2 4.7;
-  - at half that pace: 5.2, 6.1 and 9.5 days.
-- **The two deadlines,** from a restart at Nov 5 00:00:
-  - the 30's rule (E2 and B20 by Nov 11 09:00) needs about 16 GPU-hours a day, 41% of the last 24 hours' pace;
-  - B1R2 by Nov 15 23:59 (the A39 log's §13.8) needs about 17 a day, 43%.
-  - At 12:52 I put the second at 47%, counting to the start of Nov 15. Corrected in both logs.
-- **At 13:56 Sol's estimates came back:** Nov 5 06:25 for Gemma's second smoke, 08:45 for the first A39 part.
-  - If they hold, nothing runs from 12:36 to 06:25, about 18 hours, past the 12 Ritik named.
-  - From a 06:25 restart, at the last 24 hours' pace: E2 and B20 about Nov 7 21:00, the 30 about Nov 8 06:00, B1R2
-    about Nov 9 23:00. At half that pace: about Nov 10 11:00, Nov 11 09:00 and Nov 14 18:00.
-  - The 30's rule then needs 43% of the pace, and B1R2 44%.
+**Start-up, per job** (start to "server ready" in 18 A39 jobs' Slurm logs): median 10.6 minutes, range 1.9–25.4.
 
-**What to cut first, if GPU time stays this scarce (a proposal; no rule changed; Ritik decides):**
-- **Nothing yet.** The order and two rules already protect E2 and B20:
-  - E2's and B20's lines come first in the feeder;
-  - the 30 drops itself if E2 and B20 aren't done by Nov 11 09:00;
-  - B1R2 runs last and is read partial at Nov 15 23:59.
-- **Where they still compete.** B20 runs as three chains, one job a model at a time, so the 30's and B1R2's parts can
-  take the places in between. A B20 line that becomes ready then waits for a place (up to 2:00–2:30).
-- **If nothing has started by the Nov 6 digest, in this order:**
-  1. **Drop the 30 early.** An amendment to §10.2; it frees about 17–21 GPU-hours (22 jobs) and costs the 30's
-     readings beside A39. Its rule may drop it on Nov 11 anyway.
-  2. **Hold B1R2's parts until E2's sweeps and B20's last lines are submitted.** An operational order change, in line
-     with §13.6's "B1R2 is last". It costs places left idle while B20's chains run one job at a time.
-  3. **Cut B1R2 to fewer parts** (say 20 of 40). An amendment to §13. It helps E2 and B20 least, since B1R2 already
-     runs last and its partial rule cuts it at the deadline.
+## 2. Recommendation: keep `1af93fc` (2:00 parts, 3:00 sweeps)
 
-## 5. Arsha
+- **What a shorter limit would gain:** almost nothing now (0 of 49 gaps at 1:30, 2 at 1:00, in one snapshot), and
+  nothing in the history, where 1:00 and 3:00 jobs started in the same waves.
+- **What it would cost:**
+  - At 1:00 the warning comes at 55 minutes. After a median 10.6-minute start that leaves about 44 minutes to
+    generate, while a sixteenth alone needs 40–69 minutes in all. So many parts would stop short.
+  - Each stop loses the runs in flight (up to 48, at the long tail of a pass), and its leftovers need a sweep job with
+    its own 2–25-minute start. Saving each run as it finishes keeps only the finished ones.
+  - At 1:30 most sixteenths fit, but with no gap gained over 2:00 and less margin.
+- **No queue edit, no commit to the queue file, no pull needed.**
+- **When to look again:** if most jobs ahead of ours had short limits, or the gaps became short. The Nov 5 digest's
+  waits will show it; the commands are in §1.
 
-Her bundle is built from Ritik's first message on Nov 6, as Nov 5's daily says. Nothing is built now. The Track B
-bundle's dry run (§7) holds 51 files, with Nemotron's numbers-only files.
+## 3. A correction
 
-## 6. Docs
+At 13:49 I put our low priority down to the QoS: a "priority factor" of 0 for ours against 200 M for `public`'s.
+`sacctmgr` shows both QoS at 0, and `sprio` shows the gap is fair share. Corrected, with the time, in:
+- the 13:49 log's §4;
+- DAILY_2026-11-04 §6;
+- DAILY_2026-11-05's carry-over;
+- PLAN's calendar, TODO's A39 row and INDEX's 13:49 row.
 
-- FINDINGS: T12, with the audit's evidence; the header's time.
-- The 12:52 log and DAILY_2026-11-04 §5: B1R2's margin, 43% (to Nov 15 23:59), not 47%.
-- DAILY_2026-11-04 §6; DAILY_2026-11-05's carry-over (the pull is done; the queue's cause; the cut proposal); INDEX;
-  LATEST; TODO's A39 row; STATUS and the Gantt; the supplement (T12 reaches its traps list).
+The 13:49 commit message (`e3f010e`, pushed) keeps the old wording.
 
-## 7. Checks and push
+## 4. Docs
 
-On the final tree:
-- **The full suite** on `81eaa74`: 912 passed, 1 skipped (CPU, no network). No code has changed since `1f01ead`.
-- **Links:** 0 broken.
-- **`export_summaries --check`:** numbers only.
-- **The supplement** (regenerated, `81eaa74`; `--check` passes): TRAPS has T12. 36 rows, none unverified, no log
-  outside the ledger. CLAIMS unchanged: 198 numbers, the same 3 mismatches, 13 weak, 12 source problems.
-- **The Gantt's dry run:** passes.
-- **The bundles:** Track B 51 files, 73.8 MB (3 Sol records left out); Track C 43 files, 31.3 MB.
-- **The pre-push check:** nothing produced, GPQA or over 50 MB.
-- **Nothing missing:** all 747 files tracked at `origin/main` (`f8b61af`) are still here.
-- **The pull on Sol:** none from here. Ritik's pull brought everything (`f8b61af`), and this prompt changes no file a
-  job loads.
+DAILY_2026-11-04 §7; DAILY_2026-11-05's carry-over; INDEX; LATEST; TODO's A39 row (the limits kept by this evidence);
+STATUS and the Gantt; the supplement.
 
-## 8. Judgment calls, with their cost if wrong
+## 5. Checks and push
 
-1. **The audit counts each server's requests from its own log** rather than reading any run's text or outcome.
-   - Cost if wrong: none for the verdict where nodes differ; the two shared log names are covered by the node and
-     reply checks.
-2. **F38 and F39 are clean by construction:** Hugging Face only, with Gate 3's runs as their vLLM inputs.
-   - Cost if wrong: a re-check of their input lists.
-3. **No cut is proposed for now.** The rules already put E2 and B20 first.
-   - Cost if wrong: about a day, if the queue stays empty past Nov 6 and the 30's parts take places B20's chain needs.
-4. **The projections are counted from the restart,** since Sol gives no start estimate.
+(Filled in when they ran.)
+
+## 6. Judgment calls, with their cost if wrong
+
+1. **One snapshot of the gaps.** Jobs end early and new ones arrive, so the gaps move. The history (waves for every
+   limit from 1:00 to 3:00) agrees with it.
+   - Cost if wrong: a few starts a day missed, if short gaps turn out to be common. The Nov 5 digest's waits would
+     show it.
+2. **Gaps counted only on nodes held for multi-GPU jobs.** Gaps also open when a job ends early on any node, but those
+   too go first to the higher-priority jobs that fit.
+3. **No change to the A39 log.** Nothing changed: §14's limits stand, now with this evidence.
