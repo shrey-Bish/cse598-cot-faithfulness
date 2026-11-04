@@ -96,6 +96,11 @@ earlier.
   - the 30's rule (E2 and B20 by Nov 11 09:00) needs about 16 GPU-hours a day, 41% of the last 24 hours' pace;
   - B1R2 by Nov 15 23:59 (the A39 log's §13.8) needs about 17 a day, 43%.
   - At 12:52 I put the second at 47%, counting to the start of Nov 15. Corrected in both logs.
+- **At 13:56 Sol's estimates came back:** Nov 5 06:25 for Gemma's second smoke, 08:45 for the first A39 part.
+  - If they hold, nothing runs from 12:36 to 06:25, about 18 hours, past the 12 Ritik named.
+  - From a 06:25 restart, at the last 24 hours' pace: E2 and B20 about Nov 7 21:00, the 30 about Nov 8 06:00, B1R2
+    about Nov 9 23:00. At half that pace: about Nov 10 11:00, Nov 11 09:00 and Nov 14 18:00.
+  - The 30's rule then needs 43% of the pace, and B1R2 44%.
 
 **What to cut first, if GPU time stays this scarce (a proposal; no rule changed; Ritik decides):**
 - **Nothing yet.** The order and two rules already protect E2 and B20:
@@ -126,7 +131,18 @@ bundle's dry run (§7) holds 51 files, with Nemotron's numbers-only files.
 
 ## 7. Checks and push
 
-(Filled in when they ran.)
+On the final tree:
+- **The full suite** on `81eaa74`: 912 passed, 1 skipped (CPU, no network). No code has changed since `1f01ead`.
+- **Links:** 0 broken.
+- **`export_summaries --check`:** numbers only.
+- **The supplement** (regenerated, `81eaa74`; `--check` passes): TRAPS has T12. 36 rows, none unverified, no log
+  outside the ledger. CLAIMS unchanged: 198 numbers, the same 3 mismatches, 13 weak, 12 source problems.
+- **The Gantt's dry run:** passes.
+- **The bundles:** Track B 51 files, 73.8 MB (3 Sol records left out); Track C 43 files, 31.3 MB.
+- **The pre-push check:** nothing produced, GPQA or over 50 MB.
+- **Nothing missing:** all 747 files tracked at `origin/main` (`f8b61af`) are still here.
+- **The pull on Sol:** none from here. Ritik's pull brought everything (`f8b61af`), and this prompt changes no file a
+  job loads.
 
 ## 8. Judgment calls, with their cost if wrong
 
