@@ -189,3 +189,34 @@ Nov 15 23:59, nothing may be read until a rule is set. The draft, as §18 of the
 > ran, likewise. Nothing else changes.
 
 One word from Ritik ("approve E2 partial") commits it as written.
+
+## 9. Checks, push and the pull on Sol
+
+On the final tree (`f3032d6`):
+- **The full suite:** 920 passed, 1 skipped.
+- **Links:** 0 broken.
+- **`export_summaries --check`:** numbers only.
+- **The supplement's `--check`:** 36 rows, none unverified, no log outside the ledger; CLAIMS unchanged.
+- **The Gantt's dry run:** passes.
+- **The bundles:** B 51 files, C 43.
+- **The pre-push check:** clean.
+- **Nothing missing:** 750 of 750.
+- **Commits:** every one since `0570d69` is Ritik's, with no attribution line.
+- **Pushed** to the four branches as Ritik asked. From Nov 6, CHECKIN pushes only `trackA-nosol` and `main` (RUNBOOK
+  §16).
+- **On Sol:** the safety diff and the kit's diff printed nothing, and nothing was running, so `f3032d6` was pulled
+  (the feeder, the queue file and docs).
+  - `--status` shows "decision nov6 … not made yet" (Nov 6 07:00) and "decision nov11 … not made yet" (Nov 11 09:00).
+  - The first tick on the new code (17:16:13) ran cleanly.
+
+## 10. Needs Ritik
+
+1. **Send Shrey the handoff message** (§5). Then **the settling call by Nov 6–7**, with the call sheet; the 72-row
+   fresh batch follows it.
+2. **Nov 6 morning: Arsha's bundle.** The refresh line (§4), then the note with its numbers.
+3. **Before Nov 15: "approve E2 partial"** (§8), or say no.
+4. **Ask Shrey how his sheets were made.** REPORT's methods say the hand labels involved no automated help.
+5. **Optional:**
+   - a house-style `taught_loss_slide` for F20;
+   - `run_b24.py` on Arsha's path list;
+   - a merge day after Nov 18 for the Nov 20 bullets.
