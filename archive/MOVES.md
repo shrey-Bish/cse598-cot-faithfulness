@@ -1,7 +1,18 @@
 # Moves: every file moved, and why
 
-Two reorganizations: Nov 1, 2026 (below) and Oct 30, 2026 (further down). Every move was a `git mv` in a commit of
+Two reorganizations: Nov 1, 2026 (below) and Oct 30, 2026 (further down); and on Nov 4, 2026, one daily folded into the day before (first below). Every move was a `git mv` in a commit of
 its own with the content unchanged, so `git log --follow <new path>` shows a file's whole history.
+
+## Nov 4, 2026: a daily folded into the day before
+
+By: Ritik; session log [`2026-11-04_2227_ALL_b20-stops-and-dailies.md`](sessions/2026-11-04/2026-11-04_2227_ALL_b20-stops-and-dailies.md).
+Not a `git mv`: the file's content was moved into another file, and the file removed. The rule since then: the first
+session on a date creates that date's daily, and carry-over goes in the previous day's last section,
+`## For <next date>` (`docs/status/CHECKIN.md` §5). No file is dated ahead of the clock.
+
+| # | from | to | why |
+|---|---|---|---|
+| 1 | `archive/sessions/2026-11-05/DAILY_2026-11-05.md` | `archive/sessions/2026-11-04/DAILY_2026-11-04.md`, its last section, `## For Nov 5` (Nov 4, 22:32) | opened Nov 4 at 04:10, dated ahead of the clock; its history: `git log -- archive/sessions/2026-11-05/DAILY_2026-11-05.md` |
 
 ## Nov 1, 2026
 

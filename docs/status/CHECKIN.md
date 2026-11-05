@@ -1,6 +1,6 @@
 # The daily check-in
 
-**Edited by:** Ritik. Written 2026-11-04 16:19 MST; the labels corrected 17:54 (the standing rule, Nov 7, Nov 8).
+**Edited by:** Ritik. Written 2026-11-04 16:19 MST; the labels corrected 17:54 (the standing rule, Nov 7, Nov 8); the daily rule 22:33; the push to two branches 22:34.
 History: `git log -- docs/status/CHECKIN.md`.
 
 One routine, once a day, in this order: §1 to §7. §8 is the merge, on the merge days. §9 is what each day from Nov 5 to
@@ -59,7 +59,8 @@ git fetch origin
 git log --oneline -1 origin/main; git log --oneline origin/main..origin/trackC-main; git log --oneline origin/main..origin/trackB-main
 ```
 - Name the log: `archive/sessions/<date>/<date>_<HHMM>_ALL_checkin.md` (a track's own work: `_A_`, `_B_` or `_C_`).
-- Read the day's row in §9 and the carry-over at the top of `archive/sessions/<date>/DAILY_<date>.md`.
+- Read the day's row in §9 and the carry-over: the previous day's "For <today>" section, the last in its daily
+  (`archive/sessions/<previous date>/DAILY_<previous date>.md`).
 
 ## 1. Sol: status and the feeder's digest (read-only)
 
@@ -227,8 +228,10 @@ The day's row in §9 says which of these applies.
   sys.stdout.write(re.sub(r"\]\(([^)\s]+)\)", fix, src.read_text()))
   EOF
   ```
-- **The daily:** a section in `DAILY_<date>.md` for this check-in. The day's last prompt closes it and opens the next
-  day's daily with its carry-over (what runs, what waits, the next dates).
+- **The daily:** a section in `DAILY_<date>.md` for this check-in. The first session on a date creates that date's
+  daily (`archive/sessions/<date>/DAILY_<date>.md`); the day's last prompt closes it. Carry-over goes in the previous
+  day's daily, in its last section, `## For <next date>` (what runs, what waits, the next dates). No file is dated
+  ahead of the clock.
 - **TODO** (`docs/status/TODO.md`): done items marked done, with the date and the evidence. A dropped item keeps its
   reason. `TODO_B` and `TODO_C` are the owners' and come in by merge.
 - **FINDINGS** (`docs/FINDINGS.md`): an F entry for each reading in §3, with its numbers, source and status; the
@@ -277,11 +280,11 @@ git ls-tree -r --name-only origin/main | while IFS= read -r f; do [ -e "$f" ] ||
 
 | when | the line |
 |---|---|
-| to Nov 5, and Nov 6 up to Arsha's handoff | `git push origin HEAD:trackA-nosol HEAD:main HEAD:trackB-main`, plus `HEAD:trackC-main` only if Ritik says so (below) |
-| from Arsha's handoff on Nov 6 (RUNBOOK §16) | `git push origin trackA-nosol:main trackA-nosol:trackA-nosol` |
+| from Nov 4, 22:34 (Ritik: "teammates' branches are theirs") | `git push origin trackA-nosol:main trackA-nosol:trackA-nosol` |
+| before that (history) | `HEAD:trackA-nosol HEAD:main HEAD:trackB-main`, and `HEAD:trackC-main` until Nov 4 15:57 |
 
-- RUNBOOK §16: from Nov 3 `trackC-main` is Shrey's, and from Nov 6 `trackB-main` is Arsha's. Ritik no longer pushes
-  there. Until Nov 4 15:57 the practice still pushed all four branches; `trackC-main` is level with `main` at
+- RUNBOOK §16: from Nov 3 `trackC-main` is Shrey's, and `trackB-main` is Arsha's (from Nov 4, 22:34, Ritik pushes
+  there no more, a day before her handoff; the handoff's own push to `trackB-main`, if any, is Ritik's call on Nov 6). Until Nov 4 15:57 the practice still pushed all four branches; `trackC-main` is level with `main` at
   `0570d69`.
 - A teammate's branch is pushed to only while `git log --oneline origin/main..origin/<branch>` prints nothing. Never
   force.

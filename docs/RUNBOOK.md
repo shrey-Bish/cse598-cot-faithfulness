@@ -740,9 +740,10 @@ python3 cot-disclosure/tools/path_check.py --range origin/main..origin/trackC-ma
   and at every stop, Ritik writes (Track A and shared work; Track C's logs go in `docs/trackC/sessions/`, Shrey's;
   Track B's in `docs/trackB/sessions/`, Arsha's from Nov 6)
   `archive/sessions/YYYY-MM-DD/YYYY-MM-DD_HHMM_<A|B|C|ALL>_<name>.md` (Arizona
-  time), copies it to `archive/sessions/LATEST.md` and adds a line to `archive/sessions/INDEX.md`; and at
-  the end of each day `archive/sessions/YYYY-MM-DD/DAILY_YYYY-MM-DD.md` (per track: what ran, what's in flight, key
-  numbers, decisions waiting, tomorrow's plan).
+  time), copies it to `archive/sessions/LATEST.md` and adds a line to `archive/sessions/INDEX.md`; and the
+  day's `archive/sessions/YYYY-MM-DD/DAILY_YYYY-MM-DD.md` (per track: what ran, what's in flight, key numbers,
+  decisions waiting), created by the first session on that date. Its last section, `## For <next date>`, is the
+  carry-over (tomorrow's plan). No file is dated ahead of the clock (since Nov 4; `docs/status/CHECKIN.md` §5).
 - **Content:** header (times, branch, commits, tests, runs in flight), what ran, results, files,
   problems, points for review, decisions needed, open work, next commands. Numbers and paths only;
   under 250 lines; tracked in git.
