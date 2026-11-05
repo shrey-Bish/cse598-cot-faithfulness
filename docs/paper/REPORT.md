@@ -88,8 +88,11 @@ reliability. On Nov 4, before any further judging, we pre-registered an LLM-judg
   open models of other families on our university's inference service, Qwen3 30B Instruct and Olmo 3.1 32B Instruct.
 - **Fixed for all three:** temperature 0 where it can be set, one fixed instruction, and labels from the five only.
   Every prompt and raw output was saved.
-- **The final label of each text is Ritik's.** The AI judges are the reliability check. The texts where he and the
-  judges' 3-of-4 majority differ go back to him for a blind re-look, which decides.
+- **The final label of each text is Ritik's.** The AI judges are the reliability check. The protocol sent the texts
+  where he and the judges' 3-of-4 majority differ back to him for a blind re-look, which decides. After the results,
+  we narrowed the re-look (post hoc, disclosed) to the 7 texts where Claude Opus and ChatGPT 5 Astra High agreed with
+  each other against him. He changed 4 to their label and kept 3. He wrote those 7 labels in his own words, and Claude
+  Code put them into the five categories at his request; the session log shows both.
 - **Gate 2's label part** required Ritik against that majority at kappa 0.6 or more in every cell, and it was not met:
   0.472 on the private reasoning, 0.234 on the final answer.
 - **Why it wasn't met:** the two smaller judges barely followed the guide (near-constant labels on L4). Claude Opus

@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-04 18:22 (Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-04 21:31 (Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -229,6 +229,9 @@ confound the comparison: the token budget and the run counts.
       - His blind re-look is final. Since Nov 4 (the protocol's §11, post hoc) it covers only the 7 cells where J-opus
         and AI1 agree against him: 4 here (private reasoning), 3 in L4.
       - Gate 2's number stays on his original labels.
+      - **Done Nov 4, 21:31** ([log](../archive/sessions/2026-11-04/2026-11-04_2124_ALL_relook-recorded.md)): of the
+        4 here, he changed 3 to the judges' label (rows 55, 69, 72) and kept 1 (row 67). He wrote his labels in his own
+        words, and they were put into the guide's categories at his request; the log shows both.
   - **No acknowledgment claim from hand labels goes in the report** while the label part is not met (PLAN, Gate 2).
     No label rate of L3 has been computed. F3 stays a keyword count.
 
@@ -1618,6 +1621,10 @@ all four trained versions pass.**
       Instruct `mentions_only` on 250), so their kappa is about 0 (0.021, 0.043) and the 3-of-4 majority's is 0.417.
     - L4 is Gate 3's labels and isn't read by Gate 2's rule. Ritik's blind re-look covers the 3 cells where J-opus
       and AI1 agree against him (the protocol's §11, post hoc; the pre-registered list had 140).
+    - **Done Nov 4, 21:31** ([log](../archive/sessions/2026-11-04/2026-11-04_2124_ALL_relook-recorded.md)): he
+      changed row 58, a base matched row (`unclear` → `no_mention`, the judges' label), and kept rows 176 and 290
+      (`says_changed`, against them). The table above stays as read on Nov 3. With his final labels, base's row reads
+      `no_mention` 63 and `unclear` 0, and "both agree" covers 73 rows; the reading doesn't change.
   - **Real false disclosure,** read as `rejects_hint` (the answer says the hint is wrong or sets it aside, yet ends
     on it): 1 of 147 (Ritik), 2 of 147 (AI rater 1), 1 of the 139 agreed. **Most of LoRA's candidates say the hint
     shaped the answer** (`says_changed`: 97 and 89 of 147, 66% [58, 73] and 61% [52, 68]): disclosure, not a false

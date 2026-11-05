@@ -1,4 +1,4 @@
-## In plain words (Ritik's page, as of Nov 4, 16:29; the labels corrected 17:54 and read 18:01; edited by hand in `docs/status/ONE_PAGE.md`)
+## In plain words (Ritik's page, as of Nov 4, 16:29; the labels corrected 17:54 and read 18:01; the re-look recorded 21:31; edited by hand in `docs/status/ONE_PAGE.md`)
 
 **Done.**
 - 40 findings (F1–F40, in `docs/FINDINGS.md`).
@@ -20,13 +20,12 @@
   - Claude Opus agrees with Ritik closely (0.837 on L3's final answers, 0.967 on L4). The two smaller judges barely
     follow the guide.
   - Ritik's labels stand. No claim rests on them.
-  - **Left:** Ritik's blind re-look of 7 cells, where Claude Opus and ChatGPT agree against him (4 in L3, 3 in L4;
-    post hoc, disclosed).
+  - **Done, 21:31:** Ritik's blind re-look of the 7 cells where Claude Opus and ChatGPT agreed against him (4 in L3,
+    3 in L4; post hoc, disclosed). He changed 4 to their label and kept 3. Nothing read changes.
   - Corrected Nov 4, 17:54: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log. There is
     no settling call, and Shrey does no labeling.
 - **Ritik:**
   - send Shrey the Track C handoff message (ready, with no labels: the 17:42 log's §5);
-  - the blind re-look, 7 cells (`results/labels/llm_judge/relook_both_L3.csv` and `relook_both_L4_part1.csv`);
   - on Nov 6, send Arsha her bundle and note (ready; one command refreshes the bundle);
 - **Shrey:** C19 by Nov 7. Check-ins on Nov 7, 12, 15 and 18.
 - **Arsha, from Nov 6:**
