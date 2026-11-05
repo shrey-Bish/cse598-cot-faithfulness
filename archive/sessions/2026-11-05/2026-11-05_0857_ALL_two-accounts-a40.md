@@ -58,11 +58,8 @@ Helpers don't commit. I check each one's work against the rules, then commit in 
 6. Then I start Ritik's shard of the Voyager generation under the power guard (pre-approved once 3 is committed).
 7. Then `SOL_ARSHA.md`, the docs, and the logs.
 
-**The rules:**
-- The push goes to `trackA-nosol` and `main` only. `trackB-main` waits for Nov 6 (d).
-- No Sol change; Sol needs Duo.
-- Track B paths are committed with `PATH_CHECK_ALLOW=trackB-main` (Ritik's decisions h and b make them his to change
-  today), and the message says so.
+**The rules:** push `trackA-nosol` and `main` only (`trackB-main` on Nov 6, d); no Sol change (Duo); Track B paths
+committed with `PATH_CHECK_ALLOW=trackB-main` (decisions b and h), and the message says so.
 
 ## 2. B: A39's outlook (written 09:02, from the feeder's counts; status only, nothing of E2 read)
 
@@ -151,8 +148,7 @@ Helpers don't commit. I check each one's work against the rules, then commit in 
 - **To watch:** on the inserted turn, pass 2 called the tool again in 2 of 4 samples.
 - **The guard runs from 09:50,** on AC power under `caffeinate` (`logs/guard_a40.log`). Shard 2 follows shard 1 on
   this Mac, about 9 h, so done tonight: sooner than a weekend shard (decision i: Arsha's only "if that speeds it up").
-- **To hand her shard 2:** `touch logs/stop_guard`, then restart the guard with shard 1's job only; shard 1 resumes.
-  A job's own stop file only pauses it.
+- **To hand her shard 2:** `touch logs/stop_guard`, then restart the guard with shard 1's job only (it resumes).
 
 ## 5. Needs Ritik (written 09:55)
 
@@ -166,8 +162,7 @@ Helpers don't commit. I check each one's work against the rules, then commit in 
   - Arsha's bundle and note, with one last push to `trackB-main` (decision d).
   - A40: when its targets are done (`logs/guard_a40.log`), the shard check and assembly here, then his rsync of the
     data to Sol and `--check-data`, then A40's lines in his queue (its log's §11).
-- **Before Nov 11 09:00:** confirm or change this session's nov11 ruling (E2's and A40's lines; the A39 log's §19).
-- **Still open:** Shrey's handoff message (the Nov 4 17:42 log's §5).
+- **Before Nov 11 09:00:** the nov11 ruling (the A39 log's §19). **Still open:** Shrey's message (Nov 4 17:42, §5).
 
 ## 6. The Sol blocks (written 09:55)
 
@@ -250,8 +245,6 @@ expected output there. In short:
 - **Checks:** the full suite 984 passed, 1 skipped; links 0 broken; the supplement 38 rows, none unverified, no log
   outside the ledger; export numbers only; the Gantt's dry run passes; bundles B 51 and C 43; pre-push clean; nothing
   missing.
-- **Commits:** 19, all Ritik's, no attribution line.
-- **Push:** `trackA-nosol` and `main` only (`trackB-main` waits for Nov 6, decision d). Nothing was pulled,
-  submitted or reset on Sol.
+- **Commits:** 19, all Ritik's, no attribution line. **Push:** `trackA-nosol` and `main` only. Nothing on Sol.
 - **A40's targets at 10:01:** 10 of shard 1's 486 records in 6 minutes. At that pace both shards take about 11 hours,
   so they finish late tonight.
