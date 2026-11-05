@@ -8,6 +8,7 @@ import io
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -353,7 +354,7 @@ def smoke_job(tmp_path, monkeypatch):
     """sol_b20.run with its server, snapshot, vLLM's template and runner faked; run(name, rows) -> the exit code."""
     from finetune.gpu import eval_job
     import transformers
-    monkeypatch.setattr(sb, "STOP", tmp_path / "stop")
+    monkeypatch.setattr(sb, "STOP_DIR", tmp_path)
     monkeypatch.setattr(tb, "OUT", tmp_path)
     monkeypatch.setattr(sb, "preflight", lambda vllm, log_dir: None)
     snap = tmp_path / "snap"
@@ -381,12 +382,13 @@ def smoke_job(tmp_path, monkeypatch):
     monkeypatch.setattr(sb, "canary", lambda url, name: {"rows": [{"prompt": 0, "token_ids": [1]}]})
     monkeypatch.setattr(rb, "export_flags", lambda name: 0)
 
-    def run(name, rows, served_ids=(1, 2), runner_rc=0):
+    def run(name, rows, served_ids=(1, 2), runner_rc=0, runner=None):
         (tmp_path / "log" / name).mkdir(parents=True, exist_ok=True)
         (tmp_path / "log" / name / "snapshot.json").write_text(json.dumps({"revision": rb.MODELS[name]["revision"], "files": [
             {"file": "model-00001-of-00001.safetensors", "bytes": 10}]}))
         monkeypatch.setattr(sb, "server_ids", lambda url, name: lambda s, m, t: list(served_ids))
-        monkeypatch.setattr(sb.subprocess, "call", lambda cmd, env, cwd: seen.update(runner=cmd, env=env) or runner_rc)
+        monkeypatch.setattr(sb, "run_runner", runner or (lambda cmd, env, stop: seen.update(runner=cmd, env=env, stop=stop)
+                                                         or runner_rc))
         rb.model_dir(name).mkdir(parents=True, exist_ok=True)
         rb.flags_path(name).write_text("".join(json.dumps(r) + "\n" for r in rows))
         return sb.run(tmp_path / "log", name, smoke=True)
@@ -415,13 +417,14 @@ def test_the_smoke_job_exits_non_zero_when_any_check_fails(smoke_job):
     assert smoke_job(NEMOTRON, smoke_rows(), runner_rc=2) == 2           # stopped by Slurm's warning: not 0 either
 
 
-def test_the_smoke_job_writes_its_checks_and_canary_and_runs_the_first_12(smoke_job, tmp_path):
+def test_the_smoke_job_writes_its_checks_and_canary_and_runs_the_first_12(smoke_job, tmp_path, monkeypatch):
+    monkeypatch.setenv("SLURM_JOB_ID", "466400")
     assert smoke_job(GEMMA, smoke_rows(GEMMA)) == 0
     seen, here = smoke_job.seen, tmp_path / "b20" / GEMMA
     cmd = seen["cmd"]
     assert "--chat-template" not in cmd                                  # Nov 3: Gemma serves its snapshot's own template
     assert seen["env"]["TRACKB_CHAT_TEMPLATE_SHA256"] == hashlib.sha256(b"{{ messages }}").hexdigest()   # the served one
-    assert seen["runner"][-6:] == ["--model", GEMMA, "--stop-file", str(tmp_path / "stop"), "--limit", "12"]
+    assert seen["runner"][-6:] == ["--model", GEMMA, "--stop-file", str(tmp_path / "stop_b20_466400"), "--limit", "12"]
     check = json.loads((here / "template_check.json").read_text())
     assert check["ok"] and check["revision"] == rb.MODELS[GEMMA]["revision"] and len(check["rows"]) == 14
     assert json.loads((here / "smoke_check.json").read_text())["ok"]
@@ -443,9 +446,83 @@ def test_each_b20_job_serves_on_its_own_port(smoke_job, monkeypatch):
     assert seen["env"]["TRACKB_VLLM_URL"] == "http://localhost:26400/v1"
 
 
+def test_each_b20_job_has_a_stop_file_of_its_own(smoke_job, tmp_path, monkeypatch):
+    """Nov 4 (508647, b20-gemma-r2-1): every B20 job used logs/stop_b20. Granite's warning (468897) stopped Gemma's
+    runner too, and Nemotron's start (510702) removed the file before Gemma's runner looked at the end of its pass: exit
+    1, not 2, and the feeder skipped Gemma's chain. Now a job's warning writes its own file, and its start removes only
+    its own."""
+    other = tmp_path / "stop_b20_468897"
+    other.write_text("Slurm's time-limit warning")
+    monkeypatch.setenv("SLURM_JOB_ID", "508647")
+    warned = []
+
+    def runner(cmd, env, stop):
+        os.kill(os.getpid(), signal.SIGUSR1)                             # Slurm's warning, while the runner runs
+        warned.append((stop, stop.exists(), cmd[cmd.index("--stop-file") + 1]))
+        return 2
+    assert smoke_job(GEMMA, smoke_rows(GEMMA), runner=runner) == 2
+    assert other.exists()                                                # another job's warning stays where it was
+    assert warned == [(tmp_path / "stop_b20_508647", True, str(tmp_path / "stop_b20_508647"))]
+    assert sb.stop_path("468897") != sb.stop_path("508647")
+
+
+def test_a_runner_still_busy_after_the_warning_is_stopped_and_the_job_reports_a_stop(tmp_path):
+    """Nov 4 (468897, b20-granite-r2-1): after Slurm's warning the runner started nothing new but waited for its 48
+    requests in flight, each up to about 20 minutes on Granite, so the job ran into its limit (TIMEOUT) instead of
+    stopping (exit 2). Now, `grace` seconds after the warning, the runner gets SIGINT (a record being saved is written
+    whole) and, if it still runs, SIGKILL; the job reports a stop (2). A runner that ends by itself keeps its code."""
+    import time
+    stop, saved = tmp_path / "stop_b20_1", tmp_path / "saved"
+    busy = [sys.executable, "-c", "import sys, time\ntry:\n    time.sleep(60)\nexcept KeyboardInterrupt:\n"
+            "    open(sys.argv[1], 'w').write('whole\\n')\n    sys.exit(1)\n", str(saved)]
+    deaf = [sys.executable, "-c", "import signal, time\nsignal.signal(signal.SIGINT, signal.SIG_IGN)\ntime.sleep(60)\n"]
+    env = dict(os.environ)
+    assert sb.run_runner([sys.executable, "-c", "raise SystemExit(1)"], env, stop, poll=0.05) == 1   # runs left
+    assert sb.run_runner([sys.executable, "-c", "pass"], env, stop, poll=0.05) == 0                    # all done
+    stop.write_text("Slurm's time-limit warning")
+    t = time.monotonic()
+    assert sb.run_runner(busy, env, stop, grace=0.3, poll=0.05, kill_after=5) == 2
+    assert saved.read_text() == "whole\n"                               # SIGINT first: its save finished
+    assert sb.run_runner(deaf, env, stop, grace=0.3, poll=0.05, kill_after=0.3) == 2   # then SIGKILL
+    assert time.monotonic() - t < 15
+    assert sb.GRACE + 30 + 60 < 300                                      # grace, SIGINT's wait, the server's stop: < 5 min
+
+
+def test_the_runner_saves_each_run_as_it_finishes(tmp_path, monkeypatch):
+    """Nov 4 (468897): run_trackB.run saved in the order the runs were sent (pool.map), so a run that finished behind a
+    slower one waited unsaved, and was lost when Slurm ended the job at its limit. Now each is saved as it finishes
+    (as A39's finetune/eval.py since 36c639b)."""
+    import threading
+    import time
+    monkeypatch.setattr(tb, "OUT", tmp_path)
+    (tmp_path / "b20" / GRANITE).mkdir(parents=True)
+    cfg = rb.config(GRANITE)
+    js = rb.jobs(cfg, GRANITE)[:2]
+    release, seen = threading.Event(), []
+
+    def run_one(c, j):
+        if j["run_id"] == js[0]["run_id"]:
+            release.wait(10)                                             # the slow one
+        return {**tb.base_record(j, j["model"], j["item"]), "status": "ok", "parsed_letter": "A",
+                "finish_reason": "stop", "error_type": None, "usage": {}}
+    monkeypatch.setattr(tb, "run_one", run_one)
+
+    def watch():
+        for _ in range(100):
+            got = tb.done(sol_vllm.NAME, rb.experiment(GRANITE))
+            if got:
+                seen.append(sorted(got))
+                break
+            time.sleep(0.03)
+        release.set()
+    threading.Thread(target=watch).start()
+    assert tb.run(cfg, js) == 0
+    assert seen == [[js[1]["run_id"]]]                                   # saved while the slow one still ran
+
+
 def test_the_job_driver_order(tmp_path, monkeypatch):
     order = []
-    monkeypatch.setattr(sb, "STOP", tmp_path / "stop")
+    monkeypatch.setattr(sb, "STOP_DIR", tmp_path)
     monkeypatch.setattr(tb, "OUT", tmp_path)
     monkeypatch.setattr(sb, "preflight", lambda vllm, log_dir: order.append("preflight") or sys.exit("refusing: options"))
     with pytest.raises(SystemExit, match="options"):                     # the node's options come first

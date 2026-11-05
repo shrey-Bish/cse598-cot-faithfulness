@@ -49,7 +49,7 @@ import sys
 import threading
 import time
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 import yaml
@@ -373,7 +373,8 @@ def run(cfg, all_jobs, limit=None, stop_file=None):
         log.info(f"pass {attempt + 1}: {len(todo)} jobs, {workers} at a time")
         statuses = []
         with ThreadPoolExecutor(workers) as pool:
-            for i, rec in enumerate(pool.map(safe, todo), 1):
+            sent = [pool.submit(safe, j) for j in todo]                 # Nov 4: each saved as it finishes, not in
+            for i, rec in enumerate((f.result() for f in as_completed(sent)), 1):   # order (B20's 468897 lost those)
                 if rec:
                     save(rec)
                     statuses.append(rec["status"])

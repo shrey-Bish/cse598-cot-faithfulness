@@ -23,7 +23,9 @@ The job, in order (every step stops it before the next):
   6. The canary: 5 fixed prompts (run_b20.CANARY) at temperature 0, 64 tokens, thinking off; the completions' token ids
      appended to canary.jsonl, one row a job (a later job that differs is flagged in the report, never stopped).
   7. The runner (run_b20.py --run --model M) against the server; Slurm's warning (USR1, 5 minutes before the limit)
-     makes it start no new request.
+     writes this job's own stop file (logs/stop_b20_<job id>), so the runner starts no new request; GRACE seconds later
+     a runner still waiting on requests in flight is stopped (SIGINT, then SIGKILL), so the job ends itself, exit 2,
+     before its limit (Nov 4: 468897 and 508647).
   8. The numbers-only flags (results/trackB/b20/<M>/b20_flags.jsonl); with --smoke, the smoke's verdict
      (run_b20.smoke_check -> smoke_check.json): all 12 ran, at least 10 answered, every run that ended on its own
      parsed, the tool path ran (or the fallback's amendment is in), the reasoning split is right.
@@ -39,6 +41,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 CODE = Path(__file__).resolve().parents[1]
@@ -50,7 +53,9 @@ from providers import sol_vllm  # noqa: E402
 import sol_trackB as st  # noqa: E402
 
 MAX_MODEL_LEN = 33792            # the 32,768-token budget + room
-STOP = CODE / "logs" / "stop_b20"
+STOP_DIR = CODE / "logs"         # Nov 4: a stop file per job, stop_b20_<job id> (with one for all, Granite's warning
+                                 # stopped Gemma's runner, and Nemotron's start removed it before Gemma looked: 508647)
+GRACE = 120                      # after the warning, the requests in flight get this long; then the runner is stopped
 # vLLM's template, found by the vLLM environment's own Python in the installed package's file list (RECORD)
 FIND = ("import sys\nfrom importlib import metadata\n"
         "hits = [f.locate() for f in metadata.files('vllm') or [] if f.name == sys.argv[1]]\n"
@@ -192,9 +197,40 @@ def canary(url, name):
     return {"rows": rows}
 
 
-def runner_cmd(name, limit=None):
-    return [sys.executable, "-u", str(CODE / "progress" / "run_b20.py"), "--run", "--model", name, "--stop-file", str(STOP),
-            *(["--limit", str(limit)] if limit else [])]
+def stop_path(job=None):
+    """This job's stop file: Slurm's warning writes it, and only this job's runner reads it."""
+    return STOP_DIR / f"stop_b20_{job or os.environ.get('SLURM_JOB_ID') or os.getpid()}"
+
+
+def runner_cmd(name, limit=None, stop=None):
+    return [sys.executable, "-u", str(CODE / "progress" / "run_b20.py"), "--run", "--model", name, "--stop-file",
+            str(stop or stop_path()), *(["--limit", str(limit)] if limit else [])]
+
+
+def run_runner(cmd, env, stop, grace=GRACE, poll=5, kill_after=30):
+    """The runner, as a child. Once the stop file exists (Slurm's warning), its requests in flight get `grace` seconds;
+    then SIGINT (a record being saved is written whole: the save is in its main thread) and, `kill_after` seconds later,
+    SIGKILL (its threads wait on their requests). Returns the runner's own exit code, or 2 when it had to be stopped:
+    its runs in flight are lost, and the next job runs them (Nov 4: 468897 ran into its limit instead)."""
+    proc = subprocess.Popen(cmd, env=env, cwd=CODE)
+    warned = None
+    while True:
+        try:
+            return proc.wait(timeout=poll)
+        except subprocess.TimeoutExpired:
+            pass
+        if warned is None and stop.exists():
+            warned = time.monotonic()
+        if warned is not None and time.monotonic() - warned >= grace:
+            break
+    proc.send_signal(signal.SIGINT)
+    try:
+        proc.wait(timeout=kill_after)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+    print(f"the runner was stopped {grace} s after Slurm's warning; its requests in flight run in the next job", flush=True)
+    return 2
 
 
 def run(log_dir, name, smoke=False, limit=None):
@@ -213,9 +249,10 @@ def run(log_dir, name, smoke=False, limit=None):
         tpl_sha = hashlib.sha256(Path(template).read_bytes()).hexdigest()
     port = gen.free_port(sol_vllm.PORT)                                   # Nov 4: a port of this job's own
     cmd = serve_cmd(name, snap, vllm=vllm, port=port, template=template)
-    STOP.parent.mkdir(parents=True, exist_ok=True)
-    STOP.unlink(missing_ok=True)
-    signal.signal(signal.SIGUSR1, lambda *_: STOP.write_text("Slurm's time-limit warning"))
+    stop = stop_path()                                                    # Nov 4: this job's own
+    stop.parent.mkdir(parents=True, exist_ok=True)
+    stop.unlink(missing_ok=True)
+    signal.signal(signal.SIGUSR1, lambda *_: stop.write_text("Slurm's time-limit warning"))
     out.mkdir(parents=True, exist_ok=True)
     url = f"http://localhost:{port}/v1"
     with eval_job.Server(None, False, port=port, log=here / "vllm.log", cmd=cmd):
@@ -232,7 +269,7 @@ def run(log_dir, name, smoke=False, limit=None):
         append(out / "canary.jsonl", {"job": os.environ.get("SLURM_JOB_ID"), "utc": kit.now(), "revision": m["revision"],
                                       "server": cmd[3:], **canary(url, name)})
         env = {**os.environ, "TRACKB_VLLM_URL": url, "TRACKB_CHAT_TEMPLATE_SHA256": tpl_sha}
-        rc = subprocess.call(runner_cmd(name, rb.SMOKE_JOBS if smoke else limit), env=env, cwd=CODE)
+        rc = run_runner(runner_cmd(name, rb.SMOKE_JOBS if smoke else limit, stop), env, stop)
     print(f"runner exit {rc} (0 done, 1 work left, 2 stopped); {rb.export_flags(name)} records' flags in "
           f"{rb.flags_path(name)}", flush=True)
     if smoke:
