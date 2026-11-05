@@ -191,3 +191,24 @@ def test_ritiks_and_ai1s_real_l3_kappa_reproduces_nov_3():
         pytest.skip("the label sheets aren't on this machine (results/labels/, gitignored)")
     res, _ = lk.kappa(a, b)
     assert round(res["private | all"]["kappa"], 3) == 0.627 and round(res["final | user"]["kappa"], 3) == 0.425
+
+
+def test_the_post_hoc_re_look_keeps_only_cells_both_strong_raters_set_against_ritik(setup):
+    """The protocol's section 11 (Nov 4, post hoc, disclosed): a re-look of only the cells where J-opus and AI1 give
+    the same label and it differs from Ritik's; blind, like section 6's sheet, which stays as it was."""
+    rows = list(csv.DictReader(open(setup / "L3_RA.csv", newline="")))
+    opus = {}
+    for r in rows:
+        got = {"final": r["label_final"]}
+        if r["private_excerpt"]:
+            got["private"] = r["label_private"]
+        opus[r["row"]] = got
+    opus["1"]["private"] = "no_mention"                                   # AI1 says no_mention on row 1 too
+    opus["2"]["final"] = "unclear"                                        # AI1 agrees with Ritik here: not kept
+    lj.save_labels("L3", "opus", opus)
+    got = lj.relook_both(write=True)
+    assert got == {"L3": [("1", "private")]}
+    sheet = list(csv.DictReader(open(setup / "llm_judge" / "relook_both_L3.csv", newline="")))
+    assert [(r["row"], r["text"], r["label"]) for r in sheet] == [("1", "private", "")]
+    assert set(sheet[0]) == {"row", "text", "source", "letter", "excerpt", "label", "note"}
+    assert "no_mention" not in json.dumps(sheet) and "mentions_only" not in json.dumps(sheet)

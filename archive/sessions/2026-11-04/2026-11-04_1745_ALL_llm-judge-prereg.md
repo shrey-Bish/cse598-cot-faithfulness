@@ -150,3 +150,22 @@ would copy every row through the session's own output: slow, and a risk of alter
 - Its environment does name the working folder (the course project's name). That is noted as a limit.
 
 **Its replies** are saved as `<sheet>_batch_NN_reply.txt` beside the prompts, verbatim, and read by `--import-opus`.
+
+## 11. Amendment (Ritik, Nov 4, 18:21; **post hoc**, after the results of 17:56; Gate 2's verdict stays as read)
+
+**What changes: only which cells Ritik re-looks at.**
+- §6's pre-registered re-look lists every cell where Ritik and the 3-of-4 AI majority differ: 60 on L3 and 140 on L4
+  part 1. Most of them come from the two Voyager judges' near-constant labels (the 17:56 results, §3).
+- **Ritik now re-looks only at the cells where J-opus and AI1 give the same label and it differs from his.** That's
+  where a slip of his is likeliest.
+- **4 cells on L3, all private reasoning:** rows 55, 67, 69 and 72.
+- **3 cells on L4 part 1:** rows 58, 176 and 290.
+- The sheets are blind, like §6's: `results/labels/llm_judge/relook_both_L3.csv` and `relook_both_L4_part1.csv`
+  (`tools/llm_judge.py --relook-both`). §6's sheets stay as they were.
+
+**What doesn't change:**
+- Ritik's labels are the final labels. His re-look of these 7 cells is final, recorded in a dated log.
+- **Gate 2's verdict stays as read: not met.** Its number uses his original labels (§6).
+
+**Disclosed:** this choice was made after the results were seen. It is reported as post hoc wherever the re-look
+appears.

@@ -14,6 +14,7 @@ shows it, its letter, the texts. No writer model, run id, system name or label o
   python tools/llm_judge.py --batches                               # J-opus's prompts, results/labels/llm_judge/opus/
   python tools/llm_judge.py --import-opus FILE...                   # its replies, <sheet>_batch_NN_reply.txt
   python tools/llm_judge.py --report                                # the measures, Gate 2, the re-look sheets
+  python tools/llm_judge.py --relook-both                           # section 11's smaller re-look (post hoc)
 --run's exit codes (progress/guard.py): 0 all done, 1 work left, 2 stopped by the stop file, 3 a Voyager guard failed.
 Texts and raw outputs stay in results/labels/llm_judge/ (gitignored); report.json there holds numbers and row numbers.
 """
@@ -367,6 +368,30 @@ def report(write=False):
     return rep
 
 
+def relook_both(write=False):
+    """The protocol's section 11 (Nov 4, post hoc, disclosed): the cells where J-opus and AI1 give the same label and
+    it differs from Ritik's, as blind sheets (relook_both_<sheet>.csv); section 6's sheets stay as they were."""
+    out = {}
+    for sheet, s in SHEETS.items():
+        human = read(s["human"])
+        ai1, opus = as_labels(sheet_of(sheet, "AI1"), sheet), as_labels(sheet_of(sheet, "opus"), sheet)
+        cells_ = [{"row": r["row"], "text": t, "source": r[s["source"]], "letter": r[s["letter"]],
+                   "excerpt": r[s["fields"][t]], "label": "", "note": ""}
+                  for r in human for t in s["texts"]
+                  if r[f"label_{t}"].strip().lower() in LABELS
+                  and ai1.get(r["row"], {}).get(t) and ai1[r["row"]][t] == opus.get(r["row"], {}).get(t)
+                  and ai1[r["row"]][t] != r[f"label_{t}"].strip().lower()]
+        out[sheet] = [(c["row"], c["text"]) for c in cells_]
+        if write:
+            p = OUT / f"relook_both_{sheet}.csv"
+            p.parent.mkdir(parents=True, exist_ok=True)
+            with open(p, "w", newline="") as f:
+                w = csv.DictWriter(f, fieldnames=["row", "text", "source", "letter", "excerpt", "label", "note"])
+                w.writeheader()
+                w.writerows(cells_)
+    return out
+
+
 def show(rep):
     out = []
     for sheet in SHEETS:
@@ -395,6 +420,7 @@ def main(argv=None):
     mode.add_argument("--batches", action="store_true")
     mode.add_argument("--import-opus", nargs="+", metavar="FILE")
     mode.add_argument("--report", action="store_true")
+    mode.add_argument("--relook-both", action="store_true", help="section 11's re-look sheets (post hoc)")
     ap.add_argument("--judge", choices=sorted(JUDGES))
     ap.add_argument("--sheet", choices=sorted(SHEETS))
     ap.add_argument("--stop-file", help="start no new request once this file exists (progress/guard.py)")
@@ -415,6 +441,10 @@ def main(argv=None):
         return 0
     if a.import_opus:
         import_opus(a.import_opus)
+        return 0
+    if a.relook_both:
+        for sh, cells_ in relook_both(write=True).items():
+            print(f"{sh}: {len(cells_)} cells ({', '.join(f'row {r} {t}' for r, t in cells_) or 'none'})")
         return 0
     print(show(report(write=True)))
     return 0
