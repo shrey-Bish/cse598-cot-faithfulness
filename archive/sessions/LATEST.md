@@ -159,3 +159,11 @@ From `/scratch/ragarw68/cse598-cot-faithfulness`, with `P=/scratch/ragarw68/envs
    - Expect "B20: N jobs to run …" per model: Granite's 954 less what's saved, Gemma's 1,922 less what's saved, and
      Nemotron's.
    - Send me these three numbers: they size B20's lines.
+
+## 7. Checks and push
+
+- **Checks on `f1115db`:** the full suite 933 passed, 1 skipped; links 0 broken; the supplement 37 rows, none unverified, no
+  log outside the ledger; export numbers only; the Gantt's dry run passes; bundles B 51, C 43; pre-push clean; nothing
+  missing but `archive/sessions/2026-11-05/DAILY_2026-11-05.md`, folded on purpose (`archive/MOVES.md`); 9 commits,
+  all Ritik's, no attribution line.
+- **Pushed** to `trackA-nosol` and `main` only. Nothing was pulled, submitted or reset on Sol.
