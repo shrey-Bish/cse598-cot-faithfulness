@@ -67,7 +67,7 @@ from finetune import generate as gen  # noqa: E402
 from finetune.gpu import kit  # noqa: E402
 
 TAGGED = ("tags", "lora_tags")
-LORA = ("lora", "lora_attn3", "lora_tags")
+LORA = ("lora", "lora_attn3", "lora_tags", "a40")                     # a40 (Nov 5): A40's LoRA, merged as lora's
 MODEL_OF = {"wrap": "base", "wrap_note": "base", "lora_note": "lora", "lora_wrap": "lora"}   # A39: the model it runs on
 CHECK_TOKENS = 48
 WORKERS_PER_GPU = 48

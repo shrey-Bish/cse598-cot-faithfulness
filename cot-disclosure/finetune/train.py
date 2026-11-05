@@ -11,6 +11,8 @@ Versions, all on the same data (finetune/data/train_examples.jsonl.gz from run_s
                the base model frozen: the source signal sits in the layers that read the hint, not in the
                input embedding
   lora_attn3_gate  lora_attn3 and the gate together
+  a40          A40 (Nov 5; the A40 log): lora's settings on bias-augmented consistency training's data
+               (finetune/make_bct.py: finetune/data/a40/, checked on Sol against finetune/gpu/a40_inputs.json)
 Settings (decided Oct 27, one setting): rank 16, alpha 32, dropout 0.05; learning rate 2e-4 for LoRA,
 1e-3 for the tag table, LR_GATE for the gates (new Oct 29: a scalar per head moves at most ~lr per Adam step, so
 2e-4 would leave it near 0 after 260 steps); 2 epochs; batch 1 with ACCUM examples per optimizer step (each example's mean
@@ -52,10 +54,13 @@ sys.path.insert(0, str(CODE / "progress"))
 
 from finetune import olmo_format  # noqa: E402
 
-VERSIONS = ("lora", "tags", "lora_tags", "lora_attn3", "gate3", "lora_attn3_gate")
+VERSIONS = ("lora", "tags", "lora_tags", "lora_attn3", "gate3", "lora_attn3_gate", "a40")
 GATES = ("gate3", "lora_attn3_gate")
+LORAS = ("lora", "lora_tags", "lora_attn3", "lora_attn3_gate", "a40")
 TRAIN = CODE / "finetune" / "data" / "train_examples.jsonl.gz"
 VALIDATION = CODE / "finetune" / "data" / "validation_examples.jsonl.gz"
+DATA = {"a40": (CODE / "finetune" / "data" / "a40" / "train_examples.jsonl.gz",     # A40 (Nov 5): make_bct.py's
+                CODE / "finetune" / "data" / "a40" / "validation_examples.jsonl.gz")}
 RANK, ALPHA, DROPOUT = 16, 32, 0.05
 LR_LORA, LR_TAGS = 2e-4, 1e-3
 LR_GATE = 1e-2                               # the gate versions' per-head biases (approved by Ritik, Oct 29)
@@ -74,6 +79,11 @@ ATTN3_LAYERS = [15, 19, 23]
 
 
 # ---------------------------------------------------------------- data
+def data_for(version):
+    """(training set, validation slice) a version trains on: its own (A40), else Steps 6-7's."""
+    return DATA.get(version, (TRAIN, VALIDATION))
+
+
 def load_examples(path):
     with gzip.open(path, "rt") as f:
         return [json.loads(line) for line in f]
@@ -129,6 +139,13 @@ def schedule(total_steps, warmup=WARMUP):
 
 
 # ---------------------------------------------------------------- model
+def lora_targets(version):
+    """(target modules, layers or None) of a LoRA version: every projection of every layer, or (lora_attn3) the
+    attention projections of layers 15, 19 and 23."""
+    attn3 = version in ("lora_attn3", "lora_attn3_gate")
+    return (LORA_ATTN, ATTN3_LAYERS) if attn3 else (LORA_ALL, None)
+
+
 def build(version, model_path, dtype="bf16", device="cuda", attn="sdpa", checkpointing=True):
     """The model to train, with only the version's parameters trainable."""
     import torch
@@ -143,12 +160,11 @@ def build(version, model_path, dtype="bf16", device="cuda", attn="sdpa", checkpo
         model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     for p in model.parameters():
         p.requires_grad_(False)
-    if version in ("lora", "lora_tags", "lora_attn3", "lora_attn3_gate"):
+    if version in LORAS:
         from peft import LoraConfig, get_peft_model
-        attn3 = version in ("lora_attn3", "lora_attn3_gate")
+        modules, layers = lora_targets(version)
         cfg = LoraConfig(r=RANK, lora_alpha=ALPHA, lora_dropout=DROPOUT, task_type="CAUSAL_LM",
-                         target_modules=LORA_ATTN if attn3 else LORA_ALL,
-                         layers_to_transform=ATTN3_LAYERS if attn3 else None)
+                         target_modules=modules, layers_to_transform=layers)
         model = get_peft_model(model, cfg)
     if version in ("tags", "lora_tags"):
         model = SourceTaggedLM(model, freeze_base=False)          # the base is already frozen; LoRA stays trainable
@@ -463,8 +479,8 @@ def main():
     ap.add_argument("--version", required=True, help=f"one of {VERSIONS} (comma-separated with --timing)")
     ap.add_argument("--out", help="output directory (one per version)")
     ap.add_argument("--model", help="model directory (default: the cached allenai/Olmo-3-7B-Think snapshot)")
-    ap.add_argument("--train", default=str(TRAIN))
-    ap.add_argument("--validation", default=str(VALIDATION))
+    ap.add_argument("--train", help="default: the version's own (data_for: A40's, else Steps 6-7's)")
+    ap.add_argument("--validation", help="default: the version's own (data_for)")
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--timing", type=int, metavar="N", help="S1: time the N longest examples per version")
@@ -475,9 +491,16 @@ def main():
     for v in versions:
         if v not in VERSIONS:
             sys.exit(f"unknown version {v!r}; one of {VERSIONS}")
+    own = data_for(versions[0]) if len(versions) == 1 else (TRAIN, VALIDATION)
+    a.train, a.validation = a.train or str(own[0]), a.validation or str(own[1])
     if os.environ.get("SLURM_JOB_ID") and a.train == str(TRAIN):         # on Sol: the Mac's bytes (kit manifest)
         from finetune.gpu import kit
         kit.check_inputs("train")
+    if os.environ.get("SLURM_JOB_ID") and a.train == str(DATA["a40"][0]):   # A40's: finetune/gpu/a40_inputs.json
+        from finetune import make_bct
+        bad = make_bct.check_data()
+        if bad:
+            sys.exit("A40's training set is not the Mac's: " + "; ".join(bad) + ". Copy it as the A40 log says.")
     raw_train, raw_val = load_examples(a.train), load_examples(a.validation)
     steps = math.ceil(len(raw_train) / ACCUM) * EPOCHS
     print(f"{len(raw_train)} training and {len(raw_val)} validation examples; {EPOCHS} epochs of "

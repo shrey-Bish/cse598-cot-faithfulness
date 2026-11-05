@@ -83,9 +83,9 @@ done
 versions="lora tags lora_tags lora_attn3"
 gates="gate3 lora_attn3_gate"              # B2 (Oct 29): trained and measured like the others; not served by vLLM (no eval)
 case "$job" in
-    train) want="$versions $gates" ;;
+    train) want="$versions $gates a40" ;;                                              # a40: A40 (Nov 5), lora's settings
     eval)  want="base prompt_only $versions" ;;
-    a39|a39_1gpu) want="base prompt_only lora lora_note wrap wrap_note lora_wrap" ;;   # finetune/eval.py A39_SYSTEMS (Nov 3)
+    a39|a39_1gpu) want="base prompt_only lora lora_note wrap wrap_note lora_wrap a40" ;;   # A39_SYSTEMS (Nov 3); a40 (Nov 5)
     *)     want="" ;;
 esac
 if [ -n "$want" ] && ! printf '%s\n' $want | grep -qx -- "${jobargs[0]:-}"; then
