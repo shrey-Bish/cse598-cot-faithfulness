@@ -559,7 +559,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
   - **Files Sol's queued jobs load** (A39 and B20; `tests/test_path_check.py`, FROZEN_FOR_SOL):
     - `finetune/` (eval.py, generate.py, continuation.py, olmo_format.py, hf_engine.py, gpu/);
     - `progress/common.py`, `progress/sol_trackB.py`, `progress/sol_b17.py`, `progress/sol_b20.py`,
-      `progress/run_b20.py`;
+      `progress/run_b20.py`, `progress/run_trackB.py` (B20's runner loads it; added Nov 4);
     - `agents/__init__.py`, `agents/sol_c13.py`;
     - `client.py`, `parse.py`, `detect.py`, `experiments.py`, `tasks.py`, `tools/answer_key.py`, `providers/`,
       `configs/`, `data/`;

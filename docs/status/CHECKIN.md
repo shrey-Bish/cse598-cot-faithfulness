@@ -99,6 +99,7 @@ git log --oneline -1 origin/main; git log --oneline origin/main..origin/trackC-m
    cd /scratch/ragarw68/cse598-cot-faithfulness && git fetch -q origin && git log --oneline -1 @{u}
    git diff --stat HEAD..@{u} -- cot-disclosure/finetune cot-disclosure/progress/common.py cot-disclosure/progress/sol_trackB.py \
      cot-disclosure/progress/sol_b17.py cot-disclosure/progress/sol_b20.py cot-disclosure/progress/run_b20.py \
+     cot-disclosure/progress/run_trackB.py \
      cot-disclosure/agents/__init__.py cot-disclosure/agents/sol_c13.py cot-disclosure/client.py cot-disclosure/parse.py \
      cot-disclosure/detect.py cot-disclosure/experiments.py cot-disclosure/tasks.py cot-disclosure/tools/answer_key.py \
      cot-disclosure/providers cot-disclosure/configs cot-disclosure/data \
