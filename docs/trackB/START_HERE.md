@@ -1,10 +1,12 @@
 # Track B: start here (Arsha, from Nov 6)
 
-**Edited by:** Arsha, on `trackB-main`, from Nov 6. Written by Ritik on Nov 3 (updated Nov 4: B20's two amendments, B24); Ritik keeps it until then.
+**Edited by:** Arsha, on `trackB-main`, from Nov 6. Written by Ritik on Nov 3 (updated Nov 4: B20's two amendments, B24; Nov 5: B20 on your own Sol account); Ritik keeps it until then.
 
-**Final as of Nov 4, 16:25** (Ritik): B24 read (F40); B20 and Sol's queue as of the feeder's 15:56 tick (§4); the
-bundle built and checked on a fresh clone (§1, step 5). On Nov 6 only the bundle is rebuilt; Ritik's note gives its
-file count and sha256.
+**Updated Nov 5, 09:54** (Ritik): B20 runs on your own Sol account from Nov 5, with your own feeder (the B20 log's
+§19; your setup [`SOL_ARSHA.md`](SOL_ARSHA.md)): the Quick start's Sol lines, §2, §3, §4 and §8. On Nov 6 the bundle is
+rebuilt, and Ritik sends it and his note (file count and sha256) with his last push to `trackB-main`; after that the
+branch is yours. Before that, **final as of Nov 4, 16:25**: B24 read (F40); the bundle built and checked on a fresh
+clone (§1, step 5).
 
 ## Quick start (one page)
 
@@ -19,11 +21,13 @@ final answer stop naming the tool once the model has called it? It is the eviden
 - most of the pull is the tool's claim to be the answer key (B16, confirmed same-day by B19);
 - more thinking changes neither (B17, labelled §13).
 - **Started for you:** B18's table and slide 2 ([`TRACK_B.md`](../tracks/TRACK_B.md) §1a).
-- **On Sol** (Ritik submits, through the feeder): B20, three open-weight families with thinking on and off.
-  Amended Nov 4 after its three smokes (§4): Gemma's and Nemotron's tool channel is the inserted tool turn, and
-  Granite runs thinking on only. All three second smokes ran; the runs started Nov 4 evening. Granite's and Gemma's
-  first run jobs stopped badly that night, fixed the same night (§4; B20's log §18, Nov 4, 22:51). Its runs end by
-  Nov 15; you read them Nov 17.
+- **On Sol, from Nov 5 on your own account** (you submit, through your own feeder: [`SOL_ARSHA.md`](SOL_ARSHA.md)):
+  B20, three open-weight families with thinking on and off. Amended Nov 4 after its three smokes (§4): Gemma's and
+  Nemotron's tool channel is the inserted tool turn, and Granite runs thinking on only. The runs started Nov 4 evening
+  on Ritik's account. Granite's and Gemma's first run jobs stopped badly that night, fixed the same night and the
+  cause confirmed Nov 5 (§4; FINDINGS T13). Nemotron's runs are done; Granite's 849 and Gemma's 1,784 left run on 3:00
+  lines, question by question (B20's log §19). Its runs end by Nov 15 (read partial at 23:59 if not complete); you
+  read them Nov 17.
 - **Read Nov 4 (F40):** B24, the authority dose (§4a): the pull grows from a classmate to the official solution
   manual in all three models. You re-read it from the bundle.
 
@@ -31,11 +35,12 @@ final answer stop naming the tool once the model has called it? It is the eviden
 
 | # | what | by | check-in |
 |---|---|---|---|
+| 0 | **B20 on your own Sol account** ([`SOL_ARSHA.md`](SOL_ARSHA.md)): the numbered block, typed in your own login, each step with its expected output; then your feeder runs B20's lines | **Thu Nov 5 or Fri Nov 6** | **Nov 6** |
 | 1 | **Setup** (§1): clone, `trackB-main`, the venv, the tests, both hooks, your own Voyager key, the bundle `trackB_20261106.tar.gz` with `--verify`, and the Track B numbers reproduced with no calls | **Fri Nov 6** | **Nov 6** (handoff) |
 | 2 | **Re-read** B16, B19 and B17 by their reports, against F35 and F37 | Sat Nov 7 | — |
 | 2a | **B24** (§4a): read by Ritik Nov 4 (F40); re-read it from the bundle's records against F40 | Mon Nov 9 | Nov 12 |
 | 3 | **B18**: check every row of the table against FINDINGS; settle its open choices; its figure | Wed Nov 18 | Nov 12, Nov 18 |
-| 4 | **B20's reading**, by its pre-registered rule, from the numbers-only files Ritik copies back (§4): an FB entry, B20 in B18's table, and the decision whether slide 2 shows it | **Tue Nov 17** | Nov 18 |
+| 4 | **B20's reading**, by its pre-registered rule, from the numbers-only files you copy back (§4; SOL_ARSHA step 9): an FB entry, B20 in B18's table, and the decision whether slide 2 shows it | **Tue Nov 17** | Nov 18 |
 | 5 | **Slides 2, 6, 7 and 8**, final (§5), and Track B's section of the report as bullets in `docs/trackB/REPORT_B.md` | **Fri Nov 20** | — |
 
 **Check-ins with Ritik: Nov 6, Nov 12, Nov 15 and Nov 18.**
@@ -54,7 +59,9 @@ final answer stop naming the tool once the model has called it? It is the eviden
   The hooks enforce this, both ways: Ritik's branches can't change your paths except by merging yours.
 - **The rules:** pre-register before any run; Voyager only, nothing paid; at most 4 requests in flight; every run under
   the power guard; no LLM judging; data never on GitHub; your commits carry no attribution lines.
-- **Sol:** jobs are Ritik's. The Sol job code stays Ritik's (`progress/sol_trackB.py`, `sol_b17.py`, `sol_b20.py`).
+- **Sol:** from Nov 5, B20's jobs are yours, on your own account: you type every command in your own login, and no
+  credentials are shared ([`SOL_ARSHA.md`](SOL_ARSHA.md)). Ritik's account runs A39 and A40; no line is submitted
+  from both. The Sol job code stays Ritik's (`progress/sol_trackB.py`, `sol_b17.py`, `sol_b20.py`).
 - **Your machine:** a Mac, Linux, or Windows through WSL. Off a Mac the power guard skips its battery check and says so.
 
 **Where to ask:** Ritik, by ASU email or the team's channel. Ask about anything outside your paths, a Sol job, a Voyager
@@ -124,8 +131,10 @@ halt, or a date that will slip.
   - `cot-disclosure/tools/trackb_final.py`, and `docs/paper/tables/trackB_final.*`, which it writes;
   - `cot-disclosure/tests/test_trackB*` and `tests/test_trackb_final.py`;
   - `cot-disclosure/results/trackB/` (gitignored data) and `cot-disclosure/results/summaries/trackB/` (numbers only).
-- **`run_b20.py` and `run_trackB.py` are also B20's Sol runner** (`run_b20.py` runs B20 through `run_trackB.run`).
-  Until B20's runs end (Nov 15), change only their report functions, and say so in the commit.
+- **`run_b20.py` and `run_trackB.py` are also B20's Sol runner** (`run_b20.py` runs B20 through `run_trackB.run`;
+  since Nov 5 its jobs on your account load them from your clone). Until B20's runs end (Nov 15), change only their
+  report functions, and say so in the commit. If B20 is read partial (§4), the report's code for it is written and
+  tested before it is read (the B20 log's §19.4): a report function, so it's yours to write.
 - **Everything else is shared, read-only for you:**
   - the Sol job code (`progress/sol_trackB.py`, `sol_b17.py`, `sol_b20.py`, `finetune/gpu/`);
   - `client.py`, `progress/common.py`, `providers/`, `tools/` (except `trackb_final.py`), `configs/`;
@@ -143,12 +152,13 @@ halt, or a date that will slip.
 
 | date | what |
 |---|---|
+| **Thu Nov 5** | B20 on your own Sol account ([`SOL_ARSHA.md`](SOL_ARSHA.md)), or on Nov 6 |
 | **Fri Nov 6** | the handoff: the bundle, setup (§1); **check-in** |
 | Sat Nov 7 | re-read B16, B19 and B17 by their reports |
 | Mon Nov 9 | B24 re-read against F40 (§4a; read Nov 4) |
 | **Thu Nov 12** | B18: every row checked against FINDINGS; its open choices settled (§5); **check-in and merge** |
-| **Sun Nov 15** | B20's runs end on Sol (Ritik); **check-in and merge** |
-| **Tue Nov 17** | **B20 read** by its rule (§4): an FB entry; B20's rows in B18's table |
+| **Sun Nov 15** | B20's runs end on your Sol account; 23:59, the partial cut-off (§4); **check-in and merge** |
+| **Tue Nov 17** | **B20 read** by its rule (§4), partial if not complete: an FB entry; B20's rows in B18's table |
 | **Wed Nov 18** | **results freeze** (no new runs after it); **B18's table and figure** done; **check-in and merge** |
 | **Fri Nov 20** | **slides 2, 6, 7 and 8 final** (§5); Track B's section of the report, as bullets in `docs/trackB/REPORT_B.md` |
 | Sun Nov 22 | the report draft (Ritik merges the sections) |
@@ -161,27 +171,31 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
 - **What it is:** Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B and Granite 4.2 8B on our vLLM on Sol, thinking on and off,
   Track B's design plus B16's authority arm. Pre-registered in `archive/sessions/2026-11-03/2026-11-03_1219_B_b20-prereg.md`
   (its §13 and §14: the jobs; its §15 and §16: the amendments of Nov 4; its §17: one port a job, and Granite's second
-  smoke).
-- **Where it stands (Nov 4, at the feeder's 15:56 tick; B20 updated 22:51):**
-  - **Nov 4, 22:51 (B20's log §18):**
-    - Granite's first run job (468897, 20:45–22:15) ran into its 1:30 limit: about 100 of 954 runs done, after 34
-      minutes of start-up.
-    - Gemma's (508647) ended exit 1 at 22:24, because every B20 job shared one stop file.
-    - The feeder skipped both models' other 11 lines.
-    - Fixed that night (`a530e80`, `e420ad1`): a stop file per job; the job ends itself, exit 2; each run saved as it
-      finishes; a TIMEOUT runs the next line.
-    - Ritik pulls and resets the skipped lines on Sol.
-    - At risk: Gemma's 1,922 runs over 12 lines.
-  - **Granite:** its second smoke passed every check (466399, Nov 4, 11:50–12:03); its runs started 20:45 (468897).
-  - **Gemma:** its second smoke (466400) was pending at 15:56; its runs started 21:31 (508647).
-  - **Nemotron:** its second smoke waited for a place at 15:56; its first run job (510702) was running at 22:26. Its
-    amendment (§16, `063bc78`) is on Sol.
+  smoke; its §18: the shared stop file; its §19: your account, the 3:00 lines, the run order and the partial read).
+- **Where it stands (Nov 5, from Ritik's Sol outputs of about 08:43; B20's log §19):**
+  - **Nov 4 (§18):** the three second smokes ran (Granite's, 466399, passed every check) and the runs started that
+    evening. Granite's first run job (468897) ran into its 1:30 limit, and Gemma's (508647) ended exit 1, because every
+    B20 job shared one stop file. The feeder skipped both models' other 11 lines. Fixed that night (`a530e80`,
+    `e420ad1`): a stop file per job; the job ends itself, exit 2; each run saved as it finishes; a TIMEOUT runs the
+    next line.
+  - **The cause confirmed (Nov 5, FINDINGS T13):** Nemotron's job (510702) started its server at 22:18:23, before
+    Gemma's runner looked again at 22:23:59, so its start removed the shared file. Granite's saved files are whole
+    (129 run rows, 129 records).
+  - **Runs left:** Granite 849 of 972, Gemma 1,784 of 1,944, **Nemotron 0: done**. No B20 job is queued.
+  - **The amendment of Nov 5 (§19), before any of these lines run:**
+    - every line not yet submitted runs at 3:00 (a job spends about 34 minutes starting);
+    - Granite 8 lines and Gemma 12: twice the jobs their measured pace needs (about 4 and 6). A line after a job that
+      finished its runs is "not needed" and never submitted;
+    - one chain a model, so one job a model at a time;
+    - each model's runs left go question by question: the same runs, ids, prompts and seeds, in another order.
+  - **Your account from Nov 5 (§19.5):** your own feeder reads `queue_b20_2026-11-05.txt` (`owner: not ragarw68`).
+    Ritik's queue has no B20 line, so no line is submitted from both. B20's saved runs are copied from Ritik's scratch
+    to yours first, and your runner resumes from them by run id. Setup: [`SOL_ARSHA.md`](SOL_ARSHA.md).
+  - **Your queue:** your own 10 places and 960 GPU-minutes (Granite's and Gemma's chains use 360). Your fair share is
+    likely far above Ritik's 0.0019 (SOL_ARSHA.md); `squeue --start -u $USER` gives estimates.
   - **Each B20 job serves on a port of its own** (§17). The shared-port audit found no earlier result affected
     (FINDINGS T12): each B20 smoke had its own server.
-  - **Sol's queue is slow for us:** our fair share is 0.005, so our jobs start only by backfill. Nothing started from
-    12:36 to at least 13:56; by 22:26, 8 of our jobs were running.
-  - **The Nov 6 07:00 rule** (the A39 log's §16) may drop A39 on the old 30 and hold B1R2, both Ritik's. It never
-    touches B20: B20's lines stay ahead of both.
+  - **The Nov 6 and Nov 11 rules** (the A39 log's §16, §19) act on Ritik's account only. They never touch B20.
 - **The amendment of Nov 4 (§15), after both smokes exited 5:**
   - **Gemma's tool channel is the inserted tool turn** (`tool_injected`), the pre-registered fallback. Its smoke never
     called the tool. Label it "the inserted tool turn (the fallback)".
@@ -201,8 +215,14 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
   - **R3a:** the bare answer after a call, against the pasted block.
   - **R3b:** thinking on minus off, on that bare answer.
   - Each is paired by question with a 95% bootstrap clustered by question, with the 16,000-token cut beside it.
-- **Ritik runs the jobs and copies back** each model's numbers-only files (`results/trackB/b20/<model>/`, without the
-  `*.jsonl.gz` records). Ritik sends them to you through ASU storage by Nov 16.
+- **The partial read** (§19.4, set Nov 5 before any B20 result is read): if B20 isn't complete by **Nov 15 23:59**,
+  each model is read on the questions that have every run of its design (18 runs a question for Granite, 36 for Gemma
+  and Nemotron), labelled **"partial: N of 54 questions"**, with how many are pilot puzzles and how many MMLU-Pro
+  items. A model with no whole question is "not run: no GPU time by Nov 15". The rule above holds on those questions,
+  unchanged.
+- **You run the jobs and copy back** each model's numbers-only files (`results/trackB/b20/<model>/`, without the
+  `*.jsonl.gz` records): SOL_ARSHA step 9. Copy and count at any time; read only when the rule allows. (Until Nov 5
+  this was Ritik's.)
 - **You read:**
   ```bash
   ../.venv/bin/python progress/run_b20.py --report
@@ -308,6 +328,6 @@ open choices for Arsha to decide.
 
 ## 8. Contacts
 
-- **Ritik Agarwal:** submits every Sol job, owns the shared code, the allowlist and the bundles, and merges
-  `trackB-main` into `main`.
+- **Ritik Agarwal:** submits Track A's Sol jobs (A39, A40) from his own account (B20's are yours from Nov 5), owns
+  the shared code, the allowlist and the bundles, and merges `trackB-main` into `main`.
 - **Shrey Bishnoi:** Track C, on `trackC-main`.

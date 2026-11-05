@@ -6,7 +6,8 @@ FINDINGS.md at the end, keeping each FB number as an alias. Each entry has FINDI
 setup, result by the pre-registered rule, anything read after the fact labelled so, limits, source (a numbers-only
 summary and the command that recomputes it), status.
 
-No entries yet. B20 (open models on Sol, pre-registered Nov 3) is read here by Nov 17.
+No entries yet. B20 (open models on Sol, pre-registered Nov 3; on Arsha's own Sol account from Nov 5) is read here by
+Nov 17, partial ("partial: N of 54 questions") if not complete by Nov 15 23:59 (its log's §19).
 
 ## Notes before any reading (descriptive, not findings)
 
