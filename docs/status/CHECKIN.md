@@ -1,6 +1,6 @@
 # The daily check-in
 
-**Edited by:** Ritik. Written 2026-11-04 16:19 MST; the labels corrected 17:54 (the standing rule, Nov 7, Nov 8); the daily rule 22:33; the push to two branches 22:34.
+**Edited by:** Ritik. Written 2026-11-04 16:19 MST; the labels corrected 17:54 (the standing rule, Nov 7, Nov 8); the daily rule 22:33; the push to two branches 22:34; Nov 5, 09:40: two Sol accounts (B20 on Arsha's), B1R2 dropped, §1 step 4 and §9.
 History: `git log -- docs/status/CHECKIN.md`.
 
 One routine, once a day, in this order: §1 to §7. §8 is the merge, on the merge days. §9 is what each day from Nov 5 to
@@ -112,6 +112,9 @@ git log --oneline -1 origin/main; git log --oneline origin/main..origin/trackC-m
      ```
    - **Prints anything:** don't pull. Report the files: needs Ritik (a changed file waits until the queued jobs that
      load it have started).
+   - **From Nov 5, no job of Ritik's loads B20's files** (`progress/sol_b20.py`, `run_b20.py`, `run_trackB.py`): his
+     queue has no B20 line. A change to them alone doesn't stop his pull. They stay on the list for Arsha's clone, where
+     B20's jobs load them (her `SOL_ARSHA.md`, step 2).
    - Pull at the end of the day too, after §6's push, by the same rule, so Sol has the day's commits.
 
 ## 2. Copy back finished numbers
@@ -358,19 +361,19 @@ From PLAN's calendar, the TODOs and the logs. "Needs Ritik" goes in the report.
 
 | day | due | the check-in does |
 |---|---|---|
-| Thu Nov 5 | nothing fixed. Sol: the first start since Nov 4 12:36 (dates from `squeue --start`) | §1–§7; push as §6's first row |
-| Fri Nov 6 | **07:00, the feeder's decision nov6** (the A39 log's §16). **Arsha's handoff:** her bundle `trackB_20261106`, her setup and check-in; Track B is hers from today | record decision nov6 in the Nov 6 daily (§4); build and verify her bundle (§4). Needs Ritik: send the bundle and her note; cut 3 if cut. The handoff's push is the last to `trackB-main` |
+| Thu Nov 5 | **B20 moves to Arsha's own Sol account** (the B20 log's §19): Ritik's pull (no B20 line left in his queue); Arsha runs `docs/trackB/SOL_ARSHA.md` herself. A40 pre-registered; its Voyager targets start | §1–§7; push as §6's first row. Needs Ritik: the pull; send Arsha her block |
+| Fri Nov 6 | **07:00, the feeder's decision nov6** (the A39 log's §16). **Arsha's handoff:** her bundle `trackB_20261106`, her setup and check-in; Track B is hers from today | record decision nov6 in the Nov 6 daily (§4); build and verify her bundle (§4). Needs Ritik: send the bundle and her note. The handoff's push is the last to `trackB-main` (decision d, Nov 5) |
 | Sat Nov 7 | **Track C check-in and merge** (C19 due). (Corrected Nov 4, 17:54: no L3 settling call or fresh batch; Shrey does no labeling) | §8 for `trackC-main`. Needs Ritik: L3's state for Gate 2 |
 | Sun Nov 8 | **Gate 2** (G2): the tool-vs-user gap (answered) and the labels' kappa per channel (Ritik against the AI judges' majority, the LLM-judge protocol) | needs Ritik: Gate 2's statement from L3 |
 | Mon Nov 9 | Arsha re-reads B24 from the bundle | — |
 | Tue Nov 10 | the report from Nov 10 (PLAN) | — |
-| Wed Nov 11 | **09:00, the 30's rule** (the A39 log's §10.2), applied by the feeder (§17), unless dropped Nov 6 | record its branch (§4) |
+| Wed Nov 11 | **09:00, the 30's rule** (the A39 log's §10.2), applied by the feeder (§17): from Nov 5 it checks E2's and A40's lines (§19), unless the 30 was dropped Nov 6 | record its branch (§4) |
 | Thu Nov 12 | **check-ins and merges:** Track B (Arsha), Track C (C25, Shrey) | §8 twice |
 | Fri Nov 13 | — | §1–§7 |
 | Sat Nov 14 | — | §1–§7; if A39 on E2 won't be complete by Nov 15, its §18 partial read applies (§3) |
-| Sun Nov 15 | **runs end**; B20's runs by today; C20 and C26 (Shrey); **check-ins and merges** B and C; **23:59: B1R2's partial cut-off** | §8 twice; §3's completeness checks |
-| Mon Nov 16 | B1R2 read (Nov 16–17) | §3; needs Ritik: stop the feeder now or at the freeze |
-| Tue Nov 17 | **A39 read** (E2; the 30 beside it if run); **B20 read** by Arsha; B1R2 read | §2 copy-back, §3 |
+| Sun Nov 15 | **runs end**; B20's runs by today (Arsha's account); C20 and C26 (Shrey); **check-ins and merges** B and C; **23:59: the partial cut-offs** of A39 on E2 (§18), A40 and B20 (the B20 log's §19) | §8 twice; §3's completeness checks |
+| Mon Nov 16 | — (B1R2 dropped Nov 5) | §3; needs Ritik: stop the feeder now or at the freeze |
+| Tue Nov 17 | **A39 read** (E2; the 30 beside it if run); **A40 read** (E2, by its own log's rule); **B20 read** by Arsha | §2 copy-back, §3 |
 | Wed Nov 18 | **the results freeze**: no new runs. **Check-ins and merges** B and C; C24 and slides 11–12 (Shrey); B18's table and figure (Arsha) | §8 twice; §4's freeze (needs Ritik: the feeder's stop, any `scancel`) |
 | Thu Nov 19 | — | §1–§7 |
 | Fri Nov 20 | **Gate 3's final statement** (G3, A17, D6: final verdicts, figures, supplement, STATUS); Arsha's slides 2, 6, 7, 8 final and Track B's report bullets; Track C's bullets (`docs/trackC/REPORT_C.md`) | needs Ritik: Gate 3's statement; a merge to bring in Nov 20's bullets and slides (no merge day is set after Nov 18) |

@@ -20,8 +20,9 @@ trackC-main  cot-disclosure/results/trackC/
 trackC-main  cot-disclosure/results/summaries/trackC/
 #
 # Track B (Arsha, from Nov 6). Her runners, report and table code; not the Sol job code (progress/sol_trackB.py,
-# sol_b17.py, sol_b20.py: Ritik submits Sol jobs, and every vLLM job imports the first two). run_b20.py is also B20's
-# Sol runner: until B20's runs end (Nov 15), only its report functions change (her START_HERE).
+# sol_b17.py, sol_b20.py: shared Sol kit, and every vLLM job imports the first two; from Nov 5 Arsha submits B20's
+# jobs from her own account, with this kit unchanged). run_b20.py is also B20's Sol runner: until B20's runs end
+# (Nov 15), only its report functions change (her START_HERE).
 trackB-main  docs/trackB/
 trackB-main  docs/tracks/TRACK_B.md
 trackB-main  cot-disclosure/results/trackB/

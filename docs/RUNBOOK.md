@@ -2,7 +2,7 @@
 
 **Edited by:** Ritik.
 
-Last updated: 2026-11-04 (the Sol order and its real limit, §0; labels, §15; the pre-commit hook, §17; history: `git log -- docs/RUNBOOK.md`). One page per step: what it does, where it runs, the commands in order,
+Last updated: 2026-11-05 09:40 (two Sol accounts, one queue file each: B20 on Arsha's, B1R2 dropped, A40's place, §0; earlier, Nov 4: the Sol order and its real limit, §0; labels, §15; the pre-commit hook, §17; history: `git log -- docs/RUNBOOK.md`). One page per step: what it does, where it runs, the commands in order,
 inputs and outputs, how long it takes, and what to check. Written so anyone in the group can run a
 step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md); open work in
 [`TODO.md`](status/TODO.md), [`TODO_B.md`](trackB/TODO_B.md) and [`TODO_C.md`](trackC/TODO_C.md).
@@ -15,26 +15,31 @@ step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md
 
 ## 0. Read this first
 
-**The Sol order to the results freeze (Ritik, Nov 3; re-planned Nov 4 00:48 for Sol's real limit).** The course account
-only (no other account; the H100s aren't available). B1, A37, B17 and A18 are done (A18 read Nov 3, F39); A38 is
-dropped. One queue, in this order:
-1. the 1-GPU bench (389340): done Nov 3, about 400 tokens/s per A100 (KV-cache bound), so E2 is 53.2 GPU-hours;
-2. B20's smokes, then each model's runs after its clean smoke (2026-11-03 12:19, §13 and §14). On Nov 4 Granite's
-   (456999) and Gemma's (457471) weren't clean. The amendment of Nov 4 (§15, `2361152`) gives Gemma the inserted tool
-   turn and runs Granite thinking on only; the second (§16, `063bc78`) gives Nemotron the inserted tool turn too.
-   Granite's second smoke passed (466399, Nov 4); Gemma's and Nemotron's wait for places;
-3. A39 on E2 in 1-GPU parts: the 9 parts queued Nov 3 (running from about 22:45), then the core systems' sixteenths,
-   round-robin, the quarters' leftovers as sixteenths, the wrapper systems' fifths and a sweep per system
-   (pre-registration 2026-11-03 11:30, §10–§12 and §15);
-4. A39 on the 30 (quarters and halves), unless E2 and B20 miss Nov 11 09:00;
-5. B1R2 last: decided Nov 4 by its rule's compute check, which it passed (the A39 log's §13): 40 parts of 3 questions.
+**The Sol order to the results freeze (Ritik, Nov 3; re-planned Nov 4 00:48 for Sol's real limit; two accounts from
+Nov 5).** The course account only (the H100s aren't available). B1, A37, B17 and A18 are done (A18 read Nov 3, F39); A38
+is dropped. **From Nov 5, two Sol accounts, one queue file each** (the B20 log's §19 and the A39 log's §19), so no line
+is ever submitted from both:
+- **Ritik's** (`finetune/gpu/sol/queue_2026-11-04.txt`, `owner: ragarw68`), in this order:
+  1. the 1-GPU bench (389340): done Nov 3, about 400 tokens/s per A100 (KV-cache bound), so E2 is 53.2 GPU-hours;
+  2. A39 on E2 in 1-GPU parts: the 9 parts queued Nov 3, then the core systems' sixteenths, round-robin, the quarters'
+     leftovers as sixteenths, the wrapper systems' fifths and a sweep per system (pre-registration 2026-11-03 11:30,
+     §10–§12 and §15). By Nov 5 morning every part had gone in;
+  3. A40 (its own pre-registration, Nov 5): its lines go after E2's, once its training data is on Sol;
+  4. A39 on the 30 (quarters and halves), unless E2's and A40's lines haven't all ended by Nov 11 09:00 (the A39 log's
+     §19). While A40's lines aren't ready, the 30's go in as places free up.
+- **Arsha's** (`queue_b20_2026-11-05.txt`, `owner: not ragarw68`; her setup `docs/trackB/SOL_ARSHA.md`): B20's runs
+  left, Granite's and Gemma's chains of 3:00 jobs, question by question. Nemotron's runs were done Nov 4–5 on Ritik's
+  account. B20's earlier smokes and runs (Nov 4) ran on Ritik's account; their files are copied to hers first.
+- **Dropped:** B1R2, "not run: GPU time given to A40" (Nov 5, before any B1R2 run; F38).
 
 Nothing new after Nov 18. **What binds** (Nov 4) is the class QoS's 960 running GPU-minutes (each running job's time
 left × GPUs) and the 10 submitted jobs: 7 one-GPU jobs ran at once on Nov 3, so MaxJobsPU 2 doesn't bind. So most jobs
 are 1:30 (10 at once hold 900).
 
 **The feeder submits them** (Nov 4; `tools/sol_feeder.py`, the session log `2026-11-04_0124`). It runs on Sol and keeps
-the 10 places full from the queue file `finetune/gpu/sol/queue_2026-11-04.txt`: the 00:26 log's lines, in its order,
+its user's 10 places full from that user's queue file (Ritik's `finetune/gpu/sol/queue_2026-11-04.txt`, the default;
+Arsha's with `--queue cot-disclosure/finetune/gpu/sol/queue_b20_2026-11-05.txt`; the feeder refuses a queue whose owner
+line isn't its user's, before anything else): the 00:26 log's lines, in its order,
 dependencies by label. Every 5 minutes it reads the jobs' states (sacct), then submits the next lines through
 `submit.sh` while places and GPU-minutes allow. It records each line's job id before the next, so a restart never
 submits a line twice. It waits for dependencies itself, so no pending job holds a place, and it skips (and mails you) a
