@@ -1,0 +1,32 @@
+# B20's queue for the Sol feeder (tools/sol_feeder.py --queue cot-disclosure/finetune/gpu/sol/queue_b20_2026-11-05.txt),
+# Nov 5. Edited by: Ritik. B20's runs left, on Arsha's own Sol account and her own feeder (the B20 log's section 19,
+# 2026-11-03 logs); her setup, and the copy of the saved runs from Ritik's scratch before her first job:
+# docs/trackB/SOL_ARSHA.md. Ritik's queue (queue_2026-11-04.txt) has no B20 line; the owner line below makes the feeder
+# refuse this file on his account, so no line is submitted from both. It stays "not" his: the kit names no other
+# Sol user.
+# Lines (section 19, operational: limits, line count and run order only; the design is unchanged): one chain a model,
+# so one job a model at a time; each line a 3:00 limit (--estimate 2.3); each again only after the one before it
+# stopped at its limit with runs left, else not needed. Granite 849 runs left, 8 lines; Gemma 1,784, 12 lines (twice
+# what each needs at its measured pace); Nemotron none left, no line. Each model's first line waits for the run
+# order's commit on Sol (needs=): the runs go question by question.
+owner: not ragarw68
+b20-granite-r3-1           | needs=60416c8                            | b20 --model granite-4.2-8b --estimate 2.3
+b20-gemma-r3-1             | needs=60416c8                            | b20 --model gemma-4-26b-a4b-it --estimate 2.3
+b20-granite-r3-2           | again=@b20-granite-r3-1                  | b20 --model granite-4.2-8b --estimate 2.3
+b20-gemma-r3-2             | again=@b20-gemma-r3-1                    | b20 --model gemma-4-26b-a4b-it --estimate 2.3
+b20-granite-r3-3           | again=@b20-granite-r3-2                  | b20 --model granite-4.2-8b --estimate 2.3
+b20-gemma-r3-3             | again=@b20-gemma-r3-2                    | b20 --model gemma-4-26b-a4b-it --estimate 2.3
+b20-granite-r3-4           | again=@b20-granite-r3-3                  | b20 --model granite-4.2-8b --estimate 2.3
+b20-gemma-r3-4             | again=@b20-gemma-r3-3                    | b20 --model gemma-4-26b-a4b-it --estimate 2.3
+b20-granite-r3-5           | again=@b20-granite-r3-4                  | b20 --model granite-4.2-8b --estimate 2.3
+b20-gemma-r3-5             | again=@b20-gemma-r3-4                    | b20 --model gemma-4-26b-a4b-it --estimate 2.3
+b20-granite-r3-6           | again=@b20-granite-r3-5                  | b20 --model granite-4.2-8b --estimate 2.3
+b20-gemma-r3-6             | again=@b20-gemma-r3-5                    | b20 --model gemma-4-26b-a4b-it --estimate 2.3
+b20-granite-r3-7           | again=@b20-granite-r3-6                  | b20 --model granite-4.2-8b --estimate 2.3
+b20-gemma-r3-7             | again=@b20-gemma-r3-6                    | b20 --model gemma-4-26b-a4b-it --estimate 2.3
+b20-granite-r3-8           | again=@b20-granite-r3-7                  | b20 --model granite-4.2-8b --estimate 2.3
+b20-gemma-r3-8             | again=@b20-gemma-r3-7                    | b20 --model gemma-4-26b-a4b-it --estimate 2.3
+b20-gemma-r3-9             | again=@b20-gemma-r3-8                    | b20 --model gemma-4-26b-a4b-it --estimate 2.3
+b20-gemma-r3-10            | again=@b20-gemma-r3-9                    | b20 --model gemma-4-26b-a4b-it --estimate 2.3
+b20-gemma-r3-11            | again=@b20-gemma-r3-10                   | b20 --model gemma-4-26b-a4b-it --estimate 2.3
+b20-gemma-r3-12            | again=@b20-gemma-r3-11                   | b20 --model gemma-4-26b-a4b-it --estimate 2.3

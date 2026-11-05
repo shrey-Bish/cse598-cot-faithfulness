@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
-"""The Sol feeder (Nov 4): keeps Ritik's class-QoS queue full from an ordered queue file, through submit.sh, so places
-that free up at night or in class are filled within a tick. Standard library only (Python 3.6+), on a login node.
+"""The Sol feeder (Nov 4): keeps its user's class-QoS queue full from that user's ordered queue file, through submit.sh,
+so places that free up at night or in class are filled within a tick. Standard library only (Python 3.6+), on a login
+node.
+
+Two queue files, one a Sol account, so no line is ever submitted from both (Nov 5, the B20 log's section 19): Ritik's
+(finetune/gpu/sol/queue_2026-11-04.txt, the default --queue: A39 and A40) and B20's (queue_b20_2026-11-05.txt, on
+Arsha's account, with --queue). A queue's first line that isn't a comment names its owner, "owner: USER" or "owner: not
+USER"; the feeder refuses a queue that isn't $USER's, or names no owner, before anything else, whatever the command.
 
 One tick (--once; --loop runs one every --interval seconds, 300 by default):
   1. The stop file (/scratch/$USER/trackA/feeder.stop) ends it, the loop too, before anything else.
@@ -21,15 +27,15 @@ Alerts: the log, the state file (--status) and one mail a tick to $TRACKA_MAIL (
 login node's `mail`, if it has one.
 The daily digest (Nov 4): the first tick after 07:00 (local time) mails what finished and what failed in the last 24 h,
 what runs and waits, the GPU-hours delivered in the last 24 h (sacct: each job's time in the window x its GPUs), any gap
-between ticks, and a rough finish for A39 on E2, A39 on the 30, B20 and B1R2: the GPU-hours the queue still holds up to
+between ticks, and a rough finish for A39 on E2, A40, A39 on the 30 and B20: the GPU-hours the queue still holds up to
 each group's last line (at each line's limit), at the last 24 h's pace. Also written to <out>/feeder/digest.txt.
 Health: a tick that comes over 30 minutes after the one before says so in the log, the status and the next digest (the
 scrontab job waited in Sol's queue; RUNBOOK section 0 has the nohup loop for that case).
 Decisions (Nov 4, the A39 log's sections 16 and 17): a decision the queue names (dropif=, holdif=) is made once, at
 the first tick at or after its time, from compute only: nov6, the GPU-hours your jobs got in its window (as the digest
-counts them), "cut" if under its threshold; nov11, whether every E2 and B20 line has an ended job or is settled, "cut"
-if not. It goes in the log, the state, an alert mail, the digest and --status. If sacct fails, the next tick decides,
-over the same window.
+counts them), "cut" if under its threshold; nov11, whether every E2 and A40 line has an ended job or is settled, "cut"
+if not (Nov 5, the A39 log's section 19: B20's lines left this queue, and A40 now stands ahead of the 30). It goes in the
+log, the state, an alert mail, the digest and --status. If sacct fails, the next tick decides, over the same window.
 
   python3 cot-disclosure/tools/sol_feeder.py --status
   python3 cot-disclosure/tools/sol_feeder.py --dry-run             # what a tick would submit now; changes nothing
@@ -40,8 +46,7 @@ over the same window.
   python3 cot-disclosure/tools/sol_feeder.py --skip LABEL          # never submit it
   python3 cot-disclosure/tools/sol_feeder.py --reset LABEL         # forget its job: it may go in again
 
-The queue file (finetune/gpu/sol/queue_2026-11-04.txt): one job a line, "LABEL | OPTIONS | submit.sh ARGUMENTS";
-OPTIONS ("-" for none):
+A queue file: its owner line, then one job a line, "LABEL | OPTIONS | submit.sh ARGUMENTS"; OPTIONS ("-" for none):
   job=N           submitted by hand as job N: never submitted here, but tracked, and later lines may wait on it
   afterok=REFS    every REF ended COMPLETED with exit 0; if one ended otherwise, this line is skipped (and you're told)
   afterany=REFS   every REF has ended, however
@@ -90,14 +95,15 @@ WARN_EXIT = "138:0"                                # 128 + SIGUSR1: Slurm's warn
 DECISIONS = {                                      # Nov 4: made by the feeder once, at their time (compute only)
     "nov6": {"rule": "the A39 log's section 16", "since": "2026-11-04T12:36:00", "at": "2026-11-06T07:00:00",
              "below": 10.0, "hold_until": r"(e2-.*-sweep|b20-.*)$", "hold_what": "E2's sweeps and B20's lines",
-             "cut": "the 30's lines are dropped (cut 1), and B1R2's wait until E2's sweeps and B20's lines are "
-                    "submitted or settled (cut 2); cut 3 is Ritik's",
-             "no cut": "no cut: the 30's own rule (Nov 11 09:00) and B1R2's (partial at Nov 15 23:59) stand"},
-    "nov11": {"rule": "the A39 log's section 10.2 (applied as section 17 says)", "kind": "finished",
-              "at": "2026-11-11T09:00:00", "lines": r"(e2-|b20-)", "what": "E2's and B20's jobs",
+             "cut": "the 30's lines are dropped (cut 1); cuts 2 and 3 are moot, B1R2 being dropped (the A39 log's "
+                    "section 19)",
+             "no cut": "no cut: the 30's own rule (Nov 11 09:00) stands"},
+    "nov11": {"rule": "the A39 log's section 10.2 (applied as sections 17 and 19 say)", "kind": "finished",
+              "at": "2026-11-11T09:00:00", "lines": r"(e2-|a40-)", "what": "E2's and A40's jobs",
               "cut": "the 30's lines are dropped, recorded \"not run: no GPU time by Nov 12\"",
               "no cut": "the 30 runs"},
 }
+OWNER = re.compile(r"owner:\s*(not\s+)?([A-Za-z0-9_.-]+)$")   # Nov 5: a queue's first line that isn't a comment
 Line = namedtuple("Line", "n label opts argv")
 
 
@@ -109,12 +115,46 @@ class FeederError(RuntimeError):
     pass
 
 
-def parse_queue(text):
-    lines, seen = [], set()
+def owner_of(text):
+    """The queue's owner (Nov 5): (USER, False) for "owner: USER", only USER's feeder uses it; (USER, True) for "owner:
+    not USER", any feeder but USER's. Its first line that isn't a comment; a queue without one is refused."""
     for n, raw in enumerate(text.splitlines(), 1):
         s = raw.strip()
         if not s or s.startswith("#"):
             continue
+        m = OWNER.match(s)
+        if not m:
+            break
+        return m.group(2), bool(m.group(1))
+    raise QueueError("the queue names no owner: its first line that isn't a comment must be \"owner: USER\" or \"owner: "
+                     "not USER\" (one queue file a Sol account, so no line is submitted from both)")
+
+
+def refusal(text, user):
+    """Why `user`'s feeder may not use this queue; None if it may."""
+    try:
+        owner, negated = owner_of(text)
+    except QueueError as err:
+        return str(err)
+    if (owner == user) != negated:
+        return None
+    return "its owner line says \"owner: %s%s\", and you are %s: run your own account's queue file (--queue)" % (
+        "not " if negated else "", owner, user)
+
+
+def parse_queue(text):
+    lines, seen, first = [], set(), True
+    for n, raw in enumerate(text.splitlines(), 1):
+        s = raw.strip()
+        if not s or s.startswith("#"):
+            continue
+        if s.startswith("owner:"):
+            if not first or not OWNER.match(s):
+                raise QueueError("queue line %d: the owner line (\"owner: USER\" or \"owner: not USER\") comes first, "
+                                 "once: %r" % (n, s))
+            first = False
+            continue
+        first = False
         parts = [p.strip() for p in s.split("|")]
         if len(parts) != 3 or not parts[0] or not parts[2]:
             raise QueueError("queue line %d: want LABEL | OPTIONS | ARGUMENTS: %r" % (n, s))
@@ -192,12 +232,14 @@ def limit_hours(argv):
 
 
 def group_of(line):
-    """The digest's groups: A39 on E2, A39 on the 30, B20, B1R2."""
+    """The digest's groups: A39 on E2, A40 (its a40- labels, or the system a40: its E2 lines run as A39's do), A39 on
+    the 30, B20 (Arsha's feeder, Nov 5)."""
     a = line.argv
+    system = a[a.index("--") + 1] if "--" in a[:-1] else None
+    if line.label.startswith("a40-") or system == "a40":
+        return "A40"
     if a[0] == "b20":
         return "B20"
-    if a[0] == "provenance_gen":
-        return "B1R2"
     if a[0].startswith("a39"):
         return "A39 on E2" if "e2" in a else "A39 on the 30"
     return None
@@ -375,7 +417,8 @@ def runs_left_here(spec, argv, out_root, alpha_from=None):
 
 # ---------------------------------------------------------------- the feeder
 class Feeder:
-    def __init__(self, lines, state_dir, sol, log_path, stop_file, mail_to, clock=None, echo=False, now=None):
+    def __init__(self, lines, state_dir, sol, log_path, stop_file, mail_to, clock=None, echo=False, now=None,
+                 queue=None):
         self.now = now or (lambda: datetime.now().astimezone())             # a datetime: the digest and the health check
         self.lines, self.sol, self.echo = lines, sol, echo
         self.clock = clock or (lambda: stamp_of(self.now()))
@@ -383,6 +426,15 @@ class Feeder:
         self.state_dir, self.log_path, self.stop_file, self.mail_to = Path(state_dir), Path(log_path), Path(stop_file), mail_to
         self.state_path = self.state_dir / "state.json"
         self.again_of = {l.opts["again"][1:] for l in lines if "again" in l.opts}
+        self.queue = Path(queue).resolve() if queue else QUEUE
+
+    def status_hint(self):
+        """The --status command for this queue: with --queue unless it is the default (Nov 5: on Arsha's account the
+        default, Ritik's, is refused by its owner line)."""
+        if self.queue == QUEUE.resolve():
+            return "python3 cot-disclosure/tools/sol_feeder.py --status"
+        q = self.queue.relative_to(REPO) if REPO in self.queue.parents else self.queue
+        return "python3 cot-disclosure/tools/sol_feeder.py --status --queue %s" % shlex.quote(str(q))
 
     # -- state and log
     def load(self):
@@ -570,8 +622,7 @@ class Feeder:
         if alerts:
             st["alerts"] = (st["alerts"] + [{"at": stamp, "text": a} for a in alerts])[-100:]
             if not dry and self.mail_to and self.mail_to != "none":
-                body = "\n".join(alerts) + "\n\nThe log: %s\nStatus: python3 cot-disclosure/tools/sol_feeder.py --status\n" \
-                       % self.log_path
+                body = "\n".join(alerts) + "\n\nThe log: %s\nStatus: %s\n" % (self.log_path, self.status_hint())
                 say(self.sol.mail(self.mail_to, "Sol feeder: %d alert%s" % (len(alerts), "s" * (len(alerts) > 1)), body))
         today = self.now().strftime("%Y-%m-%d")
         if not dry and self.now().hour >= DIGEST_HOUR and st.get("digest_day") != today:
@@ -648,7 +699,7 @@ class Feeder:
                 tally[g][word] = tally[g].get(word, 0) + 1
                 if word in ("to submit", "pending", "running", "submitted"):
                     last[g] = held
-        for g in ("A39 on E2", "A39 on the 30", "B20", "B1R2"):
+        for g in ("A39 on E2", "A40", "A39 on the 30", "B20"):
             if g not in tally:
                 continue
             counts = ", ".join("%d %s" % (v, k) for k, v in sorted(tally[g].items()))
@@ -661,7 +712,7 @@ class Feeder:
             else:
                 out.append("  %s: %s; at most %.0f GPU-hours up to its last line; no pace yet (nothing ran in 24 h)"
                            % (g, counts, last[g]))
-        out += ["", "The log: %s" % self.log_path, "Status: python3 cot-disclosure/tools/sol_feeder.py --status"]
+        out += ["", "The log: %s" % self.log_path, "Status: %s" % self.status_hint()]
         return "\n".join(out)
 
     def decide(self, st, say, alert):
@@ -886,9 +937,13 @@ def main(argv=None):
     if a.runs_left:
         print(runs_left_here(a.runs_left, [], a.out, a.alpha_from))
         return 0
+    text = Path(a.queue).read_text()
+    why = refusal(text, os.environ.get("USER") or getpass.getuser())   # Nov 5: before anything, whatever the command
+    if why:
+        raise SystemExit("sol_feeder: refusing %s: %s" % (a.queue, why))
     out = Path(a.out)
-    f = Feeder(parse_queue(Path(a.queue).read_text()), out / "feeder", Sol(out=out), log_path=out / "feeder.log",
-               stop_file=out / "feeder.stop", mail_to=a.mail_to, echo=not a.loop)
+    f = Feeder(parse_queue(text), out / "feeder", Sol(out=out), log_path=out / "feeder.log",
+               stop_file=out / "feeder.stop", mail_to=a.mail_to, echo=not a.loop, queue=a.queue)
     if a.status:
         print(f.status_text())
     elif a.adopt:

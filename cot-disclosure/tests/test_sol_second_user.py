@@ -241,12 +241,14 @@ def test_every_job_script_logs_under_the_submitting_users_scratch():
 
 def test_no_user_name_is_left_in_the_kits_code():
     """No literal ragarw68 in what runs on Sol: the kit's scripts and configs, and the Python it starts.
-    The GPU README may name it only on a line that says it is an example."""
+    The GPU README may name it only on a line that says it is an example. A feeder queue file's owner line (Nov 5:
+    "owner: USER" or "owner: not USER", one queue file a Sol account) names an account by design."""
     files = [p for p in SOL.rglob("*") if p.is_file()]
     for pattern in ("finetune/**/*.py", "progress/*.py", "agents/sol_*.py", "providers/*.py"):
         files += CODE.glob(pattern)
     found = [f"{p.relative_to(CODE)}:{i}" for p in files
-             for i, line in enumerate(p.read_text(errors="replace").splitlines(), 1) if RITIK in line]
+             for i, line in enumerate(p.read_text(errors="replace").splitlines(), 1) if RITIK in line
+             and not (p.name.startswith("queue_") and line in (f"owner: {RITIK}", f"owner: not {RITIK}"))]
     assert found == []
     readme = (CODE / "finetune" / "gpu" / "README.md").read_text().splitlines()
     unlabelled = [f"README.md:{i}: {x}" for i, x in enumerate(readme, 1)

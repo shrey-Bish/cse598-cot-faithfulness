@@ -294,11 +294,14 @@ def test_adopt_skip_and_reset(tmp_path):
 
 
 def test_the_queue_names_no_user_and_the_feeder_expands_user(monkeypatch):
-    """The kit names no Sol user (test_sol_second_user): the queue file says $USER, and the feeder expands it."""
+    """The kit names no Sol user (test_sol_second_user): the queue file says $USER, and the feeder expands it. The one
+    exception (Nov 5) is each queue file's owner line, whose job is to name the account."""
     monkeypatch.setenv("USER", "someone")
     l = sf.parse_queue("a | - | provenance_gen -- --alpha-from /scratch/$USER/trackA/x.json --b1r2\n")[0]
     assert l.argv[-2] == "/scratch/someone/trackA/x.json"
-    assert "$USER" in sf.QUEUE.read_text() and "ragarw68" not in sf.QUEUE.read_text()
+    for p in sf.SOL.glob("queue_*.txt"):
+        assert [x for x in p.read_text().splitlines() if "ragarw68" in x] in \
+            (["owner: ragarw68"], ["owner: not ragarw68"], []), p.name
 
 
 @pytest.mark.parametrize("text,err", [
@@ -320,13 +323,12 @@ def test_the_queue_file_follows_the_plan():
     done = {l.label: l.opts["job"] for l in lines if "job" in l.opts}
     assert done == {"e2-base-1of4": "426582", "e2-prompt_only-1of4": "428294", "e2-lora-1of4": "428295",
                     "e2-lora_note-1of4": "428296", "e2-base-3of4": "428297", "e2-prompt_only-2of4": "428298",
-                    "e2-lora-2of4": "428299", "e2-lora_note-2of4": "428330", "e2-base-2of4": "428332",
-                    "b20-granite-smoke": "456999", "b20-gemma-smoke": "457471"}
+                    "e2-lora-2of4": "428299", "e2-lora_note-2of4": "428330", "e2-base-2of4": "428332"}
     todo = [l for l in lines if "job" not in l.opts]
-    kinds = [l.argv[0] for l in todo]
-    first_a39 = kinds.index("a39_1gpu")
-    assert set(kinds[:first_a39]) == {"b20"} and kinds[-1] == "provenance_gen"   # B20 first, B1R2 last
-    assert all("needs" in l.opts for l in todo if l.argv[0] == "provenance_gen")
+    # Nov 5 (the logs' sections 19): B20's lines are on Arsha's account and B1R2's dropped; E2, then A40, then the 30
+    groups = [l.label.split("-")[0] for l in lines]
+    assert set(groups) <= {"e2", "a40", "m30"} and groups == sorted(groups, key=["e2", "a40", "m30"].index)
+    todo = [l for l in todo if not l.label.startswith("a40-")]             # A40's lines: its own tests
     parts = [(l.argv[-3], l.argv[-1]) for l in todo if l.argv[0] == "a39_1gpu" and l.argv[-2] == "e2"
              and l.argv[-1].endswith("/16")]
     assert len(parts) == 56
@@ -340,7 +342,6 @@ def test_the_queue_file_follows_the_plan():
     assert len(fifths) == 15
     thirty = [l for l in todo if "mmlupro_30" in l.argv and re.search(r"/\d+$", l.argv[-1])]
     assert len(thirty) == 22
-    assert sum(l.argv[0] == "provenance_gen" and "--part" in l.argv and l.argv[-1].endswith("/40") for l in todo) == 40
     # every sweep waits for every part of its system, and runs only if runs are left
     for l in todo:
         if l.argv[0] == "a39_1gpu" and not re.search(r"/\d+$", l.argv[-1]):
@@ -351,7 +352,7 @@ def test_the_queue_file_follows_the_plan():
             assert refs == want and l.opts["left"] == f"a39:{system}:{qset}", l.label
     assert len(labels) == len(set(labels))
     for l in todo:                                                         # each one passes submit.sh's own checks
-        assert l.argv[0] in ("b20", "a39_1gpu", "provenance_gen") and "--" not in l.opts
+        assert l.argv[0] == "a39_1gpu" and "--" not in l.opts
 
 
 def test_runs_left_counts_what_resume_would_run(tmp_path):
@@ -388,39 +389,10 @@ def test_one_tick_through_the_real_submit_sh(tmp_path):
     assert st["lines"]["one"]["job"] == "1" and "two" not in st["lines"]
 
 
-# ---------------------------------------------------------------- Nov 4 overnight: B20's reruns, --status, the digest
-def test_b20s_reruns_wait_for_the_amendment_on_sol_and_come_before_e2():
-    lines = sf.parse_queue(sf.QUEUE.read_text())
-    by = {l.label: l for l in lines}
-    labels = [l.label for l in lines]
-    first_a39 = next(i for i, l in enumerate(lines) if l.argv[0] == "a39_1gpu" and "job" not in l.opts)
-    for model, name in (("granite", "granite-4.2-8b"), ("gemma", "gemma-4-26b-a4b-it")):
-        smoke = by[f"b20-{model}-smoke-r2"]
-        assert smoke.opts == {"needs": "2361152"} and smoke.argv == ["b20", "--model", name, "--", "--smoke"]
-        assert by[f"b20-{model}-r2-1"].opts == {"afterok": f"@b20-{model}-smoke-r2"}
-        assert [by[f"b20-{model}-r2-{k}"].opts["again"] for k in range(2, 13)] == [f"@b20-{model}-r2-{k}" for k in range(1, 12)]
-        assert all(labels.index(f"b20-{model}-r2-{k}") < first_a39 for k in range(1, 13))
-    assert subprocess.run(["git", "merge-base", "--is-ancestor", "2361152", "HEAD"], cwd=CODE).returncode == 0
-
-
-def test_nemotrons_rerun_waits_for_its_amendment_on_sol_and_comes_before_e2():
-    """Nov 4, 10:31: Nemotron's smoke (460109) failed the tool path; its amendment (the B20 log's section 16) is
-    063bc78, which its second smoke needs on Sol; its runs follow as Gemma's and Granite's do."""
-    lines = sf.parse_queue(sf.QUEUE.read_text())
-    by, labels = {l.label: l for l in lines}, [l.label for l in lines]
-    first_a39 = next(i for i, l in enumerate(lines) if l.argv[0] == "a39_1gpu" and "job" not in l.opts)
-    name = "nemotron-3-nano-30b-a3b"
-    smoke = by["b20-nemotron-smoke-r2"]
-    assert smoke.opts == {"needs": "063bc78"} and smoke.argv == ["b20", "--model", name, "--", "--smoke"]
-    assert by["b20-nemotron-r2-1"].opts == {"afterok": "@b20-nemotron-smoke-r2"}
-    assert [by[f"b20-nemotron-r2-{k}"].opts["again"] for k in range(2, 13)] == [f"@b20-nemotron-r2-{k}" for k in range(1, 12)]
-    assert all(by[f"b20-nemotron-r2-{k}"].argv == ["b20", "--model", name, "--estimate", "1.1"] for k in range(1, 13))
-    assert labels.index("b20-gemma-r2-12") < labels.index("b20-nemotron-smoke-r2") < labels.index("b20-nemotron-r2-12") < first_a39
-    commit = subprocess.run(["git", "log", "-1", "--format=%B", "063bc78"], cwd=CODE, capture_output=True, text=True)
-    assert commit.returncode == 0 and "Nemotron" in commit.stdout and "section 16" in commit.stdout
-    assert subprocess.run(["git", "merge-base", "--is-ancestor", "063bc78", "HEAD"], cwd=CODE).returncode == 0
-
-
+# ---------------------------------------------------------------- Nov 4 overnight: --status, the digest
+# (B20's reruns, b20-*-smoke-r2 and b20-*-r2-K, left this file on Nov 5 with every B20 line: the B20 log's section 19.
+# Their tests went with them; test_trackB_b20.py checks B20's own queue file, whose first lines need a commit that has
+# both amendments, 2361152 and 063bc78.)
 class Clock:
     """A settable local time for the digest and the health check."""
 
@@ -460,8 +432,9 @@ def test_status_says_whether_a_needed_commit_is_on_sol(tmp_path):
 
 def test_status_piped_to_head_ends_quietly(tmp_path):
     queue = tmp_path / "q.txt"
-    queue.write_text(q(*[f"line-{i:05d} | - | a39_1gpu --estimate 1 -- base e2 {i % 16 + 1}/16" for i in range(4000)]))
-    env = {**os.environ, "PATH": str(tmp_path / "nobin")}                # no sacct here: nothing to ask
+    queue.write_text(q("owner: someone", *[f"line-{i:05d} | - | a39_1gpu --estimate 1 -- base e2 {i % 16 + 1}/16"
+                                           for i in range(4000)]))
+    env = {**os.environ, "PATH": str(tmp_path / "nobin"), "USER": "someone"}   # no sacct here: nothing to ask
     p1 = subprocess.Popen([sys.executable, str(CODE / "tools" / "sol_feeder.py"), "--status", "--queue", str(queue),
                            "--out", str(tmp_path / "out")], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
     p2 = subprocess.Popen(["head", "-1"], stdin=p1.stdout, stdout=subprocess.PIPE)
@@ -476,8 +449,9 @@ def test_status_into_a_pipe_whose_reader_left_ends_quietly(tmp_path):
     """Nov 4, 10:18 on Sol: `--status | head -40` still printed "Exception ignored ... BrokenPipeError". The output was
     small enough to wait in Python's buffer until exit, so the error came at the final flush, outside the try."""
     queue = tmp_path / "q.txt"
-    queue.write_text(q(*[f"line-{i:02d} | - | a39_1gpu --estimate 1 -- base e2 {i % 16 + 1}/16" for i in range(60)]))
-    env = {**os.environ, "PATH": str(tmp_path / "nobin")}                # no sacct here: nothing to ask
+    queue.write_text(q("owner: someone", *[f"line-{i:02d} | - | a39_1gpu --estimate 1 -- base e2 {i % 16 + 1}/16"
+                                           for i in range(60)]))
+    env = {**os.environ, "PATH": str(tmp_path / "nobin"), "USER": "someone"}   # no sacct here: nothing to ask
     p = subprocess.Popen([sys.executable, str(CODE / "tools" / "sol_feeder.py"), "--status", "--queue", str(queue),
                           "--out", str(tmp_path / "out")], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
     p.stdout.close()                                                      # the reader leaves before a byte is written
@@ -773,33 +747,32 @@ def test_nov6_waits_a_tick_when_sacct_fails(tmp_path):
     assert json.loads((tmp_path / "state" / "state.json").read_text())["decisions"]["nov6"]["branch"] == "no cut"
 
 
-def test_the_queue_tags_the_30_to_drop_and_b1r2_to_hold_by_nov6():
-    """The A39 log's sections 16 and 17: the 30's 29 lines carry dropif=nov6:nov11, B1R2's 44 holdif=nov6, and
-    nothing else either."""
+def test_the_queue_tags_the_30_to_drop_by_nov6_and_nov11_and_holds_nothing():
+    """The A39 log's sections 16 and 17: the 30's 29 lines carry dropif=nov6:nov11, and nothing else does. B1R2's 44
+    lines, which carried holdif=nov6, were dropped on Nov 5 (section 19): no line is held now."""
     lines = sf.parse_queue(sf.QUEUE.read_text())
     drop = {l.label for l in lines if l.opts.get("dropif") == "nov6:nov11"}
-    hold = {l.label for l in lines if l.opts.get("holdif") == "nov6"}
     assert drop == {l.label for l in lines if "mmlupro_30" in l.argv} and len(drop) == 29
-    assert hold == {l.label for l in lines if l.argv[0] == "provenance_gen" and "--b1r2" in l.argv} and len(hold) == 44
+    assert not [l.label for l in lines if "holdif" in l.opts or ("dropif" in l.opts and l.label not in drop)]
     with pytest.raises(sf.QueueError, match="no such decision"):
         sf.parse_queue("x | dropif=nov7 | a39_1gpu -- base e2 1/16\n")
 
 
-NOV11 = q("e2-base-1of16 | - | a39_1gpu --estimate 1.5 -- base e2 1/16",
-          "b20-g-1 | - | b20 --model granite-4.2-8b --estimate 1.1",
-          "b20-g-2 | again=@b20-g-1 | b20 --model granite-4.2-8b --estimate 1.1",
+NOV11 = q("e2-base-1of16 | - | a39_1gpu --estimate 1.5 -- base e2 1/16",            # Nov 5: E2 and A40 (section 19)
+          "e2-base-sweep | afterany=@e2-base-1of16 left=a39:base:e2 | a39_1gpu --estimate 2.3 -- base e2",
+          "a40-e2-1of4 | - | a39_1gpu --estimate 1.5 -- a40 e2 1/4",
           "m30-base-1of4 | dropif=nov6:nov11 | a39_1gpu --estimate 1.5 -- base mmlupro_30 1/4")
 
 
-def test_nov11_drops_the_30_when_e2_or_b20_isnt_finished(tmp_path):
-    """The A39 log's section 10.2, applied by the feeder (section 17): at the first tick at or after Nov 11 09:00, if
-    any E2 or B20 line has no ended job and isn't settled, the 30's lines are dropped ("not run: no GPU time by
-    Nov 12"). Lines already submitted run on. Nov 6's decision came out no cut here."""
+def test_nov11_drops_the_30_when_e2_or_a40_isnt_finished(tmp_path):
+    """The A39 log's section 10.2, applied by the feeder (sections 17 and 19): at the first tick at or after Nov 11
+    09:00, if any E2 or A40 line has no ended job and isn't settled, the 30's lines are dropped ("not run: no GPU time
+    by Nov 12"). Lines already submitted run on. Nov 6's decision came out no cut here."""
     sol, clock = FakeSol(places=2), Clock("2026-11-06T07:01:00")
     f = feeder(tmp_path, NOV11, sol, now=clock)
     nov6_usage(sol, 30)
-    f.tick()                                                              # Nov 6: no cut; e2 and b20-g-1 go in
-    clock.add(days=5, hours=2)                                            # Nov 11 09:01; b20-g-1 still runs
+    f.tick()                                                              # Nov 6: no cut; e2 and a40-e2-1of4 go in
+    clock.add(days=5, hours=2)                                            # Nov 11 09:01; both still run
     f.tick()
     st = json.loads((tmp_path / "state" / "state.json").read_text())
     assert st["decisions"]["nov6"]["branch"] == "no cut" and st["decisions"]["nov11"]["branch"] == "cut"
@@ -807,13 +780,14 @@ def test_nov11_drops_the_30_when_e2_or_b20_isnt_finished(tmp_path):
     assert "decision nov11" in f.status_text()
 
 
-def test_nov11_keeps_the_30_when_e2_and_b20_are_finished(tmp_path):
+def test_nov11_keeps_the_30_when_e2_and_a40_are_finished(tmp_path):
     sol, clock = FakeSol(places=2), Clock("2026-11-11T08:50:00")
     f = feeder(tmp_path, NOV11, sol, now=clock)
     nov6_usage(sol, 30)                                                   # Nov 6's decision (made now): no cut
     f.tick()
     sol.end("100")
-    sol.end("101")                                                        # b20-g-1 finished: b20-g-2 not needed
+    sol.end("101")                                                        # A40's line finished
+    sol.left["a39:base:e2"] = 0                                           # E2's sweep: nothing left, settled now
     clock.add(minutes=15)                                                 # 09:05
     f.tick()
     st = json.loads((tmp_path / "state" / "state.json").read_text())
@@ -826,3 +800,146 @@ def test_a_line_can_name_two_decisions():
     with pytest.raises(sf.QueueError, match="no such decision"):
         sf.parse_queue("x | dropif=nov6:nov12 | a39_1gpu -- base mmlupro_30 1/4\n")
 
+
+
+# ---------------------------------------------------------------- Nov 5: one queue file a Sol account (the owner line)
+OWNED = "# a comment\n\nowner: %s\nl1 | - | a39_1gpu --estimate 1 -- base e2 1/16\n"
+QUEUES = sorted(sf.SOL.glob("queue_*.txt"))
+B20_QUEUE = sf.SOL / "queue_b20_2026-11-05.txt"
+
+
+@pytest.mark.parametrize("owner,user,refused", [("alice", "alice", False), ("alice", "bob", True),
+                                                ("not alice", "bob", False), ("not alice", "alice", True)])
+def test_the_feeder_uses_only_a_queue_its_user_owns(tmp_path, monkeypatch, capsys, owner, user, refused):
+    """Nov 5 (the B20 log's section 19): B20 runs on Arsha's account from a queue file of its own, A39 and A40 on
+    Ritik's; no line is ever submitted from both. A queue's first line that isn't a comment names its owner ("owner:
+    USER", or "owner: not USER"), and the feeder does nothing with a queue that isn't its user's."""
+    monkeypatch.setenv("USER", user)
+    queue = tmp_path / "q.txt"
+    queue.write_text(OWNED % owner)
+    argv = ["--status", "--queue", str(queue), "--out", str(tmp_path / "out")]
+    if refused:
+        with pytest.raises(SystemExit) as e:
+            sf.main(argv)
+        msg = str(e.value.code)
+        assert e.value.code not in (0, None) and user in msg and f"owner: {owner}" in msg and "--queue" in msg
+    else:
+        assert sf.main(argv) == 0 and "1 lines: 1 to submit" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("mode", [["--once"], ["--loop"], ["--dry-run"], ["--status"], ["--adopt", "l1", "5"],
+                                  ["--skip", "l1"], ["--reset", "l1"]], ids=lambda m: m[0])
+def test_a_queue_not_yours_or_with_no_owner_is_refused_in_every_mode_before_anything(tmp_path, monkeypatch, mode):
+    monkeypatch.setenv("USER", "bob")
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / "feeder.stop").write_text("")                                  # were it not refused: a tick that does nothing
+    for text in (OWNED % "alice", OWNED % "not bob", "l1 | - | a39_1gpu --estimate 1 -- base e2 1/16\n"):
+        queue = tmp_path / "q.txt"
+        queue.write_text(text)
+        with pytest.raises(SystemExit) as e:
+            sf.main([*mode, "--queue", str(queue), "--out", str(out)])
+        assert e.value.code not in (0, None) and "owner" in str(e.value.code)
+        assert sorted(p.name for p in out.iterdir()) == ["feeder.stop"]  # no log, no state
+
+
+def test_the_owner_line_comes_first_and_is_not_a_job():
+    assert [l.label for l in sf.parse_queue(OWNED % "alice")] == ["l1"]
+    assert sf.owner_of(OWNED % "alice") == ("alice", False) and sf.owner_of(OWNED % "not alice") == ("alice", True)
+    with pytest.raises(sf.QueueError, match="owner"):
+        sf.parse_queue("l1 | - | a39_1gpu -- base e2 1/16\nowner: alice\n")
+    with pytest.raises(sf.QueueError, match="owner"):
+        sf.owner_of("l1 | - | a39_1gpu -- base e2 1/16\n")
+    assert sf.refusal(OWNED % "alice", "alice") is None and "alice" in sf.refusal(OWNED % "alice", "bob")
+
+
+def test_every_queue_file_names_its_owner_and_no_label_is_in_two():
+    """Ritik's file is his; B20's is for any account but his, for good (a tracked file names no other Sol user; Arsha's
+    feeder runs it). So no one runs both, and no label is in two files."""
+    assert {p.name for p in QUEUES} >= {sf.QUEUE.name, B20_QUEUE.name}
+    texts = {p.name: p.read_text() for p in QUEUES}
+    assert sf.owner_of(texts[sf.QUEUE.name]) == ("ragarw68", False)
+    assert sf.owner_of(texts[B20_QUEUE.name]) == ("ragarw68", True)
+    for user in ("ragarw68", "arsha"):
+        assert len([n for n, t in texts.items() if sf.refusal(t, user) is None]) <= 1, user
+    labels = [l.label for t in texts.values() for l in sf.parse_queue(t)]
+    assert len(labels) == len(set(labels))
+
+
+def test_ritiks_queue_has_no_b20_line_and_no_queue_has_a_b1r2_line():
+    """The B20 log's section 19 (B20 moves to Arsha's account) and the A39 log's section 19 (B1R2 dropped)."""
+    lines = sf.parse_queue(sf.QUEUE.read_text())
+    assert not [l.label for l in lines if l.label.startswith("b20-") or l.argv[0] in ("b20", "get_b20")]
+    for p in QUEUES:
+        bad = [l.label for l in sf.parse_queue(p.read_text())
+               if l.label.startswith("b1r2-") or l.argv[0] == "provenance_gen" or "--b1r2" in l.argv]
+        assert bad == [], p.name
+    b20 = sf.parse_queue(B20_QUEUE.read_text())
+    assert b20 and all(l.label.startswith("b20-") and l.argv[0] == "b20" for l in b20)
+
+
+def test_nov11_checks_e2s_and_a40s_lines_on_this_account():
+    """The A39 log's section 19: B20's lines have left this account's queue, so the feeder can't see them; A40 now
+    stands ahead of the 30 here, as B20 did. So nov11 checks E2's and A40's lines."""
+    d = sf.DECISIONS["nov11"]
+    pat = re.compile(d["lines"])
+    assert all(pat.match(x) for x in ("e2-base-1of16", "e2-base-sweep", "a40-train", "a40-e2-1of4"))
+    assert not any(pat.match(x) for x in ("b20-granite-r3-1", "m30-base-1of4", "b1r2-01of40"))
+    assert "A40" in d["what"] and "B20" not in d["what"] and "19" in d["rule"]
+    assert "B1R2" not in sf.DECISIONS["nov6"]["no cut"] and "section 19" in sf.DECISIONS["nov6"]["cut"]
+
+
+def test_nov11_drops_the_30_while_an_a40_line_is_open_and_no_b20_line_counts(tmp_path):
+    sol, clock = FakeSol(places=3), Clock("2026-11-06T07:01:00")
+    text = q("e2-base-1of16 | - | a39_1gpu --estimate 1.5 -- base e2 1/16",
+             "a40-e2-1of4 | - | a39_1gpu --estimate 1.5 -- a40 e2 1/4",
+             "b20-g-1 | - | b20 --model granite-4.2-8b --estimate 2.3",
+             "m30-base-1of4 | dropif=nov6:nov11 | a39_1gpu --estimate 1.5 -- base mmlupro_30 1/4")
+    f = feeder(tmp_path, text, sol, now=clock)
+    nov6_usage(sol, 30)
+    f.tick()                                                              # Nov 6: no cut; e2, a40 and b20 go in
+    sol.end("100")                                                        # E2's line ended; A40's and B20's run on
+    clock.add(days=5, hours=2)                                            # Nov 11 09:01
+    f.tick()
+    st = json.loads((tmp_path / "state" / "state.json").read_text())
+    assert st["decisions"]["nov11"]["branch"] == "cut" and st["decisions"]["nov11"]["first"] == "a40-e2-1of4"
+    assert st["decisions"]["nov11"]["open"] == 1                          # not b20-g-1: B20 isn't this account's
+    assert st["lines"]["m30-base-1of4"]["status"] == "dropped"
+
+
+def test_the_digest_gives_a40_its_own_group(tmp_path):
+    """The coordinator (Nov 5): group_of put any line with "e2" in its arguments under A39 on E2, so A40's E2 lines
+    would have counted as A39's. A40 (a40- labels, or the system a40) is its own group; B20's stays (Arsha's feeder)."""
+    line = lambda label, args: sf.parse_queue(f"{label} | - | {args}\n")[0]   # noqa: E731
+    assert sf.group_of(line("a40-e2-1of4", "a39_1gpu --estimate 1.5 -- a40 e2 1/4")) == "A40"
+    assert sf.group_of(line("a40-train", "a40_train --estimate 3")) == "A40"
+    assert sf.group_of(line("x", "a39_1gpu --estimate 1.5 -- a40 e2 1/4")) == "A40"            # by its system
+    assert sf.group_of(line("e2-base-1of16", "a39_1gpu --estimate 1.5 -- base e2 1/16")) == "A39 on E2"
+    assert sf.group_of(line("m30-base-1of4", "a39_1gpu --estimate 1.5 -- base mmlupro_30 1/4")) == "A39 on the 30"
+    assert sf.group_of(line("b20-granite-r3-1", "b20 --model granite-4.2-8b --estimate 2.3")) == "B20"
+    sol, clock = FakeSol(), Clock("2026-11-05T07:02:00")
+    f = feeder(tmp_path, q("e2-base-1of16 | - | a39_1gpu --estimate 1.5 -- base e2 1/16",
+                           "a40-e2-1of4 | afterok=@e2-base-1of16 | a39_1gpu --estimate 1.5 -- a40 e2 1/4"), sol, now=clock)
+    f.tick()
+    body = next(b for _, s, b in sol.mails if "digest" in s)
+    assert "  A39 on E2: 1 pending" in body and "  A40: 1 to submit" in body
+
+
+def test_the_mail_and_the_digest_name_the_queue_when_it_isnt_the_default(tmp_path):
+    """Helper E's review (Nov 5): on Arsha's account, "Status: ... --status" with no --queue reads Ritik's file, which the
+    owner line refuses there. So the alert mail and the digest give --queue whenever the queue isn't the default."""
+    sol, clock = FakeSol(), Clock("2026-11-05T07:02:00")
+    text = q("g1 | - | b20 --model granite-4.2-8b --estimate 2.3")
+    f = feeder(tmp_path, text, sol, now=clock, queue=B20_QUEUE)
+    f.tick()
+    sol.end("100", "FAILED", "1:0")
+    clock.add(days=1)
+    f.tick()
+    want = "Status: python3 cot-disclosure/tools/sol_feeder.py --status --queue " \
+           "cot-disclosure/finetune/gpu/sol/queue_b20_2026-11-05.txt"
+    alert = next(b for _, s, b in sol.mails if "alert" in s)
+    digest = next(b for _, s, b in sol.mails if "digest" in s)
+    assert want in alert and want in digest
+    for queue in (None, sf.QUEUE):                                        # Ritik's, the default: no --queue
+        g = feeder(tmp_path / str(queue is None), text, FakeSol(), now=clock, queue=queue)
+        assert g.status_hint() == "python3 cot-disclosure/tools/sol_feeder.py --status"

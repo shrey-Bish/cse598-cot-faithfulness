@@ -993,3 +993,52 @@ def test_the_resume_skips_what_is_saved_and_runs_the_rest_question_by_question(s
     want = [j["run_id"] for q in order[:3] for j in design if j["item"]["item_id"] == q and j["repeat"] > 0][:30]
     assert called == want and not set(called) & {j["run_id"] for j in saved}
     assert len(tb.done(sol_vllm.NAME, rb.experiment(GRANITE))) == len(saved) + 30
+
+
+B20_QUEUE = SOL / "queue_b20_2026-11-05.txt"
+B20_LINES = {GRANITE: 8, GEMMA: 12}         # section 19: twice what each model's runs left need at its measured pace
+
+
+def test_b20s_queue_has_3_00_lines_one_chain_a_model_and_enough_of_them(tmp_path):
+    """Section 19 (Nov 5): B20's lines leave Ritik's queue for their own file, run by Arsha's feeder. Every line has a
+    3:00 limit (submit.sh's own rounding of --estimate 2.3); each model with runs left has one chain (one job at a time,
+    one writer per records file), each line again= the one before it of the same model, Granite's and Gemma's
+    interleaved; Nemotron, with none left, has no line. The first line of each waits for the run order's commit on Sol
+    (RUNORDER until it is committed)."""
+    from tools import sol_feeder as sf
+    lines = sf.parse_queue(B20_QUEUE.read_text())
+    short = {GRANITE: "granite", GEMMA: "gemma"}
+    by_model = {}
+    for l in lines:
+        assert l.argv[:2] == ["b20", "--model"] and l.argv[3:] == ["--estimate", "2.3"], l.label
+        by_model.setdefault(l.argv[2], []).append(l)
+        assert sf.limit_hours(l.argv) == 3.0, l.label
+    assert {name: len(ls) for name, ls in by_model.items()} == B20_LINES                   # no Nemotron line
+    for name, ls in by_model.items():
+        assert [l.label for l in ls] == [f"b20-{short[name]}-r3-{k}" for k in range(1, len(ls) + 1)]
+        first = ls[0]
+        assert set(first.opts) == {"needs"} and (first.opts["needs"] == "RUNORDER" or (
+            len(first.opts["needs"]) >= 7 and all(subprocess.run(["git", "merge-base", "--is-ancestor", c,
+                                                                  first.opts["needs"]], cwd=CODE).returncode == 0
+                                                   for c in ("2361152", "063bc78", "a530e80", "e420ad1"))))
+        assert [l.opts for l in ls[1:]] == [{"again": "@" + p.label} for p in ls[:-1]]
+    labels = [l.label for l in lines]
+    assert labels[:4] == ["b20-granite-r3-1", "b20-gemma-r3-1", "b20-granite-r3-2", "b20-gemma-r3-2"]   # interleaved
+    env, log = fake_sbatch(tmp_path)                                      # submit.sh's own limit for these lines
+    for name in by_model:
+        r = submit(env, *by_model[name][0].argv)
+        assert r.returncode == 0, r.stderr
+        a = sbatch_args(log)
+        assert a[a.index("-t") + 1] == "3:00:00" and a[-2:] == ["--model", name]
+
+
+def test_b20s_lines_cover_each_models_runs_left_at_its_measured_pace():
+    """Section 19's computation, kept with the lines: Ritik's dry run on Nov 5 left Granite 849 and Gemma 1,784 runs
+    (Nemotron 0). A 3:00 job runs 180 - 34 (Granite's start-up, 468897) - 5 (the warning) = 141 minutes. Granite: 105
+    runs in 468897's 56 minutes after its start-up; Gemma: 138 in 508647's 52 minutes in all (its start-up not known),
+    less up to 48 in flight at a 3:00 job's end. Twice the jobs each needs at that pace."""
+    import math
+    left, minutes = {GRANITE: 849, GEMMA: 1784}, 180 - 34 - 5
+    per_job = {GRANITE: 105 / 56 * minutes, GEMMA: 138 / 52 * minutes - 48}
+    assert {n: math.ceil(left[n] / per_job[n]) for n in left} == {GRANITE: 4, GEMMA: 6}
+    assert B20_LINES == {n: 2 * math.ceil(left[n] / per_job[n]) for n in left}

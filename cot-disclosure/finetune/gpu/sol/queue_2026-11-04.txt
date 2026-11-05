@@ -1,13 +1,17 @@
 # The Sol feeder's queue (tools/sol_feeder.py), Nov 4: the 00:26 log's section 4, in order. Edited by: Ritik.
+# Ritik's account only (Nov 5, the B20 log's section 19): A39 and A40. B20's lines are in queue_b20_2026-11-05.txt, run
+# by Arsha's feeder on her own account. The owner line below makes the feeder refuse this file on any other account, so
+# no line is submitted from both.
 # One job a line: LABEL | OPTIONS | submit.sh ARGUMENTS. The feeder submits each line once, in this order, when a
 # place is free, its GPU-minutes fit and its options allow; it records the job id in its state file. The options
 # (tools/sol_feeder.py's docstring): job=N submitted by hand; afterok=/afterany= REFS (@LABEL or a job id: the feeder
-# waits for them itself, so no pending job holds a place); again=@LABEL (B20: only after a stop at the limit with runs
+# waits for them itself, so no pending job holds a place); again=@LABEL (only after a stop at the limit with runs
 # left); needs=COMMIT (Sol's clone has it); left=SPEC (a sweep only if runs are left); dropif=/holdif=NAME (a decision
-# the feeder makes once at its time: nov6, the A39 log's section 16, drops the 30's lines and holds B1R2's if Sol gave
-# under 10 GPU-hours from Nov 4 12:36 to Nov 6 07:00; nov11, section 10.2 as section 17 applies it, drops the 30's
-# lines if E2's and B20's jobs haven't all finished by Nov 11 09:00).
-# Pre-registered shapes: the A39 log's sections 10-13 and the B20 log's sections 13-14 (2026-11-03 logs).
+# the feeder makes once at its time: nov6, the A39 log's section 16, drops the 30's lines if Sol gave under 10
+# GPU-hours from Nov 4 12:36 to Nov 6 07:00; nov11, section 10.2 as sections 17 and 19 apply it, drops the 30's lines
+# if E2's and A40's jobs haven't all finished by Nov 11 09:00).
+# Pre-registered shapes: the A39 log's sections 10-15 (2026-11-03 logs); A40's in its own log (Nov 5).
+owner: ragarw68
 e2-base-1of4               | job=426582                               | a39_1gpu --estimate 2.3 -- base e2 1/4
 e2-prompt_only-1of4        | job=428294                               | a39_1gpu --estimate 2.3 -- prompt_only e2 1/4
 e2-lora-1of4               | job=428295                               | a39_1gpu --estimate 2.3 -- lora e2 1/4
@@ -17,72 +21,8 @@ e2-prompt_only-2of4        | job=428298                               | a39_1gpu
 e2-lora-2of4               | job=428299                               | a39_1gpu --estimate 2.3 -- lora e2 2/4
 e2-lora_note-2of4          | job=428330                               | a39_1gpu --estimate 2.3 -- lora_note e2 2/4
 e2-base-2of4               | job=428332                               | a39_1gpu --estimate 2.3 -- base e2 2/4
-b20-granite-smoke          | job=456999                               | b20 --model granite-4.2-8b -- --smoke
-b20-gemma-smoke            | job=457471                               | b20 --model gemma-4-26b-a4b-it -- --smoke
-b20-nemotron-smoke         | -                                        | b20 --model nemotron-3-nano-30b-a3b -- --smoke
-b20-granite-1              | afterok=@b20-granite-smoke               | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-1                | afterok=@b20-gemma-smoke                 | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-nemotron-1             | afterok=@b20-nemotron-smoke              | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-granite-2              | again=@b20-granite-1                     | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-2                | again=@b20-gemma-1                       | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-nemotron-2             | again=@b20-nemotron-1                    | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-granite-3              | again=@b20-granite-2                     | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-3                | again=@b20-gemma-2                       | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-nemotron-3             | again=@b20-nemotron-2                    | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-granite-4              | again=@b20-granite-3                     | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-4                | again=@b20-gemma-3                       | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-nemotron-4             | again=@b20-nemotron-3                    | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-granite-5              | again=@b20-granite-4                     | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-5                | again=@b20-gemma-4                       | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-nemotron-5             | again=@b20-nemotron-4                    | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-granite-6              | again=@b20-granite-5                     | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-6                | again=@b20-gemma-5                       | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-nemotron-6             | again=@b20-nemotron-5                    | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-# B20's reruns (Nov 4, 03:55): the B20 log's section 15 amended Gemma (the inserted tool turn) and Granite (thinking
-# on only) in 2361152; each second smoke waits until Sol's clone has it (the morning pull), then up to 12 run jobs a
-# model, each again only after a stop at the limit with runs left. The lines above stay as the feeder left them.
-b20-granite-smoke-r2       | needs=2361152                            | b20 --model granite-4.2-8b -- --smoke
-b20-gemma-smoke-r2         | needs=2361152                            | b20 --model gemma-4-26b-a4b-it -- --smoke
-b20-granite-r2-1           | afterok=@b20-granite-smoke-r2            | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-1             | afterok=@b20-gemma-smoke-r2              | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-granite-r2-2           | again=@b20-granite-r2-1                  | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-2             | again=@b20-gemma-r2-1                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-granite-r2-3           | again=@b20-granite-r2-2                  | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-3             | again=@b20-gemma-r2-2                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-granite-r2-4           | again=@b20-granite-r2-3                  | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-4             | again=@b20-gemma-r2-3                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-granite-r2-5           | again=@b20-granite-r2-4                  | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-5             | again=@b20-gemma-r2-4                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-granite-r2-6           | again=@b20-granite-r2-5                  | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-6             | again=@b20-gemma-r2-5                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-granite-r2-7           | again=@b20-granite-r2-6                  | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-7             | again=@b20-gemma-r2-6                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-granite-r2-8           | again=@b20-granite-r2-7                  | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-8             | again=@b20-gemma-r2-7                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-granite-r2-9           | again=@b20-granite-r2-8                  | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-9             | again=@b20-gemma-r2-8                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-granite-r2-10          | again=@b20-granite-r2-9                  | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-10            | again=@b20-gemma-r2-9                    | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-granite-r2-11          | again=@b20-granite-r2-10                 | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-11            | again=@b20-gemma-r2-10                   | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-b20-granite-r2-12          | again=@b20-granite-r2-11                 | b20 --model granite-4.2-8b --estimate 1.1
-b20-gemma-r2-12            | again=@b20-gemma-r2-11                   | b20 --model gemma-4-26b-a4b-it --estimate 1.1
-# Nemotron's rerun (Nov 4, 10:31): the B20 log's section 16 amended Nemotron (the inserted tool turn) in 063bc78; its
-# second smoke waits until Sol's clone has it, then up to 12 run jobs, each again only after a stop at the limit with
-# runs left. The b20-nemotron lines above stay as the feeder left them.
-b20-nemotron-smoke-r2      | needs=063bc78                            | b20 --model nemotron-3-nano-30b-a3b -- --smoke
-b20-nemotron-r2-1          | afterok=@b20-nemotron-smoke-r2           | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-nemotron-r2-2          | again=@b20-nemotron-r2-1                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-nemotron-r2-3          | again=@b20-nemotron-r2-2                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-nemotron-r2-4          | again=@b20-nemotron-r2-3                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-nemotron-r2-5          | again=@b20-nemotron-r2-4                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-nemotron-r2-6          | again=@b20-nemotron-r2-5                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-nemotron-r2-7          | again=@b20-nemotron-r2-6                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-nemotron-r2-8          | again=@b20-nemotron-r2-7                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-nemotron-r2-9          | again=@b20-nemotron-r2-8                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-nemotron-r2-10         | again=@b20-nemotron-r2-9                 | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-nemotron-r2-11         | again=@b20-nemotron-r2-10                | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
-b20-nemotron-r2-12         | again=@b20-nemotron-r2-11                | b20 --model nemotron-3-nano-30b-a3b --estimate 1.1
+# B20's lines (its smokes and run chains, Nov 3-4) left this file on Nov 5 for queue_b20_2026-11-05.txt, on Arsha's
+# account (the B20 log's section 19). Their jobs here ran on this account; the feeder's state keeps them.
 e2-prompt_only-3of16       | -                                        | a39_1gpu --estimate 1 -- prompt_only e2 3/16
 e2-lora-3of16              | -                                        | a39_1gpu --estimate 1 -- lora e2 3/16
 e2-lora_note-3of16         | -                                        | a39_1gpu --estimate 1 -- lora_note e2 3/16
@@ -165,6 +105,8 @@ e2-lora_note-sweep         | afterany=@e2-lora_note-1of4:@e2-lora_note-2of4:@e2-
 e2-wrap-sweep              | afterany=@e2-wrap-1of5:@e2-wrap-2of5:@e2-wrap-3of5:@e2-wrap-4of5:@e2-wrap-5of5 left=a39:wrap:e2 | a39_1gpu --estimate 2.3 -- wrap e2
 e2-wrap_note-sweep         | afterany=@e2-wrap_note-1of5:@e2-wrap_note-2of5:@e2-wrap_note-3of5:@e2-wrap_note-4of5:@e2-wrap_note-5of5 left=a39:wrap_note:e2 | a39_1gpu --estimate 2.3 -- wrap_note e2
 e2-lora_wrap-sweep         | afterany=@e2-lora_wrap-1of5:@e2-lora_wrap-2of5:@e2-lora_wrap-3of5:@e2-lora_wrap-4of5:@e2-lora_wrap-5of5 left=a39:lora_wrap:e2 | a39_1gpu --estimate 2.3 -- lora_wrap e2
+# A40's lines go here (labels a40-; its pre-registration log, Nov 5): after E2's lines, before the 30's (the A39 log's
+# section 19). nov11 checks them with E2's.
 m30-base-1of4              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- base mmlupro_30 1/4
 m30-prompt_only-1of4       | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- prompt_only mmlupro_30 1/4
 m30-lora-1of4              | dropif=nov6:nov11                        | a39_1gpu --estimate 1.5 -- lora mmlupro_30 1/4
@@ -194,47 +136,5 @@ m30-lora_note-sweep        | afterany=@m30-lora_note-1of4:@m30-lora_note-2of4:@m
 m30-wrap-sweep             | afterany=@m30-wrap-1of2:@m30-wrap-2of2 left=a39:wrap:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- wrap mmlupro_30
 m30-wrap_note-sweep        | afterany=@m30-wrap_note-1of2:@m30-wrap_note-2of2 left=a39:wrap_note:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- wrap_note mmlupro_30
 m30-lora_wrap-sweep        | afterany=@m30-lora_wrap-1of2:@m30-lora_wrap-2of2 left=a39:lora_wrap:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- lora_wrap mmlupro_30
-b1r2-01of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 1/40
-b1r2-02of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 2/40
-b1r2-03of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 3/40
-b1r2-04of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 4/40
-b1r2-05of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 5/40
-b1r2-06of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 6/40
-b1r2-07of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 7/40
-b1r2-08of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 8/40
-b1r2-09of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 9/40
-b1r2-10of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 10/40
-b1r2-11of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 11/40
-b1r2-12of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 12/40
-b1r2-13of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 13/40
-b1r2-14of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 14/40
-b1r2-15of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 15/40
-b1r2-16of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 16/40
-b1r2-17of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 17/40
-b1r2-18of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 18/40
-b1r2-19of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 19/40
-b1r2-20of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 20/40
-b1r2-21of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 21/40
-b1r2-22of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 22/40
-b1r2-23of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 23/40
-b1r2-24of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 24/40
-b1r2-25of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 25/40
-b1r2-26of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 26/40
-b1r2-27of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 27/40
-b1r2-28of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 28/40
-b1r2-29of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 29/40
-b1r2-30of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 30/40
-b1r2-31of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 31/40
-b1r2-32of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 32/40
-b1r2-33of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 33/40
-b1r2-34of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 34/40
-b1r2-35of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 35/40
-b1r2-36of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 36/40
-b1r2-37of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 37/40
-b1r2-38of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 38/40
-b1r2-39of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 39/40
-b1r2-40of40                | needs=27a2a39 holdif=nov6                | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 40/40
-b1r2-sweep-1of4            | needs=27a2a39 afterany=@b1r2-01of40:@b1r2-05of40:@b1r2-09of40:@b1r2-13of40:@b1r2-17of40:@b1r2-21of40:@b1r2-25of40:@b1r2-29of40:@b1r2-33of40:@b1r2-37of40 left=b1r2:1/4 holdif=nov6 | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 1/4
-b1r2-sweep-2of4            | needs=27a2a39 afterany=@b1r2-02of40:@b1r2-06of40:@b1r2-10of40:@b1r2-14of40:@b1r2-18of40:@b1r2-22of40:@b1r2-26of40:@b1r2-30of40:@b1r2-34of40:@b1r2-38of40 left=b1r2:2/4 holdif=nov6 | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 2/4
-b1r2-sweep-3of4            | needs=27a2a39 afterany=@b1r2-03of40:@b1r2-07of40:@b1r2-11of40:@b1r2-15of40:@b1r2-19of40:@b1r2-23of40:@b1r2-27of40:@b1r2-31of40:@b1r2-35of40:@b1r2-39of40 left=b1r2:3/4 holdif=nov6 | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 3/4
-b1r2-sweep-4of4            | needs=27a2a39 afterany=@b1r2-04of40:@b1r2-08of40:@b1r2-12of40:@b1r2-16of40:@b1r2-20of40:@b1r2-24of40:@b1r2-28of40:@b1r2-32of40:@b1r2-36of40:@b1r2-40of40 left=b1r2:4/4 holdif=nov6 | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 4/4
+# B1R2's 44 lines (the A39 log's section 13) were dropped on Nov 5, before any was submitted: "not run: GPU time given
+# to A40" (the A39 log's section 19).
