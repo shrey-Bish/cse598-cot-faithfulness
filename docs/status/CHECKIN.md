@@ -155,8 +155,9 @@ The logs: [A39](../../archive/sessions/2026-11-03/2026-11-03_1130_A_e2-a39-prere
   ../.venv/bin/python tools/export_summaries.py
   ../.venv/bin/python tools/a39_figures.py
   ```
-  R1–R4 as written; the no-answer labels of §9. **A39 has no pre-registered partial read.** If E2 is not complete by
-  Nov 15 23:59, stop: needs Ritik (an amendment, before anything of E2 is read).
+  R1–R4 as written; the no-answer labels of §9. **If E2 is not complete by Nov 15 23:59,** it is read partial by the
+  A39 log's §18 (Nov 4): on the questions with every run of all seven systems, labelled "partial: N of 120
+  questions".
 - **B1R2:** `../.venv/bin/python finetune/gpu/provenance_job.py report --out results/trackA/gpu/b1r2`, then B1's
   rule (`b1_verdict`), paired by question (RUNBOOK §14). Not done by Nov 15 23:59: read on the questions with every
   run of both configurations, labelled "partial: N of 120 questions". None complete: F38 records "not run: no GPU
@@ -362,7 +363,7 @@ From PLAN's calendar, the TODOs and the logs. "Needs Ritik" goes in the report.
 | Wed Nov 11 | **09:00, the 30's rule** (the A39 log's §10.2), applied by the feeder (§17), unless dropped Nov 6 | record its branch (§4) |
 | Thu Nov 12 | **check-ins and merges:** Track B (Arsha), Track C (C25, Shrey) | §8 twice |
 | Fri Nov 13 | — | §1–§7 |
-| Sat Nov 14 | — | §1–§7; if A39 on E2 won't be complete by Nov 15, needs Ritik now (§3) |
+| Sat Nov 14 | — | §1–§7; if A39 on E2 won't be complete by Nov 15, its §18 partial read applies (§3) |
 | Sun Nov 15 | **runs end**; B20's runs by today; C20 and C26 (Shrey); **check-ins and merges** B and C; **23:59: B1R2's partial cut-off** | §8 twice; §3's completeness checks |
 | Mon Nov 16 | B1R2 read (Nov 16–17) | §3; needs Ritik: stop the feeder now or at the freeze |
 | Tue Nov 17 | **A39 read** (E2; the 30 beside it if run); **B20 read** by Arsha; B1R2 read | §2 copy-back, §3 |

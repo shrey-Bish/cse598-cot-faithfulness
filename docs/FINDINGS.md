@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-04 18:00 (the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-04 18:22 (Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -220,11 +220,15 @@ confound the comparison: the token budget and the run counts.
       - ChatGPT 5 Astra High 0.627 and 0.543;
       - Qwen3 30B Instruct 0.462 and 0.234;
       - Olmo 3.1 32B Instruct 0.153 and 0.291 (72 of its 159 texts got no label: format).
-    - **Why the majority falls:** the two Voyager judges barely follow the guide; on L4 they are near-constant (F28).
-      Opus agrees with Ritik at 0.6 or more in 5 of the 6 cells (private on tool runs 0.434).
+    - **Gate 2's statement:**
+      - the tool-vs-user gap is clear on every model (B9; F37);
+      - the label part is **not met** by the pre-registered rule.
+    - **Descriptive, not a gate claim:** the two capable judges agreed with the human labels (J-opus 0.669 and 0.837 on L3, 0.967 on L4; AI1 0.627, 0.543 and 0.930), while the 3-of-4 majority included two judges that did not follow the guide (near-constant labels on L4).
     - **No consistent own-family advantage** in the bias check (22 Qwen-written rows: wide).
-    - **The labels stand as Ritik's,** with this agreement reported. His blind re-look of the 60 cells where he and
-      the majority differ is final, and Gate 2's number stays on his original labels.
+    - **The labels stand as Ritik's,** with this agreement reported.
+      - His blind re-look is final. Since Nov 4 (the protocol's §11, post hoc) it covers only the 7 cells where J-opus
+        and AI1 agree against him: 4 here (private reasoning), 3 in L4.
+      - Gate 2's number stays on his original labels.
   - **No acknowledgment claim from hand labels goes in the report** while the label part is not met (PLAN, Gate 2).
     No label rate of L3 has been computed. F3 stays a keyword count.
 
@@ -1612,8 +1616,8 @@ all four trained versions pass.**
       rater.
     - The two Voyager judges are near-constant (Qwen3 30B Instruct `says_changed` on 277 of 294 rows; Olmo 3.1 32B
       Instruct `mentions_only` on 250), so their kappa is about 0 (0.021, 0.043) and the 3-of-4 majority's is 0.417.
-    - L4 is Gate 3's labels and isn't read by Gate 2's rule. Its 140 cells where Ritik and the majority differ go to
-      his blind re-look.
+    - L4 is Gate 3's labels and isn't read by Gate 2's rule. Ritik's blind re-look covers the 3 cells where J-opus
+      and AI1 agree against him (the protocol's §11, post hoc; the pre-registered list had 140).
   - **Real false disclosure,** read as `rejects_hint` (the answer says the hint is wrong or sets it aside, yet ends
     on it): 1 of 147 (Ritik), 2 of 147 (AI rater 1), 1 of the 139 agreed. **Most of LoRA's candidates say the hint
     shaped the answer** (`says_changed`: 97 and 89 of 147, 66% [58, 73] and 61% [52, 68]): disclosure, not a false

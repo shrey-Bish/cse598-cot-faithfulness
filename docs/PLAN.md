@@ -167,9 +167,12 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
         (all / tool / user);
       - every cell at 0.6 or more: **not met**;
       - so F3 stays a keyword count, and no acknowledgment claim rests on hand labels.
-      - Why: two of the four AI judges (Qwen3 30B Instruct, Olmo 3.1 32B Instruct) barely follow the guide. Claude Opus
-        agrees with Ritik at 0.669 (private) and 0.837 (final); ChatGPT 5 Astra High at 0.627 and 0.543.
-    - **Gate 2 on Nov 8:** the gap is clear; the label part is not met. Stated plainly in the report.
+      - **Descriptive, not a gate claim** (added 18:22): the two capable judges agreed with the human labels (J-opus 0.669 and 0.837 on L3, 0.967 on L4; AI1 0.627, 0.543 and 0.930), while the 3-of-4 majority included two judges that did not follow the guide (near-constant labels on L4).
+    - **Gate 2's statement:**
+      - the tool-vs-user gap is clear on every model;
+      - the label part is **not met** by the pre-registered rule.
+      - The re-look is now 7 cells, where J-opus and AI1 agree against Ritik (the protocol's §11, post hoc). It
+        doesn't change the verdict.
     - L4 part 1 (Gate 3's labels, kappa 0.930, human-vs-AI agreement) is not part of Gate 2. If the gap isn't clear, the headline becomes the private-vs-final gap, the mechanism (Track A) and the agent
   results.
 - **Gate 3 (Nov 20), its final statement.** Does a trained version follow fewer wrong hints on held-out questions

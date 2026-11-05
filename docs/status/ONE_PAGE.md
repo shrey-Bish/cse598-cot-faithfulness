@@ -20,14 +20,14 @@
   - Claude Opus agrees with Ritik closely (0.837 on L3's final answers, 0.967 on L4). The two smaller judges barely
     follow the guide.
   - Ritik's labels stand. No claim rests on them.
-  - **Left:** Ritik's blind re-look of the cells where he and the majority differ (60 in L3, 140 in L4).
+  - **Left:** Ritik's blind re-look of 7 cells, where Claude Opus and ChatGPT agree against him (4 in L3, 3 in L4;
+    post hoc, disclosed).
   - Corrected Nov 4, 17:54: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log. There is
     no settling call, and Shrey does no labeling.
 - **Ritik:**
   - send Shrey the Track C handoff message (ready, with no labels: the 17:42 log's §5);
-  - the blind re-look (`results/labels/llm_judge/relook_L3.csv`, then `relook_L4_part1.csv`);
+  - the blind re-look, 7 cells (`results/labels/llm_judge/relook_both_L3.csv` and `relook_both_L4_part1.csv`);
   - on Nov 6, send Arsha her bundle and note (ready; one command refreshes the bundle);
-  - decide before Nov 15 whether A39 on E2 may be read partial (a draft rule is ready).
 - **Shrey:** C19 by Nov 7. Check-ins on Nov 7, 12, 15 and 18.
 - **Arsha, from Nov 6:**
   - the re-reads (Nov 7 and 9);
