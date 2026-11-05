@@ -288,7 +288,7 @@ git ls-tree -r --name-only origin/main | while IFS= read -r f; do [ -e "$f" ] ||
 | before that (history) | `HEAD:trackA-nosol HEAD:main HEAD:trackB-main`, and `HEAD:trackC-main` until Nov 4 15:57 |
 
 - RUNBOOK §16: from Nov 3 `trackC-main` is Shrey's, and `trackB-main` is Arsha's (from Nov 4, 22:34, Ritik pushes
-  there no more, a day before her handoff; the handoff's own push to `trackB-main`, if any, is Ritik's call on Nov 6). Until Nov 4 15:57 the practice still pushed all four branches; `trackC-main` is level with `main` at
+  there no more, a day before her handoff; the handoff's own push to `trackB-main` on Nov 6 is the last, with her bundle: Ritik's decision d, Nov 5). Until Nov 4 15:57 the practice still pushed all four branches; `trackC-main` is level with `main` at
   `0570d69`.
 - A teammate's branch is pushed to only while `git log --oneline origin/main..origin/<branch>` prints nothing. Never
   force.
