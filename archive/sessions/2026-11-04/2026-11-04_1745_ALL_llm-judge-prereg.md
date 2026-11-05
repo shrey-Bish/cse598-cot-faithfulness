@@ -125,3 +125,28 @@ lines as the row has texts, each line one of the five labels, is read in the ord
 reasoning first, then the final answer. Every other reply is read by §3's rule, unchanged.
 
 **Code:** `tools/llm_judge.py`'s `parse`, with its test, committed with this section, before the run.
+
+## 10. Amendment (Ritik, Nov 4, 17:50; before any J-opus batch runs): J-opus reads its one batch file
+
+**Why.** §2 had each batch inline in its sub-agent's prompt. The 8 batches hold 444,490 characters, and pasting them
+would copy every row through the session's own output: slow, and a risk of altering the texts.
+
+**The change.**
+- Each J-opus sub-agent gets one fixed message. It names its batch file and tells it to read that file with its file
+  tool, to use no other tool, to read no other file, and to reply with the label lines only.
+- The file holds exactly what §2 put inline: the instruction (batch form), the guide and its blind rows
+  (`results/labels/llm_judge/opus/<sheet>_batch_NN.txt`, from `tools/llm_judge.py --batches`). L3 has 2 batches (51
+  and 50 rows) and L4 part 1 has 6 (49 each).
+
+**The message, fixed, the same for all 8 but the path:**
+
+> Read the file at PATH with your file-reading tool, all of it (read it again from an offset if it is cut). It holds a
+> labeling instruction, a guide and rows to label. Use no other tool and read no other file. Reply with the label
+> lines only, exactly as the file's instruction asks, and nothing else.
+
+**What isolation remains:**
+- The file has no project document, no FINDINGS, no key and no system name.
+- Each sub-agent's tool-use count is recorded. Only reads of its own file are expected.
+- Its environment does name the working folder (the course project's name). That is noted as a limit.
+
+**Its replies** are saved as `<sheet>_batch_NN_reply.txt` beside the prompts, verbatim, and read by `--import-opus`.
