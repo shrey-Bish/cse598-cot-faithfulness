@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-04 21:31 (Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-04 22:51 (T13: B20's shared stop file, fixed; 21:31, Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -2494,6 +2494,32 @@ Each one would have changed a reported number.
     above.
 - *Rule.* A server's port is the job's own. After a part runs, its server log counts its own requests (RUNBOOK §0).
 - *Source.* The A39 log's §15; the session logs of Nov 4 12:52 and 13:49.
+
+**T13. One stop file for every B20 job, and requests longer than the warning (B20, Sol).**
+- *What.* Slurm warns a B20 job 5 minutes before its limit, and the job wrote a stop file its runner reads, so no new
+  request starts. Every B20 job used the same file (`logs/stop_b20`). Each job also removed it at its start, just
+  before its server, and nothing else removed it.
+  - One job's warning stopped every other B20 job's runner.
+  - A job starting next removed the file before the stopped runner looked for it again. That runner then reported
+    "work left" (exit 1), not "stopped" (exit 2).
+  - And with about 48 requests in flight of about 25 minutes each (Granite), 5 minutes can't drain them.
+- *Found* Nov 4, 22:15–22:24, from Ritik's emails and his Sol outputs:
+  - Granite's first run job (468897) ran into its 1:30 limit, about 100 of its 954 runs done.
+  - Gemma's (508647) stopped starting runs 51 minutes early and ended exit 1.
+  - The feeder, which runs a B20 line again only after exit 2, skipped both models' other 11 lines.
+  - The runner also saved runs in the order it sent them, so runs finished behind a slower one were lost at the kill
+    and run again later.
+- *Fix* (`a530e80`, `e420ad1`):
+  - a stop file per job;
+  - after the warning, 120 s for the requests in flight, then the runner is stopped and the job ends itself, exit 2;
+  - each run saved as it finishes;
+  - the feeder counts a TIMEOUT on such a line as a stop at its limit.
+- *No result can be wrong.* A stop only keeps runs from starting; a run is saved whole or not at all, and runs
+  again. A smoke cut short by another job's warning would have failed its check ("all 12 ran"), not passed wrongly.
+  - A kill in the middle of a save could leave a cut-off last line. Ritik reads Granite's files on Sol to make sure
+    (the 22:27 log's handoff).
+- *Rule.* A job's stop file is its own. A job ends itself before its limit, however long its requests.
+- *Source.* B20's log §18; the session log of Nov 4 22:27.
 
 **Also:**
 - Cut-off replies leak when not streamed (the reasoning landed in the answer in 8 of 8).

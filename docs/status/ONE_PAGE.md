@@ -1,4 +1,4 @@
-## In plain words (Ritik's page, as of Nov 4, 22:38; Sol as of Ritik's 22:26 paste; edited by hand in `docs/status/ONE_PAGE.md`)
+## In plain words (Ritik's page, as of Nov 4, 22:38, B20 22:52; Sol as of Ritik's 22:26 paste; edited by hand in `docs/status/ONE_PAGE.md`)
 
 **Done.**
 - 40 findings (F1–F40, in `docs/FINDINGS.md`). **Gate 3 is met** (F28): trained versions follow fewer wrong hints,
@@ -15,7 +15,9 @@
   lines: 35 ok, 8 running, 1 pending, 131 to submit, 40 skipped, 4 failed, 1 timed out.
 - **B20 stopped tonight for Granite and Gemma.** Granite's first link timed out at its 1:30 (about 100 of 954 runs
   done; 34 minutes of it was start-up). Gemma's failed after 52 minutes. The feeder then skipped both chains (22 links).
-  A fix is being made, and restoring the chains needs Ritik on Sol.
+  **Why:** every B20 job shared one stop file, so one job's 5-minute warning stopped the others (T13). Fixed at 22:52.
+  Restoring the chains needs Ritik's pull and resets on Sol. Nemotron's running job has the old code, so its chain
+  will likely be skipped too.
 
 **On track?**
 
@@ -26,7 +28,7 @@
 | A39 on E2 (read Nov 17) | on track | 70 GPU-h of parts left (+ up to 16 of sweeps), 7 running; makes Nov 15 at under a third of Nov 3–4's pace |
 | A39 on the 30 | at risk | Nov 11 09:00 drops it unless every E2 and B20 line has ended; at half Nov 3–4's pace they end only Nov 10–11 |
 | B1R2 (runs end Nov 15) | on track | last in the queue (64 GPU-h + up to 6): Nov 10–11 at Nov 3–4's pace; under about half that pace, it is read partial |
-| B20 (Arsha reads Nov 17) | at risk | Granite's and Gemma's chains were skipped tonight; restoring them needs the fix and Ritik on Sol |
+| B20 (Arsha reads Nov 17) | at risk | the cause is fixed (T13), but the skipped lines wait for Ritik's pull and reset; each 1:30 job spends about 34 minutes starting, so Gemma's 1,922 runs over 12 lines of about 100–150 runs won't fit without more lines or longer limits (an amendment, Ritik's call) |
 | Track C (Shrey: C19 Nov 7; C20, C26 Nov 15) | at risk | none of Shrey's work shows here (his last commit was Oct 4); his handoff message is still unsent; C19 is about 25 min of Voyager |
 | The labels | done | L3 final with the re-look (Nov 4 21:31); L4 part 1 Nov 3; L4 part 2 (a SHOULD) is not labelled |
 | Arsha's handoff (Nov 6) | on track | the bundle is built and verified, and her note is ready; one command refreshes the bundle; Ritik sends it |
@@ -52,7 +54,8 @@
 **Waiting on whom.**
 - **Ritik:**
   - send Shrey the Track C handoff message (ready, with no labels: the 17:42 log's §5);
-  - on Sol, once the B20 fix is in: pull it and restore Granite's and Gemma's chains (the commands come with the fix);
+  - on Sol, first thing Nov 5: the pull and the B20 resets (the commands, in order: the 22:27 log's handoff);
+  - decide whether Gemma (and maybe Nemotron) get more B20 lines or longer limits (an amendment, before they run);
   - check two of the re-look's notes (row 67 says "user might be wrong" but is labelled "mentions"; row 290's note is
     a copy of row 176's);
   - on Nov 6, send Arsha her bundle and note (ready; one command refreshes the bundle).
@@ -60,7 +63,7 @@
 - **Arsha, from Nov 6:** the re-reads (Nov 7 and 9); B20, read Nov 17; B18's table, Nov 18; slides 2, 6, 7 and 8, Nov 20.
 
 **The dates to Nov 24.**
-- **Nov 5:** B20's chains restored (Ritik, on Sol). **Nov 6:** the feeder's 07:00 rule; Arsha's bundle.
+- **Nov 5:** B20's pull and resets (Ritik, on Sol). **Nov 6:** the feeder's 07:00 rule; Arsha's bundle.
 - **Nov 7:** Shrey's merge (C19). **Nov 8:** Gate 2. **Nov 11:** the 30's rule, 09:00. **Nov 12, 15, 18:** merges.
 - **Nov 15, 23:59:** runs end (E2 and B1R2 read partial if not complete). **Nov 17:** A39 and B20 read.
 - **Nov 18:** the results freeze. **Nov 20:** Gate 3's final statement, the report bullets and the slides.
