@@ -961,7 +961,9 @@ PREREG = [
      "rule_check": ["a label given by at least 3 of the 4 AI sets", "is the final label",
                     "LLM judges only under this protocol"],
      "rule_extra": [("the amendment, section 9 (bare labels read in the texts' order)", "3a9881b"),
-                    ("the amendment, section 10 (each J-opus sub-agent reads its one batch file)", "d5727db")],
+                    ("the amendment, section 10 (each J-opus sub-agent reads its one batch file)", "d5727db"),
+                    ("the amendment, section 11 (post hoc: the re-look only where J-opus and AI1 agree against Ritik)",
+                     "16453ce")],
      "result_glob": ["*llm-judge-results*"],
      "verdict": "Gate 2's label part not met: Ritik vs the AI majority 0.472 (private) and 0.234 (final) on L3, under "
                 "0.6 in all six cells; Claude Opus 0.669 and 0.837 on L3 and 0.967 on L4; the two Voyager judges "
@@ -1302,6 +1304,15 @@ DEVIATIONS = [
      [log_rel("2026-11-04_1742_ALL_label-correction.md")],
      ["produced by an AI model, not by Shrey: ChatGPT 5 Astra High", "Shrey did no labeling.",
       "human-vs-AI agreement, not inter-human reliability", "L4 part 1's conclusion stays as read"]),
+    ("2026-11-04 18:21", "the LLM-judge protocol's re-look (L3, L4 part 1)", "post hoc, after the judges' results: "
+     "Ritik re-looked only at the 7 cells where J-opus and AI1 gave the same label and it differed from his, not the "
+     "pre-registered 200 where he and the 3-of-4 majority differ; Gate 2's verdict stays as read (not met), on his "
+     "original labels. Done Nov 4 21:24: 4 changed to the judges' label, 3 kept; no kappa recomputed on the re-looked "
+     "labels; F28's reading unchanged. His labels, written in his own words, were put into the guide's categories by "
+     "Claude Code at his request, both shown in the log",
+     [log_rel("2026-11-04_1745_ALL_llm-judge-prereg.md"), log_rel("2026-11-04_2124_ALL_relook-recorded.md")],
+     ["this choice was made after the results were seen", "Gate 2's verdict stays as read: not met",
+      "4 of 7 changed", "No kappa is recomputed on the re-looked labels"]),
 ]
 DEV_WORDS = re.compile(r"\bCorrected\b|\b[Cc]orrected (?:Oct|\d{1,2}:\d{2})|\bCorrection\b|\b[Rr]efuted\b|"
                        r"\b[Ss]uperseded\b|\b[Dd]ropped\b|\bnot supported\b|\b[Rr]estated\b|\b[Rr]evises\b|"
