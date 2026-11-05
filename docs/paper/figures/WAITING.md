@@ -142,8 +142,9 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 - **Slide 2:** made Nov 3 as `docs/paper/figures/gate2.png` (B18's rows, with B17's efforts); B20 if read by Nov 17.
   Owner: Arsha, from Nov 6.
 - **Slide 5** (PLAN lists `docs/paper/figures/cue_experiments_slide.png`, the supplement's `cue_experiments`; it plots
-  C16–C18, not F3): L3's kappa in the caption once the labels are settled (kappa under 0.6 on Nov 3; the settling call
-  and the 72-row fresh batch by Nov 7; Gate 2 Nov 8). Owners: Ritik and Shrey.
+  C16–C18, not F3): L3's kappa in the caption once the labels are read under the LLM-judge protocol (kappa under 0.6
+  on Nov 3, Ritik against an AI rater; Gate 2 Nov 8). Owners: Ritik and Shrey. Corrected Nov 4, 17:55: rater 2 was an
+  AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log; no settling call or fresh batch.
 - **Slide 7** (`docs/paper/figures/b16_authority.png`): B24's two arms (the classmate, the official solution manual)
   beside B16's, from `results/summaries/trackB/b24_report.json` (read Nov 4, F40), with B24's readings (the gradient
   same day; the rest cross-day, labelled). Owner: Arsha, from Nov 6.

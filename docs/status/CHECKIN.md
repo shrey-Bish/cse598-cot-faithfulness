@@ -1,6 +1,7 @@
 # The daily check-in
 
-**Edited by:** Ritik. Written 2026-11-04 16:19 MST. History: `git log -- docs/status/CHECKIN.md`.
+**Edited by:** Ritik. Written 2026-11-04 16:19 MST; the labels corrected 17:54 (the standing rule, Nov 7, Nov 8).
+History: `git log -- docs/status/CHECKIN.md`.
 
 One routine, once a day, in this order: §1 to §7. §8 is the merge, on the merge days. §9 is what each day from Nov 5 to
 Nov 24 brings. Run it after 07:00, when the feeder's daily digest is out.
@@ -18,7 +19,12 @@ themselves are in [`RUNBOOK.md`](../RUNBOOK.md): §0 (the feeder), §16 (merges,
   committed before the runs it changes.
 - **Nothing is chosen on any evaluation question** (E2, the 30, B20's questions). No outcome of A39, B1R2 or B20 is
   read before its rule says so. Status counts only.
-- **No automated judging of labels.** Labels are by hand, by the raters. No model labels, settles or checks a label.
+- **LLM judges only under the LLM-judge protocol (pre-registered Nov 4), for labels only, always disclosed.** Ritik's
+  labels are the final labels; the AI judges are their reliability check.
+  - Corrected Nov 4, 17:54: this rule was "No automated judging of labels". Rater 2 was an AI model (ChatGPT 5 Astra
+    High), not Shrey; see the
+    [17:42 log](../../archive/sessions/2026-11-04/2026-11-04_1742_ALL_label-correction.md) and the protocol's
+    [17:45 log](../../archive/sessions/2026-11-04/2026-11-04_1745_ALL_llm-judge-prereg.md).
 - **Produced data never goes on GitHub.** Runs, replies and records stay in gitignored folders. Only numbers-only
   summaries under `cot-disclosure/results/summaries/` are tracked. Nothing from GPQA in any tracked file.
 - **No paid calls.** Voyager and Sol only.
@@ -349,8 +355,8 @@ From PLAN's calendar, the TODOs and the logs. "Needs Ritik" goes in the report.
 |---|---|---|
 | Thu Nov 5 | nothing fixed. Sol: the first start since Nov 4 12:36 (dates from `squeue --start`) | §1–§7; push as §6's first row |
 | Fri Nov 6 | **07:00, the feeder's decision nov6** (the A39 log's §16). **Arsha's handoff:** her bundle `trackB_20261106`, her setup and check-in; Track B is hers from today | record decision nov6 in the Nov 6 daily (§4); build and verify her bundle (§4). Needs Ritik: send the bundle and her note; cut 3 if cut. The handoff's push is the last to `trackB-main` |
-| Sat Nov 7 | **Track C check-in and merge** (C19 due). **L3:** the settling call and the 72-row fresh batch (Ritik and Shrey) | §8 for `trackC-main`. Needs Ritik: L3's state for Gate 2 |
-| Sun Nov 8 | **Gate 2** (G2): the tool-vs-user gap (answered) and the labels' kappa per channel | needs Ritik: Gate 2's statement from L3 |
+| Sat Nov 7 | **Track C check-in and merge** (C19 due). (Corrected Nov 4, 17:54: no L3 settling call or fresh batch; Shrey does no labeling) | §8 for `trackC-main`. Needs Ritik: L3's state for Gate 2 |
+| Sun Nov 8 | **Gate 2** (G2): the tool-vs-user gap (answered) and the labels' kappa per channel (Ritik against the AI judges' majority, the LLM-judge protocol) | needs Ritik: Gate 2's statement from L3 |
 | Mon Nov 9 | Arsha re-reads B24 from the bundle | — |
 | Tue Nov 10 | the report from Nov 10 (PLAN) | — |
 | Wed Nov 11 | **09:00, the 30's rule** (the A39 log's §10.2), applied by the feeder (§17), unless dropped Nov 6 | record its branch (§4) |

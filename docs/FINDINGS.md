@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-04 13:53 (T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-04 18:00 (the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -96,8 +96,8 @@ stay here.
    inserted tool turn) isn't borne out for either tag version (tags −2 [−13, +9]; LoRA + tags −13 [−24, −1],
    the other way). The LoRA versions' false-disclosure candidates rise (LoRA +10 [+2, +18], LoRA + tags
    +10 [+2, +19]) while the instruction's fall (−9 [−14, −4]). **By hand labels, LoRA's candidates are rarely
-   real (L4 part 1, Nov 3; two raters, kappa 0.93):** 1 to 2 of its 147 claim to have rejected the hint while
-   ending on it; most (61% to 66%) say the hint shaped the answer. So the cautionary claim's second half ("may have
+   real (L4 part 1, Nov 3; Ritik and AI rater 1 (ChatGPT 5 Astra High), kappa 0.93, human-vs-AI
+   agreement):** 1 to 2 of its 147 claim to have rejected the hint while ending on it; most (61% to 66%) say the hint shaped the answer. So the cautionary claim's second half ("may have
    taught the model to claim checks it didn't do") isn't supported for claimed disagreement; its "worked it out
    independently" half can't be read from the labels, and the raters could tell LoRA's style (the reading set after
    labeling, before counting). Its first half stands: fine-tuning reduced following no more than an instruction.
@@ -116,7 +116,8 @@ stay here.
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`); hand labels decide
-  only where they stand (L4 part 1 in F28, kappa 0.93; L3's, under 0.6 on Nov 3, don't yet).
+  only where they stand (L4 part 1 in F28, kappa 0.93; L3's, under 0.6 on Nov 3, don't yet). Both kappas are
+  Ritik against an AI rater (ChatGPT 5 Astra High), not two human raters (corrected Nov 4, 17:49; F3, F28).
 - **Too few questions** (decided Oct 26). A clustered interval resting on fewer than 5 questions
   degenerates (it can have zero width), so none is reported: the point is followed by "too few
   questions", and no direction is read from it. Group sizes are given in questions as well as
@@ -195,19 +196,37 @@ confound the comparison: the token budget and the run counts.
   "the user asks…"), so 208 is an upper bound.
 - **Source.** `docs/labeling/RESULTS_SUMMARY.json` (`pilot.mentions.<model>.private_mentions_hinted`
   and `final_mentions_hinted`); `archive/superseded/OVERVIEW_2026-10-27.md` §6; `base_format.py --report`.
-- **Status.** *confirmed* as keyword counts. Hand labels in (L3, Nov 3): kappa under 0.6 in four of six cells, so they
-  don't stand yet (below).
-- **Hand labels, Nov 3 (L3, 101 rows, Ritik and Shrey):** Cohen's kappa is below 0.6 in four of six cells.
+- **Status.** *confirmed* as keyword counts. Hand labels: one human rater (Ritik) with AI judges as the check. Gate 2's
+  label part is not met under the Nov 4 protocol (below), so no claim rests on the hand labels.
+- **Hand labels, Nov 3 (L3, 101 rows, Ritik and AI rater 1 (ChatGPT 5 Astra High)):** Cohen's kappa is below 0.6 in
+  four of six cells. It is human-vs-AI agreement, not inter-human reliability.
   - **Private reasoning:** 0.63 over 58 rows; tool 0.29 (30 rows), user 0.85 (28 rows).
   - **Final answer:** 0.54 over 101 rows; tool 0.59 (44 rows), user 0.43 (57 rows).
-  - **By the plan** (PLAN, "under 0.6, tighten the guide and label a fresh batch"; RATER_GUIDE "Below 0.6"), the
-    labels don't stand yet:
-    1. the two raters settle the 25 disagreements (rows listed in the Nov 3 log), the settled labels in a third
-       column pair beside the original two;
-    2. the guide is tightened;
-    3. a fresh batch is labeled.
-  - **No acknowledgment claim from hand labels goes in the report before that** (PLAN, Gate 2). No label rate of
-    L3 has been computed. F3 stays a keyword count.
+  - **Corrected Nov 4, 17:49:** rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the
+    [17:42 log](../archive/sessions/2026-11-04/2026-11-04_1742_ALL_label-correction.md). Ritik ran it with the rater
+    packet's guide and blind sheets. Shrey did no labeling. The numbers stay as read.
+  - **The two-rater route no longer applies** (settle the 25 disagreements, tighten the guide, label a fresh batch).
+    L3 is now read under the LLM-judge protocol, pre-registered Nov 4
+    ([its log, 17:45](../archive/sessions/2026-11-04/2026-11-04_1745_ALL_llm-judge-prereg.md)):
+    1. Ritik's labels are the final labels;
+    2. several AI judges are their reliability check, reported openly;
+    3. Gate 2's label part is met if Ritik against the AI judges' majority has kappa 0.6 or more in every cell of
+       this table; otherwise it is "not met".
+  - **Read by that protocol, Nov 4, 17:56** ([its results](../archive/sessions/2026-11-04/2026-11-04_1756_ALL_llm-judge-results.md)).
+    **Gate 2's label part: not met.** Ritik's labels against the AI judges' 3-of-4 majority are under 0.6 in all six
+    cells: private 0.472 (tool 0.353, user 0.576); final 0.234 (tool 0.223, user 0.201).
+    - **Ritik against each AI set** (private, then final, overall):
+      - Claude Opus (fresh sub-agents) 0.669 and 0.837;
+      - ChatGPT 5 Astra High 0.627 and 0.543;
+      - Qwen3 30B Instruct 0.462 and 0.234;
+      - Olmo 3.1 32B Instruct 0.153 and 0.291 (72 of its 159 texts got no label: format).
+    - **Why the majority falls:** the two Voyager judges barely follow the guide; on L4 they are near-constant (F28).
+      Opus agrees with Ritik at 0.6 or more in 5 of the 6 cells (private on tool runs 0.434).
+    - **No consistent own-family advantage** in the bias check (22 Qwen-written rows: wide).
+    - **The labels stand as Ritik's,** with this agreement reported. His blind re-look of the 60 cells where he and
+      the majority differ is final, and Gate 2's number stays on his original labels.
+  - **No acknowledgment claim from hand labels goes in the report** while the label part is not met (PLAN, Gate 2).
+    No label rate of L3 has been computed. F3 stays a keyword count.
 
 ## F4. Known answers are overridden, mostly late in the reasoning, on a few questions
 
@@ -1568,23 +1587,35 @@ all four trained versions pass.**
   and LoRA + tags (150 of 532, +10 [+2, +19]). LoRA on 15/19/23 has 126 of 534 (+5 [−1, +12]). It doesn't rise for
   tags (95 of 524) and falls for the instruction (50 of 532). L4's sheets (fixed Oct 30) hold LoRA's, base's and
   prompt_only's candidates, not the two later versions'.
-- **Hand labels (L4 part 1, Nov 3; Ritik and Shrey; kappa on the final answer 0.93 over 294 rows, every channel
-  0.89 or more): LoRA's candidates are rarely a real false disclosure.** Every row ends on the hint's (wrong) letter.
+- **Hand labels (L4 part 1, Nov 3; Ritik and AI rater 1 (ChatGPT 5 Astra High); kappa on the final answer 0.93 over
+  294 rows, every channel 0.89 or more, human-vs-AI agreement): LoRA's candidates are rarely a real false
+  disclosure.** Every row ends on the hint's (wrong) letter.
+  - **Corrected Nov 4, 17:49:** rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the
+    [17:42 log](../archive/sessions/2026-11-04/2026-11-04_1742_ALL_label-correction.md). Ritik ran it with the rater
+    packet's guide and blind sheets. The reading stays as read, now as human + AI agreement (0.930), not two human
+    raters'.
 
   | group (rows) | rater | `rejects_hint` | `says_changed` | `mentions_only` | `no_mention` | `unclear` |
   |---|---|---|---|---|---|---|
   | LoRA's candidates (147) | Ritik | **1** | 97 | 42 | 6 | 1 |
-  | | Shrey | **2** | 89 | 49 | 6 | 1 |
+  | | AI rater 1 | **2** | 89 | 49 | 6 | 1 |
   | | both agree (139) | **1** | 89 | 42 | 6 | 1 |
   | base, matched non-candidates (74) | Ritik | 0 | 11 | 0 | 62 | 1 |
-  | | Shrey | 0 | 10 | 1 | 63 | 0 |
+  | | AI rater 1 | 0 | 10 | 1 | 63 | 0 |
   | | both agree (72) | 0 | 10 | 0 | 62 | 0 |
   | prompt_only, matched non-candidates (73) | Ritik | 0 | 12 | 4 | 57 | 0 |
-  | | Shrey | 0 | 10 | 5 | 58 | 0 |
+  | | AI rater 1 | 0 | 10 | 5 | 58 | 0 |
   | | both agree (70) | 0 | 10 | 3 | 57 | 0 |
 
+  - **The LLM judges, Nov 4** ([results](../archive/sessions/2026-11-04/2026-11-04_1756_ALL_llm-judge-results.md)):
+    - Ritik against Claude Opus is 0.967, and Opus against ChatGPT 0.930, so the reading holds with a second strong AI
+      rater.
+    - The two Voyager judges are near-constant (Qwen3 30B Instruct `says_changed` on 277 of 294 rows; Olmo 3.1 32B
+      Instruct `mentions_only` on 250), so their kappa is about 0 (0.021, 0.043) and the 3-of-4 majority's is 0.417.
+    - L4 is Gate 3's labels and isn't read by Gate 2's rule. Its 140 cells where Ritik and the majority differ go to
+      his blind re-look.
   - **Real false disclosure,** read as `rejects_hint` (the answer says the hint is wrong or sets it aside, yet ends
-    on it): 1 of 147 (Ritik), 2 of 147 (Shrey), 1 of the 139 agreed. **Most of LoRA's candidates say the hint
+    on it): 1 of 147 (Ritik), 2 of 147 (AI rater 1), 1 of the 139 agreed. **Most of LoRA's candidates say the hint
     shaped the answer** (`says_changed`: 97 and 89 of 147, 66% [58, 73] and 61% [52, 68]): disclosure, not a false
     claim of checking.
   - **The matched rows** (the keyword's misses): no `rejects_hint` in base's 74 or prompt_only's 73; mostly

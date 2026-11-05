@@ -1,6 +1,6 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-11-04 16:38 MST (Gate 2's statement; the presentation map and the submission checklist; the 30's Nov 6 and Nov 11 rules applied by the feeder, the A39 log's §16 and §17; earlier: B24 read: F40; B20's second amendment, §16; A39's parts at 2:00, its log's §14; earlier Nov 4: B20 amended after its first smokes, §15 of its log; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
+Last updated: 2026-11-04 17:51 MST (the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; L3, L4 and Gate 2 under the LLM-judge protocol; earlier, 16:38: Gate 2's statement; the presentation map and the submission checklist; the 30's Nov 6 and Nov 11 rules applied by the feeder, the A39 log's §16 and §17; earlier: B24 read: F40; B20's second amendment, §16; A39's parts at 2:00, its log's §14; earlier Nov 4: B20 amended after its first smokes, §15 of its log; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
 **Edited by:** Ritik. History: `git log -- docs/PLAN.md`; the Oct 31 version and the per-track design notes that
 were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`](../archive/superseded/PLAN_2026-10-31.md). Where things are:
 - progress: [`STATUS.md`](status/STATUS.md);
@@ -70,7 +70,8 @@ were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`
        as much, except Qwen3 30B Instruct's own call (+75) and Qwen3 30B Thinking's pasted block (+12); and that
        claim, from the user, is named in the final answer, unlike a tool call (B16, F35; confirmed same-day, B19).
    - Open:
-     - Do two raters agree on what the texts say (L3: kappa under 0.6 on Nov 3; settling, then a fresh batch)?
+     - Do the hand labels hold (L3: Ritik against AI rater 1, ChatGPT 5 Astra High, kappa under 0.6 on Nov 3; now
+       the LLM-judge protocol, pre-registered Nov 4)?
      - Do open models from new families behave the same (B20)?
 3. **Between agents: downstream agents can't tell a tool's claim from a colleague's conclusion.**
    - Known:
@@ -99,8 +100,8 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | 1 inside | A38 | STRETCH, only if B1 "works": prompt_only's note + B1 deployable, against each alone, same HF stack | Ritik | Nov 14 | **dropped Nov 3, as pre-registered:** B1's deployable span reads "ignores tools" (F38) |
 | control | B16 | Tool or authority? The answer key's authority in the user's hint, against the tool channels | Ritik; Arsha, from Nov 6 | Nov 3 | **done Nov 1** (F35): tool beyond authority for Qwen3 Instruct's call (+75) and Thinking's pasted block (+12), authority moves Olmo more than its inserted turn (−14), no difference in the other three; cross-day (T11) |
 | 2 words | B17 | Thinking dose: gpt-oss-20b on Sol at reasoning effort low, medium, high | Ritik submits; Arsha, from Nov 6 | Nov 12 | **done Nov 3** (F37): no change detected on both (following on the real call +7 [−1, +16]; bare after a call −5 [−10, 0]); run after its one-day window, kept by Ritik's decision before any result was read (§13) |
-| 2 words | L3 | Gate 2's hand labels (F3 rests on them): kappa per channel | Ritik and Shrey | Nov 7 | **both sheets in Nov 3; kappa under 0.6 in four of six cells** (private 0.63, tool 0.29, user 0.85; final 0.54, tool 0.59, user 0.43): by the plan, settle the 25 disagreements, tighten the guide, label a fresh batch; no acknowledgment claim from labels until then |
-| 2 words | L4 part 1 | Does training teach the model to claim checks it doesn't do? | Ritik and Shrey | Nov 14 | **read Nov 3** (F28; kappa 0.93): 1 to 2 of LoRA's 147 candidates claim a rejection they didn't act on; most say the hint shaped the answer; the raters could tell LoRA's style |
+| 2 words | L3 | Gate 2's hand labels (F3 rests on them): kappa per channel | Ritik (rater 2 was AI rater 1, ChatGPT 5 Astra High) | Nov 7 | **both sheets in Nov 3; kappa under 0.6 in four of six cells** (private 0.63, tool 0.29, user 0.85; final 0.54, tool 0.59, user 0.43), human-vs-AI agreement. Next: the LLM-judge protocol (pre-registered Nov 4, the 17:45 log): Ritik's labels final, the AI judges the reliability check; no acknowledgment claim from labels until then. Corrected Nov 4, 17:51: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log; the settling call and the fresh batch no longer apply |
+| 2 words | L4 part 1 | Does training teach the model to claim checks it doesn't do? | Ritik (rater 2 was AI rater 1, ChatGPT 5 Astra High) | Nov 14 | **read Nov 3** (F28; kappa 0.93, human-vs-AI agreement): 1 to 2 of LoRA's 147 candidates claim a rejection they didn't act on; most say the hint shaped the answer; the raters could tell LoRA's style. Corrected Nov 4, 17:51: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log; the reading stays, as human + AI agreement |
 | 2 words | B18 | The final Track B table and one figure | Ritik; Arsha, from Nov 6 | Nov 18 | started Nov 3 (`tools/trackb_final.py`; slide 2) |
 | 2 words | B20 | Open models from new families on Sol (Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B, Granite 4.2 8B), thinking on and off | Ritik submits; Arsha, from Nov 6 | runs Nov 15, read Nov 17 | pre-registered Nov 3; smokes Nov 4: none clean, **amended (§15, §16): Gemma and Nemotron the inserted tool turn, Granite thinking on only** (4,860 runs); second smokes after Ritik's Nov 4 pulls; runs at 1:30 (§14) |
 | 2 words | B24 | The authority dose: does a second wording hold, and does the pull grow from a classmate to the solution manual? | Ritik runs; Arsha reads from Nov 6 if not before | read when done (by Nov 9) | **done Nov 4 (F40):** 972 runs on Voyager 03:38–11:12; the manual over the classmate in all three; Thinking's manual over B16's wording |
@@ -122,8 +123,8 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 |---|---|---|---|---|
 | Oct 31–Nov 3 | A37 done (Nov 1); B1 read (Nov 3); A38 dropped; E2 and A39 pre-registered | B16, B19 done; B17 done (Nov 3) | C19, C25, C20, C26 prepared and dry-run; Shrey's workspace (Nov 3) | L3 and L4 part 1 in (Nov 3) |
 | Nov 3 | A18 read (F39); the bench done; 9 A39 parts queued | B20's downloads done | **final handoff** (START_HERE's Quick start) | the label deadlines set: Nov 7 |
-| Nov 4 | the 9 queued parts end (7 started Nov 3 evening; the last 2 as GPU-minutes free); then, as places free, B20's smokes and runs, E2's 28 sixteenths and the 15 fifths, 1:30 each, up to 10 at once (the Nov 4 log; the feeder from 03:20); one port for every job found and fixed, 340 runs from another model's server set aside (the A39 log's §15) | B20's first smokes: Granite and Gemma amended (§15), Nemotron (§16); **B24 on Voyager** (03:38–11:12), **read (F40)** | setup (Nov 4); C19 | L3: the settling call (not held Nov 4; it and the fresh batch by Nov 7) |
-| Nov 5–7 | the quarters' leftovers (28 sixteenths) and the sweeps; **E2 and B20 done (projected about Nov 7 at the last 24 hours' pace, Nov 10 at half; nothing ran from Nov 4 12:36, first start estimated Nov 5 06:25: our fair share is 0.005 against others' up to about 0.9, so we start only by backfill; the A39 log's §15, FINDINGS T12)**; A39 on the 30 (22 jobs; about Nov 8); **B1R2's 40 parts (projected about Nov 9–10; Nov 14 at half the pace)** | **Handoff to Arsha, Nov 6**; B20's second smokes and runs (projected done Nov 6–7: the smokes' runs were about twice the dry run's length); B24 re-read from the bundle (read Nov 4) | **C19; check-in and merge (Nov 7)** | **L3's fresh batch (Nov 7)** |
+| Nov 4 | the 9 queued parts end (7 started Nov 3 evening; the last 2 as GPU-minutes free); then, as places free, B20's smokes and runs, E2's 28 sixteenths and the 15 fifths, 1:30 each, up to 10 at once (the Nov 4 log; the feeder from 03:20); one port for every job found and fixed, 340 runs from another model's server set aside (the A39 log's §15) | B20's first smokes: Granite and Gemma amended (§15), Nemotron (§16); **B24 on Voyager** (03:38–11:12), **read (F40)** | setup (Nov 4); C19 | L3: the second rater found to be an AI model (17:42); the settling call and the fresh batch dropped; the LLM-judge protocol pre-registered (17:45) |
+| Nov 5–7 | the quarters' leftovers (28 sixteenths) and the sweeps; **E2 and B20 done (projected about Nov 7 at the last 24 hours' pace, Nov 10 at half; nothing ran from Nov 4 12:36, first start estimated Nov 5 06:25: our fair share is 0.005 against others' up to about 0.9, so we start only by backfill; the A39 log's §15, FINDINGS T12)**; A39 on the 30 (22 jobs; about Nov 8); **B1R2's 40 parts (projected about Nov 9–10; Nov 14 at half the pace)** | **Handoff to Arsha, Nov 6**; B20's second smokes and runs (projected done Nov 6–7: the smokes' runs were about twice the dry run's length); B24 re-read from the bundle (read Nov 4) | **C19; check-in and merge (Nov 7)** | **L3: the LLM judges, by the protocol (before Gate 2)** |
 | Nov 8–12 | room for reruns; the 30's rule on Nov 11 09:00 (no effect if E2 and B20 are done), unless the 30 was dropped on Nov 6 07:00 by the A39 log's §16 (under 10 GPU-hours from Nov 4 12:36; B1R2 then held until E2's sweeps and B20's lines are in) | **check-in and merge (Nov 12)** | **C25; check-in and merge (Nov 12)** | **Gate 2 (Nov 8)** |
 | Nov 13–18 | runs end Nov 15; A39 read Nov 17 | B20 read (Nov 17); B18's table and figure (Nov 18); **check-ins Nov 15, 18** | **C20, C26 (Nov 15); C24 and slides 11–12 (Nov 18); check-ins Nov 15, 18** | the report from Nov 10 |
 | Nov 18 | results freeze: all evaluation done by Nov 18, no new runs after it | | | |
@@ -137,27 +138,39 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
   28), and Track C runs on Voyager only.** Paid calls wait for keys and Ritik's "go".
 - **Gate 2 (Nov 8).** Is the tool-vs-user gap still clear with 3 runs per question and more models (Track B)?
   Answered: clear for all five models (B9; gpt-oss-20b at every effort, F37). And are the hand labels in, with Cohen's
-  kappa per channel? L3: both sheets in Nov 3, kappa under 0.6 in four of six cells, so the label part isn't passed yet
-  (settle, tighten the guide, a fresh batch; F3).
-  - **The statement, as of Nov 4, 16:38 (filled in on Nov 8).**
+  kappa per channel? L3: both sheets in Nov 3 (Ritik and AI rater 1, ChatGPT 5 Astra High), kappa under 0.6 in four
+  of six cells. Read under the LLM-judge protocol (pre-registered Nov 4) on Nov 4: **the label part is not met**
+  (F3).
+  - **The statement, as of Nov 4, 18:00 (its label part read Nov 4 by the protocol).**
+    - **Corrected Nov 4, 17:51:** rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the
+      [17:42 log](../archive/sessions/2026-11-04/2026-11-04_1742_ALL_label-correction.md). The two-rater route
+      (settle, tighten the guide, a fresh batch) no longer applies, and there is no settling call.
     - **The tool-vs-user gap is answered:** clear for all five models (B9; F15–F17, F29; gpt-oss-20b at every effort,
       F37).
     - **The hand labels aren't passed yet.** On the original independent sheets (L3, read Nov 3; they stay the record),
-      Cohen's kappa is under 0.6 in four of six cells:
+      Cohen's kappa, Ritik against AI rater 1 (human-vs-AI agreement, not inter-human), is under 0.6 in four of six
+      cells:
       - the private reasoning: 0.627 overall, 0.288 on tool runs, 0.850 on user runs;
       - the final answer: 0.543, 0.589 and 0.425.
-    - Shrey's Nov 4 "final" sheets carry Ritik's labels on the 25 disagreement cells. So they are his input for the
-      settling call, not settled labels.
-    - **Left, all by Nov 7:**
-      - the call (Ritik and Shrey; `results/labels/L3_call_sheet_20261104.md`);
-      - the guide tightened from the call's rules, which Ritik approves;
-      - the 72-row fresh batch (seed `L3-fresh-20261103`), labeled by both raters with that guide;
-      - its kappa per cell.
-    - **On Nov 8, fill in:**
-      - the fresh batch's kappa, private ___ / ___ / ___ and final ___ / ___ / ___ (all / tool / user);
-      - every cell at 0.6 or more: passed / not passed;
-      - if not passed, F3 stays a keyword count and no acknowledgment claim rests on hand labels.
-    - L4 part 1 (Gate 3's labels, kappa 0.930) is not part of Gate 2. If the gap isn't clear, the headline becomes the private-vs-final gap, the mechanism (Track A) and the agent
+    - The "final" sheets of Nov 4 were made by the same AI model and carry Ritik's labels on the 25 disagreement
+      cells. They are not used for kappa.
+    - **Gate 2's label part is now read under the LLM-judge protocol** (pre-registered Nov 4,
+      [the 17:45 log](../archive/sessions/2026-11-04/2026-11-04_1745_ALL_llm-judge-prereg.md)):
+      - the final labels are Ritik's;
+      - the AI judges are the reliability check;
+      - the label part is **met** if Ritik against the AI judges' majority has kappa 0.6 or more in every cell;
+        otherwise it is **"not met"**, stated plainly.
+    - **Filled in Nov 4, 18:00** (read by the protocol at 17:56,
+      [the results](../archive/sessions/2026-11-04/2026-11-04_1756_ALL_llm-judge-results.md); the rule didn't wait for
+      Nov 8, since nothing left changes the number):
+      - Ritik against the AI judges' majority, kappa: private 0.472 / 0.353 / 0.576 and final 0.234 / 0.223 / 0.201
+        (all / tool / user);
+      - every cell at 0.6 or more: **not met**;
+      - so F3 stays a keyword count, and no acknowledgment claim rests on hand labels.
+      - Why: two of the four AI judges (Qwen3 30B Instruct, Olmo 3.1 32B Instruct) barely follow the guide. Claude Opus
+        agrees with Ritik at 0.669 (private) and 0.837 (final); ChatGPT 5 Astra High at 0.627 and 0.543.
+    - **Gate 2 on Nov 8:** the gap is clear; the label part is not met. Stated plainly in the report.
+    - L4 part 1 (Gate 3's labels, kappa 0.930, human-vs-AI agreement) is not part of Gate 2. If the gap isn't clear, the headline becomes the private-vs-final gap, the mechanism (Track A) and the agent
   results.
 - **Gate 3 (Nov 20), its final statement.** Does a trained version follow fewer wrong hints on held-out questions
   without losing accuracy? Success:
@@ -192,7 +205,7 @@ this style; `taught_loss` (F20) has no 16:9 version.
 | 2 | **Tools pull harder than users.** Gate 2 on five models (F15–F17, F29, F37) | `gate2.png` (B18's rows) | made Nov 3 | B20, added if read (read Nov 17); final by Nov 20 | Arsha |
 | 3 | **Level 1: three layers read the tool's letter.** F11, replicated on set A (F26); the heads (F12, F32) | `readout_by_layer_slide.png` (the report's `readout_by_layer` and the supplement's `readout_setA_vs_test2`) | made Nov 4 | — | Ritik |
 | 4 | **Level 1 on a second model.** Qwen3-8B (A37; F36: replicates) | `readout_qwen8b.png` | made Nov 1 | — | Ritik |
-| 5 | **Level 2: the private reasoning names it, the final answer doesn't** (F3, with L3's kappa) | listed: `cue_experiments_slide.png` (the supplement's `cue_experiments`); it shows C16–C18 (F31, F33, F34), not F3 | waiting | L3's settled labels (kappa under 0.6 on Nov 3; the settling call and the 72-row fresh batch both by Nov 7; Gate 2 Nov 8); F3 stays a keyword count until then | Ritik and Shrey |
+| 5 | **Level 2: the private reasoning names it, the final answer doesn't** (F3, with L3's kappa) | listed: `cue_experiments_slide.png` (the supplement's `cue_experiments`); it shows C16–C18 (F31, F33, F34), not F3 | waiting | L3's labels under the LLM-judge protocol (kappa under 0.6 on Nov 3, Ritik against an AI rater; pre-registered Nov 4; Gate 2 Nov 8); F3 stays a keyword count until then | Ritik and Shrey |
 | 6 | **Level 2: after a tool call, the answer goes bare.** F15, C4's control, F29; one instruction brings the source back without reducing deference (F25) | `bare_after_call.png` | made Nov 1 | — | Arsha |
 | 7 | **Tool or authority?** (B16, F35; the authority dose, B24, F40) | `b16_authority.png` | made Nov 1 | B24's two arms beside B16's (B24 read Nov 4, F40; spec in WAITING.md's additions); Arsha, from Nov 6; final by Nov 20 | Ritik, then Arsha |
 | 8 | **Thinking dose** (B17, F37; labelled §13) | `b17_effort.png` | made Nov 3 | — | Arsha |
@@ -260,8 +273,8 @@ course page". "Proposed" marks an owner or date set nowhere else in the repo, fo
 | the supplement (`docs/paper/supplement/`) | regenerated from the frozen results by `tools/make_supplement.py` (TODO D6); whether it goes in as an appendix: confirm against the course page | Ritik | Nov 20 (D6) |
 | the slides | the 13 slides of the presentation map above, figures from `docs/paper/figures/`, each slide by its owner (Ritik 1, 3, 4, 9, 10; Arsha 2, 6, 7, 8; Ritik and Shrey 5; Shrey 11, 12; everyone 13); the speaker notes by the team; one deck (proposed: Ritik assembles it); format and time limit: confirm against the course page | each slide's owner; the deck Ritik (proposed) | 11–12 Nov 18; 2 by Nov 20, 6–8 in Nov 19–24 (the calendar); 9 after Gate 3's final statement (Nov 20); 13 Nov 21–22; rehearsal Nov 23; presented Nov 24 |
 | the code link | https://github.com/shrey-Bish/cse598-cot-faithfulness (`git remote get-url origin`): `main` with `trackB-main` and `trackC-main` merged at the Nov 18 check-in; the README's test and recompute commands; produced data local (gitignored), the numbers-only summaries tracked (Deliverables, 5); the graders' access: confirm against the course page | Ritik (the merges and the push) | the last merge Nov 18; in the submission folder Nov 21 |
-| a contribution statement | who did what, by track and date, from "Who runs what" (top of this file) and each track's TODO: Track A Ritik; Track B Ritik to Nov 6, Arsha from Nov 6; Track C Shrey from Oct 30; the hand labels Ritik and Shrey (L3, L4); the report's sections and the slides by owner (above); form: confirm against the course page | each member their own lines; Ritik merges (proposed) | with the draft, Nov 22 (proposed) |
-| an AI-use disclosure | which AI tools each member used, for what (code, analysis, writing), and what was checked by hand; how the hand labels were made, as each rater reports it (ask both raters before writing it); form and policy: confirm against the course page | each member for their own work; Ritik merges (proposed) | with the draft, Nov 22 (proposed) |
+| a contribution statement | who did what, by track and date, from "Who runs what" (top of this file) and each track's TODO: Track A Ritik; Track B Ritik to Nov 6, Arsha from Nov 6; Track C Shrey from Oct 30; the hand labels Ritik (L3, L4; the second sheets by an AI model, ChatGPT 5 Astra High, and the LLM judges, as the 17:42 and 17:45 logs record them; corrected Nov 4, 17:51: not Shrey); the report's sections and the slides by owner (above); form: confirm against the course page | each member their own lines; Ritik merges (proposed) | with the draft, Nov 22 (proposed) |
+| an AI-use disclosure | which AI tools each member used, for what (code, analysis, writing), and what was checked by hand; how the hand labels were made: Ritik's by hand, the second sheets by ChatGPT 5 Astra High (run by Ritik with the guide and the blind sheets), and the LLM judges by their protocol (the 17:42 and 17:45 logs; corrected Nov 4, 17:51); form and policy: confirm against the course page | each member for their own work; Ritik merges (proposed) | with the draft, Nov 22 (proposed) |
 | the submission folder (TODO D13) | the report and slide files, the code link, the statement and the disclosure in one place | Ritik | Nov 21 (D13); submitted Nov 24 |
 
 ---
@@ -306,6 +319,6 @@ experiment's pre-registration log, and [`RUNBOOK.md`](RUNBOOK.md).
 | risk | what we do |
 |---|---|
 | Sol is busy at times (`public` full on Nov 3 afternoon; htc isn't open to the class QoS) | 1:30 parts (2:00 from Nov 4, the A39 log's §14), up to 10 at once under the 960 GPU-minute cap, kept full day and night by the feeder (so no longer night shapes); times from `squeue --start`; the 30 is dropped on Nov 11 by its rule if time runs short; B1R2 runs last and is read partial if not done by Nov 15 (its §13) |
-| L3's labels don't reach 0.6 again | the plan's steps (settle, tighten, a fresh batch); F3 stays a keyword count and no acknowledgment claim from labels goes in the report |
+| L3's labels don't reach 0.6 (Ritik against the AI judges' majority, the LLM-judge protocol) | Gate 2's label part is "not met", stated plainly; F3 stays a keyword count and no acknowledgment claim from labels goes in the report (corrected Nov 4, 17:51: the settle-tighten-fresh-batch route was for two human raters) |
 | A model in B20 doesn't serve cleanly on vLLM 0.31.0 | its smoke stops it before any run; the fallback is the inserted tool turn, or the model is dropped by an amendment. **Nov 4:** both used (§15): Gemma's fallback; Granite's thinking-off setting dropped, since its off mode still thinks |
 | A teammate's change touches shared code, or Ritik's touches theirs | the path allowlist, both ways (`tools/path_check.py` as pre-commit and pre-merge-commit hooks); Ritik reviews each merge on the check-in days |

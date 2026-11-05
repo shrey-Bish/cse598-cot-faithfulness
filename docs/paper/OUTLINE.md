@@ -32,7 +32,9 @@ Evidence by F-number ([`docs/FINDINGS.md`](../FINDINGS.md)), claims by number
    - The title question in the same weights (F29): thinking puts the tool in the private reasoning
      (141 of 145) and not the final answer (0 of 143), and raises the call rate.
    - Disclosure can be prompted, but it doesn't reduce deference (B15, F25).
-   - **Missing:** L3 labels that stand (kappa under 0.6 on Nov 3; the settling call and a fresh batch by Nov 7); L5.
+   - **Missing:** L3 labels that stand (kappa under 0.6 on Nov 3, Ritik against an AI rater; now the LLM-judge protocol,
+     pre-registered Nov 4); L5. Corrected Nov 4, 17:55: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey;
+     see the 17:42 log; no settling call or fresh batch.
 4. **When the hint takes over** (F4, F5, F14; early answering)
    - Takeover curves; late takeovers on few questions; the lead swings.
    - **Missing:** more questions (set A adds some).

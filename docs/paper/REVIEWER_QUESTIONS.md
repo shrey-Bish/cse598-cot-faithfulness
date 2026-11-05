@@ -64,8 +64,10 @@ The runs of Oct 28–29:
    - **Answered in part:** the readout replicates in Qwen3-8B (A37, F36); Gate 2 holds for 5 models (F15–F17, F29,
      F37). B20 adds three new families (read Nov 17).
 9. **Are the mention counts real acknowledgments?**
-   - Keyword counts until the hand labels stand. L3 came back Nov 3 with kappa under 0.6, so by the plan: the
-     settling call, a tightened guide and a fresh batch (by Nov 7; `docs/labeling/RATER_GUIDE.md`).
+   - Keyword counts until the hand labels stand. L3 came back Nov 3 with kappa under 0.6 (Ritik against an AI rater,
+     ChatGPT 5 Astra High), so it is now read under the LLM-judge protocol (pre-registered Nov 4): Ritik's labels are
+     final, several AI judges the reliability check. Corrected Nov 4, 17:55: rater 2 was an AI model, not Shrey; see
+     the 17:42 log; the settling call, a tightened guide and a fresh batch no longer apply.
 10. **Couldn't you just ask the model to say where its answer came from?** (F15: after a tool call the final answer
     is a bare letter.)
     - **Answered by B15 (F25): yes, for disclosure; no, for following.** After a call, Thinking names the tool in 33

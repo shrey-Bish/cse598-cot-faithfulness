@@ -2,11 +2,18 @@
 
 **Edited by:** Ritik.
 
-Last updated: 2026-10-31 22:30 (the two rules below accepted by Ritik as written; 20:50 the rater packets: this guide for the raters, with two or three examples per label from
+Last updated: 2026-11-04 17:54 (the raters corrected, below; earlier, Oct 31 22:30: the two rules below accepted by Ritik as written; 20:50 the rater packets: this guide for the raters, with two or three examples per label from
 set A's runs, which are in no sheet; two rules, on noting a conflict and on cut text. Oct 28 21:50: the Track B batch: bare replies labeled by rule, a 10% spot check, and 20 rows of private reasoning as a keyword check: 171 rows; the queue first. Earlier: the 10 replacement rows, the kit).
 
-For two human raters (team members). Use it with `LABEL_QUEUE.csv`. The one-page version (order, time per row,
-sending sheets back, kappa) is [`RATER_GUIDE.md`](RATER_GUIDE.md). The keyword columns
+For two human raters (team members), as pre-registered. **Corrected Nov 4, 17:54:** rater 2 was an AI model (ChatGPT 5
+Astra High), not Shrey; see the [17:42 log](../../archive/sessions/2026-11-04/2026-11-04_1742_ALL_label-correction.md).
+Ritik ran it with the rater packet's guide and blind sheets; Ritik's are the only human labels. From Nov 4 the labels
+are read under the LLM-judge protocol, pre-registered Nov 4
+([its log](../../archive/sessions/2026-11-04/2026-11-04_1745_ALL_llm-judge-prereg.md)): Ritik's labels are the final
+labels, and several AI judges, given the rater packet's guide, are the reliability check.
+
+Use it with `LABEL_QUEUE.csv`. The one-page version (order, time per row, sending sheets back, kappa) is
+[`RATER_GUIDE.md`](RATER_GUIDE.md). The keyword columns
 in the queue (`keyword_private`, `keyword_final`) come from an automatic **keyword
 pre-sort**. They only say where to look. They are not labels, and raters should ignore
 them while labeling.
@@ -147,3 +154,7 @@ It rejects the hint, then switches to it and credits "my first instinct". This c
 3. Compute Cohen's kappa per channel. If kappa is below 0.6, meet, settle the
    disagreements, tighten this guide, and label a fresh batch.
 4. Settled labels go into a third column pair. Keep the original two columns.
+
+Corrected Nov 4, 17:54: steps 3 and 4 were for two human raters. With one human rater (Ritik) and an AI rater they
+no longer apply; the LLM-judge protocol replaces them (Gate 2's label part: Ritik against the AI judges' majority,
+kappa 0.6 or more in every cell, else "not met").

@@ -2,18 +2,27 @@
 
 **Edited by:** Ritik.
 
-For the two raters, Ritik and Shrey. Last updated 2026-11-03 (both L3 and L4 part 1 sheets returned; L3's settling and
-fresh batch; the kappa rule's wording aligned with PLAN; history: `git log -- docs/labeling/RATER_GUIDE.md`). The full definitions and one example per
-label are in [`LABELING_GUIDE.md`](LABELING_GUIDE.md). Read it once before the first row.
+Written for two human raters, Ritik and Shrey. Last updated 2026-11-04 17:53 (the second rater corrected; earlier, Nov 3:
+both L3 and L4 part 1 sheets returned; L3's settling and fresh batch; the kappa rule's wording aligned with PLAN;
+history: `git log -- docs/labeling/RATER_GUIDE.md`). The full definitions and one example per label are in
+[`LABELING_GUIDE.md`](LABELING_GUIDE.md). Read it once before the first row.
+
+**Corrected Nov 4, 17:53:** rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the
+[17:42 log](../../archive/sessions/2026-11-04/2026-11-04_1742_ALL_label-correction.md). Ritik ran it with the rater
+packet's guide and blind sheets (`SB` in the file names). Shrey did no labeling. Ritik's sheets (`RA`) are the only
+human labels, so every kappa so far is human-vs-AI agreement. The settling call (1a) and the fresh batch by both
+raters (1b) no longer apply. From Nov 4 the labels are read under the LLM-judge protocol
+([17:45 log](../../archive/sessions/2026-11-04/2026-11-04_1745_ALL_llm-judge-prereg.md)): Ritik's labels are the final
+labels, and several AI judges are the reliability check.
 
 ## What you label, in this order
 
 | Order | Batch | Rows | What each row is | Time per rater |
 |---|---|---|---|---|
 | 1 | **L3, the queue** (F3 rests on it) | 101 | one hinted run: its private reasoning and its final answer | ~2 h; **returned Nov 3** (kappa under 0.6) |
-| 1a | **L3, settling** (`results/labels/L3_settle.csv`): the 25 disagreements side by side; fill the third column pair and the guide rule that decided each | 23 rows | the two labels and notes | on a call, by Nov 7 |
-| 1b | **L3, the fresh batch** (`results/labels/fresh/`), after the guide is tightened from the call's notes | 72 | as L3 (Track B runs in no sheet) | ~85 min; by Nov 7 (Gate 2 on Nov 8) |
-| 2 | **L4, Gate 3's sample, part 1** (rows 1–294; **returned Nov 3**, kappa 0.930) | 294 | one final answer to a hinted question (no private reasoning) | ~6 h (~1¼ min a row) |
+| 1a | ~~**L3, settling** (`results/labels/L3_settle.csv`): the 25 disagreements side by side; fill the third column pair and the guide rule that decided each~~ | 23 rows | the two labels and notes | **dropped Nov 4** (rater 2 was an AI model; the LLM-judge protocol instead) |
+| 1b | ~~**L3, the fresh batch** (`results/labels/fresh/`), after the guide is tightened from the call's notes~~ | 72 | as L3 (Track B runs in no sheet) | **not now** (the LLM-judge protocol's §1: no human labels yet) |
+| 2 | **L4, Gate 3's sample, part 1** (rows 1–294; **returned Nov 3**, kappa 0.930, human-vs-AI) | 294 | one final answer to a hinted question (no private reasoning) | ~6 h (~1¼ min a row) |
 | 3 | **L4, part 2** (rows 295–586) | 292 | the same as part 1 | ~6 h |
 | 4 | **L5, Track B**, group 1 (rows 1–68) | 68 | Qwen3 30B Thinking after a real tool call or with the pasted block: both texts | ~2 h |
 | 4 | L5, group 2 (rows 69–151) | 83 | Qwen3 30B Instruct, the same: final answer only (private is `n/a`) | ~1.5 h |
@@ -59,18 +68,22 @@ For each text, put exactly one of these in `label_private` or `label_final`:
 **Don't:**
 - Talk about rows with the other rater until both of you have sent your sheets.
 - Use a chatbot or any AI tool to label or summarize rows. This study's labels must be human (no LLM judging), and
-  the text shouldn't leave the sheet.
+  the text shouldn't leave the sheet. (Corrected Nov 4, 17:53: the second sheets were made by an AI model, so they
+  count as an AI rater's, not a human's. AI judges now label only under the LLM-judge protocol, pre-registered Nov 4,
+  for labels only, always disclosed.)
 - Look up the run's outcome. The sheets hide it on purpose, so your label isn't swayed by whether the model
   followed the hint.
 
 ## Sending the sheet back
 
 - **Save:** as CSV (UTF-8), with the same columns and row order.
-- **Keep the packet's file names:** `L3_<initials>.csv` and `L4_part1_<initials>.csv` (Shrey `SB`, Ritik `RA`).
+- **Keep the packet's file names:** `L3_<initials>.csv` and `L4_part1_<initials>.csv` (Shrey's packet `SB`, Ritik `RA`;
+  the `SB` sheets returned were made by an AI model, not Shrey: the correction above).
 - **Send them to Ritik directly** (ASU email, or a shared folder Ritik names), **never** in a commit or pull
   request.
-- **Deadlines** (Ritik, Oct 31; Nov 3): L3 returned Nov 3; its settling call and the 72-row fresh batch by **Nov 7**
-  (Gate 2, Nov 8); L4 part 1 returned Nov 3; L4 part 2 and L5 after.
+- **Deadlines** (Ritik, Oct 31; Nov 3): L3 returned Nov 3; L4 part 1 returned Nov 3; L4 part 2 and L5 after. (Corrected
+  Nov 4, 17:53: L3's settling call and fresh batch by Nov 7 are off; Gate 2, Nov 8, reads L3 under the LLM-judge
+  protocol.)
 
 ## How agreement is computed (Ritik runs it; no AI involved)
 
@@ -103,8 +116,12 @@ away.
 **Kappa of 0.6 or more** for a text, overall and in each hint channel (PLAN's "per channel", written Oct 27; aligned
 here Nov 3, which changes no verdict: L3's final answer fails overall too, and L4 passes everywhere): the labels stand.
 
-**Below 0.6:**
+**Below 0.6** (the two-human-rater route, as pre-registered):
 1. Both raters meet and settle the disagreements; the settled labels go in a third column pair, and the original
    two stay.
 2. The guide is tightened.
 3. A fresh batch is labeled.
+
+Corrected Nov 4, 17:53: with one human rater and an AI rater this route no longer applies. Under the LLM-judge
+protocol, Gate 2's label part is met if Ritik against the AI judges' majority has kappa 0.6 or more in every cell of
+L3's table; otherwise it is "not met".

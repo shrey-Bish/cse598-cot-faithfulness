@@ -478,15 +478,20 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
 
 ## 15. Labels
 
-- **What:** two raters label what the text says about the hint, for the private reasoning and the
+- **What:** two raters (as pre-registered) label what the text says about the hint, for the private reasoning and the
   final answer: no mention / mentions only / rejects the hint / says the hint changed the answer /
   unclear ([`labeling/LABELING_GUIDE.md`](labeling/LABELING_GUIDE.md)).
 - **Where:** anywhere, no calls. **Status:** the kit is built (Oct 27); the rater packets for L3 and L4 part 1 are
   built (Oct 31; `tools/rater_packets.py`), their examples and practice answers reviewed and set by Ritik (Nov 1).
   Ritik's sheets (rater 1) are in, format checked (Nov 1): `results/labels/L3_RA.csv` and
-  `results/labels/gate3/L4/L4_part1_RA.csv`. **Both sheets in Nov 3:** L3 kappa under 0.6 in four of six cells
-  (settle the 25 disagreements on `results/labels/L3_settle.csv`, tighten the guide, label the fresh batch in
-  `results/labels/fresh/`, 72 rows); L4 part 1 kappa 0.930 (read, F28).
+  `results/labels/gate3/L4/L4_part1_RA.csv`. **Both sheets in Nov 3:** L3 kappa under 0.6 in four of six cells; L4
+  part 1 kappa 0.930 (read, F28).
+  - **Corrected Nov 4, 17:55:** rater 2 (the `_SB` sheets) was an AI model (ChatGPT 5 Astra High), not Shrey; see the
+    [17:42 log](../archive/sessions/2026-11-04/2026-11-04_1742_ALL_label-correction.md). Both kappas are human-vs-AI
+    agreement. The settle / tighten / fresh-batch route no longer applies. The labels are read under the LLM-judge
+    protocol ([the 17:45 log](../archive/sessions/2026-11-04/2026-11-04_1745_ALL_llm-judge-prereg.md),
+    `tools/llm_judge.py`). Copies of the AI rater's sheets under its name, with a provenance note:
+    `results/labels/returned/ai_rater1_chatgpt5_astra_high/`.
 - **Commands** (from `cot-disclosure/`):
   ```bash
   ../.venv/bin/python tools/label_kit.py build     # done Oct 27: results/labels/ (gitignored: model text)

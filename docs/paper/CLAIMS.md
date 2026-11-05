@@ -1,7 +1,7 @@
 # Candidate claims: evidence, status, objection, what settles it
 
-Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-04 (B17, B1, the hand
-labels, A18, B1R2 decided; **edited by:** Ritik; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
+Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-04 17:50 (the second
+rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; earlier: B17, B1, the hand labels, A18, B1R2 decided; **edited by:** Ritik; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
 the interval excludes no effect), *tentative* (direction there, interval includes 0 or a confound remains), *waiting*
 (the run is going or planned), *not supported*, *dropped*.
 
@@ -46,13 +46,17 @@ the interval excludes no effect), *tentative* (direction there, interval include
   - F3: Test 1 private 208 of 216 vs final 8 of 216.
   - F15: after a tool call the final answer is a bare letter, whether the lookup was right or
     wrong (C4: 80 of 84 vs 71 of 75; no tool 2 of 159).
-- **Status:** *confirmed* as keyword and length counts. **Hand labels (L3, Nov 3): kappa below 0.6 in four of six
-  cells** (private 0.63, tool 0.29, user 0.85; final 0.54, tool 0.59, user 0.43; F3). By the plan they don't stand
-  yet: the raters settle the 25 disagreements, the guide is tightened, a fresh batch is labeled, and no
+- **Status:** *confirmed* as keyword and length counts. **Hand labels (L3, Nov 3; Ritik and AI rater 1, ChatGPT 5
+  Astra High): kappa below 0.6 in four of six cells** (private 0.63, tool 0.29, user 0.85; final 0.54, tool 0.59,
+  user 0.43; F3), human-vs-AI agreement. They don't stand yet. L3 is now read under the LLM-judge protocol
+  (pre-registered Nov 4): Ritik's labels are the final labels, several AI judges the reliability check; no
   acknowledgment claim from hand labels goes in the report before that. L5 (171 rows) waits.
+  - Corrected Nov 4, 17:50: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log. The
+    two-rater route (settle the disagreements, tighten the guide, a fresh batch) no longer applies.
 - **Strongest objection:** a keyword is not an acknowledgment, and "the user asks…" fires with no
   hint (22 of 72).
-- **Settles it:** two raters, Cohen's kappa per channel; the keyword check (rows 152–171).
+- **Settles it:** Ritik's labels against the AI judges' majority, Cohen's kappa per channel (the LLM-judge protocol);
+  the keyword check (rows 152–171).
 
 **1.3 The hinted answer takes over late, on a few questions, and the lead swings.**
 - **Evidence:** F4 (43 of 110 followed on sure questions; 26 of 43 late; on 9 of 11 questions), F5,
@@ -106,12 +110,15 @@ the interval excludes no effect), *tentative* (direction there, interval include
   - *and* the LoRA versions' false-disclosure candidates rise (LoRA +10 [+2, +18], LoRA + tags +10 [+2, +19]) while
     the instruction's fall (−9 [−14, −4]);
   - *and* the tags prediction (more help on the inserted tool turn) isn't borne out for either tag version.
-- **Candidate cautionary claim, read with hand labels (L4 part 1, Nov 3; kappa 0.93; F28):** fine-tuning for
+- **Candidate cautionary claim, read with hand labels (L4 part 1, Nov 3; Ritik and AI rater 1, ChatGPT 5 Astra High;
+  kappa 0.93, human-vs-AI agreement; F28):** fine-tuning for
   disclosure reduced hint-following no more than an instruction (stands), and may have taught the model to claim
   checks it didn't do: **not supported** for claimed disagreement. 1 and 2 of LoRA's 147 candidates are
   `rejects_hint` (the answer says the hint is wrong, yet ends on it); 97 and 89 say the hint shaped the answer. The
   "worked independently" half has no label; the raters could tell LoRA's style (`guess_trained` right on 270 and
   267 of 294). The reading was set after labeling, before counting (the L4 log, §6).
+  - Corrected Nov 4, 17:50: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log. The
+    reading stays as read, as human + AI agreement.
 - **Inside the fixed model (A18, F39, Nov 3): "acts in the reasoning".** On base's own reasoning, LoRA's weights pull
   toward the hint's letter harder, not less (R_LoRA −0.72 [−1.02, −0.39]; 28 cases, 13 questions; the hint's letter in
   30 of 30); its own following runs through the same readout, and F12's heads still separate outcomes (both

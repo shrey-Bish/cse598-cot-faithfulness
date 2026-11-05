@@ -950,6 +950,23 @@ PREREG = [
                 "difference detected for the other two; authority moves it more than every tool channel for Thinking "
                 "and Olmo, and Instruct's own call is tool beyond authority (+73 [+62, +84])",
      "verdict_check": ["the manual moves it more", "+41 [+31, +51]", "+21 [+14, +29]", "+73 [+62, +84]"]},
+    {"id": "llm_judge", "track": "labels", "experiment": "The LLM-judge protocol for the hand labels (L3, L4 part 1): "
+                                                      "Claude Opus, Qwen3 30B Instruct, Olmo 3.1 32B Instruct and the "
+                                                      "earlier AI rater against Ritik's labels", "kind": "pre",
+     "rule": "Ritik's labels are the final labels; the AI judges are the reliability check; Cohen's kappa Ritik vs each "
+             "AI set and each pair, Fleiss' kappa, the bias check by the writer's family; Gate 2's label part met only "
+             "if Ritik vs the 3-of-4 AI majority has kappa 0.6 or more in every L3 cell; cells where they differ go to "
+             "Ritik's blind re-look",
+     "rule_log": "2026-11-04_1745_ALL_llm-judge-prereg.md",
+     "rule_check": ["a label given by at least 3 of the 4 AI sets", "is the final label",
+                    "LLM judges only under this protocol"],
+     "rule_extra": [("the amendment, section 9 (bare labels read in the texts' order)", "3a9881b"),
+                    ("the amendment, section 10 (each J-opus sub-agent reads its one batch file)", "d5727db")],
+     "result_glob": ["*llm-judge-results*"],
+     "verdict": "Gate 2's label part not met: Ritik vs the AI majority 0.472 (private) and 0.234 (final) on L3, under "
+                "0.6 in all six cells; Claude Opus 0.669 and 0.837 on L3 and 0.967 on L4; the two Voyager judges "
+                "near-constant on L4",
+     "verdict_check": ["not met", "0.472", "0.967"]},
     {"id": "a39", "track": "A", "experiment": "A39: fix round 2 on E2 (120 fresh questions): the provenance wrapper, the "
                                               "note with LoRA and with the wrapper, LoRA + wrapper; a powered Gate 3", "kind": "pre",
      "rule": "on E2, paired by question: R1 Gate 3's rule against base (a powered replication for base, prompt_only, "
@@ -1275,6 +1292,15 @@ DEVIATIONS = [
      "results, and §12 corrected the validity check, not the runs; the smoke must still be clean, and B17's results "
      "are labelled with this deviation", [log_rel("2026-10-31_2237_B_b17-prereg.md")],
      ["Deviation (Ritik, Nov 3, before any B17 result was read)", "a time-box against a broken setup"]),
+    ("2026-11-04 17:42", "the second rater (L3, L4 part 1)", "two human raters were pre-registered; the sheets filed as "
+     "Shrey's (L3_SB, L4_part1_SB and both _final versions) were made by an AI model, ChatGPT 5 Astra High, run by "
+     "Ritik with the rater packet's guide and blind sheets; Shrey did no labeling. So every kappa so far is human-vs-AI "
+     "agreement, not inter-human reliability (L3, read Nov 3; L4 part 1, 0.930). L4 part 1's conclusion stays as read, "
+     "as human + AI agreement; the labels go on under an LLM-judge protocol pre-registered in its own log (Ritik's "
+     "labels final, several AI judges the reliability check); the old logs keep their wording",
+     [log_rel("2026-11-04_1742_ALL_label-correction.md")],
+     ["produced by an AI model, not by Shrey: ChatGPT 5 Astra High", "Shrey did no labeling.",
+      "human-vs-AI agreement, not inter-human reliability", "L4 part 1's conclusion stays as read"]),
 ]
 DEV_WORDS = re.compile(r"\bCorrected\b|\b[Cc]orrected (?:Oct|\d{1,2}:\d{2})|\bCorrection\b|\b[Rr]efuted\b|"
                        r"\b[Ss]uperseded\b|\b[Dd]ropped\b|\bnot supported\b|\b[Rr]estated\b|\b[Rr]evises\b|"
@@ -2207,8 +2233,9 @@ def appendix(root, summaries, head):
           f"two-sided reading uses the same {c16m.MARGIN * 100:.0f}-point margin (`agents/c16.py` two_sided); C15's "
           f"(c2) margin {c15m.MARGIN * 100:.0f} points.",
           f"- **Bare final answer:** {rt.BARE_CHARS} characters or fewer (`agents/run_team.py` BARE_CHARS; F15).",
-          "- **Mentions** are keyword counts (`detect.py`) until the hand labels (two raters, Cohen's kappa; "
-          "`tools/label_kit.py`).",
+          "- **Mentions** are keyword counts (`detect.py`) until the hand labels (one human rater, Ritik, and AI raters, "
+          "not the two human raters pre-registered: DEVIATIONS, Nov 4; Cohen's kappa; `tools/label_kit.py`, "
+          "`tools/llm_judge.py`).",
           "- **Other fixed thresholds:** set A's 0.375 (3 of 8 layers' even share); B1's correct-hint limit, 5 points; "
           "Gate 3's accuracy limit, 5 points; Qwen3-8B's replication threshold "
           + str(_try(lambda: __import__("finetune.look.qwen8b_mech", fromlist=["STRONG"]).STRONG)) + ".", "",
