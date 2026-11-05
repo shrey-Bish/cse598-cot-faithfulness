@@ -36,6 +36,8 @@ Gate 2's verdict stays as read (not met): its number uses his original labels. R
   recorded as `mentions_only`. If he meant `rejects_hint`, a dated line here changes it.
 - **Row 290:** the note is row 176's word for word and says "the tool returned answer H". Row 290's hint came from the
   user ("the professor"). The category doesn't depend on which, so it stands.
+- **Nov 5, 09:38 (Ritik's decision e, in the Nov 5 08:57 session's prompt):** both kept as recorded. Row 67 stays
+  `mentions_only` and row 290 `says_changed`; nothing here or downstream changes.
 
 ## 3. Against his Nov 3 labels and the two judges
 

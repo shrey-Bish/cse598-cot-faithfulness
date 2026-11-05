@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-04 22:51 (T13: B20's shared stop file, fixed; 21:31, Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-05 09:37 (T13 confirmed: 510702's start, Granite's files whole; B1R2 not run: GPU time given to A40, F38; earlier, Nov 4 22:51, T13: B20's shared stop file, fixed; 21:31, Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -111,8 +111,9 @@ stay here.
    removed; the hint's letter in 30 of 30 cases); when LoRA follows, it is through the same three layers, and F12's
    heads still separate its followed runs from its resisted ones. What training changed is the reasoning LoRA writes.
    **Next (A39, E2):** a provenance wrapper and combinations on 120 fresh questions, with a powered replication of
-   Gate 3 (runs by Nov 15, read Nov 17); B1R2, B1's span on E2, runs too: its compute check, moved to Nov 4, passed
-   (R4; the A39 log's §13).
+   Gate 3 (runs by Nov 15, read Nov 17). B1R2, B1's span on E2, was dropped on Nov 5 before any of its runs: "not
+   run: GPU time given to A40" (the A39 log's §19). **A40,** a bias-augmented consistency-training fine-tune, takes its
+   place (its own pre-registration, Nov 5).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`); hand labels decide
@@ -2233,7 +2234,8 @@ log, Nov 3 09:30).
 **Status.** By the rule as stated: deployable **ignores tools**, oracle **no effect**. In plain terms: **a real cut in
 following on the inserted turn (−17 [−30, −3], *confirmed*) that misses its pre-registered acceptance limit (−7
 points against 5: a point estimate on 2 of 30 runs, *tentative*); underpowered at 30 questions.** A38 and B1R are
-not run.
+not run. **B1R2** (B1's deployable span on E2, the A39 log's §5 and §13): **not run: GPU time given to A40**
+(dropped Nov 5, before any B1R2 job was submitted; the A39 log's §19).
 
 ## F39. Track A (A18): inside the fixed model, training acts in the reasoning: on base's own reasoning, LoRA's weights pull toward the hint's letter harder, not less, and LoRA's own following still runs through the readout
 
@@ -2516,10 +2518,15 @@ Each one would have changed a reported number.
   - the feeder counts a TIMEOUT on such a line as a stop at its limit.
 - *No result can be wrong.* A stop only keeps runs from starting; a run is saved whole or not at all, and runs
   again. A smoke cut short by another job's warning would have failed its check ("all 12 ran"), not passed wrongly.
-  - A kill in the middle of a save could leave a cut-off last line. Ritik reads Granite's files on Sol to make sure
-    (the 22:27 log's handoff).
+  - A kill in the middle of a save could leave a cut-off last line. **Checked Nov 5:** Granite's 129 run rows and 129
+    records read whole (Ritik, on Sol).
 - *Rule.* A job's stop file is its own. A job ends itself before its limit, however long its requests.
-- *Source.* B20's log §18; the session log of Nov 4 22:27.
+- *Confirmed Nov 5* (B20's log §19, from Ritik's Sol outputs): Nemotron's job (510702) started its server at
+  22:18:23, before Gemma's runner looked again at 22:23:59, so its start removed the shared file. 510702 itself,
+  still on the old code, stopped at its own warning with exit 2 (no other B20 job was running then), not TIMEOUT as
+  the 22:27 log expected; Nemotron's runs are all done.
+- *Since Nov 5:* B20's runs left go to 3:00 jobs on Arsha's own Sol account (B20's log §19).
+- *Source.* B20's log §18 and §19; the session logs of Nov 4 22:27 and Nov 5 08:57.
 
 **Also:**
 - Cut-off replies leak when not streamed (the reasoning landed in the answer in 8 of 8).

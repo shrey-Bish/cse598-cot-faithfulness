@@ -930,11 +930,13 @@ PREREG = [
      "rule_extra": [("the amendment, section 15 (Gemma's fallback; Granite thinking on only, so no R3b for it; "
                      "Nemotron's rule decided before its smoke)", "2361152"),
                     ("the second amendment, section 16 (Nemotron's fallback, as section 15 decided; R3b on the "
-                     "model's own call read for no model)", "063bc78")],
+                     "model's own call read for no model)", "063bc78"),
+                    ("the amendment, section 19 (3:00 lines, run question by question, on Arsha's own account; read "
+                     "partial at Nov 15 23:59 on the questions with every run)", "dcf2d99")],
      "f_title": r"\(B20\)", "result_glob": ["*b20-results*"], "verdict": "waiting: the first smokes Nov 4, all three "
      "not clean; amended before any rerun (sections 15 and 16): Gemma 4 and Nemotron 3 the inserted tool turn, Granite "
-     "4.2 thinking on only; Granite's second smoke passed Nov 4, Gemma's and Nemotron's wait; the runs at 1:30 (section "
-     "14)", "verdict_check": []},
+     "4.2 thinking on only; the runs from Nov 4 evening; Nemotron's done Nov 5; Granite's and Gemma's runs left on "
+     "Arsha's account in 3:00 jobs from Nov 5 (section 19)", "verdict_check": []},
     {"id": "b24", "track": "B", "experiment": "B24: the authority dose, a classmate's and the official solution manual's "
                                               "claim from the user (B16's design)", "kind": "pre",
      "rule": "per model, paired by question, B16's statistics, the 16,000 cut beside: (a) user_manual minus B16's "
@@ -981,7 +983,9 @@ PREREG = [
                      "of each job's own)", "54291fd"),
                     ("the amendment, section 18 (E2 read partial if not complete by Nov 15 23:59)", "184c3fd"),
                     ("the amendment, section 16 (on Nov 6 07:00, under 10 GPU-hours since Nov 4 12:36: the 30 dropped, "
-                     "B1R2 held until E2's sweeps and B20's lines are in)", "ee14295")],
+                     "B1R2 held until E2's sweeps and B20's lines are in)", "ee14295"),
+                    ("the amendment, section 19 (B1R2 dropped; the Nov 11 rule checks E2's and A40's lines; A40 before "
+                     "the 30)", "dcf2d99")],
      "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: running on Sol (9 parts from Nov 3; "
      "16 sixteenths at 1:30 from Nov 4, section 12; the parts after them at 2:00 and the sweeps at 3:00, section 14; "
      "the quarters' leftovers as 28 sixteenths, section 15)",
@@ -992,9 +996,10 @@ PREREG = [
              "(F38) stays primary",
      "rule_log": "2026-11-03_1130_A_e2-a39-prereg.md", "rule_check": ["B1R2: B1's deployable span on E2"],
      "rule_extra": [("its decision rule, section 10 (Nov 8 09:00, compute only)", "9fc52d6"),
-                    ("the amendment, section 13 (decided Nov 4: it runs; its job lines)", "21e0386")],
-     "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "waiting: decided Nov 4, it runs, last "
-     "in the Sol order",
+                    ("the amendment, section 13 (decided Nov 4: it runs; its job lines)", "21e0386"),
+                    ("the amendment, section 19 (dropped Nov 5, before any B1R2 run)", "dcf2d99")],
+     "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "not run: GPU time given to A40 (dropped "
+     "Nov 5, before any B1R2 job was submitted; the A39 log's section 19)",
      "verdict_check": []},
     {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
      "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "
@@ -1313,6 +1318,22 @@ DEVIATIONS = [
      [log_rel("2026-11-04_1745_ALL_llm-judge-prereg.md"), log_rel("2026-11-04_2124_ALL_relook-recorded.md")],
      ["this choice was made after the results were seen", "Gate 2's verdict stays as read: not met",
       "4 of 7 changed", "No kappa is recomputed on the re-looked labels"]),
+    ("2026-11-05 09:21", "B20's jobs, run order and account", "B20's runs left go in 3:00 jobs, not 1:30 (Granite 8 "
+     "lines, Gemma 12: twice the measured pace's need; Nemotron's runs were done), each model's runs question by "
+     "question, on Arsha's own Sol account and feeder; read partial at Nov 15 23:59 on the questions with every run. "
+     "Operational, by Ritik's decisions, before any of these lines ran; the design and the rule unchanged; nothing of "
+     "B20 read", [log_rel("2026-11-03_1219_B_b20-prereg.md")],
+     ["Amendment (Ritik, Nov 5, 09:21; before any of these lines run; nothing of B20 read)", "partial: N of 54 questions",
+      "Arsha's own Sol account"]),
+    ("2026-11-05 09:23", "B1R2", "decided Nov 4 to run (section 13); dropped Nov 5 before any B1R2 job was submitted, "
+     "its GPU time given to A40, a new fine-tune with its own pre-registration; reported \"not run: GPU time given to "
+     "A40\" (F38); B1's verdict on the 30 stays the only result on the deployable span",
+     [log_rel("2026-11-03_1130_A_e2-a39-prereg.md")],
+     ["B1R2 is dropped", "not run: GPU time given to A40"]),
+    ("2026-11-05 09:23", "the 30's Nov 11 rule", "the feeder's check of E2's and B20's lines became E2's and A40's: B20 "
+     "left this account, and A40 now stands ahead of the 30; this session's ruling, not one of Ritik's decisions, which "
+     "he can change before Nov 11 09:00", [log_rel("2026-11-03_1130_A_e2-a39-prereg.md")],
+     ["This session's ruling", "Ritik can say otherwise before Nov 11 09:00"]),
 ]
 DEV_WORDS = re.compile(r"\bCorrected\b|\b[Cc]orrected (?:Oct|\d{1,2}:\d{2})|\bCorrection\b|\b[Rr]efuted\b|"
                        r"\b[Ss]uperseded\b|\b[Dd]ropped\b|\bnot supported\b|\b[Rr]estated\b|\b[Rr]evises\b|"
