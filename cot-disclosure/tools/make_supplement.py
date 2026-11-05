@@ -1001,6 +1001,18 @@ PREREG = [
      "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "not run: GPU time given to A40 (dropped "
      "Nov 5, before any B1R2 job was submitted; the A39 log's section 19)",
      "verdict_check": []},
+    {"id": "a40", "track": "A", "experiment": "A40: bias-augmented consistency training (Chua et al., 2024): the "
+                                              "model's own no-hint reasoning as the target for hinted prompts, with a "
+                                              "final answer that names the hint", "kind": "pre",
+     "rule": "on E2 by A39's statistics, paired by question: against prompt_only, worse / matches / fewer, but costs "
+             "acceptance / fewer, but hides more / beats the instruction (following's interval below 0, acceptance "
+             "within 5 points, hiding's interval reaching 0 or below); R1 Gate 3's rule against base; the same five "
+             "against LoRA; accuracy a label beside; partial at Nov 15 23:59",
+     "rule_log": "2026-11-05_0918_A_a40-prereg.md",
+     "rule_check": ["beats the instruction", "fewer, but costs acceptance", "partial: N of 120 questions"],
+     "f_title": r"\(A40\)", "result_glob": ["*a40-results*"],
+     "verdict": "waiting: pre-registered Nov 5; its targets on Voyager from Nov 5, then training and E2 on Sol",
+     "verdict_check": []},
     {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
      "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "
              "H34 supported by fewer corrections (or a smaller drop), not supported by no change",
