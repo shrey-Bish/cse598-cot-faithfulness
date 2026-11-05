@@ -220,3 +220,19 @@ On the final tree (`f3032d6`):
    - a house-style `taught_loss_slide` for F20;
    - `run_b24.py` on Arsha's path list;
    - a merge day after Nov 18 for the Nov 20 bullets.
+
+## 11. Correction (Nov 4, 17:57), appended; the text above stays as written
+
+Corrected Nov 4, 17:57: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log
+([2026-11-04_1742_ALL_label-correction.md](2026-11-04_1742_ALL_label-correction.md)). Shrey did no labeling. These
+parts of this log are superseded by it:
+- **"Shrey's revisions" and "his input"** (§0's "Shrey's 'final version' L3 and L4 files"; §3's "Shrey's new files",
+  "his own revisions" and "his revision"; §5's "your input for our call"): the "_final" sheets were made by the same
+  AI model. They carry Ritik's labels on the disagreement cells and are not
+  used for kappa.
+- **The labels paragraph in the message to Shrey (§5):** dropped. The message to send is the Track C handoff with no
+  labels, in the 17:42 log's §5.
+- **"Ask Shrey how his sheets were made"** (§10, item 4; §3's last note): no longer applies. The settling call in §10's
+  item 1 no longer applies either.
+- The labels now go on under the LLM-judge protocol, pre-registered in its own log
+  ([2026-11-04_1745_ALL_llm-judge-prereg.md](2026-11-04_1745_ALL_llm-judge-prereg.md)).
