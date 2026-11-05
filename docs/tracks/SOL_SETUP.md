@@ -1,6 +1,6 @@
 # Sol setup for a second user (Shrey, Track C)
 
-Last updated: 2026-11-03 (submit.sh's Nov 3 rules). **Edited by:** Ritik. How to run the Sol kit (`cot-disclosure/finetune/gpu/sol/`) under your own
+Last updated: 2026-11-05 09:22 (the ports trap: only C13's is fixed now; earlier, Nov 3, submit.sh's rules). **Edited by:** Ritik. How to run the Sol kit (`cot-disclosure/finetune/gpu/sol/`) under your own
 Sol user and course account: C13-style jobs (reviewers served by our own vLLM) and the rest. The kit's rules and
 every job are in `cot-disclosure/finetune/gpu/README.md`; this page is what a second user does differently.
 
@@ -151,9 +151,10 @@ Times come from `squeue --start -u $USER` on real jobs, not from `--test-only`.
 
 ## Known traps
 
-- **Fixed vLLM ports** (8011 Olmo evaluation, 8012 Track B, 8013 C13). Two vLLM jobs on one GPU node, yours and
-  Ritik's, would share a port: the second server can't start, or its runner reaches the other job's server.
-  If a c13 job fails at the server start, or its reviews fail on the model name, look for another vLLM job on
+- **C13's fixed vLLM port** (8013). Since Nov 4 (`36c639b`, FINDINGS T12) A39's evaluation jobs and B20's take a
+  port of their own (20000 + the job id mod 10000, checked free); C13's job still passes 8013. Two C13 jobs on one GPU
+  node, yours and another user's, would share it: the second server can't start, or its runner reaches the other
+  job's server. If a c13 job fails at the server start, or its reviews fail on the model name, look for another vLLM job on
   that node (`squeue -o "%i %u %j %N"`) and resubmit with `--exclude=<node>` (submit.sh passes it to sbatch).
 - **`.out` files** stay in `/scratch/$USER/trackA/slurm/` even if you set `TRACKA_SCRATCH` (an `#SBATCH` line
   reads no variable).
