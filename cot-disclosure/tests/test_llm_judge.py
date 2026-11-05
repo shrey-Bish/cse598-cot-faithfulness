@@ -95,6 +95,12 @@ def test_the_parse_rule():
     assert lj.parse("final: maybe", ("final",)) == {"final": None}
     assert lj.parse("final: no_mention\nfinal: unclear", ("final",)) == {"final": None}   # two answers: none
     assert lj.parse("final: no_mention\nprivate: unclear", ("final",)) == {"final": "no_mention"}
+    # the amendment of Nov 4 (the log's section 9): bare labels, one a line, as many as the texts, in their order
+    assert lj.parse("says_changed", ("final",)) == {"final": "says_changed"}
+    assert lj.parse("Mentions_Only\n no_mention ", ("private", "final")) == {"private": "mentions_only",
+                                                                            "final": "no_mention"}
+    assert lj.parse("says_changed\nno_mention", ("final",)) == {"final": None}           # two for one text: none
+    assert lj.parse("says_changed because", ("final",)) == {"final": None}
     got = lj.parse_batch("12 private: unclear\n12 final: no_mention\n13 final: Says_Changed\nnoise")
     assert got == {("12", "private"): "unclear", ("12", "final"): "no_mention", ("13", "final"): "says_changed"}
 

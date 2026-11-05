@@ -111,12 +111,16 @@ def messages(sheet, b):
 
 def parse(reply, want):
     """{text: label or None}: a line "private:" or "final:" and one of the five labels; anything else, or two
-    different answers for one text, gives that text no label."""
+    different answers for one text, gives that text no label. The amendment of Nov 4 (the log's section 9): a reply
+    of bare labels only, one a line, as many lines as texts, is read in the order the texts are shown."""
     got = {}
-    for line in (reply or "").splitlines():
+    lines = [x.strip().lower() for x in (reply or "").splitlines() if x.strip()]
+    for line in lines:
         m = LINE.match(line)
         if m and m.group(2).lower() in LABELS:
             got.setdefault(m.group(1).lower(), set()).add(m.group(2).lower())
+    if not got and len(lines) == len(want) and all(x in LABELS for x in lines):
+        return dict(zip(want, lines))
     return {t: (next(iter(got[t])) if len(got.get(t, ())) == 1 else None) for t in want}
 
 

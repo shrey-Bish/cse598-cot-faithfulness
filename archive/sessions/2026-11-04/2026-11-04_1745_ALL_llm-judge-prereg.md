@@ -109,3 +109,19 @@ question, and no result is read before it is fixed.
 - **Then, by these rules and nothing else:** `tools/llm_judge.py --report` computes the measures, F3, F28 and Gate 2's
   statement are updated, and the re-look lists are written.
 - **Reported:** REPORT's methods get one plain paragraph on exactly how the labels were made.
+
+## 9. Amendment (Ritik, Nov 4, 17:49; before the judges' run; a format rule only)
+
+**The smoke.** One format check, before the run: each Voyager judge on L3's rows 1 and 2, the first two in order, not
+chosen. Both are rows with a final answer only. That makes 4 calls. Their replies are cached, so the run reuses them.
+- **Qwen** answered in the form asked: "private: … / final: …".
+- **Olmo** answered with the bare label alone ("says_changed", "mentions_only"), with no "final:".
+- Under §3's rule every one of Olmo's single-text rows would get no label, including all of L4 part 1. That would
+  measure the format, not the labeling.
+- Nothing was compared with Ritik's labels or any other set.
+
+**The amendment, for every judge alike.** A reply made only of bare labels, one a line, with exactly as many non-empty
+lines as the row has texts, each line one of the five labels, is read in the order the texts are shown: private
+reasoning first, then the final answer. Every other reply is read by §3's rule, unchanged.
+
+**Code:** `tools/llm_judge.py`'s `parse`, with its test, committed with this section, before the run.
