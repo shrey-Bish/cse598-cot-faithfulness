@@ -90,7 +90,7 @@ HELD = ("skipped", "not needed", "unknown", "submitting", "submit failed", "drop
 SETTLED = ("skipped", "not needed", "dropped")              # a line with no job that will never have one
 GAP_MIN = 30                                       # minutes between ticks before the next one says so
 DIGEST_HOUR = 7                                    # the daily digest: the first tick at or after 07:00, local time
-LEFT = re.compile(r"(a39:[a-z_]+:(e2|mmlupro_30)(:\d+/\d+)?|b1r2:\d+/\d+)$")
+LEFT = re.compile(r"(a39:[a-z0-9_]+:(e2|mmlupro_30)(:\d+/\d+)?|b1r2:\d+/\d+)$")   # Nov 5: a40, on E2 as A39's
 WARN_EXIT = "138:0"                                # 128 + SIGUSR1: Slurm's warning ended the job script's wait
 DECISIONS = {                                      # Nov 4: made by the feeder once, at their time (compute only)
     "nov6": {"rule": "the A39 log's section 16", "since": "2026-11-04T12:36:00", "at": "2026-11-06T07:00:00",

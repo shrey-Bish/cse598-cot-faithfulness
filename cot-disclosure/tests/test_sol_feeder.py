@@ -369,6 +369,23 @@ def test_runs_left_counts_what_resume_would_run(tmp_path):
     assert sf.runs_left_here("a39:base:e2", [], tmp_path) == len(ev.jobs(None, "e2", "a39", "base")) - 30
 
 
+
+def test_an_a40_part_and_sweep_are_counted_like_a39s(tmp_path):
+    """Nov 5 (A40's log, section 11): A40's E2 lines run as A39's do (a39_1gpu, system a40), so the feeder counts their
+    runs left: a part ending at Slurm's warning with all its runs saved is done, and the sweep carries left=a39:a40:e2."""
+    from common import append
+    from finetune import eval as ev
+    lines = sf.parse_queue(q("a40-e2-1of16 | - | a39_1gpu --estimate 1.5 -- a40 e2 1/16",
+                             "a40-e2-sweep | afterany=@a40-e2-1of16 left=a39:a40:e2 | a39_1gpu --estimate 2.3 -- a40 e2"))
+    assert [sf.spec_of(l) for l in lines] == ["a39:a40:e2:1/16", "a39:a40:e2"]
+    out = tmp_path / "a39"
+    out.mkdir()
+    js = ev.jobs((1, 16), "e2", "a39", "a40")
+    for j in js[:5]:
+        append(out / "eval_a40_a39_e2_p1of16_runs.jsonl", {"run_id": ev.job_id("a40", j), "status": "ok",
+                                                           "system": "a40"})
+    assert sf.runs_left_here("a39:a40:e2:1/16", [], tmp_path) == len(js) - 5
+
 # ---------------------------------------------------------------- the wiring: the real submit.sh, fake Slurm commands
 def test_one_tick_through_the_real_submit_sh(tmp_path):
     from test_trackA_gpu_kit import fake_sbatch
