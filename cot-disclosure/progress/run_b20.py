@@ -29,6 +29,9 @@ off it still wrote a think block and closed it itself, 6 of 6 smoke runs, so its
 Each model's set-aside smoke runs stay in its records and are never read (report() takes each model's design only).
 Amendment of Nov 4, 10:30 (the log's section 16, before its rerun): Nemotron 3's tool channel is the inserted tool turn
 too (its smoke never called the tool: the fallback, as section 15 decided before the smoke was seen). In all 4,860 runs.
+Amendment of Nov 5 (the log's section 19, operational): the runner sends a model's runs question by question
+(by_question), so a model cut short at Nov 15 has whole questions; the design's order, the run ids and the smoke's first
+12 are unchanged.
 Records (on Sol; the text never leaves it): results/trackB/b20/<model>/b20_sol_vllm.jsonl.gz and b20_sol_vllm_runs.jsonl
 (experiment "b20/<model>", so two models' jobs never write one file), each with the pinned revision. Numbers-only flags:
 results/trackB/b20/<model>/b20_flags.jsonl, with the job's template_check.json, canary.jsonl and smoke_check.json beside
@@ -171,6 +174,16 @@ def jobs(cfg, name):
                     out.append({"run_id": run_id(EXPERIMENT, item["item_id"], tb.model_tag(m), cond, None, rep), "model": m,
                                 "item": item, "condition": cond, "repeat": rep, "experiment": experiment(name)})
     return out
+
+
+def by_question(js):
+    """The runs' order from Nov 5 (the B20 log's section 19): question by question, all of a question's runs (each run,
+    setting and condition, in the design's order) before the next, the questions in the design's order. The same
+    runs: only the order they are sent in changes, so a model cut short has as many complete questions as it can."""
+    first = {}
+    for j in js:
+        first.setdefault(j["item"]["item_id"], len(first))
+    return sorted(js, key=lambda j: first[j["item"]["item_id"]])        # stable: the design's order within a question
 
 
 def all_jobs():
@@ -341,11 +354,12 @@ def installed():
 
 
 def run(name, limit=None, stop_file=None):
-    """One model's runs against the job's server (sol_b20.py): resumable, the first `limit` not done."""
+    """One model's runs against the job's server (sol_b20.py): resumable, the first `limit` not done. The runs go
+    question by question (by_question, Nov 5); with --limit (the smoke) in the design's order, as its check reads it."""
     cfg = config(name)
     model_dir(name).mkdir(parents=True, exist_ok=True)
     with installed():
-        return tb.run(cfg, jobs(cfg, name), limit, stop_file)
+        return tb.run(cfg, jobs(cfg, name) if limit else by_question(jobs(cfg, name)), limit, stop_file)
 
 
 # ---------------------------------------------------------------- the smoke job's verdict

@@ -939,3 +939,57 @@ def test_the_report_reads_only_each_models_amended_design():
     assert g["runs"] == {"on": 48, "off": 48} and g["tool_channel"] == INJECTED
     text = rb.show(rb.report(rows + gemma))
     assert "thinking on only" in text and "tool channel tool_injected (the fallback" in text
+
+
+# ---------------------------------------------------------------- Nov 5: the B20 log's section 19 (operational amendment)
+def test_the_runs_go_question_by_question_and_the_smoke_keeps_the_designs_order(monkeypatch):
+    """Section 19: each model's runs go question by question (all of a question's runs, every setting, condition and
+    run, before the next; the questions in the design's order), so a model cut short at Nov 15 has as many complete
+    questions as it can. The same runs (ids, prompts, seeds) go; the design's own order (pinned above) and the smoke's
+    first 12 (--limit) stay as they were."""
+    seen = []
+    monkeypatch.setattr(tb, "run", lambda cfg, js, limit=None, stop_file=None: seen.append((js, limit)) or 0)
+    for name in rb.MODELS:
+        design = rb.jobs(rb.config(name), name)
+        order = list(dict.fromkeys(j["item"]["item_id"] for j in design))      # the design's 54 questions, in order
+        assert rb.run(name) == 0
+        sent, limit = seen.pop()
+        assert limit is None and len(sent) == len(design)
+        assert sorted(j["run_id"] for j in sent) == sorted(j["run_id"] for j in design)
+        items = [j["item"]["item_id"] for j in sent]
+        assert items == sorted(items, key=order.index) and list(dict.fromkeys(items)) == order
+        for q in (order[0], order[-1]):                                    # within a question: the design's order
+            assert [j["run_id"] for j in sent if j["item"]["item_id"] == q] == \
+                [j["run_id"] for j in design if j["item"]["item_id"] == q]
+        assert len([j for j in sent[:18 * len(rb.settings(name))] if j["item"]["item_id"] == order[0]]) == \
+            18 * len(rb.settings(name))                                    # 6 conditions x 3 runs x its settings
+        assert rb.run(name, limit=rb.SMOKE_JOBS) == 0                     # the smoke: the design's own order
+        sent, limit = seen.pop()
+        assert limit == rb.SMOKE_JOBS and [j["run_id"] for j in sent] == [j["run_id"] for j in design]
+
+
+def test_the_resume_skips_what_is_saved_and_runs_the_rest_question_by_question(server, tmp_path, monkeypatch):
+    """Granite as it stands (Nov 5): run 1 of its first questions saved (its smokes and 468897), runs 2 and 3 not. The
+    runner skips every saved run, as before, and completes question 1 first, then question 2, ..."""
+    cfg = rb.config(GRANITE)
+    design = rb.jobs(cfg, GRANITE)
+    order = list(dict.fromkeys(j["item"]["item_id"] for j in design))
+    saved = [j for j in design if j["repeat"] == 0 and j["item"]["item_id"] in order[:3]]
+    (tmp_path / "b20" / GRANITE).mkdir(parents=True)
+    for j in saved:
+        tb.save({**tb.base_record(j, j["model"], j["item"]), "status": "ok", "parsed_letter": "A",
+                 "finish_reason": "stop", "error_type": None, "usage": {}})
+    stop, called = tmp_path / "stop", []
+
+    def run_one(c, j):
+        called.append(j["run_id"])
+        if len(called) == 30:
+            stop.write_text("Slurm's time-limit warning")
+        return {**tb.base_record(j, j["model"], j["item"]), "status": "ok", "parsed_letter": "A",
+                "finish_reason": "stop", "error_type": None, "usage": {}}
+    monkeypatch.setattr(rb, "run_one", run_one)
+    monkeypatch.setattr(tb, "in_flight", lambda cfg, provider: 1)          # one at a time: the order is the order sent
+    assert rb.run(GRANITE, stop_file=str(stop)) == 2
+    want = [j["run_id"] for q in order[:3] for j in design if j["item"]["item_id"] == q and j["repeat"] > 0][:30]
+    assert called == want and not set(called) & {j["run_id"] for j in saved}
+    assert len(tb.done(sol_vllm.NAME, rb.experiment(GRANITE))) == len(saved) + 30
