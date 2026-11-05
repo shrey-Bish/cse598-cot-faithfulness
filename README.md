@@ -1,6 +1,6 @@
 # Do Thinking Modes Make Chain-of-Thought More Honest?
 
-CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-04. **Edited by:** Ritik.
+CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-05. **Edited by:** Ritik.
 
 We slip a wrong hint into a multiple-choice question, from the user or from a tool, and ask two things: does the hint
 change the model's answer, and does the model say so? Thinking models return their private reasoning and their final
@@ -23,7 +23,8 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    confirmed same-day, B19). The pull grows with the claimed source's authority: the official solution manual moves
    all three Voyager models more than a classmate, and for Qwen3 30B Thinking more than "answer key" (B24, F40).
    Running: three new open-weight families on Sol (B20; amended Nov 4: Gemma and Nemotron with the inserted tool
-   turn, Granite thinking on only).
+   turn, Granite thinking on only). Nemotron's runs are done; Granite's and Gemma's run on Arsha's own Sol account
+   from Nov 5, read by Nov 17.
 2. **After a tool call, the final answer stops explaining.** It becomes a bare letter while the private reasoning
    names the tool. Disclosure can be prompted, but it doesn't reduce deference to the tool (B15). More thinking
    doesn't change it: in gpt-oss-20b, raising the reasoning effort from low to high changes neither the bare answer
@@ -43,8 +44,11 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    its pre-registered acceptance limit ("ignores tools"), underpowered at 30 questions; the 70-question replication
    the budget allowed (B1R) couldn't settle it, so neither it nor A38 is run. Inside the trained model (A18, F39), training
    acts in the reasoning, not on the readout: given base's own reasoning, LoRA's weights pull toward the hint's letter
-   harder, not less, and when LoRA follows it is through the same three layers. A39 tests a provenance wrapper and
-   combinations on E2, 120 fresh questions; B1's replication there (B1R2) runs too, decided Nov 4 by its compute check.
+   harder, not less, and when LoRA follows it is through the same three layers (in plain words:
+   [`docs/status/FIX_SO_FAR.md`](docs/status/FIX_SO_FAR.md)). A39 tests a provenance wrapper and combinations on E2,
+   120 fresh questions. B1's replication there (B1R2) is not run: its GPU time went to A40 (Nov 5), which trains on
+   the model's own reasoning written without the hint (bias-augmented consistency training) and is read on E2 against
+   the one-line instruction.
 
 ## Read this first
 
@@ -52,7 +56,7 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
 |---|---|---|
 | Ritik (Track A, labels, the report) | [`docs/status/STATUS.md`](docs/status/STATUS.md), [`docs/status/TODO.md`](docs/status/TODO.md) | the newest daily in [`archive/sessions/`](archive/sessions/INDEX.md); [`docs/RUNBOOK.md`](docs/RUNBOOK.md) |
 | Shrey (Track C, from Oct 30) | [`docs/trackC/START_HERE.md`](docs/trackC/START_HERE.md) (its Quick start first) | [`docs/tracks/SOL_SETUP.md`](docs/tracks/SOL_SETUP.md), [`docs/labeling/RATER_GUIDE.md`](docs/labeling/RATER_GUIDE.md), the code map [`cot-disclosure/README.md`](cot-disclosure/README.md) |
-| Arsha (Track B, from Nov 6) | [`docs/trackB/START_HERE.md`](docs/trackB/START_HERE.md) (its Quick start first), then [`docs/tracks/TRACK_B.md`](docs/tracks/TRACK_B.md) | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) §18, the code map |
+| Arsha (Track B, from Nov 6) | [`docs/trackB/START_HERE.md`](docs/trackB/START_HERE.md) (its Quick start first), then [`docs/tracks/TRACK_B.md`](docs/tracks/TRACK_B.md); B20 on her own Sol account from Nov 5: [`docs/trackB/SOL_ARSHA.md`](docs/trackB/SOL_ARSHA.md) | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) §18, the code map |
 | A grader | this page, then FINDINGS' "story so far" | [`docs/paper/REPORT.md`](docs/paper/REPORT.md) (the report's skeleton), [`docs/PLAN.md`](docs/PLAN.md) (the calendar, the presentation map; the figures in `docs/paper/figures/`), [`docs/status/STATUS.md`](docs/status/STATUS.md) |
 | A paper reviewer | [`docs/paper/CLAIMS.md`](docs/paper/CLAIMS.md) | [`docs/paper/supplement/EVIDENCE.md`](docs/paper/supplement/EVIDENCE.md) and [`PREREGISTRATIONS.md`](docs/paper/supplement/PREREGISTRATIONS.md) |
 
