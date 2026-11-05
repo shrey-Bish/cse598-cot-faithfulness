@@ -1343,9 +1343,9 @@ DEVIATIONS = [
      [log_rel("2026-11-03_1130_A_e2-a39-prereg.md")],
      ["B1R2 is dropped", "not run: GPU time given to A40"]),
     ("2026-11-05 09:23", "the 30's Nov 11 rule", "the feeder's check of E2's and B20's lines became E2's and A40's: B20 "
-     "left this account, and A40 now stands ahead of the 30; this session's ruling, not one of Ritik's decisions, which "
-     "he can change before Nov 11 09:00", [log_rel("2026-11-03_1130_A_e2-a39-prereg.md")],
-     ["This session's ruling", "Ritik can say otherwise before Nov 11 09:00"]),
+     "left this account, and A40 now stands ahead of the 30; this session's ruling, not one of Ritik's decisions, "
+     "confirmed by Ritik on Nov 5 (13:38 session), before the rule acts", [log_rel("2026-11-03_1130_A_e2-a39-prereg.md")],
+     ["This session's ruling", "Confirmed by Ritik, Nov 5"]),
 ]
 DEV_WORDS = re.compile(r"\bCorrected\b|\b[Cc]orrected (?:Oct|\d{1,2}:\d{2})|\bCorrection\b|\b[Rr]efuted\b|"
                        r"\b[Ss]uperseded\b|\b[Dd]ropped\b|\bnot supported\b|\b[Rr]estated\b|\b[Rr]evises\b|"

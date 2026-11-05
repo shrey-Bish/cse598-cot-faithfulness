@@ -678,8 +678,8 @@ def test_a39_parts_not_yet_submitted_get_2_00_and_the_sweeps_3_00():
     submitted by 10:15 get 2:00 and the sweeps, whose size is the leftovers, 3:00; the 16 sixteenths already submitted
     keep their 1:30. Section 15's 28 sixteenths (the quarters' leftovers) get 2:00 as well."""
     lines = sf.parse_queue(sf.QUEUE.read_text())
-    a39 = [l for l in lines if l.argv[0] == "a39_1gpu" and "job" not in l.opts]
-    first = next(i for i, l in enumerate(a39) if l.label == "e2-lora_note-11of16")
+    a39 = [l for l in lines if l.argv[0] == "a39_1gpu" and "job" not in l.opts and not l.label.startswith("a40-")]
+    first = next(i for i, l in enumerate(a39) if l.label == "e2-lora_note-11of16")   # A40's own lines (Nov 5): its log
     assert {sf.limit_hours(l.argv) for l in a39[:first]} == {1.5} and len(a39[:first]) == 16
     later = a39[first:]
     assert {sf.limit_hours(l.argv) for l in later if "left" not in l.opts} == {2.0}
