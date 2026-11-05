@@ -86,8 +86,8 @@ Its log is `/scratch/$USER/trackA/feeder.log`; its state `/scratch/$USER/trackA/
     and k+12).
 - **Nov 6 07:00, decided by the feeder (the A39 log's §16).** At its first tick at or after Nov 6 07:00, it counts the
   GPU-hours your jobs got from Nov 4 12:36 to Nov 6 07:00, as the digest does.
-  - **Under 10:** the 30's lines (`dropif=nov6`) are dropped, and B1R2's (`holdif=nov6`) wait until every E2 sweep and
-    B20 line is submitted or settled.
+  - **Under 10:** the 30's lines (`dropif=nov6`) are dropped. (B1R2's wait, cut 2, is moot: its lines were dropped Nov
+    5, the A39 log's §19.)
   - **10 or more:** nothing changes.
   - The branch and the number go in the log, an alert mail, the digest and `--status` (`decision nov6`). A failed
     sacct waits a tick.
@@ -96,8 +96,9 @@ Its log is `/scratch/$USER/trackA/feeder.log`; its state `/scratch/$USER/trackA/
   - what finished and what failed in the last 24 h, and what runs and waits;
   - the GPU-hours delivered in the last 24 h (sacct: each job's time in the window × its GPUs);
   - any gap over 30 minutes between ticks;
-  - a rough finish for A39 on E2, A39 on the 30, B20 and B1R2: the GPU-hours the queue holds up to each group's last
-    open line at the last 24 h's pace. It is at most, since B20's later again-lines may never be needed.
+  - a rough finish for A39 on E2, A40 and A39 on the 30 (Arsha's feeder: B20): the GPU-hours the queue holds up to
+    each group's last open line at the last 24 h's pace. It is at most, since B20's later again-lines may never be
+    needed.
 - **Health: when the scrontab job waits.** A tick that comes over 30 minutes after the one before says so in the log
   (`N minutes since the last tick`). `--status` then says "late", and the next digest lists the gap. If it keeps
   happening (the scron job stuck at `Priority`), **switch to the nohup loop**, which takes no place in the queue but
@@ -463,6 +464,7 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
     --alpha-from "$TRACKA_OUT/provenance_forced/provenance_forced.json" --note     # ~4 provenance_gen ... --note lines
   ```
 - **B1R2, B1's deployable span on E2** (a labelled replication; decided Nov 4 by its compute check, the A39 log's §13).
+  **Dropped Nov 5,** before any B1R2 run: "not run: GPU time given to A40" (the A39 log's §19). Kept below as written.
   - **What:** alpha 0.25 (set A's choice) against alpha = 1 on E2's 120 questions, the inserted tool turn only: 2
     wrong-hint, 2 correct-hint and 1 no-hint run a question in each configuration, 1,200 runs. B1's engine and
     settings (`-v2`), Hugging Face, one A100.

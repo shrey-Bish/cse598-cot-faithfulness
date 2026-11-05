@@ -9,7 +9,7 @@ Track A, Oct 29. By: Ritik. Code: `finetune/provenance.py` (the mechanism), `fin
 
 **Result (Nov 3; FINDINGS F38):** B1's generation on the held-out 30, read by its rule: the deployable span (alpha 0.25)
 "ignores tools" (following on the inserted tool turn −17 [−30, −3], correct-hint acceptance −7 points, beyond the
-5-point limit); the oracle span (alpha 0.5) "no effect" (−9 [−19, +1]). A38 isn't run. B1R (a replication) wasn't run: underpowered by its check (F38); B1R2 on E2 runs (decided Nov 4: the A39 log's §13; TODO). B2 is
+5-point limit); the oracle span (alpha 0.5) "no effect" (−9 [−19, +1]). A38 isn't run. B1R (a replication) wasn't run: underpowered by its check (F38); B1R2 on E2 was dropped Nov 5 before any run: "not run: GPU time given to A40" (the A39 log's §19). A40, bias-augmented consistency training, is pre-registered (the 2026-11-05 09:18 log). B2 is
 dropped (scope, Oct 31; never trained).
 
 ## Why here

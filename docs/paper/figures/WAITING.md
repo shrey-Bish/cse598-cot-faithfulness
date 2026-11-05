@@ -5,7 +5,7 @@
 Written Nov 1 for the final presentation map in [`docs/PLAN.md`](../../PLAN.md); updated Nov 3 (slides 4, 7, 8, 2 and 10
 are made; slide 12 is drawn by Shrey) and Nov 4 (A39's spec, 04:05; slides 3, 9 and 11 made as `_slide` versions,
 04:09; at 16:19 the additions below brought in line with the map: B24 on slide 7, B1R2 on slide 10, the `_slide`
-files). Nothing here is drawn from fake or partial numbers. Ritik's slides are added to
+files); Nov 5, 09:53: B1R2 dropped, so slide 10 waits on nothing). Nothing here is drawn from fake or partial numbers. Ritik's slides are added to
 `cot-disclosure/tools/slide_figures.py` in the style of `bare_after_call` (16:9, white, colors by role, X of Y on the
 bars, a CSV of every plotted number), from a numbers-only summary under `cot-disclosure/results/summaries/`. **Shrey's
 (slides 11–12) are drawn by a script under `cot-disclosure/agents/` into `docs/trackC/figures/` (shared code is read-only
@@ -151,7 +151,7 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 - **Slide 9** (`docs/paper/figures/gate3_vs_base_slide.png`, made Nov 4 from `finetune/gate3.py`'s rows): false
   disclosure from L4 part 1's hand labels (read Nov 3, F28); A39's powered replication on E2 (read Nov 17) goes in its
   own figures (above). The final statement is Nov 20. Owner: Ritik.
-- **Slide 10** (`docs/paper/figures/readout_lora_vs_base.png`): B1R2's deployable span on E2 beside B1 in panel (b),
-  labelled a replication, if read (by Nov 17; partial at Nov 15, 23:59 if not done). Owner: Ritik.
+- **Slide 10** (`docs/paper/figures/readout_lora_vs_base.png`): nothing waits. B1R2 was dropped Nov 5 ("not run: GPU
+  time given to A40"), so panel (b) stays B1 on the 30. Owner: Ritik.
 - **Slide 11** (`docs/paper/figures/trackC_reviewers_slide.png` and `reviewer_by_prompt_slide.png`, made Nov 4; the
   supplement's `trackC_reviewers`): C19's answer-key-versus-own-working bars, due Nov 7. Owner: Shrey.

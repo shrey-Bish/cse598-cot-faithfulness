@@ -2,7 +2,7 @@
 
 **Edited by:** Ritik; each section's bullets by its owner (Track B's: Arsha, from `docs/trackB/REPORT_B.md`; Track C's: Shrey, from `docs/trackC/REPORT_C.md`), merged by Ritik.
 
-Started Nov 3 by Ritik. Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
+Started Nov 3 by Ritik; updated Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
 methods are filled in as bullets** (facts with their source), so the prose can be written from them. Numbers come from
 [`FINDINGS.md`](../FINDINGS.md), the tracks' `FINDINGS_B.md` and `FINDINGS_C.md`, and the claims from
 [`CLAIMS.md`](CLAIMS.md). Results freeze on Nov 18; the draft is due Nov 22, the final report Nov 24.
@@ -550,19 +550,19 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
   after all its parts are in. Nothing of Ritik's has started on Sol since Nov 4, 12:36 (fair share 0.005; starts by
   backfill only; PLAN's calendar).
   - **The 30** (22 jobs) runs beside E2 unless a rule drops it: on Nov 6 at 07:00 if Sol delivered under 10
-    GPU-hours to Ritik's jobs from Nov 4, 12:36 (the log's §16, applied by the feeder; B1R2 then waits too, below);
-    otherwise if E2 and B20 aren't done by Nov 11, 09:00 (§10.2). The Nov 6 daily reports which branch applied.
+    GPU-hours to Ritik's jobs from Nov 4, 12:36 (the log's §16, applied by the feeder);
+    otherwise if E2's and A40's lines haven't all ended by Nov 11, 09:00 (§10.2, as §19 applies it from Nov 5). The Nov 6 daily reports which branch applied.
   - **T12 (Nov 4; the log's §15):** two A39 jobs shared a node and one server six times; three parts' runs (340) came
     from another model's server, set aside unread and run again; 160 from a server of the same model and command are
     kept, labelled. No earlier result is affected (§10).
   - figure: waiting: `docs/paper/figures/a39_e2_fixes.png` and `a39_e2_parts.png` (`tools/a39_figures.py`, drawn
     only from a complete report, Nov 17; spec in WAITING.md), after slide 9's `gate3_vs_base_slide.png`
-- **B1R2 (waiting): B1's deployable span on E2, a labelled replication.** Decided Nov 4: it runs (its compute check
-  passed; the A39 log's §13); 40 parts at 2:30, last in Sol's order. Read by Nov 17; partial at Nov 15, 23:59 if not
-  done. If §16 cuts on Nov 6 (under 10 GPU-hours), its parts wait until every E2 sweep and B20 line is submitted or
-  settled; its design and partial read are unchanged.
-  - figure: waiting: slide 10's `docs/paper/figures/readout_lora_vs_base.png`, beside B1 in panel (b), if read
-    (PLAN's map; WAITING.md "Additions")
+- **B1R2: not run: GPU time given to A40.** Decided Nov 4 to run (the A39 log's §13); dropped Nov 5, before any B1R2
+  job was submitted (§19; Ritik's decision). B1 on the 30 (F38) stays the only result on the deployable span.
+- **A40 (waiting): bias-augmented consistency training** (Chua et al., 2024), aimed at beating the instruction:
+  hinted prompts trained toward the model's own no-hint reasoning, with a final answer that names the hint.
+  Pre-registered Nov 5 (2026-11-05 09:18 log) before any call: on E2 against prompt_only, R1 against base, and against
+  LoRA. Its targets on Voyager from Nov 5, then training and E2 on Sol; read Nov 17, partial at Nov 15, 23:59.
 - **Gate 3's final statement:** Nov 20, after A39 (PLAN). L4 part 2 (LoRA minus base in labels): SHOULD, no date.
 
 ## 8. Level 3, between agents (Shrey)
@@ -720,7 +720,7 @@ by item; C4's 53 items unless noted):
 - One tool format; one solver; keyword counts where labels aren't in; the 30 evaluation questions (E2 for new
   experiments); cross-day comparisons (T11); runs past a rule's window (B17, §13).
 - **Power:** at 30 held-out questions the fix comparisons can't resolve their 5-point limits: B1's acceptance fall is 2
-  of 30 runs (F38); a replication needs about 107 to 245 questions. E2's 120 are for A39 and B1R2.
+  of 30 runs (F38); a replication needs about 107 to 245 questions. E2's 120 are for A39 and A40 (B1R2 was dropped Nov 5).
 - **Format:** Olmo's served and pinned formats differ in following (F2: user +25 [+0, +50]), confounded with the budget
   and the run counts.
 - **Cross-day:** B16's tool arms (T11; B19's same-day rerun held, F35); B15's "before" (F25); B24's readings against
