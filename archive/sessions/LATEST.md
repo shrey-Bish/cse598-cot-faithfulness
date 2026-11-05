@@ -244,3 +244,14 @@ expected output there. In short:
   and Track B's docs; SOL_SETUP's ports.
 - **Left as history:** the Nov 4 logs' "pull and reset" lines and PLAN's "The fix, honestly (Nov 3)".
 - **Moves:** none. No produced data moved, so MOVES.md doesn't change.
+
+## 8. Checks and push (written 10:09, on `798c6bd`)
+
+- **Checks:** the full suite 984 passed, 1 skipped; links 0 broken; the supplement 38 rows, none unverified, no log
+  outside the ledger; export numbers only; the Gantt's dry run passes; bundles B 51 and C 43; pre-push clean; nothing
+  missing.
+- **Commits:** 19, all Ritik's, no attribution line.
+- **Push:** `trackA-nosol` and `main` only (`trackB-main` waits for Nov 6, decision d). Nothing was pulled,
+  submitted or reset on Sol.
+- **A40's targets at 10:01:** 10 of shard 1's 486 records in 6 minutes. At that pace both shards take about 11 hours,
+  so they finish late tonight.
