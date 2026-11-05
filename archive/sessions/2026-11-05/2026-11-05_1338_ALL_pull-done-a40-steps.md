@@ -158,3 +158,11 @@ From `/scratch/ragarw68/cse598-cot-faithfulness`, with `P=/scratch/ragarw68/envs
 5. After A40's lines are pushed: the safety diff prints nothing (the queue file is outside it), then the pull, then
    `$P $F --dry-run | tail -4`.
    - Expect "would submit a40-train-1" once a place and 120 GPU-minutes are free, or a wait line.
+
+## 10. Checks and push (written 13:51, on `a96abc3`)
+
+- **Checks:** the full suite 984 passed, 1 skipped; links 0 broken; the supplement 38 rows, none unverified, no log
+  outside the ledger; export numbers only; the Gantt's dry run passes; bundles B 51 and C 43; pre-push clean; nothing
+  missing.
+- **Commits:** 4 before this one, all Ritik's, no attribution line. **Push:** `trackA-nosol` and `main` only.
+  Nothing on Sol.
