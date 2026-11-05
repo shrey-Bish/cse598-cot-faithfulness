@@ -6,7 +6,8 @@ One tick (--once; --loop runs one every --interval seconds, 300 by default):
   1. The stop file (/scratch/$USER/trackA/feeder.stop) ends it, the loop too, before anything else.
   2. Every job it knows (a line's job, or a job id a line names) gets its state from sacct (squeue while sacct doesn't
      know it yet). A job that ends other than COMPLETED with exit 0 is an alert, once; a B20 job that stops at its
-     limit with runs left (exit 2) isn't, when a line runs it again.
+     limit with runs left (exit 2) isn't, when a line runs it again. One that ran into its limit (TIMEOUT) is an alert,
+     and a line still runs it again (Nov 4: 468897).
   3. The queue's lines, in order. A line is submitted once and never again: its job id goes into the state file before
      the next line is looked at, and its --comment=feeder:LABEL lets a restart recover a submission it didn't record.
      A line waits while its dependencies run, or while Sol's clone lacks a commit it needs. It is skipped, and you
@@ -44,8 +45,9 @@ OPTIONS ("-" for none):
   job=N           submitted by hand as job N: never submitted here, but tracked, and later lines may wait on it
   afterok=REFS    every REF ended COMPLETED with exit 0; if one ended otherwise, this line is skipped (and you're told)
   afterany=REFS   every REF has ended, however
-  again=REF       REF stopped at its time limit with runs left (exit 2, B20): this line runs; REF finished (exit 0):
-                  not needed; else skipped (and you're told)
+  again=REF       REF stopped at its time limit with runs left (exit 2, B20), or ran into it (TIMEOUT, Nov 4: its
+                  saved runs stay and its runner resumes): this line runs; REF finished (exit 0): not needed; else
+                  skipped (and you're told)
   needs=COMMIT    Sol's clone has COMMIT (git merge-base --is-ancestor), else the line waits for a pull
   left=SPEC       run only if runs are left: a39:SYSTEM:QSET[:K/N] (finetune/eval.py's resume) or b1r2:K/N
   dropif=NAMES    dropped if any decision named (DECISIONS; colon-separated) comes out "cut"
@@ -491,6 +493,9 @@ class Feeder:
                 say("%s done%s" % (name, "; %d of its runs left (stopped at its limit?)" % left if left else ""))
             elif ex == "2:0" and label_of.get(jid) in self.again_of:
                 say("%s stopped at its limit with runs left (exit 2): its next line runs it again" % name)
+            elif state == "TIMEOUT" and label_of.get(jid) in self.again_of:
+                alert("%s ended TIMEOUT, exit %s: it didn't stop itself before its limit; its next line runs it again"
+                      % (name, ex))
             else:
                 alert("%s ended %s, exit %s%s" % (name, state, ex, "; %d of its runs left" % left if left else ""))
         for jid, j in J.items():                         # a part that ended 138 before this check (460114): once
@@ -746,7 +751,7 @@ class Feeder:
                 return "wait", "again:%s: job %s is %s" % (jid, jid, j.get("state") or "not seen yet")
             if ok(j):
                 return "not needed", "job %s (%s) finished its runs" % (jid, ref)
-            if j.get("exit") != "2:0":
+            if j.get("exit") != "2:0" and j.get("state") != "TIMEOUT":   # Nov 4: TIMEOUT is a stop at the limit too
                 return "skip", "again: job %s (%s) ended %s, exit %s (not a stop at its limit)" % (
                     jid, ref, j.get("state"), j.get("exit"))
             shown.append("again:%s" % jid)

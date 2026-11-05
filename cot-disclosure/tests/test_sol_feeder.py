@@ -217,6 +217,25 @@ def test_b20s_again_lines_run_only_while_runs_are_left(tmp_path):
     assert st["run3"]["status"] == "not needed" and len(sol.submitted) == 2
 
 
+def test_a_b20_line_that_ran_into_its_limit_counts_as_stopped_there(tmp_path):
+    """Nov 4 (468897, b20-granite-r2-1): a B20 job whose requests in flight outlast Slurm's 5-minute warning ends
+    TIMEOUT, not exit 2. Its finished runs are saved and its runner resumes, so its next line runs it again, with an
+    alert (it didn't stop itself). A job that failed (508647, b20-gemma-r2-1: exit 1) still skips the rest."""
+    sol = FakeSol()
+    text = q("g1 | - | b20 --model granite-4.2-8b --estimate 1.1",
+             "g2 | again=@g1 | b20 --model granite-4.2-8b --estimate 1.1",
+             "e1 | - | b20 --model gemma-4-26b-a4b-it --estimate 1.1",
+             "e2 | again=@e1 | b20 --model gemma-4-26b-a4b-it --estimate 1.1")
+    f = feeder(tmp_path, text, sol)
+    f.tick()
+    sol.end("100", "TIMEOUT", "0:0")                                      # g1 ran into its limit
+    sol.end("101", "FAILED", "1:0")                                       # e1 failed
+    f.tick()
+    st = json.loads((tmp_path / "state" / "state.json").read_text())["lines"]
+    assert sol.labels() == ["g1", "e1", "g2"] and st["e2"]["status"] == "skipped"
+    assert any("TIMEOUT" in m[2] and "its next line runs it again" in m[2] for m in sol.mails)
+
+
 def test_a_line_waits_for_the_commit_it_needs_and_a_sweep_with_nothing_left_isnt_run(tmp_path):
     sol = FakeSol()
     text = q("b1r2 | needs=27a2a39 | provenance_gen --estimate 1.6 -- --b1r2 --part 1/40",
