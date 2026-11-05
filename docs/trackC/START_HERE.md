@@ -14,15 +14,19 @@ downstream agent lose the fact that an answer came from a tool, and defer to it 
 
 **Prepared for you** (code, CPU tests, a committed pre-registration and a dry run each): C19, C25, C20 and C26 (§3).
 
-**Your next five steps:**
+**Your next four steps:**
 
 | # | what | by | check-in |
 |---|---|---|---|
 | 1 | **Setup** (§4): clone, `trackC-main`, the venv, the tests (47 Track C), both hooks, your own Voyager key, the bundle `trackC_20261103.tar.gz` with `--verify`, and F18, F24 and F34 reproduced with no calls | Wed Nov 4 | — |
-| 2 | **Labels** (separate from Track C; for Gate 2 on Nov 8): the L3 settling call with Ritik on `results/labels/L3_settle.csv` (23 rows, 25 disagreements; the sheet comes from Ritik, never GitHub), then the fresh batch of 72 rows once the guide is tightened from the call (about 85 minutes; [`RATER_GUIDE`](../labeling/RATER_GUIDE.md)) | **Sat Nov 7** | the call itself |
-| 3 | **C19** (§3.1), with its FC entry, summary and slide 11's bars (§6) | **Sat Nov 7** | **Nov 7** |
-| 4 | **C25** with its 20-row hand spot check (§3.2) | **Thu Nov 12** | **Nov 12** |
-| 5 | **C20 and C26** (§3.3, §3.4) | **Sun Nov 15** | **Nov 15** |
+| 2 | **C19** (§3.1), with its FC entry, summary and slide 11's bars (§6) | **Sat Nov 7** | **Nov 7** |
+| 3 | **C25** with its 20-row hand spot check (§3.2) | **Thu Nov 12** | **Nov 12** |
+| 4 | **C20 and C26** (§3.3, §3.4) | **Sun Nov 15** | **Nov 15** |
+
+Corrected Nov 4, 17:55 (Ritik): the labels step (the L3 settling call and the 72-row fresh batch) is off your list.
+Rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the
+[17:42 log](../../archive/sessions/2026-11-04/2026-11-04_1742_ALL_label-correction.md). You do no labeling for L3, L4
+or L5. Your Track C plan is unchanged.
 
 Then, to the freeze:
 - **C24** (Track C's figures and tables) and **slides 11–12**, by **Wed Nov 18** (check-in Nov 18; the results freeze);
@@ -917,7 +921,7 @@ slide 11 bars as START_HERE section 6 describes, for Shrey to review.
 |---|---|
 | Tue Nov 3 | the final handoff; the bundle `trackC_20261103.tar.gz` (still current: Track C's data hasn't changed) |
 | Wed Nov 4 | setup (§4), then C19 |
-| **Sat Nov 7** | **C19** due (and slide 11's C19 bars); **the L3 call and the fresh batch** done (Gate 2 on Nov 8); **check-in and merge** |
+| **Sat Nov 7** | **C19** due (and slide 11's C19 bars); **check-in and merge** (corrected Nov 4, 17:55: no L3 call or fresh batch for you) |
 | **Thu Nov 12** | **C25** due, with its 20-row spot check; **check-in and merge** |
 | **Sun Nov 15** | **C20 and C26** due; **check-in and merge** |
 | **Wed Nov 18** | **results freeze** (no new runs after it); **C24** (Track C's figures and tables) and **slides 11–12** due; **check-in and merge** |
