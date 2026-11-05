@@ -186,14 +186,18 @@ the answer is (X)."; each tool arm minus that, paired by question:
   - **Descriptive, read by no rule (FINDINGS_B):** given the option ("You can call the lookup_answer_key tool…"),
     Granite called the tool in 2 of 2 smoke runs (2 of 2 again in its second smoke), Gemma in 0 of 2, and Nemotron in
     1 of 2, a thinking-on run that then reached the length limit without an answer. One question, two runs a model.
-  - **Now (Nov 4, at the feeder's 15:56 tick):**
-    - Granite's second smoke passed every check (466399, Nov 4, 11:50–12:03), and its runs are queued (468897).
-    - Gemma's second smoke (466400) is pending in Sol's queue.
-    - Nemotron's second smoke waits for a place in the feeder's queue (10 places, all taken); `063bc78` is on Sol.
+  - **Now (Nov 4, at the feeder's 15:56 tick; B20 updated 22:51):**
+    - **Nov 4, 22:51 (B20's log §18):** Granite's first run job (468897) ran into its 1:30 limit (about 100 of 954
+      runs done; 34 minutes of start-up), and Gemma's (508647) ended exit 1: every B20 job shared one stop file. The
+      feeder skipped both models' other 11 lines. Fixed that night (`a530e80`, `e420ad1`); Ritik pulls and resets the
+      lines on Sol. At risk: Gemma's 1,922 runs over 12 lines.
+    - Granite's second smoke passed every check (466399, Nov 4, 11:50–12:03); its runs started 20:45 (468897).
+    - Gemma's second smoke (466400) was pending at 15:56; its runs started 21:31 (508647).
+    - Nemotron's second smoke waited for a place at 15:56; its first run job (510702) was running at 22:26.
     - From Nov 4 each B20 job serves on a port of its own (B20's log §17). The shared-port audit found no earlier
       result affected, B20's smokes included (FINDINGS T12).
-    - Sol's queue is slow for us: nothing of Ritik's has started since Nov 4 12:36 (our fair share is 0.005, so our
-      jobs start only by backfill). Sol last estimated the first start at Nov 5 06:25.
+    - Sol's queue is slow for us (our fair share is 0.005, so our jobs start only by backfill): nothing started from
+      12:36 to at least 13:56; by 22:26, 8 of our jobs were running.
     - The Nov 6 07:00 rule (the A39 log's §16) may drop A39 on the old 30 and hold B1R2. It never touches B20.
     - Runs end by Nov 15; you read them Nov 17 (START_HERE §4). The design is still 4,860 runs.
 - **B24, the authority dose (pre-registered Nov 4 03:37, log `2026-11-04_0337_B_b24-prereg.md`; run on Ritik's Mac

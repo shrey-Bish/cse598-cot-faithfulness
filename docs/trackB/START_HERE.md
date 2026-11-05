@@ -21,8 +21,9 @@ final answer stop naming the tool once the model has called it? It is the eviden
 - **Started for you:** B18's table and slide 2 ([`TRACK_B.md`](../tracks/TRACK_B.md) §1a).
 - **On Sol** (Ritik submits, through the feeder): B20, three open-weight families with thinking on and off.
   Amended Nov 4 after its three smokes (§4): Gemma's and Nemotron's tool channel is the inserted tool turn, and
-  Granite runs thinking on only. Granite's second smoke passed and its runs are queued; Gemma's and Nemotron's
-  second smokes wait in Sol's queue. Its runs end by Nov 15; you read them Nov 17.
+  Granite runs thinking on only. All three second smokes ran; the runs started Nov 4 evening. Granite's and Gemma's
+  first run jobs stopped badly that night, fixed the same night (§4; B20's log §18, Nov 4, 22:51). Its runs end by
+  Nov 15; you read them Nov 17.
 - **Read Nov 4 (F40):** B24, the authority dose (§4a): the pull grows from a classmate to the official solution
   manual in all three models. You re-read it from the bundle.
 
@@ -123,8 +124,8 @@ halt, or a date that will slip.
   - `cot-disclosure/tools/trackb_final.py`, and `docs/paper/tables/trackB_final.*`, which it writes;
   - `cot-disclosure/tests/test_trackB*` and `tests/test_trackb_final.py`;
   - `cot-disclosure/results/trackB/` (gitignored data) and `cot-disclosure/results/summaries/trackB/` (numbers only).
-- **`run_b20.py` is also B20's Sol runner.** Until B20's runs end (Nov 15), change only its report functions, and say
-  so in the commit.
+- **`run_b20.py` and `run_trackB.py` are also B20's Sol runner** (`run_b20.py` runs B20 through `run_trackB.run`).
+  Until B20's runs end (Nov 15), change only their report functions, and say so in the commit.
 - **Everything else is shared, read-only for you:**
   - the Sol job code (`progress/sol_trackB.py`, `sol_b17.py`, `sol_b20.py`, `finetune/gpu/`);
   - `client.py`, `progress/common.py`, `providers/`, `tools/` (except `trackb_final.py`), `configs/`;
@@ -161,15 +162,24 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
   Track B's design plus B16's authority arm. Pre-registered in `archive/sessions/2026-11-03/2026-11-03_1219_B_b20-prereg.md`
   (its §13 and §14: the jobs; its §15 and §16: the amendments of Nov 4; its §17: one port a job, and Granite's second
   smoke).
-- **Where it stands (Nov 4, at the feeder's 15:56 tick):**
-  - **Granite:** its second smoke passed every check (466399, Nov 4, 11:50–12:03); its runs are queued (468897).
-  - **Gemma:** its second smoke (466400) is pending in Sol's queue.
-  - **Nemotron:** its second smoke waits for a place in the feeder's queue (10 places, all taken). Its amendment
-    (§16, `063bc78`) is on Sol.
+- **Where it stands (Nov 4, at the feeder's 15:56 tick; B20 updated 22:51):**
+  - **Nov 4, 22:51 (B20's log §18):**
+    - Granite's first run job (468897, 20:45–22:15) ran into its 1:30 limit: about 100 of 954 runs done, after 34
+      minutes of start-up.
+    - Gemma's (508647) ended exit 1 at 22:24, because every B20 job shared one stop file.
+    - The feeder skipped both models' other 11 lines.
+    - Fixed that night (`a530e80`, `e420ad1`): a stop file per job; the job ends itself, exit 2; each run saved as it
+      finishes; a TIMEOUT runs the next line.
+    - Ritik pulls and resets the skipped lines on Sol.
+    - At risk: Gemma's 1,922 runs over 12 lines.
+  - **Granite:** its second smoke passed every check (466399, Nov 4, 11:50–12:03); its runs started 20:45 (468897).
+  - **Gemma:** its second smoke (466400) was pending at 15:56; its runs started 21:31 (508647).
+  - **Nemotron:** its second smoke waited for a place at 15:56; its first run job (510702) was running at 22:26. Its
+    amendment (§16, `063bc78`) is on Sol.
   - **Each B20 job serves on a port of its own** (§17). The shared-port audit found no earlier result affected
     (FINDINGS T12): each B20 smoke had its own server.
-  - **Sol's queue is slow for us.** Nothing of Ritik's has started since Nov 4 12:36: our fair share is 0.005, so our
-    jobs start only by backfill. Sol last estimated the first start at Nov 5 06:25.
+  - **Sol's queue is slow for us:** our fair share is 0.005, so our jobs start only by backfill. Nothing started from
+    12:36 to at least 13:56; by 22:26, 8 of our jobs were running.
   - **The Nov 6 07:00 rule** (the A39 log's §16) may drop A39 on the old 30 and hold B1R2, both Ritik's. It never
     touches B20: B20's lines stay ahead of both.
 - **The amendment of Nov 4 (§15), after both smokes exited 5:**
