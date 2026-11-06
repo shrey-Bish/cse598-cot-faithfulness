@@ -61,6 +61,11 @@ The rules (pre-registered: A18's log, Oct 31 22:44):
   python finetune/look/a18.py swap --out OUT                                  # Sol, GPU: base and LoRA both loaded
   python finetune/look/a18.py step9 --system base|lora --out OUT
   python finetune/look/a18.py readout DIR                                     # anywhere: the readings, numbers only
+A41 (Nov 6; its pre-registration, archive/sessions/2026-11-06/): the swap and Step 10 on base's same cases with A40's
+weights in LoRA's place, beside A18's files, never over them:
+  python finetune/look/a18.py swap --trained a40 --out OUT                    # Sol, GPU: into swap_a40/
+  python finetune/look/a18.py step10 --cases base --weights a40 --out OUT     # Sol, GPU: step10_a40_on_base/
+  python finetune/look/a18.py a41 DIR                                         # anywhere: a41_readout.json
 On Sol: submit.sh a18 -- <the same arguments> (finetune/gpu/sol/a18.sbatch). Every output in $TRACKA_OUT/a18/ is
 numbers only, except sources_<system>.jsonl.gz (the evaluation's texts; it never leaves Sol).
 """
@@ -99,12 +104,29 @@ TOK_PER_S = pt.TOK_PER_S         # 9,000: an A100 bf16 forward
 CUT_SHARE = 0.75                 # of the reasoning at the takeover (late: at or after half)
 LOAD_H = 0.1
 SWAPS = ("before", "readout", "through", "after")
+# A41 (Nov 6; archive/sessions/2026-11-06/..._A_a41-prereg.md): the trained weights the swap and Step 10 may load in
+# LoRA's place. A18's own files keep their names (swap/, step10_lora_on_*); A40's go beside them (swap_a40/,
+# step10_a40_on_base/), read by a41_readout into a41_readout.json. A40 has no evaluation runs of its own here, so no
+# Step 3, own cases or Step 9 for it.
+TRAINED = ("lora", "a40")
+NAMES = {"lora": "LoRA", "a40": "A40"}
 # Amended Nov 1 (Ritik, before anything ran): every reading that tests F11, F26 and F32 uses tool-hint cases only
 # (pasted and inserted, the channels those were found on); user-hint cases are chosen by the same rule apart and
 # reported apart, never pooled.
 GROUPS = {"tool": ("tool_pasted", "tool_injected"), "user": ("user",)}
 SECONDARY = "secondary: user hints (reported apart)"
 _stop = {"asked": False}
+
+
+STOPPED = 2                      # A41 (Nov 6): the exit code of a step stopped by Slurm's warning with work left
+
+
+def _stopped(what):
+    """Stopped by Slurm's warning with work left: say so and exit 2, which the Sol feeder reads as a stop at the limit
+    with runs left, so a queue line's again= runs the step again (B20's convention; A41, Nov 6). Before, the message
+    was the exit (code 1), so a stop needed a rerun by hand (A18's Step 10, Nov 3: 334112, then 378052)."""
+    print(f"stopped by a signal; the {what} saved so far count, a rerun does the rest", file=sys.stderr, flush=True)
+    raise SystemExit(STOPPED)
 
 
 def _on_signal(signum, frame):
@@ -364,7 +386,7 @@ def step3(system, out, model=None, device="auto", limit=None, dry_run=False, eva
     t = kit.Timer()
     for i, s in enumerate(todo, 1):
         if _stop["asked"]:
-            raise SystemExit("stopped by a signal; the probes saved so far count, a rerun does the rest")
+            _stopped("probes")
         ends, curve, info = probe_curve(m, tok, s, by_letter)
         row = tk.analyse(s, ends, curve, s["correct_letter"], s["cue_letter"])
         row["takeover_type"] = tk.takeover_type(row)
@@ -465,7 +487,7 @@ def step10(cases_of, weights, out, model=None, device="auto", limit=None, dry_ru
             commit = kit.snapshot(path)[1]
         for i, (c, src, kept_n, text, first, n) in enumerate(todo, 1):
             if _stop["asked"]:
-                raise SystemExit("stopped by a signal; the cuts saved so far count, a rerun does the rest")
+                _stopped("cuts")
             it = its[c["item_id"]]
             own, w = it["answer"], src["cue_letter"]
             lay, clean_ids, clean_kind = pt.pair(tok, src, text, own)
@@ -533,7 +555,13 @@ def head_masses(model, ids, lay, heads, w, o, letters):
                                            for layer, h in heads}
 
 
-def swap(out, base_model=None, lora_model=None, device="auto", limit=None, dry_run=False, readout=READOUT, heads=None):
+def swap_dir(out, trained="lora"):
+    """A18's swap (LoRA) keeps swap/; A41's (A40's weights) goes beside it, swap_a40/."""
+    return base_dir(out) / ("swap" if trained == "lora" else f"swap_{trained}")
+
+
+def swap(out, base_model=None, lora_model=None, device="auto", limit=None, dry_run=False, readout=READOUT, heads=None,
+         trained="lora"):
     import torch
 
     from finetune.look import attn_to_hint as at
@@ -542,28 +570,29 @@ def swap(out, base_model=None, lora_model=None, device="auto", limit=None, dry_r
     its = {it["question_id"]: it for it in load(items_path(out))}
     cases = [c for g in GROUPS for c in chosen_cases(out, "base", g)]      # each row says its group; read apart
     tok = kit.load_tokenizer(tokenizer_dir())
-    d = base_dir(out) / "swap"
+    d = swap_dir(out, trained)
     d.mkdir(parents=True, exist_ok=True)
     done = {r["job"] for r in load(d / "swap_rows.jsonl")}
     jobs = [(c, sources[c["source_run_id"]]) for c in cases]
     if limit:
         jobs = jobs[:limit]
     todo = [(c, s) for c, s in jobs if f"{c['source_run_id']}_ii" not in done]
-    print(f"swap on base's cases at cut (ii): {len(jobs)} cases, {len(todo)} to go; per case 2 x {2 + len(SWAPS)} "
-          f"forwards", flush=True)
+    print(f"swap ({NAMES[trained]}'s weights) on base's cases at cut (ii): {len(jobs)} cases, {len(todo)} to go; per "
+          f"case 2 x {2 + len(SWAPS)} forwards", flush=True)
     if dry_run or not todo:
         return d
     dev = kit.pick_device(device)
     dt = "bf16" if dev.type != "cpu" else "fp32"
     b = at.install(kit.load_model(base_model or model_dir("base", out), dt, dev))
-    lm = at.install(kit.load_model(lora_model or model_dir("lora", out), dt, dev))
+    lm = at.install(kit.load_model(lora_model or model_dir(trained, out), dt, dev))
     same, outside = only_layers_differ(b, lm)
     if not same:
-        raise SystemExit(f"base and LoRA differ outside the decoder layers ({len(outside)} parameters checked): no swap")
+        raise SystemExit(f"base and {NAMES[trained]} differ outside the decoder layers ({len(outside)} parameters "
+                         "checked): no swap")
     sets = layer_sets(len(pt.decoder_layers(b)), readout)
     for i, (c, src) in enumerate(todo, 1):
         if _stop["asked"]:
-            raise SystemExit("stopped by a signal; the cases saved so far count, a rerun does the rest")
+            _stopped("cases")
         it = its[c["item_id"]]
         own, w_letter = it["answer"], src["cue_letter"]
         kept_n, text, _ = cut_ii(c, src)
@@ -575,25 +604,27 @@ def swap(out, base_model=None, lora_model=None, device="auto", limit=None, dry_r
         letters = [letter(L) for L in pt.LETTERS[:len(it["options"])]]
         hinted, clean = torch.tensor([lay["ids"]], device=dev), torch.tensor([clean_ids], device=dev)
         ld, top, masses = {}, {}, {}
-        for name, model in (("base", b), ("lora", lm)):
+        hy_ = f"base+{trained}_"
+        for name, model in (("base", b), (trained, lm)):
             h, top[name], masses[name] = head_masses(model, hinted, lay, heads, w, o, letters)
             ld[name] = {"hinted": h, "clean": pt.forward(model, clean, w, o, letters)[0]}
         for name, layers in sets.items():
             with swapped(b, lm, layers) as hy:
                 h, probs = pt.forward(hy, hinted, w, o, letters)
-                top[f"base+lora_{name}"] = max(probs, key=probs.get)
-                ld[f"base+lora_{name}"] = {"hinted": h, "clean": pt.forward(hy, clean, w, o, letters)[0]}
+                top[hy_ + name] = max(probs, key=probs.get)
+                ld[hy_ + name] = {"hinted": h, "clean": pt.forward(hy, clean, w, o, letters)[0]}
         row = {"job": f"{c['source_run_id']}_ii", "source_run_id": c["source_run_id"], "item_id": c["item_id"],
                "wording": src["wording"], "condition": c["condition"], "group": group_of(c), "arm": c.get("arm"),
                "repeat": c["repeat"], "tokens": len(lay["ids"]), "sentences_kept": kept_n, "hint_letter": w_letter,
                "own_letter": own,
                "clean": clean_kind, "ld": ld, "te": {k: v["hinted"] - v["clean"] for k, v in ld.items()},
-               "top_hinted": top, "heads": masses, "layer_sets": sets, "timestamp_utc": kit.now()}
+               "top_hinted": top, "heads": masses, "layer_sets": sets, "trained": trained, "timestamp_utc": kit.now()}
         append(d / "swap_rows.jsonl", row)
-        print(f"  {i}/{len(todo)} {row['job']}: TE base {row['te']['base']:+.2f}, lora {row['te']['lora']:+.2f}, "
-              + ", ".join(f"{k[10:]} {row['te'][k]:+.2f}" for k in row["te"] if k.startswith("base+lora_")), flush=True)
+        print(f"  {i}/{len(todo)} {row['job']}: TE base {row['te']['base']:+.2f}, {trained} {row['te'][trained]:+.2f}, "
+              + ", ".join(f"{k[len(hy_):]} {row['te'][k]:+.2f}" for k in row["te"] if k.startswith(hy_)), flush=True)
     tool, user = split(load(d / "swap_rows.jsonl"))
-    kit.write_json(d / "swap_primary.json", {"primary (tool hints)": primary(tool), SECONDARY: primary(user)})
+    kit.write_json(d / "swap_primary.json", {"primary (tool hints)": primary(tool, trained),
+                                             SECONDARY: primary(user, trained)})
     return d
 
 
@@ -641,12 +672,14 @@ def clustered_mean(groups):
     return {"mean": m, "low": lo, "high": hi, "questions": len(groups)}
 
 
-def primary(rows):
-    """The pre-registered primary reading (module docstring) from the swap's rows."""
+def primary(rows, trained="lora"):
+    """The pre-registered primary reading (module docstring) from the swap's rows; A41 (trained="a40") reads A40's
+    weights by the same rule, in LoRA's place."""
     usable = [r for r in rows if r["te"]["base"] >= MIN_GAP]
     out = {"cases": len(rows), "usable": len(usable), "left_out_small_base_effect": len(rows) - len(usable),
            "questions": len({r["item_id"] for r in usable}), "min_gap": MIN_GAP, "strong": STRONG,
-           "lora_still_answers_W": f"{sum(r['top_hinted']['lora'] == r['hint_letter'] for r in rows)} of {len(rows)}",
+           f"{trained}_still_answers_W": f"{sum(r['top_hinted'][trained] == r['hint_letter'] for r in rows)} of "
+                                         f"{len(rows)}",
            "base_answers_W": f"{sum(r['top_hinted']['base'] == r['hint_letter'] for r in rows)} of {len(rows)}"}
     if out["questions"] < MIN_QUESTIONS:
         return {**out, "reading": "too few"}
@@ -654,12 +687,12 @@ def primary(rows):
     for r in usable:
         by_q[r["item_id"]].append(r)
     red = lambda name: {q: [r["te"]["base"] - r["te"][name] for r in rs] for q, rs in by_q.items()}  # noqa: E731
-    rl = red("lora")
-    out["reduction_lora"] = clustered_mean(rl)
-    out["share_of_base_effect_removed"] = clustered_mean({q: [(r["te"]["base"] - r["te"]["lora"]) / r["te"]["base"]
+    rl = red(trained)
+    out[f"reduction_{trained}"] = clustered_mean(rl)
+    out["share_of_base_effect_removed"] = clustered_mean({q: [(r["te"]["base"] - r["te"][trained]) / r["te"]["base"]
                                                              for r in rs] for q, rs in by_q.items()})
-    out["layer_split"] = {name: ratio_boot(red(f"base+lora_{name}"), rl) for name in SWAPS}
-    if out["reduction_lora"]["low"] is None or out["reduction_lora"]["low"] <= 0:
+    out["layer_split"] = {name: ratio_boot(red(f"base+{trained}_{name}"), rl) for name in SWAPS}
+    if out[f"reduction_{trained}"]["low"] is None or out[f"reduction_{trained}"]["low"] <= 0:
         return {**out, "reading": "acts in the reasoning (no reduction of the hint's direct effect on base's tokens; "
                                   "the layer split is reported, not read)"}
     s = out["layer_split"]
@@ -677,23 +710,57 @@ def primary(rows):
     return {**out, "reading": "unclear"}
 
 
-def heads_same_tokens(rows):
-    """Reported, no decision: F12's heads under LoRA minus base on the same tokens (hint minus control, the mean
-    over the three heads), per head too."""
+def heads_same_tokens(rows, trained="lora"):
+    """Reported, no decision: F12's heads under the trained weights (LoRA; A41: A40) minus base on the same tokens
+    (hint minus control, the mean over the three heads), per head too."""
     def a(r, sys_, head=None):
         hs_ = [head] if head else list(r["heads"][sys_])
         return statistics.mean(r["heads"][sys_][h]["hint"] - r["heads"][sys_][h]["control"] for h in hs_)
     by_q = defaultdict(list)
     for r in rows:
         by_q[r["item_id"]].append(r)
-    out = {"mean over the three heads": clustered_mean({q: [a(r, "lora") - a(r, "base") for r in rs]
+    out = {"mean over the three heads": clustered_mean({q: [a(r, trained) - a(r, "base") for r in rs]
                                                          for q, rs in by_q.items()})}
     for head in (rows[0]["heads"]["base"] if rows else {}):
-        out[head] = clustered_mean({q: [a(r, "lora", head) - a(r, "base", head) for r in rs] for q, rs in by_q.items()})
+        out[head] = clustered_mean({q: [a(r, trained, head) - a(r, "base", head) for r in rs]
+                                    for q, rs in by_q.items()})
     m = out["mean over the three heads"]
-    out["words"] = ("too few" if m["low"] is None else "LoRA's heads look at the hint less" if m["high"] < 0 else
-                    "they look more" if m["low"] > 0 else "no change detected")
+    out["words"] = ("too few" if m["low"] is None else f"{NAMES[trained]}'s heads look at the hint less"
+                    if m["high"] < 0 else "they look more" if m["low"] > 0 else "no change detected")
     return out
+
+
+def against_lora(rows, lora_rows, trained="a40"):
+    """A41's secondary: what the trained weights remove of base's effect beside what LoRA's removed, on the same
+    cases. Per case, R_X - R_LoRA with each R taken against its own job's base (TE_base - TE_X): a case counts where
+    both jobs saw base's effect at least MIN_GAP; paired by case, the mean clustered by question. The drift of base's
+    own effect between the two jobs is reported (the same tokens and weights, so it should be near 0)."""
+    lora = {r["job"]: r for r in lora_rows}
+    matched = [(r, lora[r["job"]]) for r in rows if r["job"] in lora]
+    usable = [(r, l) for r, l in matched if r["te"]["base"] >= MIN_GAP and l["te"]["base"] >= MIN_GAP]
+    by_q = defaultdict(list)
+    for r, l in usable:
+        by_q[r["item_id"]].append((r["te"]["base"] - r["te"][trained]) - (l["te"]["base"] - l["te"]["lora"]))
+    out = {"cases_matched": len(matched), "unmatched": len(rows) - len(matched), "usable": len(usable),
+           "questions": len(by_q), "base_effect_drift_max": max((abs(r["te"]["base"] - l["te"]["base"])
+                                                                 for r, l in matched), default=None)}
+    if len(by_q) < MIN_QUESTIONS:
+        return {**out, "reading": "too few"}
+    d = out["difference"] = clustered_mean(by_q)
+    out["reading"] = (f"{NAMES[trained]} removes more of the hint's pull than LoRA" if d["low"] > 0 else
+                      f"{NAMES[trained]} removes less than LoRA" if d["high"] < 0 else "no difference detected")
+    return out
+
+
+def layer_r(rows, trained):
+    """Reported, no decision (A41 says so in advance; A18 showed it after the fact): each swap's plain R, base's
+    effect minus the hybrid's, clustered by question over the usable cases."""
+    by_q = defaultdict(list)
+    for r in rows:
+        if r["te"]["base"] >= MIN_GAP:
+            by_q[r["item_id"]].append(r)
+    return {name: clustered_mean({q: [r["te"]["base"] - r["te"][f"base+{trained}_{name}"] for r in rs]
+                                  for q, rs in by_q.items()}) for name in SWAPS}
 
 
 def readout_rule(handoff, readout=READOUT, full=None):
@@ -740,6 +807,32 @@ def readout(d):
             sec[f"step9 {s}, F32's rule"] = at.fixed_heads(user)
     out[SECONDARY] = sec
     kit.write_json(d / "a18_readout.json", out)
+    return out
+
+
+def a41_readout(d, trained="a40"):
+    """A41's readings (its pre-registration, Nov 6) from swap_a40/ and step10_a40_on_base/ beside A18's files in d:
+    the primary by A18's rule with A40 in LoRA's place, the comparison with LoRA's rows (swap/) paired by case, and the
+    numbers reported with no decision; the user-hint cases apart, never pooled. Writes a41_readout.json; A18's
+    a18_readout.json is left as it is."""
+    d = Path(d)
+    out, sec = {}, {}
+    tool, user = split(load(d / f"swap_{trained}" / "swap_rows.jsonl"))
+    lora_tool, lora_user = split(load(d / "swap" / "swap_rows.jsonl"))
+    for rows, lora_rows, into in ((tool, lora_tool, out), (user, lora_user, sec)):
+        key = "primary" if into is out else "swap"
+        into[key] = primary(rows, trained)
+        into["against LoRA"] = against_lora(rows, lora_rows, trained)
+        into["layer R (reported, no decision)"] = layer_r(rows, trained)
+        into["heads_same_tokens"] = heads_same_tokens(rows, trained) if rows else {"words": "too few"}
+    for g, into in (("tool", out), ("user", sec)):
+        p = d / step10_name("base", trained, g) / "step10_handoff.json"
+        if p.exists():
+            h = json.loads(p.read_text())
+            into[f"step10 {NAMES[trained]} weights on base's cases (reported, no decision)"] = {
+                "share_at_readout": h["by_cut_type"]["ii"]["all"].get("drop_share_readout")}
+    out[SECONDARY] = sec
+    kit.write_json(d / "a41_readout.json", out)
     return out
 
 
@@ -828,20 +921,23 @@ def main(argv=None):
     sub.choices["step3"].add_argument("--eval-dir", help="the evaluation's records (default OUT/eval)")
     s10 = sub.choices["step10"]
     s10.add_argument("--cases", choices=SYSTEMS, required=True)
-    s10.add_argument("--weights", choices=SYSTEMS, required=True)
+    s10.add_argument("--weights", choices=SYSTEMS + TRAINED[1:], required=True)      # A41: a40 on base's cases
     s10.add_argument("--model")
     sw = sub.choices["swap"]
     sw.add_argument("--base-model")
-    sw.add_argument("--lora-model")
+    sw.add_argument("--lora-model", help="the trained weights' directory (LoRA's; A41: A40's)")
+    sw.add_argument("--trained", choices=TRAINED, default="lora", help="A41 (Nov 6): a40, into swap_a40/")
     r = sub.add_parser("readout")
     r.add_argument("dir")
+    r41 = sub.add_parser("a41", help="A41's readings from the copied-back a18/ folder: a41_readout.json")
+    r41.add_argument("dir")
     a = ap.parse_args(argv)
     if a.cmd == "plan":
         res = plan(a.eval_dir)
         print(show_plan(res))
         return res
-    if a.cmd == "readout":
-        res = readout(a.dir)
+    if a.cmd in ("readout", "a41"):
+        res = (readout if a.cmd == "readout" else a41_readout)(a.dir)
         print(json.dumps(res, indent=1, default=str))
         return res
     if not a.dry_run:
@@ -851,7 +947,7 @@ def main(argv=None):
     if a.cmd == "step10":
         return step10(a.cases, a.weights, a.out, a.model, a.device, a.limit, a.dry_run)
     if a.cmd == "swap":
-        return swap(a.out, a.base_model, a.lora_model, a.device, a.limit, a.dry_run)
+        return swap(a.out, a.base_model, a.lora_model, a.device, a.limit, a.dry_run, trained=a.trained)
     return step9(a.system, a.out, a.model, a.device, a.limit, a.dry_run)
 
 
