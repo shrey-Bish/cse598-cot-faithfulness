@@ -204,6 +204,15 @@ chmod g-r /scratch/$USER/cse598-cot-faithfulness/cot-disclosure/results/trackB/b
 4. **Send** §8 to Arsha and Shrey. After Arsha's step 6, run §7's last line.
 5. **Nov 7:** merge Shrey's `trackC-main` (setup and C19, done Nov 6); then Shrey merges `origin/main`.
 
-## 10. Checks and push
+## 10. Checks and push (written 12:12, on `44e0d8d`)
 
-CHECKS_PENDING
+- **Checks:**
+  - the full suite: 1,022 passed, 1 skipped;
+  - links 0 broken; the supplement 40 rows, none unverified, no log outside the ledger; export numbers only;
+  - the Gantt's dry run passes; bundles B 51 and C 43;
+  - all 156 queue lines parse (40 of them A40's, A41's and A42's);
+  - pre-push: nothing produced, and every commit pushed is the team's with no AI attribution; nothing missing.
+- **The push was held** after the session's signed-in Claude account changed mid-session. It went ahead once the
+  person running the session replied "Push" at 12:12.
+- **Commits:** all Ritik's, no attribution line. **Push:** `trackA-nosol` and `main` only (`trackB-main` is Arsha's,
+  `trackC-main` Shrey's).
