@@ -13,7 +13,7 @@ themselves are in [`RUNBOOK.md`](../RUNBOOK.md): §0 (the feeder), §16 (merges,
 
 ## The standing rules
 
-- **Commits as Ritik** (`Ritik <ritik.agrawal06@gmail.com>`), with no attribution lines of any kind: no co-author
+- **Commits as Ritik** (`Ritik <his Gmail>`), with no attribution lines of any kind: no co-author
   trailer, no "generated with" line, no bot address.
 - **Pre-register before any run.** A run's rule is committed in its session log before its first job; an amendment is
   committed before the runs it changes.
@@ -271,7 +271,7 @@ cd ..
 ```bash
 git add <the files changed>
 git commit -m "<what> (Ritik, $(date '+%b %-d, %H:%M')): <details>"
-git log -1 --format='%an <%ae>%n%b'                       # Ritik <ritik.agrawal06@gmail.com>; no attribution line
+git log -1 --format='%an <%ae>%n%b'                       # Ritik <his Gmail>; no attribution line
 ```
 **Before the push:**
 ```bash

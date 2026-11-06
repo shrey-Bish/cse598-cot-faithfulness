@@ -26,9 +26,11 @@ Code, or noreply@anthropic.com, and an author or committer named Claude or at an
 `commit -v`'s diff below the scissors line don't count; naming Claude Code or CLAUDE.md in a message is fine.
 
 Only the team commits (Nov 6, Ritik's permanent rule; configs/team_identities.txt, read from HEAD like the allowlist).
-- An identity ("Name <email>") passes if its email is one listed for a person (any case); for a person with no email
-  listed yet, if its name is that person's exact name. Never if its name or email is an AI tool's (AI_NAME, AI_DOMAINS,
-  and a GitHub noreply address of a bot or an AI agent). Without the file (an old branch), only AI identities fail.
+- The file holds no email: each is stored as the SHA-256 of the email lower-cased ("sha256:<hex>"; Ritik's decision,
+  Nov 6: the repo is public; `--hash EMAIL` prints the form). An identity ("Name <email>") passes if the hash of its
+  email is listed for a person, whatever its name; a name alone never passes. Never if its name or email is an AI
+  tool's (AI_NAME, AI_DOMAINS, and a GitHub noreply address of a bot or an AI agent). An older copy's plain email is
+  read by its hash. Without the file (an old branch), only AI identities fail.
 - pre-commit and pre-merge-commit also refuse a non-team author or committer (git var GIT_AUTHOR_IDENT and
   GIT_COMMITTER_IDENT, so --author and -c user.* count).
 - commit-msg also refuses any Co-authored-by (any case) that isn't a team identity, any line with an AI tool's email,
@@ -38,6 +40,7 @@ Only the team commits (Nov 6, Ritik's permanent rule; configs/team_identities.tx
 Claude Code's own attribution setting (.claude/settings.json) is not relied on: these hooks are the enforcement.
 """
 import argparse
+import hashlib
 import fnmatch
 import os
 import re
@@ -62,6 +65,7 @@ AI_NAME = re.compile(r"\b(claude|anthropic|openai|chatgpt|gpt-?\d\w*|codex|copil
                      r"aider|tabnine|codewhisperer|amazon q|devin-ai|jules)\b|\[bot\]", re.IGNORECASE)
 AI_DOMAINS = ("anthropic.com", "claude.ai", "claude.com", "openai.com", "chatgpt.com", "cursor.com", "cursor.sh",
               "codeium.com", "windsurf.com", "tabnine.com", "aider.chat", "cognition.ai", "devin.ai")
+TEAM_HASH = re.compile(r"sha256:([0-9a-f]{64})")
 EMAIL = re.compile(r"[\w.+\[\]-]+@[\w-]+(?:\.[\w-]+)+")
 CO_AUTHOR = re.compile(r"^\s*co-authored-by\s*:\s*(.*)$", re.IGNORECASE)
 TOOL_LINE = re.compile(r"^\W*generated with\b", re.IGNORECASE)                  # "🤖 Generated with [X](...)"
@@ -184,14 +188,21 @@ def check_owned(repo=".", env=None):
             {p: o for p, o in owned.items() if o in allow})
 
 
+def email_hash(email):
+    """The team file's form of an email (Nov 6): "sha256:" + the SHA-256 of the email, trimmed and lower-cased."""
+    return "sha256:" + hashlib.sha256(email.strip().lower().encode()).hexdigest()
+
+
 def parse_team(text):
-    """[(person, [emails, lower case])] from configs/team_identities.txt: "Person | Name <email>, Name <email>"."""
+    """[(person, {sha256:<hex>})] from configs/team_identities.txt: "Person | sha256:<hex>, sha256:<hex>". A plain email
+    (an older copy, 37738b4's form) is read by its hash, so a branch with that copy still checks the same people."""
     out = []
     for line in text.splitlines():
         line = line.split("#", 1)[0].strip()
         if line:
             person, _, idents = line.partition("|")
-            out.append((person.strip(), [e.lower() for e in EMAIL.findall(idents)]))
+            out.append((person.strip(), {"sha256:" + x for x in TEAM_HASH.findall(idents)}
+                        | {email_hash(e) for e in EMAIL.findall(idents)}))
     return out
 
 
@@ -224,9 +235,9 @@ def identity_problem(ident, team):
         return f"{ident.strip()} is an AI tool's identity"
     if team is None:
         return None
-    for person, emails in team:
-        if (email.lower() in emails) if emails else (name == person):
-            return None
+    mine = email_hash(email)
+    if any(mine in hashes for _, hashes in team):                  # by the email's hash only, never by a name
+        return None
     return f"{ident.strip()} is not a team identity ({TEAM_FILE})"
 
 
@@ -289,7 +300,11 @@ def main(argv=None):
     ap.add_argument("--branch", help="the branch whose list applies to --range (default: the current branch)")
     ap.add_argument("--install", action="store_true", help="write the pre-commit, pre-merge-commit, commit-msg and pre-push hooks")
     ap.add_argument("--commit-msg", metavar="FILE", help="the commit-msg hook: refuse AI attribution in FILE's message")
+    ap.add_argument("--hash", metavar="EMAIL", help="print an email's form in configs/team_identities.txt (Nov 6)")
     a = ap.parse_args(argv)
+    if a.hash:
+        print(email_hash(a.hash))
+        return 0
     repo = git(a.repo, "rev-parse", "--show-toplevel").stdout.strip()
     if a.commit_msg:
         problems = attribution_problems(Path(a.commit_msg).read_text(errors="replace"),
