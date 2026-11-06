@@ -1,4 +1,4 @@
-## In plain words (Ritik's page, as of Nov 5, 22:00; earlier 13:40; Sol as of Ritik's block 1 at about 12:41 and his feeder log at 13:36; edited by hand in `docs/status/ONE_PAGE.md`)
+## In plain words (Ritik's page, as of Nov 5, 23:51: Shrey's handoff refreshed; earlier 22:00, 13:40; Sol as of Ritik's block 1 at about 12:41 and his feeder log at 13:36; edited by hand in `docs/status/ONE_PAGE.md`)
 
 **Done.**
 - 40 findings (F1–F40, in `docs/FINDINGS.md`). **Gate 3 is met** (F28): trained versions follow fewer wrong hints,
@@ -47,7 +47,7 @@
 | A40 (read Nov 17) | on track | pre-registered Nov 5 (the 09:18 log). Its Voyager targets run on Ritik's Mac from 09:50 (paused 16:46–21:58 while the Mac slept; done about 04:30–05:00 Nov 6; 12% of records dropped so far, by its rules); then about 20–25 GPU-h on Ritik's account from about Nov 6, after E2's lines (training 3.2, E2 16–21); read partial at Nov 15 23:59 if not complete (its §10) |
 | B1R2 | dropped (Nov 5) | "not run: GPU time given to A40" (Ritik's decision f, before any B1R2 run; the A39 log's §19, F38); its 44 lines left the queue |
 | B20 (Arsha reads Nov 17) | on track | the cause is fixed and confirmed (T13), and the job size amended (the B20 log's §19): 3:00 lines, twice the jobs the measured pace needs (Granite 8 for about 4, Gemma 12 for about 6). It runs on Arsha's own account, whose fair share is likely far above Ritik's 0.0019. Bound by Gemma's ~6 jobs and the waits between them; it starts after her setup (Nov 6); read partial at Nov 15 23:59 if not complete |
-| Track C (Shrey: C19 Nov 7; C20, C26 Nov 15) | at risk | none of Shrey's work shows here (his last commit was Oct 4); his handoff message is still unsent; C19 is about 25 min of Voyager |
+| Track C (Shrey: C19 Nov 7; C20, C26 Nov 15) | at risk | the handoff refreshed Nov 5, 23:13 (START_HERE §0 and §9–§11; `trackC_20261105.zip`; commits as Shrey only, enforced three ways); the message goes with the zip's ASU Drive link; none of Shrey's work shows here yet (last commit Oct 4); C19 is about 25 min of Voyager |
 | The labels | done | L3 final with the re-look (Nov 4 21:31; rows 67 and 290 kept as recorded, Nov 5); L4 part 1 Nov 3; L4 part 2 (a SHOULD) is not labelled |
 | Arsha's handoff (Nov 6) | on track | her Sol block (`docs/trackB/SOL_ARSHA.md`) is ready and goes to her today; the bundle is built and verified, her note is ready, and one command refreshes the bundle. Ritik sends them Nov 6 with his last push to `trackB-main`; after that the branch is hers (decision d) |
 | The report and slides (Nov 20–24) | on track | REPORT has the bullets for F1–F40; 10 slides made (1–4, 6–11), 2 waiting (5, the labels; 12, Shrey's, Nov 18); A39 and B20 go in after Nov 17 |
@@ -93,7 +93,7 @@ Sol's own dates come from `squeue --start`). Two accounts now, each with its own
     merge check, assembly and the manifest commit; copy the data to Sol and pull; then its queue lines;
   - Nov 6: the last push to `trackB-main`, with Arsha's bundle and note (one command refreshes the bundle); after
     that the branch is hers;
-  - send Shrey the Track C handoff message (ready, with no labels: the 17:42 log's §5);
+  - upload `trackC_20261105.zip` to ASU Drive and send Shrey the refreshed handoff message with its link (the Nov 5 23:13 log's §5; it replaces the 17:42 one);
 - **Shrey:** C19 by Nov 7; C20 and C26 by Nov 15; slides 11–12 by Nov 18. Check-ins on Nov 7, 12, 15 and 18.
 - **Arsha:** her Sol setup (`docs/trackB/SOL_ARSHA.md`, Nov 6), then B20 on her own feeder, read Nov 17;
   optionally shard 2 of A40's Voyager targets, on her own machine with her own key, only if Ritik hands it to her.
