@@ -151,7 +151,8 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 - **Slide 9** (`docs/paper/figures/gate3_vs_base_slide.png`, made Nov 4 from `finetune/gate3.py`'s rows): false
   disclosure from L4 part 1's hand labels (read Nov 3, F28); A39's powered replication on E2 (read Nov 17) goes in its
   own figures (above). The final statement is Nov 20. Owner: Ritik.
-- **Slide 10** (`docs/paper/figures/readout_lora_vs_base.png`): nothing waits. B1R2 was dropped Nov 5 ("not run: GPU
-  time given to A40"), so panel (b) stays B1 on the 30. Owner: Ritik.
+- **Slide 10** (`docs/paper/figures/readout_lora_vs_base.png`): B1R2, revived Nov 6 (the A39 log's §21), is last in
+  Ritik's queue. Panel (b) gains it if it finishes (partial at Nov 15 23:59), else stays B1 on the 30, as made. A41
+  (A40's weights in A18's readout) may add a row. Owner: Ritik.
 - **Slide 11** (`docs/paper/figures/trackC_reviewers_slide.png` and `reviewer_by_prompt_slide.png`, made Nov 4; the
   supplement's `trackC_reviewers`): C19's answer-key-versus-own-working bars, due Nov 7. Owner: Shrey.

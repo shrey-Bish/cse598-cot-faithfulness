@@ -46,7 +46,7 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    acts in the reasoning, not on the readout: given base's own reasoning, LoRA's weights pull toward the hint's letter
    harder, not less, and when LoRA follows it is through the same three layers (in plain words:
    [`docs/status/FIX_SO_FAR.md`](docs/status/FIX_SO_FAR.md)). A39 tests a provenance wrapper and combinations on E2,
-   120 fresh questions. B1's replication there (B1R2) is not run: its GPU time went to A40 (Nov 5), which trains on
+   120 fresh questions. B1's replication there (B1R2) was revived on Nov 6, last in the queue, after A40, which trains on
    the model's own reasoning written without the hint (bias-augmented consistency training) and is read on E2 against
    the one-line instruction.
 

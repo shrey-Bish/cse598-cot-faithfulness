@@ -77,4 +77,5 @@ and [report](../../cot-disclosure/results/summaries/trackA/gpu/eval/eval_report.
 
 **4. Next.** A40, a bias-augmented consistency-training fine-tune (Chua et al., 2024) aimed at beating the instruction,
 is being pre-registered today in its own log, before anything is generated ([the 08:57 log](../../archive/sessions/2026-11-05/2026-11-05_0857_ALL_two-accounts-a40.md),
-decision g). B1R2 (B1 on E2) was dropped today for A40's GPU time (decision f), so B1 stays read on the 30 only.
+decision g). B1R2 (B1 on E2) was dropped today for A40's GPU time (decision f); on Nov 6 it was revived, last in the queue (the A39
+log's §21), so B1 may also be read on E2.

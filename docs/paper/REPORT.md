@@ -557,8 +557,9 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     kept, labelled. No earlier result is affected (§10).
   - figure: waiting: `docs/paper/figures/a39_e2_fixes.png` and `a39_e2_parts.png` (`tools/a39_figures.py`, drawn
     only from a complete report, Nov 17; spec in WAITING.md), after slide 9's `gate3_vs_base_slide.png`
-- **B1R2: not run: GPU time given to A40.** Decided Nov 4 to run (the A39 log's §13); dropped Nov 5, before any B1R2
-  job was submitted (§19; Ritik's decision). B1 on the 30 (F38) stays the only result on the deployable span.
+- **B1R2 (waiting): revived Nov 6.** Decided Nov 4 to run (the A39 log's §13); dropped Nov 5, before any B1R2 job
+  was submitted (§19); revived Nov 6 (§21), last in Ritik's queue. B1 on the 30 (F38) stays the primary result on
+  the deployable span; B1R2 is reported as a labelled replication if it runs, partial at Nov 15 23:59 by §13.8.
 - **A40 (waiting): bias-augmented consistency training** (Chua et al., 2024), aimed at beating the instruction:
   hinted prompts trained toward the model's own no-hint reasoning, with a final answer that names the hint.
   Pre-registered Nov 5 (2026-11-05 09:18 log) before any call: on E2 against prompt_only, R1 against base, and against
@@ -720,7 +721,7 @@ by item; C4's 53 items unless noted):
 - One tool format; one solver; keyword counts where labels aren't in; the 30 evaluation questions (E2 for new
   experiments); cross-day comparisons (T11); runs past a rule's window (B17, §13).
 - **Power:** at 30 held-out questions the fix comparisons can't resolve their 5-point limits: B1's acceptance fall is 2
-  of 30 runs (F38); a replication needs about 107 to 245 questions. E2's 120 are for A39 and A40 (B1R2 was dropped Nov 5).
+  of 30 runs (F38); a replication needs about 107 to 245 questions. E2's 120 are for A39, A40, A42 and B1R2 (revived Nov 6).
 - **Format:** Olmo's served and pinned formats differ in following (F2: user +25 [+0, +50]), confounded with the budget
   and the run counts.
 - **Cross-day:** B16's tool arms (T11; B19's same-day rerun held, F35); B15's "before" (F25); B24's readings against

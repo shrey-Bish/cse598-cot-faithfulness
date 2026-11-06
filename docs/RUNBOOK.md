@@ -43,7 +43,8 @@ is ever submitted from both:
 - **Arsha's** (`queue_b20_2026-11-05.txt`, `owner: not ragarw68`; her setup `docs/trackB/SOL_ARSHA.md`): B20's runs
   left, Granite's and Gemma's chains of 3:00 jobs, question by question. Nemotron's runs were done Nov 4–5 on Ritik's
   account. B20's earlier smokes and runs (Nov 4) ran on Ritik's account; their files are copied to hers first.
-- **Dropped:** B1R2, "not run: GPU time given to A40" (Nov 5, before any B1R2 run; F38).
+- **B1R2:** dropped Nov 5 (decision f), **revived Nov 6** (the A39 log's §21): its 44 lines last in Ritik's queue,
+  each with `reserve=240:2`, so they fill only room A40's, A41's and A42's lines can't use.
 
 Nothing new after Nov 18. **What binds** (Nov 4) is the class QoS's 960 running GPU-minutes (each running job's time
 left × GPUs) and the 10 submitted jobs: 7 one-GPU jobs ran at once on Nov 3, so MaxJobsPU 2 doesn't bind. So most jobs
@@ -477,7 +478,8 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
     --alpha-from "$TRACKA_OUT/provenance_forced/provenance_forced.json" --note     # ~4 provenance_gen ... --note lines
   ```
 - **B1R2, B1's deployable span on E2** (a labelled replication; decided Nov 4 by its compute check, the A39 log's §13).
-  **Dropped Nov 5,** before any B1R2 run: "not run: GPU time given to A40" (the A39 log's §19). Kept below as written.
+  **Dropped Nov 5,** before any B1R2 run (the A39 log's §19); **revived Nov 6** (§21), last in the queue with
+  `reserve=240:2`. The job lines below are as §13 wrote them.
   - **What:** alpha 0.25 (set A's choice) against alpha = 1 on E2's 120 questions, the inserted tool turn only: 2
     wrong-hint, 2 correct-hint and 1 no-hint run a question in each configuration, 1,200 runs. B1's engine and
     settings (`-v2`), Hugging Face, one A100.
