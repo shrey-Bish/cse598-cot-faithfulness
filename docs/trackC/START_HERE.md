@@ -1,6 +1,8 @@
 # Track C: start here (Shrey, owner from Oct 30)
 
-**Edited by:** Shrey, on `trackC-main` (written by Ritik for the final handoff, Nov 3, 2026).
+**Edited by:** Shrey, on `trackC-main` (written by Ritik for the final handoff, Nov 3, 2026; refreshed by Ritik on
+Nov 5, 23:27: §0 what changed, §9 the repo's structure, §10 git without conflicts, §11 Claude Code, the zip bundle,
+the three hooks, the dates).
 
 ## Quick start (one page)
 
@@ -18,10 +20,13 @@ downstream agent lose the fact that an answer came from a tool, and defer to it 
 
 | # | what | by | check-in |
 |---|---|---|---|
-| 1 | **Setup** (§4): clone, `trackC-main`, the venv, the tests (47 Track C), both hooks, your own Voyager key, the bundle `trackC_20261103.tar.gz` with `--verify`, and F18, F24 and F34 reproduced with no calls | Wed Nov 4 | — |
+| 1 | **Setup** (§4): clone, `trackC-main` brought level with `main`, your own git name and email, the venv, the tests (47 Track C), the three hooks, your own Voyager key, the bundle `trackC_20261105.zip` with `--verify`, and F18, F24 and F34 reproduced with no calls | **Fri Nov 6** | — |
 | 2 | **C19** (§3.1), with its FC entry, summary and slide 11's bars (§6) | **Sat Nov 7** | **Nov 7** |
 | 3 | **C25** with its 20-row hand spot check (§3.2) | **Thu Nov 12** | **Nov 12** |
 | 4 | **C20 and C26** (§3.3, §3.4) | **Sun Nov 15** | **Nov 15** |
+
+Dates: setup was due Wed Nov 4 in the Nov 3 version of this page; it is now Fri Nov 6. C19's and every later date are
+unchanged. Every date here is Ritik's to confirm (at the latest at the Nov 7 check-in).
 
 Corrected Nov 4, 17:55 (Ritik): the labels step (the L3 settling call and the 72-row fresh batch) is off your list.
 Rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the
@@ -48,6 +53,11 @@ Then, to the freeze:
   The hooks enforce this, both ways: Ritik's branches can't change your paths except by merging yours.
 - **The rules:** pre-register before any run; Voyager only, nothing paid; at most 4 requests in flight; every run under
   the power guard; no LLM judging; data never on GitHub; your commits carry no attribution lines.
+- **Your commits are yours alone** (§11): authored and committed as you (your clone's `git config`), never as Claude,
+  with no co-author trailer and no "generated with" line. The repo's root `CLAUDE.md` tells every Claude Code session
+  this, `.claude/settings.json` turns Claude Code's attribution off, and the commit-msg hook refuses such a commit.
+- **No conflicts with `main`** (§10): you change only your paths, on your branch; Ritik merges it on check-in days and
+  you merge `origin/main` back. Never rebase or force-push `trackC-main`.
 - **Your machine:** a Mac, Linux, or Windows through WSL. On a Mac the guard watches the battery. Elsewhere it skips that
   check and says so, so keep the machine plugged in and awake yourself. Native Windows Python isn't supported.
 
@@ -64,8 +74,55 @@ prepared by Ritik on Oct 31 (code, CPU tests, a pre-registration log and a dry r
 This page is meant to be complete on its own. You, or a coding assistant you hand it to, should be able to work from it
 without asking anyone. Every file it names is in the repo, except the data bundle (§4, step 6).
 
-**How to use it.** The Quick start above is the summary. Read §1–§3 once. Do §4 on your first day. Keep §5 open while you work. Use §6 when a result is done.
-Paste §7 to start a coding session. §8 has the dates.
+**How to use it.** The Quick start above is the summary. §0 says what changed since Nov 3 (read it even if you read
+the Nov 3 version). Read §1–§3 once. Do §4 on your first day. Keep §5 open while you work. Use §6 when a result is
+done. Paste §7 to start a coding session. §8 has the dates. §9 maps the repo, §10 is how your branch stays out of
+conflict with `main`, and §11 is how Claude Code works here.
+
+---
+
+## 0. What changed since Nov 3 (refreshed Nov 5)
+
+Only what matters to Track C. Track C's own code, pre-registrations and data are **unchanged** since Nov 3: the
+bundle's 43 files have the same sha256 as on Nov 3, and C19, C25, C20 and C26 run exactly as §3 says.
+
+- **The handoff itself.**
+  - The bundle is now a zip for ASU Drive, `trackC_20261105.zip`: the same 43 files as `trackC_20261103.tar.gz`
+    (§4, step 6). If you already unpacked the tar.gz, you have the same files.
+  - `trackC-main` was last updated on Nov 4 (`998c5dc`). `main` has moved on since, so bring your branch level with
+    it first (§4, step 1). After that, `git merge origin/main` after each check-in, as before.
+  - **Claude Code** (§11): a root `CLAUDE.md` and `.claude/settings.json`, and a third hook (commit-msg) from
+    `path_check.py --install`. Your commits carry only your own name.
+- **The Nov 4 label correction.** The second rater on the project's labels (L3, L4) was an AI model (ChatGPT 5 Astra
+  High), not you. You do no labelling for L3, L4 or L5
+  ([the 17:42 log](../../archive/sessions/2026-11-04/2026-11-04_1742_ALL_label-correction.md)). C25's 20-row spot
+  check is still yours, by hand: it is Track C's own pre-registered check, not part of the label project.
+- **The LLM-judge protocol** (Nov 4,
+  [the 17:45 log](../../archive/sessions/2026-11-04/2026-11-04_1745_ALL_llm-judge-prereg.md)). AI judges are used
+  only on the project's hand labels (L3, L4 part 1), as a reliability check on Ritik's labels, and always disclosed.
+  It changes nothing for Track C: no model labels, scores or summarizes Track C's model text, and C25's spot check
+  stays a person's (§5, "No LLM judging").
+- **B20 runs on Arsha's own Sol account** (from Nov 5). Arsha (Track B, from Nov 6) submits B20's jobs from her own
+  account; Ritik's account runs Track A only. No line is ever submitted from two accounts.
+- **The Sol feeder** (`tools/sol_feeder.py`, run by `scrontab` on Sol) keeps a Sol account's 10 queue places full from
+  a queue file under `cot-disclosure/finetune/gpu/sol/queue_*.txt`.
+  - Each queue file has an **owner line** (its first line after the comments), and the feeder refuses a file whose
+    owner line doesn't match the Sol user running it ("run your own account's queue file").
+  - **Never run the feeder, and never run or edit Ritik's or Arsha's queue file** (`finetune/` is outside your paths
+    anyway). Track C needs no feeder: C19–C26 run on Voyager. If you ever add Sol work, submit it yourself with
+    `submit.sh` under your own account (§4, step 8).
+- **The vLLM port rule** (Nov 4, FINDINGS T12). Two jobs on one Sol node once shared one vLLM server through a fixed
+  port. Since then, A39's and B20's jobs take a port of their own (20000 + the job id mod 10000, checked free).
+  **C13's job still uses the fixed port 8013:** if you run `c13` on Sol, follow
+  [SOL_SETUP.md](../tracks/SOL_SETUP.md)'s "Known traps" (check the node, `--exclude=<node>`).
+  `agents/sol_c13.py` stays Ritik's (every Sol vLLM job imports it).
+- **B1R2 dropped** (Nov 5, before any run: "not run: GPU time given to A40"). It was Track A's second round of B1
+  (provenance-scaled attention, F38); it touches nothing of Track C's.
+- **A40** (Track A, pre-registered Nov 5): consistency training for Olmo 3 7B Think. Its training data is generated
+  on Voyager from Ritik's Mac until about Nov 6 morning (Olmo 3 7B Think; Track C's models are other ones), then it
+  trains and is evaluated on Sol under Ritik's account. Each machine keeps its own 4-request limit; don't raise
+  `--workers` if Voyager feels slow. Nothing of Track C's waits on it.
+- **Tests:** 47 Track C tests pass (checked Nov 5); the full suite has grown since Nov 3 (§4, step 3).
 
 ---
 
@@ -518,14 +575,19 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
 
 ## 4. Setup, step by step
 
-1. **Clone the repo and take your branch.**
+1. **Clone the repo, take your branch, bring it level with `main`, and set your own name.**
    ```bash
    git clone https://github.com/shrey-Bish/cse598-cot-faithfulness.git
    cd cse598-cot-faithfulness
    git checkout trackC-main
+   git merge --ff-only origin/main                # level with main (Nov 5: CLAUDE.md, the hooks, this page); "Already up to date" if it is
    git config user.name "Shrey Bishnoi"           # your commits are authored by you (this clone only)
    git config user.email "<your ASU email>"
+   git var GIT_AUTHOR_IDENT                       # check: your name and email (then a timestamp)
    ```
+   - `--ff-only` only moves your branch forward to `main`. If it refuses ("Not possible to fast-forward"), your branch
+     has commits `main` lacks: run `git merge origin/main` instead (§10).
+   - If you already had a clone from Nov 3–4: `git fetch origin`, `git checkout trackC-main`, then the same merge.
 2. **The Python environment** (at the repo root; every command below uses `../.venv/bin/python` from `cot-disclosure/`):
    ```bash
    python3 -m venv .venv && .venv/bin/pip install -r cot-disclosure/requirements.txt
@@ -533,19 +595,30 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
 3. **The tests** (no network):
    ```bash
    cd cot-disclosure
-   ../.venv/bin/python -m pytest -q                          # every test should pass or skip (tests needing Track A's data skip)
-   ../.venv/bin/python -m pytest -q tests/test_trackC_*.py   # Track C's 8 files: 47 passed (checked Nov 3)
+   ../.venv/bin/python -m pytest -q                          # every test should pass or skip (tests needing Track A's data skip);
+                                                             # Nov 5, a fresh clone with only Track C's bundle: 976 passed, 13 skipped (~10 min)
+   ../.venv/bin/python -m pytest -q tests/test_trackC_*.py   # Track C's 8 files: 47 passed (checked Nov 3 and Nov 5)
    cd ..
    ```
 4. **The hooks**, once per clone, from the repo root:
    ```bash
-   python3 cot-disclosure/tools/path_check.py --install       # the path check: pre-commit and pre-merge-commit hooks
+   python3 cot-disclosure/tools/path_check.py --install       # pre-commit and pre-merge-commit (paths), commit-msg (no AI attribution)
    printf '#!/bin/sh\nexec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/prepush_check.py" "$@"\n' > .git/hooks/pre-push && chmod +x .git/hooks/pre-push
    python3 cot-disclosure/tools/path_check.py                 # the staged files, as the hook checks them
    python3 cot-disclosure/tools/prepush_check.py --rev HEAD   # what a push would be checked for
    ```
    - The **path check** (pre-commit for a commit, pre-merge-commit for a clean merge) refuses a commit on
      `trackC-main` that touches any path outside the allowlist (§5).
+   - The **commit-msg hook** (Nov 5; §11) refuses a commit whose message has an AI co-author trailer
+     (`Co-Authored-By` naming Claude or Anthropic), a "Generated with Claude Code" line or `noreply@anthropic.com`,
+     or whose author or committer is named Claude or has an anthropic.com email. Check it once, by running the hook
+     itself on a test message (it commits nothing, installed or not):
+     ```bash
+     printf 'hook check\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n' > /tmp/hook_check.txt
+     .git/hooks/commit-msg /tmp/hook_check.txt; echo "exit $?"   # must print "commit-msg: refused: ..." and "exit 1"
+     ```
+     "No such file" means the hook isn't installed: run `--install` again.
+   - If you installed the hooks before Nov 5, run `--install` again: it rewrites its own hooks and adds commit-msg.
    - The **pre-push hook** (RUNBOOK §17) refuses a push that adds anything under a produced-data folder
      (`results/trackA/`, `results/trackB/`, `results/trackC/`, `results/labels/`, `results/handoff/`,
      `results/voyager_canary.jsonl`, `finetune/data/`), any file with "gpqa" in its name (code and docs excepted), or a
@@ -560,19 +633,25 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
    ```
    - The key is yours only: never shared, printed, logged, pasted into a chat or committed. Never use anyone else's.
    - Leave every paid provider's key line (the three `*_API_KEY` lines under the Voyager lines) **empty**: no paid calls.
-6. **The data bundle.** Ritik sends `trackC_20261103.tar.gz` through ASU storage, never GitHub. Save it in
-   `cot-disclosure/results/handoff/` (gitignored) or outside the repo. From the repo root:
+6. **The data bundle.** Ritik puts `trackC_20261105.zip` in the team's ASU Drive folder and sends you the link: data
+   goes through ASU storage, never GitHub. Download it into `cot-disclosure/results/handoff/` (gitignored) or outside
+   the repo. From the repo root:
    ```bash
-   tar --exclude MANIFEST.json -xzf <where you saved it>/trackC_20261103.tar.gz -C cot-disclosure
+   shasum -a 256 <where you saved it>/trackC_20261105.zip      # must begin c8df621f254e4c90 (the full sha256 is in Ritik's message)
+   unzip -q <where you saved it>/trackC_20261105.zip -x MANIFEST.json -d cot-disclosure
    cd cot-disclosure
-   ../.venv/bin/python tools/make_handoff_bundle.py --verify results/handoff/trackC_20261103.tar.gz   # or your path
+   ../.venv/bin/python tools/make_handoff_bundle.py --verify <where you saved it>/trackC_20261105.zip
+   git status --porcelain                                       # prints nothing: everything unpacked is gitignored
    ```
-   - `--verify` takes the packed `.tar.gz` (any path). It checks every file's sha256 against the `MANIFEST.json`
-     inside, that nothing extra is in it, and that no GPQA file is. It must print **"bundle matches its manifest"**.
-   - `--exclude MANIFEST.json` keeps the manifest out of `cot-disclosure/`; it isn't gitignored and isn't needed
-     (a copy sits beside the tar.gz).
-   - Its contents (built and verified Nov 3: 43 files, 31.3 MB unpacked, 5.1 MB packed; the manifest is the record),
-     paths relative to `cot-disclosure/`:
+   - Use `unzip` in a terminal, not a double-click: macOS's Archive Utility unpacks into a new folder of its own. On
+     Linux or WSL, `sudo apt install unzip` if it's missing.
+   - `--verify` takes the packed `.zip` (or a `.tar.gz`; any path). It checks every file's sha256 against the
+     `MANIFEST.json` inside, that nothing extra is in it, and that no GPQA file is. It must print **"bundle matches its
+     manifest"**.
+   - `-x MANIFEST.json` keeps the manifest out of `cot-disclosure/`; it isn't gitignored and isn't needed there
+     (`--verify` reads it from inside the zip).
+   - Its contents (built and verified Nov 5, 23:22: 43 files, 31.3 MB unpacked, 5.1 MB packed; the same 43 files, with
+     the same sha256, as Nov 3's `trackC_20261103.tar.gz`), paths relative to `cot-disclosure/`:
      `results/trackC/` (C1, C4, C9–C18's logs and summaries, C14–C18's readings, C15's items) and
      `results/trackB/steered_cases.jsonl`. Track C needs at least:
      `team_c4.jsonl`, `team_c15.jsonl`, `team_c15_solve.jsonl`, `c15_items.jsonl`, `team_c16.jsonl`,
@@ -624,8 +703,11 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
      H23 or H33 reading from Qwen3 (it doesn't defer).
 8. **Sol, only if you need it.** C19, C25, C20 and C26 run on Voyager and need no Sol. If you add GPU work, use your own
    Sol user and course account, following [`docs/tracks/SOL_SETUP.md`](../tracks/SOL_SETUP.md) (Duo, scratch space,
-   your accounts file, always `submit.sh`). The reviewer servers' ports on Sol are fixed, so two users' jobs on one node
-   would collide (SOL_SETUP.md). Jobs under Ritik's account need Ritik.
+   your accounts file, always `submit.sh`).
+   - C13's reviewer server still uses a fixed port (8013), so two C13 jobs on one node, yours and another user's,
+     would collide. A39's and B20's jobs take a port of their own since Nov 4 (§0; SOL_SETUP.md's "Known traps").
+   - Never run the Sol feeder or anyone's queue file (§0). Jobs under Ritik's account need Ritik; jobs under Arsha's
+     need Arsha.
 
 **Where things are** (all under `cot-disclosure/` unless shown):
 
@@ -641,6 +723,9 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
 | logs (append-only, gitignored) | `results/trackC/<log>.jsonl`; guard logs in `logs/` |
 | numbers-only summaries (tracked) | `results/summaries/trackC/` |
 | the older handoff | `docs/tracks/TRACK_C.md` (yours to edit; where it differs from this page, this page holds) |
+| Claude Code's rules and settings (Nov 5) | `CLAUDE.md` and `.claude/settings.json` at the repo root (read-only for you; §11) |
+| the hooks; the bundle tool | `tools/path_check.py` (`--install`), `tools/prepush_check.py`; `tools/make_handoff_bundle.py` (read-only) |
+| the whole repo, folder by folder | §9 |
 | your records | `docs/trackC/`: this page, `TODO_C.md`, `FINDINGS_C.md`, `sessions/` |
 | pre-registrations up to Nov 3 | `archive/sessions/2026-10-30/` (C16–C18), `archive/sessions/2026-10-31/` (C19, C20, C25, C26) |
 | slide specs | `docs/PLAN.md` (presentation map, slides 11–12); `docs/paper/figures/WAITING.md` (slide 12) |
@@ -741,8 +826,9 @@ on C4's cases failed on fresh ones (F24).
 - Tracked files (session logs, `TODO_C.md`, `FINDINGS_C.md`, this page) hold numbers, ids and paths only, never
   question, reply or note text. The repo is public.
 
-**Commits.** Authored by you (your clone's `git config`), with **no attribution lines of any kind**: no co-author
-trailers, no "generated with" lines, nothing naming a tool. Commit messages say what changed and why.
+**Commits.** Authored and committed by you (your clone's `git config`), with **no attribution lines of any kind**: no
+co-author trailers, no "generated with" lines, nothing naming a tool. Commit messages say what changed and why. A coding
+assistant commits only when you ask, and only as you; §11 has the three layers that enforce it.
 
 **Your records** (so no file is edited by both you and Ritik). Ritik created them on Nov 3; keep them current:
 - `docs/trackC/START_HERE.md`: this page.
@@ -856,7 +942,8 @@ You are helping Shrey Bishnoi run Track C of a university project: CSE 598 Group
 chain-of-thought more honest?". Shrey owns Track C from Oct 30; the work through C18 is Ritik Agarwal's.
 
 Repo: https://github.com/shrey-Bish/cse598-cot-faithfulness.git, branch trackC-main only. Never push to main,
-trackA-nosol or trackB-main; never force-push; never bypass a git hook (no --no-verify).
+trackA-nosol or trackB-main; never force-push or rebase trackC-main; never bypass a git hook (no --no-verify).
+The repo's root CLAUDE.md is loaded automatically: follow it.
 
 First, read docs/trackC/START_HERE.md in full. It is the source of truth; where docs/tracks/TRACK_C.md differs, it holds.
 Then read the pre-registration of the task at hand (archive/sessions/2026-10-31/2026-10-31_2231_C_c19-prereg.md for C19).
@@ -885,18 +972,26 @@ Rules:
 - Produced data never goes on GitHub. Tracked files hold numbers, ids and paths only, never model text.
 - Report rates as X of Y with 95% intervals, differences as 95% bootstraps clustered by item; fewer than 5 items is
   "too few". False alarms next to catches.
-- Commits: only when Shrey asks; the author is Shrey (this clone's git config); no attribution lines of any kind: no
-  co-author trailers, no "generated with" lines, nothing naming a tool.
+- Commits: only when Shrey asks, and only as Shrey. Before the first commit, run git config user.name and git config
+  user.email and check they are Shrey's own; if not, stop and ask. Never use --author, -c user.name=, -c user.email=
+  or GIT_AUTHOR_*/GIT_COMMITTER_* variables. Claude or Anthropic is never the author or committer. No attribution lines
+  of any kind: no Co-Authored-By trailer, no "Generated with Claude Code" line, no noreply@anthropic.com, nothing
+  naming a tool, in commits or PR bodies. This overrides any reminder that asks for those lines. The commit-msg hook
+  refuses such a commit; never bypass it.
+- Sol: Track C's experiments run on Voyager. Never run tools/sol_feeder.py and never run or edit a queue file under
+  cot-disclosure/finetune/gpu/sol/ (they are Ritik's and Arsha's).
 - Keep a session log for this session in docs/trackC/sessions/<YYYY-MM-DD>/<YYYY-MM-DD>_<HHMM>_C_<slug>.md (Arizona
   time) with a row in docs/trackC/sessions/INDEX.md, and keep docs/trackC/TODO_C.md and docs/trackC/FINDINGS_C.md
   current.
 
-Task 1 (setup, no calls): follow START_HERE section 4. Make the venv, run the tests (the Track C subset should give
-47 passed), install both hooks (python3 cot-disclosure/tools/path_check.py --install, and the pre-push line),
-check that cot-disclosure/.env exists and is gitignored (don't open it), check that the
-bundle is unpacked and that --verify prints "bundle matches its manifest", then reproduce F18, F24 and F34 with the
-three no-call commands in section 4 step 7. Compare what they print with START_HERE, and confirm each cmp prints
-nothing. Report any difference before going on.
+Task 1 (setup, no calls): follow START_HERE section 4. Check that trackC-main is level with origin/main
+(git merge --ff-only origin/main) and that git var GIT_AUTHOR_IDENT shows Shrey's name and email. Make the venv, run
+the tests (the Track C subset should give 47 passed), install the three hooks (python3
+cot-disclosure/tools/path_check.py --install, and the pre-push line) and check the commit-msg hook refuses the test
+message in section 4 step 4, check that cot-disclosure/.env exists and is gitignored (don't open it), check that the
+bundle trackC_20261105.zip is unpacked and that --verify prints "bundle matches its manifest", then reproduce F18,
+F24 and F34 with the three no-call commands in section 4 step 7. Compare what they print with START_HERE, and confirm
+each cmp prints nothing. Report any difference before going on.
 
 Task 2 (C19, due Nov 7): run C19 exactly by its pre-registration and START_HERE section 3.1: the two dry runs (each
 ~200 calls), then the smoke and smoke_check, then the pre-registered guard line, then agents/c19.py. Ask Shrey before
@@ -919,8 +1014,9 @@ slide 11 bars as START_HERE section 6 describes, for Shrey to review.
 
 | date | what |
 |---|---|
-| Tue Nov 3 | the final handoff; the bundle `trackC_20261103.tar.gz` (still current: Track C's data hasn't changed) |
-| Wed Nov 4 | setup (§4), then C19 |
+| Tue Nov 3 | the final handoff; the bundle `trackC_20261103.tar.gz` |
+| Thu Nov 5 | the handoff refreshed (§0); the bundle `trackC_20261105.zip`: the same 43 files, as a zip for ASU Drive |
+| **Fri Nov 6** | **setup** (§4), then C19 (moved from Wed Nov 4; Ritik to confirm) |
 | **Sat Nov 7** | **C19** due (and slide 11's C19 bars); **check-in and merge** (corrected Nov 4, 17:55: no L3 call or fresh batch for you) |
 | **Thu Nov 12** | **C25** due, with its 20-row spot check; **check-in and merge** |
 | **Sun Nov 15** | **C20 and C26** due; **check-in and merge** |
@@ -932,3 +1028,172 @@ slide 11 bars as START_HERE section 6 describes, for Shrey to review.
 
 Stretch, not prepared: C22 (a second solver model; about 2,000 calls, 3 days; pre-register first). Dropped on Oct 31
 for scope: C21 and C23 (their rows in `TODO_C.md` keep the reason).
+
+---
+
+## 9. The repo, folder by folder (Nov 5)
+
+Marks: **[C]** yours (Track C's allowlist, `cot-disclosure/configs/path_allowlist.txt`); **[R]** shared, read-only for
+you (Ritik's: run and import it, don't change it); **[B]** Arsha's (Track B); **(data)** gitignored produced data,
+never on GitHub. A path changes only on its owner's branch (§10).
+
+```text
+cse598-cot-faithfulness/
+├── README.md                    the project on one page: the question, the three tracks, the story          [R]
+├── CLAUDE.md                    Claude Code's rules for every teammate's session (Nov 5; §11)                [R]
+├── .claude/settings.json        Claude Code's shared settings: no commit or PR attribution (Nov 5; §11)      [R]
+├── .gitignore                   a whitelist: only README, CLAUDE.md, .claude/settings.json, cot-disclosure/,
+│                                archive/ and docs/ are tracked                                               [R]
+├── docs/
+│   ├── PLAN.md                  the plan, the story, the presentation map (slides 11–12 are Track C's)       [R]
+│   ├── FINDINGS.md              every F-entry; Track C's: F18, F19, F21–F24, F30, F31, F33, F34             [R]
+│   ├── RUNBOOK.md               commands for everything (§16 merges, §17 pre-push, §19 Track C)              [R]
+│   ├── trackC/                  YOUR records                                                                 [C]
+│   │   ├── START_HERE.md        this page
+│   │   ├── TODO_C.md            Track C's task rows (tools/make_gantt.py reads them)
+│   │   ├── FINDINGS_C.md        your findings, FC1, FC2, …
+│   │   ├── sessions/            your session logs and pre-registrations, with INDEX.md
+│   │   ├── figures/             (you create it) slides 11–12: PNG, SVG and a CSV of every plotted number
+│   │   └── REPORT_C.md          (you create it) Track C's section of the report, as bullets
+│   ├── tracks/
+│   │   ├── TRACK_C.md           the Oct 30 handoff; where it differs from START_HERE, START_HERE holds      [C]
+│   │   ├── SOL_SETUP.md         Sol under your own user and course account                                  [R]
+│   │   ├── TRACK_A.md, TRACK_A_FIX.md                                                                       [R]
+│   │   └── TRACK_B.md                                                                                       [B]
+│   ├── trackB/                  Arsha's records (Track B, from Nov 6)                                        [B]
+│   ├── status/                  ONE_PAGE, TODO, STATUS, CHECKIN, FIX_SO_FAR and the Gantt (generated)       [R]
+│   ├── paper/                   REPORT.md, CLAIMS, OUTLINE; figures/ (WAITING.md: slide specs), supplement/,
+│   │                            tables/                                                                      [R]
+│   └── labeling/                RATER_GUIDE.md and LABELING_GUIDE.md (C25's spot check follows them)         [R]
+├── archive/
+│   ├── sessions/                every session log and pre-registration up to Nov 3 (C19, C20, C25, C26:
+│   │                            2026-10-31/), Ritik's since; INDEX.md, LATEST.md                             [R]
+│   ├── progress-round/          the progress round's slides and evidence (historical)                       [R]
+│   └── merged-docs/, superseded/, MOVES.md   older docs kept for the record                                 [R]
+└── cot-disclosure/              all the code; every command runs from here with ../.venv/bin/python
+    ├── agents/                  the agent team: run_team.py, solver.py, reviewer.py, checker.py, common.py,
+    │                            c15.py–c26.py (each experiment's reading), disagreement.py, fresh_items.py  [C]
+    │                            except __init__.py and sol_c13.py (every Sol vLLM job imports them)          [R]
+    ├── tests/                   CPU tests, no network; test_trackC_*.py are yours (8 files, 47 tests)       [C]
+    │                            every other test file                                                        [R]
+    ├── client.py                the Voyager client: reply cache, identity canaries, the 4-slot limit        [R]
+    ├── detect.py, parse.py      cue detection (cue_tool, "names the tool"), answer parsing                  [R]
+    ├── experiments.py, run.py, tasks.py, analyze.py, audit.py   the early pipeline                          [R]
+    ├── progress/                common.py (record format, slot(), Wilson), guard.py (the power guard);
+    │                            Track B's: run_trackB.py, run_b15–b19.py, run_b20.py, trackB_report.py       [R] / [B]
+    ├── providers/               one interface over Voyager, vLLM, Hugging Face and the paid APIs
+    │                            (budget.py: the spend guard)                                                 [R]
+    ├── configs/                 models.yaml, canary/ (identity canaries), path_allowlist.txt, prices.yaml   [R]
+    ├── tools/                   path_check.py, prepush_check.py, make_handoff_bundle.py, export_summaries.py,
+    │                            make_gantt.py, make_supplement.py, sol_feeder.py, …                          [R]
+    ├── finetune/                Track A: dataset, training, evaluation, looking inside; gpu/ is the Sol kit
+    │                            (gpu/sol/: job scripts, submit.sh, accounts, the feeder's queue files)       [R]
+    ├── data/progress/           the 30 evaluation questions and E2's 120: nothing is ever chosen on them    [R]
+    ├── results/
+    │   ├── summaries/trackC/    numbers-only summaries, tracked                                              [C]
+    │   ├── trackC/              your logs and readings, C15's items (from the bundle)                        [C] (data)
+    │   ├── trackB/steered_cases.jsonl   C4's cases (from the bundle; read only)                              [B] (data)
+    │   ├── handoff/             bundles                                                                      (data)
+    │   └── progress/, scope/, *.jsonl   the progress round's evidence (tracked, historical)                  [R]
+    ├── ui/                      the progress round's demo (historical)                                       [R]
+    ├── cache/, logs/            Voyager's reply cache; the guard's logs, stop files and slots                (data)
+    ├── .env.example             copy it to .env (gitignored) for your own Voyager key                        [R]
+    └── requirements.txt         the venv's packages                                                          [R]
+```
+
+---
+
+## 10. Git: how your work stays out of conflict with `main`
+
+**Who owns what.** Every path has one owner (§9's marks). `main` and `trackA-nosol` are Ritik's, `trackB-main` is
+Arsha's (from Nov 6), and **`trackC-main` is yours**. Once you start, nobody else commits or pushes to `trackC-main`.
+- On `trackC-main` the pre-commit hook refuses any change outside your paths.
+- On Ritik's and Arsha's branches the same hook refuses a change to your paths, except a merge of `trackC-main`
+  taken unchanged. The one exception is a change you agreed to, committed with `PATH_CHECK_ALLOW=trackC-main` and
+  said in its message. Ritik's Nov 5 refresh of this page and `TRACK_C.md`, made before you started, went in that
+  way.
+- So the same file is never edited on two branches, and merges in either direction don't conflict.
+
+**The cycle.**
+1. Work and commit on `trackC-main` only, in your paths. Push with `git push origin trackC-main` (the pre-push hook
+   checks for data).
+2. On check-in days (Nov 7, 12, 15, 18) Ritik checks your range
+   (`python3 cot-disclosure/tools/path_check.py --range origin/main..origin/trackC-main --branch trackC-main`) and
+   merges `trackC-main` into `main`.
+3. Then you bring `main` back:
+   ```bash
+   git checkout trackC-main
+   git fetch origin
+   git merge origin/main          # a merge commit, or a fast-forward; the hooks check it
+   git push origin trackC-main
+   ```
+   Do this also whenever Ritik tells you `main` has something you need. Never `git pull --rebase` or `git rebase` on
+   `trackC-main` once pushed, and never force-push: Ritik merges from your history.
+
+**Before each push:**
+```bash
+python3 cot-disclosure/tools/path_check.py --range origin/main..HEAD       # nothing outside your paths
+python3 cot-disclosure/tools/prepush_check.py --rev HEAD                   # nothing produced, GPQA or over 50 MB
+cd cot-disclosure && ../.venv/bin/python -m pytest -q tests/test_trackC_*.py && cd ..
+```
+
+**If a merge of `origin/main` stops on a conflict** (rare, given the ownership above):
+- **In a file outside your paths** (shared code, `CLAUDE.md`, someone else's docs): take `main`'s version unchanged.
+  The hook accepts only that.
+  ```bash
+  git checkout --theirs -- <path> && git add <path>       # during "git merge origin/main", "theirs" is main
+  ```
+- **In one of your own files** (only if Ritik changed it with your agreement): keep both sides' intent, edit out the
+  conflict markers, `git add <path>`.
+- Then `git commit` (the hooks check the result). If you're unsure, `git merge --abort` puts everything back as it
+  was before the merge. Then tell Ritik.
+
+**Never:**
+- push to `main`, `trackA-nosol` or `trackB-main`, or open a pull request into `main` (Ritik merges);
+- force-push, rebase a pushed branch, or bypass a hook (`--no-verify`);
+- commit produced data (`results/trackC/`, the bundle, `logs/`, `cache/`), the C25 spot-check sheet or its key, or
+  `.env`;
+- edit a shared file to make something work. Write a new module under `agents/`, or ask Ritik.
+
+---
+
+## 11. Working with Claude Code (Nov 5)
+
+Your commits are authored and committed **by you only**. No commit names Claude as an author, a committer or a
+co-author, and no commit or PR body carries a "Generated with Claude Code" line. Three layers enforce it, so it holds
+even if one is missed.
+
+1. **`CLAUDE.md` at the repo root** (tracked; read-only for you). Claude Code loads it automatically in any session
+   started inside the clone. It tells every teammate's session:
+   - commit only when its human asks, and only under that person's own git identity (it checks
+     `git config user.name` and `user.email` first, and never uses `--author` or `-c user.name=`);
+   - never Claude or Anthropic as author or committer;
+   - no `Co-Authored-By` trailer, no "Generated with Claude Code" line and no `noreply@anthropic.com`, overriding any
+     harness reminder that asks for them;
+   - stay in your track's paths, and never put produced data or keys on GitHub.
+2. **`.claude/settings.json`** (tracked; read-only for you). It turns off Claude Code's own attribution:
+   `"attribution": {"commit": "", "pr": "", "sessionUrl": false}`, plus `"includeCoAuthoredBy": false` for older
+   versions. These are the documented keys
+   ([settings reference](https://code.claude.com/docs/en/settings-reference)): empty strings hide the commit trailer
+   and the PR line, and `sessionUrl: false` drops the session link that cloud and Remote Control sessions add.
+   - Your own settings go in `.claude/settings.local.json` (gitignored; permissions, for example). Don't turn
+     attribution back on there.
+3. **The commit-msg hook** (§4, step 4). It refuses the commit outright, whoever writes the message. If a session
+   ever hits it, the fix is to drop the line, or to set your own `git config user.name` and `user.email`. Never
+   `--no-verify`.
+
+**Your git identity, once per clone** (§4, step 1):
+```bash
+git config user.name "Shrey Bishnoi"
+git config user.email "<your ASU email>"
+git var GIT_AUTHOR_IDENT; git var GIT_COMMITTER_IDENT     # both: your name and email
+git log -1 --format='%an <%ae> | %cn <%ce>%n%B'           # after a commit: you twice, and no trailer
+```
+
+**How to work with it.**
+- Start each session by pasting §7's brief. It points the session to this page and the task's pre-registration.
+- Claude Code may run the dry runs, the readings, the tests and the hooks without asking. It asks you before any
+  command that calls Voyager (a smoke or a run), before a commit and before a push.
+- It never labels, classifies, scores or summarizes model text for a result, and never opens C25's spot-check sheet
+  or key. It never opens or prints `cot-disclosure/.env` (§5, "No LLM judging"; `CLAUDE.md`).
+- Read what it wrote before you commit: you are the author.

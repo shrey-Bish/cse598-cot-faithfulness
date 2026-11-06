@@ -7,11 +7,13 @@ dropped; results freeze Nov 18). The work through C18 is Ritik's; from Oct 30 Tr
 comes as a bundle through ASU storage (§7), never through GitHub.
 
 **From Nov 3, start with [`docs/trackC/START_HERE.md`](../trackC/START_HERE.md); where this page differs, START_HERE
-holds.** In short: the bundle is `trackC_20261103.tar.gz`; a finished experiment gets an FC entry in
+holds** (refreshed Nov 5, 23:29: its §0 says what changed). In short: the bundle is `trackC_20261105.zip` (the same 43
+files as Nov 3's `trackC_20261103.tar.gz`, as a zip for ASU Drive); a finished experiment gets an FC entry in
 [`docs/trackC/FINDINGS_C.md`](../trackC/FINDINGS_C.md) (not an F-entry here) and its session logs go in
 `docs/trackC/sessions/` (not `archive/sessions/`); numbers-only summaries are written from your own `agents/` module,
 figures under `docs/trackC/figures/`; on `trackC-main` only the paths in `cot-disclosure/configs/path_allowlist.txt`
-change (a pre-commit hook checks it), commits are yours with no attribution lines, and C19, C25, C20 and C26 run by their
+change (a pre-commit hook checks it), commits are yours alone with no attribution lines (the root `CLAUDE.md`,
+`.claude/settings.json` and the commit-msg hook; START_HERE §11), and C19, C25, C20 and C26 run by their
 pre-registrations without a further go from Ritik.
 
 **The question.** A solver agent looks something up with a tool, and the tool returns a wrong answer. Does the wrong
@@ -78,7 +80,8 @@ item, in points with a 95% bootstrap clustered by item. The rule is C11's (defer
 
 ## 4. Your first day
 
-1. **The code:** clone `trackC-main`, then `python3 -m venv .venv && .venv/bin/pip install -r cot-disclosure/requirements.txt`.
+1. **The code:** clone, `git checkout trackC-main && git merge --ff-only origin/main` (START_HERE §4, step 1), then
+   `python3 -m venv .venv && .venv/bin/pip install -r cot-disclosure/requirements.txt`.
 2. **The tests:** `cd cot-disclosure && ../.venv/bin/python -m pytest -q`. They need no network. Tests that need
    Track A's data skip without it.
 3. **Your Voyager key:** create your own at voyager.rc.asu.edu → LLM Access → Create Key.
@@ -86,15 +89,16 @@ item, in points with a 95% bootstrap clustered by item. The rule is C11's (defer
    - Never commit `.env`, never print a key, never use anyone else's.
    - Leave `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` and `XAI_API_KEY` empty: no paid calls.
 4. **The data:**
-   - `tar --exclude MANIFEST.json -xzf trackC_20261103.tar.gz -C cot-disclosure` (the Nov 3 bundle; START_HERE §4);
-   - then `../.venv/bin/python tools/make_handoff_bundle.py --verify <the tar.gz>`.
+   - `unzip -q trackC_20261105.zip -x MANIFEST.json -d cot-disclosure` (the Nov 5 bundle; START_HERE §4, step 6);
+   - then `../.venv/bin/python tools/make_handoff_bundle.py --verify <the zip>`.
 5. **Reproduce three findings** (no calls):
    - `../.venv/bin/python agents/run_team.py --summary --log team_c4 --cases results/trackB/steered_cases.jsonl --table`
      (F18);
    - `../.venv/bin/python agents/c15.py` (F24);
    - `../.venv/bin/python agents/c18.py` (F34).
 6. **A dry run** (no calls): `../.venv/bin/python agents/run_team.py --live --n 5 --dry-run`.
-7. **GPUs:** when you need them, [`SOL_SETUP.md`](SOL_SETUP.md).
+7. **GPUs:** when you need them, [`SOL_SETUP.md`](SOL_SETUP.md), under your own Sol account. Never run the Sol feeder
+   or a queue file under `finetune/gpu/sol/`: each has an owner line, and they are Ritik's and Arsha's (START_HERE §0).
 
 ## 5. Your plan: the Oct 31 program (results freeze Nov 18)
 
@@ -102,7 +106,7 @@ Updated Oct 31 to Ritik's 20-day program. The story is "Where did that answer co
 its source inside the model, in its words and between agents. Track C is the third level, and C25 is its centerpiece.
 
 - C19, C25, C20 and C26 are **prepared**: code, CPU tests, a pre-registration log and a dry run each. You run them
-  from about Nov 4, with the lines in §5a.
+  after setup (Fri Nov 6; START_HERE's dates), with the lines in §5a.
 - **Dropped (scope, Oct 31):** C21 and C23.
 - **Stretch:** C22, not prepared.
 - The rows below the dropped ones are kept as they were.
@@ -114,7 +118,7 @@ its source inside the model, in its words and between agents. Track C is the thi
 | C20 | pipeline vs model | on C15's items: (a) a blind reviewer (C15's `answer_only`, reused); (b) the answer plus a tag the system attaches, "[letter from tool lookup_answer_key; unverified]", no solver prose (`answer_tagged`, new); (c) the solver's own disclosure (C16's reviews); (d) the checker (C15's); catches, wrong shipped, false alarms, tokens | 200 reviews, ~15 min | the pipeline table, `agents/c20.py` | Nov 15 |
 | C26 | SHOULD: does deference survive without the authority label? | a realistic tool, `search_passages`, returns a passage made from the chosen option's text, with no letter and no "answer key"; the solver's following against C15 and the no-tool floor; the Olmo reviewer's `plus_tool_log` minus `answer_only` by C11's rule | ~700 calls, ~1.5 h | an F-entry, `agents/c26.py` | Nov 15 |
 | C22 | STRETCH: another solver model | Olmo 3 7B Think's or Qwen3 30B Instruct's steered cases (`--case-model`, own `--log`); F18 by C11's rule | ~2,000 calls; 3 days | F18 with a second solver | — |
-| C24 | thread 2's figures and tables | from `results/summaries/trackC/` and `docs/paper/supplement/`; slides 11–12 of PLAN's presentation map | 2 days | the report's figures and tables | Nov 19 |
+| C24 | thread 2's figures and tables | from `results/summaries/trackC/` and `docs/paper/supplement/`; slides 11–12 of PLAN's presentation map | 2 days | the report's figures and tables | Nov 18 (with slides 11–12; Ritik, Nov 3) |
 | C21 | dropped (scope, Oct 31): items the solver can't answer without the tool | — | — | — | — |
 | C23 | dropped (scope, Oct 31): a pre-registered set of reviewer wordings | — | — | — | — |
 
@@ -215,12 +219,14 @@ nohup caffeinate -i ../.venv/bin/python -u progress/guard.py \
 - **`steered_cases.jsonl` holds three models' rows** with the same item ids: use `--case-model` and your own `--log`.
 - **A `--rereview` writes its own `--log`** and needs `--cases`.
 - **The same prompt and seed reproduce on Voyager** (C18's re-review matched C16 exactly), so repeats need new seeds.
-- **vLLM's ports are fixed on Sol:** two users' jobs on one node would collide ([`SOL_SETUP.md`](SOL_SETUP.md)).
+- **C13's vLLM port is fixed on Sol (8013):** two C13 jobs on one node, yours and another user's, would collide
+  ([`SOL_SETUP.md`](SOL_SETUP.md), "Known traps"). A39's and B20's jobs take their own port since Nov 4.
 
 ## 7. The data bundle
 
-`trackC_20261103.tar.gz` (rebuilt Nov 3; the Oct 30 one is superseded): 43 files, 31.3 MB unpacked, 5.1 MB packed, with a
-sha256 manifest inside and beside it.
+`trackC_20261105.zip` (Nov 5, for ASU Drive; the same 43 files, with the same sha256, as Nov 3's
+`trackC_20261103.tar.gz`, which superseded Oct 30's): 31.3 MB unpacked, 5.1 MB packed, with a sha256 manifest inside and
+beside it.
 - **Logs and summaries:** C1 (`team_live`), the 32B smoke, C4, C9–C13, C15 (solve and reviews), C16 (solve, control,
   reviews), C17 (names, own working) and C18 (unchanged, stripped).
 - **Readings:** C14's and C15–C18's.
