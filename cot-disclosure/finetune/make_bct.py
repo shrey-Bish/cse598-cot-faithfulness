@@ -625,7 +625,7 @@ def main(argv=None):
     ap.add_argument("--sol", action="store_true", help="--dry-run: also the training hours (reads LoRA's data; slower)")
     a = ap.parse_args(argv)
     if a.check_data:
-        bad = check_data()
+        bad = check_data(INPUTS)                         # INPUTS at call time (Nov 6: a test patches it)
         print("\n".join(bad) if bad else f"a40 data: every file matches {INPUTS.relative_to(CODE)}")
         return 1 if bad else 0
     rows = read_plan(a.plan) if a.plan else plan()
