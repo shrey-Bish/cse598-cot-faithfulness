@@ -24,6 +24,18 @@ The commit-msg hook (Nov 5; every branch, CLAUDE.md): a commit carries only its 
 message with an AI co-author trailer (Co-Authored-By naming Claude or Anthropic), a "generated with" line for Claude
 Code, or noreply@anthropic.com, and an author or committer named Claude or at anthropic.com. Comment lines and
 `commit -v`'s diff below the scissors line don't count; naming Claude Code or CLAUDE.md in a message is fine.
+
+Only the team commits (Nov 6, Ritik's permanent rule; configs/team_identities.txt, read from HEAD like the allowlist).
+- An identity ("Name <email>") passes if its email is one listed for a person (any case); for a person with no email
+  listed yet, if its name is that person's exact name. Never if its name or email is an AI tool's (AI_NAME, AI_DOMAINS,
+  and a GitHub noreply address of a bot or an AI agent). Without the file (an old branch), only AI identities fail.
+- pre-commit and pre-merge-commit also refuse a non-team author or committer (git var GIT_AUTHOR_IDENT and
+  GIT_COMMITTER_IDENT, so --author and -c user.* count).
+- commit-msg also refuses any Co-authored-by (any case) that isn't a team identity, any line with an AI tool's email,
+  a "Generated with ..." line (any tool) and a session line ("Claude-Session:", "Session-Id:", a claude.ai/code link).
+- pre-push (written by --install since Nov 6; tools/prepush_check.py) checks every commit being pushed that isn't
+  already on the remote by the same rules, and names each offender. History already on the remote is never blocked.
+Claude Code's own attribution setting (.claude/settings.json) is not relied on: these hooks are the enforcement.
 """
 import argparse
 import fnmatch
@@ -38,10 +50,27 @@ HOOK = '#!/bin/sh\n# the path allowlist, both ways (cot-disclosure/tools/path_ch
        'exec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/path_check.py" "$@"\n'
 MSG_HOOK = '#!/bin/sh\n# no AI attribution; the human author only (cot-disclosure/tools/path_check.py --install)\n' \
            'exec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/path_check.py" --commit-msg "$1"\n'
-HOOKS = {"pre-commit": HOOK, "pre-merge-commit": HOOK, "commit-msg": MSG_HOOK}
-ATTRIBUTION = re.compile(r"^\s*co-authored-by:.*(claude|anthropic)|generated with \[?claude code|noreply@anthropic\.com",
-                         re.IGNORECASE | re.MULTILINE)
+PUSH_HOOK = '#!/bin/sh\n# no produced data, and only the team with no AI attribution, in what is pushed ' \
+            '(cot-disclosure/tools/path_check.py --install)\n' \
+            'exec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/prepush_check.py" "$@"\n'
+HOOKS = {"pre-commit": HOOK, "pre-merge-commit": HOOK, "commit-msg": MSG_HOOK, "pre-push": PUSH_HOOK}
+OURS = {"pre-push": ("path_check.py", "prepush_check.py")}           # a hook with one of these in it is ours to rewrite
 SCISSORS = re.compile(r"^# -+ >8 -+$", re.MULTILINE)
+TEAM_FILE = "cot-disclosure/configs/team_identities.txt"
+# AI tools, by name (an author, committer or co-author) and by email domain (any line of a message). Nov 6; extend here.
+AI_NAME = re.compile(r"\b(claude|anthropic|openai|chatgpt|gpt-?\d\w*|codex|copilot|cursor|codeium|windsurf|gemini|bard|"
+                     r"aider|tabnine|codewhisperer|amazon q|devin-ai|jules)\b|\[bot\]", re.IGNORECASE)
+AI_DOMAINS = ("anthropic.com", "claude.ai", "claude.com", "openai.com", "chatgpt.com", "cursor.com", "cursor.sh",
+              "codeium.com", "windsurf.com", "tabnine.com", "aider.chat", "cognition.ai", "devin.ai")
+EMAIL = re.compile(r"[\w.+\[\]-]+@[\w-]+(?:\.[\w-]+)+")
+CO_AUTHOR = re.compile(r"^\s*co-authored-by\s*:\s*(.*)$", re.IGNORECASE)
+TOOL_LINE = re.compile(r"^\W*generated with\b", re.IGNORECASE)                  # "🤖 Generated with [X](...)"
+SESSION_LINE = re.compile(r"^\s*([\w-]*-)?session(-[\w-]+)?\s*:|claude\.ai/code/|/code/session_", re.IGNORECASE)
+
+
+TEAM_HELP = ("Only the team commits here, as themselves (CLAUDE.md): git config user.name and user.email must match your line "
+             f"in {TEAM_FILE} (to add an email: ask Ritik, a line on main), with no AI co-author, \"Generated with\" or "
+             "session line. Fix it and commit again; never --no-verify.")
 
 
 def git(repo, *args, check=True):
@@ -155,15 +184,70 @@ def check_owned(repo=".", env=None):
             {p: o for p, o in owned.items() if o in allow})
 
 
-def attribution_problems(message, author, committer):
-    """[problem]: AI attribution lines in the message as git keeps it (no # comments, nothing below commit -v's scissors
-    line), and an author or committer ("Name <email>") named Claude or at anthropic.com."""
+def parse_team(text):
+    """[(person, [emails, lower case])] from configs/team_identities.txt: "Person | Name <email>, Name <email>"."""
+    out = []
+    for line in text.splitlines():
+        line = line.split("#", 1)[0].strip()
+        if line:
+            person, _, idents = line.partition("|")
+            out.append((person.strip(), [e.lower() for e in EMAIL.findall(idents)]))
+    return out
+
+
+def team_at_head(repo):
+    """The team from HEAD's committed copy (staging a wider list doesn't widen it); no commit of it yet: the working
+    copy; no file at all (an old branch): None, and only AI identities fail."""
+    r = git(repo, "show", f"HEAD:{TEAM_FILE}", check=False)
+    if r.returncode == 0:
+        return parse_team(r.stdout)
+    p = Path(repo) / TEAM_FILE
+    return parse_team(p.read_text()) if p.exists() else None
+
+
+def split_ident(ident):
+    name, _, rest = ident.partition("<")
+    return name.strip(), rest.split(">", 1)[0].strip()
+
+
+def ai_email(email):
+    local, _, domain = email.lower().rpartition("@")
+    if any(domain == d or domain.endswith("." + d) for d in AI_DOMAINS):
+        return True
+    return domain.endswith("noreply.github.com") and bool(AI_NAME.search(local.replace("+", " ")))
+
+
+def identity_problem(ident, team):
+    """None if "Name <email>" is a team identity (or, with no team file, anything but an AI tool's); else why not."""
+    name, email = split_ident(ident)
+    if AI_NAME.search(name) or ai_email(email):
+        return f"{ident.strip()} is an AI tool's identity"
+    if team is None:
+        return None
+    for person, emails in team:
+        if (email.lower() in emails) if emails else (name == person):
+            return None
+    return f"{ident.strip()} is not a team identity ({TEAM_FILE})"
+
+
+def attribution_problems(message, author, committer, team=None):
+    """[problem] in the message as git keeps it (no # comments, nothing below commit -v's scissors line): a co-author
+    that isn't a team identity (or, with no team, is an AI tool), a line with an AI tool's email, a "Generated with"
+    line, a session line; and an author or committer ("Name <email>") that isn't a team identity or is an AI tool."""
     kept = [line for line in SCISSORS.split(message, 1)[0].splitlines() if not line.startswith("#")]
-    problems = [f"an attribution line: {line.strip()}" for line in kept if ATTRIBUTION.search(line)]
-    for role, ident in (("author", author), ("committer", committer)):
-        name, _, email = ident.partition("<")
-        if "claude" in name.lower() or email.strip().rstrip(">").lower().endswith("@anthropic.com"):
-            problems.append(f"the {role} is {ident.strip()}")
+    problems = []
+    for line in kept:
+        m = CO_AUTHOR.match(line)
+        if m:
+            why = identity_problem(m.group(1), team)
+            if why:
+                problems.append(f"a co-author line: {line.strip()} ({why})")
+        elif TOOL_LINE.search(line) or SESSION_LINE.search(line) or any(ai_email(e) for e in EMAIL.findall(line)):
+            problems.append(f"an attribution line: {line.strip()}")
+    for role, who in (("author", author), ("committer", committer)):
+        why = identity_problem(who, team)
+        if why:
+            problems.append(f"the {role}: {why}")
     return problems
 
 
@@ -173,14 +257,14 @@ def ident(repo, var):
 
 
 def install(repo):
-    """Write the three hooks; one that someone else wrote is left alone (returns the hooks refused)."""
+    """Write the four hooks; one that someone else wrote is left alone (returns the hooks refused)."""
     d = Path(git(repo, "rev-parse", "--git-path", "hooks").stdout.strip())
     d = d if d.is_absolute() else Path(repo) / d
     d.mkdir(parents=True, exist_ok=True)
     refused = []
     for name, text in HOOKS.items():
         h = d / name
-        if h.exists() and "path_check.py" not in h.read_text():
+        if h.exists() and not any(mark in h.read_text() for mark in OURS.get(name, ("path_check.py",))):
             refused.append(str(h))
             continue
         h.write_text(text)
@@ -203,18 +287,18 @@ def main(argv=None):
     ap.add_argument("--repo", default=".")
     ap.add_argument("--range", help="A..B: check what B changed since its merge base with A")
     ap.add_argument("--branch", help="the branch whose list applies to --range (default: the current branch)")
-    ap.add_argument("--install", action="store_true", help="write the pre-commit, pre-merge-commit and commit-msg hooks")
+    ap.add_argument("--install", action="store_true", help="write the pre-commit, pre-merge-commit, commit-msg and pre-push hooks")
     ap.add_argument("--commit-msg", metavar="FILE", help="the commit-msg hook: refuse AI attribution in FILE's message")
     a = ap.parse_args(argv)
     repo = git(a.repo, "rev-parse", "--show-toplevel").stdout.strip()
     if a.commit_msg:
         problems = attribution_problems(Path(a.commit_msg).read_text(errors="replace"),
-                                        ident(repo, "GIT_AUTHOR_IDENT"), ident(repo, "GIT_COMMITTER_IDENT"))
+                                        ident(repo, "GIT_AUTHOR_IDENT"), ident(repo, "GIT_COMMITTER_IDENT"),
+                                        team_at_head(repo))
         for p in problems:
             print(f"commit-msg: refused: {p}", file=sys.stderr)
         if problems:
-            print("A commit here carries only its human author's own name and email (git config user.name and "
-                  "user.email), with no AI co-author or tool line (CLAUDE.md). Fix it and commit again.", file=sys.stderr)
+            print(TEAM_HELP, file=sys.stderr)
         return 1 if problems else 0
     if a.install:
         refused = install(repo)
@@ -227,6 +311,14 @@ def main(argv=None):
         outside = check_range(repo, a.range, branch)
         where = f"{a.range} (the {branch} list)"
     else:
+        team = team_at_head(repo)
+        bad = [f"the {role}: {why}" for role, var in (("author", "GIT_AUTHOR_IDENT"), ("committer", "GIT_COMMITTER_IDENT"))
+               if (why := identity_problem(ident(repo, var), team))]
+        if bad:
+            for b in bad:
+                print(f"identity check: refused: {b}", file=sys.stderr)
+            print(TEAM_HELP, file=sys.stderr)
+            return 1
         branch, outside = check_staged(repo, os.environ)
         where = f"this commit on {branch}"
     if outside:

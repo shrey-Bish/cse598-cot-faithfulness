@@ -47,7 +47,8 @@ def repo(tmp_path):
     for k, v in (("user.name", "Test"), ("user.email", "t@example.com"), ("commit.gpgsign", "false")):
         git(r, "config", k, v)
     git(r, "remote", "add", "origin", str(remote))
-    write(r, "cot-disclosure/tools/prepush_check.py", (TOOLS / "prepush_check.py").read_text())
+    for name in ("prepush_check.py", "path_check.py"):                  # prepush_check imports path_check (Nov 6)
+        write(r, f"cot-disclosure/tools/{name}", (TOOLS / name).read_text())
     write(r, "cot-disclosure/.gitignore", "results/trackA/\nresults/trackB/\nresults/trackC/\n"
                                           "results/voyager_canary.jsonl\nfinetune/data/\n")
     commit(r, "base", **{"cot-disclosure__code.py": "x = 1\n", "cot-disclosure__finetune__data__train.jsonl": "{}\n"})
@@ -205,3 +206,40 @@ def test_the_reports_still_to_come_are_exported_once_they_exist():
     assert es.KEEP_PATH["gpu/a39/a39_mmlupro_30.json"] == "trackA/gpu/a39/a39_mmlupro_30.json"
     assert es.OTHER["results/trackB/b20/b20_report.json"] == "trackB/b20_report.json"
     assert es.OTHER["results/trackB/b24_report.json"] == "trackB/b24_report.json"
+
+
+# ---------------------------------------------------------------- Nov 6: the pre-push scan names AI or non-team commits
+def test_prepush_names_each_commit_with_ai_attribution_or_a_non_team_identity(repo):
+    git(repo, "checkout", "-q", "-b", "ai", "origin/main")
+    write(repo, "README.md", "a\n")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "C19\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>")
+    trailer = git(repo, "rev-parse", "--short=9", "HEAD").strip()
+    write(repo, "README.md", "b\n")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "fine", "--author=Claude <noreply@anthropic.com>")
+    author = git(repo, "rev-parse", "--short=9", "HEAD").strip()
+    r = check(repo, "ai")
+    assert r.returncode == 1 and trailer in r.stderr and author in r.stderr, r.stderr
+    assert "Co-Authored-By" in r.stderr and "author" in r.stderr
+
+    git(repo, "checkout", "-q", "-b", "team", "origin/main")                   # with a team file: only the team
+    commit(repo, "the team", **{"cot-disclosure__configs__team_identities.txt": "Test Person | Test <t@example.com>\n"})
+    assert check(repo, "team").returncode == 0
+    write(repo, "README.md", "c\n")
+    git(repo, "add", "-A")
+    git(repo, "-c", "user.name=Other", "-c", "user.email=o@example.com", "commit", "-q", "-m", "other")
+    other = git(repo, "rev-parse", "--short=9", "HEAD").strip()
+    r = check(repo, "team")
+    assert r.returncode == 1 and other in r.stderr and "not a team identity" in r.stderr, r.stderr
+
+
+def test_prepush_never_blocks_history_already_on_the_remote(repo):
+    git(repo, "checkout", "-q", "-b", "old", "origin/main")
+    write(repo, "README.md", "old\n")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "old\n\nCo-Authored-By: Claude <noreply@anthropic.com>")
+    git(repo, "push", "-q", "--no-verify", "origin", "old")                    # already public
+    commit(repo, "new and clean", **{"README.md": "new\n"})
+    r = check(repo, "old")
+    assert r.returncode == 0, r.stderr

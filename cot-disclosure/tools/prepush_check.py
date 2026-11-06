@@ -9,9 +9,14 @@ push when the same file with the same content isn't already on the remote and it
 Files already on the remote with the same content (the progress-round files on main) upload
 nothing, so they pass. Numbers-only summaries belong in results/summaries/.
 
-Install it once as the repo's pre-push hook (git passes the remote's name and the refs on stdin):
-  printf '#!/bin/sh\\nexec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/prepush_check.py" "$@"\\n' > .git/hooks/pre-push
-  chmod +x .git/hooks/pre-push
+Every commit being pushed (Nov 6, Ritik's permanent rule) must also be the team's, with no AI attribution: its
+author and committer team identities (configs/team_identities.txt), and no AI co-author, AI email, "Generated
+with" or session line in its message. The rules are path_check.py's (its docstring); each offender is named.
+Commits already on the remote are never checked, so old history never blocks a push.
+
+Install it once per clone as the repo's pre-push hook (git passes the remote's name and the refs on stdin); since
+Nov 6, path_check.py --install writes it with the other hooks:
+  python3 cot-disclosure/tools/path_check.py --install
 Check by hand, without pushing:
   python3 cot-disclosure/tools/prepush_check.py --rev trackA-nosol      # its commits not on origin
 """
@@ -20,6 +25,10 @@ import os
 import re
 import subprocess
 import sys
+
+_bytecode, sys.dont_write_bytecode = sys.dont_write_bytecode, True     # a hook leaves no __pycache__ in tools/
+import path_check  # noqa: E402                        # the team and attribution rules (same folder; stdlib only)
+sys.dont_write_bytecode = _bytecode
 
 PRODUCED = re.compile(r"^cot-disclosure/(results/track[ABC]/|results/labels/|results/handoff/|results/voyager_canary\.jsonl$|finetune/data/)")
 GPQA = re.compile(r"gpqa", re.IGNORECASE)
@@ -78,6 +87,20 @@ def check(shas, remote):
     return bad
 
 
+def commit_problems(shas, remote, team):
+    """[(commit, problem)]: each commit being pushed (not yet on the remote) whose author, committer or message breaks
+    the team rule (path_check.attribution_problems)."""
+    out, seen = [], set()
+    for sha in shas:
+        for commit in new_commits(sha, remote):
+            if commit in seen:
+                continue
+            seen.add(commit)
+            author, committer, message = git("log", "-1", "--format=%an <%ae>%x00%cn <%ce>%x00%B", commit).split("\0", 2)
+            out += [(commit, p) for p in path_check.attribution_problems(message, author, committer, team)]
+    return out
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("remote", nargs="?", default="origin", help="(from git) the remote's name")
@@ -89,8 +112,19 @@ def main(argv=None):
     else:
         shas = [line.split()[1] for line in sys.stdin if line.strip() and line.split()[1] != ZERO]
     bad = check(shas, a.remote)
+    people = commit_problems(shas, a.remote, path_check.team_at_head(git("rev-parse", "--show-toplevel").strip()))
+    if people:
+        print(f"pre-push check: refusing the push, {len(people)} problem(s) with who made a commit (only the team, "
+              "with no AI attribution; CLAUDE.md):", file=sys.stderr)
+        for commit, why in people[:40]:
+            print(f"  {commit[:9]} {why}", file=sys.stderr)
+        print("Fix the unpushed commits (git commit --amend --reset-author for the last one, or git rebase -i), "
+              "then push again; never --no-verify.", file=sys.stderr)
     if not bad:
+        if people:
+            return 1
         print(f"pre-push check: nothing produced, GPQA or over {LIMIT // 2 ** 20} MB in the push")
+        print("pre-push check: every commit pushed is the team's, with no AI attribution")
         return 0
     print(f"pre-push check: refusing the push, {len(bad)} file(s) must not go to GitHub:", file=sys.stderr)
     for commit, path, why in bad[:40]:
