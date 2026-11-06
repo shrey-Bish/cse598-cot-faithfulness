@@ -7,3 +7,4 @@ log (`…_C_<experiment>-prereg.md`), committed before the first call. The proje
 
 | when | log | what |
 |---|---|---|
+| 2026-11-06 09:42 | [2026-11-06_0942_C_setup.md](2026-11-06/2026-11-06_0942_C_setup.md) | Setup, no calls: tests, hooks, bundle verified, F18, F24 and F34 reproduced, C19's dry runs |
