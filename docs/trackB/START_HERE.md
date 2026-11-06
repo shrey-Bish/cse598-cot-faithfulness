@@ -10,6 +10,16 @@ and his note (file count and sha256) with his last push to `trackB-main`; after 
 Earlier: **Nov 5, 09:54**, B20 on your own Sol account with your own feeder (the B20 log's §19; your setup
 [`SOL_ARSHA.md`](SOL_ARSHA.md)); **Nov 4, 16:25**, B24 read (F40) and the bundle built and checked on a fresh clone.
 
+> **Only the team commits, as themselves (Ritik's permanent rule, Nov 6, 11:17).**
+> No commit may list Claude, Anthropic or any AI tool as author, committer or co-author, or carry a
+> "Generated with …" or session line. The only authors and committers are the identities in
+> `cot-disclosure/configs/team_identities.txt`; the hooks refuse anything else (§11).
+> **Before your next commit:** `git fetch origin && git merge origin/main`, then
+> `python3 cot-disclosure/tools/path_check.py --install` again (it now writes four hooks, pre-push included), and
+> check that `git config user.name` / `user.email` match your line in that file.
+> Arsha: send Ritik the email you'll commit with, so he adds it (until then your exact name, Arsha Jindal,
+> passes).
+
 ## Quick start (one page)
 
 **Track B** tests the project's question widely: does a wrong hint from a tool move thinking models more than the same
