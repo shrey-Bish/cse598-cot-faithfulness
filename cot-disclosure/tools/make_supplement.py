@@ -986,9 +986,8 @@ PREREG = [
                      "B1R2 held until E2's sweeps and B20's lines are in)", "ee14295"),
                     ("the amendment, section 19 (B1R2 dropped; the Nov 11 rule checks E2's and A40's lines; A40 before "
                      "the 30)", "dcf2d99")],
-     "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: running on Sol (9 parts from Nov 3; "
-     "16 sixteenths at 1:30 from Nov 4, section 12; the parts after them at 2:00 and the sweeps at 3:00, section 14; "
-     "the quarters' leftovers as 28 sixteenths, section 15)",
+     "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: every E2 and 30 line ended by Nov 6 "
+     "10:56 (status only, section 20; the nov6 rule said no cut); read Nov 17",
      "verdict_check": []},
     {"id": "b1r2", "track": "A", "experiment": "B1R2: B1's deployable span on E2 (a labelled replication; decided "
                                                "Nov 4: it runs)", "kind": "pre",
@@ -997,9 +996,11 @@ PREREG = [
      "rule_log": "2026-11-03_1130_A_e2-a39-prereg.md", "rule_check": ["B1R2: B1's deployable span on E2"],
      "rule_extra": [("its decision rule, section 10 (Nov 8 09:00, compute only)", "9fc52d6"),
                     ("the amendment, section 13 (decided Nov 4: it runs; its job lines)", "21e0386"),
-                    ("the amendment, section 19 (dropped Nov 5, before any B1R2 run)", "dcf2d99")],
-     "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "not run: GPU time given to A40 (dropped "
-     "Nov 5, before any B1R2 job was submitted; the A39 log's section 19)",
+                    ("the amendment, section 19 (dropped Nov 5, before any B1R2 run)", "dcf2d99"),
+                    ("the amendment, section 21 (revived Nov 6, before any B1R2 run; last in the queue, reserve=240:2)",
+                     "64f6fe5")],
+     "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "waiting: revived Nov 6 (the A39 log's "
+     "section 21; dropped Nov 5 before any B1R2 job, section 19); its 44 lines last in Ritik's queue, reserve=240:2",
      "verdict_check": []},
     {"id": "a40", "track": "A", "experiment": "A40: bias-augmented consistency training (Chua et al., 2024): the "
                                               "model's own no-hint reasoning as the target for hinted prompts, with a "
@@ -1366,6 +1367,12 @@ DEVIATIONS = [
      "A40\" (F38); B1's verdict on the 30 stays the only result on the deployable span",
      [log_rel("2026-11-03_1130_A_e2-a39-prereg.md")],
      ["B1R2 is dropped", "not run: GPU time given to A40"]),
+    ("2026-11-06 14:43", "B1R2", "revived Nov 6 by Ritik's decision a, before any B1R2 job was submitted: the Nov 5 drop "
+     "reversed because GPU places sat idle while A40 trained; its 44 lines last in Ritik's queue, each with "
+     "reserve=240:2, so it fills only room A40's, A41's and A42's lines can't use (A40's first E2 wave may wait up to "
+     "one B1R2 part's 2:30); its design, rules and partial read at Nov 15 23:59 unchanged; nothing of B1R2 read",
+     [log_rel("2026-11-03_1130_A_e2-a39-prereg.md")],
+     ["B1R2 is revived. This reverses decision f", "reserve=240:2", "partial: N of 120 questions"]),
     ("2026-11-05 09:23", "the 30's Nov 11 rule", "the feeder's check of E2's and B20's lines became E2's and A40's: B20 "
      "left this account, and A40 now stands ahead of the 30; this session's ruling, not one of Ritik's decisions, "
      "confirmed by Ritik on Nov 5 (13:38 session), before the rule acts", [log_rel("2026-11-03_1130_A_e2-a39-prereg.md")],
