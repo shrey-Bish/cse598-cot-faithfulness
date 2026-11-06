@@ -235,6 +235,8 @@ def test_the_real_list_gives_each_teammate_their_track_and_keeps_sol_code_ritiks
                         ("cot-disclosure/tools/trackb_final.py", "trackB-main"),
                         ("cot-disclosure/tests/test_trackB_b20.py", "trackB-main"),
                         ("cot-disclosure/tests/test_trackb_final.py", "trackB-main"),
+                        ("docs/paper/tables/trackB_final.md", "trackB-main"),       # Nov 6: B18's table, which
+                        ("docs/paper/tables/trackB_final.csv", "trackB-main"),      # trackb_final.py writes
                         ("cot-disclosure/results/summaries/trackB/b17_report.json", "trackB-main")):
         assert pc.owner_of(path, rules) == owner, path
     for path in FROZEN_FOR_SOL + ["README.md", "docs/PLAN.md", "docs/status/TODO.md", "cot-disclosure/tools/slide_figures.py"]:

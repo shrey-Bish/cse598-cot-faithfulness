@@ -34,3 +34,5 @@ trackB-main  cot-disclosure/progress/run_b1[5-9].py
 trackB-main  cot-disclosure/progress/run_b20.py
 trackB-main  cot-disclosure/progress/trackB_report.py
 trackB-main  cot-disclosure/tools/trackb_final.py
+# Nov 6: B18's table, which trackb_final.py writes (her START_HERE §2 and §5 already gave it to her)
+trackB-main  docs/paper/tables/trackB_final.*
