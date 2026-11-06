@@ -23,10 +23,13 @@ is ever submitted from both:
   1. the 1-GPU bench (389340): done Nov 3, about 400 tokens/s per A100 (KV-cache bound), so E2 is 53.2 GPU-hours;
   2. A39 on E2 in 1-GPU parts: the 9 parts queued Nov 3, then the core systems' sixteenths, round-robin, the quarters'
      leftovers as sixteenths, the wrapper systems' fifths and a sweep per system (pre-registration 2026-11-03 11:30,
-     §10–§12 and §15). By Nov 5 morning every part had gone in;
-  3. A40 (its own pre-registration, Nov 5): its lines go after E2's, once its training data is on Sol;
-  4. A39 on the 30 (quarters and halves), unless E2's and A40's lines haven't all ended by Nov 11 09:00 (the A39 log's
-     §19). While A40's lines aren't ready, the 30's go in as places free up.
+     §10–§12 and §15). By Nov 5 morning every part had gone in; by Nov 6 10:56 every line had ended (§20);
+  3. A40 (its own pre-registration, Nov 5): its lines after E2's; `a40-train-1` goes in only once the feeder's check of
+     A40's data on Sol passes (`check=a40data`, its log's §11, Nov 6);
+  4. A39 on the 30 (quarters and halves): all ended by Nov 6 10:56. The Nov 6 07:00 rule said no cut, and the Nov 11
+     rule has nothing left to drop (the A39 log's §20);
+  5. A41 and A42 (pre-registered Nov 6, the 11:21 and 11:22 logs): after A40's training, so the account doesn't sit
+     idle.
 - **Arsha's** (`queue_b20_2026-11-05.txt`, `owner: not ragarw68`; her setup `docs/trackB/SOL_ARSHA.md`): B20's runs
   left, Granite's and Gemma's chains of 3:00 jobs, question by question. Nemotron's runs were done Nov 4–5 on Ritik's
   account. B20's earlier smokes and runs (Nov 4) ran on Ritik's account; their files are copied to hers first.
@@ -577,24 +580,31 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
   gitignored results with a sha256 manifest, in `results/handoff/`; GPQA files never included unless
   Ritik says so. The receiver checks it: `--verify <file>.tar.gz`.
 
-## 17. The pre-push check (each person, once per clone)
+## 17. The hooks: no produced data, only the team, no AI attribution (each person, once per clone)
 
+Updated Nov 6, 11:17: `--install` writes all four hooks (pre-push too), and the team rule (Ritik's, permanent).
 ```bash
 cd ~/path/to/cse598-cot-faithfulness
-printf '#!/bin/sh\nexec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/prepush_check.py" "$@"\n' > .git/hooks/pre-push
-chmod +x .git/hooks/pre-push
+python3 cot-disclosure/tools/path_check.py --install        # pre-commit, pre-merge-commit, commit-msg, pre-push
 python3 cot-disclosure/tools/prepush_check.py --rev HEAD     # what a push would be checked for
 ```
-It refuses a push that adds anything under a produced-data folder, any file with "gpqa" in its name
-(code and docs excepted), or a file over 50 MB.
-
-**The path allowlist (Track C's branch, from Nov 3).** On a branch listed in `cot-disclosure/configs/path_allowlist.txt`,
-a commit may touch only that branch's paths. Install the check as the pre-commit hook, once per clone:
-```bash
-printf '#!/bin/sh\nexec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/path_check.py" "$@"\n' > .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
-python3 cot-disclosure/tools/path_check.py --range origin/main..origin/trackC-main --branch trackC-main   # review before a merge
-```
+Rerun `--install` after merging a `main` that changed the hooks (it rewrites its own hooks, including a hand-written
+pre-push that runs `prepush_check.py`; it leaves anyone else's hook alone and says so).
+- **pre-push** (`tools/prepush_check.py`) refuses a push that adds anything under a produced-data folder, any file with
+  "gpqa" in its name (code and docs excepted), or a file over 50 MB; and (Nov 6) names every commit being pushed whose
+  author, committer or message breaks the team rule. Commits already on the remote are never checked.
+- **The team rule** (`cot-disclosure/configs/team_identities.txt`, Ritik's; read from HEAD): the only authors and
+  committers are the team's identities (an email listed for a person; a person with no email yet, their exact name).
+  No AI tool as author, committer or co-author; no `Co-authored-by` outside the team; no line with an AI tool's email;
+  no "Generated with …" line; no session line (`Claude-Session:`, `Session-Id:`, a claude.ai/code link).
+  pre-commit and pre-merge-commit check the identities; commit-msg checks the message and the identities. Claude
+  Code's attribution setting (`.claude/settings.json`) is kept off but not relied on. Never `--no-verify`.
+- **The path allowlist** (Track C's branch from Nov 3, Track B's from Nov 6): on a branch listed in
+  `cot-disclosure/configs/path_allowlist.txt`, a commit may touch only that branch's paths; review a branch before a
+  merge with:
+  ```bash
+  python3 cot-disclosure/tools/path_check.py --range origin/main..origin/trackC-main --branch trackC-main
+  ```
 
 ## 18. Track B: test widely
 
