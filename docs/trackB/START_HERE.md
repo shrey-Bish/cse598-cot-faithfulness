@@ -116,7 +116,8 @@ canary log, §1, step 5).
 - **Runs left** (Nov 5, from Ritik's Sol outputs; nothing of B20 has run since): Granite 849 of 972, Gemma 1,784 of
   1,944, Nemotron 0 (done).
 - **B1R2 dropped** (Nov 5, decision f, before any run: "not run: GPU time given to A40"). It was Track A's second
-  round of B1 (provenance-scaled attention, F38); nothing of Track B's depended on it.
+  round of B1 (provenance-scaled attention, F38); nothing of Track B's depended on it. **Revived Nov 6** (the A39 log's §21), last in Ritik's queue; still nothing of yours
+  depends on it.
 - **A40** (Track A, pre-registered Nov 5): consistency training for Olmo 3 7B Think. Its training data was generated
   on Voyager from Ritik's Mac (finished Nov 6, 05:03); it trains and is evaluated on Sol under Ritik's account.
   Nothing of yours waits on it, and it never touches your queue.
