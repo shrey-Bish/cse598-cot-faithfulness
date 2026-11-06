@@ -10,7 +10,8 @@
 # the feeder makes once at its time: nov6, the A39 log's section 16, drops the 30's lines if Sol gave under 10
 # GPU-hours from Nov 4 12:36 to Nov 6 07:00; nov11, section 10.2 as sections 17 and 19 apply it, drops the 30's lines
 # if E2's and A40's jobs haven't all finished by Nov 11 09:00); check=NAME (Nov 6: a check from the feeder's own
-# table, run on Sol before the line goes in; until it passes the line waits).
+# table, run on Sol before the line goes in; until it passes the line waits); reserve=G:P (Nov 6, the A39 log's
+# section 21: the line goes in only if G GPU-minutes and P places stay free after it).
 # Pre-registered shapes: the A39 log's sections 10-15 (2026-11-03 logs); A40's in its own log (Nov 5).
 owner: ragarw68
 e2-base-1of4               | job=426582                               | a39_1gpu --estimate 2.3 -- base e2 1/4
@@ -159,8 +160,8 @@ m30-lora_note-sweep        | afterany=@m30-lora_note-1of4:@m30-lora_note-2of4:@m
 m30-wrap-sweep             | afterany=@m30-wrap-1of2:@m30-wrap-2of2 left=a39:wrap:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- wrap mmlupro_30
 m30-wrap_note-sweep        | afterany=@m30-wrap_note-1of2:@m30-wrap_note-2of2 left=a39:wrap_note:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- wrap_note mmlupro_30
 m30-lora_wrap-sweep        | afterany=@m30-lora_wrap-1of2:@m30-lora_wrap-2of2 left=a39:lora_wrap:mmlupro_30 dropif=nov6:nov11 | a39_1gpu --estimate 2.3 -- lora_wrap mmlupro_30
-# B1R2's 44 lines (the A39 log's section 13) were dropped on Nov 5, before any was submitted: "not run: GPU time given
-# to A40" (the A39 log's section 19).
+# B1R2's 44 lines (the A39 log's section 13), dropped on Nov 5 before any was submitted (section 19), are revived on
+# Nov 6 (section 21) at the end of this file, after A42's.
 # A41 (the Nov 6 11:21 log): A40's weights in A18's swap and Step 10, on base's same cases; after A40's training. The
 # swap's limit 1:30; Step 10's 3:00, with an again-line (A18's took about 3.2 h over two jobs).
 a41-swap                   | afterok=@a40-train-3                     | a18 --estimate 0.8 -- swap --trained a40
@@ -186,3 +187,51 @@ a42-e2-14of16              | afterok=@a40-train-3                     | a39_1gpu
 a42-e2-15of16              | afterok=@a40-train-3                     | a39_1gpu --estimate 1.5 -- a40_note e2 15/16
 a42-e2-16of16              | afterok=@a40-train-3                     | a39_1gpu --estimate 1.5 -- a40_note e2 16/16
 a42-e2-sweep               | afterany=@a42-e2-1of16:@a42-e2-2of16:@a42-e2-3of16:@a42-e2-4of16:@a42-e2-5of16:@a42-e2-6of16:@a42-e2-7of16:@a42-e2-8of16:@a42-e2-9of16:@a42-e2-10of16:@a42-e2-11of16:@a42-e2-12of16:@a42-e2-13of16:@a42-e2-14of16:@a42-e2-15of16:@a42-e2-16of16 left=a39:a40_note:e2 | a39_1gpu --estimate 2.3 -- a40_note e2
+# B1R2 (the A39 log's sections 13 and 21): revived Nov 6, last, so it fills only room nothing above can use. Its 40
+# parts and 4 sweeps as section 13 had them (needs=27a2a39; holdif=nov6 gone, nov6 being decided), each with
+# reserve=240:2: it goes in only if 240 GPU-minutes and 2 places stay free after it (the next A40 training job and one
+# E2 part).
+b1r2-01of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 1/40
+b1r2-02of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 2/40
+b1r2-03of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 3/40
+b1r2-04of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 4/40
+b1r2-05of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 5/40
+b1r2-06of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 6/40
+b1r2-07of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 7/40
+b1r2-08of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 8/40
+b1r2-09of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 9/40
+b1r2-10of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 10/40
+b1r2-11of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 11/40
+b1r2-12of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 12/40
+b1r2-13of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 13/40
+b1r2-14of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 14/40
+b1r2-15of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 15/40
+b1r2-16of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 16/40
+b1r2-17of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 17/40
+b1r2-18of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 18/40
+b1r2-19of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 19/40
+b1r2-20of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 20/40
+b1r2-21of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 21/40
+b1r2-22of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 22/40
+b1r2-23of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 23/40
+b1r2-24of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 24/40
+b1r2-25of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 25/40
+b1r2-26of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 26/40
+b1r2-27of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 27/40
+b1r2-28of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 28/40
+b1r2-29of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 29/40
+b1r2-30of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 30/40
+b1r2-31of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 31/40
+b1r2-32of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 32/40
+b1r2-33of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 33/40
+b1r2-34of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 34/40
+b1r2-35of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 35/40
+b1r2-36of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 36/40
+b1r2-37of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 37/40
+b1r2-38of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 38/40
+b1r2-39of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 39/40
+b1r2-40of40                | needs=27a2a39 reserve=240:2              | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 40/40
+b1r2-sweep-1of4            | needs=27a2a39 afterany=@b1r2-01of40:@b1r2-05of40:@b1r2-09of40:@b1r2-13of40:@b1r2-17of40:@b1r2-21of40:@b1r2-25of40:@b1r2-29of40:@b1r2-33of40:@b1r2-37of40 left=b1r2:1/4 reserve=240:2 | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 1/4
+b1r2-sweep-2of4            | needs=27a2a39 afterany=@b1r2-02of40:@b1r2-06of40:@b1r2-10of40:@b1r2-14of40:@b1r2-18of40:@b1r2-22of40:@b1r2-26of40:@b1r2-30of40:@b1r2-34of40:@b1r2-38of40 left=b1r2:2/4 reserve=240:2 | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 2/4
+b1r2-sweep-3of4            | needs=27a2a39 afterany=@b1r2-03of40:@b1r2-07of40:@b1r2-11of40:@b1r2-15of40:@b1r2-19of40:@b1r2-23of40:@b1r2-27of40:@b1r2-31of40:@b1r2-35of40:@b1r2-39of40 left=b1r2:3/4 reserve=240:2 | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 3/4
+b1r2-sweep-4of4            | needs=27a2a39 afterany=@b1r2-04of40:@b1r2-08of40:@b1r2-12of40:@b1r2-16of40:@b1r2-20of40:@b1r2-24of40:@b1r2-28of40:@b1r2-32of40:@b1r2-36of40:@b1r2-40of40 left=b1r2:4/4 reserve=240:2 | provenance_gen --estimate 1.6 -- --alpha-from /scratch/$USER/trackA/provenance_forced/provenance_forced.json --b1r2 --part 4/4

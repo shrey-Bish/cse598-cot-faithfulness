@@ -332,10 +332,10 @@ def test_the_queue_file_follows_the_plan():
     todo = [l for l in lines if "job" not in l.opts]
     # Nov 5 (the logs' sections 19): B20's lines are on Arsha's account and B1R2's dropped; E2, then A40, then the 30
     groups = [l.label.split("-")[0] for l in lines]
-    # Nov 6: A41's and A42's lines at the end (their own test)
-    order = ["e2", "a40", "m30", "a41", "a42"]
+    # Nov 6: A41's and A42's lines at the end (their own test), then B1R2's, revived last (the A39 log's section 21)
+    order = ["e2", "a40", "m30", "a41", "a42", "b1r2"]
     assert set(groups) <= set(order) and groups == sorted(groups, key=order.index)
-    todo = [l for l in todo if not l.label.startswith(("a40-", "a41-", "a42-"))]   # A40's, A41's, A42's: their own tests
+    todo = [l for l in todo if not l.label.startswith(("a40-", "a41-", "a42-", "b1r2-"))]   # each has its own test
     parts = [(l.argv[-3], l.argv[-1]) for l in todo if l.argv[0] == "a39_1gpu" and l.argv[-2] == "e2"
              and l.argv[-1].endswith("/16")]
     assert len(parts) == 56
@@ -891,14 +891,17 @@ def test_every_queue_file_names_its_owner_and_no_label_is_in_two():
     assert len(labels) == len(set(labels))
 
 
-def test_ritiks_queue_has_no_b20_line_and_no_queue_has_a_b1r2_line():
-    """The B20 log's section 19 (B20 moves to Arsha's account) and the A39 log's section 19 (B1R2 dropped)."""
+def test_ritiks_queue_has_no_b20_line_and_b1r2_only_at_its_end():
+    """The B20 log's section 19 (B20 moves to Arsha's account); the A39 log's section 19 (B1R2 dropped, Nov 5) and
+    section 21 (revived, Nov 6): B1R2's 44 lines are back in Ritik's queue only, as its last lines."""
     lines = sf.parse_queue(sf.QUEUE.read_text())
     assert not [l.label for l in lines if l.label.startswith("b20-") or l.argv[0] in ("b20", "get_b20")]
+    b1r2 = lambda ls: [l.label for l in ls if l.label.startswith("b1r2-") or l.argv[0] == "provenance_gen"   # noqa: E731
+                       or "--b1r2" in l.argv]
+    assert b1r2(lines) == [l.label for l in lines][-44:] and len(b1r2(lines)) == 44
     for p in QUEUES:
-        bad = [l.label for l in sf.parse_queue(p.read_text())
-               if l.label.startswith("b1r2-") or l.argv[0] == "provenance_gen" or "--b1r2" in l.argv]
-        assert bad == [], p.name
+        if p != sf.QUEUE:
+            assert b1r2(sf.parse_queue(p.read_text())) == [], p.name
     b20 = sf.parse_queue(B20_QUEUE.read_text())
     assert b20 and all(l.label.startswith("b20-") and l.argv[0] == "b20" for l in b20)
 
@@ -1116,7 +1119,8 @@ def test_a41s_and_a42s_lines_follow_their_logs_at_the_queue_s_end():
     labels = [l.label for l in lines]
     a41 = ["a41-swap", "a41-step10", "a41-step10-again"]
     a42 = [f"a42-e2-{k}of16" for k in range(1, 17)] + ["a42-e2-sweep"]
-    assert labels[-len(a41 + a42):] == a41 + a42
+    body = [x for x in labels if not x.startswith("b1r2-")]            # Nov 6: B1R2's lines come after (section 21)
+    assert body[-len(a41 + a42):] == a41 + a42 and labels[len(body):] == [x for x in labels if x.startswith("b1r2-")]
     assert labels.index("a41-swap") > max(i for i, x in enumerate(labels) if x.startswith(("a40-", "m30-")))
     by = {l.label: l for l in lines}
     assert by["a41-swap"].opts == {"afterok": "@a40-train-3"} and sf.limit_hours(by["a41-swap"].argv) == 1.5
@@ -1135,3 +1139,102 @@ def test_a41s_and_a42s_lines_follow_their_logs_at_the_queue_s_end():
     assert all(sf.group_of(by[x]) == "A41" for x in a41) and all(sf.group_of(by[x]) == "A42" for x in a42)
     assert not any("needs" in by[x].opts for x in a41 + a42)
     assert not any(re.match(sf.DECISIONS["nov11"]["lines"], x) for x in a41 + a42)
+
+
+# Nov 6 (the A39 log's section 21): B1R2 revived, last in Ritik's queue, with a reserve so it fills only room nothing
+# ahead of it can use: the next A40 training job (2:00, 120 GPU-minutes) and one E2 part (120) always fit.
+B1R2_ARGV = ["provenance_gen", "--estimate", "1.6", "--", "--alpha-from",          # $USER expanded, as parse_queue does
+             os.path.expandvars("/scratch/$USER/trackA/provenance_forced/provenance_forced.json"), "--b1r2", "--part"]
+FILLS = q(*[f"b1r2-{k:02d}of40 | reserve=240:2 | provenance_gen --estimate 1.6 -- --b1r2 --part {k}/40"
+            for k in range(1, 9)])
+
+
+def test_a_reserve_line_goes_in_only_while_its_reserve_stays_free(tmp_path):
+    """A line with reserve=G:P goes in only if, after it, G GPU-minutes and P places stay free as the feeder counts
+    them (running and pending jobs); the first that wouldn't ends the tick, so the order holds."""
+    sol = FakeSol()
+    f = feeder(tmp_path, FILLS, sol)
+    for _ in range(4):
+        f.tick()
+    # 960 - 4 x 150 = 360 free; a fifth part would leave 210, under the 240 kept free
+    assert sol.labels() == [f"b1r2-{k:02d}of40" for k in range(1, 5)]
+    assert "keeping 240 GPU-minutes and 2 places free" in (tmp_path / "feeder.log").read_text()
+    assert "reserve 240:2" in f.status_text()
+
+
+def test_a_reserve_keeps_places_free_too(tmp_path):
+    sol = FakeSol(places=5)
+    f = feeder(tmp_path, q(*[f"f{k} | reserve=0:2 | a39_1gpu --estimate 1 -- base e2 {k}/16" for k in range(1, 6)]),
+               sol)
+    for _ in range(3):
+        f.tick()
+    assert sol.labels() == ["f1", "f2", "f3"]                    # 5 places: 3 jobs leave 2; a fourth would leave 1
+
+
+def test_a_reserve_line_never_takes_the_room_the_lines_ahead_need(tmp_path):
+    """B1R2's case: A40's training chain holds one place at a time; while a training job waits or runs, B1R2's parts
+    fill the room, but never the room the next training job needs, so it goes in at the first tick after the last
+    ends."""
+    text = q("t1 | - | train --estimate 1.5 -- a40",
+             "t2 | afterany=@t1 | train --estimate 1.5 -- a40",
+             "e1 | afterok=@t2 | a39_1gpu --estimate 1.5 -- a40 e2 1/16",
+             *[f"b1r2-{k:02d}of40 | reserve=180:2 | provenance_gen --estimate 1.6 -- --b1r2 --part {k}/40"
+               for k in range(1, 9)])
+    sol = FakeSol()
+    f = feeder(tmp_path, text, sol)
+    for _ in range(5):
+        f.tick()
+    filled = [x for x in sol.labels() if x.startswith("b1r2-")]
+    assert sol.labels()[0] == "t1" and len(filled) == 4          # 960 - 90 - 4 x 150 = 270; a fifth would leave 120
+    job = {lab: jid for (jid, _), lab in zip(sol.submitted, sol.labels())}
+    sol.run_all()
+    sol.end(job["t1"])
+    f.tick()
+    assert sol.labels()[5] == "t2" and len(sol.labels()) == 6    # t2 at once; no new B1R2 part in its room
+    sol.run_all()
+    sol.end(job_of(sol, "t2"))
+    f.tick()
+    assert "e1" in sol.labels()
+
+
+def job_of(sol, label):
+    return next(jid for (jid, _), lab in zip(sol.submitted, sol.labels()) if lab == label)
+
+
+def test_reserve_is_gpu_minutes_and_optional_places():
+    l = sf.parse_queue("a | reserve=240:2 | train --estimate 1 -- a40\n")[0]
+    assert sf.reserve_of(l) == (240, 2)
+    assert sf.reserve_of(sf.parse_queue("a | reserve=120 | train --estimate 1 -- a40\n")[0]) == (120, 0)
+    assert sf.reserve_of(sf.parse_queue("a | - | train --estimate 1 -- a40\n")[0]) is None
+    for bad in ("x", "240:", ":2", "-1", "240:2:1"):
+        with pytest.raises(sf.QueueError, match="reserve="):
+            sf.parse_queue(f"a | reserve={bad} | train --estimate 1 -- a40\n")
+
+
+def test_the_digest_groups_b1r2():
+    line = lambda label, args: sf.parse_queue(f"{label} | - | {args}\n")[0]   # noqa: E731
+    assert sf.group_of(line("b1r2-01of40", "provenance_gen --estimate 1.6 -- --b1r2 --part 1/40")) == "B1R2"
+    assert sf.group_of(line("x", "provenance_gen --estimate 1.6 -- --b1r2 --part 1/4")) == "B1R2"
+
+
+def test_b1r2s_44_lines_are_back_last_with_their_reserve():
+    """The A39 log's section 21 (Nov 6): B1R2's 40 parts and 4 sweeps as section 13 had them (the same labels, part
+    specs and limits; needs=27a2a39), without holdif=nov6 (decided: no cut), with reserve=240:2; after A42's lines;
+    not in nov11's set; their own digest group."""
+    lines = sf.parse_queue(sf.QUEUE.read_text())
+    labels = [l.label for l in lines]
+    parts = [f"b1r2-{k:02d}of40" for k in range(1, 41)]
+    sweeps = [f"b1r2-sweep-{k}of4" for k in range(1, 5)]
+    assert labels[-44:] == parts + sweeps and labels[-45] == "a42-e2-sweep"
+    by = {l.label: l for l in lines}
+    for k, label in enumerate(parts, 1):
+        l = by[label]
+        assert l.opts == {"needs": "27a2a39", "reserve": "240:2"}, label
+        assert l.argv == B1R2_ARGV + [f"{k}/40"] and sf.spec_of(l) == f"b1r2:{k}/40" and sf.limit_hours(l.argv) == 2.5
+    for k, label in enumerate(sweeps, 1):
+        l = by[label]
+        assert set(l.opts) == {"needs", "afterany", "left", "reserve"} and l.opts["reserve"] == "240:2"
+        assert set(l.opts["afterany"].split(":")) == {"@" + parts[i - 1] for i in range(k, 41, 4)}
+        assert l.opts["left"] == sf.spec_of(l) == f"b1r2:{k}/4" and l.argv == B1R2_ARGV + [f"{k}/4"]
+    assert all(sf.group_of(by[x]) == "B1R2" for x in parts + sweeps)
+    assert not any(re.match(sf.DECISIONS["nov11"]["lines"], x) for x in parts + sweeps)
