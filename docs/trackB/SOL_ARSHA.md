@@ -1,6 +1,6 @@
 # B20 on your own Sol account (Arsha)
 
-Last updated: 2026-11-06 11:10 (step 4: owner-only `trees/*.json` in the HF cache, and the fix; earlier 09:18, the handoff: your Sol clone on `trackB-main` from the start, step 2; Ritik's own Sol
+Last updated: 2026-11-06 14:38 (step 6: the owner-only `.gz` files, and that his closing them later doesn't touch your copies; earlier 11:10, step 4: owner-only `trees/*.json` in the HF cache, and the fix; earlier 09:18, the handoff: your Sol clone on `trackB-main` from the start, step 2; Ritik's own Sol
 check before steps 4 and 6; you never commit in the Sol clone). Earlier: 2026-11-05 09:20 (B20 moves to your
 account). **Edited by:** Ritik until his last push to `trackB-main` on Nov 6, then Arsha.
 
@@ -180,6 +180,9 @@ for m in granite-4.2-8b gemma-4-26b-a4b-it nemotron-3-nano-30b-a3b; do $P progre
   - each model's `canary.jsonl` (each later job is compared with the model's first), `template_check.json`,
     `smoke_check.json` and `b20_flags.jsonl`.
 - **`Permission denied`:** Ritik makes that folder group-readable in his own login; then copy again.
+  - **Known case (Nov 6):** the three `b20_sol_vllm.jsonl.gz` were owner-only, though the rest of the folder was
+    open, so the first copy failed on them. Ritik ran `chmod g+r` on the three, and the copy then matched. After
+    your copy matches, he closes them again (`chmod g-r`): your copies are your own files, not links to his.
 - **Other counts or other runs left:** stop, don't start the feeder, and tell Ritik.
 - After the copy, Ritik's B20 folder is never written again: his account runs no B20.
 
