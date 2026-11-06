@@ -91,7 +91,7 @@ own dates come from `squeue --start`). Two accounts, each with its own 10 places
     decision f;
   - **confirm** the team identities (`cot-disclosure/configs/team_identities.txt`), and add the email Arsha commits
     with;
-  - send Arsha and Shrey the two-line note (merge `origin/main`, rerun `--install`); after Arsha's step 6, close b20's
+  - send Arsha and Shrey the two-line note (merge `origin/main`, rerun `--install`); Arsha's step 6 is done (Nov 6, 14:31; the counts match), so now close b20's
     text records (`chmod g-r`);
   - done Nov 6: both handoffs sent; his Sol check for Arsha (the nov6 decision, no B20 of his, two `trees/*.json`
     opened with `chmod g+r`).
