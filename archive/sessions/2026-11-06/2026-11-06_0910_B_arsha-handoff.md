@@ -134,6 +134,21 @@ stat -c '%A %G %n' $R $R/envs/olmo $R/hf/hub $C/results/trackB/b20   # the group
 3. **The morning prompt for A40** whenever you're ready: the targets are done.
 4. **Shrey:** upload `trackC_20261105.zip` and send the 23:13 log's §5, if not done yet.
 
-## 8. Checks and push
+## 8. Checks and push (written 10:08, on `0f64693`)
 
-CHECKS_PENDING
+- **Checks:**
+  - the full suite: 988 passed, 1 skipped;
+  - links 0 broken; the supplement 38 rows, none unverified, no log outside the ledger; export numbers only;
+  - the Gantt's dry run passes; bundles B 51 and C 43;
+  - pre-push clean; nothing missing.
+- **A test run of mine was left orphaned.** I stopped the first full run to regenerate the supplement first.
+  - `pkill` ended only its wrapper shell, so the run itself went on until I stopped it by its process id.
+  - Then I reran on the final commit. Another project's test run on this Mac was left alone.
+- **Before the push:** `origin/trackB-main` is still `998c5dc` (only Ritik's commits and Shrey's from October), an
+  ancestor of `HEAD`, so decision d's last push is a fast-forward.
+- **Shrey's setup is on `trackC-main`** (`5665265`, 09:42, read-only here):
+  - authored and committed as Shrey, with no attribution line;
+  - only Track C's session log and its INDEX row;
+  - it reports the bundle verified, the hooks installed, 47 Track C tests passing and F18, F24 and F34 reproduced.
+- **Commits:** all Ritik's, no attribution line. **Push:** `trackA-nosol`, `main`, then `trackB-main` once; after
+  that it's Arsha's.
