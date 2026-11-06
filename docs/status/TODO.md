@@ -2,7 +2,7 @@
 
 **Edited by:** Ritik (Track B's rows: `docs/trackB/TODO_B.md`; Track C's: `docs/trackC/TODO_C.md`).
 
-Last updated: 2026-11-05 22:00 MST (A40's targets paused while the Mac slept, resumed 21:58; 13:40: Ritik's pull done; A40's targets at 377 of shard 1's 486; the nov11 ruling confirmed; 09:51: A40 pre-registered and its targets started; B1R2 dropped; R5: two Sol accounts, B20 on Arsha's; Nov 4 22:52, R5: B20's stop fault fixed, T13, the resets on Sol need Ritik; 21:31: L3 done: Ritik's re-look of the 7 cells recorded, 4 changed, 3 kept; earlier, 18:22: the re-look narrowed to 7 cells, post hoc; A39's §18, E2's partial read; Gate 2's statement).
+Last updated: 2026-11-06 14:49 MST (B1R2 revived, A41 and A42, A40's training in; earlier, Nov 5 22:00: A40's targets paused while the Mac slept, resumed 21:58; 13:40: Ritik's pull done; A40's targets at 377 of shard 1's 486; the nov11 ruling confirmed; 09:51: A40 pre-registered and its targets started; B1R2 dropped; R5: two Sol accounts, B20 on Arsha's; Nov 4 22:52, R5: B20's stop fault fixed, T13, the resets on Sol need Ritik; 21:31: L3 done: Ritik's re-look of the 7 cells recorded, 4 changed, 3 kept; earlier, 18:22: the re-look narrowed to 7 cells, post hoc; A39's §18, E2's partial read; Gate 2's statement).
 History: the session logs and `git log -- docs/status/TODO.md`.
 
 - **Status** (one list, the same in `docs/trackB/TODO_B.md` and `docs/trackC/TODO_C.md`): done, in progress, planned
