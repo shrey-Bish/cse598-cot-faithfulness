@@ -1,13 +1,18 @@
 # Track B handoff: test widely (for Arsha, from Nov 6)
 
 **Edited by:** Ritik until Nov 6, then Arsha. **Start with [`docs/trackB/START_HERE.md`](../trackB/START_HERE.md)** (its Quick
-start and plan hold where this page differs). Last updated: 2026-11-05 09:54 (B20 on your own Sol account from Nov 5,
-its 3:00 lines, run order and partial read, the B20 log's §19: §0, §1, §3, §5, §6, §7; Nov 6's last push to
+start and plan hold where this page differs). Last updated: 2026-11-06 09:18 (the handoff: START_HERE's §0,
+§9–§11, the zip `trackB_20261106.zip`, the three hooks: §0 and §1 here; earlier, 2026-11-05 09:54: B20 on your own
+Sol account from Nov 5, its 3:00 lines, run order and partial read, the B20 log's §19: §0, §1, §3, §5, §6, §7; Nov 6's last push to
 `trackB-main`; earlier, Nov 4 16:25, final as of that day: B20 and Sol's queue, §3;
 the bundle built and checked, §0; B20 in the plan, §1; T12, §6; earlier: B24 read: F40, §3; Nemotron's smoke and B20's
 second amendment, §3; B20's smokes and its amendment of Nov 4, §3; START_HERE, B18 and slide 2 started for you, §1a;
 closed models dropped). History: `git log --follow docs/tracks/TRACK_B.md` (it was `docs/handoff/TRACK_B.md` until
 Nov 1). Ritik runs Track B until Nov 6, then it's yours; B20's Sol runs are yours from Nov 5, on your own account.
+
+**Updated Nov 6, 09:18** (Ritik): the handoff. START_HERE's §0 says what changed since Nov 4, §9 maps the repo, §10
+is git without conflicts and §11 is Claude Code (your commits carry only your name); the data is the zip
+`trackB_20261106.zip`; after Ritik's last push today, `trackB-main` is yours.
 
 **Updated Nov 5, 09:54** (Ritik): B20 moves to your own Sol account (Ritik's decision h; the B20 log's §19; your
 setup [`SOL_ARSHA.md`](../trackB/SOL_ARSHA.md)). Its state in §3 is as of Ritik's Sol outputs of about 08:43. On Nov
@@ -25,25 +30,29 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 
 ## 0. Your first day (Nov 6)
 
-1. **The repo:** pull `trackB-main` (kept at `main`), then from the repo root
+1. **The repo:** clone, `git checkout trackB-main`, `git merge --ff-only origin/main` (level with `main` after Ritik's
+   Nov 6 push), and your own `git config user.name` and `user.email` (START_HERE §1, step 1); then from the repo root
    `python3 -m venv .venv && .venv/bin/pip install -r cot-disclosure/requirements.txt`, then
    `cd cot-disclosure && ../.venv/bin/python -m pytest -q` (CPU only, no network; all should pass).
-2. **The hooks,** once per clone: the path check (`python3 cot-disclosure/tools/path_check.py --install`; it refuses a
-   commit on `trackB-main` outside your paths) and the pre-push check ([`RUNBOOK.md`](../RUNBOOK.md) §17). The repo is
-   public, and produced data never goes to GitHub.
-3. **The data:** Ritik sends the bundle `trackB_20261106.tar.gz`, rebuilt on Nov 6 morning (`tools/make_handoff_bundle.py --track B`:
+2. **The hooks,** once per clone: `python3 cot-disclosure/tools/path_check.py --install` writes three (the path check,
+   which refuses a commit on `trackB-main` outside your paths, for a commit and a merge; and, since Nov 5, the
+   commit-msg hook, which refuses an AI co-author or tool line: START_HERE §11), then the pre-push check
+   ([`RUNBOOK.md`](../RUNBOOK.md) §17). The repo is public, and produced data never goes to GitHub.
+3. **The data:** Ritik sends the link to the zip `trackB_20261106.zip` in the team's ASU Drive folder, built Nov 6
+   (`tools/make_handoff_bundle.py --track B --format zip`:
    `results/trackB/` and the canary log: the Voyager records and reports of Track B, B15, B16, B19 and B24; the
    numbers-only files of Qwen3-8B, B17 and B20's smokes so far; A37's Qwen3-8B files; a sha256 manifest inside and
    beside it; no GPQA; B20's records with text stay on Sol). Nov 4's build was 51 files, 73.8 MB (60.1 MB packed), and
-   it checked clean in a fresh clone (START_HERE §1, step 5). Unpack it into `cot-disclosure/` (the `tar` line in
-   START_HERE §1, step 5) and check it with `../.venv/bin/python tools/make_handoff_bundle.py --verify <the bundle>`.
+   it checked clean in a fresh clone (START_HERE §1, step 5); Nov 6's zip holds the same 51 files, one changed (the
+   canary log). Unpack it into `cot-disclosure/` (the `unzip` line in START_HERE §1, step 5) and check it with
+   `../.venv/bin/python tools/make_handoff_bundle.py --verify <the zip>`.
 4. **Reproduce the numbers, no calls:** `progress/trackB_report.py` (the Track B table, F15–F17, F29),
    `progress/run_b15.py --report` (F25), `progress/run_b16.py --report` (F35), and the rest of START_HERE §1, step 6
    (B19, B17, B24, B18's table). Each should match FINDINGS.
-5. **Read:** this page, then [`FINDINGS.md`](../FINDINGS.md) F15, F16, F17, F25, F29, F35, F37, F40 and traps T1–T12.
+5. **Read:** this page, then [`FINDINGS.md`](../FINDINGS.md) F15, F16, F17, F25, F29, F35, F37, F40 and traps T1–T13.
 6. **Voyager:** only for a new run (none is planned; the last, B24, ran Nov 4). Your own key goes in `cot-disclosure/.env`
    (`.env.example`); never share it, log it or commit it.
-7. **Sol (from Nov 5, if not done yet):** B20 on your own account,
+7. **Sol (Nov 6, after the steps above):** B20 on your own account,
    [`SOL_ARSHA.md`](../trackB/SOL_ARSHA.md): a numbered block you type in your own login, each step with its expected
    output. No credentials are shared.
 
@@ -51,8 +60,8 @@ and for level 2 (after a tool call, the final answer stops naming its source).
 
 | when | what | yours to do | due |
 |---|---|---|---|
-| Nov 5–6 | B20 on your Sol account | [`SOL_ARSHA.md`](../trackB/SOL_ARSHA.md), step by step; then your feeder runs Granite's 8 and Gemma's 12 lines of 3:00 | Nov 6 |
-| Nov 6 | handoff | Ritik sends the bundle (rebuilt Nov 6 morning) and the note, with his last push to `trackB-main`; the first day above | Nov 6 |
+| Nov 6 | handoff | Ritik sends the zip's link (built Nov 6) and the note, with his last push to `trackB-main`; the first day above | Nov 6 |
+| Nov 6 | B20 on your Sol account | [`SOL_ARSHA.md`](../trackB/SOL_ARSHA.md), step by step, after the first day's steps on your machine; then your feeder runs Granite's 8 and Gemma's 12 lines of 3:00 | Nov 6 (Nov 7 at the latest; Ritik to confirm) |
 | Nov 6–7 | B16 and B19 | re-read their reports and F35 (`run_b16.py --report`, `run_b19.py --report`) | Nov 7 |
 | Nov 6–7 | B17 | done Nov 3 (F37; Ritik read it by the rule): re-read F37 and `run_b17.py --report` from the bundle's records; it is in B18's table, labelled (temperature 1.0; run after its one-day window, §13) | Nov 7 |
 | Nov 6–9 | B24 | the authority dose (§3): **read by Ritik Nov 4 (F40)**; re-read it from the bundle's records (`run_b24.py --report`) against F40 | Nov 9 |
@@ -325,4 +334,4 @@ and report; their records never enter Track B's table), `providers/` (Voyager, o
   23:59 ("partial: N of 54 questions" per model).
 - B24 is B24: B21–B23 stay the dropped closed-provider rows.
 - Each experiment pre-registered before any run, with its own records outside Track B's table (B15, B16, B17).
-- Your branch: `trackB-main`, kept at `main` until Ritik's last push on Nov 6; after that it's yours.
+- Your branch: `trackB-main`, kept at `main` until Ritik's last push on Nov 6; after that it's yours (START_HERE §10).

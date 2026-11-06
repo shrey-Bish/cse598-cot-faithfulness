@@ -1,0 +1,16 @@
+{
+ "what": "A40's training set (finetune/make_bct.py --assemble); train.py --version a40 checks it on Sol",
+ "plan_sha256": "297478e77e42dd9af0d2232be4d23e9f370db594b27f15c778ae539ebd6bdf0c",
+ "files": [
+  {
+   "path": "finetune/data/a40/train_examples.jsonl.gz",
+   "bytes": 5095860,
+   "sha256": "36e49cc67a6f24375952c26f14a8d455aa33ede5f5d19ff22f6de2e964702f96"
+  },
+  {
+   "path": "finetune/data/a40/validation_examples.jsonl.gz",
+   "bytes": 680041,
+   "sha256": "cd4f0462487bee6c3c9849522b52124681c7345f63abbcc6250d4bfb08f9fc52"
+  }
+ ]
+}

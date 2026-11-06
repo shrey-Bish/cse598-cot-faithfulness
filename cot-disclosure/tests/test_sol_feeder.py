@@ -30,6 +30,7 @@ class FakeSol:
         self.jobs, self.next, self.places, self.cap = {}, 100, places, cap
         self.submitted, self.mails, self.commits, self.left, self.checks = [], [], set(), {}, 0
         self.usage_rows, self.usage_fails = [], False
+        self.gates, self.gate_runs = {}, []                  # a line's check= (Nov 6): name -> (passed, text)
 
     @staticmethod
     def need(argv):
@@ -64,6 +65,10 @@ class FakeSol:
 
     def runs_left(self, spec, argv):
         return self.left.get(spec)
+
+    def run_check(self, name):
+        self.gate_runs.append(name)
+        return self.gates.get(name, (True, "passed"))
 
     def mail(self, to, subject, body):
         self.mails.append((to, subject, body))
@@ -327,8 +332,10 @@ def test_the_queue_file_follows_the_plan():
     todo = [l for l in lines if "job" not in l.opts]
     # Nov 5 (the logs' sections 19): B20's lines are on Arsha's account and B1R2's dropped; E2, then A40, then the 30
     groups = [l.label.split("-")[0] for l in lines]
-    assert set(groups) <= {"e2", "a40", "m30"} and groups == sorted(groups, key=["e2", "a40", "m30"].index)
-    todo = [l for l in todo if not l.label.startswith("a40-")]             # A40's lines: its own tests
+    # Nov 6: A41's and A42's lines at the end (their own test)
+    order = ["e2", "a40", "m30", "a41", "a42"]
+    assert set(groups) <= set(order) and groups == sorted(groups, key=order.index)
+    todo = [l for l in todo if not l.label.startswith(("a40-", "a41-", "a42-"))]   # A40's, A41's, A42's: their own tests
     parts = [(l.argv[-3], l.argv[-1]) for l in todo if l.argv[0] == "a39_1gpu" and l.argv[-2] == "e2"
              and l.argv[-1].endswith("/16")]
     assert len(parts) == 56
@@ -678,7 +685,8 @@ def test_a39_parts_not_yet_submitted_get_2_00_and_the_sweeps_3_00():
     submitted by 10:15 get 2:00 and the sweeps, whose size is the leftovers, 3:00; the 16 sixteenths already submitted
     keep their 1:30. Section 15's 28 sixteenths (the quarters' leftovers) get 2:00 as well."""
     lines = sf.parse_queue(sf.QUEUE.read_text())
-    a39 = [l for l in lines if l.argv[0] == "a39_1gpu" and "job" not in l.opts and not l.label.startswith("a40-")]
+    a39 = [l for l in lines if l.argv[0] == "a39_1gpu" and "job" not in l.opts
+           and not l.label.startswith(("a40-", "a42-"))]                  # A40's and A42's (Nov 6): their own tests
     first = next(i for i, l in enumerate(a39) if l.label == "e2-lora_note-11of16")   # A40's own lines (Nov 5): its log
     assert {sf.limit_hours(l.argv) for l in a39[:first]} == {1.5} and len(a39[:first]) == 16
     later = a39[first:]
@@ -960,3 +968,170 @@ def test_the_mail_and_the_digest_name_the_queue_when_it_isnt_the_default(tmp_pat
     for queue in (None, sf.QUEUE):                                        # Ritik's, the default: no --queue
         g = feeder(tmp_path / str(queue is None), text, FakeSol(), now=clock, queue=queue)
         assert g.status_hint() == "python3 cot-disclosure/tools/sol_feeder.py --status"
+
+
+# ---------------------------------------------------------------- a line's check (Nov 6: A40's log, section 11)
+GATED = q("a40-train-1 | check=a40data | train --estimate 1.5 -- a40",
+          "a40-train-2 | afterany=@a40-train-1 | train --estimate 1.5 -- a40")
+MISSING = "missing finetune/data/a40/train_examples.jsonl.gz"
+
+
+def state_of(tmp_path):
+    return json.loads((tmp_path / "state" / "state.json").read_text())
+
+
+def test_a_failing_check_keeps_its_line_waiting_and_alerts_once_a_reason(tmp_path):
+    """A40's log, section 11 (the operational amendment, Nov 6): the feeder runs make_bct.py --check-data before it
+    submits a40-train-1. Until the check passes the line waits, never skipped, with one alert per reason; the lines
+    after it wait on it as before; once it passes, the line goes in and the check isn't run again."""
+    sol = FakeSol()
+    sol.gates["a40data"] = (False, MISSING)
+    f = feeder(tmp_path, GATED, sol)
+    f.tick()
+    f.tick()
+    st = state_of(tmp_path)
+    assert not sol.submitted and sol.gate_runs == ["a40data", "a40data"]
+    assert "status" not in st["lines"].get("a40-train-1", {})                 # waiting, not skipped
+    assert [a["text"] for a in st["alerts"]] == ["a40-train-1 waits for its check a40data: " + MISSING]
+    assert len(sol.mails) == 1
+    sol.gates["a40data"] = (False, "different bytes: finetune/data/a40/train_examples.jsonl.gz")
+    f.tick()
+    assert len(state_of(tmp_path)["alerts"]) == 2 and len(sol.mails) == 2      # a new reason: one more alert
+    sol.gates["a40data"] = (True, "a40 data: every file matches finetune/gpu/a40_inputs.json")
+    f.tick()
+    assert sol.labels() == ["a40-train-1"]
+    assert "submitted a40-train-1 as job 100 (check a40data passed)" in (tmp_path / "feeder.log").read_text()
+    f.tick()
+    assert sol.labels() == ["a40-train-1"]                                     # a40-train-2 waits for its job
+    sol.end("100")
+    f.tick()
+    assert sol.labels() == ["a40-train-1", "a40-train-2"] and sol.gate_runs.count("a40data") == 4
+
+
+def test_a_check_that_raises_or_times_out_waits(tmp_path, monkeypatch):
+    sol = FakeSol()
+
+    def boom(name):
+        raise OSError("no python here")
+    sol.run_check = boom
+    f = feeder(tmp_path, GATED, sol)
+    f.tick()
+    st = state_of(tmp_path)
+    assert not sol.submitted and "status" not in st["lines"].get("a40-train-1", {})
+    assert st["alerts"][0]["text"].startswith("a40-train-1 waits for its check a40data: the check raised OSError")
+    # the real runner: a check that passes, crashes or hangs comes back as (passed, text), never an exception
+    monkeypatch.setitem(sf.CHECKS, "t_ok", {"what": "t", "argv": ["-c", "print('fine')"], "timeout": 60})
+    monkeypatch.setitem(sf.CHECKS, "t_crash", {"what": "t", "argv": ["-c", "raise SystemExit('bad bytes')"], "timeout": 60})
+    monkeypatch.setitem(sf.CHECKS, "t_hang", {"what": "t", "argv": ["-c", "import time; time.sleep(30)"], "timeout": 1})
+    real = sf.Sol(env=dict(os.environ))
+    assert real.run_check("t_ok") == (True, "fine")
+    passed, why = real.run_check("t_crash")
+    assert not passed and "bad bytes" in why
+    passed, why = real.run_check("t_hang")
+    assert not passed and "timed out" in why
+
+
+def test_the_a40data_check_is_make_bcts_own_check_data():
+    """Run from the clone's cot-disclosure/ with the feeder's own Python; whatever this clone holds, it answers."""
+    assert sf.CHECKS["a40data"]["argv"] == ["finetune/make_bct.py", "--check-data"]
+    passed, why = sf.Sol(env=dict(os.environ)).run_check("a40data")
+    assert ("every file matches finetune/gpu/a40_inputs.json" in why) if passed else \
+        any(w in why for w in ("missing ", "different bytes", "a40_inputs.json"))
+
+
+def test_a_check_not_in_the_feeders_table_is_refused():
+    with pytest.raises(sf.QueueError, match="check=rm_rf: no such check"):
+        sf.parse_queue("a | check=rm_rf | train --estimate 1 -- a40\n")
+
+
+def test_dry_run_runs_the_check_and_says_whether_it_passed(tmp_path, capsys):
+    sol = FakeSol()
+    sol.gates["a40data"] = (False, MISSING)
+    f = feeder(tmp_path, GATED, sol)
+    assert f.tick(dry=True) == []
+    assert "a40-train-1 waits for its check a40data: " + MISSING in capsys.readouterr().out
+    sol.gates["a40data"] = (True, "a40 data: every file matches finetune/gpu/a40_inputs.json")
+    assert f.tick(dry=True) == ["a40-train-1"]
+    assert "would submit a40-train-1 (check a40data passed)" in capsys.readouterr().out
+    assert not (tmp_path / "state" / "state.json").exists()
+
+
+def test_status_shows_a_line_waiting_for_its_check_with_the_reason(tmp_path):
+    sol = FakeSol()
+    sol.gates["a40data"] = (False, MISSING)
+    f = feeder(tmp_path, GATED, sol)
+    row = lambda: next(x for x in f.status_text().splitlines() if x.startswith("a40-train-1"))  # noqa: E731
+    assert "check a40data: run before it goes in" in row()
+    f.tick()
+    assert "waits for its check a40data" in row() and MISSING in row()
+
+
+def test_a40s_lines_follow_its_log_and_wait_for_the_data_check():
+    """A40's log, sections 7 and 11 (the 13:38 log's section 5; the operational amendment, Nov 6): three training lines
+    of 2:00, the first gated by the data check; E2's sixteen parts of 2:00 after training; the sweep of 3:00 after
+    them; all after E2's lines and before the 30's."""
+    lines = sf.parse_queue(sf.QUEUE.read_text())
+    labels = [l.label for l in lines]
+    a40 = [l for l in lines if l.label.startswith("a40-")]
+    want = ["a40-train-1", "a40-train-2", "a40-train-3"] + [f"a40-e2-{k}of16" for k in range(1, 17)] + ["a40-e2-sweep"]
+    assert [l.label for l in a40] == want
+    i = labels.index("a40-train-1")
+    assert labels[i - 1] == "e2-lora_wrap-sweep" and labels[i + len(want)] == "m30-base-1of4"
+    by = {l.label: l for l in a40}
+    assert by["a40-train-1"].opts == {"check": "a40data"}
+    assert by["a40-train-2"].opts == {"afterany": "@a40-train-1"}
+    assert by["a40-train-3"].opts == {"afterany": "@a40-train-2"}
+    for l in a40[:3]:
+        assert l.argv == ["train", "--estimate", "1.5", "--", "a40"] and sf.limit_hours(l.argv) == 2.0
+        assert sf.spec_of(l) is None
+    for k in range(1, 17):
+        l = by[f"a40-e2-{k}of16"]
+        assert l.opts == {"afterok": "@a40-train-3"}
+        assert l.argv == ["a39_1gpu", "--estimate", "1.5", "--", "a40", "e2", f"{k}/16"]
+        assert sf.limit_hours(l.argv) == 2.0 and sf.spec_of(l) == f"a39:a40:e2:{k}/16"
+    sweep = by["a40-e2-sweep"]
+    assert set(sweep.opts["afterany"].split(":")) == {f"@a40-e2-{k}of16" for k in range(1, 17)}
+    assert sweep.opts["left"] == sf.spec_of(sweep) == "a39:a40:e2" and sf.limit_hours(sweep.argv) == 3.0
+    assert all(sf.group_of(l) == "A40" for l in a40)
+    assert all(re.match(sf.DECISIONS["nov11"]["lines"], l.label) for l in a40)
+
+
+def test_the_digest_gives_a41_and_a42_their_own_groups():
+    """Nov 6 (helper E): A41's lines (a18 jobs) would have had no group, and A42's (the system a40_note on E2) would have
+    counted as A39 on E2. Each is its own group; A40's and A39's stay."""
+    line = lambda label, args: sf.parse_queue(f"{label} | - | {args}\n")[0]   # noqa: E731
+    assert sf.group_of(line("a41-swap", "a18 --estimate 0.8 -- swap --trained a40")) == "A41"
+    assert sf.group_of(line("a41-step10", "a18 --estimate 2.3 -- step10 --cases base --weights a40")) == "A41"
+    assert sf.group_of(line("a42-e2-1of16", "a39_1gpu --estimate 1.5 -- a40_note e2 1/16")) == "A42"
+    assert sf.group_of(line("x", "a39_1gpu --estimate 1.5 -- a40_note e2 1/16")) == "A42"         # by its system
+    assert sf.group_of(line("a40-e2-1of16", "a39_1gpu --estimate 1.5 -- a40 e2 1/16")) == "A40"
+    assert sf.group_of(line("e2-base-1of16", "a39_1gpu --estimate 1.5 -- base e2 1/16")) == "A39 on E2"
+
+
+def test_a41s_and_a42s_lines_follow_their_logs_at_the_queue_s_end():
+    """The Nov 6 11:21 (A41) and 11:22 (A42) logs: after A40's and the 30's lines, A41's swap and Step 10 (with an
+    again-line) and A42's sixteen parts of 2:00 and its sweep of 3:00, each after A40's training; no needs= (the code
+    and the lines come in the same pull); none of them in nov11's set."""
+    lines = sf.parse_queue(sf.QUEUE.read_text())
+    labels = [l.label for l in lines]
+    a41 = ["a41-swap", "a41-step10", "a41-step10-again"]
+    a42 = [f"a42-e2-{k}of16" for k in range(1, 17)] + ["a42-e2-sweep"]
+    assert labels[-len(a41 + a42):] == a41 + a42
+    assert labels.index("a41-swap") > max(i for i, x in enumerate(labels) if x.startswith(("a40-", "m30-")))
+    by = {l.label: l for l in lines}
+    assert by["a41-swap"].opts == {"afterok": "@a40-train-3"} and sf.limit_hours(by["a41-swap"].argv) == 1.5
+    assert by["a41-swap"].argv == ["a18", "--estimate", "0.8", "--", "swap", "--trained", "a40"]
+    assert by["a41-step10"].opts == {"afterok": "@a40-train-3"} and sf.limit_hours(by["a41-step10"].argv) == 3.0
+    assert by["a41-step10"].argv == ["a18", "--estimate", "2.3", "--", "step10", "--cases", "base", "--weights", "a40"]
+    assert by["a41-step10-again"].opts == {"again": "@a41-step10"} and by["a41-step10-again"].argv == by["a41-step10"].argv
+    for k in range(1, 17):
+        l = by[f"a42-e2-{k}of16"]
+        assert l.opts == {"afterok": "@a40-train-3"}
+        assert l.argv == ["a39_1gpu", "--estimate", "1.5", "--", "a40_note", "e2", f"{k}/16"]
+        assert sf.limit_hours(l.argv) == 2.0 and sf.spec_of(l) == f"a39:a40_note:e2:{k}/16"
+    sweep = by["a42-e2-sweep"]
+    assert set(sweep.opts["afterany"].split(":")) == {f"@a42-e2-{k}of16" for k in range(1, 17)}
+    assert sweep.opts["left"] == sf.spec_of(sweep) == "a39:a40_note:e2" and sf.limit_hours(sweep.argv) == 3.0
+    assert all(sf.group_of(by[x]) == "A41" for x in a41) and all(sf.group_of(by[x]) == "A42" for x in a42)
+    assert not any("needs" in by[x].opts for x in a41 + a42)
+    assert not any(re.match(sf.DECISIONS["nov11"]["lines"], x) for x in a41 + a42)

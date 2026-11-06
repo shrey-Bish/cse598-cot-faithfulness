@@ -16,8 +16,9 @@ One tick (--once; --loop runs one every --interval seconds, 300 by default):
      and a line still runs it again (Nov 4: 468897).
   3. The queue's lines, in order. A line is submitted once and never again: its job id goes into the state file before
      the next line is looked at, and its --comment=feeder:LABEL lets a restart recover a submission it didn't record.
-     A line waits while its dependencies run, or while Sol's clone lacks a commit it needs. It is skipped, and you
-     are told, when an afterok dependency failed. A sweep with no runs left isn't run.
+     A line waits while its dependencies run, or while Sol's clone lacks a commit it needs, or (Nov 6) until the
+     check it names passes. It is skipped, and you are told, when an afterok dependency failed. A sweep with no runs
+     left isn't run.
   4. A ready line goes in only if `submit.sh --check` leaves it a place in the 10 and its GPU-minutes fit what the
      running and pending jobs leave of the 960. The first ready line that doesn't fit ends the tick, so the order holds.
 The dependencies are the feeder's, not Slurm's: a line is submitted after its dependencies have ended, so no pending
@@ -57,6 +58,9 @@ A queue file: its owner line, then one job a line, "LABEL | OPTIONS | submit.sh 
   left=SPEC       run only if runs are left: a39:SYSTEM:QSET[:K/N] (finetune/eval.py's resume) or b1r2:K/N
   dropif=NAMES    dropped if any decision named (DECISIONS; colon-separated) comes out "cut"
   holdif=NAME     if decision NAME comes out "cut", waits until the lines it names are submitted or settled
+  check=NAME      (Nov 6, A40's log section 11) run the check NAME (CHECKS: a fixed table here, never a command from
+                  the queue) on Sol before submitting; until it passes, the line waits (never skipped), with one alert
+                  per reason. a40data: finetune/make_bct.py --check-data, A40's data against its manifest
 REFS are colon-separated: @LABEL is an earlier line (its job id once submitted), a bare number a job id. $USER (any
 environment variable) in the arguments is expanded, so the file names no Sol user.
 """
@@ -84,7 +88,7 @@ SOL = CODE / "finetune" / "gpu" / "sol"
 QUEUE = SOL / "queue_2026-11-04.txt"
 USER = os.environ.get("USER") or getpass.getuser()
 TRACKA_OUT = Path(os.environ.get("TRACKA_OUT") or "/scratch/%s/trackA" % USER)
-OPTIONS = ("job", "afterok", "afterany", "again", "needs", "left", "dropif", "holdif")
+OPTIONS = ("job", "afterok", "afterany", "again", "needs", "left", "dropif", "holdif", "check")
 ACTIVE = {"PENDING", "RUNNING", "REQUEUED", "RESIZING", "SUSPENDED", "CONFIGURING", "COMPLETING", "STOPPED"}
 HELD = ("skipped", "not needed", "unknown", "submitting", "submit failed", "dropped")
 SETTLED = ("skipped", "not needed", "dropped")              # a line with no job that will never have one
@@ -102,6 +106,10 @@ DECISIONS = {                                      # Nov 4: made by the feeder o
               "at": "2026-11-11T09:00:00", "lines": r"(e2-|a40-)", "what": "E2's and A40's jobs",
               "cut": "the 30's lines are dropped, recorded \"not run: no GPU time by Nov 12\"",
               "no cut": "the 30 runs"},
+}
+CHECKS = {                                         # Nov 6 (A40's log, section 11): a line's check=, run before it goes in
+    "a40data": {"what": "A40's training data on Sol against finetune/gpu/a40_inputs.json",
+                "argv": ["finetune/make_bct.py", "--check-data"], "timeout": 600},
 }
 OWNER = re.compile(r"owner:\s*(not\s+)?([A-Za-z0-9_.-]+)$")   # Nov 5: a queue's first line that isn't a comment
 Line = namedtuple("Line", "n label opts argv")
@@ -181,6 +189,8 @@ def parse_queue(text):
             raise QueueError("queue line %d: job= is a job id" % n)
         if "left" in opts and not LEFT.match(opts["left"]):
             raise QueueError("queue line %d: left=%s: a39:SYSTEM:QSET[:K/N] or b1r2:K/N" % (n, opts["left"]))
+        if "check" in opts and opts["check"] not in CHECKS:
+            raise QueueError("queue line %d: check=%s: no such check (%s)" % (n, opts["check"], ", ".join(CHECKS)))
         for k in ("dropif", "holdif"):
             if k in opts and any(name not in DECISIONS for name in opts[k].split(":")):
                 raise QueueError("queue line %d: %s=%s: no such decision (%s)" % (n, k, opts[k], ", ".join(DECISIONS)))
@@ -233,11 +243,14 @@ def limit_hours(argv):
 
 def group_of(line):
     """The digest's groups: A39 on E2, A40 (its a40- labels, or the system a40: its E2 lines run as A39's do), A39 on
-    the 30, B20 (Arsha's feeder, Nov 5)."""
+    the 30, B20 (Arsha's feeder, Nov 5); Nov 6: A41 (its a41- labels: A18's jobs with A40's weights) and A42 (a42-, or
+    the system a40_note)."""
     a = line.argv
     system = a[a.index("--") + 1] if "--" in a[:-1] else None
     if line.label.startswith("a40-") or system == "a40":
         return "A40"
+    if line.label.startswith(("a41-", "a42-")) or system == "a40_note":
+        return "A41" if line.label.startswith("a41-") else "A42"
     if a[0] == "b20":
         return "B20"
     if a[0].startswith("a39"):
@@ -364,6 +377,14 @@ class Sol:
             return int(r.stdout.strip().splitlines()[-1]) if r.returncode == 0 else None
         except (ValueError, IndexError):
             return None
+
+    def run_check(self, name):
+        """(passed, text) of a line's check (CHECKS), run with this Python from the clone's cot-disclosure/; a check that
+        crashes or hangs is (False, why), never an exception."""
+        c = CHECKS[name]
+        r = self._run([sys.executable] + list(c["argv"]), timeout=c["timeout"], cwd=str(CODE))
+        text = "; ".join(x.strip() for x in (r.stdout + r.stderr).strip().splitlines()[-5:] if x.strip())
+        return r.returncode == 0, (text or "exit %d" % r.returncode)[-500:]
 
     def usage(self, since):
         """[{job, start, end (None while it runs), gpus}] of your jobs that ran since `since` (a datetime), from sacct."""
@@ -562,6 +583,11 @@ class Feeder:
                 continue
             verdict, why = self.readiness(l, L, J)
             if verdict == "wait":
+                continue
+            if verdict == "check":                       # waits; one alert per reason (Nov 6)
+                if s.get("check") != why:
+                    alert("%s %s" % (l.label, why))
+                L[l.label] = {**s, "check": why, "check_at": stamp}
                 continue
             if verdict == "drop":
                 L[l.label] = {"status": "dropped", "why": why, "at": stamp}
@@ -808,6 +834,14 @@ class Feeder:
             shown.append("again:%s" % jid)
         if "needs" in l.opts and not self.sol.has_commit(l.opts["needs"]):
             return "wait", "needs a pull: Sol's clone lacks %s" % l.opts["needs"]
+        if "check" in l.opts:                            # Nov 6 (A40's log, section 11): last, once all else is ready
+            try:
+                passed, text = self.sol.run_check(l.opts["check"])
+            except Exception as err:                     # a check never stops a tick
+                passed, text = False, "the check raised %s: %s" % (type(err).__name__, err)
+            if not passed:
+                return "check", "waits for its check %s: %s" % (l.opts["check"], text)
+            shown.append("check %s passed" % l.opts["check"])
         if "left" in l.opts:
             n = self.sol.runs_left(l.opts["left"], l.argv)
             if n == 0:
@@ -905,6 +939,9 @@ class Feeder:
                 extra = ["needs %s: %s" % (l.opts["needs"], "on Sol" if self.sol.has_commit(l.opts["needs"])
                                                     else "not on Sol yet")] if "needs" in l.opts else []
                 extra += ["left %s" % l.opts["left"]] if "left" in l.opts else []
+                if "check" in l.opts:
+                    extra += ["%s (%s)" % (s["check"], s.get("check_at", "")) if s.get("check") else
+                              "check %s: run before it goes in" % l.opts["check"]]
                 rows.append("%-28s to submit%s" % (l.label, (" (" + "; ".join(deps + extra) + ")") if deps or extra else ""))
             counts[word] = counts.get(word, 0) + 1
         out.append("%d lines: %s" % (len(self.lines), ", ".join("%d %s" % (v, k) for k, v in sorted(counts.items()))))

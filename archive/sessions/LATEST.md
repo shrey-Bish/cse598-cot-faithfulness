@@ -1,135 +1,218 @@
-# Session log: Shrey's Track C handoff refreshed; commits stay their human author's own (2026-11-05 23:13 MST)
+# Session log: A40's data and gate, no AI contributors, Ritik's Sol kept busy (2026-11-06 11:07 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `2e0845c`.
+**By:** Ritik. Branch `trackA-nosol`, from `10f7920`.
 
 ## 0. Input
 
-- **Ritik, 23:13:** prepare, in the background, a complete handoff for Shrey:
-  - very detailed, with everything Shrey needs, including the project's structure;
-  - not conflicting with the main repo;
-  - Shrey's Claude Code commits only as Shrey, never with Claude as a collaborator;
-  - everything needed on GitHub, and the data and other files in a zip that Ritik uploads to ASU Drive.
-- **Built by a helper** (no commits, nothing on Sol, the A40 guard untouched). I checked what it built and committed
-  it.
+- **Ritik sent both handoff messages** (to Shrey and to Arsha). His note to Arsha says:
+  - commits only as team members, never an AI tool;
+  - before her first commit, merge `origin/main` and rerun `--install`.
+- **His Sol block** (sol-login04, Nov 6 morning):
+  - no B20 on his account: `squeue` is empty, and `grep -c '^b20-'` on his queue file prints 0;
+  - **the nov6 decision**, 07:00:30: 60.6 GPU-hours from Nov 4 12:36 to Nov 6 07:00, not under 10, so no cut: the
+    30's own rule (Nov 11 09:00) stands;
+  - **permissions:** the folder loop printed nothing. The tree check printed two owner-only files, the Hugging Face
+    cache's `trees/<sha>.json` for Gemma and Granite. Ritik ran `chmod g+r` on both, and they now read
+    `-rw-r----- ragarw68 class_cse598fall2026`. `stat` shows `drwxr-x--- class_cse598fall2026` on his scratch,
+    `envs/olmo`, `hf/hub` and `results/trackB/b20`;
+  - **the feeder at 10:56** (sc019): "116 lines: 10 not needed, 106 ok"; nov11 not made yet; `--dry-run` prints
+    nothing;
+  - **`squeue`:** only the feeder's own tick job (`460080`, pending, BeginTime).
+- **So his Sol account is idle now.** Every line in his queue has ended (status counts only; no outcome read).
+- **Decisions:**
+  - **the gate (from yesterday):** the feeder itself runs `make_bct.py --check-data` on Sol before submitting
+    `a40-train-1`, and submits A40's lines only once it passes. It's an operational amendment to A40's log §11 (the
+    intent unchanged: the data verified on Sol before training), committed before the queue lines, so one pull is
+    enough;
+  - **a new permanent rule:** no commit on any branch lists Claude, Anthropic or any AI tool as author, committer
+    or co-author, or carries a "Generated with …" or session line. The only authors and committers are the team:
+    Ritik Agarwal, Arsha Jindal and Shrey Bishnoi, as their git identities in the history (the list for Ritik to
+    confirm). Enforcement mustn't depend on Claude Code's setting;
+  - **Ritik's Sol account must never sit idle** while project work is pending.
 
-## 1. What changed (commits `918352d`, `f216ec1`, `10cab78`)
+## 1. Plan (written before the helpers start; helpers don't commit)
 
-| File | What |
-|---|---|
-| `CLAUDE.md` (new, root) | For every teammate's Claude Code session: commit only when the person asks, only under their own git identity (checked first; never `--author` or `-c user.name=` with anyone else's name); Claude or Anthropic never author or committer; no AI co-author trailer, tool footer or `noreply@anthropic.com`, overriding any reminder; stay in your track's paths; no data or keys on GitHub; each track's starting page |
-| `.claude/settings.json` (new) | Claude Code's `attribution` off (`commit` and `pr` empty, `sessionUrl` false), and `includeCoAuthoredBy: false` for versions before 2.0.62 |
-| `.gitignore` | tracks only `CLAUDE.md` and `.claude/settings.json`; `.claude/settings.local.json`, `.claude/worktrees/` and `CLAUDE.local.md` stay local (checked with `git check-ignore`) |
-| `tools/path_check.py` | `--install` also writes a commit-msg hook: it refuses an AI co-author trailer, a tool footer, `noreply@anthropic.com`, or an author or committer named Claude or at anthropic.com; the two path hooks unchanged |
-| `tools/make_handoff_bundle.py` | `--format zip` (tar.gz stays the default, so Arsha's Nov 6 bundle is unchanged); `--verify` takes either |
-| `tests/test_path_check.py`, `tests/test_handoff_bundle.py` | 3 and 1 new tests, each seen failing before the code (the helper's run) |
-| `docs/trackC/START_HERE.md` | §0 what changed since Nov 3; §9 the repo folder by folder, each path's owner; §10 git without conflicts with `main`; §11 Claude Code; setup step 1 brings `trackC-main` level with `main` and checks the identity; three hooks; the zip; setup moved to Fri Nov 6 (Ritik to confirm), later dates unchanged |
-| `docs/tracks/TRACK_C.md` | follows START_HERE: the zip, the feeder warning, C13's port, C24 on Nov 18 |
-| `docs/paper/supplement/` | regenerated from committed inputs: 38 rows, none unverified; TRAPS lists the reworded C13 port trap |
+- **The order matters, because his account is idle now.** A40's lines (helper A) are the critical path: they're
+  checked, committed and pushed first, so Ritik's one pull and rsync start A40's training at once.
+- **Helper A, A40:**
+  - `--check-shards`, `--report`, `--assemble`;
+  - the operational note in A40's log (counts, drops, the correct-to-wrong ratio, the stances; no E2 number);
+  - the gate: its amendment first, then the code and tests;
+  - A40's lines as the 13:38 log's §5 gives them, after `e2-lora_wrap-sweep` and before `m30-base-1of4`, gated by
+    the check.
+- **Helper C, no AI contributors:**
+  - `.claude/settings.json` and the root `CLAUDE.md`;
+  - `configs/team_identities.txt`;
+  - hooks from `path_check.py --install`: commit-msg, pre-commit identity, and a pre-push scan of every outgoing
+    commit;
+  - tests seen failing first;
+  - a read-only history audit of all four branches;
+  - the rule, and the merge-and-reinstall step, in Track B's and Track C's START_HERE.
+- **Helper D, Ritik's Sol kept busy:**
+  - when his queue runs dry after A40;
+  - every pending Track A task that could use his Sol, with its value, GPU-hours, and whether it can be
+    pre-registered now;
+  - the top one or two pre-registered (committed before any run), with lines placed after the 30's. Nothing is
+    chosen on E2 or any evaluation question.
+- **Helper B's records, done by me** (small):
+  - the nov6 decision in today's daily, the A39 log and ONE_PAGE;
+  - SOL_ARSHA's troubleshooting for the owner-only `trees/*.json` files.
+- **Then:**
+  - the hooks installed in Ritik's clone and proved (a Claude trailer refused, a clean commit passing, both reset;
+    nothing pushed);
+  - the stale scan; the logs; the checks;
+  - the push to `trackA-nosol` and `main` only.
 
-- The two Track C files went in with `PATH_CHECK_ALLOW=trackC-main`, said in the message, before Shrey starts.
-- **The settings keys, checked against Claude Code's settings reference** (code.claude.com/docs/en/settings-reference):
-  - `attribution` takes `commit` and `pr` strings (empty hides them) and a `sessionUrl` boolean;
-  - `includeCoAuthoredBy` has been deprecated since v2.0.62 and is ignored once `commit` or `pr` is set;
-  - the file is valid as written. This Mac runs 2.1.251.
-- **The hook against history:** none of the last 50 commits, nor anything in the whole history, would be refused.
+## 2. A40: the data, the gate, the lines (helper A; `20c9348`, `d856cef`)
 
-## 2. Why a root CLAUDE.md, and why it can't conflict
+- **`--check-shards`:** no problems, 979 final rows, 0 missing. **979 of 979 records, 883 examples**.
+  - Dropped: 96, by its §3's two reasons: "no final answer passed in 4", 91; "no no-hint sample ended on the key in
+    4", 5.
+- **Correct to wrong:** 281 to 602 among the examples (0.47), 328 to 651 among the records (0.50, as planned).
+  Correct-hint records were dropped at 14.3%, wrong-hint ones at 7.5%.
+- **Stances:** every wrong-hint example "disagrees" (602); every correct-hint one "agrees after checking" (281).
+- **The training set:** 981 examples (plus 98 no-hint), train 881 and validation 100 (by question, 195 and 22); median
+  6,661 tokens, none over the cap.
+- **The manifest:** `finetune/gpu/a40_inputs.json`, sha256 `64edcdf9…`. The data (`finetune/data/a40/`) is
+  gitignored, and `--check-data` passes on the Mac.
+- **Committed in order:**
+  1. the amendment (§11: the feeder runs the check) and the data note (§17), first;
+  2. then the manifest, the feeder's `check=` option (a fixed table; the line waits, never skipped; one alert per
+     reason; 7 tests seen failing first), `make_bct`'s one-line fix, and A40's 20 lines, together.
 
-- **Why the root:** Claude Code loads the root `CLAUDE.md` in any session started inside a clone. A file under
-  `docs/trackC/` would load only when a session read that folder.
-  - It names no one, so the same text holds for Ritik's, Arsha's and Shrey's sessions.
-  - It agrees with Ritik's own rule: his commits, no attribution.
-- **Three layers,** so one missed layer doesn't matter: the instructions, the harness setting, and a hook that refuses
-  the commit whoever writes it.
-- **No conflicts:**
-  - `CLAUDE.md`, `.claude/` and the tools are outside Track C's allowlist, so `trackC-main` can't change them.
-  - START_HERE and TRACK_C are Shrey's from now on; Ritik's branches can't change them without the override.
-  - Each file has one owner, so merges either way don't conflict (START_HERE §10).
+## 3. Only the team commits (helper C; `37738b4`, `c0ec7bb`, `a2fe67d`, `97a1446`)
 
-## 3. The zip (for ASU Drive; gitignored, never GitHub)
+- **`configs/team_identities.txt`:** Ritik Agarwal (`Ritik <ri…@gmail.com>`) and Shrey Bishnoi (`Shrey Bishnoi
+  <sb…@gmail.com>`), from the history. Arsha Jindal by exact name, until Ritik adds the email she commits with. No ASU
+  email is written in it. **For Ritik to confirm.**
+- **Hooks** (`path_check.py --install` now writes four):
+  - **pre-commit and pre-merge-commit:** refuse a non-team or AI author or committer;
+  - **commit-msg:** also refuses a co-author line outside the team, an AI tool's email, a tool footer line and a
+    session line;
+  - **pre-push:** names each outgoing commit that breaks the rule. History already on origin never blocks.
+  - 7 tests, seen failing first.
+- **Claude Code's setting is unchanged:** the `attribution` object form is right for the installed 2.1.251. The hooks
+  don't depend on it. `CLAUDE.md` now opens with the rule, and RUNBOOK §17 says four hooks.
+- **The history audit** (read-only; `main`, `trackA-nosol` and `trackB-main` at `10f7920`, `trackC-main` at
+  `af37698`; 365 commits): **no offender.** Every author and committer is Ritik or Shrey Bishnoi, and there is no
+  trailer line at all. Nothing to rewrite.
+- **Proved in Ritik's clone** (11:34), nothing staged before or after:
+  - the hooks installed (commit-msg, pre-commit, pre-merge-commit, pre-push);
+  - a Claude co-author trailer: refused by commit-msg, exit 1, no commit made;
+  - `--author="Claude <noreply@anthropic.com>"`: refused by the identity check, exit 1, no commit made;
+  - a clean commit as Ritik passed (`c88d6f9`), then `git reset --soft HEAD~1`, back at `97a1446`. Never pushed.
+- **Track B's and Track C's START_HERE** got a short block before the Quick start: the rule, then "merge
+  `origin/main`, rerun `--install`, check your identity". Each went in with its `PATH_CHECK_ALLOW`.
 
-- **Path:** `cot-disclosure/results/handoff/trackC_20261105.zip`, with `trackC_20261105.manifest.json` beside it.
-- **Size:** 5,379,045 bytes; 43 files and `MANIFEST.json`; 31.3 MB unpacked.
-- **sha256:** `c8df621f254e4c901776188275247c36b18a187b991a0ac653f026baa1f5d93b` (I rechecked it at 23:47).
-- **`--verify`:** "bundle matches its manifest".
-- **Contents:** the same 43 files, with the same sha256, as Nov 3's `trackC_20261103.tar.gz`. Track C's data hasn't
-  changed, and C19–C26 read only `results/trackC/` and `steered_cases.jsonl`. No GPQA.
-- **Key scan:** nothing key-like in any file (sk- keys, `api_key`, `token=`, private keys, Bearer, the `.env`'s
-  variable names, Ritik's Sol user).
-  - **Disclosed:** the helper also checked that the Voyager key's value appears nowhere (0 files). To do that it read
-    the value into a shell variable, for a count only; it never printed or wrote it.
-  - The new `CLAUDE.md` says never to open `.env`; later checks scan for the variable names only.
+## 4. Ritik's Sol kept busy (helpers D and E; `1c6a170`, `8952e24`, `2b14c86`, `e09ec4b`, `4603c5d`)
 
-## 4. The handoff tried as Shrey would (helper, a scratch clone; no calls, no key)
+- **When his queue runs dry (projection):** A40's lines alone, about 8–18 h after his pull.
+  - The training chain is 3.3 GPU-h with three waits, holding 1 place at a time. E2's 16 parts run up to 8 at once
+    under the 960 cap, then the sweep.
+  - A41 adds no time (it runs beside E2's second wave). A42 adds about 2.5–6 h.
 
-1. **Clone:** `trackC-main` at `998c5dc`. `git merge --ff-only` to `main` with these changes; the identity set and
-   checked.
-2. **The zip:** sha256 checked; unzipped into `cot-disclosure/`; `--verify` passed; `git status` clean.
-3. **Tests:** Track C's 47 passed. The full suite in that clone, with only Track C's data: 976 passed, 13 skipped.
-4. **C19's two dry runs** printed "100 saved tool-team cases … ~200 calls".
-5. **F18, F24 and F34** printed the documented lines, and the three summaries match the tracked ones byte for byte.
-6. **Hooks:** `--install` wrote all three, plus the pre-push line.
-   - The commit-msg hook refused a Claude trailer, the tool footer and `--author=Claude`, and accepted a clean
-     message.
-   - The path check refused a `CLAUDE.md` edit on `trackC-main` and allowed a START_HERE edit.
-   - I reran the page's own hook check there (23:46): refused with exit 1; a clean message exit 0.
+| rank | task | GPU-h | state |
+|---|---|---|---|
+| 1 | **A41:** A40's weights in A18's swap and Step 10 (Ritik's readout question) | ~4 | pre-registered (11:21), coded, 3 lines in |
+| 2 | **B1R2 revived** (pre-registered, coded) | ~66 | **Ritik's call:** it would reverse decision f. It runs on base, so it could fill the places A40's training leaves idle now |
+| 3 | **A42:** A40 with the note on E2 (the combination A40 left unread) | 16–21 | pre-registered (11:22), coded (helper E), 17 lines in |
+| 4–6 | a second A40 seed; A40 on the 30; Gate 3's other versions on E2 | 7–25 each | not pre-registered |
 
-## 5. The message to Shrey (Ritik sends it with the zip's ASU Drive link; it replaces the Nov 4 17:42 log's §5)
+- **Nothing was chosen on an evaluation question.** A41's cases are A18's (chosen Oct 31–Nov 1 by its own rule), and
+  A42 is read on E2 by A40's own rules.
+- **A42's log §10:** one operational deviation, committed before its lines: no `needs=`, since its code and lines
+  arrive in one pull.
+- **The queue now:** 156 lines on Sol after the pull ("10 not needed, 106 ok, 40 to submit"). Only `a40-train-1` goes
+  in first, once its check passes.
 
-> Hi Shrey, here's the Track C handoff, refreshed tonight. It replaces the note I never sent on Nov 4.
-> - **Start:** `docs/trackC/START_HERE.md` on `trackC-main`: the Quick start, then §0 for what changed since Nov 3.
-> - **Data:** `trackC_20261105.zip` in our ASU Drive folder: <link>. sha256
->   `c8df621f254e4c901776188275247c36b18a187b991a0ac653f026baa1f5d93b`. Unzip it into `cot-disclosure/` and run
->   `--verify` (§4, step 6). It's the same 43 files as Nov 3's tar.gz.
-> - **Your name on your commits:** set `git config user.name` and `user.email` in your clone (§4, step 1). The root
->   `CLAUDE.md`, `.claude/settings.json` and a commit-msg hook keep Claude Code off your commits as a co-author (§11).
-> - **Hooks, once:** `python3 cot-disclosure/tools/path_check.py --install`, plus the pre-push line (§4, step 4).
-> - **Your branch is `trackC-main`,** and from now on only you push to it; change only your paths (§10).
-> - **First:** setup by Fri Nov 6 (tests, hooks, your own Voyager key, F18/F24/F34 with no calls), then C19 by Sat Nov 7.
-> - **Check-ins:** Nov 7, 12, 15 and 18. I merge `trackC-main` into `main`; then you merge `origin/main` back.
+## 5. Records (helper B's part, mine)
+
+- **The nov6 decision:** in A39's log §20 (`12cf140`), here, today's daily and ONE_PAGE.
+- **SOL_ARSHA step 4** (`173f2c6`): the owner-only `trees/*.json` case, and the owner's `chmod g+r`.
+- **Stale statements fixed** (the 30 "goes in as places free", E2 "pending", A40's "about 04:30"):
+  - PLAN (`226d8ee`) and RUNBOOK §0 (`c0ec7bb`);
+  - ONE_PAGE and TODO (A39's row; A40's; new rows A41 and A42).
+  - Nothing misplaced was found.
 
 ## 6. Rulings
 
+- **A:** `a40-train-1` carries `check=a40data` in place of the 13:38 log's `needs=<M>`. The check runs with the
+  feeder's own Python, and on every tick while its line waits.
+- **C:**
+  - Arsha passes by exact name until her email is added.
+  - With no team file (an old branch), only AI identities are refused.
+  - "Generated with" counts at the start of a line.
+  - `--install` upgrades RUNBOOK §17's hand-written pre-push hook.
+- **D:**
+  - A41's code extends `a18.py` (A18's files untouched).
+  - An `a18` step stopped at its limit exits 2, so `again=` works.
+  - B1R2 is ranked but not acted on.
+- **E:**
+  - A42 has no `needs=` (§10).
+  - "not run: A40 not trained" is a flag set by the reader.
+  - A42 reuses A40's readings without editing `a40.py`.
 - **Mine:**
-  - The Claude rules go in a root `CLAUDE.md` for everyone, not a Track C file (§2).
-  - The page's hook check runs the hook on a test file, not `git commit --allow-empty`. If the hook were missing, the
-    empty commit would have landed with the trailer on it.
-  - TRACK_C's port trap no longer says "(FINDINGS T12)", because the supplement adds that itself (it had printed
-    twice).
-  - `trackC-main` is fast-forwarded once to `main` (§7), so the branch Shrey clones carries the new page.
-    - Allowed only while it has no commits of Shrey's, and never forced.
-    - It's the same as decision d's last push to `trackB-main`. After it, the branch is Shrey's, and the standing push
-      rule is otherwise unchanged.
-- **The helper's:**
-  - TODO_C and FINDINGS_C weren't stale, so they're unchanged.
-  - START_HERE isn't renumbered: the new sections are §0 and §9–§11, so every "§4"-style reference still holds.
-  - The feeder warning stays out of TRACK_C's "Known traps", so the test that pins that count is unchanged.
-  - A bundle also refuses if the manifest beside it already exists.
+  - A41 and A42 went in with this push, so the account has work after A40's E2. B1R2 waits for Ritik.
+  - Ritik's Sol block keeps his order (pull, then rsync). A tick that falls in between alerts once, "waits for its
+    check", which is harmless.
 
-## 7. Push, A40, and what's left
+## 7. Ritik's Sol block (his own account)
 
-- **Push:** `trackA-nosol` to `trackA-nosol` and `main`. Then, once, `trackA-nosol` to `trackC-main`: a
-  fast-forward from `998c5dc`, checked first to have no other commits.
-- **A40, read-only:**
-  - shard 1 finished at 22:50:39 ("done a40s1");
-  - shard 2 started then, and was at 150 of 491 by 23:47, on AC power, at 100%;
-  - the estimate stands: both done by about 04:30–05:00, possibly earlier.
-- **Needs Ritik:**
-  - upload the zip to the team's ASU Drive folder, then send §5 with its link (the Nov 4 message is superseded);
-  - confirm Shrey's dates (setup Fri Nov 6, C19 Sat Nov 7) at the latest at the Nov 7 check-in;
-  - optionally, `python3 cot-disclosure/tools/path_check.py --install` in his own clone, to add the commit-msg hook.
-- **Left as they are:**
-  - RUNBOOK §17 still installs only the pre-commit hook by hand.
-  - Arsha's START_HERE doesn't mention the commit-msg hook yet (a Track B path): for her Nov 6 bundle and note.
-  - The helper saw one test in the full suite open an HTTPS connection (CloudFront, likely a Hugging Face Hub check;
-    not Voyager, no key). That's not this change; it's a lead for whoever next touches the tests.
+```bash
+# On Sol
+cd /scratch/$USER/cse598-cot-faithfulness && git status --short && git fetch -q origin
+# 1. The safety diff (CHECKIN §1, step 4's command)
+git diff --stat HEAD..@{u} -- cot-disclosure/finetune cot-disclosure/progress/common.py cot-disclosure/progress/sol_trackB.py \
+  cot-disclosure/progress/sol_b17.py cot-disclosure/progress/sol_b20.py cot-disclosure/progress/run_b20.py \
+  cot-disclosure/progress/run_trackB.py cot-disclosure/agents/__init__.py cot-disclosure/agents/sol_c13.py \
+  cot-disclosure/client.py cot-disclosure/parse.py cot-disclosure/detect.py cot-disclosure/experiments.py \
+  cot-disclosure/tasks.py cot-disclosure/tools/answer_key.py cot-disclosure/providers cot-disclosure/configs \
+  cot-disclosure/data ':!cot-disclosure/finetune/a39.py' ':!cot-disclosure/finetune/gpu/sol/queue_2026-11-04.txt'
+#   expect exactly 9 files: configs/path_allowlist.txt, configs/team_identities.txt, finetune/a42.py, finetune/eval.py,
+#   finetune/gpu/a40_inputs.json, finetune/gpu/eval_job.py, finetune/gpu/sol/submit.sh, finetune/look/a18.py,
+#   finetune/make_bct.py. No job of yours is queued but the feeder's tick, so none loads them: pull.
+# 2. The pull
+git pull --ff-only && git log --oneline -1                     # the commit the session names
+# 3. On the Mac, from cot-disclosure/: A40's data
+ssh login.sol.rc.asu.edu 'mkdir -p /scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/finetune/data/a40'
+rsync -av finetune/data/a40/ login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/finetune/data/a40/
+#   3 files: train_examples.jsonl.gz (5,095,860 bytes), validation_examples.jsonl.gz (680,041), manifest.json
+# 4. On Sol: the gate and the order
+P=/scratch/$USER/envs/olmo/bin/python; F=cot-disclosure/tools/sol_feeder.py
+$P $F --status | head -6       # "156 lines: 10 not needed, 106 ok, 40 to submit"
+$P $F --dry-run | tail -4      # "[dry run] would submit a40-train-1 (check a40data passed): submit.sh train
+                               #  --comment=feeder:a40-train-1 --estimate 1.5 -- a40"
+tail -5 /scratch/$USER/trackA/feeder.log    # within 5 minutes: a40-train-1 submitted (job N)
+squeue -u $USER                             # the training job, pending or running
+# 5. Only after Arsha's step 6 (she copied B20's saved runs): close b20's text records again
+chmod g-r /scratch/$USER/cse598-cot-faithfulness/cot-disclosure/results/trackB/b20/*/b20_sol_vllm.jsonl.gz
+```
 
-## 8. Checks (written Nov 6, 00:04, on `5a1b39f`)
+- **If `--dry-run` says `waits for its check a40data: missing …`:** the rsync didn't land. Rerun it.
+- **If it says `… differs`:** stop and tell me.
+
+## 8. The message for Arsha and Shrey (two lines)
+
+> Before your next commit: `git fetch origin && git merge origin/main`, then rerun `python3 cot-disclosure/tools/path_check.py --install` (four hooks now; only team identities may commit, never with an AI co-author, "Generated with" or session line).
+> Check that your `git config user.name`/`user.email` match your line in `cot-disclosure/configs/team_identities.txt`. Arsha: send me the email you'll commit with, and I'll add it.
+
+## 9. Needs Ritik
+
+1. **Now:** his Sol block (§7). His account sits idle until it's done.
+2. **Decide:** revive B1R2 (~66 GPU-h on base, ready now) or keep decision f.
+3. **Confirm** the team identities. Add Arsha's email once she sends it (a line on `main`).
+4. **Send** §8 to Arsha and Shrey. After Arsha's step 6, run §7's last line.
+5. **Nov 7:** merge Shrey's `trackC-main` (setup and C19, done Nov 6); then Shrey merges `origin/main`.
+
+## 10. Checks and push (written 12:12, on `44e0d8d`)
 
 - **Checks:**
-  - the full suite: 988 passed, 1 skipped (984 before, plus the 4 new tests);
-  - links 0 broken; the supplement 38 rows, none unverified, no log outside the ledger; export numbers only;
+  - the full suite: 1,022 passed, 1 skipped;
+  - links 0 broken; the supplement 40 rows, none unverified, no log outside the ledger; export numbers only;
   - the Gantt's dry run passes; bundles B 51 and C 43;
-  - pre-push clean; nothing missing.
-- **Before the push:** `origin/trackC-main` is still `998c5dc`, an ancestor of `HEAD`, so its push is a fast-forward.
-- **Commits:** all Ritik's, no attribution line.
+  - all 156 queue lines parse (40 of them A40's, A41's and A42's);
+  - pre-push: nothing produced, and every commit pushed is the team's with no AI attribution; nothing missing.
+- **The push was held** after the session's signed-in Claude account changed mid-session. It went ahead once the
+  person running the session replied "Push" at 12:12.
+- **Commits:** all Ritik's, no attribution line. **Push:** `trackA-nosol` and `main` only (`trackB-main` is Arsha's,
+  `trackC-main` Shrey's).

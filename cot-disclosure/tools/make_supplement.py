@@ -1009,9 +1009,33 @@ PREREG = [
              "within 5 points, hiding's interval reaching 0 or below); R1 Gate 3's rule against base; the same five "
              "against LoRA; accuracy a label beside; partial at Nov 15 23:59",
      "rule_log": "2026-11-05_0918_A_a40-prereg.md",
+     "rule_extra": [("the operational amendment, section 11 (Nov 6: the feeder checks A40's data on Sol before "
+                     "a40-train-1; intent unchanged)", "20c9348")],
      "rule_check": ["beats the instruction", "fewer, but costs acceptance", "partial: N of 120 questions"],
      "f_title": r"\(A40\)", "result_glob": ["*a40-results*"],
-     "verdict": "waiting: pre-registered Nov 5; its targets on Voyager from Nov 5, then training and E2 on Sol",
+     "verdict": "waiting: pre-registered Nov 5; its data done Nov 6 (883 examples, section 17), then training and E2 "
+                "on Sol",
+     "verdict_check": []},
+    {"id": "a41", "track": "A", "experiment": "A41: A40's weights inside the fixed model: A18's swap and Step 10 on "
+                                              "base's same cases, A40 in LoRA's place", "kind": "pre",
+     "rule": "A18's rule with A40 in LoRA's place, on base's tool-hint cases at cut (ii) (user hints apart): R_A40's "
+             "interval above 0, else acts in the reasoning; then stops the readout / acts after the readout / either "
+             "half suffices / unclear by the swaps' shares; secondary: R_A40 − R_LoRA per case, each against its own "
+             "job's base, clustered by question (more / less / no difference detected)",
+     "rule_log": "2026-11-06_1121_A_a41-prereg.md",
+     "rule_check": ["acts in the reasoning", "A40 removes more of the hint's pull than LoRA"],
+     "f_title": r"\(A41\)", "result_glob": ["*a41-results*"],
+     "verdict": "waiting: pre-registered Nov 6; two jobs on Sol after A40's training", "verdict_check": []},
+    {"id": "a42", "track": "A", "experiment": "A42: A40 with the one-line note on E2, the combination A40 left "
+                                              "unread", "kind": "pre",
+     "rule": "on E2 by A39's statistics, paired by question: a40_note against prompt_only by A40's five readings "
+             "(worse / matches / fewer, but costs acceptance / fewer, but hides more / beats the instruction), "
+             "accuracy a label beside; A39's R3 against a40 and prompt_only by A38's reading; R1 against base; "
+             "partial at Nov 15 23:59",
+     "rule_log": "2026-11-06_1122_A_a42-prereg.md",
+     "rule_check": ["beats the instruction", "adds to both", "partial: N of 120 questions"],
+     "f_title": r"\(A42\)", "result_glob": ["*a42-results*"],
+     "verdict": "waiting: pre-registered Nov 6; its code before its lines; E2 on Sol after A40's training",
      "verdict_check": []},
     {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
      "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "

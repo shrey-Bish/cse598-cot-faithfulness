@@ -1,6 +1,8 @@
 # B20 on your own Sol account (Arsha)
 
-Last updated: 2026-11-05 09:20 (B20 moves to your account). **Edited by:** Ritik.
+Last updated: 2026-11-06 11:10 (step 4: owner-only `trees/*.json` in the HF cache, and the fix; earlier 09:18, the handoff: your Sol clone on `trackB-main` from the start, step 2; Ritik's own Sol
+check before steps 4 and 6; you never commit in the Sol clone). Earlier: 2026-11-05 09:20 (B20 moves to your
+account). **Edited by:** Ritik until his last push to `trackB-main` on Nov 6, then Arsha.
 
 **What this is.** From Nov 5, B20 runs on your own Sol account, with commands you type yourself in your own login. No
 password, key or login is shared, and nobody uses anyone else's. Ritik's account runs A39 and A40. Yours runs all of
@@ -46,23 +48,27 @@ sshare -U -A class_cse59888883fall2026 -o Account,User,RawShares,NormUsage,Effec
   - one row of yours, with FairShare well above Ritik's 0.0019.
 - **Either name missing:** stop and tell Ritik. Steps 4 and 6 read his files through that group.
 
-**2. Your clone** (on `main` today):
+**2. Your clone, on your branch** (`trackB-main`: since Ritik's last push on Nov 6 it is the same commit as `main`):
 ```bash
-git clone -b main https://github.com/shrey-Bish/cse598-cot-faithfulness.git /scratch/$USER/cse598-cot-faithfulness
+git clone -b trackB-main https://github.com/shrey-Bish/cse598-cot-faithfulness.git /scratch/$USER/cse598-cot-faithfulness
 cd /scratch/$USER/cse598-cot-faithfulness
-git log --oneline -1
+git rev-parse HEAD origin/trackB-main             # two lines, the same commit
 grep -q TRACKA_SCRATCH cot-disclosure/finetune/gpu/sol/env.sh && echo "per-user kit: ok"
 ls cot-disclosure/finetune/gpu/sol/queue_b20_2026-11-05.txt
 ```
-- **Expected:** the commit Ritik's message names (or a later one), `per-user kit: ok`, and the queue file.
-- **No queue file:** Ritik hasn't pushed it yet. Run `git pull --ff-only` after his message.
-- **Nov 6, after Ritik's last push to `trackB-main`** (then the same commit as `main`), switch to your branch:
+- **Expected:** two lines, the same commit, the one Ritik's message names (or a later one of yours); `per-user kit:
+  ok`; and the queue file.
+- **The two commits differ, or not the one Ritik named:** stop and tell Ritik. A queued job reads its code from this
+  clone when it starts.
+- **A clone you made before Nov 6, on `main`:** switch it, once, while no B20 job of yours is pending or running:
   ```bash
   cd /scratch/$USER/cse598-cot-faithfulness && git fetch origin
-  git rev-parse HEAD origin/trackB-main        # two lines, the same commit
+  git rev-parse HEAD origin/trackB-main        # two lines, the same commit (else: git pull --ff-only first)
   git checkout trackB-main                     # "... set up to track 'origin/trackB-main'"
   ```
-  If the two commits differ, don't switch: tell Ritik. A queued job reads its code from this clone when it starts.
+- **This clone only runs jobs: you never commit in it.** Your commits come from your machine's clone (START_HERE
+  §10), and reach this one only by a pull. No `git config user.*`, no hooks and no edits are needed here; the one
+  file you add, step 3's accounts file, stays uncommitted.
 - **Every later `git pull` here:** first run [CHECKIN.md](../status/CHECKIN.md) §1 step 4's `git diff --stat HEAD..@{u}`
   in this clone. Pull only if it prints nothing, or while no B20 job is pending or running.
 
@@ -78,7 +84,8 @@ cot-disclosure/finetune/gpu/sol/submit.sh b20 --model granite-4.2-8b --estimate 
   - `check only: nothing submitted`.
 - **`refusing: account … is not listed`:** the file's name or its first word is wrong.
 
-**4. The environments: Ritik's, read-only, through links.**
+**4. The environments: Ritik's, read-only, through links.** Ritik checks first, in his own login, that these folders
+and B20's saved runs (step 6) are open to the course group; his message says when that's done.
 
 Can you read them?
 ```bash
@@ -92,6 +99,13 @@ $R/envs/olmo-vllm/bin/python -c 'import importlib.metadata as m; print("vllm", m
   `vllm 0.31.0 torch 2.13.0`.
 - **`find` prints paths or `Permission denied`:** send Ritik the lines. He makes them group-readable in his own login;
   then run it again. Or build your own (the fallback below).
+- **Known case (Nov 6, 11:10):** the Hugging Face cache can keep its `trees/<sha>.json` files owner-only
+  (`-rw-------`), though the snapshot itself is open. Ritik's two were
+  `models--google--gemma-4-26B-A4B-it/trees/4d7ae4984b7db7de8f8457170b3f1a419ee76d52.json` and
+  `models--ibm-granite--granite-4.2-8b/trees/a7042144125ce5ae64f89610e8289647fc000b9a.json`. He ran `chmod g+r` on
+  both on Nov 6, so they now read `-rw-r----- … class_cse598fall2026`.
+  - **If such a file shows up again:** only its owner can fix it, with `chmod g+r <file>` in their own login. Send
+    Ritik the path.
 
 The links (the `ls -d` must say "No such file or directory" twice; if either folder exists, stop and tell Ritik):
 ```bash
@@ -145,7 +159,8 @@ ls /scratch/$USER/trackA/b20/*/snapshot.json
 - **No line, or `Permission denied` in the `.out`:** send Ritik its last lines.
 
 **6. B20's saved runs, from Ritik's clone to yours.** Copy only while no B20 job is pending or running on either
-account. Ritik confirms his side: no `trackB-b20` job, and no B20 line in his feeder's queue. Then:
+account. Ritik confirms his side (his Sol check, the same message as step 4's): no `trackB-b20` job, and no B20 line
+in his feeder's queue. Then:
 ```bash
 squeue -h -u $USER -n trackB-b20                         # prints nothing (your feeder isn't started yet)
 FROM=/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/results/trackB/b20

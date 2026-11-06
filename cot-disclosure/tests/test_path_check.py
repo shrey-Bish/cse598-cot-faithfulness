@@ -235,6 +235,8 @@ def test_the_real_list_gives_each_teammate_their_track_and_keeps_sol_code_ritiks
                         ("cot-disclosure/tools/trackb_final.py", "trackB-main"),
                         ("cot-disclosure/tests/test_trackB_b20.py", "trackB-main"),
                         ("cot-disclosure/tests/test_trackb_final.py", "trackB-main"),
+                        ("docs/paper/tables/trackB_final.md", "trackB-main"),       # Nov 6: B18's table, which
+                        ("docs/paper/tables/trackB_final.csv", "trackB-main"),      # trackb_final.py writes
                         ("cot-disclosure/results/summaries/trackB/b17_report.json", "trackB-main")):
         assert pc.owner_of(path, rules) == owner, path
     for path in FROZEN_FOR_SOL + ["README.md", "docs/PLAN.md", "docs/status/TODO.md", "cot-disclosure/tools/slide_figures.py"]:
@@ -285,7 +287,113 @@ def test_install_adds_a_commit_msg_hook_that_git_runs(tmp_path):
     for r in (commit(f"C19\n\n{TRAILER}"), commit(f"C19\n\n{FOOTER}"),
               commit("C19", extra=["--author=Claude <noreply@anthropic.com>"]),
               commit("C19", config=["-c", "user.name=Claude", "-c", "user.email=noreply@anthropic.com"])):
-        assert r.returncode == 1 and "commit-msg: refused" in r.stderr, r.stderr
-    assert git(repo, "log", "-1", "--format=%s").strip() == "the tool"                    # none of them was made
+        assert r.returncode == 1 and re.search(r"(commit-msg|identity check): refused", r.stderr), r.stderr  # Nov 6:
+    assert git(repo, "log", "-1", "--format=%s").strip() == "the tool"   # an AI author is refused at pre-commit already
     assert commit("C19's reading (T, Nov 7)").returncode == 0                             # a clean one passes
     assert git(repo, "log", "-1", "--format=%an <%ae>|%cn <%ce>").strip() == "T <t@example.com>|T <t@example.com>"
+
+
+# ---------------------------------------------------------------- Nov 6: only the team commits (configs/team_identities.txt)
+TEAM = """# test team
+Ritik Agarwal | Ritik <ritik@example.com>
+Shrey Bishnoi | Shrey Bishnoi <Shrey@Example.com>, Shrey <shrey2@example.com>
+Arsha Jindal  |                                   # email to confirm
+"""
+
+
+def test_a_team_identity_passes_by_email_or_by_name_when_no_email_is_listed():
+    team = pc.parse_team(TEAM)
+    assert [p[0] for p in team] == ["Ritik Agarwal", "Shrey Bishnoi", "Arsha Jindal"]
+    for ok in ("Ritik <ritik@example.com>", "Ritik Agarwal <RITIK@example.com>",      # the email, any case, any name
+               "Shrey <shrey@example.com>", "S B <shrey2@example.com>",
+               "Arsha Jindal <arsha.j@example.com>"):                               # no email listed: her exact name
+        assert pc.identity_problem(ok, team) is None, ok
+    for bad in ("Ritik <other@example.com>",                                        # a listed person, another email
+                "Arsha <arsha@example.com>",                                        # not her exact name
+                "Someone <s@example.com>",
+                "Arsha Jindal <x@openai.com>",                                      # her name, an AI email
+                "Claude <noreply@anthropic.com>", "Ritik <noreply@anthropic.com>",
+                "Copilot <198982749+Copilot@users.noreply.github.com>", "Ritik (aider) <ritik@example.com>",
+                "gemini-code-assist[bot] <bot@example.com>", "Cursor Agent <cursoragent@cursor.com>"):
+        assert pc.identity_problem(bad, team), bad
+
+
+def test_without_a_team_file_only_ai_identities_are_refused():
+    assert pc.identity_problem("T <t@example.com>", None) is None
+    assert pc.identity_problem("Claude <noreply@anthropic.com>", None)
+    assert pc.identity_problem("ChatGPT <x@example.com>", None)
+
+
+def test_message_rules_refuse_ai_co_authors_tool_lines_and_session_lines():
+    team = pc.parse_team(TEAM)
+    me = "Ritik <ritik@example.com>"
+    for message in ("C19\n\nco-authored-by: Someone <s@example.com>\n",                   # any case, not the team
+                    "C19\n\nCO-AUTHORED-BY: Shrey <shrey@other.com>\n",
+                    "C19\n\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>\n",
+                    "C19\n\nReviewed-by: x <bot@openai.com>\n",                          # an AI email on any line
+                    "C19\n\nGenerated with Cursor\n", "C19\n\n\U0001f916 Generated with [Codex](https://openai.com)\n",
+                    "C19\n\nClaude-Session: 01ABCdef\n", "C19\n\nSession-Id: 42\n",
+                    "C19\n\nhttps://claude.ai/code/session_01AbC\n"):
+        assert pc.attribution_problems(message, me, me, team), message
+    for message in ("C19\n\nCo-authored-by: Shrey Bishnoi <shrey@example.com>\n",          # a team co-author
+                    "C19\n\nCo-Authored-By: Arsha Jindal <aj@example.com>\n",
+                    "The root CLAUDE.md and .claude/settings.json: Claude Code adds no trailer (Ritik, Nov 6)\n",
+                    "The supplement regenerated with make_supplement.py; the Gantt generated with make_gantt\n",
+                    "The 23:13 session's checks recorded\n\nSession log: archive/sessions/x.md\n"):
+        assert pc.attribution_problems(message, me, me, team) == [], message
+    assert pc.attribution_problems("C19\n", "Someone <s@example.com>", me, team)           # a non-team author
+    assert pc.attribution_problems("C19\n", me, "Someone <s@example.com>", team)           # a non-team committer
+
+
+def test_the_real_team_file_lets_the_history_in_and_no_asu_email_is_written():
+    text = (CODE.parent / pc.TEAM_FILE).read_text()
+    assert "@asu.edu" not in text.lower()                                     # its local part is a Sol username
+    team = pc.parse_team(text)
+    assert sorted(p[0] for p in team) == ["Arsha Jindal", "Ritik Agarwal", "Shrey Bishnoi"]
+    seen = subprocess.run(["git", "log", "--format=%an <%ae>%n%cn <%ce>", "-200"], cwd=CODE.parent,
+                          capture_output=True, text=True).stdout.split("\n")
+    for ident in {s for s in seen if s}:                                       # every identity in recent history
+        assert pc.identity_problem(ident, team) is None, ident
+    assert pc.identity_problem("Arsha Jindal <arsha@example.com>", team) is None
+    assert pc.identity_problem("Claude <noreply@anthropic.com>", team)
+
+
+def test_install_writes_four_hooks_and_a_non_team_commit_is_refused_before_it_is_made(tmp_path):
+    repo = make_repo(tmp_path)
+    git(repo, "checkout", "-q", "main")                                      # the tools and the team on every branch
+    for name in ("path_check.py", "prepush_check.py"):
+        write(repo, f"cot-disclosure/tools/{name}", (CODE / "tools" / name).read_text())
+    write(repo, pc.TEAM_FILE, "T Person | T <t@example.com>\n")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-qm", "the tools and the team", "--no-verify")
+    git(repo, "checkout", "-q", "trackC-main")
+    git(repo, "merge", "-q", "--ff-only", "main")
+    hooks = Path(repo) / ".git" / "hooks"
+    (hooks / "pre-push").write_text('#!/bin/sh\nexec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/'
+                                    'prepush_check.py" "$@"\n')                # RUNBOOK §17's hand-written line
+    assert pc.main(["--repo", str(repo), "--install"]) == 0
+    assert set(pc.HOOKS) == {"pre-commit", "pre-merge-commit", "commit-msg", "pre-push"}
+    assert "prepush_check.py" in (hooks / "pre-push").read_text() and "--install" in (hooks / "pre-push").read_text()
+
+    def commit(message, config=(), extra=()):
+        write(repo, "docs/trackC/TODO_C.md", f"{message} {config} {extra}\n")
+        git(repo, "add", "-A")
+        return subprocess.run(["git", *config, "commit", "-qm", message, *extra], cwd=repo, capture_output=True, text=True)
+
+    r = commit("C19", extra=["--author=Someone <s@example.com>"])
+    assert r.returncode == 1 and "not a team identity" in r.stderr, r.stderr
+    r = commit("C19", config=["-c", "user.name=Other", "-c", "user.email=o@example.com"])
+    assert r.returncode == 1 and "not a team identity" in r.stderr, r.stderr
+    r = commit("C19\n\nCo-authored-by: Someone <s@example.com>")
+    assert r.returncode == 1 and "commit-msg: refused" in r.stderr, r.stderr
+    assert git(repo, "log", "-1", "--format=%s").strip() == "the tools and the team"         # none was made
+    assert commit("C19's reading (T, Nov 7)").returncode == 0
+    git(repo, "checkout", "-q", "main")
+    write(repo, "cot-disclosure/client.py", "x = 5\n")
+    git(repo, "commit", "-qam", "main moves on")
+    git(repo, "checkout", "-q", "trackC-main")
+    r = subprocess.run(["git", "merge", "-q", "--no-ff", "-m", "merge main", "main"], cwd=repo, capture_output=True,
+                       text=True)
+    assert r.returncode == 0, r.stderr                                          # a team merge of main passes
+    (hooks / "pre-push").write_text("#!/bin/sh\nexit 0\n")                     # someone else's pre-push: left alone
+    assert pc.main(["--repo", str(repo), "--install"]) == 1

@@ -104,7 +104,7 @@ A39_WRONG = (("user_turpin", 0), ("user_professor", 0), ("tool_progress", 0), ("
 A39_CORRECT = (("tool_progress", 0), ("tool_progress", 1), ("inserted_study_guide", 0), ("inserted_database", 0))
 A39_NOHINT = (0, 1)
 A39_SYSTEMS = ("base", "prompt_only", "lora", "lora_note", "wrap", "wrap_note", "lora_wrap")
-NOTED = ("prompt_only", "lora_note", "wrap_note")
+NOTED = ("prompt_only", "lora_note", "wrap_note", "a40_note")   # a40_note: A42 (Nov 6), A40 with the note
 SHARED = {"wrap": "base", "wrap_note": "prompt_only", "lora_wrap": "lora"}   # wrapper system: its partner without it
 WRAP = "[unverified tool output] "
 # the dry run's budget (A39): batch 3's measured numbers
