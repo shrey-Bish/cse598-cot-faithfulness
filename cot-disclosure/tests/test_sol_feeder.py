@@ -332,8 +332,10 @@ def test_the_queue_file_follows_the_plan():
     todo = [l for l in lines if "job" not in l.opts]
     # Nov 5 (the logs' sections 19): B20's lines are on Arsha's account and B1R2's dropped; E2, then A40, then the 30
     groups = [l.label.split("-")[0] for l in lines]
-    assert set(groups) <= {"e2", "a40", "m30"} and groups == sorted(groups, key=["e2", "a40", "m30"].index)
-    todo = [l for l in todo if not l.label.startswith("a40-")]             # A40's lines: its own tests
+    # Nov 6: A41's and A42's lines at the end (their own test)
+    order = ["e2", "a40", "m30", "a41", "a42"]
+    assert set(groups) <= set(order) and groups == sorted(groups, key=order.index)
+    todo = [l for l in todo if not l.label.startswith(("a40-", "a41-", "a42-"))]   # A40's, A41's, A42's: their own tests
     parts = [(l.argv[-3], l.argv[-1]) for l in todo if l.argv[0] == "a39_1gpu" and l.argv[-2] == "e2"
              and l.argv[-1].endswith("/16")]
     assert len(parts) == 56
@@ -683,7 +685,8 @@ def test_a39_parts_not_yet_submitted_get_2_00_and_the_sweeps_3_00():
     submitted by 10:15 get 2:00 and the sweeps, whose size is the leftovers, 3:00; the 16 sixteenths already submitted
     keep their 1:30. Section 15's 28 sixteenths (the quarters' leftovers) get 2:00 as well."""
     lines = sf.parse_queue(sf.QUEUE.read_text())
-    a39 = [l for l in lines if l.argv[0] == "a39_1gpu" and "job" not in l.opts and not l.label.startswith("a40-")]
+    a39 = [l for l in lines if l.argv[0] == "a39_1gpu" and "job" not in l.opts
+           and not l.label.startswith(("a40-", "a42-"))]                  # A40's and A42's (Nov 6): their own tests
     first = next(i for i, l in enumerate(a39) if l.label == "e2-lora_note-11of16")   # A40's own lines (Nov 5): its log
     assert {sf.limit_hours(l.argv) for l in a39[:first]} == {1.5} and len(a39[:first]) == 16
     later = a39[first:]
@@ -1091,3 +1094,44 @@ def test_a40s_lines_follow_its_log_and_wait_for_the_data_check():
     assert sweep.opts["left"] == sf.spec_of(sweep) == "a39:a40:e2" and sf.limit_hours(sweep.argv) == 3.0
     assert all(sf.group_of(l) == "A40" for l in a40)
     assert all(re.match(sf.DECISIONS["nov11"]["lines"], l.label) for l in a40)
+
+
+def test_the_digest_gives_a41_and_a42_their_own_groups():
+    """Nov 6 (helper E): A41's lines (a18 jobs) would have had no group, and A42's (the system a40_note on E2) would have
+    counted as A39 on E2. Each is its own group; A40's and A39's stay."""
+    line = lambda label, args: sf.parse_queue(f"{label} | - | {args}\n")[0]   # noqa: E731
+    assert sf.group_of(line("a41-swap", "a18 --estimate 0.8 -- swap --trained a40")) == "A41"
+    assert sf.group_of(line("a41-step10", "a18 --estimate 2.3 -- step10 --cases base --weights a40")) == "A41"
+    assert sf.group_of(line("a42-e2-1of16", "a39_1gpu --estimate 1.5 -- a40_note e2 1/16")) == "A42"
+    assert sf.group_of(line("x", "a39_1gpu --estimate 1.5 -- a40_note e2 1/16")) == "A42"         # by its system
+    assert sf.group_of(line("a40-e2-1of16", "a39_1gpu --estimate 1.5 -- a40 e2 1/16")) == "A40"
+    assert sf.group_of(line("e2-base-1of16", "a39_1gpu --estimate 1.5 -- base e2 1/16")) == "A39 on E2"
+
+
+def test_a41s_and_a42s_lines_follow_their_logs_at_the_queue_s_end():
+    """The Nov 6 11:21 (A41) and 11:22 (A42) logs: after A40's and the 30's lines, A41's swap and Step 10 (with an
+    again-line) and A42's sixteen parts of 2:00 and its sweep of 3:00, each after A40's training; no needs= (the code
+    and the lines come in the same pull); none of them in nov11's set."""
+    lines = sf.parse_queue(sf.QUEUE.read_text())
+    labels = [l.label for l in lines]
+    a41 = ["a41-swap", "a41-step10", "a41-step10-again"]
+    a42 = [f"a42-e2-{k}of16" for k in range(1, 17)] + ["a42-e2-sweep"]
+    assert labels[-len(a41 + a42):] == a41 + a42
+    assert labels.index("a41-swap") > max(i for i, x in enumerate(labels) if x.startswith(("a40-", "m30-")))
+    by = {l.label: l for l in lines}
+    assert by["a41-swap"].opts == {"afterok": "@a40-train-3"} and sf.limit_hours(by["a41-swap"].argv) == 1.5
+    assert by["a41-swap"].argv == ["a18", "--estimate", "0.8", "--", "swap", "--trained", "a40"]
+    assert by["a41-step10"].opts == {"afterok": "@a40-train-3"} and sf.limit_hours(by["a41-step10"].argv) == 3.0
+    assert by["a41-step10"].argv == ["a18", "--estimate", "2.3", "--", "step10", "--cases", "base", "--weights", "a40"]
+    assert by["a41-step10-again"].opts == {"again": "@a41-step10"} and by["a41-step10-again"].argv == by["a41-step10"].argv
+    for k in range(1, 17):
+        l = by[f"a42-e2-{k}of16"]
+        assert l.opts == {"afterok": "@a40-train-3"}
+        assert l.argv == ["a39_1gpu", "--estimate", "1.5", "--", "a40_note", "e2", f"{k}/16"]
+        assert sf.limit_hours(l.argv) == 2.0 and sf.spec_of(l) == f"a39:a40_note:e2:{k}/16"
+    sweep = by["a42-e2-sweep"]
+    assert set(sweep.opts["afterany"].split(":")) == {f"@a42-e2-{k}of16" for k in range(1, 17)}
+    assert sweep.opts["left"] == sf.spec_of(sweep) == "a39:a40_note:e2" and sf.limit_hours(sweep.argv) == 3.0
+    assert all(sf.group_of(by[x]) == "A41" for x in a41) and all(sf.group_of(by[x]) == "A42" for x in a42)
+    assert not any("needs" in by[x].opts for x in a41 + a42)
+    assert not any(re.match(sf.DECISIONS["nov11"]["lines"], x) for x in a41 + a42)

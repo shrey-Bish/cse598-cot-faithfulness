@@ -243,11 +243,14 @@ def limit_hours(argv):
 
 def group_of(line):
     """The digest's groups: A39 on E2, A40 (its a40- labels, or the system a40: its E2 lines run as A39's do), A39 on
-    the 30, B20 (Arsha's feeder, Nov 5)."""
+    the 30, B20 (Arsha's feeder, Nov 5); Nov 6: A41 (its a41- labels: A18's jobs with A40's weights) and A42 (a42-, or
+    the system a40_note)."""
     a = line.argv
     system = a[a.index("--") + 1] if "--" in a[:-1] else None
     if line.label.startswith("a40-") or system == "a40":
         return "A40"
+    if line.label.startswith(("a41-", "a42-")) or system == "a40_note":
+        return "A41" if line.label.startswith("a41-") else "A42"
     if a[0] == "b20":
         return "B20"
     if a[0].startswith("a39"):
