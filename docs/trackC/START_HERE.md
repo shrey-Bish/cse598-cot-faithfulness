@@ -11,6 +11,8 @@ the three hooks, the dates).
 > **Before your next commit:** `git fetch origin && git merge origin/main`, then
 > `python3 cot-disclosure/tools/path_check.py --install` again (it now writes four hooks, pre-push included), and
 > check that `git config user.name` / `user.email` match your line in that file.
+> Your two emails are listed there, as hashes (Nov 6). Commit with your Gmail: the repo is public, and an ASU
+> email in a commit's author line shows your Sol username.
 
 ## Quick start (one page)
 
