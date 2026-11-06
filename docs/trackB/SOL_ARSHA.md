@@ -1,6 +1,6 @@
 # B20 on your own Sol account (Arsha)
 
-Last updated: 2026-11-06 09:18 (the handoff: your Sol clone on `trackB-main` from the start, step 2; Ritik's own Sol
+Last updated: 2026-11-06 11:10 (step 4: owner-only `trees/*.json` in the HF cache, and the fix; earlier 09:18, the handoff: your Sol clone on `trackB-main` from the start, step 2; Ritik's own Sol
 check before steps 4 and 6; you never commit in the Sol clone). Earlier: 2026-11-05 09:20 (B20 moves to your
 account). **Edited by:** Ritik until his last push to `trackB-main` on Nov 6, then Arsha.
 
@@ -99,6 +99,13 @@ $R/envs/olmo-vllm/bin/python -c 'import importlib.metadata as m; print("vllm", m
   `vllm 0.31.0 torch 2.13.0`.
 - **`find` prints paths or `Permission denied`:** send Ritik the lines. He makes them group-readable in his own login;
   then run it again. Or build your own (the fallback below).
+- **Known case (Nov 6, 11:10):** the Hugging Face cache can keep its `trees/<sha>.json` files owner-only
+  (`-rw-------`), though the snapshot itself is open. Ritik's two were
+  `models--google--gemma-4-26B-A4B-it/trees/4d7ae4984b7db7de8f8457170b3f1a419ee76d52.json` and
+  `models--ibm-granite--granite-4.2-8b/trees/a7042144125ce5ae64f89610e8289647fc000b9a.json`. He ran `chmod g+r` on
+  both on Nov 6, so they now read `-rw-r----- … class_cse598fall2026`.
+  - **If such a file shows up again:** only its owner can fix it, with `chmod g+r <file>` in their own login. Send
+    Ritik the path.
 
 The links (the `ls -d` must say "No such file or directory" twice; if either folder exists, stop and tell Ritik):
 ```bash
