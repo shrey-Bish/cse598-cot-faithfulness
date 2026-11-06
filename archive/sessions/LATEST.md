@@ -1,154 +1,209 @@
-# Session log: Arsha's Track B handoff, with both Sol blocks (2026-11-06 09:10 MST)
+# Session log: A40's data and gate, no AI contributors, Ritik's Sol kept busy (2026-11-06 11:07 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `79651d7`. The first session of Nov 6: it opened
-[the daily](2026-11-06/DAILY_2026-11-06.md), with Nov 5's "For Nov 6" carried in.
+**By:** Ritik. Branch `trackA-nosol`, from `10f7920`.
 
-## 0. Input and state
+## 0. Input
 
-- **Ritik, 09:10:** give Arsha's complete handoff too, so that she can start the work, and begin the Sol commands.
-- **The same treatment as Shrey's** ([the 23:13 log](2026-11-05/2026-11-05_2313_ALL_shrey-handoff.md)):
-  - detailed, with the repo's structure;
-  - no conflict with `main`;
-  - commits only as Arsha;
-  - everything on GitHub;
-  - the data in a zip for ASU Drive.
-  Built by a helper (no commits, nothing on Sol); I checked what it built and committed it.
-- **Sol needs Duo** (`ssh -O check` found no connection at 09:11), so I ran nothing there.
-  - The 07:00 nov6 decision is unread.
-  - Ritik's block (§4) reads it, and checks what Arsha's steps 4 and 6 need from his account.
-- **A40's Voyager targets are done** (read-only, from the guard's log): "done a40s2" at 05:02:47, and "guard ended:
-  every job done" at 05:03:47. Shard 2 ended at 491 of 491.
-  - Nothing of A40 was touched: the assembly, the gate and the queue lines are Ritik's morning prompt.
+- **Ritik sent both handoff messages** (to Shrey and to Arsha). His note to Arsha says:
+  - commits only as team members, never an AI tool;
+  - before her first commit, merge `origin/main` and rerun `--install`.
+- **His Sol block** (sol-login04, Nov 6 morning):
+  - no B20 on his account: `squeue` is empty, and `grep -c '^b20-'` on his queue file prints 0;
+  - **the nov6 decision**, 07:00:30: 60.6 GPU-hours from Nov 4 12:36 to Nov 6 07:00, not under 10, so no cut: the
+    30's own rule (Nov 11 09:00) stands;
+  - **permissions:** the folder loop printed nothing. The tree check printed two owner-only files, the Hugging Face
+    cache's `trees/<sha>.json` for Gemma and Granite. Ritik ran `chmod g+r` on both, and they now read
+    `-rw-r----- ragarw68 class_cse598fall2026`. `stat` shows `drwxr-x--- class_cse598fall2026` on his scratch,
+    `envs/olmo`, `hf/hub` and `results/trackB/b20`;
+  - **the feeder at 10:56** (sc019): "116 lines: 10 not needed, 106 ok"; nov11 not made yet; `--dry-run` prints
+    nothing;
+  - **`squeue`:** only the feeder's own tick job (`460080`, pending, BeginTime).
+- **So his Sol account is idle now.** Every line in his queue has ended (status counts only; no outcome read).
+- **Decisions:**
+  - **the gate (from yesterday):** the feeder itself runs `make_bct.py --check-data` on Sol before submitting
+    `a40-train-1`, and submits A40's lines only once it passes. It's an operational amendment to A40's log §11 (the
+    intent unchanged: the data verified on Sol before training), committed before the queue lines, so one pull is
+    enough;
+  - **a new permanent rule:** no commit on any branch lists Claude, Anthropic or any AI tool as author, committer
+    or co-author, or carries a "Generated with …" or session line. The only authors and committers are the team:
+    Ritik Agarwal, Arsha Jindal and Shrey Bishnoi, as their git identities in the history (the list for Ritik to
+    confirm). Enforcement mustn't depend on Claude Code's setting;
+  - **Ritik's Sol account must never sit idle** while project work is pending.
 
-## 1. What changed (commits `e1ff793`, `47f508f`, `1e28379`)
+## 1. Plan (written before the helpers start; helpers don't commit)
 
-| File | What |
-|---|---|
-| `docs/trackB/START_HERE.md` | §0 what changed since Nov 4; §1 her first day in order (clone and level `trackB-main`, her git identity, three hooks with a hook check that commits nothing, the zip, then Sol); §9 the repo folder by folder, each path's owner; §10 git without conflicts; §11 Claude Code (commits as Arsha only); the §7 brief; the dates |
-| `docs/trackB/SOL_ARSHA.md` | step 2 clones `trackB-main` directly (the same commit as `main` after today's push) and checks it; a switch only for a clone made before today; the Sol clone never commits; steps 4 and 6 wait for Ritik's own Sol check |
-| `docs/tracks/TRACK_B.md` | follows START_HERE: the ff-merge and identity, three hooks, the zip, T1–T13, Nov 6's rows; its "Known traps" untouched |
-| `configs/path_allowlist.txt` | `trackB-main  docs/paper/tables/trackB_final.*`: B18's table, which her `trackb_final.py` writes and her page already gave her. Without it, the hook would have refused her B18 commits |
-| `tests/test_path_check.py` | 2 assertions for that line, seen failing first |
-| `docs/paper/supplement/` | regenerated from committed inputs: 38 rows, none unverified; only the stamp changed |
+- **The order matters, because his account is idle now.** A40's lines (helper A) are the critical path: they're
+  checked, committed and pushed first, so Ritik's one pull and rsync start A40's training at once.
+- **Helper A, A40:**
+  - `--check-shards`, `--report`, `--assemble`;
+  - the operational note in A40's log (counts, drops, the correct-to-wrong ratio, the stances; no E2 number);
+  - the gate: its amendment first, then the code and tests;
+  - A40's lines as the 13:38 log's §5 gives them, after `e2-lora_wrap-sweep` and before `m30-base-1of4`, gated by
+    the check.
+- **Helper C, no AI contributors:**
+  - `.claude/settings.json` and the root `CLAUDE.md`;
+  - `configs/team_identities.txt`;
+  - hooks from `path_check.py --install`: commit-msg, pre-commit identity, and a pre-push scan of every outgoing
+    commit;
+  - tests seen failing first;
+  - a read-only history audit of all four branches;
+  - the rule, and the merge-and-reinstall step, in Track B's and Track C's START_HERE.
+- **Helper D, Ritik's Sol kept busy:**
+  - when his queue runs dry after A40;
+  - every pending Track A task that could use his Sol, with its value, GPU-hours, and whether it can be
+    pre-registered now;
+  - the top one or two pre-registered (committed before any run), with lines placed after the 30's. Nothing is
+    chosen on E2 or any evaluation question.
+- **Helper B's records, done by me** (small):
+  - the nov6 decision in today's daily, the A39 log and ONE_PAGE;
+  - SOL_ARSHA's troubleshooting for the owner-only `trees/*.json` files.
+- **Then:**
+  - the hooks installed in Ritik's clone and proved (a Claude trailer refused, a clean commit passing, both reset;
+    nothing pushed);
+  - the stale scan; the logs; the checks;
+  - the push to `trackA-nosol` and `main` only.
 
-- The three Track B files went in with `PATH_CHECK_ALLOW=trackB-main`, said in the message.
-- TODO_B and FINDINGS_B are unchanged: TODO_B's B20 row still holds, and FINDINGS_B has no entries yet.
+## 2. A40: the data, the gate, the lines (helper A; `20c9348`, `d856cef`)
 
-## 2. The zip (for ASU Drive; gitignored, never GitHub)
+- **`--check-shards`:** no problems, 979 final rows, 0 missing. **979 of 979 records, 883 examples**.
+  - Dropped: 96, by its §3's two reasons: "no final answer passed in 4", 91; "no no-hint sample ended on the key in
+    4", 5.
+- **Correct to wrong:** 281 to 602 among the examples (0.47), 328 to 651 among the records (0.50, as planned).
+  Correct-hint records were dropped at 14.3%, wrong-hint ones at 7.5%.
+- **Stances:** every wrong-hint example "disagrees" (602); every correct-hint one "agrees after checking" (281).
+- **The training set:** 981 examples (plus 98 no-hint), train 881 and validation 100 (by question, 195 and 22); median
+  6,661 tokens, none over the cap.
+- **The manifest:** `finetune/gpu/a40_inputs.json`, sha256 `64edcdf9…`. The data (`finetune/data/a40/`) is
+  gitignored, and `--check-data` passes on the Mac.
+- **Committed in order:**
+  1. the amendment (§11: the feeder runs the check) and the data note (§17), first;
+  2. then the manifest, the feeder's `check=` option (a fixed table; the line waits, never skipped; one alert per
+     reason; 7 tests seen failing first), `make_bct`'s one-line fix, and A40's 20 lines, together.
 
-- **Path:** `cot-disclosure/results/handoff/trackB_20261106.zip`, with its manifest beside it.
-- **Size:** 63,090,300 bytes; 51 files and `MANIFEST.json`; 73.8 MB unpacked.
-- **sha256:** `df243bcf24042ac5d47f487cd15d4fea4fc425adee90cf231ca9ebf9a087db72` (rechecked at 09:53).
-- **`--verify`:** "bundle matches its manifest". B20's 3 record files with text stay on Sol.
-- **Against Nov 4's tar.gz:** nothing added or removed. One file changed, `results/voyager_canary.jsonl` (Voyager's
-  later identity checks).
-- **Key scan, by pattern and variable name only** (the helper never opened `.env`): nothing.
-  - Ritik's own Sol user appears in 4 files, as Sol paths. They were in Nov 4's bundle too.
+## 3. Only the team commits (helper C; `37738b4`, `c0ec7bb`, `a2fe67d`, `97a1446`)
 
-## 3. The handoff tried as Arsha would (helper, a scratch clone; no calls, no key)
+- **`configs/team_identities.txt`:** Ritik Agarwal (`Ritik <ri…@gmail.com>`) and Shrey Bishnoi (`Shrey Bishnoi
+  <sb…@gmail.com>`), from the history. Arsha Jindal by exact name, until Ritik adds the email she commits with. No ASU
+  email is written in it. **For Ritik to confirm.**
+- **Hooks** (`path_check.py --install` now writes four):
+  - **pre-commit and pre-merge-commit:** refuse a non-team or AI author or committer;
+  - **commit-msg:** also refuses a co-author line outside the team, an AI tool's email, a tool footer line and a
+    session line;
+  - **pre-push:** names each outgoing commit that breaks the rule. History already on origin never blocks.
+  - 7 tests, seen failing first.
+- **Claude Code's setting is unchanged:** the `attribution` object form is right for the installed 2.1.251. The hooks
+  don't depend on it. `CLAUDE.md` now opens with the rule, and RUNBOOK §17 says four hooks.
+- **The history audit** (read-only; `main`, `trackA-nosol` and `trackB-main` at `10f7920`, `trackC-main` at
+  `af37698`; 365 commits): **no offender.** Every author and committer is Ritik or Shrey Bishnoi, and there is no
+  trailer line at all. Nothing to rewrite.
+- **Proved in Ritik's clone** (11:34), nothing staged before or after:
+  - the hooks installed (commit-msg, pre-commit, pre-merge-commit, pre-push);
+  - a Claude co-author trailer: refused by commit-msg, exit 1, no commit made;
+  - `--author="Claude <noreply@anthropic.com>"`: refused by the identity check, exit 1, no commit made;
+  - a clean commit as Ritik passed (`c88d6f9`), then `git reset --soft HEAD~1`, back at `97a1446`. Never pushed.
+- **Track B's and Track C's START_HERE** got a short block before the Quick start: the rule, then "merge
+  `origin/main`, rerun `--install`, check your identity". Each went in with its `PATH_CHECK_ALLOW`.
 
-1. **Clone:** `trackB-main` at `998c5dc`, then `--ff-only` to a simulated handoff commit; the identity set and checked.
-2. **Hooks:** `--install` wrote three, plus the pre-push line.
-   - Run on a test file, the commit-msg hook refused a Claude trailer (exit 1) and accepted a clean message (exit 0).
-   - The path check refused `docs/PLAN.md` on `trackB-main`, and allowed B18's table.
-3. **The zip:** the sha256 matched; unzipped; `--verify` passed; `git status` clean.
-4. **Her step 6's seven no-call reports** all exited 0. The bundled files, the tracked summaries and B18's table were
-   unchanged afterwards.
-5. **Tests:** Track B's 117 passed, 2 skipped. The full suite in that clone: 979 passed, 10 skipped.
+## 4. Ritik's Sol kept busy (helpers D and E; `1c6a170`, `8952e24`, `2b14c86`, `e09ec4b`, `4603c5d`)
 
-## 4. Ritik's Sol block (his own account; read-only except where marked)
+- **When his queue runs dry (projection):** A40's lines alone, about 8–18 h after his pull.
+  - The training chain is 3.3 GPU-h with three waits, holding 1 place at a time. E2's 16 parts run up to 8 at once
+    under the 960 cap, then the sweep.
+  - A41 adds no time (it runs beside E2's second wave). A42 adds about 2.5–6 h.
 
-```bash
-# On the Mac
-ssh -O check login.sol.rc.asu.edu || ssh login.sol.rc.asu.edu     # one Duo push if the connection isn't open
+| rank | task | GPU-h | state |
+|---|---|---|---|
+| 1 | **A41:** A40's weights in A18's swap and Step 10 (Ritik's readout question) | ~4 | pre-registered (11:21), coded, 3 lines in |
+| 2 | **B1R2 revived** (pre-registered, coded) | ~66 | **Ritik's call:** it would reverse decision f. It runs on base, so it could fill the places A40's training leaves idle now |
+| 3 | **A42:** A40 with the note on E2 (the combination A40 left unread) | 16–21 | pre-registered (11:22), coded (helper E), 17 lines in |
+| 4–6 | a second A40 seed; A40 on the 30; Gate 3's other versions on E2 | 7–25 each | not pre-registered |
 
-# On Sol, in your own login
-# 1. No B20 left on your account
-squeue -h -u $USER -n trackB-b20                                    # prints nothing
-grep -c '^b20-' /scratch/$USER/cse598-cot-faithfulness/cot-disclosure/finetune/gpu/sol/queue_2026-11-04.txt   # 0
+- **Nothing was chosen on an evaluation question.** A41's cases are A18's (chosen Oct 31–Nov 1 by its own rule), and
+  A42 is read on E2 by A40's own rules.
+- **A42's log §10:** one operational deviation, committed before its lines: no `needs=`, since its code and lines
+  arrive in one pull.
+- **The queue now:** 156 lines on Sol after the pull ("10 not needed, 106 ok, 40 to submit"). Only `a40-train-1` goes
+  in first, once its check passes.
 
-# 2. The 07:00 decision
-grep "decision nov6" /scratch/$USER/trackA/feeder.log | tail -2
+## 5. Records (helper B's part, mine)
 
-# 3. Can the course group reach and read what Arsha's steps 4 and 6 read? Prints nothing if yes.
-G=class_cse598fall2026; R=/scratch/$USER; C=$R/cse598-cot-faithfulness/cot-disclosure
-for d in $R $R/envs $R/hf $R/hf/hub $R/cse598-cot-faithfulness $C $C/results $C/results/trackB; do
-  find "$d" -maxdepth 0 \( \( -group $G ! -perm -g=x \) -o \( ! -group $G ! -perm -o=x \) \) -exec ls -ld {} \; ; done
-find $R/envs/olmo $R/envs/olmo-vllm $R/hf/hub/models--ibm-granite--granite-4.2-8b \
-     $R/hf/hub/models--google--gemma-4-26B-A4B-it $C/results/trackB/b20 ! -type l \
-     \( \( -group $G \( \( -type d ! -perm -g=rx \) -o ! -perm -g=r -o \( -type f -perm -u=x ! -perm -g=x \) \) \) \
-     -o \( ! -group $G \( \( -type d ! -perm -o=rx \) -o ! -perm -o=r -o \( -type f -perm -u=x ! -perm -o=x \) \) \) \) \
-     -exec ls -ld {} + | head -20                                    # a few minutes; 20 lines means likely more
-stat -c '%A %G %n' $R $R/envs/olmo $R/hf/hub $C/results/trackB/b20   # the group column: class_cse598fall2026
-
-# ONLY IF step 3 printed lines, and only for what it printed: your decision (it opens these to the whole class group).
-#   a folder from the for loop:   chgrp $G <dir>   (only if its group differs); then  chmod g+x <dir>
-#   a line under one of the trees: chgrp -R $G <that tree>   (if the group differs); then  chmod -R g+rX <that tree>
-#   then step 3 again: it must print nothing.
-# g+x lets the group pass through a folder, not list it. b20's *.jsonl.gz hold model text: after Arsha's step 6
-# copy, close them again with  chmod g-r $C/results/trackB/b20/*/b20_sol_vllm.jsonl.gz
-```
-
-- Then message Arsha that steps 4–8 can go ahead.
-- **Not run, not tested on Sol.** The permission checks were tried with the Mac's `find` on a scratch tree, both the
-  group and the world branch.
-- **Arsha's first Sol session** is SOL_ARSHA's steps 1–4, as written there. Steps 1–3 can be done any time; step 4
-  waits for this block.
-
-## 5. The message to Arsha (Ritik sends it with the zip's link; COMMIT is the pushed commit, §8)
-
-> Hi Arsha, Track B is yours from today. Everything is on GitHub, and the data is in our ASU Drive folder.
-> - **Start:** `docs/trackB/START_HERE.md` on `trackB-main`: the Quick start, then §0 (what changed since Nov 4),
->   then §1, your first day in order.
-> - **Data:** `trackB_20261106.zip`: <link>. sha256 `df243bcf24042ac5d47f487cd15d4fea4fc425adee90cf231ca9ebf9a087db72`.
->   Unzip it into `cot-disclosure/` and run `--verify` (§1, step 5).
-> - **Your name on your commits:** set `git config user.name` and `user.email` in your clone (§1, step 1). The root
->   `CLAUDE.md`, `.claude/settings.json` and a commit-msg hook keep Claude Code off your commits as a co-author (§11).
-> - **Hooks, once:** `python3 cot-disclosure/tools/path_check.py --install`, plus the pre-push line (§1, step 3).
-> - **Your branch is `trackB-main`** (at COMMIT; from now on only you push to it); change only your paths (§2, §10).
-> - **Sol:** `docs/trackB/SOL_ARSHA.md`, typed in your own login. Steps 1–3 any time; steps 4–8 after I message you
->   that my Sol check is done. Your feeder then starts Granite's and Gemma's chains.
-> - **Then:** re-read B16, B19 and B17 by Sat Nov 7, and B24 by Mon Nov 9. B20 is read Nov 17 (partial at Nov 15
->   23:59 if not complete); B18's table is due Nov 18; slides 2, 6, 7 and 8 by Nov 20. Check-ins are Nov 12, 15
->   and 18.
+- **The nov6 decision:** in A39's log §20 (`12cf140`), here, today's daily and ONE_PAGE.
+- **SOL_ARSHA step 4** (`173f2c6`): the owner-only `trees/*.json` case, and the owner's `chmod g+r`.
+- **Stale statements fixed** (the 30 "goes in as places free", E2 "pending", A40's "about 04:30"):
+  - PLAN (`226d8ee`) and RUNBOOK §0 (`c0ec7bb`);
+  - ONE_PAGE and TODO (A39's row; A40's; new rows A41 and A42).
+  - Nothing misplaced was found.
 
 ## 6. Rulings
 
-- **The helper's:**
-  - B18's table goes to Track B's paths (§1). The cost if that's wrong: Ritik's branches can change it only by
-    merging hers, or with the override. Nothing of his writes it.
-  - `progress/run_b24.py` stays Ritik's. It isn't in the allowlist, and B24 is done; she only runs `--report`.
-  - Her Quick start's rows 0 and 1 swapped, so her machine comes before Sol.
-  - Sol setup is Fri Nov 6, or Sat Nov 7 at the latest, for Ritik to confirm. Check-ins stay Nov 6, 12, 15 and 18,
-    as the docs give them; no other date moved.
-  - No section renumbered (§0 inserted; §9–§11 added).
+- **A:** `a40-train-1` carries `check=a40data` in place of the 13:38 log's `needs=<M>`. The check runs with the
+  feeder's own Python, and on every tick while its line waits.
+- **C:**
+  - Arsha passes by exact name until her email is added.
+  - With no team file (an old branch), only AI identities are refused.
+  - "Generated with" counts at the start of a line.
+  - `--install` upgrades RUNBOOK §17's hand-written pre-push hook.
+- **D:**
+  - A41's code extends `a18.py` (A18's files untouched).
+  - An `a18` step stopped at its limit exits 2, so `again=` works.
+  - B1R2 is ranked but not acted on.
+- **E:**
+  - A42 has no `needs=` (§10).
+  - "not run: A40 not trained" is a flag set by the reader.
+  - A42 reuses A40's readings without editing `a40.py`.
 - **Mine:**
-  - Like Shrey's, the bundle is a zip, as asked for ASU Drive. tar.gz stays the tool's default.
-  - The message names the pushed commit, because SOL_ARSHA's step 2 checks it.
+  - A41 and A42 went in with this push, so the account has work after A40's E2. B1R2 waits for Ritik.
+  - Ritik's Sol block keeps his order (pull, then rsync). A tick that falls in between alerts once, "waits for its
+    check", which is harmless.
 
-## 7. Needs Ritik
+## 7. Ritik's Sol block (his own account)
 
-1. **Upload** `trackB_20261106.zip` to the team's ASU Drive folder, then send §5 with its link and the commit.
-2. **Your Sol block (§4)**, then tell Arsha steps 4–8 can go ahead. After her step 6 copy, close b20's
-   `*.jsonl.gz` again.
-3. **The morning prompt for A40** whenever you're ready: the targets are done.
-4. **Shrey:** upload `trackC_20261105.zip` and send the 23:13 log's §5, if not done yet.
+```bash
+# On Sol
+cd /scratch/$USER/cse598-cot-faithfulness && git status --short && git fetch -q origin
+# 1. The safety diff (CHECKIN §1, step 4's command)
+git diff --stat HEAD..@{u} -- cot-disclosure/finetune cot-disclosure/progress/common.py cot-disclosure/progress/sol_trackB.py \
+  cot-disclosure/progress/sol_b17.py cot-disclosure/progress/sol_b20.py cot-disclosure/progress/run_b20.py \
+  cot-disclosure/progress/run_trackB.py cot-disclosure/agents/__init__.py cot-disclosure/agents/sol_c13.py \
+  cot-disclosure/client.py cot-disclosure/parse.py cot-disclosure/detect.py cot-disclosure/experiments.py \
+  cot-disclosure/tasks.py cot-disclosure/tools/answer_key.py cot-disclosure/providers cot-disclosure/configs \
+  cot-disclosure/data ':!cot-disclosure/finetune/a39.py' ':!cot-disclosure/finetune/gpu/sol/queue_2026-11-04.txt'
+#   expect exactly 9 files: configs/path_allowlist.txt, configs/team_identities.txt, finetune/a42.py, finetune/eval.py,
+#   finetune/gpu/a40_inputs.json, finetune/gpu/eval_job.py, finetune/gpu/sol/submit.sh, finetune/look/a18.py,
+#   finetune/make_bct.py. No job of yours is queued but the feeder's tick, so none loads them: pull.
+# 2. The pull
+git pull --ff-only && git log --oneline -1                     # the commit the session names
+# 3. On the Mac, from cot-disclosure/: A40's data
+ssh login.sol.rc.asu.edu 'mkdir -p /scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/finetune/data/a40'
+rsync -av finetune/data/a40/ login.sol.rc.asu.edu:/scratch/ragarw68/cse598-cot-faithfulness/cot-disclosure/finetune/data/a40/
+#   3 files: train_examples.jsonl.gz (5,095,860 bytes), validation_examples.jsonl.gz (680,041), manifest.json
+# 4. On Sol: the gate and the order
+P=/scratch/$USER/envs/olmo/bin/python; F=cot-disclosure/tools/sol_feeder.py
+$P $F --status | head -6       # "156 lines: 10 not needed, 106 ok, 40 to submit"
+$P $F --dry-run | tail -4      # "[dry run] would submit a40-train-1 (check a40data passed): submit.sh train
+                               #  --comment=feeder:a40-train-1 --estimate 1.5 -- a40"
+tail -5 /scratch/$USER/trackA/feeder.log    # within 5 minutes: a40-train-1 submitted (job N)
+squeue -u $USER                             # the training job, pending or running
+# 5. Only after Arsha's step 6 (she copied B20's saved runs): close b20's text records again
+chmod g-r /scratch/$USER/cse598-cot-faithfulness/cot-disclosure/results/trackB/b20/*/b20_sol_vllm.jsonl.gz
+```
 
-## 8. Checks and push (written 10:08, on `0f64693`)
+- **If `--dry-run` says `waits for its check a40data: missing …`:** the rsync didn't land. Rerun it.
+- **If it says `… differs`:** stop and tell me.
 
-- **Checks:**
-  - the full suite: 988 passed, 1 skipped;
-  - links 0 broken; the supplement 38 rows, none unverified, no log outside the ledger; export numbers only;
-  - the Gantt's dry run passes; bundles B 51 and C 43;
-  - pre-push clean; nothing missing.
-- **A test run of mine was left orphaned.** I stopped the first full run to regenerate the supplement first.
-  - `pkill` ended only its wrapper shell, so the run itself went on until I stopped it by its process id.
-  - Then I reran on the final commit. Another project's test run on this Mac was left alone.
-- **Before the push:** `origin/trackB-main` is still `998c5dc` (only Ritik's commits and Shrey's from October), an
-  ancestor of `HEAD`, so decision d's last push is a fast-forward.
-- **Shrey's setup is on `trackC-main`** (`5665265`, 09:42, read-only here):
-  - authored and committed as Shrey, with no attribution line;
-  - only Track C's session log and its INDEX row;
-  - it reports the bundle verified, the hooks installed, 47 Track C tests passing and F18, F24 and F34 reproduced.
-- **Commits:** all Ritik's, no attribution line. **Push:** `trackA-nosol`, `main`, then `trackB-main` once; after
-  that it's Arsha's.
+## 8. The message for Arsha and Shrey (two lines)
+
+> Before your next commit: `git fetch origin && git merge origin/main`, then rerun `python3 cot-disclosure/tools/path_check.py --install` (four hooks now; only team identities may commit, never with an AI co-author, "Generated with" or session line).
+> Check that your `git config user.name`/`user.email` match your line in `cot-disclosure/configs/team_identities.txt`. Arsha: send me the email you'll commit with, and I'll add it.
+
+## 9. Needs Ritik
+
+1. **Now:** his Sol block (§7). His account sits idle until it's done.
+2. **Decide:** revive B1R2 (~66 GPU-h on base, ready now) or keep decision f.
+3. **Confirm** the team identities. Add Arsha's email once she sends it (a line on `main`).
+4. **Send** §8 to Arsha and Shrey. After Arsha's step 6, run §7's last line.
+5. **Nov 7:** merge Shrey's `trackC-main` (setup and C19, done Nov 6); then Shrey merges `origin/main`.
+
+## 10. Checks and push
+
+CHECKS_PENDING
