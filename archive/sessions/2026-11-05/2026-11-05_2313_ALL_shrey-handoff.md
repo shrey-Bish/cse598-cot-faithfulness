@@ -124,6 +124,12 @@
   - The helper saw one test in the full suite open an HTTPS connection (CloudFront, likely a Hugging Face Hub check;
     not Voyager, no key). That's not this change; it's a lead for whoever next touches the tests.
 
-## 8. Checks (written 23:51, on the commit below)
+## 8. Checks (written Nov 6, 00:04, on `5a1b39f`)
 
-CHECKS_PENDING
+- **Checks:**
+  - the full suite: 988 passed, 1 skipped (984 before, plus the 4 new tests);
+  - links 0 broken; the supplement 38 rows, none unverified, no log outside the ledger; export numbers only;
+  - the Gantt's dry run passes; bundles B 51 and C 43;
+  - pre-push clean; nothing missing.
+- **Before the push:** `origin/trackC-main` is still `998c5dc`, an ancestor of `HEAD`, so its push is a fast-forward.
+- **Commits:** all Ritik's, no attribution line.
