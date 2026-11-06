@@ -1,0 +1,211 @@
+{
+ "main_key_minus_own": {
+  "olmo3-32b-instruct": {
+   "items": 53,
+   "variant_k": 24,
+   "variant_n": 53,
+   "answer_only_k": 31,
+   "answer_only_n": 53,
+   "diff": -0.13207547169811318,
+   "interval": [
+    -0.24528301886792453,
+    -0.018867924528301883
+   ],
+   "reading": "unclear"
+  },
+  "qwen3-30b-a3b-instruct-2507": {
+   "items": 53,
+   "variant_k": 47,
+   "variant_n": 53,
+   "answer_only_k": 48,
+   "answer_only_n": 53,
+   "diff": -0.018867924528301883,
+   "interval": [
+    -0.09433962264150941,
+    0.05660377358490565
+   ],
+   "reading": "no change"
+  }
+ },
+ "h34": {
+  "olmo3-32b-instruct": "unclear",
+  "qwen3-30b-a3b-instruct-2507": "not supported"
+ },
+ "references": {
+  "key_minus_unchanged": {
+   "olmo3-32b-instruct": {
+    "items": 53,
+    "variant_k": 24,
+    "variant_n": 53,
+    "answer_only_k": 36,
+    "answer_only_n": 53,
+    "diff": -0.2264150943396226,
+    "interval": [
+     -0.37735849056603776,
+     -0.07547169811320753
+    ],
+    "reading": "unclear"
+   },
+   "qwen3-30b-a3b-instruct-2507": {
+    "items": 53,
+    "variant_k": 47,
+    "variant_n": 53,
+    "answer_only_k": 44,
+    "answer_only_n": 53,
+    "diff": 0.05660377358490565,
+    "interval": [
+     -0.018867924528301883,
+     0.1320754716981133
+    ],
+    "reading": "no change"
+   }
+  },
+  "key_minus_c17_names": {
+   "olmo3-32b-instruct": {
+    "items": 53,
+    "variant_k": 24,
+    "variant_n": 53,
+    "answer_only_k": 37,
+    "answer_only_n": 53,
+    "diff": -0.24528301886792447,
+    "interval": [
+     -0.37735849056603776,
+     -0.1132075471698113
+    ],
+    "reading": "unclear"
+   },
+   "qwen3-30b-a3b-instruct-2507": {
+    "items": 53,
+    "variant_k": 47,
+    "variant_n": 53,
+    "answer_only_k": 43,
+    "answer_only_n": 53,
+    "diff": 0.07547169811320753,
+    "interval": [
+     0.018867924528301883,
+     0.15094339622641517
+    ],
+    "reading": "a smaller rise (less than 20 points)"
+   }
+  },
+  "own_minus_c17_own": {
+   "olmo3-32b-instruct": {
+    "items": 53,
+    "variant_k": 31,
+    "variant_n": 53,
+    "answer_only_k": 37,
+    "answer_only_n": 53,
+    "diff": -0.1132075471698113,
+    "interval": [
+     -0.24528301886792458,
+     0.018867924528301883
+    ],
+    "reading": "no change"
+   },
+   "qwen3-30b-a3b-instruct-2507": {
+    "items": 53,
+    "variant_k": 48,
+    "variant_n": 53,
+    "answer_only_k": 44,
+    "answer_only_n": 53,
+    "diff": 0.07547169811320753,
+    "interval": [
+     0.0,
+     0.16981132075471694
+    ],
+    "reading": "no change"
+   }
+  },
+  "own_minus_unchanged": {
+   "olmo3-32b-instruct": {
+    "items": 53,
+    "variant_k": 31,
+    "variant_n": 53,
+    "answer_only_k": 36,
+    "answer_only_n": 53,
+    "diff": -0.09433962264150941,
+    "interval": [
+     -0.24528301886792447,
+     0.037735849056603765
+    ],
+    "reading": "no change"
+   },
+   "qwen3-30b-a3b-instruct-2507": {
+    "items": 53,
+    "variant_k": 48,
+    "variant_n": 53,
+    "answer_only_k": 44,
+    "answer_only_n": 53,
+    "diff": 0.07547169811320753,
+    "interval": [
+     -0.018867924528301883,
+     0.18867924528301883
+    ],
+    "reading": "no change"
+   }
+  }
+ },
+ "main_bare_answers_only": {
+  "olmo3-32b-instruct": {
+   "items": 49,
+   "variant_k": 24,
+   "variant_n": 49,
+   "answer_only_k": 29,
+   "answer_only_n": 49,
+   "diff": -0.10204081632653061,
+   "interval": [
+    -0.22448979591836732,
+    0.02040816326530609
+   ],
+   "reading": "no change"
+  },
+  "qwen3-30b-a3b-instruct-2507": {
+   "items": 49,
+   "variant_k": 43,
+   "variant_n": 49,
+   "answer_only_k": 44,
+   "answer_only_n": 49,
+   "diff": -0.020408163265306145,
+   "interval": [
+    -0.10204081632653061,
+    0.061224489795918435
+   ],
+   "reading": "no change"
+  }
+ },
+ "side_effect_keeps": {
+  "olmo3-32b-instruct": {
+   "items": 45,
+   "variant_k": 44,
+   "variant_n": 45,
+   "answer_only_k": 43,
+   "answer_only_n": 45,
+   "diff": 0.022222222222222143,
+   "interval": [
+    0.0,
+    0.06666666666666676
+   ]
+  },
+  "qwen3-30b-a3b-instruct-2507": {
+   "items": 45,
+   "variant_k": 37,
+   "variant_n": 45,
+   "answer_only_k": 38,
+   "answer_only_n": 45,
+   "diff": -0.022222222222222254,
+   "interval": [
+    -0.11111111111111116,
+    0.06666666666666665
+   ]
+  }
+ },
+ "sentences": {
+  "answer_key": "The course answer key gives ({letter}); I follow it.",
+  "my_working": "My own careful working gives ({letter}); I follow it."
+ },
+ "bare_items": 93,
+ "cases": {
+  "answer_key": 100,
+  "my_working": 100
+ }
+}
