@@ -1,4 +1,4 @@
-## In plain words (Ritik's page, as of Nov 5, 13:40; Sol as of Ritik's block 1 at about 12:41 and his feeder log at 13:36; edited by hand in `docs/status/ONE_PAGE.md`)
+## In plain words (Ritik's page, as of Nov 5, 22:00; earlier 13:40; Sol as of Ritik's block 1 at about 12:41 and his feeder log at 13:36; edited by hand in `docs/status/ONE_PAGE.md`)
 
 **Done.**
 - 40 findings (F1–F40, in `docs/FINDINGS.md`). **Gate 3 is met** (F28): trained versions follow fewer wrong hints,
@@ -32,8 +32,9 @@
 - **A40, a new fine-tune** (Ritik's decision g; pre-registered today, the 09:18 log): LoRA trained on the model's own
   reasoning written without the hint (bias-augmented consistency training), read on E2. Its Voyager targets started
   at 09:50 on Ritik's Mac. At 13:38, shard 1 had 377 of its 486 records finished: 332 examples and 45 dropped
-  (the final answer passed in none of 4 samples; correct-hint records drop more, 17% against 9%). At this pace
-  both shards end about 21:00.
+  (the final answer passed in none of 4 samples; correct-hint records drop more, 17% against 9%). **Paused 16:46–21:58**
+  while the Mac slept on battery (Voyager unreachable); resumed by itself. Both shards now end about 04:30–05:00 Nov 6,
+  if the Mac stays plugged in with the lid open.
 
 **On track?**
 
@@ -43,7 +44,7 @@
 | Gate 3's final statement (Nov 20) | on track | met Oct 31 (F28); waits on A39 on E2 (read Nov 17, partial by its §18 if not complete) |
 | A39 on E2 (read Nov 17) | on track | at most about 28 GPU-h left (8 parts pending, then 7 sweeps): under a day at Nov 3–4's pace (38.8 a day), about 3.6 days at a fifth of it (the 08:57 log's §2); B20 no longer shares Ritik's places |
 | A39 on the 30 | at risk | the first to give way: at Nov 11 09:00 the feeder drops its lines not yet submitted unless every E2 and A40 line on Ritik's account has ended (the A39 log's §19, confirmed by Ritik, Nov 5; B20 no longer counts). Its lines go in as places free while A40's aren't ready |
-| A40 (read Nov 17) | on track | pre-registered Nov 5 (the 09:18 log). Its Voyager targets run on Ritik's Mac from 09:50, about 11 h (done about 21:00; 12% of records dropped so far, by its rules); then about 20–25 GPU-h on Ritik's account from about Nov 6, after E2's lines (training 3.2, E2 16–21); read partial at Nov 15 23:59 if not complete (its §10) |
+| A40 (read Nov 17) | on track | pre-registered Nov 5 (the 09:18 log). Its Voyager targets run on Ritik's Mac from 09:50 (paused 16:46–21:58 while the Mac slept; done about 04:30–05:00 Nov 6; 12% of records dropped so far, by its rules); then about 20–25 GPU-h on Ritik's account from about Nov 6, after E2's lines (training 3.2, E2 16–21); read partial at Nov 15 23:59 if not complete (its §10) |
 | B1R2 | dropped (Nov 5) | "not run: GPU time given to A40" (Ritik's decision f, before any B1R2 run; the A39 log's §19, F38); its 44 lines left the queue |
 | B20 (Arsha reads Nov 17) | on track | the cause is fixed and confirmed (T13), and the job size amended (the B20 log's §19): 3:00 lines, twice the jobs the measured pace needs (Granite 8 for about 4, Gemma 12 for about 6). It runs on Arsha's own account, whose fair share is likely far above Ritik's 0.0019. Bound by Gemma's ~6 jobs and the waits between them; it starts after her setup (Nov 6); read partial at Nov 15 23:59 if not complete |
 | Track C (Shrey: C19 Nov 7; C20, C26 Nov 15) | at risk | none of Shrey's work shows here (his last commit was Oct 4); his handoff message is still unsent; C19 is about 25 min of Voyager |
