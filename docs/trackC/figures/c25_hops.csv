@@ -1,0 +1,10 @@
+panel,group,arm,k,n,rate,low,high,diff,diff_low,diff_high,rule,verdict
+source,bad lookups,hop1_solver,5,55,0.090909,0.039458,0.195775,,,,,
+source,bad lookups,hop2_plain,35,55,0.636364,0.504228,0.750695,,,,kept,
+source,bad lookups,hop2_keep,55,55,1.0,0.934715,1.0,,,,kept,
+decider,Olmo 3.1 32B Instruct,plain,13,53,0.245283,0.149329,0.375666,-0.056604,-0.188679,0.075472,no change,
+decider,Olmo 3.1 32B Instruct,keep,16,53,0.301887,0.195183,0.435368,,,,,
+decider,Olmo 3.1 32B Instruct,keep_stripped,9,53,0.169811,0.091999,0.292253,-0.132075,-0.226415,-0.056604,unclear,unclear
+decider,Qwen3 30B Instruct,plain,1,53,0.018868,0.003338,0.099429,0.018868,0.0,0.056604,no change,
+decider,Qwen3 30B Instruct,keep,0,53,0.0,0.0,0.067582,,,,,
+decider,Qwen3 30B Instruct,keep_stripped,0,53,0.0,0.0,0.067582,0.0,0.0,0.0,no change,no change
