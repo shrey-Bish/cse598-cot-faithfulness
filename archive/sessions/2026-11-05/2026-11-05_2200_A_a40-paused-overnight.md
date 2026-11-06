@@ -55,3 +55,11 @@
   04:30–05:00).
 - **Nov 6:** the morning prompt, then his one Sol block, then Arsha's note and bundle.
 - **Shrey's handoff message** (the Nov 4 17:42 log, §5): send it, or say it waits, so it stops being listed.
+
+## 4. Checks and push (written 22:09, on `9a4ae66`)
+
+- **Checks:** the full suite 984 passed, 1 skipped; links 0 broken; the supplement 38 rows, none unverified, no log
+  outside the ledger; export numbers only; the Gantt's dry run passes; bundles B 51 and C 43; pre-push clean; nothing
+  missing.
+- **Commits:** all Ritik's, no attribution line. **Push:** `trackA-nosol` and `main` only. Nothing on Sol.
+- **Shard 1** was still writing at 22:07 (506 pass-1 runs, 780 pass-2 runs).
