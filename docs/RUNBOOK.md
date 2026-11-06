@@ -15,6 +15,16 @@ step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md
 
 ## 0. Read this first
 
+**Memory limits on Ritik's Mac (Ritik, Nov 6, after the Mac ran out of memory: 18 GB of RAM; VS Code about 30 GB,
+Chrome 15 GB, Docker 8 GB at the crash).**
+- At most 2 helpers (subagents) at a time.
+- The full test suite runs once per session, at the end; targeted test files before that.
+- Before a session starts work, find and stop leftover pytest or helper processes from earlier sessions
+  (`ps -axo pid,etime,rss,command | grep -E 'pytest|guard\.py|make_bct'`).
+- No other heavy work (the full suite, several helpers, Docker) beside a Voyager run under the guard.
+- VS Code watches and indexes no produced data: a local `.vscode/settings.json` (gitignored) excludes `results/`,
+  `finetune/data/`, `cache/`, `archive/`, `.venv/` and `logs/` from its file watcher and search.
+
 **The Sol order to the results freeze (Ritik, Nov 3; re-planned Nov 4 00:48 for Sol's real limit; two accounts from
 Nov 5).** The course account only (the H100s aren't available). B1, A37, B17 and A18 are done (A18 read Nov 3, F39); A38
 is dropped. **From Nov 5, two Sol accounts, one queue file each** (the B20 log's §19 and the A39 log's §19), so no line
@@ -594,7 +604,8 @@ pre-push that runs `prepush_check.py`; it leaves anyone else's hook alone and sa
   "gpqa" in its name (code and docs excepted), or a file over 50 MB; and (Nov 6) names every commit being pushed whose
   author, committer or message breaks the team rule. Commits already on the remote are never checked.
 - **The team rule** (`cot-disclosure/configs/team_identities.txt`, Ritik's; read from HEAD): the only authors and
-  committers are the team's identities (an email listed for a person; a person with no email yet, their exact name).
+  committers are the team's identities: an email whose SHA-256 is listed for a person (the file holds hashes, never
+  emails, since the repo is public; `path_check.py --hash EMAIL` prints the form). A name alone never passes.
   No AI tool as author, committer or co-author; no `Co-authored-by` outside the team; no line with an AI tool's email;
   no "Generated with …" line; no session line (`Claude-Session:`, `Session-Id:`, a claude.ai/code link).
   pre-commit and pre-merge-commit check the identities; commit-msg checks the message and the identities. Claude
