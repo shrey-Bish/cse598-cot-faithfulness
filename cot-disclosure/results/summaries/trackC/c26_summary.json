@@ -1,0 +1,185 @@
+{
+ "solver": {
+  "R1_following_c26_minus_c15": {
+   "items": 55,
+   "variant_k": 19,
+   "variant_n": 55,
+   "answer_only_k": 52,
+   "answer_only_n": 55,
+   "diff": -0.6,
+   "interval": [
+    -0.7272727272727273,
+    -0.45454545454545453
+   ],
+   "reading": "fewer following"
+  },
+  "R1b_following_minus_notool_floor": {
+   "diff": 0.34545454545454546,
+   "interval": [
+    0.21818181818181817,
+    0.4727272727272727
+   ],
+   "items": 55,
+   "reading": "deference survives in the solver"
+  },
+  "following": {
+   "c26": {
+    "k": 19,
+    "n": 55,
+    "wilson": [
+     0.23362709466463594,
+     0.477460965978201
+    ]
+   },
+   "c15": {
+    "k": 52,
+    "n": 55,
+    "wilson": [
+     0.8514693935560297,
+     0.981276784591088
+    ]
+   }
+  },
+  "good_lookups_right": {
+   "c26": {
+    "k": 45,
+    "n": 45,
+    "wilson": [
+     0.921348400123914,
+     0.9999999999999999
+    ]
+   },
+   "c15": {
+    "k": 45,
+    "n": 45,
+    "wilson": [
+     0.921348400123914,
+     0.9999999999999999
+    ]
+   },
+   "c26_minus_c15": {
+    "diff": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "items": 45
+   }
+  },
+  "final_names_source": {
+   "c26": {
+    "k": 9,
+    "n": 100,
+    "wilson": [
+     0.04807253976868698,
+     0.16226212922188998
+    ]
+   },
+   "c15": {
+    "k": 6,
+    "n": 100,
+    "wilson": [
+     0.027786123800628143,
+     0.12476815511608857
+    ]
+   }
+  },
+  "final_bare": {
+   "c26": {
+    "k": 90,
+    "n": 100,
+    "wilson": [
+     0.8256343377898756,
+     0.9447708631949274
+    ]
+   },
+   "c15": {
+    "k": 93,
+    "n": 100,
+    "wilson": [
+     0.8625048519384759,
+     0.9656807391201874
+    ]
+   }
+  },
+  "no_answer": {
+   "c26": 0,
+   "c15": 0
+  }
+ },
+ "reviewers": {
+  "olmo3-32b-instruct": {
+   "R2_plus_tool_log_minus_answer_only": {
+    "items": 21,
+    "variant_k": 5,
+    "variant_n": 21,
+    "answer_only_k": 15,
+    "answer_only_n": 21,
+    "diff": -0.4761904761904762,
+    "interval": [
+     -0.6666666666666667,
+     -0.2857142857142857
+    ],
+    "rule": "defers"
+   },
+   "plus_tool_log_c26_minus_c15": {
+    "items": 21,
+    "variant_k": 5,
+    "variant_n": 21,
+    "answer_only_k": 4,
+    "answer_only_n": 21,
+    "diff": 0.047619047619047616,
+    "interval": [
+     -0.09523809523809523,
+     0.19047619047619047
+    ]
+   }
+  },
+  "qwen3-30b-a3b-instruct-2507": {
+   "R2_plus_tool_log_minus_answer_only": {
+    "items": 21,
+    "variant_k": 12,
+    "variant_n": 21,
+    "answer_only_k": 15,
+    "answer_only_n": 21,
+    "diff": -0.1428571428571429,
+    "interval": [
+     -0.28571428571428575,
+     0.0
+    ],
+    "rule": "doesn't defer"
+   },
+   "plus_tool_log_c26_minus_c15": {
+    "items": 21,
+    "variant_k": 12,
+    "variant_n": 21,
+    "answer_only_k": 12,
+    "answer_only_n": 21,
+    "diff": 0.0,
+    "interval": [
+     -0.14285714285714285,
+     0.14285714285714285
+    ]
+   }
+  }
+ },
+ "reading": "deference survives in the reviewer without the authority label",
+ "checker": {
+  "flags_c26": {
+   "k": 27,
+   "n": 100,
+   "wilson": [
+    0.19269584096677833,
+    0.36432116846696
+   ]
+  },
+  "same_letter_as_c15": {
+   "k": 98,
+   "n": 100
+  }
+ },
+ "cases": {
+  "solve": 100,
+  "reviews": 100
+ }
+}

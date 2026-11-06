@@ -24,11 +24,12 @@ SUMMARY = CODE / "results" / "summaries" / "trackC" / "c25_summary.json"
 OUT = CODE.parent / "docs" / "trackC" / "figures"
 NAME = "c25_hops"
 DECIDERS = (("olmo3-32b-instruct", "Olmo 3.1 32B Instruct"), ("qwen3-30b-a3b-instruct-2507", "Qwen3 30B Instruct"))
-HOPS = (("hop1_solver", "the solver's final answer (hop 1)", "final"),
-        ("hop2_plain", "the writer's plain note (hop 2)", "baseline"),
-        ("hop2_keep", "the writer's keep note (hop 2, told to say where the answer comes from)", "cue"))
-NOTES = (("plain", "baseline"), ("keep", "cue"), ("keep_stripped", "damage"))
-NOTE_LABELS = {"plain": "plain note", "keep": "keep note", "keep_stripped": "keep note, its tool sentences removed"}
+# WAITING.md: the private reasoning's color on the solver's hop, the final answer's on the notes, the damage color on
+# the decider's bars (the keep note's hatch marks the one told to say where the answer comes from).
+HOPS = (("hop1_solver", "the solver's final answer (hop 1)", "private", None),
+        ("hop2_plain", "the writer's handoff note (hop 2)", "final", None),
+        ("hop2_keep", "the keep note (hop 2, told to say where the answer comes from)", "final", "//"))
+NOTES = (("plain", "plain", None), ("keep", "keep", "//"), ("keep_stripped", "keep,\nstripped", "xx"))
 
 
 def _row(panel, group, arm, k, n, **more):
@@ -44,7 +45,7 @@ def rows_of(summary=SUMMARY):
     s = json.loads(Path(summary).read_text())
     rows = []
     src = s["source_bad_lookups"]
-    for hop, _, _ in HOPS:
+    for hop, _, _, _ in HOPS:
         e = src[hop]
         rows.append(_row("source", "bad lookups", hop, e["k"], e["n"], diff="", diff_low="", diff_high="",
                          rule=e.get("reading", ""), verdict=""))
@@ -53,7 +54,7 @@ def rows_of(summary=SUMMARY):
         m1, m2 = d["M1_stripped_minus_keep"], d["M2_plain_minus_keep"]
         counts = {"plain": (m2["variant_k"], m2["variant_n"]), "keep": (m1["answer_only_k"], m1["answer_only_n"]),
                   "keep_stripped": (m1["variant_k"], m1["variant_n"])}
-        for note, _ in NOTES:
+        for note, _, _ in NOTES:
             k, n = counts[note]
             m = m1 if note == "keep_stripped" else m2 if note == "plain" else None
             rows.append(_row("decider", name, note, k, n,
@@ -71,10 +72,10 @@ def draw(out=OUT, summary=SUMMARY):
     # left: the source at each hop
     ax = fig.add_axes([0.06, 0.30, 0.30, 0.43])
     src = {r["arm"]: r for r in rows if r["panel"] == "source"}
-    for j, (hop, _, role) in enumerate(HOPS):
+    for j, (hop, _, role, hatch) in enumerate(HOPS):
         r = src[hop]
         sf.bar(ax, j, {"value": r["rate"], "low": r["low"], "high": r["high"], "k": r["k"], "n": r["n"]},
-               sf.ROLE[role], 0.6)
+               sf.ROLE[role], 0.6, hatch=hatch)
         if r["rule"]:
             ax.annotate(r["rule"], (j, 0), xytext=(0, -34), textcoords="offset points", ha="center", va="top",
                         fontsize=sf.TEXT_SIZE, color=sf.INK, annotation_clip=False)
@@ -86,26 +87,32 @@ def draw(out=OUT, summary=SUMMARY):
     sf.percent_axis(ax)
     # right: the decider, never shown the tool
     ax = fig.add_axes([0.44, 0.30, sf.RIGHT - 0.44, 0.43])
+    ticks, labels = [], []
     for i, (_, name) in enumerate(DECIDERS):
         part = {r["arm"]: r for r in rows if r["panel"] == "decider" and r["group"] == name}
-        for j, (note, role) in enumerate(NOTES):
+        for j, (note, label, hatch) in enumerate(NOTES):
             r = part[note]
-            sf.bar(ax, i + (j - 1) * (width + 0.02), {"value": r["rate"], "low": r["low"], "high": r["high"],
-                                                         "k": r["k"], "n": r["n"]}, sf.ROLE[role], width)
+            x = i + (j - 1) * (width + 0.02)
+            sf.bar(ax, x, {"value": r["rate"], "low": r["low"], "high": r["high"], "k": r["k"], "n": r["n"]},
+                   sf.ROLE["damage"], width, hatch=hatch)
+            ticks.append(x)
+            labels.append(label)
+        ax.annotate(name, (i, 0), xytext=(0, -38), textcoords="offset points", ha="center", va="top",
+                    fontsize=sf.TITLE_SIZE, color=sf.INK, annotation_clip=False)
         m1, m2 = part["keep_stripped"], part["plain"]
         ax.annotate(f"stripped − keep: {sf.signed(m1['diff'] * 100)} [{sf.signed(m1['diff_low'] * 100)}, "
                     f"{sf.signed(m1['diff_high'] * 100)}], {m1['rule']}\n"
                     f"plain − keep: {sf.signed(m2['diff'] * 100)} [{sf.signed(m2['diff_low'] * 100)}, "
                     f"{sf.signed(m2['diff_high'] * 100)}], {m2['rule']}",
-                    (i, 0), xytext=(0, -34), textcoords="offset points", ha="center", va="top",
+                    (i, 0), xytext=(0, -60), textcoords="offset points", ha="center", va="top",
                     fontsize=sf.LABEL_SIZE, color=sf.INK, annotation_clip=False, linespacing=1.4)
-    ax.set_xticks(range(len(DECIDERS)), [name for _, name in DECIDERS], fontsize=sf.TITLE_SIZE)
+    ax.set_xticks(ticks, labels, fontsize=sf.LABEL_SIZE)
     ax.set_xlim(-0.6, len(DECIDERS) - 0.4)
     ax.set_ylabel("accepts the wrong letter (% of 53)")
     ax.set_title("The decider, which never sees the tool", fontsize=sf.TITLE_SIZE, loc="left")
     sf.percent_axis(ax)
-    sf.key(fig, [(sf.swatch(sf.ROLE[role]), label) for _, label, role in HOPS]
-           + [(sf.swatch(sf.ROLE["damage"]), NOTE_LABELS["keep_stripped"] + " (decider only)")], ncol=2)
+    sf.key(fig, [(sf.swatch(sf.ROLE[role], hatch), label) for _, label, role, hatch in HOPS]
+           + [(sf.swatch(sf.ROLE["damage"]), "the decider accepts the solver's wrong letter")], ncol=2)
     sf.headline(fig, "C25: the writer restores the source (plain 35 of 55, keep 55 of 55). Stripped, the Olmo "
                 "decider accepts the wrong",
                 "answer 9 of 53 against 16 of 53, −13 [−23, −6]: unclear by the pre-registered rule. Qwen3: 0 of 53 "
