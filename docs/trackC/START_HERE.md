@@ -11,6 +11,8 @@ the three hooks, the dates).
 > **Before your next commit:** `git fetch origin && git merge origin/main`, then
 > `python3 cot-disclosure/tools/path_check.py --install` again (it now writes four hooks, pre-push included), and
 > check that `git config user.name` / `user.email` match your line in that file.
+> Your two emails are listed there, as hashes (Nov 6). Commit with your Gmail: the repo is public, and an ASU
+> email in a commit's author line shows your Sol username.
 
 ## Quick start (one page)
 
@@ -125,7 +127,8 @@ bundle's 43 files have the same sha256 as on Nov 3, and C19, C25, C20 and C26 ru
   [SOL_SETUP.md](../tracks/SOL_SETUP.md)'s "Known traps" (check the node, `--exclude=<node>`).
   `agents/sol_c13.py` stays Ritik's (every Sol vLLM job imports it).
 - **B1R2 dropped** (Nov 5, before any run: "not run: GPU time given to A40"). It was Track A's second round of B1
-  (provenance-scaled attention, F38); it touches nothing of Track C's.
+  (provenance-scaled attention, F38); it touches nothing of Track C's. **Revived Nov 6** (the A39 log's §21), last in Ritik's queue; still nothing of yours
+  depends on it.
 - **A40** (Track A, pre-registered Nov 5): consistency training for Olmo 3 7B Think. Its training data is generated
   on Voyager from Ritik's Mac until about Nov 6 morning (Olmo 3 7B Think; Track C's models are other ones), then it
   trains and is evaluated on Sol under Ritik's account. Each machine keeps its own 4-request limit; don't raise

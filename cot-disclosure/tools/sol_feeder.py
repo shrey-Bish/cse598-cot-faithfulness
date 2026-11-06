@@ -61,6 +61,8 @@ A queue file: its owner line, then one job a line, "LABEL | OPTIONS | submit.sh 
   check=NAME      (Nov 6, A40's log section 11) run the check NAME (CHECKS: a fixed table here, never a command from
                   the queue) on Sol before submitting; until it passes, the line waits (never skipped), with one alert
                   per reason. a40data: finetune/make_bct.py --check-data, A40's data against its manifest
+  reserve=G[:P]   (Nov 6, the A39 log's section 21) goes in only if, after it, G GPU-minutes and P places stay free
+                  (running and pending jobs counted): a line that only fills room the lines ahead can't use
 REFS are colon-separated: @LABEL is an earlier line (its job id once submitted), a bare number a job id. $USER (any
 environment variable) in the arguments is expanded, so the file names no Sol user.
 """
@@ -88,7 +90,7 @@ SOL = CODE / "finetune" / "gpu" / "sol"
 QUEUE = SOL / "queue_2026-11-04.txt"
 USER = os.environ.get("USER") or getpass.getuser()
 TRACKA_OUT = Path(os.environ.get("TRACKA_OUT") or "/scratch/%s/trackA" % USER)
-OPTIONS = ("job", "afterok", "afterany", "again", "needs", "left", "dropif", "holdif", "check")
+OPTIONS = ("job", "afterok", "afterany", "again", "needs", "left", "dropif", "holdif", "check", "reserve")
 ACTIVE = {"PENDING", "RUNNING", "REQUEUED", "RESIZING", "SUSPENDED", "CONFIGURING", "COMPLETING", "STOPPED"}
 HELD = ("skipped", "not needed", "unknown", "submitting", "submit failed", "dropped")
 SETTLED = ("skipped", "not needed", "dropped")              # a line with no job that will never have one
@@ -111,6 +113,7 @@ CHECKS = {                                         # Nov 6 (A40's log, section 1
     "a40data": {"what": "A40's training data on Sol against finetune/gpu/a40_inputs.json",
                 "argv": ["finetune/make_bct.py", "--check-data"], "timeout": 600},
 }
+RESERVE = re.compile(r"(\d+)(?::(\d+))?$")                  # Nov 6: reserve=GPU_MINUTES[:PLACES]
 OWNER = re.compile(r"owner:\s*(not\s+)?([A-Za-z0-9_.-]+)$")   # Nov 5: a queue's first line that isn't a comment
 Line = namedtuple("Line", "n label opts argv")
 
@@ -189,6 +192,8 @@ def parse_queue(text):
             raise QueueError("queue line %d: job= is a job id" % n)
         if "left" in opts and not LEFT.match(opts["left"]):
             raise QueueError("queue line %d: left=%s: a39:SYSTEM:QSET[:K/N] or b1r2:K/N" % (n, opts["left"]))
+        if "reserve" in opts and not RESERVE.match(opts["reserve"]):
+            raise QueueError("queue line %d: reserve=%s: GPU_MINUTES or GPU_MINUTES:PLACES" % (n, opts["reserve"]))
         if "check" in opts and opts["check"] not in CHECKS:
             raise QueueError("queue line %d: check=%s: no such check (%s)" % (n, opts["check"], ", ".join(CHECKS)))
         for k in ("dropif", "holdif"):
@@ -241,10 +246,16 @@ def limit_hours(argv):
     return -(-est * 1.3 // 0.5) * 0.5
 
 
+def reserve_of(line):
+    """(GPU-minutes, places) a reserve= line keeps free after it goes in (Nov 6); None without one."""
+    m = RESERVE.match(line.opts["reserve"]) if "reserve" in line.opts else None
+    return (int(m.group(1)), int(m.group(2) or 0)) if m else None
+
+
 def group_of(line):
     """The digest's groups: A39 on E2, A40 (its a40- labels, or the system a40: its E2 lines run as A39's do), A39 on
     the 30, B20 (Arsha's feeder, Nov 5); Nov 6: A41 (its a41- labels: A18's jobs with A40's weights) and A42 (a42-, or
-    the system a40_note)."""
+    the system a40_note); B1R2 (revived, the A39 log's section 21)."""
     a = line.argv
     system = a[a.index("--") + 1] if "--" in a[:-1] else None
     if line.label.startswith("a40-") or system == "a40":
@@ -253,6 +264,8 @@ def group_of(line):
         return "A41" if line.label.startswith("a41-") else "A42"
     if a[0] == "b20":
         return "B20"
+    if line.label.startswith("b1r2-") or (a[0] == "provenance_gen" and "--b1r2" in a):
+        return "B1R2"
     if a[0].startswith("a39"):
         return "A39 on E2" if "e2" in a else "A39 on the 30"
     return None
@@ -616,6 +629,11 @@ class Feeder:
                 say("%s waits for GPU-minutes: it needs %d, the running and pending jobs leave %d of the 960"
                     % (l.label, c["need"], max(free, 0)))
                 break
+            r = reserve_of(l)                            # Nov 6: fills only room the lines ahead can't use
+            if r and (free - c["need"] < r[0] or places < r[1]):
+                say("%s waits: it fills only spare room, keeping %d GPU-minutes and %d places free (after it, %d and %d)"
+                    % (l.label, r[0], r[1], max(free - c["need"], 0), max(places, 0)))
+                break
             args = with_flags(l.argv, "--comment=feeder:" + l.label)
             if dry:
                 say("would submit %s (%s): submit.sh %s" % (l.label, why, " ".join(shlex.quote(a) for a in args)))
@@ -939,6 +957,7 @@ class Feeder:
                 extra = ["needs %s: %s" % (l.opts["needs"], "on Sol" if self.sol.has_commit(l.opts["needs"])
                                                     else "not on Sol yet")] if "needs" in l.opts else []
                 extra += ["left %s" % l.opts["left"]] if "left" in l.opts else []
+                extra += ["reserve %s" % l.opts["reserve"]] if "reserve" in l.opts else []
                 if "check" in l.opts:
                     extra += ["%s (%s)" % (s["check"], s.get("check_at", "")) if s.get("check") else
                               "check %s: run before it goes in" % l.opts["check"]]

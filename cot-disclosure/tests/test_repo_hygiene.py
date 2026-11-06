@@ -1,6 +1,7 @@
 """Produced data stays off GitHub: the pre-push check (tools/prepush_check.py) and the history
 rewrite that untracks produced files (tools/untrack_produced.py), on scratch git repos with a
 local bare "remote". Also: everything in results/summaries/ is numbers-only."""
+import hashlib
 import os
 import shutil
 import subprocess
@@ -224,7 +225,8 @@ def test_prepush_names_each_commit_with_ai_attribution_or_a_non_team_identity(re
     assert "Co-Authored-By" in r.stderr and "author" in r.stderr
 
     git(repo, "checkout", "-q", "-b", "team", "origin/main")                   # with a team file: only the team
-    commit(repo, "the team", **{"cot-disclosure__configs__team_identities.txt": "Test Person | Test <t@example.com>\n"})
+    team = "Test Person | sha256:" + hashlib.sha256(b"t@example.com").hexdigest() + "\n"   # hashed (Nov 6)
+    commit(repo, "the team", **{"cot-disclosure__configs__team_identities.txt": team})
     assert check(repo, "team").returncode == 0
     write(repo, "README.md", "c\n")
     git(repo, "add", "-A")

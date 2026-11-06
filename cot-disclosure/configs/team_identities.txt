@@ -3,13 +3,14 @@
 # Read by tools/path_check.py (pre-commit, pre-merge-commit, commit-msg) and tools/prepush_check.py (pre-push), from
 # HEAD's committed copy. Owned by Ritik: it changes only on main, by Ritik (outside both track allowlists).
 #
-# One person per line: "Person | Name <email>, Name <email>", the identities seen in the history.
-# - An identity passes if its email is listed for a person (any case; any name with it).
-# - A person with no email listed passes by their exact name, with any email that isn't an AI tool's, until Ritik
-#   adds the email they commit with.
-# - Never write anyone's ASU email here: its local part is their Sol username.
-# To add an email: Ritik adds it on main; then merge origin/main.
-# Confirmed by: Ritik (to confirm, Nov 6). Taken from `git log` on origin's four branches, Nov 6.
-Ritik Agarwal | Ritik <ritik.agrawal06@gmail.com>
-Shrey Bishnoi | Shrey Bishnoi <sbishnoi2000.sb@gmail.com>
-Arsha Jindal  |                                       # email to confirm (Ritik): no commit of hers yet
+# One person per line: "Person | sha256:<hex>, sha256:<hex>": the SHA-256 of each email they commit with, trimmed and
+# lower-cased. No email is written here (Ritik's decision, Nov 6: the repo is public). Names stay readable.
+# - An identity passes if the hash of its email is listed for a person, whatever its name. A name alone never passes.
+# - An AI tool's identity never passes. Everything else is refused.
+# - To add an email: Ritik runs  python3 cot-disclosure/tools/path_check.py --hash <the email>  and adds the hash to
+#   the person's line, on main; then everyone merges origin/main.
+# Confirmed by Ritik, Nov 6: his line from the history; Shrey's Gmail checked against his commits; Shrey's and Arsha's
+# other emails as Ritik gave them.
+Ritik Agarwal | sha256:4a2504cbfea411f3fd7ff07b3a4290a1c749e759973253e09f04b3049b07e78f
+Shrey Bishnoi | sha256:1b92b531468546312ba190ede5ecb47489f980876302335681202eeb3d6e5fe5, sha256:4af203896a74bb63eefcba06412487f03201687a12d86d513c85724861f09409
+Arsha Jindal  | sha256:148591498cecc349622ec3079c2fb46592be1f5501be2eeb7a4270e186d92f9c, sha256:ebd2ead1cd814ba7563bf36e77430e27883e18fbf92a9844c57097882ff40812

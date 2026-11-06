@@ -13,7 +13,7 @@ themselves are in [`RUNBOOK.md`](../RUNBOOK.md): §0 (the feeder), §16 (merges,
 
 ## The standing rules
 
-- **Commits as Ritik** (`Ritik <ritik.agrawal06@gmail.com>`), with no attribution lines of any kind: no co-author
+- **Commits as Ritik** (`Ritik <his Gmail>`), with no attribution lines of any kind: no co-author
   trailer, no "generated with" line, no bot address.
 - **Pre-register before any run.** A run's rule is committed in its session log before its first job; an amendment is
   committed before the runs it changes.
@@ -271,7 +271,7 @@ cd ..
 ```bash
 git add <the files changed>
 git commit -m "<what> (Ritik, $(date '+%b %-d, %H:%M')): <details>"
-git log -1 --format='%an <%ae>%n%b'                       # Ritik <ritik.agrawal06@gmail.com>; no attribution line
+git log -1 --format='%an <%ae>%n%b'                       # Ritik <his Gmail>; no attribution line
 ```
 **Before the push:**
 ```bash
@@ -372,7 +372,7 @@ From PLAN's calendar, the TODOs and the logs. "Needs Ritik" goes in the report.
 | Fri Nov 13 | — | §1–§7 |
 | Sat Nov 14 | — | §1–§7; if A39 on E2 won't be complete by Nov 15, its §18 partial read applies (§3) |
 | Sun Nov 15 | **runs end**; B20's runs by today (Arsha's account); C20 and C26 (Shrey); **check-ins and merges** B and C; **23:59: the partial cut-offs** of A39 on E2 (§18), A40 and B20 (the B20 log's §19) | §8 twice; §3's completeness checks |
-| Mon Nov 16 | — (B1R2 dropped Nov 5) | §3; needs Ritik: stop the feeder now or at the freeze |
+| Mon Nov 16 | — (B1R2, revived Nov 6, runs by Nov 15 and is read with the rest) | §3; needs Ritik: stop the feeder now or at the freeze |
 | Tue Nov 17 | **A39 read** (E2; the 30 beside it if run); **A40 read** (E2, by its own log's rule); **B20 read** by Arsha | §2 copy-back, §3 |
 | Wed Nov 18 | **the results freeze**: no new runs. **Check-ins and merges** B and C; C24 and slides 11–12 (Shrey); B18's table and figure (Arsha) | §8 twice; §4's freeze (needs Ritik: the feeder's stop, any `scancel`) |
 | Thu Nov 19 | — | §1–§7 |

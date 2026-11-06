@@ -15,6 +15,16 @@ step without asking. Results and their status are in [`FINDINGS.md`](FINDINGS.md
 
 ## 0. Read this first
 
+**Memory limits on Ritik's Mac (Ritik, Nov 6, after the Mac ran out of memory: 18 GB of RAM; VS Code about 30 GB,
+Chrome 15 GB, Docker 8 GB at the crash).**
+- At most 2 helpers (subagents) at a time.
+- The full test suite runs once per session, at the end; targeted test files before that.
+- Before a session starts work, find and stop leftover pytest or helper processes from earlier sessions
+  (`ps -axo pid,etime,rss,command | grep -E 'pytest|guard\.py|make_bct'`).
+- No other heavy work (the full suite, several helpers, Docker) beside a Voyager run under the guard.
+- VS Code watches and indexes no produced data: a local `.vscode/settings.json` (gitignored) excludes `results/`,
+  `finetune/data/`, `cache/`, `archive/`, `.venv/` and `logs/` from its file watcher and search.
+
 **The Sol order to the results freeze (Ritik, Nov 3; re-planned Nov 4 00:48 for Sol's real limit; two accounts from
 Nov 5).** The course account only (the H100s aren't available). B1, A37, B17 and A18 are done (A18 read Nov 3, F39); A38
 is dropped. **From Nov 5, two Sol accounts, one queue file each** (the B20 log's §19 and the A39 log's §19), so no line
@@ -33,7 +43,8 @@ is ever submitted from both:
 - **Arsha's** (`queue_b20_2026-11-05.txt`, `owner: not ragarw68`; her setup `docs/trackB/SOL_ARSHA.md`): B20's runs
   left, Granite's and Gemma's chains of 3:00 jobs, question by question. Nemotron's runs were done Nov 4–5 on Ritik's
   account. B20's earlier smokes and runs (Nov 4) ran on Ritik's account; their files are copied to hers first.
-- **Dropped:** B1R2, "not run: GPU time given to A40" (Nov 5, before any B1R2 run; F38).
+- **B1R2:** dropped Nov 5 (decision f), **revived Nov 6** (the A39 log's §21): its 44 lines last in Ritik's queue,
+  each with `reserve=240:2`, so they fill only room A40's, A41's and A42's lines can't use.
 
 Nothing new after Nov 18. **What binds** (Nov 4) is the class QoS's 960 running GPU-minutes (each running job's time
 left × GPUs) and the 10 submitted jobs: 7 one-GPU jobs ran at once on Nov 3, so MaxJobsPU 2 doesn't bind. So most jobs
@@ -467,7 +478,8 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
     --alpha-from "$TRACKA_OUT/provenance_forced/provenance_forced.json" --note     # ~4 provenance_gen ... --note lines
   ```
 - **B1R2, B1's deployable span on E2** (a labelled replication; decided Nov 4 by its compute check, the A39 log's §13).
-  **Dropped Nov 5,** before any B1R2 run: "not run: GPU time given to A40" (the A39 log's §19). Kept below as written.
+  **Dropped Nov 5,** before any B1R2 run (the A39 log's §19); **revived Nov 6** (§21), last in the queue with
+  `reserve=240:2`. The job lines below are as §13 wrote them.
   - **What:** alpha 0.25 (set A's choice) against alpha = 1 on E2's 120 questions, the inserted tool turn only: 2
     wrong-hint, 2 correct-hint and 1 no-hint run a question in each configuration, 1,200 runs. B1's engine and
     settings (`-v2`), Hugging Face, one A100.
@@ -594,7 +606,8 @@ pre-push that runs `prepush_check.py`; it leaves anyone else's hook alone and sa
   "gpqa" in its name (code and docs excepted), or a file over 50 MB; and (Nov 6) names every commit being pushed whose
   author, committer or message breaks the team rule. Commits already on the remote are never checked.
 - **The team rule** (`cot-disclosure/configs/team_identities.txt`, Ritik's; read from HEAD): the only authors and
-  committers are the team's identities (an email listed for a person; a person with no email yet, their exact name).
+  committers are the team's identities: an email whose SHA-256 is listed for a person (the file holds hashes, never
+  emails, since the repo is public; `path_check.py --hash EMAIL` prints the form). A name alone never passes.
   No AI tool as author, committer or co-author; no `Co-authored-by` outside the team; no line with an AI tool's email;
   no "Generated with …" line; no session line (`Claude-Session:`, `Session-Id:`, a claude.ai/code link).
   pre-commit and pre-merge-commit check the identities; commit-msg checks the message and the identities. Claude

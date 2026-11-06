@@ -1,6 +1,7 @@
 """The path allowlist check (tools/path_check.py): on a listed branch a commit may touch only the branch's allowed
 paths; a merge may bring other files only unchanged from the branch merged in; --range reports what a branch changed
 outside its list. On throwaway git repos; no network."""
+import hashlib
 import re
 import subprocess
 import sys
@@ -294,28 +295,48 @@ def test_install_adds_a_commit_msg_hook_that_git_runs(tmp_path):
 
 
 # ---------------------------------------------------------------- Nov 6: only the team commits (configs/team_identities.txt)
-TEAM = """# test team
-Ritik Agarwal | Ritik <ritik@example.com>
-Shrey Bishnoi | Shrey Bishnoi <Shrey@Example.com>, Shrey <shrey2@example.com>
-Arsha Jindal  |                                   # email to confirm
+def h(email):
+    """The team file's form of an email (Nov 6, Ritik's decision b): sha256 of it lower-cased; no email is stored."""
+    return "sha256:" + hashlib.sha256(email.strip().lower().encode()).hexdigest()
+
+
+TEAM = f"""# test team: hashed emails only
+Ritik Agarwal | {h("ritik@example.com")}
+Shrey Bishnoi | {h("Shrey@Example.com")}, {h("shrey2@example.com")}
+Arsha Jindal  | {h("arsha@example.com")}, {h("aj@example.com")}
 """
 
 
-def test_a_team_identity_passes_by_email_or_by_name_when_no_email_is_listed():
+def test_a_team_identity_passes_by_the_hash_of_its_email_whatever_its_name():
     team = pc.parse_team(TEAM)
     assert [p[0] for p in team] == ["Ritik Agarwal", "Shrey Bishnoi", "Arsha Jindal"]
+    assert [len(p[1]) for p in team] == [1, 2, 2]
     for ok in ("Ritik <ritik@example.com>", "Ritik Agarwal <RITIK@example.com>",      # the email, any case, any name
                "Shrey <shrey@example.com>", "S B <shrey2@example.com>",
-               "Arsha Jindal <arsha.j@example.com>"):                               # no email listed: her exact name
+               "Arsha Jindal <arsha@example.com>", "A <AJ@example.com>"):
         assert pc.identity_problem(ok, team) is None, ok
     for bad in ("Ritik <other@example.com>",                                        # a listed person, another email
-                "Arsha <arsha@example.com>",                                        # not her exact name
+                "Arsha Jindal <arsha.j@example.com>",                               # her name, an email not hers
+                "Shrey Bishnoi <s@example.com>",
                 "Someone <s@example.com>",
                 "Arsha Jindal <x@openai.com>",                                      # her name, an AI email
                 "Claude <noreply@anthropic.com>", "Ritik <noreply@anthropic.com>",
                 "Copilot <198982749+Copilot@users.noreply.github.com>", "Ritik (aider) <ritik@example.com>",
                 "gemini-code-assist[bot] <bot@example.com>", "Cursor Agent <cursoragent@cursor.com>"):
         assert pc.identity_problem(bad, team), bad
+
+
+def test_an_older_copy_with_plain_emails_is_read_by_their_hashes():
+    old = "Ritik Agarwal | Ritik <ritik@example.com>\nArsha Jindal |   # email to confirm\n"   # 37738b4's form
+    team = pc.parse_team(old)
+    assert team == [("Ritik Agarwal", {h("ritik@example.com")}), ("Arsha Jindal", set())]
+    assert pc.identity_problem("R <RITIK@example.com>", team) is None
+    assert pc.identity_problem("Arsha Jindal <arsha@example.com>", team)           # no name-only pass any more
+
+
+def test_hash_prints_the_team_file_form_of_an_email(capsys):
+    assert pc.main(["--hash", " Ritik@Example.com "]) == 0
+    assert capsys.readouterr().out.strip() == h("ritik@example.com")
 
 
 def test_without_a_team_file_only_ai_identities_are_refused():
@@ -345,17 +366,40 @@ def test_message_rules_refuse_ai_co_authors_tool_lines_and_session_lines():
     assert pc.attribution_problems("C19\n", me, "Someone <s@example.com>", team)           # a non-team committer
 
 
-def test_the_real_team_file_lets_the_history_in_and_no_asu_email_is_written():
+def test_the_real_team_file_holds_hashes_only_and_lets_the_history_in():
     text = (CODE.parent / pc.TEAM_FILE).read_text()
-    assert "@asu.edu" not in text.lower()                                     # its local part is a Sol username
+    assert not pc.EMAIL.findall(text) and "@" not in text                    # no email in it, plain, anywhere
     team = pc.parse_team(text)
-    assert sorted(p[0] for p in team) == ["Arsha Jindal", "Ritik Agarwal", "Shrey Bishnoi"]
-    seen = subprocess.run(["git", "log", "--format=%an <%ae>%n%cn <%ce>", "-200"], cwd=CODE.parent,
+    assert [(p, len(hs)) for p, hs in sorted(team)] == [("Arsha Jindal", 2), ("Ritik Agarwal", 1), ("Shrey Bishnoi", 2)]
+    for person, hashes in team:
+        assert all(re.fullmatch(r"sha256:[0-9a-f]{64}", x) for x in hashes), person
+    seen = subprocess.run(["git", "log", "--all", "--format=%an <%ae>%n%cn <%ce>"], cwd=CODE.parent,
                           capture_output=True, text=True).stdout.split("\n")
-    for ident in {s for s in seen if s}:                                       # every identity in recent history
-        assert pc.identity_problem(ident, team) is None, ident
-    assert pc.identity_problem("Arsha Jindal <arsha@example.com>", team) is None
+    seen = {s for s in seen if s}
+    names = {pc.split_ident(s)[0] for s in seen}
+    assert {"Ritik", "Shrey Bishnoi"} <= names                                 # both have commits in the history
+    for ident in seen:                                                         # every identity in the history passes
+        assert pc.identity_problem(ident, team) is None, pc.split_ident(ident)[0]
+    assert pc.identity_problem("Arsha Jindal <arsha@example.com>", team)       # her name alone no longer passes
     assert pc.identity_problem("Claude <noreply@anthropic.com>", team)
+
+
+def test_no_tracked_file_holds_a_team_email_in_plain_text():
+    team = pc.parse_team((CODE.parent / pc.TEAM_FILE).read_text())
+    hashes = {x: person for person, hs in team for x in hs}
+    files = subprocess.run(["git", "ls-files", "-z"], cwd=CODE.parent, capture_output=True, text=True).stdout
+    found = []
+    for f in filter(None, files.split("\0")):
+        try:
+            data = (CODE.parent / f).read_bytes()
+        except OSError:
+            continue
+        if b"\0" in data[:8192]:                                               # binary
+            continue
+        for email in pc.EMAIL.findall(data.decode("utf-8", "replace")):
+            if pc.email_hash(email) in hashes:
+                found.append((f, hashes[pc.email_hash(email)]))               # the file and whose, never the address
+    assert not found, found
 
 
 def test_install_writes_four_hooks_and_a_non_team_commit_is_refused_before_it_is_made(tmp_path):
@@ -363,7 +407,7 @@ def test_install_writes_four_hooks_and_a_non_team_commit_is_refused_before_it_is
     git(repo, "checkout", "-q", "main")                                      # the tools and the team on every branch
     for name in ("path_check.py", "prepush_check.py"):
         write(repo, f"cot-disclosure/tools/{name}", (CODE / "tools" / name).read_text())
-    write(repo, pc.TEAM_FILE, "T Person | T <t@example.com>\n")
+    write(repo, pc.TEAM_FILE, f"T Person | {h('t@example.com')}\n")
     git(repo, "add", "-A")
     git(repo, "commit", "-qm", "the tools and the team", "--no-verify")
     git(repo, "checkout", "-q", "trackC-main")
