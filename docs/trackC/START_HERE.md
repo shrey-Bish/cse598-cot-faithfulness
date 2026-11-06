@@ -4,6 +4,14 @@
 Nov 5, 23:27: §0 what changed, §9 the repo's structure, §10 git without conflicts, §11 Claude Code, the zip bundle,
 the three hooks, the dates).
 
+> **Only the team commits, as themselves (Ritik's permanent rule, Nov 6, 11:17).**
+> No commit may list Claude, Anthropic or any AI tool as author, committer or co-author, or carry a
+> "Generated with …" or session line. The only authors and committers are the identities in
+> `cot-disclosure/configs/team_identities.txt`; the hooks refuse anything else (§11).
+> **Before your next commit:** `git fetch origin && git merge origin/main`, then
+> `python3 cot-disclosure/tools/path_check.py --install` again (it now writes four hooks, pre-push included), and
+> check that `git config user.name` / `user.email` match your line in that file.
+
 ## Quick start (one page)
 
 **Track C** is the project's third level of "Where did that answer come from?": when agents pass work along, does a
