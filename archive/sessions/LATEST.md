@@ -195,6 +195,13 @@ ls -l /scratch/$USER/cse598-cot-faithfulness/cot-disclosure/results/trackB/b20/*
 2. **Nov 7:** Shrey's merge (§3); then Shrey merges `origin/main` and reruns `--install`.
 3. **Arsha:** steps 7–8 (her feeder, scrontab); she commits with her Gmail.
 
-## 10. Checks and push
+## 10. Checks and push (written 15:02, on `8d3aab3`)
 
-CHECKS_PENDING
+- **Checks:**
+  - the full suite, run once: 1,031 passed, 1 skipped;
+  - links 0 broken; the supplement 40 rows, none unverified, no log outside the ledger; export numbers only;
+  - the Gantt's dry run passes; bundles B 51 and C 43;
+  - all 200 queue lines parse, B1R2's 44 last;
+  - pre-push: nothing produced, and every commit the team's with no AI attribution; nothing missing.
+- **Memory:** no leftover processes at the start; at most 2 helpers at a time; the full suite once.
+- **Commits:** all Ritik's, no attribution line. **Push:** `trackA-nosol` and `main` only.
