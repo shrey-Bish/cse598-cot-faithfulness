@@ -7,7 +7,7 @@ git hook.
   PATH_CHECK_ALLOW=<owner branch> (comma-separated), which passes with a warning.
 
 Install once per clone, as the pre-commit hook (a commit, or a merge that stopped on a conflict) and the pre-merge-commit
-hook (a clean merge):
+hook (a clean merge), and (Nov 5) the commit-msg hook:
   python3 cot-disclosure/tools/path_check.py --install
 Check by hand, or review a branch before merging it:
   python3 cot-disclosure/tools/path_check.py                                   # the staged files (what the hook does)
@@ -19,18 +19,29 @@ doesn't widen it, and changing the list on a listed branch is itself refused (it
 Every staged path counts: added, changed, deleted, and both names of a rename. During a merge (MERGE_HEAD), a path
 outside the list passes only if it is exactly the version from the branch merged in. --range A..B lists every path
 changed on B since its merge base with A (A's own changes aren't B's).
+
+The commit-msg hook (Nov 5; every branch, CLAUDE.md): a commit carries only its human author's own name. It refuses a
+message with an AI co-author trailer (Co-Authored-By naming Claude or Anthropic), a "generated with" line for Claude
+Code, or noreply@anthropic.com, and an author or committer named Claude or at anthropic.com. Comment lines and
+`commit -v`'s diff below the scissors line don't count; naming Claude Code or CLAUDE.md in a message is fine.
 """
 import argparse
 import fnmatch
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 ALLOWLIST = "cot-disclosure/configs/path_allowlist.txt"
-HOOKS = ("pre-commit", "pre-merge-commit")
 HOOK = '#!/bin/sh\n# the path allowlist, both ways (cot-disclosure/tools/path_check.py --install)\n' \
        'exec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/path_check.py" "$@"\n'
+MSG_HOOK = '#!/bin/sh\n# no AI attribution; the human author only (cot-disclosure/tools/path_check.py --install)\n' \
+           'exec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/path_check.py" --commit-msg "$1"\n'
+HOOKS = {"pre-commit": HOOK, "pre-merge-commit": HOOK, "commit-msg": MSG_HOOK}
+ATTRIBUTION = re.compile(r"^\s*co-authored-by:.*(claude|anthropic)|generated with \[?claude code|noreply@anthropic\.com",
+                         re.IGNORECASE | re.MULTILINE)
+SCISSORS = re.compile(r"^# -+ >8 -+$", re.MULTILINE)
 
 
 def git(repo, *args, check=True):
@@ -144,18 +155,35 @@ def check_owned(repo=".", env=None):
             {p: o for p, o in owned.items() if o in allow})
 
 
+def attribution_problems(message, author, committer):
+    """[problem]: AI attribution lines in the message as git keeps it (no # comments, nothing below commit -v's scissors
+    line), and an author or committer ("Name <email>") named Claude or at anthropic.com."""
+    kept = [line for line in SCISSORS.split(message, 1)[0].splitlines() if not line.startswith("#")]
+    problems = [f"an attribution line: {line.strip()}" for line in kept if ATTRIBUTION.search(line)]
+    for role, ident in (("author", author), ("committer", committer)):
+        name, _, email = ident.partition("<")
+        if "claude" in name.lower() or email.strip().rstrip(">").lower().endswith("@anthropic.com"):
+            problems.append(f"the {role} is {ident.strip()}")
+    return problems
+
+
+def ident(repo, var):
+    """"Name <email>" of GIT_AUTHOR_IDENT or GIT_COMMITTER_IDENT, as this commit will record it (--author, -c user.*)."""
+    return git(repo, "var", var).stdout.strip().rsplit(">", 1)[0] + ">"
+
+
 def install(repo):
-    """Write the two hooks; one that someone else wrote is left alone (returns the hooks refused)."""
+    """Write the three hooks; one that someone else wrote is left alone (returns the hooks refused)."""
     d = Path(git(repo, "rev-parse", "--git-path", "hooks").stdout.strip())
     d = d if d.is_absolute() else Path(repo) / d
     d.mkdir(parents=True, exist_ok=True)
     refused = []
-    for name in HOOKS:
+    for name, text in HOOKS.items():
         h = d / name
         if h.exists() and "path_check.py" not in h.read_text():
             refused.append(str(h))
             continue
-        h.write_text(HOOK)
+        h.write_text(text)
         h.chmod(0o755)
     return refused
 
@@ -175,14 +203,24 @@ def main(argv=None):
     ap.add_argument("--repo", default=".")
     ap.add_argument("--range", help="A..B: check what B changed since its merge base with A")
     ap.add_argument("--branch", help="the branch whose list applies to --range (default: the current branch)")
-    ap.add_argument("--install", action="store_true", help="write the pre-commit and pre-merge-commit hooks")
+    ap.add_argument("--install", action="store_true", help="write the pre-commit, pre-merge-commit and commit-msg hooks")
+    ap.add_argument("--commit-msg", metavar="FILE", help="the commit-msg hook: refuse AI attribution in FILE's message")
     a = ap.parse_args(argv)
     repo = git(a.repo, "rev-parse", "--show-toplevel").stdout.strip()
+    if a.commit_msg:
+        problems = attribution_problems(Path(a.commit_msg).read_text(errors="replace"),
+                                        ident(repo, "GIT_AUTHOR_IDENT"), ident(repo, "GIT_COMMITTER_IDENT"))
+        for p in problems:
+            print(f"commit-msg: refused: {p}", file=sys.stderr)
+        if problems:
+            print("A commit here carries only its human author's own name and email (git config user.name and "
+                  "user.email), with no AI co-author or tool line (CLAUDE.md). Fix it and commit again.", file=sys.stderr)
+        return 1 if problems else 0
     if a.install:
         refused = install(repo)
         for h in refused:
-            print(f"path check: {h} is someone else's hook; not overwritten (add this line to it: {HOOK.splitlines()[-1]})",
-                  file=sys.stderr)
+            print(f"path check: {h} is someone else's hook; not overwritten (add this line to it: "
+                  f"{HOOKS[Path(h).name].splitlines()[-1]})", file=sys.stderr)
         return 1 if refused else 0
     if a.range:
         branch = a.branch or branch_of(repo)

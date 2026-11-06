@@ -242,3 +242,50 @@ def test_the_real_list_gives_each_teammate_their_track_and_keeps_sol_code_ritiks
     samples = [re.sub(r"\[(.)[^\]]*\]", r"\1", r).replace("*", "x") + ("x.md" if r.endswith("/") else "")
                for rs in rules.values() for r in rs if not r.startswith("!")]       # one path each rule matches
     assert all(len(pc.owners(s, rules)) == 1 for s in samples)               # no path is claimed by both
+
+
+# ---------------------------------------------------------------- Nov 5: commits carry only the human's own name
+TRAILER = "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+FOOTER = "\U0001f916 Generated with [Claude Code](https://claude.com/claude-code)"
+ME = "Shrey <shrey@example.com>"
+
+
+def test_ai_attribution_lines_and_an_ai_identity_are_refused():
+    assert pc.attribution_problems("C19's reading (Shrey, Nov 7)\n", ME, ME) == []
+    for message in (f"C19's reading\n\n{TRAILER}\n", f"C19's reading\n\n{FOOTER}\n",
+                    "C19\n\nco-authored-by: claude <claude@example.com>\n", "C19\n\nCo-Authored-By: x <noreply@anthropic.com>\n",
+                    "C19\n\nGenerated with Claude Code\n"):
+        assert pc.attribution_problems(message, ME, ME), message
+    assert pc.attribution_problems("C19\n", "Claude <noreply@anthropic.com>", ME)          # --author
+    assert pc.attribution_problems("C19\n", ME, "Someone <bot@anthropic.com>")             # -c user.email=
+    assert pc.attribution_problems("C19\n", "claude-bot <x@example.com>", ME)
+
+
+def test_naming_claude_code_or_a_human_co_author_is_fine_and_comments_are_ignored():
+    for message in ("The root CLAUDE.md and .claude/settings.json: Claude Code adds no trailer (Ritik, Nov 5)\n",
+                    "C25's notes\n\nCo-Authored-By: Arsha <arsha@example.com>\n",
+                    f"C19\n# {TRAILER}\n",                                                 # a comment line: git drops it
+                    f"C19\n# ------------------------ >8 ------------------------\n+{FOOTER}\n+{TRAILER}\n"):  # commit -v's diff
+        assert pc.attribution_problems(message, ME, ME) == [], message
+
+
+def test_install_adds_a_commit_msg_hook_that_git_runs(tmp_path):
+    repo = make_repo(tmp_path)
+    write(repo, "cot-disclosure/tools/path_check.py", (CODE / "tools" / "path_check.py").read_text())
+    git(repo, "add", "-A")
+    git(repo, "commit", "-qm", "the tool", "--no-verify")
+    assert pc.main(["--repo", str(repo), "--install"]) == 0
+    assert "--commit-msg" in (Path(repo) / ".git" / "hooks" / "commit-msg").read_text()
+
+    def commit(message, config=(), extra=()):
+        write(repo, "docs/trackC/TODO_C.md", f"{message} {config} {extra}\n")
+        git(repo, "add", "-A")
+        return subprocess.run(["git", *config, "commit", "-qm", message, *extra], cwd=repo, capture_output=True, text=True)
+
+    for r in (commit(f"C19\n\n{TRAILER}"), commit(f"C19\n\n{FOOTER}"),
+              commit("C19", extra=["--author=Claude <noreply@anthropic.com>"]),
+              commit("C19", config=["-c", "user.name=Claude", "-c", "user.email=noreply@anthropic.com"])):
+        assert r.returncode == 1 and "commit-msg: refused" in r.stderr, r.stderr
+    assert git(repo, "log", "-1", "--format=%s").strip() == "the tool"                    # none of them was made
+    assert commit("C19's reading (T, Nov 7)").returncode == 0                             # a clean one passes
+    assert git(repo, "log", "-1", "--format=%an <%ae>|%cn <%ce>").strip() == "T <t@example.com>|T <t@example.com>"

@@ -71,3 +71,28 @@ def test_b20s_sol_records_with_text_never_travel_only_its_numbers_only_files(tmp
     assert manifest["sol_records_left_out"] == ["results/trackB/b17/b17_sol_vllm.jsonl.gz",
                                                 "results/trackB/b20/granite-4.2-8b/b20_sol_vllm.jsonl.gz"]
     assert "results/trackB/sub/x.jsonl.gz" in paths                       # Voyager's records still travel
+
+
+def test_a_zip_bundle_holds_the_same_files_and_manifest_and_verifies(tmp_path):
+    """Nov 5: Track C's bundle goes to ASU Drive as a zip (--format zip); tar.gz stays the default."""
+    import zipfile
+    tree(tmp_path)
+    z, manifest = hb.build("C", out_dir=tmp_path / "out", root=tmp_path, stamp="t", fmt="zip")
+    assert z == tmp_path / "out" / "trackC_t.zip" and zipfile.is_zipfile(z)
+    with zipfile.ZipFile(z) as f:
+        assert set(f.namelist()) == {"MANIFEST.json", "results/trackC/team_live.jsonl", "results/trackB/steered_cases.jsonl"}
+        assert json.loads(f.read("MANIFEST.json"))["files"] == manifest["files"]
+    assert json.loads((tmp_path / "out" / "trackC_t.manifest.json").read_text())["files"] == manifest["files"]
+    assert hb.verify(z) == [] and hb.verify(str(z)) == []
+    with pytest.raises(SystemExit, match="never overwritten"):
+        hb.build("C", out_dir=tmp_path / "out", root=tmp_path, stamp="t", fmt="zip")
+    with pytest.raises(SystemExit, match="never overwritten"):                  # nor its manifest, by a tar.gz that day
+        hb.build("C", out_dir=tmp_path / "out", root=tmp_path, stamp="t")
+    t, _ = hb.build("C", out_dir=tmp_path / "tgz", root=tmp_path, stamp="t")   # the default is unchanged
+    assert t.name == "trackC_t.tar.gz" and tarfile.is_tarfile(t) and hb.verify(t) == []
+    bad = tmp_path / "bad.zip"
+    with zipfile.ZipFile(z) as src, zipfile.ZipFile(bad, "w") as dst:
+        for name in src.namelist():
+            dst.writestr(name, b"changed\n" if name == "results/trackC/team_live.jsonl" else src.read(name))
+        dst.writestr("results/trackC/extra.jsonl", b"{}\n")
+    assert hb.verify(bad) == ["different bytes: results/trackC/team_live.jsonl", "not in the manifest: results/trackC/extra.jsonl"]

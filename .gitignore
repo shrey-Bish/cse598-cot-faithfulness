@@ -5,6 +5,12 @@
 !/cot-disclosure/
 !/archive/
 !/docs/
+# Claude Code (Nov 5): the team's instructions and shared settings (no AI attribution); personal settings
+# (.claude/settings.local.json) and worktrees stay local
+!/CLAUDE.md
+!/.claude/
+/.claude/*
+!/.claude/settings.json
 
 # secrets
 .env
