@@ -1,0 +1,262 @@
+{
+ "primary": {
+  "cases": 30,
+  "usable": 28,
+  "left_out_small_base_effect": 2,
+  "questions": 13,
+  "min_gap": 0.5,
+  "strong": 0.5,
+  "a40_still_answers_W": "26 of 30",
+  "base_answers_W": "30 of 30",
+  "reduction_a40": {
+   "mean": 0.6830357142857143,
+   "low": 0.17338709677419356,
+   "high": 1.1785714285714286,
+   "questions": 13
+  },
+  "share_of_base_effect_removed": {
+   "mean": 0.2473713159584426,
+   "low": 0.059781076377715035,
+   "high": 0.40927266988935346,
+   "questions": 13
+  },
+  "layer_split": {
+   "before": {
+    "share": 1.8888888888888888,
+    "low": 1.3917525773195876,
+    "high": 4.814814814814815,
+    "questions": 13,
+    "dropped_resamples": 99
+   },
+   "readout": {
+    "share": 0.026143790849673203,
+    "low": -0.02702702702702703,
+    "high": 0.1048951048951049,
+    "questions": 13,
+    "dropped_resamples": 99
+   },
+   "through": {
+    "share": 1.5947712418300655,
+    "low": 1.2811059907834101,
+    "high": 3.404255319148936,
+    "questions": 13,
+    "dropped_resamples": 99
+   },
+   "after": {
+    "share": -1.1633986928104576,
+    "low": -3.8260869565217392,
+    "high": -0.6853448275862069,
+    "questions": 13,
+    "dropped_resamples": 99
+   }
+  },
+  "reading": "stops the readout",
+  "where": "before them"
+ },
+ "against LoRA": {
+  "cases_matched": 30,
+  "unmatched": 0,
+  "usable": 28,
+  "questions": 13,
+  "base_effect_drift_max": 0.0,
+  "difference": {
+   "mean": 1.4017857142857142,
+   "low": 0.7268518518518519,
+   "high": 2.09375,
+   "questions": 13
+  },
+  "reading": "A40 removes more of the hint's pull than LoRA"
+ },
+ "layer R (reported, no decision)": {
+  "before": {
+   "mean": 1.2901785714285714,
+   "low": 0.84765625,
+   "high": 1.74609375,
+   "questions": 13
+  },
+  "readout": {
+   "mean": 0.017857142857142856,
+   "low": -0.014423076923076924,
+   "high": 0.04741379310344827,
+   "questions": 13
+  },
+  "through": {
+   "mean": 1.0892857142857142,
+   "low": 0.6105769230769231,
+   "high": 1.5740740740740742,
+   "questions": 13
+  },
+  "after": {
+   "mean": -0.7946428571428571,
+   "low": -1.0,
+   "high": -0.59375,
+   "questions": 13
+  }
+ },
+ "heads_same_tokens": {
+  "mean over the three heads": {
+   "mean": -0.04207941776538746,
+   "low": -0.05530659178665748,
+   "high": -0.026248088737309352,
+   "questions": 13
+  },
+  "L19H31": {
+   "mean": -0.026946654081526352,
+   "low": -0.05371723446020269,
+   "high": 0.009435419390577023,
+   "questions": 13
+  },
+  "L23H17": {
+   "mean": -0.022466209171398077,
+   "low": -0.03024110334658401,
+   "high": -0.014600308741633356,
+   "questions": 13
+  },
+  "L15H31": {
+   "mean": -0.07682539004323795,
+   "low": -0.0977832196777464,
+   "high": -0.05611049282892841,
+   "questions": 13
+  },
+  "words": "A40's heads look at the hint less"
+ },
+ "step10 A40 weights on base's cases (reported, no decision)": {
+  "share_at_readout": {
+   "mean": 1.0240075513931723,
+   "low": 0.9390764790764792,
+   "high": 1.1279524587612821,
+   "questions": 13
+  }
+ },
+ "secondary: user hints (reported apart)": {
+  "swap": {
+   "cases": 22,
+   "usable": 22,
+   "left_out_small_base_effect": 0,
+   "questions": 11,
+   "min_gap": 0.5,
+   "strong": 0.5,
+   "a40_still_answers_W": "18 of 22",
+   "base_answers_W": "22 of 22",
+   "reduction_a40": {
+    "mean": 1.1988636363636365,
+    "low": 0.7152777777777778,
+    "high": 1.72,
+    "questions": 11
+   },
+   "share_of_base_effect_removed": {
+    "mean": 0.3077079346142002,
+    "low": 0.2564079569684607,
+    "high": 0.3652433619536504,
+    "questions": 11
+   },
+   "layer_split": {
+    "before": {
+     "share": 1.4028436018957346,
+     "low": 1.2394957983193278,
+     "high": 1.6081081081081081,
+     "questions": 11,
+     "dropped_resamples": 0
+    },
+    "readout": {
+     "share": 0.0947867298578199,
+     "low": 0.04285714285714286,
+     "high": 0.17592592592592593,
+     "questions": 11,
+     "dropped_resamples": 0
+    },
+    "through": {
+     "share": 1.4834123222748816,
+     "low": 1.2972972972972974,
+     "high": 1.7328244274809161,
+     "questions": 11,
+     "dropped_resamples": 0
+    },
+    "after": {
+     "share": -0.9146919431279621,
+     "low": -1.2699386503067485,
+     "high": -0.6181818181818182,
+     "questions": 11,
+     "dropped_resamples": 0
+    }
+   },
+   "reading": "stops the readout",
+   "where": "before them"
+  },
+  "against LoRA": {
+   "cases_matched": 22,
+   "unmatched": 0,
+   "usable": 22,
+   "questions": 11,
+   "base_effect_drift_max": 0.0,
+   "difference": {
+    "mean": 2.284090909090909,
+    "low": 1.4539473684210527,
+    "high": 3.1079545454545454,
+    "questions": 11
+   },
+   "reading": "A40 removes more of the hint's pull than LoRA"
+  },
+  "layer R (reported, no decision)": {
+   "before": {
+    "mean": 1.6818181818181819,
+    "low": 1.0852272727272727,
+    "high": 2.2740384615384617,
+    "questions": 11
+   },
+   "readout": {
+    "mean": 0.11363636363636363,
+    "low": 0.05,
+    "high": 0.18478260869565216,
+    "questions": 11
+   },
+   "through": {
+    "mean": 1.7784090909090908,
+    "low": 1.19375,
+    "high": 2.352272727272727,
+    "questions": 11
+   },
+   "after": {
+    "mean": -1.0965909090909092,
+    "low": -1.4471153846153846,
+    "high": -0.8043478260869565,
+    "questions": 11
+   }
+  },
+  "heads_same_tokens": {
+   "mean over the three heads": {
+    "mean": -0.06544199423805794,
+    "low": -0.07419472739807423,
+    "high": -0.05513141774750487,
+    "questions": 11
+   },
+   "L19H31": {
+    "mean": -0.0735767710157957,
+    "low": -0.08838981143260298,
+    "high": -0.05708865366492925,
+    "questions": 11
+   },
+   "L23H17": {
+    "mean": -0.01652924484377846,
+    "low": -0.018418794800334794,
+    "high": -0.013716575873759747,
+    "questions": 11
+   },
+   "L15H31": {
+    "mean": -0.10621996685459965,
+    "low": -0.13197728488919816,
+    "high": -0.08345415180174313,
+    "questions": 11
+   },
+   "words": "A40's heads look at the hint less"
+  },
+  "step10 A40 weights on base's cases (reported, no decision)": {
+   "share_at_readout": {
+    "mean": 1.0969315883264124,
+    "low": 0.9829340368988518,
+    "high": 1.2234546828918225,
+    "questions": 11
+   }
+  }
+ }
+}

@@ -986,8 +986,9 @@ PREREG = [
                      "B1R2 held until E2's sweeps and B20's lines are in)", "ee14295"),
                     ("the amendment, section 19 (B1R2 dropped; the Nov 11 rule checks E2's and A40's lines; A40 before "
                      "the 30)", "dcf2d99")],
-     "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: every E2 and 30 line ended by Nov 6 "
-     "10:56 (status only, section 20; the nov6 rule said no cut); read Nov 17",
+     "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: complete (every run of its seven "
+     "systems has an ok record on E2 and the 30, Nov 7, section 22; Sol's runs-left had miscounted 54); its rule reads "
+     "it once complete, by Nov 17",
      "verdict_check": []},
     {"id": "b1r2", "track": "A", "experiment": "B1R2: B1's deployable span on E2 (a labelled replication; decided "
                                                "Nov 4: it runs)", "kind": "pre",
@@ -1000,7 +1001,8 @@ PREREG = [
                     ("the amendment, section 21 (revived Nov 6, before any B1R2 run; last in the queue, reserve=240:2)",
                      "64f6fe5")],
      "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "waiting: revived Nov 6 (the A39 log's "
-     "section 21; dropped Nov 5 before any B1R2 job, section 19); its 44 lines last in Ritik's queue, reserve=240:2",
+     "section 21; dropped Nov 5 before any B1R2 job, section 19); running, 19 of 40 parts done at Nov 7 13:18; read "
+     "when complete or partial at Nov 15 23:59",
      "verdict_check": []},
     {"id": "a40", "track": "A", "experiment": "A40: bias-augmented consistency training (Chua et al., 2024): the "
                                               "model's own no-hint reasoning as the target for hinted prompts, with a "
@@ -1013,10 +1015,11 @@ PREREG = [
      "rule_extra": [("the operational amendment, section 11 (Nov 6: the feeder checks A40's data on Sol before "
                      "a40-train-1; intent unchanged)", "20c9348")],
      "rule_check": ["beats the instruction", "fewer, but costs acceptance", "partial: N of 120 questions"],
-     "f_title": r"\(A40\)", "result_glob": ["*a40-results*"],
-     "verdict": "waiting: pre-registered Nov 5; its data done Nov 6 (883 examples, section 17), then training and E2 "
-                "on Sol",
-     "verdict_check": []},
+     "f_title": r"\(A40\)", "result_glob": ["*a40-reading*"],
+     "verdict": "fewer, but costs acceptance: against the instruction following −21 [−26, −16] and acceptance −15 "
+                "[−20, −10] (84 of 694 against 237 of 713 follow); the same reading against LoRA; R1 against base "
+                "passes; read Nov 7 once complete",
+     "verdict_check": ["fewer, but costs acceptance", "−21 [−26, −16]", "−15 [−20, −10]", "passes"]},
     {"id": "a41", "track": "A", "experiment": "A41: A40's weights inside the fixed model: A18's swap and Step 10 on "
                                               "base's same cases, A40 in LoRA's place", "kind": "pre",
      "rule": "A18's rule with A40 in LoRA's place, on base's tool-hint cases at cut (ii) (user hints apart): R_A40's "
@@ -1025,8 +1028,12 @@ PREREG = [
              "job's base, clustered by question (more / less / no difference detected)",
      "rule_log": "2026-11-06_1121_A_a41-prereg.md",
      "rule_check": ["acts in the reasoning", "A40 removes more of the hint's pull than LoRA"],
-     "f_title": r"\(A41\)", "result_glob": ["*a41-results*"],
-     "verdict": "waiting: pre-registered Nov 6; two jobs on Sol after A40's training", "verdict_check": []},
+     "f_title": r"\(A41\)", "result_glob": ["*a41-reading*"],
+     "verdict": "stops the readout, before them (layers 0–14): R_A40 +0.68 [+0.17, +1.18], s(0–14) 1.89 [1.39, "
+                "4.82]; A40 removes more of the hint's pull than LoRA (+1.40 [+0.73, +2.09]); read Nov 7 when both "
+                "jobs had ended",
+     "verdict_check": ["stops the readout", "before them", "+0.68 logits [+0.17, +1.18]",
+                       "A40 removes more of the hint's pull than LoRA"]},
     {"id": "a42", "track": "A", "experiment": "A42: A40 with the one-line note on E2, the combination A40 left "
                                               "unread", "kind": "pre",
      "rule": "on E2 by A39's statistics, paired by question: a40_note against prompt_only by A40's five readings "
@@ -1035,9 +1042,10 @@ PREREG = [
              "partial at Nov 15 23:59",
      "rule_log": "2026-11-06_1122_A_a42-prereg.md",
      "rule_check": ["beats the instruction", "adds to both", "partial: N of 120 questions"],
-     "f_title": r"\(A42\)", "result_glob": ["*a42-results*"],
-     "verdict": "waiting: pre-registered Nov 6; its code before its lines; E2 on Sol after A40's training",
-     "verdict_check": []},
+     "f_title": r"\(A42\)", "result_glob": ["*a42-reading*"],
+     "verdict": "fewer, but costs acceptance: against the instruction following −24 [−30, −19] and acceptance −20 "
+                "[−26, −14]; R3 adds, costs acceptance; R1 passes; read Nov 7 once complete",
+     "verdict_check": ["fewer, but costs acceptance", "−24 [−30, −19]", "adds, costs acceptance"]},
     {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
      "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "
              "H34 supported by fewer corrections (or a smaller drop), not supported by no change",

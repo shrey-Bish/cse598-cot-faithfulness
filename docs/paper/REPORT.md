@@ -388,7 +388,8 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     private 208 of 216 [93, 98%] vs final 8 of 216 [2, 7%]. Test 2, when the tool hint won: private 16 of 17 [73,
     99%], final 6 of 17 [17, 59%]. Pinned format, final answer: pasted 27 of 60, inserted 12 of 60, inserted +
     declared 17 of 60, user 0 of 20.
-  - Status: confirmed as keyword counts. The hand labels (L3) don't stand yet (below).
+  - Status: confirmed as keyword counts. The hand labels (L3) were read under the Nov 4 protocol: Gate 2's label part
+    is not met (below), so no claim rests on them.
   - Limits: the private keyword also fires with no hint (22 of 72 Olmo 3 7B Think no-hint runs), so 208 is an upper
     bound.
   - figure: waiting (WAITING.md, slide 5: L3's kappa in the caption). PLAN's map lists
@@ -456,22 +457,21 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 - **F24 (the words), reported with no decision.** On C15's 100 fresh items the solver's final answer after a lookup is
   bare in 50 of 55 (bad) and 43 of 45 (good), against 0 of 100 without the tool; good − bad +5 [−5, +15].
 
-**Waiting:**
+**The labels (read; no longer waiting):**
 
-- **L3 (waiting): Gate 2's hand labels, which F3 rests on.** Read Nov 3 (101 rows; Ritik and AI rater 1, ChatGPT 5
-  Astra High): Cohen's kappa on
-  the private reasoning 0.63 over 58 rows (tool 0.29, user 0.85), on the final answer 0.54 over 101 rows (tool 0.59,
-  user 0.43): under 0.6 in four of six cells, human-vs-AI agreement. Next: the LLM-judge protocol (pre-registered
-  Nov 4): Ritik's labels are the final labels, and Gate 2's label part is met if Ritik against the AI judges' majority
-  has kappa 0.6 or more in every cell, else not met ([TODO](../status/TODO.md)'s L3, PLAN's Gate 2); Gate 2 is Nov 8.
-  No acknowledgment claim from hand labels goes in the report before that. L5 (Track B's batch) comes after it.
-  - Corrected Nov 4, 17:51: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log. The
-    settling call and the fresh batch by both raters no longer apply.
+- **L3: Gate 2's hand labels, which F3 would rest on. Read Nov 4, 17:56, by the LLM-judge protocol (pre-registered
+  Nov 4, 17:45): not met** (F3). Ritik's labels are the final labels. Against the AI judges' 3-of-4 majority they are
+  under 0.6 in all six cells: private 0.472 (tool 0.353, user 0.576); final 0.234 (tool 0.223, user 0.201). So F3
+  stays a keyword count, and no acknowledgment claim from hand labels goes in the report. Gate 2's statement is marked
+  Nov 8 (PLAN).
+  - Before the protocol (Nov 3, 101 rows; Ritik and AI rater 1, ChatGPT 5 Astra High): kappa under 0.6 in four of
+    six cells, human-vs-AI agreement.
+  - Corrected Nov 4, 17:51: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log.
   - figure: waiting (WAITING.md, slide 5)
 
 ## 7. Fixing it (Ritik)
 
-- Gate 3; the instruction; false disclosure in labels (L4); B1; A39 on E2.
+- Gate 3; the instruction; false disclosure in labels (L4); B1; consistency training (A40, A41, A42); A39 on E2.
 - Figure: `docs/paper/figures/gate3_vs_base_slide.png` (slide 9; the same rows as `finetune/gate3.py`'s
   `cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png`), or A39's (`a39_e2_fixes.png`,
   `a39_e2_parts.png`, drawn Nov 17; WAITING.md).
@@ -540,18 +540,52 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
   - Limits: base's cases ask what LoRA's weights do with base's reasoning, not why LoRA's own runs went elsewhere; one
     trained version; 13 questions; the forced answer is off-distribution.
   - figure: docs/paper/figures/readout_lora_vs_base.png
+- **F41. A40 (E2): consistency training follows far fewer wrong hints than the one-line instruction, but takes fewer
+  correct ones too: "fewer, but costs acceptance".** (E2's 120 questions, 1,440 runs a system; read Nov 7.)
+  - Numbers: A40 follows the wrong hint in 84 of 694 [10, 15%], the instruction in 237 of 713 [30, 37%]; it takes the
+    correct hint in 347 of 459 [71, 79%] against 431 of 476 [88, 93%]. A40 − the instruction: following −21
+    [−26, −16], acceptance −15 [−20, −10], no-hint accuracy −2 [−7, +3]. A40 − LoRA: following −23 [−28, −19],
+    acceptance −13 [−17, −8]. R1 against base: following −30 [−35, −26], accuracy −3 [−7, +2], hiding −20 [−25, −15]:
+    passes.
+  - Status: confirmed by the rule fixed Nov 5: "fewer, but costs acceptance" against the instruction and against LoRA;
+    R1 passes. In the rule's words, said in advance: it follows fewer wrong hints by ignoring hints, the correct ones
+    too; a trade, not a fix.
+  - Limits: one model, one training run; trained on sure questions only; hiding is a keyword measure A40's opener
+    defeats (the reading stops at acceptance and doesn't use it).
+  - figure: docs/paper/figures/a40_e2_fixes.png
+- **F42. A41: inside the fixed model, consistency training acts on the readout, before layers 15, 19 and 23, unlike
+  LoRA.** (A18's 30 tool-hint cases, 13 questions; read Nov 7.)
+  - Numbers: on base's own reasoning, A40's weights remove +0.68 logits [+0.17, +1.18] of the hint's pull (LoRA's added
+    0.72, F39). The split: layers 0–23 carry 1.60 [1.28, 3.40] of it and 24–31 −1.16 [−3.83, −0.69] ("stops the
+    readout"); the readout layers 0.03 [−0.03, 0.11], layers 0–14 1.89 [1.39, 4.82] ("before them"). A40 − LoRA per
+    case: +1.40 [+0.73, +2.09] ("removes more of the hint's pull than LoRA"). User hints apart: the same readings.
+  - Status: confirmed by the rule fixed Nov 6. It doesn't change F41: A41 shows where A40's weights act, not whether
+    A40 is a fix.
+  - Limits: base's cases (not A40's own runs); one training run; 13 questions; the layer sets act in opposite
+    directions, so the shares are ratios of sums that pass 1 and 0.
+  - figure: docs/paper/figures/readout_lora_vs_base.png (A40's bars beside LoRA's)
+- **F43. A42 (E2): A40 with the one-line note follows fewest of all and still costs acceptance.** (Read Nov 7.)
+  - Numbers: A40 + note follows 64 of 706 [7, 11%], takes the correct hint in 334 of 472 [67, 75%]. Minus the
+    instruction: following −24 [−30, −19], acceptance −20 [−26, −14], accuracy −3 [−7, +1]. Minus A40: following −3
+    [−6, −0.1], acceptance −5 [−9, −1]. R1 against base: passes.
+  - Status: confirmed by the rules fixed Nov 6: "fewer, but costs acceptance"; R3 "adds, costs acceptance" (the cost is
+    against the instruction); R1 passes. With F41: no fix, alone or with the note, beats the instruction by these
+    rules.
+  - Limits: as F41's.
+  - figure: docs/paper/figures/a40_e2_fixes.png (the A40 + note rows)
 
 **Waiting:**
 
-- **A39 (waiting): Track A's second evaluation, on Sol.** A provenance wrapper and combinations, with a powered
+- **A39 (complete, to be read): Track A's second evaluation, on Sol.** A provenance wrapper and combinations, with a powered
   replication of Gate 3, on E2's 120 fresh questions (pre-registered Nov 3,
   [log](../../archive/sessions/2026-11-03/2026-11-03_1130_A_e2-a39-prereg.md)). Runs in 1-GPU parts, up to 10 at
-  once, submitted by the feeder (from Nov 4, 2:00 parts and 3:00 sweeps: the log's §14); runs by Nov 15; read Nov 17,
-  after all its parts are in. Nothing of Ritik's has started on Sol since Nov 4, 12:36 (fair share 0.005; starts by
-  backfill only; PLAN's calendar).
-  - **The 30** (22 jobs) runs beside E2 unless a rule drops it: on Nov 6 at 07:00 if Sol delivered under 10
-    GPU-hours to Ritik's jobs from Nov 4, 12:36 (the log's §16, applied by the feeder);
-    otherwise if E2's and A40's lines haven't all ended by Nov 11, 09:00 (§10.2, as §19 applies it from Nov 5). The Nov 6 daily reports which branch applied.
+  once, submitted by the feeder (from Nov 4, 2:00 parts and 3:00 sweeps: the log's §14). **Complete:** every line
+  ended by Nov 6, 10:56, and on Nov 7 (13:28) every run of its seven systems had an ok record, on E2 and on the 30.
+  Sol's `--runs-left` showed 54 runs left, from a counting bug fixed Nov 7 (the 13:29 log's §6); its readers were never
+  affected. Its rule reads it once complete (partial only at Nov 15 23:59, §18): Ritik reads it, by Nov 17. Its base,
+  prompt_only and lora rows already appear in F41 as A40's comparisons; its own rules R1–R4 aren't read yet.
+  - **The 30** ran beside E2: the Nov 6 07:00 rule said no cut (60.6 GPU-hours), and all 29 of its lines ended Nov 6
+    (the log's §20), so the Nov 11 rule has nothing to drop.
   - **T12 (Nov 4; the log's §15):** two A39 jobs shared a node and one server six times; three parts' runs (340) came
     from another model's server, set aside unread and run again; 160 from a server of the same model and command are
     kept, labelled. No earlier result is affected (§10).
@@ -559,11 +593,10 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     only from a complete report, Nov 17; spec in WAITING.md), after slide 9's `gate3_vs_base_slide.png`
 - **B1R2 (waiting): revived Nov 6.** Decided Nov 4 to run (the A39 log's §13); dropped Nov 5, before any B1R2 job
   was submitted (§19); revived Nov 6 (§21), last in Ritik's queue. B1 on the 30 (F38) stays the primary result on
-  the deployable span; B1R2 is reported as a labelled replication if it runs, partial at Nov 15 23:59 by §13.8.
-- **A40 (waiting): bias-augmented consistency training** (Chua et al., 2024), aimed at beating the instruction:
-  hinted prompts trained toward the model's own no-hint reasoning, with a final answer that names the hint.
-  Pre-registered Nov 5 (2026-11-05 09:18 log) before any call: on E2 against prompt_only, R1 against base, and against
-  LoRA. Its targets on Voyager from Nov 5, then training and E2 on Sol; read Nov 17, partial at Nov 15, 23:59.
+  the deployable span; B1R2 is reported as a labelled replication. **Running:** at 13:18 Nov 7, 19 of its 40 parts
+  were done, 3 running and 4 pending, with 556 of its 1,200 runs left; the 40 parts project to end Nov 8, about 02:00
+  to 03:00, then its 4 sweeps (a projection from today's pace, not `squeue`). Read once its sweeps leave 0 runs, or
+  partial at Nov 15 23:59 (§13.8).
 - **Gate 3's final statement:** Nov 20, after A39 (PLAN). L4 part 2 (LoRA minus base in labels): SHOULD, no date.
 
 ## 8. Level 3, between agents (Shrey)

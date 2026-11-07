@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-05 09:37 (T13 confirmed: 510702's start, Granite's files whole; B1R2 not run: GPU time given to A40, F38, then revived Nov 6, §21; earlier, Nov 4 22:51, T13: B20's shared stop file, fixed; 21:31, Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-07 13:42 (F41 A40, F42 A41, F43 A42, each read by its rule once complete; earlier 2026-11-05 09:37: T13 confirmed: 510702's start, Granite's files whole; B1R2 not run: GPU time given to A40, F38, then revived Nov 6, §21; earlier, Nov 4 22:51, T13: B20's shared stop file, fixed; 21:31, Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -10,7 +10,7 @@ the session logs. Design and plans:
 (FB1, …; Arsha's from Nov 6). F18, F19, F21–F24, F30, F31, F33 and F34 (Track C) and F15–F17, F25, F29, F35, F37 (Track B)
 stay here.
 
-**The story so far (Oct 28; updated Oct 30, Nov 1, Nov 2 and Nov 3).**
+**The story so far (Oct 28; updated Oct 30, Nov 1, Nov 2, Nov 3 and Nov 7).**
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
    from the user, in all five Track B models: the three on Voyager (Gate 2; 54 questions × 3 runs; tool − user with the
    pasted block: Qwen3 30B Thinking +35, Qwen3 30B Instruct +21, Olmo 3 7B Think +32 points), in
@@ -110,14 +110,23 @@ stay here.
    reasoning, LoRA's weights pull the answer toward the hint's letter harder, not less (−0.72 logits [−1.02, −0.39]
    removed; the hint's letter in 30 of 30 cases); when LoRA follows, it is through the same three layers, and F12's
    heads still separate its followed runs from its resisted ones. What training changed is the reasoning LoRA writes.
-   **Next (A39, E2):** a provenance wrapper and combinations on 120 fresh questions, with a powered replication of
-   Gate 3 (runs by Nov 15, read Nov 17; every E2 line had ended by Nov 6). B1R2, B1's span on E2, was dropped on Nov 5
-   before any of its runs (the A39 log's §19) and revived on Nov 6, last in Ritik's queue (§21). **A40,** a
-   bias-augmented consistency-training fine-tune, runs ahead of it (its own pre-registration, Nov 5).
+   **Consistency training on E2 (A40, F41; A42, F43; read Nov 7): far fewer wrong hints followed, at the cost of
+   correct ones, so still no fix beats the instruction.** Trained on its own reasoning written without the hint, Olmo
+   follows the wrong hint in 84 of 694 runs against the instruction's 237 of 713 (−21 [−26, −16]), but takes the
+   correct hint in 347 of 459 against 431 of 476 (−15 [−20, −10]): **"fewer, but costs acceptance"**, by the rule
+   fixed Nov 5, against the instruction and against LoRA. It passes Gate 3's rule against base. With the note added
+   (A42) it follows fewest of all (64 of 706) and costs more acceptance (−20 [−26, −14]): the same reading, and the
+   two "add, costs acceptance". **Inside the model it is the first fix that acts on the readout (A41, F42):** on
+   base's own reasoning A40's weights remove part of the hint's pull (+0.68 logits [+0.17, +1.18]), from layers 0–14,
+   before the readout layers, and more than LoRA (+1.40 [+0.73, +2.09]), where LoRA's added to it (F39).
+   **Next:** A39 (a provenance wrapper and combinations on E2, with a powered replication of Gate 3) is complete and
+   may be read once Ritik says when (by Nov 17). B1R2, B1's span on E2, was dropped on Nov 5 before any of its runs
+   (the A39 log's §19), revived on Nov 6, last in Ritik's queue (§21), and is running (read when complete, or partial
+   at Nov 15 23:59).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`); hand labels decide
-  only where they stand (L4 part 1 in F28, kappa 0.93; L3's, under 0.6 on Nov 3, don't yet). Both kappas are
+  only where they stand (L4 part 1 in F28, kappa 0.93; L3's don't: not met under the Nov 4 protocol, F3). Both kappas are
   Ritik against an AI rater (ChatGPT 5 Astra High), not two human raters (corrected Nov 4, 17:49; F3, F28).
 - **Too few questions** (decided Oct 26). A clustered interval resting on fewer than 5 questions
   degenerates (it can have zero width), so none is reported: the point is followed by "too few
@@ -2352,6 +2361,146 @@ by question; every reading the same at the 16,000 cut; fifteen readings, not cor
   - (a) the manual higher for Thinking, and no difference detected for the other two;
   - (b)'s bottom: a classmate's claim above the plain hint in all three (at the cut, only just in two);
   - (c) authority over every tool channel for Thinking and Olmo, and Instruct's own call beyond it.
+
+## F41. Track A (A40): consistency training follows far fewer wrong hints than the one-line instruction, but takes fewer correct ones too: "fewer, but costs acceptance", so it doesn't beat the instruction
+
+**Setup.**
+- **The fix** (pre-registered Nov 5, the 09:18 log, before any call): bias-augmented consistency training (Chua et al.,
+  2024). Olmo 3 7B Think trained with LoRA at `lora`'s settings on its own reasoning written **without** the hint, as
+  the target for hinted prompts, with a final answer in its own voice that names the hint and whether it agreed.
+  - The data: 217 sure questions, 979 records, 883 examples, 981 training examples (its §17).
+  - Training: 2 epochs, 222 steps on all 881; epoch 1 chosen by validation loss (jobs 622511, 639137, 643581).
+- **The evaluation:** E2, 120 fresh MMLU-Pro questions, in A39's lean design (12 runs a question: 6 wrong-hint, 4
+  correct-hint, 2 no-hint; the user, pasted and inserted channels). Its comparisons are A39's own runs of base,
+  prompt_only (the one-line instruction) and lora. 16 parts on Sol, Nov 6 21:21 to Nov 7 01:50; 1,440 of 1,440 runs
+  each; each part on its own server.
+- **The rule** (its §8), A40 against the instruction, read in order:
+  - worse (following's interval above 0);
+  - matches (it includes 0);
+  - fewer, but costs acceptance (below 0, and acceptance falls by more than 5 points);
+  - fewer, but hides more;
+  - beats the instruction.
+  Then R1 (Gate 3's rule) against base, and the same five readings against LoRA.
+- **Read Nov 7, 13:29,** once complete: A40's log sets no earlier date; Nov 15 23:59 is only its partial rule.
+
+**Result: "fewer, but costs acceptance."**
+
+| system | follows the wrong hint | takes the correct hint | no-hint accuracy |
+|---|---|---|---|
+| base | 297 of 703 [39, 46%] | 439 of 476 [89, 94%] | 156 of 236 [60, 72%] |
+| the instruction (prompt_only) | 237 of 713 [30, 37%] | 431 of 476 [88, 93%] | 154 of 235 [59, 71%] |
+| LoRA | 248 of 705 [32, 39%] | 421 of 477 [85, 91%] | 155 of 235 [60, 72%] |
+| **A40** | **84 of 694 [10, 15%]** | **347 of 459 [71, 79%]** | 146 of 229 [57, 70%] |
+
+| comparison | following | acceptance | no-hint accuracy | hiding | the rule's reading |
+|---|---|---|---|---|---|
+| **A40 − the instruction** | **−21 [−26, −16]** | **−15 [−20, −10]** | −2 [−7, +3] | −13 [−18, −9] | **fewer, but costs acceptance** |
+| A40 − LoRA | −23 [−28, −19] | −13 [−17, −8] | −1 [−6, +3] | +0 [−2, +2] | fewer, but costs acceptance |
+| A40 − base (R1, Gate 3's rule) | −30 [−35, −26] | −17 [−22, −12] | −3 [−7, +2] | −20 [−25, −15] | **passes** |
+
+- Points, paired by question; 95% bootstrap clustered by question (20,000 resamples, seed 0); 120 questions. No
+  no-answer imbalance in any comparison.
+- **Beside it, no decision:**
+  - following falls on every channel against the instruction: user −22, pasted −21, inserted −20;
+  - acceptance falls on both channels that have correct hints: pasted −16, inserted −14;
+  - false-disclosure candidates −5 [−9, −0].
+
+**What limits the reading.**
+- One model and one training run.
+- Sure questions only in training: A40 never saw a correct hint on a question it couldn't solve.
+- Hiding is a keyword measure, and A40's trained final answer names the hint, so its low hiding (24 of 694) says
+  little without hand labels. The reading stops at acceptance and doesn't use it.
+- 33 of A39's runs (base 26, lora 6, prompt_only 1) have two ok records after a counting bug re-ran them. The reader
+  keeps the newest, by its fixed rule (the reading log's §2 and §6).
+
+**Source.** `cot-disclosure/results/summaries/trackA/gpu/a39/a40_e2.json`, from `python finetune/a40.py --report`
+over the copied-back runs files (the
+[Nov 7 13:29 log](../archive/sessions/2026-11-07/2026-11-07_1329_A_a40-reading.md)). Figure:
+`docs/paper/figures/a40_e2_fixes.png` (`tools/a40_figures.py`).
+
+**Status.** *Confirmed* by the rule: **fewer, but costs acceptance** against the instruction and against LoRA; R1
+**passes**. In its log's words, said in advance: A40 follows fewer wrong hints by ignoring hints, the correct ones too.
+It is reported as a trade, not as a fix.
+
+## F42. Track A (A41): inside the fixed model, consistency training acts on the readout, unlike LoRA: on base's own reasoning A40's weights remove part of the hint's pull, in layers 0–14, before the readout layers
+
+**Setup.**
+- **The question** (pre-registered Nov 6, the 11:21 log, before A40 was trained): A18's swap and Step 10 (F39) with
+  A40's weights in LoRA's place, on the same 30 tool-hint cases from base's followed runs (13 questions) and 22
+  user-hint cases (11 questions).
+- **The rule:** A18's. R_A40 = TE_base − TE_A40, the hint's direct effect removed (logits). If its interval is above
+  0, the shares s(S) of A40's R carried by A40's weights on a layer set place it.
+- **The secondary:** R_A40 − R_LoRA per case, each against its own job's base.
+- **Sol:** `a41-swap` (652219, 0:25) and Step 10 (652471, stopped at its limit as planned; 667862 did the last 2 cuts),
+  ended Nov 7, 07:25. Read when both had ended (its §6), Nov 7, 13:31.
+
+**Result: "stops the readout", "before them" (layers 0–14); "A40 removes more of the hint's pull than LoRA".**
+
+| reading (tool-hint cases) | numbers | rule's reading |
+|---|---|---|
+| R_A40 on base's cases | **+0.68 logits [+0.17, +1.18]**; 28 cases, 13 questions | acts on these tokens |
+| s(0–23) and s(24–31) | 1.60 [1.28, 3.40] and −1.16 [−3.83, −0.69] | **stops the readout** |
+| s(15, 19, 23) and s(0–14) | 0.03 [−0.03, 0.11] and **1.89 [1.39, 4.82]** | **before them** |
+| R_A40 − R_LoRA, per case | **+1.40 [+0.73, +2.09]**; 30 matched, base's drift 0.0 | **A40 removes more of the hint's pull than LoRA** |
+
+- **Reported, no decision:**
+  - A40's weights remove 0.25 [0.06, 0.41] of base's effect, and the forced answer is still the hint's letter in 26 of
+    30 (base 30 of 30);
+  - F12's heads look at the hint less under A40 (the three's mean −0.042 [−0.055, −0.026]);
+  - the readout's share under A40 on base's cases is 1.02 [0.94, 1.13], beside base's 0.97 and LoRA's 1.01 (F39).
+- **User hints, apart:** the same readings (R_A40 +1.20 [+0.72, +1.72]; s(0–14) 1.40 [1.24, 1.61]; against LoRA +2.28
+  [+1.45, +3.11]).
+
+**What limits the reading.**
+- The cases are base's followed runs: the swap asks what A40's weights do with base's reasoning, not why A40's own runs
+  go elsewhere.
+- One training run; 13 questions; the forced answer is off-distribution.
+- The layer sets act in opposite directions (0–14 removes, 24–31 adds), so the shares are ratios of sums that pass 1
+  and 0. 99 of 20,000 resamples had a non-positive total and were dropped.
+
+**Source.** `cot-disclosure/results/summaries/trackA/gpu/a18/a41_readout.json` and `swap_a40_rows.jsonl`, from
+`python finetune/look/a18.py a41 results/trackA/gpu/a18` (the
+[Nov 7 13:31 log](../archive/sessions/2026-11-07/2026-11-07_1331_A_a41-reading.md)). Slide 10:
+`docs/paper/figures/readout_lora_vs_base.png`, A40's bars beside LoRA's (`tools/slide_figures.py`).
+
+**Status.** *Confirmed* by the rule: **stops the readout, before them**, and **more than LoRA**, on tool and user
+hints. In its log's words, said in advance, the kind of target (unhinted reasoning against hinted) changes how the
+weights read the hint. It doesn't change A40's E2 reading (F41) or F39.
+
+## F43. Track A (A42): A40 with the one-line note follows fewest of all, and still costs acceptance: "fewer, but costs acceptance"; the two "add, costs acceptance"
+
+**Setup.**
+- **The system** (pre-registered Nov 6, the 11:22 log, before A40 was trained): A40's merged model with prompt_only's
+  note at the end of the system turn in every round (`a40_note`).
+- **The evaluation:** E2 in A39's lean design, as A40's. 16 parts, the last ending Nov 7 at 07:51; 1,440 of 1,440 runs.
+- **The rules:**
+  - primary: A40's five readings against the instruction;
+  - R3: A39's rule for a combination against each part alone (A38's reading);
+  - R1: Gate 3's rule against base.
+- **Read Nov 7, 13:31,** once complete (no earlier date; Nov 15 23:59 is only its partial rule).
+
+**Result: "fewer, but costs acceptance"; R3 "adds, costs acceptance"; R1 passes.**
+
+| comparison | following | acceptance | no-hint accuracy | hiding | the rule's reading |
+|---|---|---|---|---|---|
+| **A40 + note − the instruction** | **−24 [−30, −19]** | **−20 [−26, −14]** | −3 [−7, +1] | −15 [−20, −11] | **fewer, but costs acceptance** |
+| A40 + note − A40 (R3) | −3 [−6, −0.1] | −5 [−9, −1] | −2 [−6, +3] | | R3 with the row above: **adds, costs acceptance** |
+| A40 + note − base (R1) | −33 [−38, −28] | −22 [−28, −16] | −4 [−9, +0.5] | −22 [−27, −17] | **passes** |
+
+- A40 + note: follows 64 of 706 [7, 11%], takes the correct hint in 334 of 472 [67, 75%], no-hint accuracy 147 of 238
+  [55, 68%]. The other systems' rates are F41's.
+- R3's cost is against the instruction (acceptance −20); against A40 it is within the 5-point margin.
+- **Beside it, no decision:** false-disclosure candidates −8 [−12, −4] against the instruction.
+
+**What limits the reading.** One model and one training run of A40; keyword hiding; one more uncorrected reading on E2.
+
+**Source.** `cot-disclosure/results/summaries/trackA/gpu/a39/a42_e2.json`, from `python finetune/a42.py --report` (the
+[Nov 7 13:31 log](../archive/sessions/2026-11-07/2026-11-07_1331_A_a42-reading.md)). Figure: the A40 + note rows of
+`docs/paper/figures/a40_e2_fixes.png`.
+
+**Status.** *Confirmed* by the rule: **fewer, but costs acceptance**, and R3 **adds, costs acceptance**; R1
+**passes**. With F41: no fix, alone or with the note, beats the one-line instruction by these rules. Each that follows
+fewer does it by also taking fewer correct hints.
 
 ## Measurement traps we hit and fixed
 

@@ -1,8 +1,16 @@
-## In plain words: Track A's fix so far (as of Nov 5, 09:08; by Ritik)
+## In plain words: Track A's fix so far (as of Nov 7, 13:44; by Ritik; earlier Nov 5, 09:08)
 
-**The verdict.** Every trained version follows fewer wrong hints than base and passes Gate 3, but none beats one line
-of instruction in the prompt: training changed the reasoning LoRA writes, not how it reads the hint (F39), and that
-bought no more than the instruction does.
+**The verdict.** Every trained version follows fewer wrong hints than base and passes Gate 3. **None beats one line of
+instruction in the prompt by its pre-registered rule.**
+- **LoRA matched the instruction** (the 30, F28). Its training changed the reasoning LoRA writes, not how it reads the
+  hint (F39).
+- **Consistency training (A40) trades instead** (E2's 120 fresh questions, F41, read Nov 7). It follows the wrong hint
+  in 12% of runs against the instruction's 33%, but takes the correct hint in 76% against 91%. The rule's reading is
+  **"fewer, but costs acceptance"**: it ignores hints, the right ones too.
+- **Adding the note (A42, F43)** follows fewest of all (9%), at a larger cost (71% of correct hints taken). Same
+  reading.
+- **Inside the model, A40 is the first fix that changes how the hint is read off** (A41, F42). In layers 0–14, before
+  the readout, it removes part of the hint's pull, where LoRA's weights added to it.
 
 Olmo 3 7B Think, the held-out 30 MMLU-Pro questions, 930 runs per system (F28, final Oct 31). Sources:
 [FINDINGS](../FINDINGS.md); Gate 3's [table](../../cot-disclosure/results/summaries/trackA/gpu/eval/gate3_table.md)
@@ -31,6 +39,23 @@ and [report](../../cot-disclosure/results/summaries/trackA/gpu/eval/eval_report.
 - **Tags aren't tool-specific:** the predicted extra help on the inserted tool turn isn't borne out (tags −2 [−13, +9];
   LoRA + tags −13 [−24, −1], the wrong side).
 
+**1b. Consistency training on E2** (A40 and A42; 120 questions, 1,440 runs a system; F41, F43; read Nov 7 by the
+rules fixed Nov 5 and 6; [A40's reading](../../archive/sessions/2026-11-07/2026-11-07_1329_A_a40-reading.md),
+[A42's](../../archive/sessions/2026-11-07/2026-11-07_1331_A_a42-reading.md))
+
+| system | wrong hints followed | − the instruction | correct hints accepted | − the instruction | no-hint accuracy | reading |
+|---|---|---|---|---|---|---|
+| base | 297 of 703 (42%) | | 439 of 476 (92%) | | 156 of 236 (66%) | |
+| the instruction (prompt_only) | 237 of 713 (33%) | — | 431 of 476 (91%) | — | 154 of 235 (66%) | |
+| LoRA | 248 of 705 (35%) | | 421 of 477 (88%) | | 155 of 235 (66%) | A39's, not read yet |
+| **A40** (consistency training) | **84 of 694 (12%)** | **−21 [−26, −16]** | **347 of 459 (76%)** | **−15 [−20, −10]** | 146 of 229 (64%) | **fewer, but costs acceptance**; R1 passes |
+| **A40 + note** (A42) | **64 of 706 (9%)** | **−24 [−30, −19]** | **334 of 472 (71%)** | **−20 [−26, −14]** | 147 of 238 (62%) | **fewer, but costs acceptance**; R3 adds, costs acceptance; R1 passes |
+
+- **The trade is the risk A40's log named in advance** (its §4 and §9): trained only on questions it could solve, it
+  learned to set hints aside, so it sets aside correct ones too.
+- **Against LoRA,** A40 follows 23 points fewer and accepts 13 fewer: the same trade.
+- **Hiding** isn't used: A40's trained final answer names the hint, so a keyword count says little without hand labels.
+
 **2. Why they matched the instruction instead of beating it**
 
 *What was shown.*
@@ -44,6 +69,10 @@ and [report](../../cot-disclosure/results/summaries/trackA/gpu/eval/eval_report.
 - **Where training acts** (A18, F39). On base's own reasoning, LoRA's weights pull toward the hint's letter harder, not
   less (−0.72 logits [−1.02, −0.39]; 28 cases, 13 questions). LoRA's own following still runs through the readout at
   15/19/23 (share 1.29 [1.10, 1.51]). The rule's reading: "acts in the reasoning".
+- **Where consistency training acts** (A41, F42). On the same cases, A40's weights remove part of the hint's pull
+  (+0.68 logits [+0.17, +1.18]), more than LoRA (+1.40 [+0.73, +2.09]), from layers 0–14, before the readout layers.
+  The rule's reading: "stops the readout, before them". So the kind of target changed how the weights read the hint,
+  and it bought fewer wrong hints followed at the price of correct ones (F41).
 - **Cutting the readout instead** (B1; F27, F38). On set A, every stronger attention cut lowered the forced wrong answer
   more but cost correct hints over 5 points. On the 30, the tool-turn span cut following there by 17 points (−17 [−30, −3]), but
   acceptance fell 7 points (25 → 23 of 30) against a 5-point limit: "ignores tools", underpowered.
@@ -72,10 +101,13 @@ and [report](../../cot-disclosure/results/summaries/trackA/gpu/eval/eval_report.
 - **What each outcome means** (said Nov 3): "fewer than the instruction" is the first fix that beats one line; a
   combination "adds to both": they stack; the wrapper "works": marking the source does what training didn't; all "no
   difference detected" at ±5: the instruction is as good as these fixes get, now with the power to say so.
-- **When:** runs end Nov 15, read Nov 17 ([PLAN](../PLAN.md)). If not complete by Nov 15 23:59, read on the questions
-  with every run of all seven systems, labelled "partial: N of 120 questions" (§18).
+- **When:** complete (every run of all seven systems has an ok record, Nov 7, 13:28); its rule reads it once complete,
+  so it is read when Ritik chooses, by Nov 17 ([PLAN](../PLAN.md)). The partial rule (§18, Nov 15 23:59) isn't
+  needed.
 
-**4. Next.** A40, a bias-augmented consistency-training fine-tune (Chua et al., 2024) aimed at beating the instruction,
-is being pre-registered today in its own log, before anything is generated ([the 08:57 log](../../archive/sessions/2026-11-05/2026-11-05_0857_ALL_two-accounts-a40.md),
-decision g). B1R2 (B1 on E2) was dropped today for A40's GPU time (decision f); on Nov 6 it was revived, last in the queue (the A39
-log's §21), so B1 may also be read on E2.
+**4. Next.**
+- **A39** (the wrapper and the combinations, with a powered replication of Gate 3) is complete on E2 and the 30.
+  Its rule reads it once complete, by Nov 17 (Ritik). Its base, prompt_only and lora rows are already printed above as
+  A40's comparisons; its own rules R1–R4 aren't read yet.
+- **B1R2** (B1's span on E2) is running: 19 of 40 parts done at 13:18 Nov 7. Read when complete, or partial at
+  Nov 15 23:59.

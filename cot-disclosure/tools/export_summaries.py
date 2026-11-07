@@ -73,6 +73,10 @@ KEEP_PATH = {             # under results/trackA/ -> under results/summaries/ (s
        for f in ("gate3_following", "gate3_vs_base") for x in ("png", "svg", "csv")},
     "gpu/a39/a39_e2.json": "trackA/gpu/a39/a39_e2.json",                    # A39 on E2 (finetune/a39.py; Nov 17)
     "gpu/a39/a39_mmlupro_30.json": "trackA/gpu/a39/a39_mmlupro_30.json",    # A39 on the 30, beside it
+    "gpu/a39/a40_e2.json": "trackA/gpu/a39/a40_e2.json",                    # A40 on E2 (finetune/a40.py; F41)
+    "gpu/a39/a42_e2.json": "trackA/gpu/a39/a42_e2.json",                    # A42 on E2 (finetune/a42.py; F43)
+    "gpu/a18/a41_readout.json": "trackA/gpu/a18/a41_readout.json",          # A41's readings (look/a18.py a41; F42)
+    "gpu/a18/swap_a40/swap_rows.jsonl": "trackA/gpu/a18/swap_a40_rows.jsonl",  # A41's swap, one row a case (slide 10)
 }
 LATER = ["nohint_train_runs.jsonl", "targets_runs.jsonl", "target_samples_runs.jsonl", "targets_prefill_runs.jsonl",
          "target_samples_prefill_runs.jsonl"]                    # Steps 6-7: after the run finishes
