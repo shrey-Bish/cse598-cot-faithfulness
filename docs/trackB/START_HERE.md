@@ -19,6 +19,7 @@ Earlier: **Nov 5, 09:54**, B20 on your own Sol account with your own feeder (the
 > check that `git config user.name` / `user.email` match your line in that file.
 > Your two emails are listed there, as hashes (Nov 6). Commit with your Gmail: the repo is public, and an ASU
 > email in a commit's author line shows your Sol username.
+> **Nov 7:** merge `origin/main` and rerun `--install` again: the hooks now read every message as UTF-8 (a Windows fix).
 
 ## Quick start (one page)
 
