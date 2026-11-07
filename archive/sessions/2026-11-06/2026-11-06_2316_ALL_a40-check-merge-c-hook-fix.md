@@ -203,6 +203,12 @@ grep -E "a41-|a42-" /scratch/$USER/trackA/feeder.log | tail -3   # by Nov 7 morn
 2. **Nov 7:** nothing on Sol is needed; §8 is optional. A41 goes in about midnight, A42 from about 01:00.
 3. **Nov 8:** mark Gate 2 (PLAN's statement, ONE_PAGE, TODO's G2).
 
-## 10. Checks and push
+## 10. Checks and push (written 23:34, on `137dcb6`)
 
-CHECKS_PENDING
+- **Checks:**
+  - the full suite, run once: 1,042 passed, 1 skipped (Track C's merged tests and the 6 hook tests included);
+  - links 0 broken; the supplement 40 rows, none unverified, no log outside the ledger; export numbers only;
+  - the Gantt's dry run passes; bundles B 51 and C 43;
+  - pre-push: nothing produced, and every commit the team's with no AI attribution; nothing missing.
+- **Memory:** no leftover process at the start; 2 helpers at most; the full suite once.
+- **Commits:** all Ritik's, no attribution line, plus Shrey's 7 by the merge. **Push:** `trackA-nosol` and `main` only.
