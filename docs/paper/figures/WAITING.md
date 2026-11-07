@@ -135,7 +135,8 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 - **Comparison (C25's log, Oct 31 22:33):**
   - Per note variant: "kept" (the lower bound is above 50%), "lost" (the upper bound is below 50%) or "mixed".
   - The decider: paired by item, clustered by item, with C11's 20-point margin (`c16.two_sided`).
-- **Owner and date:** Shrey; C25 due Nov 12, C20 and C26 Nov 15.
+- **Owner and date:** Shrey. C25, C20 and C26 read Nov 6 (FC2–FC4, merged Nov 6), their figures made as
+  `docs/trackC/figures/c25_hops.png` and `pipeline_vs_model.png`; Ritik places them on the slide.
 
 ## Additions to figures that exist (no new file)
 
@@ -155,4 +156,5 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
   Ritik's queue. Panel (b) gains it if it finishes (partial at Nov 15 23:59), else stays B1 on the 30, as made. A41
   (A40's weights in A18's readout) may add a row. Owner: Ritik.
 - **Slide 11** (`docs/paper/figures/trackC_reviewers_slide.png` and `reviewer_by_prompt_slide.png`, made Nov 4; the
-  supplement's `trackC_reviewers`): C19's answer-key-versus-own-working bars, due Nov 7. Owner: Shrey.
+  supplement's `trackC_reviewers`): C19's answer-key-versus-own-working bars: read Nov 6 (FC1), made by Shrey as
+  `docs/trackC/figures/c19_authority.png`; Ritik places them. Owner: Shrey (the figure), Ritik (the slide).

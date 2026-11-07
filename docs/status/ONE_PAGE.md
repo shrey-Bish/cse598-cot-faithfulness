@@ -1,4 +1,4 @@
-## In plain words (Ritik's page, as of Nov 6, 14:48: A40 training queued; B1R2 revived; emails hashed; C25 done; A40's data and lines; A41 and A42; only the team commits; earlier 09:56, Arsha's handoff; Sol as of Ritik's Nov 6 morning block, his feeder at 10:56; edited by hand in `docs/status/ONE_PAGE.md`)
+## In plain words (Ritik's page, as of Nov 6, 23:22: A40's training verified; B20 complete; Track C merged; the hooks read UTF-8; A40's data and lines; A41 and A42; only the team commits; earlier 09:56, Arsha's handoff; Sol as of Ritik's Nov 6 morning block, his feeder at 10:56; edited by hand in `docs/status/ONE_PAGE.md`)
 
 **Done.**
 - 40 findings (F1–F40, in `docs/FINDINGS.md`). **Gate 3 is met** (F28): trained versions follow fewer wrong hints,
@@ -24,11 +24,14 @@
   nothing read). A39 on E2 (87 lines) and on the 30 (29 lines) are done running; both are read Nov 17. The Nov 6
   07:00 rule said no cut (60.6 GPU-hours), so nov11 has nothing left to drop (the A39 log's §20). **The account has
   sat idle since**, until Ritik's pull and rsync: **`a40-train-1` went in at 14:15:59** (job 622511, its data check
-  passing), pending on priority. **B1R2 is revived** (Nov 6, the A39 log's §21): its 44 lines last, each with
+  passing). **Its training is verified sound** (the 23:16 log's §4): 2 epochs, 222 steps on all 881 examples, epoch 1
+  chosen by the validation rule, and the merged model is what A40's E2 parts serve. At 23:20 its E2 parts 1–6 were
+  done, 7–10 running and 11–14 pending; A41 goes in about midnight, A42 from about 01:00 Nov 7. **B1R2 is revived** (Nov 6, the A39 log's §21): its 44 lines last, each with
   `reserve=240:2`, so they fill only room A40's, A41's and A42's lines can't use.
-- **B20 (Arsha's account, from her setup on Nov 6):** no B20 job is queued. Granite has 849 runs left and Gemma
-  1,784, on 3:00 lines (Granite 8, Gemma 12), one chain a model, question by question (the B20 log's §19). Her setup:
-  `docs/trackB/SOL_ARSHA.md`.
+- **B20 is complete** (Arsha's account, Nov 6, 21:11): every run of its design is done (Gemma 1,944 and Nemotron 1,944,
+  each with 2 set-aside smoke runs; Granite 972, thinking on only, with 6 set-aside runs; two Granite runs retried,
+  each counted once, as its last record). Her feeder is stopped. **By its rule (§10), she reads it now**, in her own
+  log on `trackB-main` and in FINDINGS_B (the 23:16 log's §4).
 - **A40, a new fine-tune** (Ritik's decision g; pre-registered Nov 5, the 09:18 log): LoRA trained on the model's own
   reasoning written without the hint (bias-augmented consistency training), read on E2. **Its data is done** (Nov 6
   05:03, after a pause while the Mac slept): 979 of 979 records, 883 examples (96 dropped by its rules), correct to
@@ -50,8 +53,8 @@
 | A41 (read when done) | on track | pre-registered Nov 6; ~4 GPU-h after A40's training; its code and tests in (`8952e24`) |
 | A42 (read Nov 17) | on track | pre-registered Nov 6; 16–21 GPU-h after A40's training; partial at Nov 15 23:59 if not complete |
 | B1R2 (read Nov 17) | on track | revived Nov 6 (the A39 log's §21, before any B1R2 run): 44 lines last in Ritik's queue, `reserve=240:2` (about 4 parts at a time beside A40's training); about 66 GPU-h; partial at Nov 15 23:59 by §13.8 |
-| B20 (Arsha reads Nov 17) | on track | the cause is fixed and confirmed (T13), and the job size amended (the B20 log's §19): 3:00 lines, twice the jobs the measured pace needs (Granite 8 for about 4, Gemma 12 for about 6). It runs on Arsha's own account, whose fair share is likely far above Ritik's 0.0019. Bound by Gemma's ~6 jobs and the waits between them; it starts after her setup (Nov 6); read partial at Nov 15 23:59 if not complete |
-| Track C (Shrey: C20, C26 Nov 15) | on track | on `trackC-main`, as Shrey with no AI line: setup (09:42), C19 (10:31) and C25, due Nov 12 (14:20), each run and read; path check clean, no merge conflict; Ritik merges Nov 7 (the 14:35 log's §3) |
+| B20 (Arsha reads now) | runs done | complete Nov 6, 21:11, against its design (the counts check: Gemma and Nemotron 1,946 run ids each with 2 set-aside smokes; Granite 978 with 6); its rule (§10) allows the read once complete, so she reads it now, in her own log |
+| Track C (Shrey) | done early | C19, C25, C20 and C26 each run and read on Nov 6, by their pre-registered rules (FC1–FC4); merged Nov 6, 23:17, with the path check clean and every commit Shrey's own; REPORT §8–§9 carry Shrey's bullets verbatim |
 | The labels | done | L3 final with the re-look (Nov 4 21:31; rows 67 and 290 kept as recorded, Nov 5); L4 part 1 Nov 3; L4 part 2 (a SHOULD) is not labelled |
 | Arsha's handoff (Nov 6) | on track | built Nov 6, 09:54 (START_HERE §0, §1, §9–§11; SOL_ARSHA from `trackB-main`; `trackB_20261106.zip`, 51 files, verified; commits as Arsha only); `trackB-main` pushed for the last time (decision d), so the branch is hers. Ritik sends the zip's link and the note (the 09:10 log's §5); his own Sol block (its §4) comes before her steps 4–8 |
 | The report and slides (Nov 20–24) | on track | REPORT has the bullets for F1–F40; 10 slides made (1–4, 6–11), 2 waiting (5, the labels; 12, Shrey's, Nov 18); A39 and B20 go in after Nov 17 |
@@ -73,18 +76,9 @@ own dates come from `squeue --start`). Two accounts, each with its own 10 places
 - **During A40's training B1R2 fills the places the chain leaves idle** (revived Nov 6). The cost, said in its §21:
   part of A40's first E2 wave may wait up to one B1R2 part (2:30).
 
-| Arsha's account (B20) | runs left | lines of 3:00 | jobs needed (the B20 log's §19) |
-|---|---|---|---|
-| Granite | 849 | 8 | about 4 |
-| Gemma | 1,784 | 12 | about 6 |
-| Nemotron | 0: done | none | — |
-
-- **B20 is bound by Gemma's chain, not by GPU-hours (projection).** One job a model at a time, Granite's and Gemma's
-  side by side (360 of her 960 GPU-minutes). Gemma's ~6 jobs of 3:00, plus the waits between them, set B20's finish.
-  The first start comes after her setup (Nov 6). Her fair share is likely far above Ritik's 0.0019
-  (`docs/trackB/SOL_ARSHA.md`), so her waits should be shorter than his have been; her `squeue --start` will say.
-- **What gives way first if Sol slows:** A42 and A40 read partial, then B20 read partial, each at Nov 15 23:59
-  ("partial: N of 120 questions" for A40 and A42; "partial: N of 54 questions" for each B20 model).
+- **Arsha's account (B20): complete Nov 6** (Gemma, Granite and Nemotron all done; her feeder stopped).
+- **What gives way first if Sol slows:** B1R2, A42 and A40 read partial, each at Nov 15 23:59 ("partial: N of 120
+  questions").
 - **The Nov 6 07:00 rule said "no cut"** (60.6 GPU-hours from Nov 4 12:36; the A39 log's §20).
 
 **Waiting on whom.**
@@ -92,10 +86,13 @@ own dates come from `squeue --start`). Two accounts, each with its own 10 places
   - **now: his Sol block** (the 14:35 log): the safety diff, the pull (B1R2's lines and the reserve), the feeder's
     `--dry-run` showing B1R2's first parts last; and close B20's three text records (`chmod g-r`), since Arsha's copy
     matched (14:31);
-  - **Nov 7:** merge Shrey's `trackC-main` (setup, C19, C25), with the steps in the 14:35 log's §3;
+  - **now:** give Arsha the word to read B20 (the 23:16 log's message);
+  - done Nov 6, 23:17: Shrey's `trackC-main` merged (setup, C19, C25, C20, C26, the report bullets); Track C's
+    FC1–FC4 in REPORT §8 and §9 as Shrey wrote them;
   - done Nov 6: both handoffs and both notes sent; his Sol block for A40 (`a40-train-1` in); B1R2 revived; the team
     emails stored as hashes (Arsha's two included).
-- **Shrey:** C19 and C25 done on `trackC-main` (Nov 6; merged Nov 7); C20 and C26 by Nov 15; slides 11–12 by Nov 18. Check-ins on Nov 7, 12, 15 and 18.
+- **Shrey:** C19, C25, C20 and C26 all run and read Nov 6 (FC1–FC4) and merged; slides 11–12's figures made; next,
+  merge `origin/main` back and rerun `--install` (the Windows hook fix); Check-ins on Nov 7, 12, 15 and 18.
 - **Arsha:** her Sol setup: steps 1–6 done (Nov 6; her copy matched), steps 7–8 (her feeder, scrontab) next; then B20
   on her own feeder, read Nov 17. Before her first commit, merge `origin/main`, rerun `--install`, commit with her Gmail.
   From Nov 6: the re-reads (Nov 7 and 9); B18's table, Nov 18; slides 2, 6, 7 and 8, Nov 20.
@@ -104,7 +101,7 @@ own dates come from `squeue --start`). Two accounts, each with its own 10 places
 - **Nov 5:** two Sol accounts: Ritik's pull (done); A40 pre-registered, its Voyager targets started at
   09:50. **Nov 6:** the 07:00 rule said no cut; every E2 and 30 line ended (10:56); A40's data done; both handoffs
   sent and the last push to `trackB-main`; A40's lines, then A41's and A42's, in with Ritik's pull.
-- **Nov 7:** Shrey's merge (setup, C19, C25). **Nov 8:** Gate 2.
+- **Nov 6:** Shrey's merge (setup, C19, C25, C20, C26), done a day early. **Nov 8:** Gate 2.
   **Nov 11:** the 30's rule, 09:00 (nothing left to drop).
   **Nov 12, 15, 18:** merges.
 - **Nov 15, 23:59:** runs end (A40, A42, B1R2 and B20 read partial if not complete). **Nov 17:** A39, A40, A42, B1R2
