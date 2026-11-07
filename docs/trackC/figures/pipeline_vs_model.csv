@@ -1,0 +1,16 @@
+diff2,diff2_low,diff2_high,rule2,panel,group,arm,k,n,rate,low,high,diff,diff_low,diff_high,rule
+,,,,c20,Olmo 3.1 32B Instruct,a_blind,39,53,0.735849,0.604193,0.835626,,,,
+0.339623,0.207547,0.471698,more catches,c20,Olmo 3.1 32B Instruct,b_tag,43,53,0.811321,0.686415,0.894147,0.075472,-0.018868,0.188679,no change
+,,,,c20,Olmo 3.1 32B Instruct,c_disclosure,26,55,0.472727,0.346931,0.602085,,,,
+,,,,c20,Qwen3 30B Instruct,a_blind,43,53,0.811321,0.686415,0.894147,,,,
+0.037736,-0.056604,0.150943,no change,c20,Qwen3 30B Instruct,b_tag,46,53,0.867925,0.751597,0.934521,0.056604,-0.018868,0.132075,no change
+,,,,c20,Qwen3 30B Instruct,c_disclosure,46,55,0.836364,0.717363,0.911446,,,,
+,,,,c20,checker,d_checker,53,53,1.0,0.932418,1.0,,,,
+,,,,c26,Olmo 3.1 32B Instruct,c15_answer_only,39,53,0.735849,0.604193,0.835626,,,,
+,,,,c26,Olmo 3.1 32B Instruct,c15_plus_tool_log,10,53,0.188679,0.105853,0.313585,-0.54717,-0.698113,-0.377358,defers
+,,,,c26,Olmo 3.1 32B Instruct,c26_answer_only,15,21,0.714286,0.500436,0.861861,,,,
+,,,,c26,Olmo 3.1 32B Instruct,c26_plus_tool_log,5,21,0.238095,0.10628,0.450912,-0.47619,-0.666667,-0.285714,defers
+,,,,c26,Qwen3 30B Instruct,c15_answer_only,43,53,0.811321,0.686415,0.894147,,,,
+,,,,c26,Qwen3 30B Instruct,c15_plus_tool_log,40,53,0.754717,0.624334,0.850671,-0.056604,-0.150943,0.037736,doesn't defer
+,,,,c26,Qwen3 30B Instruct,c26_answer_only,15,21,0.714286,0.500436,0.861861,,,,
+,,,,c26,Qwen3 30B Instruct,c26_plus_tool_log,12,21,0.571429,0.365466,0.7553,-0.142857,-0.285714,0.0,doesn't defer

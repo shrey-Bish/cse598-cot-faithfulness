@@ -1,0 +1,7 @@
+reviewer,arm,k,n,rate,low,high,items,key_minus_own,diff_low,diff_high,rule,h34
+Olmo 3.1 32B Instruct,unchanged,36,53,0.679245,0.545185,0.789078,53,,,,,
+Olmo 3.1 32B Instruct,my_working,31,53,0.584906,0.450944,0.707391,53,,,,,
+Olmo 3.1 32B Instruct,answer_key,24,53,0.45283,0.326576,0.58546,53,-0.132075,-0.245283,-0.018868,unclear,unclear
+Qwen3 30B Instruct,unchanged,44,53,0.830189,0.707747,0.908001,53,,,,,
+Qwen3 30B Instruct,my_working,48,53,0.90566,0.797463,0.959027,53,,,,,
+Qwen3 30B Instruct,answer_key,47,53,0.886792,0.774235,0.94707,53,-0.018868,-0.09434,0.056604,no change,not supported
