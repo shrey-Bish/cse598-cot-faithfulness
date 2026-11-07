@@ -595,6 +595,8 @@ cd cot-disclosure && ../.venv/bin/python -m pytest -q      # every test passes (
 ## 17. The hooks: no produced data, only the team, no AI attribution (each person, once per clone)
 
 Updated Nov 6, 11:17: `--install` writes all four hooks (pre-push too), and the team rule (Ritik's, permanent).
+Nov 6, 23:21: the hooks read every message and git's output as UTF-8 and run Python in UTF-8 mode, whatever the
+platform (Arsha: Windows Python's cp1252 let an emoji "Generated with" line through); merge `main` and rerun `--install`.
 ```bash
 cd ~/path/to/cse598-cot-faithfulness
 python3 cot-disclosure/tools/path_check.py --install        # pre-commit, pre-merge-commit, commit-msg, pre-push

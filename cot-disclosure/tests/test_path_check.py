@@ -441,3 +441,68 @@ def test_install_writes_four_hooks_and_a_non_team_commit_is_refused_before_it_is
     assert r.returncode == 0, r.stderr                                          # a team merge of main passes
     (hooks / "pre-push").write_text("#!/bin/sh\nexit 0\n")                     # someone else's pre-push: left alone
     assert pc.main(["--repo", str(repo), "--install"]) == 1
+
+
+# ---------------------------------------------------------------- Nov 6, 23:21: the hooks don't depend on the platform's encoding
+# Arsha, Git for Windows: Windows Python reads the message as cp1252, so the footer's emoji arrives as mojibake that
+# starts with letters (ð, Ÿ), and "Generated with" no longer matched at the line's start.
+MOJIBAKE = FOOTER.encode("utf-8").decode("cp1252", errors="replace")
+
+
+def cp1252_default(monkeypatch):
+    """Make read_text() and text-mode subprocess.run() decode as Windows' cp1252 when no encoding is given."""
+    real_read, real_run = Path.read_text, subprocess.run
+
+    def read_text(self, encoding=None, errors=None, **kw):
+        return real_read(self, encoding=encoding or "cp1252", errors=errors, **kw)
+
+    def run(*a, **kw):
+        if (kw.get("text") or kw.get("universal_newlines")) and not kw.get("encoding"):
+            kw["encoding"], kw["errors"] = "cp1252", kw.get("errors") or "replace"
+        return real_run(*a, **kw)
+    monkeypatch.setattr(Path, "read_text", read_text)
+    monkeypatch.setattr(subprocess, "run", run)
+
+
+def test_the_commit_message_is_read_as_utf8_whatever_the_platform_default(tmp_path, monkeypatch):
+    repo = make_repo(tmp_path)
+    msg = tmp_path / "COMMIT_EDITMSG"
+    msg.write_bytes(f"C19's reading\n\n{FOOTER}\n".encode("utf-8"))
+    seen = []
+    real = pc.attribution_problems
+    monkeypatch.setattr(pc, "attribution_problems", lambda m, *a: seen.append(m) or real(m, *a))
+    cp1252_default(monkeypatch)
+    assert pc.main(["--repo", str(repo), "--commit-msg", str(msg)]) == 1
+    assert FOOTER in seen[0], seen                        # the emoji arrives intact, not as mojibake
+
+
+def test_a_tool_line_after_a_mojibake_prefix_is_still_refused():
+    assert MOJIBAKE != FOOTER and MOJIBAKE[0].isalpha()    # "ðŸ¤– Generated with …": it starts with a letter
+    assert pc.attribution_problems(f"C19\n\n{MOJIBAKE}\n", ME, ME)
+    for message in ("The supplement regenerated with its script (Ritik, Nov 6)\n", "C19\n\nFigures generated with matplotlib\n"):
+        assert pc.attribution_problems(message, ME, ME) == [], message
+
+
+def test_git_output_is_decoded_as_utf8_whatever_the_platform_default(tmp_path, monkeypatch):
+    repo = make_repo(tmp_path)
+    git(repo, "commit", "-q", "--allow-empty", "--no-verify", "-m", f"C19\n\n{FOOTER}")
+    cp1252_default(monkeypatch)
+    assert FOOTER in pc.git(repo, "log", "-1", "--format=%B").stdout
+
+
+def test_a_refusal_prints_even_to_a_cp1252_console(tmp_path, monkeypatch):
+    import io
+    repo = make_repo(tmp_path)
+    msg = tmp_path / "COMMIT_EDITMSG"
+    msg.write_bytes(f"C19\n\n{FOOTER}\n".encode("utf-8"))
+    monkeypatch.setattr(sys, "stderr", io.TextIOWrapper(io.BytesIO(), encoding="cp1252"))
+    assert pc.main(["--repo", str(repo), "--commit-msg", str(msg)]) == 1      # not a UnicodeEncodeError
+
+
+def test_the_installed_hooks_run_python_in_utf8_mode_with_unix_line_ends(tmp_path):
+    repo = make_repo(tmp_path)
+    assert pc.main(["--repo", str(repo), "--install"]) == 0
+    for name in pc.HOOKS:
+        raw = (Path(repo) / ".git" / "hooks" / name).read_bytes()
+        assert b"PYTHONUTF8=1" in raw and b"PYTHONIOENCODING=utf-8" in raw and b"\r\n" not in raw, name
+        assert b"path_check.py" in raw, name               # still recognised as ours by --install

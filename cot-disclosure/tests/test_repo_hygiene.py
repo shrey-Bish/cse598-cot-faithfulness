@@ -245,3 +245,22 @@ def test_prepush_never_blocks_history_already_on_the_remote(repo):
     commit(repo, "new and clean", **{"README.md": "new\n"})
     r = check(repo, "old")
     assert r.returncode == 0, r.stderr
+
+
+def test_prepush_decodes_git_log_as_utf8_whatever_the_platform_default(repo, monkeypatch):
+    """Nov 6 (Arsha, Git for Windows): text-mode git output decoded as cp1252 turned the footer's emoji into mojibake."""
+    footer = "\U0001f916 Generated with [Claude Code](https://claude.com/claude-code)"
+    git(repo, "checkout", "-q", "-b", "emoji", "origin/main")
+    git(repo, "commit", "-q", "--allow-empty", "-m", f"C19\n\n{footer}")
+    sha = git(repo, "rev-parse", "HEAD").strip()
+    real_run = subprocess.run
+
+    def run(*a, **kw):
+        if (kw.get("text") or kw.get("universal_newlines")) and not kw.get("encoding"):
+            kw["encoding"], kw["errors"] = "cp1252", kw.get("errors") or "replace"
+        return real_run(*a, **kw)
+    monkeypatch.chdir(repo)
+    monkeypatch.setattr(subprocess, "run", run)
+    assert footer in prepush_check.git("log", "-1", "--format=%B", sha)
+    problems = prepush_check.commit_problems([sha], "origin", None)
+    assert any(c == sha and "Generated with" in p for c, p in problems), problems

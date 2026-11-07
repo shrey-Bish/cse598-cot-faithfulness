@@ -38,7 +38,8 @@ ZERO = "0" * 40
 
 
 def git(*args):
-    return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout
+    return subprocess.run(["git", *args], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                          check=True).stdout     # Nov 6: never the platform's default (cp1252 on Windows)
 
 
 def remote_files(remote):
@@ -107,6 +108,7 @@ def main(argv=None):
     ap.add_argument("url", nargs="?", help="(from git) the remote's URL")
     ap.add_argument("--rev", action="append", help="check this branch or commit instead of reading stdin")
     a = ap.parse_args(argv)
+    path_check.utf8_console()                          # Nov 6: a refusal quoting an emoji prints on any console
     if a.rev:
         shas = [git("rev-parse", r).strip() for r in a.rev]
     else:

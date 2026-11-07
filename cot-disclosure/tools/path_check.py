@@ -49,12 +49,13 @@ import sys
 from pathlib import Path
 
 ALLOWLIST = "cot-disclosure/configs/path_allowlist.txt"
-HOOK = '#!/bin/sh\n# the path allowlist, both ways (cot-disclosure/tools/path_check.py --install)\n' \
+UTF8 = 'export PYTHONUTF8=1 PYTHONIOENCODING=utf-8      # Nov 6: Windows Python reads cp1252 otherwise\n'
+HOOK = '#!/bin/sh\n# the path allowlist, both ways (cot-disclosure/tools/path_check.py --install)\n' + UTF8 + \
        'exec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/path_check.py" "$@"\n'
-MSG_HOOK = '#!/bin/sh\n# no AI attribution; the human author only (cot-disclosure/tools/path_check.py --install)\n' \
-           'exec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/path_check.py" --commit-msg "$1"\n'
+MSG_HOOK = '#!/bin/sh\n# no AI attribution; the human author only (cot-disclosure/tools/path_check.py --install)\n' + \
+           UTF8 + 'exec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/path_check.py" --commit-msg "$1"\n'
 PUSH_HOOK = '#!/bin/sh\n# no produced data, and only the team with no AI attribution, in what is pushed ' \
-            '(cot-disclosure/tools/path_check.py --install)\n' \
+            '(cot-disclosure/tools/path_check.py --install)\n' + UTF8 + \
             'exec python3 "$(git rev-parse --show-toplevel)/cot-disclosure/tools/prepush_check.py" "$@"\n'
 HOOKS = {"pre-commit": HOOK, "pre-merge-commit": HOOK, "commit-msg": MSG_HOOK, "pre-push": PUSH_HOOK}
 OURS = {"pre-push": ("path_check.py", "prepush_check.py")}           # a hook with one of these in it is ours to rewrite
@@ -68,7 +69,8 @@ AI_DOMAINS = ("anthropic.com", "claude.ai", "claude.com", "openai.com", "chatgpt
 TEAM_HASH = re.compile(r"sha256:([0-9a-f]{64})")
 EMAIL = re.compile(r"[\w.+\[\]-]+@[\w-]+(?:\.[\w-]+)+")
 CO_AUTHOR = re.compile(r"^\s*co-authored-by\s*:\s*(.*)$", re.IGNORECASE)
-TOOL_LINE = re.compile(r"^\W*generated with\b", re.IGNORECASE)                  # "🤖 Generated with [X](...)"
+TOOL_LINE = re.compile(r"^[^A-Za-z]*generated\s+with\b", re.IGNORECASE)        # "🤖 Generated with [X](...)"; any
+#   non-ASCII-letter prefix (Nov 6: under cp1252 the emoji arrives as "ðŸ¤–", which starts with letters)
 SESSION_LINE = re.compile(r"^\s*([\w-]*-)?session(-[\w-]+)?\s*:|claude\.ai/code/|/code/session_", re.IGNORECASE)
 
 
@@ -78,10 +80,17 @@ TEAM_HELP = ("Only the team commits here, as themselves (CLAUDE.md): git config 
 
 
 def git(repo, *args, check=True):
-    r = subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True)
+    r = subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if check and r.returncode:
         raise SystemExit(f"git {' '.join(args)}: {r.stderr.strip()}")
     return r
+
+
+def utf8_console():
+    """A refusal that quotes an emoji must print on any console (Nov 6: a cp1252 one raised UnicodeEncodeError)."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="replace")
 
 
 def parse_rules(text):
@@ -119,7 +128,7 @@ def rules_at_head(repo):
     if r.returncode == 0:
         return parse_rules(r.stdout)
     p = Path(repo) / ALLOWLIST                                    # no commit yet: the working copy
-    return parse_rules(p.read_text()) if p.exists() else {}
+    return parse_rules(p.read_text(encoding="utf-8")) if p.exists() else {}
 
 
 def branch_of(repo):
@@ -138,7 +147,7 @@ def merge_heads(repo, env=None):
     if blob(repo, "MERGE_HEAD"):
         path = git(repo, "rev-parse", "--git-path", "MERGE_HEAD").stdout.strip()
         path = path if os.path.isabs(path) else os.path.join(repo, path)
-        return [line.strip() for line in open(path) if line.strip()]
+        return [line.strip() for line in open(path, encoding="utf-8") if line.strip()]
     return [k[len("GITHEAD_"):] for k in env if k.startswith("GITHEAD_") and blob(repo, k[len("GITHEAD_"):])]
 
 
@@ -213,7 +222,7 @@ def team_at_head(repo):
     if r.returncode == 0:
         return parse_team(r.stdout)
     p = Path(repo) / TEAM_FILE
-    return parse_team(p.read_text()) if p.exists() else None
+    return parse_team(p.read_text(encoding="utf-8")) if p.exists() else None
 
 
 def split_ident(ident):
@@ -275,10 +284,10 @@ def install(repo):
     refused = []
     for name, text in HOOKS.items():
         h = d / name
-        if h.exists() and not any(mark in h.read_text() for mark in OURS.get(name, ("path_check.py",))):
+        if h.exists() and not any(mark in h.read_text(encoding="utf-8", errors="replace") for mark in OURS.get(name, ("path_check.py",))):
             refused.append(str(h))
             continue
-        h.write_text(text)
+        h.write_bytes(text.encode("utf-8"))                  # "\n" line ends on every platform (a sh script)
         h.chmod(0o755)
     return refused
 
@@ -302,12 +311,13 @@ def main(argv=None):
     ap.add_argument("--commit-msg", metavar="FILE", help="the commit-msg hook: refuse AI attribution in FILE's message")
     ap.add_argument("--hash", metavar="EMAIL", help="print an email's form in configs/team_identities.txt (Nov 6)")
     a = ap.parse_args(argv)
+    utf8_console()
     if a.hash:
         print(email_hash(a.hash))
         return 0
     repo = git(a.repo, "rev-parse", "--show-toplevel").stdout.strip()
     if a.commit_msg:
-        problems = attribution_problems(Path(a.commit_msg).read_text(errors="replace"),
+        problems = attribution_problems(Path(a.commit_msg).read_text(encoding="utf-8", errors="replace"),
                                         ident(repo, "GIT_AUTHOR_IDENT"), ident(repo, "GIT_COMMITTER_IDENT"),
                                         team_at_head(repo))
         for p in problems:
