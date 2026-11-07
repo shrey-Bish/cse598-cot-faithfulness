@@ -2246,7 +2246,7 @@ points against 5: a point estimate on 2 of 30 runs, *tentative*); underpowered a
 not run. **B1R2** (B1's deployable span on E2, the A39 log's §5 and §13): **not run: GPU time given to A40**
 (dropped Nov 5, before any B1R2 job was submitted; the A39 log's §19).
 **Nov 6, 14:43: B1R2 revived** (Ritik's decision a; the A39 log's §21): not run yet. Its 44 lines are last in Ritik's
-queue and fill only room A40's, A41's and A42's lines can't use; its design, rule and partial read are unchanged.
+queue and fill only room A40's, A41's and A42's lines can't use; its design, rule and partial read are unchanged. **Nov 7:** running, 19 of 40 parts done at 13:18 (read when complete, or partial at Nov 15 23:59).
 
 ## F39. Track A (A18): inside the fixed model, training acts in the reasoning: on base's own reasoning, LoRA's weights pull toward the hint's letter harder, not less, and LoRA's own following still runs through the readout
 

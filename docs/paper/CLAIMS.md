@@ -1,6 +1,6 @@
 # Candidate claims: evidence, status, objection, what settles it
 
-Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-05 09:52 (B1R2 not run: GPU time given to A40; 2026-11-04 17:50: the second
+Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-07 13:53 (A40, A41 and A42 read: claim 1.5; B1R2 running: claim 1.7; earlier 2026-11-05 09:52: B1R2 not run: GPU time given to A40; 2026-11-04 17:50: the second
 rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; earlier: B17, B1, the hand labels, A18, B1R2 decided; **edited by:** Ritik; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
 the interval excludes no effect), *tentative* (direction there, interval includes 0 or a confound remains), *waiting*
 (the run is going or planned), *not supported*, *dropped*.
@@ -123,7 +123,17 @@ the interval excludes no effect), *tentative* (direction there, interval include
   toward the hint's letter harder, not less (R_LoRA −0.72 [−1.02, −0.39]; 28 cases, 13 questions; the hint's letter in
   30 of 30); its own following runs through the same readout, and F12's heads still separate outcomes (both
   secondaries replicate). So the fix acts through what the model writes, not on the readout.
-- **Settles it:** L4 part 2 (LoRA minus base in labels); A39's powered replication of Gate 3 on E2 (read Nov 17).
+- **Consistency training on E2 (A40, F41; A42, F43; read Nov 7 by rules fixed Nov 5 and 6):** a different kind of
+  target, the model's own reasoning written without the hint. It follows far fewer wrong hints than the instruction
+  (84 of 694 against 237 of 713; −21 [−26, −16]) but takes fewer correct ones (−15 [−20, −10]): **"fewer, but costs
+  acceptance"**, against the instruction and against LoRA; R1 against base passes. With the note (A42): the same
+  reading (−24 following, −20 acceptance); R3 "adds, costs acceptance". **So still no fix beats the instruction by its
+  rule;** the one that follows fewest does it by ignoring hints.
+- **Inside the model (A41, F42, Nov 7): "stops the readout, before them".** On base's own reasoning A40's weights
+  remove part of the hint's pull (+0.68 [+0.17, +1.18]), from layers 0–14, and more than LoRA (+1.40 [+0.73, +2.09]).
+  The kind of target changes how the weights read the hint, unlike LoRA's.
+- **Settles it:** L4 part 2 (LoRA minus base in labels); A39's powered replication of Gate 3 on E2 (complete Nov 7;
+  read by Nov 17).
 
 **1.6 Input-embedding provenance tags don't help.**
 - **Evidence:** F20.
@@ -148,8 +158,9 @@ without making the model ignore correct tools.**
   following on the inserted turn that misses its pre-registered acceptance limit; underpowered at 30 questions.
   *Tentative* on the cost: it is 2 of 30 runs, and no-hint accuracy, which the scaling can't touch, moved +10 by
   sampling alone. **A replication (B1R) isn't run:** 35 GPU-hours fit 70 fresh questions, an acceptance half-width
-  of 6 to 9 points; ±5 needs about 107 to 245 questions (53 to 122 GPU-hours; F38). A38 isn't run. B1R2 (on E2) isn't
-  run either: dropped Nov 5 before any run, its GPU time given to A40 (the A39 log's §19).
+  of 6 to 9 points; ±5 needs about 107 to 245 questions (53 to 122 GPU-hours; F38). A38 isn't run. B1R2 (on E2):
+  dropped Nov 5 before any run (the A39 log's §19), revived Nov 6 (§21), running on Nov 7 (19 of 40 parts done);
+  read when complete, or partial at Nov 15 23:59, as a labelled replication.
 - **Strongest objection:** it may just make the model ignore tools. Its layers and alpha could be
   tuned on the evaluation questions.
 - **Settles it:**

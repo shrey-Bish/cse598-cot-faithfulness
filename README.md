@@ -46,9 +46,11 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    acts in the reasoning, not on the readout: given base's own reasoning, LoRA's weights pull toward the hint's letter
    harder, not less, and when LoRA follows it is through the same three layers (in plain words:
    [`docs/status/FIX_SO_FAR.md`](docs/status/FIX_SO_FAR.md)). A39 tests a provenance wrapper and combinations on E2,
-   120 fresh questions. B1's replication there (B1R2) was revived on Nov 6, last in the queue, after A40, which trains on
-   the model's own reasoning written without the hint (bias-augmented consistency training) and is read on E2 against
-   the one-line instruction.
+   120 fresh questions (complete; read by Nov 17). On E2, A40 trains on the model's own reasoning written without the
+   hint (bias-augmented consistency training): it follows far fewer wrong hints than the one-line instruction but takes
+   fewer correct ones, "fewer, but costs acceptance" by its rule (F41; with the note, A42, the same, F43). Inside the
+   model it is the first fix that acts on the readout, before layers 15, 19 and 23 (A41, F42). B1's replication on E2
+   (B1R2) was revived on Nov 6 and is running.
 
 ## Read this first
 
