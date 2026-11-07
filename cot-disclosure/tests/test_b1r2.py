@@ -86,3 +86,16 @@ def test_no_vllm_job_imports_b1s_generation_module():
     r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=CODE)
     assert r.returncode == 0, r.stderr
     assert r.stdout.split() == ["False", "False"]
+
+
+def test_a_b1r2_run_counts_once_any_file_has_it_ok(tmp_path):
+    """Nov 7 (Ritik's Sol, read-only): B1R2's sweeps write p<k>of4, and parts 5, 9, 21, ... of 40 sort after p1of4, so
+    an older not_run record there would hide the sweep's ok, in the resume's done set and in the report's rows. A run
+    counts once it has an ok record in any file, and the report reads each run's last ok record (a39.by_system's rule)."""
+    from common import append
+    s = "prov-a1"
+    append(tmp_path / f"{ev.stem(s, (1, 4))}_runs.jsonl", {"run_id": "r1", "status": "ok", "system": s})
+    append(tmp_path / f"{ev.stem(s, (5, 40))}_runs.jsonl", {"run_id": "r1", "status": "not_run", "system": s})
+    append(tmp_path / f"{ev.stem(s, (6, 40))}_runs.jsonl", {"run_id": "r2", "status": "not_run", "system": s})
+    assert ev.done_ids(tmp_path, s) == {"r1"}
+    assert [r["run_id"] for r in pj.ok_rows(tmp_path)] == ["r1"]

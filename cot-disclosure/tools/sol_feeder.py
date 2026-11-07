@@ -431,8 +431,7 @@ def runs_left_here(spec, argv, out_root, alpha_from=None):
     sys.path[:0] = [str(CODE), str(CODE / "progress")]
     from finetune import eval as ev
     f = spec.split(":")
-    done_of = lambda d, system, *qd: {r["run_id"] for r in ev.latest([r for p in ev.runs_files(d, system, *qd)  # noqa: E731
-                                                                   for r in ev.load(p)]) if r["status"] == "ok"}
+    done_of = ev.done_ids                       # Nov 7: any ok record counts, whatever a file listed later holds
     if f[0] == "a39":
         system, qset = f[1], f[2]
         part = tuple(int(x) for x in f[3].split("/")) if len(f) > 3 else None

@@ -94,13 +94,11 @@ def system_tokens(lengths, part=None, system=None, done=frozenset()):
 
 def saved_runs(system, out=None):
     """The run ids of a system's finished runs on Sol (every part file), or none on the Mac."""
-    from common import latest, load
     from finetune import eval as ev
     out = Path(out or out_root() / "eval")
     if not out.exists():
         return frozenset()
-    return frozenset(r["run_id"] for r in latest([r for f in ev.runs_files(out, system) for r in load(f)])
-                     if r["status"] == "ok")
+    return frozenset(ev.done_ids(out, system))
 
 
 def engine_of(job_row):

@@ -376,6 +376,27 @@ def test_runs_left_counts_what_resume_would_run(tmp_path):
     assert sf.runs_left_here("a39:base:e2", [], tmp_path) == len(ev.jobs(None, "e2", "a39", "base")) - 30
 
 
+def test_a_run_counts_once_any_file_has_it_ok_whatever_a_file_listed_later_holds(tmp_path):
+    """Nov 7 (Ritik's Sol, read-only): E2's sweeps wrote their reruns to the whole-system file, which runs_files lists
+    first, so a part's older not_run record, listed later, hid the sweep's ok, and --runs-left counted 54 finished runs
+    as left. A run counts once it has an ok record in any file (the resume's rule; a39.by_system's)."""
+    from common import append
+    from finetune import eval as ev
+    out = tmp_path / "a39"
+    out.mkdir()
+    js = ev.jobs((1, 16), "e2", "a39", "base")
+    for j in js[:3]:
+        rid = ev.job_id("base", j)
+        append(out / "eval_base_a39_e2_p1of16_runs.jsonl", {"run_id": rid, "status": "not_run", "system": "base"})
+        append(out / "eval_base_a39_e2_runs.jsonl", {"run_id": rid, "status": "ok", "system": "base"})
+    assert sf.runs_left_here("a39:base:e2:1/16", [], tmp_path) == len(js) - 3
+    for j in js[3:5]:                         # a sweep of 4 sorts before part 5 of 40 (B1R2's names)
+        rid = ev.job_id("base", j)
+        append(out / "eval_base_a39_e2_p1of4_runs.jsonl", {"run_id": rid, "status": "ok", "system": "base"})
+        append(out / "eval_base_a39_e2_p5of40_runs.jsonl", {"run_id": rid, "status": "not_run", "system": "base"})
+    assert sf.runs_left_here("a39:base:e2:1/16", [], tmp_path) == len(js) - 5
+
+
 
 def test_an_a40_part_and_sweep_are_counted_like_a39s(tmp_path):
     """Nov 5 (A40's log, section 11): A40's E2 lines run as A39's do (a39_1gpu, system a40), so the feeder counts their

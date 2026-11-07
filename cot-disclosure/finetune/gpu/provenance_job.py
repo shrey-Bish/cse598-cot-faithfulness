@@ -653,7 +653,7 @@ def generate(out, alphas=None, alpha_from=None, part=None, model=None, device="a
         gen = Batched(m, tok, hook, span, extra_ranges=pasted, max_batch=max_batch, token_budget=token_budget,
                       max_new=max_new, sample=sample, kv_gib=kv_gib, shrink_every=shrink_every,
                       stop=lambda: _stop["asked"])
-        done = {r["run_id"] for r in latest([r for f in ev.runs_files(d, system) for r in load(f)]) if r["status"] == "ok"}
+        done = ev.done_ids(d, system)
         todo = [j for j in jobs if ev.job_id(system, j) not in done]
         print(f"{system} ({span}, alpha {alpha}): {len(todo)} runs to go", flush=True)
         t0, n_tok = time.monotonic(), 0
@@ -801,14 +801,20 @@ def simulate(lengths, step_model, runs, batch=8, shrink=SHRINK_EVERY, prompt=600
 def reply_lengths(out):
     """Completion tokens of every finished B1 run so far (numbers-only files)."""
     d = Path(out) / "provenance_gen"
-    rows = latest([r for p in sorted(d.glob("eval_prov-*_runs.jsonl")) for r in load(p)])
-    return [r["completion_tokens"] for r in rows if r["status"] == "ok" and r.get("completion_tokens")]
+    return [r["completion_tokens"] for r in ok_rows(d) if r.get("completion_tokens")]
+
+
+def ok_rows(d):
+    """Every finished run in d's eval_prov-* files (whole and part), each run once: its last ok record. Nov 7: an ok
+    record stands whatever a file that sorts later holds (a39.by_system's rule); a sweep's p<k>of4 sorts before parts
+    5, 9, 21, ... of 40, so taking the last record of any status first let an older not_run hide the sweep's ok."""
+    return latest([r for p in sorted(Path(d).glob("eval_prov-*_runs.jsonl")) for r in load(p) if r["status"] == "ok"])
 
 
 def done_ids(out, system):
     from finetune import eval as ev
     d = Path(out) / "provenance_gen"
-    return {r["run_id"] for r in latest([r for f in ev.runs_files(d, system) for r in load(f)]) if r["status"] == "ok"}
+    return ev.done_ids(d, system)
 
 
 def chosen_of(alpha_from):
@@ -1031,9 +1037,8 @@ def report(out, tag=ENGINE_TAG):
     sfx = f"-{tag}" if tag else ""
     base_system = f"prov-a1{sfx}"
     every = defaultdict(list)                                    # whole and part files (finetune/eval.py stem)
-    for r in latest([r for p in sorted(d.glob("eval_prov-*_runs.jsonl")) for r in load(p)]):
-        if r["status"] == "ok":
-            every[r["system"]].append(r)
+    for r in ok_rows(d):
+        every[r["system"]].append(r)
     mine = (lambda s: s.endswith(sfx)) if tag else (lambda s: not s.endswith(f"-{ENGINE_TAG}"))
     systems = {s: rows for s, rows in every.items() if mine(s)}
     res = {"engine": tag or "first", "base": base_system, "systems": {},
@@ -1111,9 +1116,8 @@ def a38(out, tag=ENGINE_TAG, channel="tool_injected"):
     b1 = b1_verdict(res, channel=channel)
     sfx = f"-{tag}" if tag else ""
     every = defaultdict(list)
-    for r in latest([r for p in sorted(d.glob("eval_prov-*_runs.jsonl")) for r in load(p)]):
-        if r["status"] == "ok":
-            every[r["system"]].append(r)
+    for r in ok_rows(d):
+        every[r["system"]].append(r)
     alpha = b1.get("alpha")
     names = {"combined": f"{NOTE}-deployable-a{alpha:g}{sfx}" if alpha else None, "note": f"{NOTE}-a1{sfx}",
              "b1": b1["system"], "alpha1": f"prov-a1{sfx}"}

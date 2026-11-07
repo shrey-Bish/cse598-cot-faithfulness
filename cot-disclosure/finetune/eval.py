@@ -241,6 +241,13 @@ def runs_files(out, system, qset=QSET, design="gate3"):
     return [whole] * whole.exists() + sorted(Path(out).glob(f"{s}_p*of*_runs.jsonl"))
 
 
+def done_ids(out, system, qset=QSET, design="gate3"):
+    """The run ids with an ok record in any of a system's files. Nov 7: a run counts once it has one, whatever a file
+    listed later holds (the whole-system file is listed first and parts sort by name, so the last record per run in
+    file order isn't always the newest: an older not_run in a part hid a sweep's ok)."""
+    return {r["run_id"] for p in runs_files(out, system, qset, design) for r in load(p) if r["status"] == "ok"}
+
+
 def save(out, rec, part=None, qset=QSET, design="gate3"):
     s = stem(rec["system"], part, qset, design)
     append(Path(out) / f"{s}.jsonl.gz", rec)
@@ -252,8 +259,7 @@ def run(system, complete_fn, out, part=None, workers=48, n_tokens=None, qset=QSE
     Path(out).mkdir(parents=True, exist_ok=True)
     todo_all = jobs(part, qset=qset, design=design, system=system)[:limit]
     for attempt in range(1 + NOT_RUN_PASSES):
-        done = {r["run_id"] for r in latest([r for p in runs_files(out, system, qset, design) for r in load(p)])
-                if r["status"] == "ok"}
+        done = done_ids(out, system, qset, design)
         todo = [j for j in todo_all if job_id(system, j) not in done]
         if not todo:
             break
@@ -275,11 +281,12 @@ def run(system, complete_fn, out, part=None, workers=48, n_tokens=None, qset=QSE
 
 # ---------------------------------------------------------------- report
 def rows_of(out):
-    """Every finished run in OUT (all systems, whole and part files), the last record of each run."""
+    """Every finished run in OUT (all systems, whole and part files), each run once: its last ok record (Nov 7: an ok
+    record stands whatever a file that sorts later holds; on Gate 3's saved runs this changes no run)."""
     rows = []
     for p in sorted(Path(out).glob("eval_*_runs.jsonl")):
-        rows += load(p)
-    return [r for r in latest(rows) if r["status"] == "ok"]
+        rows += [r for r in load(p) if r["status"] == "ok"]
+    return latest(rows)
 
 
 def by_question(rows, outcome):
@@ -547,8 +554,9 @@ def kind(r):
 def reply_tokens(gate3_out=GATE3_OUT):
     """(mean completion tokens per kind, measured or not): Gate 3's base runs where their files are, else REPLY_TOKENS."""
     g = defaultdict(list)
-    for r in latest([r for p in runs_files(gate3_out, "base") for r in load(p)]) if Path(gate3_out).exists() else []:
-        if r["status"] == "ok" and r.get("completion_tokens") is not None:
+    for r in latest([r for p in runs_files(gate3_out, "base") for r in load(p) if r["status"] == "ok"]) \
+            if Path(gate3_out).exists() else []:
+        if r.get("completion_tokens") is not None:
             g[kind(r)].append(r["completion_tokens"])
     return {k: sum(g[k]) / len(g[k]) if g.get(k) else v for k, v in REPLY_TOKENS.items()}, bool(g)
 
