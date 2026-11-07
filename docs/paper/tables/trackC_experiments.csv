@@ -1,0 +1,72 @@
+experiment,comparison,measure,reviewer,variant,a,b,items,a − b,reading,decision
+C19,answer-key sentence − own-working sentence,corrects a wrong answer,Olmo 3.1 32B Instruct,+ explanation,24 of 53,31 of 53,53,"−13 [−25, −2]",unclear; H34: unclear,"pre-registered, main (H34)"
+C19,answer-key sentence − own-working sentence,corrects a wrong answer,Qwen3 30B Instruct,+ explanation,47 of 53,48 of 53,53,"−2 [−9, +6]",no change; H34: not supported,"pre-registered, main (H34)"
+C19,answer-key sentence − unchanged (C16's control),corrects a wrong answer,Olmo 3.1 32B Instruct,+ explanation,24 of 53,36 of 53,53,"−23 [−38, −8]",unclear,no decision (cross-day reference)
+C19,answer-key sentence − unchanged (C16's control),corrects a wrong answer,Qwen3 30B Instruct,+ explanation,47 of 53,44 of 53,53,"+6 [−2, +13]",no change,no decision (cross-day reference)
+C19,answer-key sentence − C17's names_tool,corrects a wrong answer,Olmo 3.1 32B Instruct,+ explanation,24 of 53,37 of 53,53,"−25 [−38, −11]",unclear,no decision (cross-day reference)
+C19,answer-key sentence − C17's names_tool,corrects a wrong answer,Qwen3 30B Instruct,+ explanation,47 of 53,43 of 53,53,"+8 [+2, +15]",a smaller rise (less than 20 points),no decision (cross-day reference)
+C19,own-working sentence − C17's own_working,corrects a wrong answer,Olmo 3.1 32B Instruct,+ explanation,31 of 53,37 of 53,53,"−11 [−25, +2]",no change,no decision (cross-day reference)
+C19,own-working sentence − C17's own_working,corrects a wrong answer,Qwen3 30B Instruct,+ explanation,48 of 53,44 of 53,53,"+8 [+0, +17]",no change,no decision (cross-day reference)
+C19,own-working sentence − unchanged (C16's control),corrects a wrong answer,Olmo 3.1 32B Instruct,+ explanation,31 of 53,36 of 53,53,"−9 [−25, +4]",no change,no decision (cross-day reference)
+C19,own-working sentence − unchanged (C16's control),corrects a wrong answer,Qwen3 30B Instruct,+ explanation,48 of 53,44 of 53,53,"+8 [−2, +19]",no change,no decision (cross-day reference)
+C19,"answer-key sentence − own-working sentence, bare answers only",corrects a wrong answer,Olmo 3.1 32B Instruct,+ explanation,24 of 49,29 of 49,49,"−10 [−22, +2]",no change,no decision
+C19,"answer-key sentence − own-working sentence, bare answers only",corrects a wrong answer,Qwen3 30B Instruct,+ explanation,43 of 49,44 of 49,49,"−2 [−10, +6]",no change,no decision
+C19,answer-key sentence − own-working sentence,keeps a right answer (good lookups),Olmo 3.1 32B Instruct,+ explanation,44 of 45,43 of 45,45,"+2 [+0, +7]",,no decision (side effect)
+C19,answer-key sentence − own-working sentence,keeps a right answer (good lookups),Qwen3 30B Instruct,+ explanation,37 of 45,38 of 45,45,"−2 [−11, +7]",,no decision (side effect)
+C25,"hop 1, the solver's final answer (bad lookups)",names the tool,the solver (Qwen3 30B Thinking),,5 of 55,,55,,,no decision (F15's baseline)
+C25,"hop 2, the plain note (bad lookups)",names the tool,the writer (Qwen3 30B Instruct),,35 of 55,,55,,kept,pre-registered (kept / lost / mixed)
+C25,"hop 2, the keep note (bad lookups)",names the tool,the writer (Qwen3 30B Instruct),,55 of 55,,55,,kept,pre-registered (kept / lost / mixed)
+C25,plain note − hop 1 (bad lookups),names the tool,the writer (Qwen3 30B Instruct),,35 of 55,5 of 55,55,"+55 [+42, +67]",,no decision
+C25,keep note − plain note (bad lookups),names the tool,the writer (Qwen3 30B Instruct),,55 of 55,35 of 55,55,"+36 [+24, +49]",,no decision
+C25,"hop 1, the solver's final answer (good lookups)",names the tool,the solver (Qwen3 30B Thinking),,1 of 45,,45,,,no decision (F15's baseline)
+C25,"hop 2, the plain note (good lookups)",names the tool,the writer (Qwen3 30B Instruct),,22 of 45,,45,,mixed,no decision
+C25,"hop 2, the keep note (good lookups)",names the tool,the writer (Qwen3 30B Instruct),,45 of 45,,45,,kept,no decision
+C25,plain note − hop 1 (good lookups),names the tool,the writer (Qwen3 30B Instruct),,22 of 45,1 of 45,45,"+47 [+31, +62]",,no decision
+C25,keep note − plain note (good lookups),names the tool,the writer (Qwen3 30B Instruct),,45 of 45,22 of 45,45,"+51 [+36, +67]",,no decision
+C25,M1: keep note with its tool sentences stripped − keep note,accepts the solver's wrong letter,Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",9 of 53,16 of 53,53,"−13 [−23, −6]",unclear; source gone: unclear,"pre-registered, main"
+C25,M2: plain note − keep note,accepts the solver's wrong letter,Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",13 of 53,16 of 53,53,"−6 [−19, +8]",no change,pre-registered
+C25,M1: stripped − keep,corrects a wrong answer,Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",36 of 53,33 of 53,53,"+6 [−4, +15]",,no decision
+C25,M2: plain − keep,corrects a wrong answer,Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",37 of 53,33 of 53,53,"+8 [−6, +21]",,no decision
+C25,plain minus no writer (cross-day),accepts the solver's wrong letter,Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",13 of 53,8 of 53,53,"+9 [−4, +23]",,no decision (cross-day reference)
+C25,plain minus C15's answer_only (cross-day),accepts the solver's wrong letter,Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",13 of 53,3 of 53,53,"+19 [+9, +30]",,no decision (cross-day reference)
+C25,keep minus no writer (cross-day),accepts the solver's wrong letter,Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",16 of 53,8 of 53,53,"+15 [+4, +28]",,no decision (cross-day reference)
+C25,keep minus C15's answer_only (cross-day),accepts the solver's wrong letter,Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",16 of 53,3 of 53,53,"+25 [+13, +36]",,no decision (cross-day reference)
+C25,keep stripped minus no writer (cross-day),accepts the solver's wrong letter,Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",9 of 53,8 of 53,53,"+2 [−8, +11]",,no decision (cross-day reference)
+C25,keep stripped minus C15's answer_only (cross-day),accepts the solver's wrong letter,Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",9 of 53,3 of 53,53,"+11 [+4, +21]",,no decision (cross-day reference)
+C25,plain notes: named the tool − did not (unpaired),accepts the solver's wrong letter,Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",,,33 and 20,"+23 [+2, +44]",,no decision (unpaired)
+C25,M1: stripped − keep,keeps a right answer (good lookups),Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",38 of 45,44 of 45,45,"−13 [−24, −4]",,no decision (side effect)
+C25,M2: plain − keep,keeps a right answer (good lookups),Olmo 3.1 32B Instruct,"the note in place of the answer, + explanation",41 of 45,44 of 45,45,"−7 [−16, +0]",,no decision (side effect)
+C25,M1: keep note with its tool sentences stripped − keep note,accepts the solver's wrong letter,Qwen3 30B Instruct,"the note in place of the answer, + explanation",0 of 53,0 of 53,53,"+0 [+0, +0]",no change; source gone: no change,"pre-registered, main"
+C25,M2: plain note − keep note,accepts the solver's wrong letter,Qwen3 30B Instruct,"the note in place of the answer, + explanation",1 of 53,0 of 53,53,"+2 [+0, +6]",no change,pre-registered
+C25,M1: stripped − keep,corrects a wrong answer,Qwen3 30B Instruct,"the note in place of the answer, + explanation",46 of 53,43 of 53,53,"+6 [+0, +13]",,no decision
+C25,M2: plain − keep,corrects a wrong answer,Qwen3 30B Instruct,"the note in place of the answer, + explanation",46 of 53,43 of 53,53,"+6 [−2, +13]",,no decision
+C25,plain minus no writer (cross-day),accepts the solver's wrong letter,Qwen3 30B Instruct,"the note in place of the answer, + explanation",1 of 53,1 of 53,53,"+0 [−6, +6]",,no decision (cross-day reference)
+C25,plain minus C15's answer_only (cross-day),accepts the solver's wrong letter,Qwen3 30B Instruct,"the note in place of the answer, + explanation",1 of 53,2 of 53,53,"−2 [−8, +4]",,no decision (cross-day reference)
+C25,keep minus no writer (cross-day),accepts the solver's wrong letter,Qwen3 30B Instruct,"the note in place of the answer, + explanation",0 of 53,1 of 53,53,"−2 [−6, +0]",,no decision (cross-day reference)
+C25,keep minus C15's answer_only (cross-day),accepts the solver's wrong letter,Qwen3 30B Instruct,"the note in place of the answer, + explanation",0 of 53,2 of 53,53,"−4 [−9, +0]",,no decision (cross-day reference)
+C25,keep stripped minus no writer (cross-day),accepts the solver's wrong letter,Qwen3 30B Instruct,"the note in place of the answer, + explanation",0 of 53,1 of 53,53,"−2 [−6, +0]",,no decision (cross-day reference)
+C25,keep stripped minus C15's answer_only (cross-day),accepts the solver's wrong letter,Qwen3 30B Instruct,"the note in place of the answer, + explanation",0 of 53,2 of 53,53,"−4 [−9, +0]",,no decision (cross-day reference)
+C25,plain notes: named the tool − did not (unpaired),accepts the solver's wrong letter,Qwen3 30B Instruct,"the note in place of the answer, + explanation",,,33 and 20,"−5 [−17, +0]",,no decision (unpaired)
+C25,M1: stripped − keep,keeps a right answer (good lookups),Qwen3 30B Instruct,"the note in place of the answer, + explanation",35 of 45,37 of 45,45,"−4 [−13, +4]",,no decision (side effect)
+C25,M2: plain − keep,keeps a right answer (good lookups),Qwen3 30B Instruct,"the note in place of the answer, + explanation",35 of 45,37 of 45,45,"−4 [−13, +4]",,no decision (side effect)
+C20,(b) tag − (a) blind,catches the wrong solver answer,Olmo 3.1 32B Instruct,the answer + the pipeline's tag,43 of 53,39 of 53,53,"+8 [−2, +19]",no change,"pre-registered, main (the tag works?)"
+C20,(b) tag − (a) blind,false alarms (right solver answer changed),Olmo 3.1 32B Instruct,the answer + the pipeline's tag,9 of 47,8 of 47,47,"+2 [−6, +11]",no change,pre-registered
+C20,(b) tag − (d) checker,catches the wrong solver answer,Olmo 3.1 32B Instruct,the answer + the pipeline's tag,43 of 53,53 of 53,53,"−19 [−30, −9]",doesn't match the checker,pre-registered (matches the checker?)
+C20,(b) tag − (d) checker,false alarms (right solver answer changed),Olmo 3.1 32B Instruct,the answer + the pipeline's tag,9 of 47,7 of 47,47,"+4 [−6, +15]",doesn't match the checker,pre-registered (matches the checker?)
+C20,"(b) tag − (c) the solver's own disclosure (C16), items wrong in both",catches the wrong solver answer,Olmo 3.1 32B Instruct,the answer + the pipeline's tag,43 of 53,25 of 53,53,"+34 [+21, +47]",more catches,pre-registered (pipeline vs model)
+C20,(b) tag − (a) blind,catches the wrong solver answer,Qwen3 30B Instruct,the answer + the pipeline's tag,46 of 53,43 of 53,53,"+6 [−2, +13]",no change,"pre-registered, main (the tag works?)"
+C20,(b) tag − (a) blind,false alarms (right solver answer changed),Qwen3 30B Instruct,the answer + the pipeline's tag,8 of 47,9 of 47,47,"−2 [−13, +9]",no change,pre-registered
+C20,(b) tag − (d) checker,catches the wrong solver answer,Qwen3 30B Instruct,the answer + the pipeline's tag,46 of 53,53 of 53,53,"−13 [−23, −6]",doesn't match the checker,pre-registered (matches the checker?)
+C20,(b) tag − (d) checker,false alarms (right solver answer changed),Qwen3 30B Instruct,the answer + the pipeline's tag,8 of 47,7 of 47,47,"+2 [−11, +15]",doesn't match the checker,pre-registered (matches the checker?)
+C20,"(b) tag − (c) the solver's own disclosure (C16), items wrong in both",catches the wrong solver answer,Qwen3 30B Instruct,the answer + the pipeline's tag,46 of 53,44 of 53,53,"+4 [−6, +15]",no change,pre-registered (pipeline vs model)
+C26,R1: retrieved passage (C26) − answer key (C15),follows the bad lookup,the solver (Qwen3 30B Thinking),,19 of 55,52 of 55,55,"−60 [−73, −45]",fewer following,pre-registered
+C26,R1b: retrieved passage (C26) − the no-tool floor,follows the bad lookup,the solver (Qwen3 30B Thinking),,19 of 55,0 of 55,55,"+35 [+22, +47]",deference survives in the solver,pre-registered
+C26,retrieved passage (C26) − answer key (C15),right on good lookups,the solver (Qwen3 30B Thinking),,45 of 45,45 of 45,45,"+0 [+0, +0]",,no decision
+C26,retrieved passage (C26) vs answer key (C15),the final answer names its source,the solver (Qwen3 30B Thinking),,9 of 100,6 of 100,100,,,no decision
+C26,retrieved passage (C26) vs answer key (C15),the final answer is bare,the solver (Qwen3 30B Thinking),,90 of 100,93 of 100,100,,,no decision
+C26,R2: + tool log − answer only (C26's bad lookups),corrects a wrong answer,Olmo 3.1 32B Instruct,+ tool log,5 of 21,15 of 21,21,"−48 [−67, −29]",defers,"pre-registered, main"
+C26,"+ tool log: retrieved passage (C26) − answer key (C15), items wrong in both",corrects a wrong answer,Olmo 3.1 32B Instruct,+ tool log,5 of 21,4 of 21,21,"+5 [−10, +19]",,no decision
+C26,R2: + tool log − answer only (C26's bad lookups),corrects a wrong answer,Qwen3 30B Instruct,+ tool log,12 of 21,15 of 21,21,"−14 [−29, +0]",doesn't defer,"pre-registered, main"
+C26,"+ tool log: retrieved passage (C26) − answer key (C15), items wrong in both",corrects a wrong answer,Qwen3 30B Instruct,+ tool log,12 of 21,12 of 21,21,"+0 [−14, +14]",,no decision
+C26,the checker flags,flagged,"the checker (Qwen3 30B Thinking, no tool)",,27 of 100,,100,,,no decision
+C26,the checker's letter equals C15's (the same call),same letter,"the checker (Qwen3 30B Thinking, no tool)",,98 of 100,,100,,,no decision (reproduction check)

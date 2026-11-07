@@ -2,7 +2,7 @@
 
 **Edited by:** Ritik; each section's bullets by its owner (Track B's: Arsha, from `docs/trackB/REPORT_B.md`; Track C's: Shrey, from `docs/trackC/REPORT_C.md`), merged by Ritik.
 
-Started Nov 3 by Ritik; updated Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
+Started Nov 3 by Ritik; updated Nov 7, 13:52 (F41–F43 in §7, A40, A41 and A42 read; A39 complete and B1R2 running in §7's waiting list; §6's L3 entry read Nov 4, no longer waiting; Shrey's figures placed in `docs/paper/figures/`); earlier Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
 methods are filled in as bullets** (facts with their source), so the prose can be written from them. Numbers come from
 [`FINDINGS.md`](../FINDINGS.md), the tracks' `FINDINGS_B.md` and `FINDINGS_C.md`, and the claims from
 [`CLAIMS.md`](CLAIMS.md). Results freeze on Nov 18; the draft is due Nov 22, the final report Nov 24.
@@ -709,7 +709,7 @@ by item; C4's 53 items unless noted):
     with the answer-key claim). Qwen3: no change, as expected for the reviewer that doesn't defer.
   - Limits: one wording per sentence, appended rather than the solver's own text; the answer-key claim also states the
     letter; one solver, 1 repeat, 53 items; the references are other days' reviews.
-  - figure: docs/trackC/figures/c19_authority.png (slide 11's bars; Ritik places it; WAITING.md "Additions")
+  - figure: docs/paper/figures/c19_authority.png (slide 11's bars; Shrey's, placed Nov 7)
 
 ## 9. Across agents, and the pipeline (Shrey)
 
@@ -758,7 +758,7 @@ by item; C4's 53 items unless noted):
   - Limits: one writer model and one wording per variant; the keyword decides which sentences are stripped and how
     "names the tool" is counted (15 of 20 against a hand label, the keyword likely overcounting); one solver, 1 repeat,
     53 items; the notes are written on a later day than the solve; the plain note's "kept" rests on a 50.4% lower bound.
-  - figure: docs/trackC/figures/c25_hops.png (slide 12; WAITING.md's spec)
+  - figure: docs/paper/figures/c25_hops.png (slide 12; Shrey's, placed Nov 7)
 - **FC3. C20: a tag the pipeline attaches ("this letter came from the tool, unverified") does not change what the
   blind reviewer catches by the rule (+8 points), costs no false alarms, catches 19 points fewer than the checker,
   and catches 34 points more than when the solver says the same thing itself.**
@@ -777,7 +777,7 @@ by item; C4's 53 items unless noted):
     review gave no letter (the 8,000-token cap), counted as not correcting.
   - Limits: one tag wording; one solver, 1 repeat; the tag runs on a later day than the saved pipelines; the
     disclosure arm comes from a different solve (C16), so reading 4 pairs the items wrong in both.
-  - figure: docs/trackC/figures/pipeline_vs_model.png (slide 12's second figure, with C26, if there is room)
+  - figure: docs/paper/figures/pipeline_vs_model.png (slide 12's second figure, with C26, if there is room; placed Nov 7)
 - **FC4. C26: when the tool returns a plain retrieved passage instead of an "answer key" letter, the solver follows a
   bad lookup a third as often (19 against 52 of 55) but still far more than with no tool, and the Olmo reviewer still
   defers to the tool log (5 against 15 of 21), so the deference does not depend on the authority label.**
@@ -793,7 +793,7 @@ by item; C4's 53 items unless noted):
     defers (C11's rule), so deference survives in the reviewer without the authority label. Qwen3 doesn't defer.
   - Limits: one passage wording and one tool name; the passage quotes the option's own words (a paraphrase isn't
     tested); one solver, 1 repeat; C26 and C15 solve on different days; the reviewer reading rests on 21 items.
-  - figure: docs/trackC/figures/pipeline_vs_model.png (with C20)
+  - figure: docs/paper/figures/pipeline_vs_model.png (with C20)
 
 ## 10. Limits and threats (everyone)
 

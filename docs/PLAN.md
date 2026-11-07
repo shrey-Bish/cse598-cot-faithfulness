@@ -133,7 +133,7 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | 3 agents | C20 | Pipeline vs model: a blind reviewer; a tag the system attaches; the solver's own disclosure; the checker | Shrey | Nov 15 | done Nov 6 (FC3), merged Nov 6 |
 | 3 agents | C26 | SHOULD: a realistic tool, a retrieval passage from the wrong option's text, with no letter and no "answer key" | Shrey | Nov 15 | done Nov 6 (FC4), merged Nov 6 |
 | 3 agents | C22 | STRETCH: a second solver | Shrey | — | not prepared |
-| 3 agents | C24, C27, C28 | Track C's figures and tables, and slides 11–12 (Nov 18); Track C's report section, as bullets (Nov 20) | Shrey | Nov 18, Nov 20 | planned |
+| 3 agents | C24, C27, C28 | Track C's figures and tables, and slides 11–12 (Nov 18); Track C's report section, as bullets (Nov 20) | Shrey | Nov 18, Nov 20 | **C24 done Nov 7, merged Nov 7** (`agents/trackc_tables.py`: trackC_experiments, trackC_pipelines, at_a_glance_FC; placed in `docs/paper/tables/`); the figures (c19_authority, c25_hops, pipeline_vs_model, Nov 6) placed in `docs/paper/figures/` Nov 7; the bullets are in REPORT §8–§9 |
 | labels | L4 part 2, L5 | SHOULD | two raters | — | built |
 | dropped | B2 (A31), C21, C23 | dropped (scope, Oct 31) | — | — | — |
 
@@ -312,7 +312,7 @@ Nov 18 freeze. REPORT holds bullets and figures only; the team writes the prose.
 | §5 Level 1, inside | **final** | — |
 | §6 Level 2, in the words | **final** (L3 read Nov 4: not met) | slide 5's figure (Ritik and Shrey) |
 | §7 Fixing it | **final for F20, F27, F28, F38, F39, F41–F43** | A39 (Ritik, by Nov 17), B1R2 (Ritik, by Nov 17), Gate 3's final statement (Nov 20) |
-| §8 Level 3 | **final** (FC1) | C24, Track C's figures and tables (Shrey, Nov 18) |
+| §8 Level 3 | **final** (FC1; C24's tables merged Nov 7) | — |
 | §9 Across agents | **final** (FC2–FC4) | — |
 | §10 Limits | bullets in | B20's and A39's limits once read; frozen Nov 18 |
 | §11 Related work, §12 Conclusion | outline only | the frozen results (Nov 18) |

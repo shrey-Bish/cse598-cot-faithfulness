@@ -136,7 +136,8 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
   - Per note variant: "kept" (the lower bound is above 50%), "lost" (the upper bound is below 50%) or "mixed".
   - The decider: paired by item, clustered by item, with C11's 20-point margin (`c16.two_sided`).
 - **Owner and date:** Shrey. C25, C20 and C26 read Nov 6 (FC2–FC4, merged Nov 6), their figures made as
-  `docs/trackC/figures/c25_hops.png` and `pipeline_vs_model.png`; Ritik places them on the slide.
+  `docs/trackC/figures/c25_hops.png` and `pipeline_vs_model.png`; placed in `docs/paper/figures/` Nov 7 (C24's tables
+  too, in `docs/paper/tables/`). Ritik puts them on the slide.
 
 ## Additions to figures that exist (no new file)
 
@@ -152,9 +153,12 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 - **Slide 9** (`docs/paper/figures/gate3_vs_base_slide.png`, made Nov 4 from `finetune/gate3.py`'s rows): false
   disclosure from L4 part 1's hand labels (read Nov 3, F28); A39's powered replication on E2 (read Nov 17) goes in its
   own figures (above). The final statement is Nov 20. Owner: Ritik.
-- **Slide 10** (`docs/paper/figures/readout_lora_vs_base.png`): B1R2, revived Nov 6 (the A39 log's §21), is last in
-  Ritik's queue. Panel (b) gains it if it finishes (partial at Nov 15 23:59), else stays B1 on the 30, as made. A41
-  (A40's weights in A18's readout) may add a row. Owner: Ritik.
+- **Slide 10** (`docs/paper/figures/readout_lora_vs_base.png`): **A41's bars added Nov 7** (A40's weights beside LoRA's,
+  from `a41_readout.json`; F42). B1R2, revived Nov 6 (the A39 log's §21), is running: panel (b) gains it once read
+  (complete, or partial at Nov 15 23:59), else stays B1 on the 30, as made. Owner: Ritik.
+- **A40 and A42** (`docs/paper/figures/a40_e2_fixes.png`, made Nov 7 by `tools/a40_figures.py` from their reports;
+  F41, F43): for §7 and, if there is room, slide 9 beside Gate 3. Owner: Ritik.
 - **Slide 11** (`docs/paper/figures/trackC_reviewers_slide.png` and `reviewer_by_prompt_slide.png`, made Nov 4; the
   supplement's `trackC_reviewers`): C19's answer-key-versus-own-working bars: read Nov 6 (FC1), made by Shrey as
-  `docs/trackC/figures/c19_authority.png`; Ritik places them. Owner: Shrey (the figure), Ritik (the slide).
+  `docs/trackC/figures/c19_authority.png`; placed in `docs/paper/figures/` Nov 7. Owner: Shrey (the figure), Ritik (the
+  slide).

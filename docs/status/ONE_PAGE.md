@@ -15,7 +15,8 @@
 - **Gate 2:** a tool's hint pulls harder than the user's on all five models. The label part is **not met** (Ritik
   against the AI judges' majority: 0.472 and 0.234, under 0.6). The statement is ready to mark **Nov 8**.
 - **The labels are final** (L3, Nov 4; rater 2 was an AI model, ChatGPT 5 Astra High, not Shrey).
-- **Track C is done early:** C19, C25, C20 and C26 were run and read Nov 6 (FC1–FC4), merged Nov 6 at 23:17.
+- **Track C is done early:** C19, C25, C20 and C26 were run and read Nov 6 (FC1–FC4), merged Nov 6 at 23:17; C24's
+  tables merged Nov 7.
 - **B20 is complete** (Arsha's account, Nov 6, 21:11). By its rule she reads it now, in her own log.
 
 **Running.**
@@ -42,7 +43,7 @@
 | A42 | **read Nov 7 (F43)** | "fewer, but costs acceptance"; R3 "adds, costs acceptance"; R1 passes |
 | B1R2 | on track | 19 of 40 parts done at 13:18; parts project to end about Nov 8, 02:00–03:00, then 4 sweeps (under an hour each); read when complete, partial at Nov 15 23:59 |
 | B20 (Arsha reads now) | runs done | complete Nov 6 against its design; she reads it by its rule (§10), in her own log |
-| Track C (Shrey) | done early | FC1–FC4 merged Nov 6; C24 and slides 11–12 by Nov 18 |
+| Track C (Shrey) | done early | FC1–FC4 merged Nov 6; C24 (Track C's tables) merged Nov 7, and Shrey's figures and tables placed in `docs/paper/` |
 | The labels | done | L3 final (Nov 4); L4 part 1 Nov 3; L4 part 2 (a SHOULD) is not labelled |
 | The report and slides (Nov 18–24) | on track | REPORT has bullets for F1–F43 and Track C's FC1–FC4; §5, §6, §8 and §9 are final; the writing plan for Nov 18–24 is in PLAN ("The report's state") |
 
@@ -60,8 +61,8 @@
   - **Nov 8, once every B1R2 part has started:** pull on Sol, by the safety diff (today's counting fix touches
     `finetune/`, which B1R2's queued parts load);
   - **optional:** drop B1R2's `reserve=240:2` (a queue-file edit) so its last parts go in faster.
-- **Shrey:** merge `origin/main` back and rerun `--install` (the Windows hook fix); C24 and slides 11–12 by Nov 18;
-  check-ins Nov 12, 15 and 18.
+- **Shrey:** merged `origin/main` back and reinstalled the hooks (Nov 7, 09:15); C24 done and merged Nov 7. Next: merge
+  `origin/main` back again; check-ins Nov 12, 15 and 18; Track C's report bullets are in REPORT already.
 - **Arsha:** read B20 by its rule, in her own log on `trackB-main` and in FINDINGS_B; merge `origin/main` and rerun
   `--install`; the re-reads; B18's table, Nov 18; slides 2, 6, 7 and 8, Nov 20.
 
