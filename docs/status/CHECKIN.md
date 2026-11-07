@@ -144,9 +144,10 @@ Nothing is read before its rule says so. The checks below run on Sol, from the c
 
 | experiment | complete when (read-only check, on Sol) | read by | rule |
 |---|---|---|---|
-| **A39 on E2** (primary) | every system has 0 runs left: `for s in base prompt_only lora lora_note wrap wrap_note lora_wrap; do echo "$s $($P $F --runs-left a39:$s:e2)"; done` | Ritik, **by Nov 17** | the A39 log, §4 and §9 |
+| **A39 on E2** (primary) | **complete (counted Nov 7, the A39 log's §22).** Count on the Mac after §2's copy-back: `finetune/a39.py --report` says "complete". Sol's `--runs-left` overcounts until Sol pulls the Nov 7 fix (a part's older `not_run` hid a sweep's `ok`) | Ritik, **by Nov 17** | the A39 log, §4 and §9 |
 | **A39 on the 30** (beside it) | the same with `mmlupro_30`, unless dropped (Nov 6 or Nov 11) | Ritik, with E2 | §10.2, §16, §17 |
-| **B1R2** | `for k in 1 2 3 4; do $P $F --runs-left b1r2:$k/4; done` all 0; **or Nov 15 23:59**, whatever is done | Ritik, **Nov 16–17** | the A39 log, §13 |
+| **B1R2** | `for k in 1 2 3 4; do $P $F --runs-left b1r2:$k/4; done` all 0 (after Sol pulls the Nov 7 fix; before it, confirm on the Mac with the report's own counts); **or Nov 15 23:59**, whatever is done | Ritik, **when complete, by Nov 17** | the A39 log, §13 and §22 |
+| **A40, A41, A42** | **read Nov 7** (F41–F43; the 13:29 and 13:31 logs), each once complete by its own rule | Ritik | their logs |
 | **B20** | the feeder shows every line of a model done or not needed (`$P $F --status \| grep '^b20-'`) | **Arsha, by Nov 17** | the B20 log, §6, §8 and §10 |
 | **C19, C25, C20, C26** | Shrey's own logs, merged in §8 | Shrey | his pre-registrations |
 
@@ -373,7 +374,7 @@ From PLAN's calendar, the TODOs and the logs. "Needs Ritik" goes in the report.
 | Sat Nov 14 | — | §1–§7; if A39 on E2 won't be complete by Nov 15, its §18 partial read applies (§3) |
 | Sun Nov 15 | **runs end**; B20's runs by today (Arsha's account); C20 and C26 (Shrey); **check-ins and merges** B and C; **23:59: the partial cut-offs** of A39 on E2 (§18), A40 and B20 (the B20 log's §19) | §8 twice; §3's completeness checks |
 | Mon Nov 16 | — (B1R2, revived Nov 6, runs by Nov 15 and is read with the rest) | §3; needs Ritik: stop the feeder now or at the freeze |
-| Tue Nov 17 | **A39 read** (E2; the 30 beside it if run); **A40 read** (E2, by its own log's rule); **B20 read** by Arsha | §2 copy-back, §3 |
+| Tue Nov 17 | **A39 read by now** (complete since Nov 7's count; E2 and the 30); **B1R2 read** (complete, or partial at Nov 15 23:59); B20 read by Arsha (complete Nov 6). A40, A41 and A42 were read Nov 7 (F41–F43) | §2 copy-back, §3 |
 | Wed Nov 18 | **the results freeze**: no new runs. **Check-ins and merges** B and C; C24 and slides 11–12 (Shrey); B18's table and figure (Arsha) | §8 twice; §4's freeze (needs Ritik: the feeder's stop, any `scancel`) |
 | Thu Nov 19 | — | §1–§7 |
 | Fri Nov 20 | **Gate 3's final statement** (G3, A17, D6: final verdicts, figures, supplement, STATUS); Arsha's slides 2, 6, 7, 8 final and Track B's report bullets; Track C's bullets (`docs/trackC/REPORT_C.md`) | needs Ritik: Gate 3's statement; a merge to bring in Nov 20's bullets and slides (no merge day is set after Nov 18) |

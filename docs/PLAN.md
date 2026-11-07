@@ -1,6 +1,6 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-11-06 23:19 MST (Track C's four read and merged; Gate 2's statement ready to mark Nov 8; B1R2 revived; earlier 11:30: E2's and the 30's lines all ended; the nov6 rule said no cut; A40's data and its gated lines; A41 and A42 after A40's training; earlier, Nov 5 13:42: the pull done; A40's targets about 11 h; Arsha's setup Nov 6; 09:54: two Sol accounts from Nov 5: B20 on Arsha's own, the Sol order, B1R2 dropped for A40 and A40's row, the calendar's rows from Nov 5, slide 10 and the Sol risk; earlier, Nov 4 22:52: the calendar's Nov 5–7 row: that night's Sol state, the projections from ONE_PAGE, B20's stop fixed (T13); 21:31: Ritik's re-look of the 7 cells recorded: 4 changed, 3 kept, Gate 2's verdict unchanged; earlier, 18:22: Gate 2's statement with the descriptive sentence; 17:51: the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; L3, L4 and Gate 2 under the LLM-judge protocol; earlier, 16:38: Gate 2's statement; the presentation map and the submission checklist; the 30's Nov 6 and Nov 11 rules applied by the feeder, the A39 log's §16 and §17; earlier: B24 read: F40; B20's second amendment, §16; A39's parts at 2:00, its log's §14; earlier Nov 4: B20 amended after its first smokes, §15 of its log; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
+Last updated: 2026-11-07 13:46 MST (A40, A41 and A42 complete and read Nov 7 by their rules, F41–F43; A39 complete, the 54 runs left a counting bug, fixed; the report's state and the writing plan for Nov 18–24; earlier Nov 6 23:19: Track C's four read and merged; Gate 2's statement ready to mark Nov 8; B1R2 revived; earlier 11:30: E2's and the 30's lines all ended; the nov6 rule said no cut; A40's data and its gated lines; A41 and A42 after A40's training; earlier, Nov 5 13:42: the pull done; A40's targets about 11 h; Arsha's setup Nov 6; 09:54: two Sol accounts from Nov 5: B20 on Arsha's own, the Sol order, B1R2 dropped for A40 and A40's row, the calendar's rows from Nov 5, slide 10 and the Sol risk; earlier, Nov 4 22:52: the calendar's Nov 5–7 row: that night's Sol state, the projections from ONE_PAGE, B20's stop fixed (T13); 21:31: Ritik's re-look of the 7 cells recorded: 4 changed, 3 kept, Gate 2's verdict unchanged; earlier, 18:22: Gate 2's statement with the descriptive sentence; 17:51: the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; L3, L4 and Gate 2 under the LLM-judge protocol; earlier, 16:38: Gate 2's statement; the presentation map and the submission checklist; the 30's Nov 6 and Nov 11 rules applied by the feeder, the A39 log's §16 and §17; earlier: B24 read: F40; B20's second amendment, §16; A39's parts at 2:00, its log's §14; earlier Nov 4: B20 amended after its first smokes, §15 of its log; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
 **Edited by:** Ritik. History: `git log -- docs/PLAN.md`; the Oct 31 version and the per-track design notes that
 were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`](../archive/superseded/PLAN_2026-10-31.md). Where things are:
 - progress: [`STATUS.md`](status/STATUS.md);
@@ -30,17 +30,21 @@ were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`
        not submitted by 10:15 run at 2:00 and the sweeps at 3:00: a sixteenth took 1:24:54 of its 1:30 (§14). By Nov 5
        morning every part had gone in, and by Nov 6 10:56 every E2 line had ended (status only; the A39 log's §20);
     3. A40 (its own pre-registration, Nov 5, the 09:18 log): its lines after E2's, the first gated by the feeder's
-       check of its data on Sol (its §11, Nov 6). Its data: 883 examples (its §17);
+       check of its data on Sol (its §11, Nov 6). Its data: 883 examples (its §17). Trained Nov 6 (verified sound),
+       its 16 E2 parts done Nov 7 01:50, **read Nov 7 (F41)**;
     4. A39 on the 30 (29 lines): all ended by Nov 6 10:56, having gone in as places freed while A40's lines weren't
        ready. The Nov 6 07:00 rule said no cut (60.6 GPU-hours), and the Nov 11 rule has nothing left to drop (§20);
     5. A41 (A40's weights in A18's swap and Step 10) and A42 (A40 with the note, on E2), pre-registered Nov 6 (the
-       11:21 and 11:22 logs), after A40's training, so the account doesn't sit idle.
+       11:21 and 11:22 logs), after A40's training, so the account doesn't sit idle. A41 ended Nov 7 07:25 and A42
+       07:51; **both read Nov 7 (F42, F43)**.
   - **Arsha's** (`queue_b20_2026-11-05.txt`, `owner: not ragarw68`; her setup `docs/trackB/SOL_ARSHA.md`): B20's runs
     left on her own feeder, Granite's 8 and Gemma's 12 lines of 3:00, one chain a model, question by question (the
     B20 log's §19). B20's smokes and first runs (Nov 4, the B20 log's §14–§18) ran on Ritik's account, and Nemotron's
     runs are all done; the saved files are copied to her scratch first.
   - **B1R2:** dropped Nov 5 (decision f), revived Nov 6 (the A39 log's §21): last in Ritik's queue with `reserve=240:2`,
-    filling only room A40's, A41's and A42's lines can't use; partial at Nov 15 23:59 as §13.8 says.
+    filling only room A40's, A41's and A42's lines can't use; partial at Nov 15 23:59 as §13.8 says. **Running:** at
+    Nov 7 13:18, 19 of 40 parts done, 3 running, 4 pending; the parts project to end about 02:00–03:00 Nov 8 (today's
+    pace, not `squeue`), then 4 sweeps.
 
   **What binds** is the class QoS's 960 running GPU-minutes (each running job's time left × GPUs) and the 10 submitted
   jobs, each user's own, not two running jobs: 7 ran at once on Nov 3. So jobs are 1:30 (10 at once hold 900); A39's
@@ -50,7 +54,7 @@ were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`
   not `--test-only`.
 - **Pre-registration:** before any run, as always.
 
-**The fix, honestly (Nov 3).** LoRA cuts wrong-hint following by 10 points against base (−10 [−16, −4]) and passes Gate 3 by its rule, as do the other three trained versions. But no trained version beats the one-line instruction in the prompt (prompt_only −13 [−21, −6]; LoRA minus it +3 [−1, +8]). The source tags aren't tool-specific: they help no more on the inserted tool turn than on the pasted block (F28). B1's attention scaling cut following on the inserted turn by 17 points (−17 [−30, −3]) but missed its pre-registered acceptance limit (F38). By hand labels, LoRA's keyword false-disclosure candidates are rarely real (L4 part 1, F28). The main limit is power: 30 questions can't resolve the 5–10 point differences these comparisons turn on (B1's acceptance interval is ±13 points; Gate 3's following differences ±6 to ±7). So the fix round's next step is a bigger, fresh evaluation set fixed before any new result (E2, about 120 questions) and A39 on it (Part 4 of the Nov 3 plan). The verdicts already read on the 30 stay as they are.
+**The fix, honestly (Nov 3).** LoRA cuts wrong-hint following by 10 points against base (−10 [−16, −4]) and passes Gate 3 by its rule, as do the other three trained versions. But no trained version beats the one-line instruction in the prompt (prompt_only −13 [−21, −6]; LoRA minus it +3 [−1, +8]). The source tags aren't tool-specific: they help no more on the inserted tool turn than on the pasted block (F28). B1's attention scaling cut following on the inserted turn by 17 points (−17 [−30, −3]) but missed its pre-registered acceptance limit (F38). By hand labels, LoRA's keyword false-disclosure candidates are rarely real (L4 part 1, F28). The main limit is power: 30 questions can't resolve the 5–10 point differences these comparisons turn on (B1's acceptance interval is ±13 points; Gate 3's following differences ±6 to ±7). So the fix round's next step is a bigger, fresh evaluation set fixed before any new result (E2, about 120 questions) and A39 on it (Part 4 of the Nov 3 plan). The verdicts already read on the 30 stay as they are. **Nov 7, on E2 (F41, F43):** consistency training (A40) follows far fewer wrong hints than the instruction (84 of 694 against 237 of 713; −21 [−26, −16]) but takes fewer correct ones (−15 [−20, −10]): "fewer, but costs acceptance", a trade, not a fix; with the note added (A42), the same reading at a larger cost. Inside the model, A40 is the first fix that acts on the readout (A41, F42: before layers 15, 19 and 23, more than LoRA). No fix so far beats the instruction by its rule; A39's wrapper and combinations are complete and read next.
 
 ## The story: "Where did that answer come from?"
 
@@ -113,15 +117,17 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | 1 inside | A38 | STRETCH, only if B1 "works": prompt_only's note + B1 deployable, against each alone, same HF stack | Ritik | Nov 14 | **dropped Nov 3, as pre-registered:** B1's deployable span reads "ignores tools" (F38) |
 | control | B16 | Tool or authority? The answer key's authority in the user's hint, against the tool channels | Ritik; Arsha, from Nov 6 | Nov 3 | **done Nov 1** (F35): tool beyond authority for Qwen3 Instruct's call (+75) and Thinking's pasted block (+12), authority moves Olmo more than its inserted turn (−14), no difference in the other three; cross-day (T11) |
 | 2 words | B17 | Thinking dose: gpt-oss-20b on Sol at reasoning effort low, medium, high | Ritik submits; Arsha, from Nov 6 | Nov 12 | **done Nov 3** (F37): no change detected on both (following on the real call +7 [−1, +16]; bare after a call −5 [−10, 0]); run after its one-day window, kept by Ritik's decision before any result was read (§13) |
-| 2 words | L3 | Gate 2's hand labels (F3 rests on them): kappa per channel | Ritik (rater 2 was AI rater 1, ChatGPT 5 Astra High) | Nov 7 | **both sheets in Nov 3; kappa under 0.6 in four of six cells** (private 0.63, tool 0.29, user 0.85; final 0.54, tool 0.59, user 0.43), human-vs-AI agreement. Next: the LLM-judge protocol (pre-registered Nov 4, the 17:45 log): Ritik's labels final, the AI judges the reliability check; no acknowledgment claim from labels until then. Corrected Nov 4, 17:51: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log; the settling call and the fresh batch no longer apply |
+| 2 words | L3 | Gate 2's hand labels (F3 rests on them): kappa per channel | Ritik (rater 2 was AI rater 1, ChatGPT 5 Astra High) | Nov 7 | **read Nov 4, 17:56, by the LLM-judge protocol (pre-registered 17:45): not met** (F3): Ritik against the AI judges' 3-of-4 majority under 0.6 in all six cells (private 0.472, final 0.234), so no acknowledgment claim rests on labels; Gate 2's statement is marked Nov 8. Before it: both sheets in Nov 3, kappa under 0.6 in four of six cells (private 0.63, final 0.54), human-vs-AI agreement. Corrected Nov 4, 17:51: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log; the settling call and the fresh batch no longer apply |
 | 2 words | L4 part 1 | Does training teach the model to claim checks it doesn't do? | Ritik (rater 2 was AI rater 1, ChatGPT 5 Astra High) | Nov 14 | **read Nov 3** (F28; kappa 0.93, human-vs-AI agreement): 1 to 2 of LoRA's 147 candidates claim a rejection they didn't act on; most say the hint shaped the answer; the raters could tell LoRA's style. Corrected Nov 4, 17:51: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log; the reading stays, as human + AI agreement |
 | 2 words | B18 | The final Track B table and one figure | Ritik; Arsha, from Nov 6 | Nov 18 | started Nov 3 (`tools/trackb_final.py`; slide 2) |
 | 2 words | B20 | Open models from new families on Sol (Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B, Granite 4.2 8B), thinking on and off | Arsha submits, on her own Sol account from Nov 5 (Ritik's until then); Arsha reads | runs Nov 15, read Nov 17 | pre-registered Nov 3; smokes Nov 4: none clean, **amended (§15, §16): Gemma and Nemotron the inserted tool turn, Granite thinking on only** (4,860 runs); runs from Nov 4 evening; Granite's and Gemma's first jobs stopped by a shared stop file (T13, fixed Nov 4, confirmed Nov 5); Nemotron's runs all done. **Amended Nov 5 (§19):** Granite's 849 and Gemma's 1,784 runs left on her account, 3:00 lines (Granite 8, Gemma 12), question by question; read partial at Nov 15 23:59 ("partial: N of 54 questions") if not complete |
 | 2 words | B24 | The authority dose: does a second wording hold, and does the pull grow from a classmate to the solution manual? | Ritik runs; Arsha reads from Nov 6 if not before | read when done (by Nov 9) | **done Nov 4 (F40):** 972 runs on Voyager 03:38–11:12; the manual over the classmate in all three; Thinking's manual over B16's wording |
 | 1 fix | E2 | A second, larger held-out set: 120 fresh MMLU-Pro questions from the evaluation categories | Ritik | Nov 3 | **done Nov 3** (sha256 `59c5c250…`) |
-| 1 fix | A39 | Fix round 2 on E2: the wrapper, combinations, a powered replication of Gate 3 | Ritik | runs Nov 15, read Nov 17 | pre-registered and coded Nov 3; the bench done (400 tokens/s); 9 parts queued Nov 3 (7 running that evening); then 1:30 parts (§12); from Nov 4, 2:00 parts and 3:00 sweeps (§14) |
-| 1 fix | B1R2 | B1's deployable span on E2 (a labelled replication) | Ritik | — | **dropped Nov 5 (compute): "not run: GPU time given to A40"** (Ritik's decision f, before any B1R2 run; the A39 log's §19; F38); its 44 lines left the queue. Was: decided Nov 4, it runs (A39 log §13) |
-| 1 fix | A40 | Bias-augmented consistency training (Chua et al. 2024): LoRA at `lora`'s settings on the model's own reasoning written without the hint, read on E2 against prompt_only, against base by Gate 3's rule, and against LoRA | Ritik | runs Nov 15, read Nov 17 | pre-registered Nov 5 (log 09:18), before any Voyager call; its targets on Voyager (Ritik's Mac, Nov 5–6); then about 20–25 GPU-hours on Ritik's account, after E2's lines; read partial at Nov 15 23:59 if not complete (its §10) |
+| 1 fix | A39 | Fix round 2 on E2: the wrapper, combinations, a powered replication of Gate 3 | Ritik | read by Nov 17 | **complete** (every run of its seven systems has an ok record on E2 and the 30, counted Nov 7; Sol's 54 "runs left" were a counting bug, the A39 log's §22); its rule reads it once complete. Pre-registered and coded Nov 3; the bench done (400 tokens/s); 9 parts queued Nov 3 (7 running that evening); then 1:30 parts (§12); from Nov 4, 2:00 parts and 3:00 sweeps (§14) |
+| 1 fix | B1R2 | B1's deployable span on E2 (a labelled replication) | Ritik | read when complete, or partial at Nov 15 23:59 | **running** (revived Nov 6, the A39 log's §21): 19 of 40 parts done at Nov 7 13:18; parts project to end about Nov 8 02:00–03:00, then 4 sweeps. Before: dropped Nov 5 (decision f, §19), before any B1R2 run |
+| 1 fix | A40 | Bias-augmented consistency training (Chua et al. 2024): LoRA at `lora`'s settings on the model's own reasoning written without the hint, read on E2 against prompt_only, against base by Gate 3's rule, and against LoRA | Ritik | read once complete | **done Nov 7 (F41): "fewer, but costs acceptance"** against the instruction (following −21 [−26, −16], acceptance −15 [−20, −10]) and against LoRA; R1 passes. Pre-registered Nov 5 (log 09:18), before any Voyager call; trained Nov 6; E2 complete Nov 7 01:50 |
+| 1 inside | A41 | A40's weights inside the fixed model: A18's swap and Step 10 on base's cases, A40 in LoRA's place | Ritik | read when both jobs end | **done Nov 7 (F42): "stops the readout, before them"** (layers 0–14; R_A40 +0.68 [+0.17, +1.18]) and "A40 removes more of the hint's pull than LoRA" (+1.40 [+0.73, +2.09]) |
+| 1 fix | A42 | A40 with the one-line note on E2 (the combination A40 left unread) | Ritik | read once complete | **done Nov 7 (F43): "fewer, but costs acceptance"** (following −24 [−30, −19], acceptance −20 [−26, −14]); R3 "adds, costs acceptance"; R1 passes |
 | 3 agents | C19 | Is an authority claim the cue (H34)? | Shrey | Nov 7 | done Nov 6 (FC1), merged Nov 6 |
 | 3 agents | C25 | Across agents (the centerpiece): solver with tool → a writer's handoff note → a decider that never sees the tool | Shrey | Nov 12 | done Nov 6 (FC2), merged Nov 6 |
 | 3 agents | C20 | Pipeline vs model: a blind reviewer; a tag the system attaches; the solver's own disclosure; the checker | Shrey | Nov 15 | done Nov 6 (FC3), merged Nov 6 |
@@ -139,8 +145,8 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
 | Nov 3 | A18 read (F39); the bench done; 9 A39 parts queued | B20's downloads done | **final handoff** (START_HERE's Quick start) | the label deadlines set: Nov 7 |
 | Nov 4 | the 9 queued parts end (7 started Nov 3 evening; the last 2 as GPU-minutes free); then, as places free, B20's smokes and runs, E2's 28 sixteenths and the 15 fifths, 1:30 each, up to 10 at once (the Nov 4 log; the feeder from 03:20); one port for every job found and fixed, 340 runs from another model's server set aside (the A39 log's §15) | B20's first smokes: Granite and Gemma amended (§15), Nemotron (§16); **B24 on Voyager** (03:38–11:12), **read (F40)** | setup (Nov 4); C19 | L3: the second rater found to be an AI model (17:42); the settling call and the fresh batch dropped; the LLM-judge protocol pre-registered (17:45) |
 | Nov 5–7 | **Nov 5: two Sol accounts** (Ritik's runs A39 and A40; B20 to Arsha's) and **B1R2 dropped** for A40 (the A39 log's §19); Ritik's pull (done about 12:40). E2's last parts and its 7 sweeps (at most about 28 GPU-hours at Nov 5 08:43; about 40 of its parts ran overnight Nov 4–5); **A40** pre-registered (log 09:18), its targets made on Voyager on Ritik's Mac (from 09:50, about 11 h: done about 21:00), then checked, assembled and copied to Sol (about Nov 6), its lines after E2's; A39 on the 30 (29 lines) as places free. **Nov 6 07:00: the feeder's nov6** (should say "no cut": the 08:57 log's §2). Projected (ONE_PAGE, Nov 5): Ritik's account's about 100 GPU-hours end about Nov 7–8 at Nov 3–4's pace, about Nov 13 at a third of it | **Nov 5: B20 moves to Arsha's own Sol account** (the B20 log's §19): she runs `docs/trackB/SOL_ARSHA.md` herself (Nov 6); then Granite's 8 and Gemma's 12 lines of 3:00 (849 and 1,784 runs left; Nemotron done; T13 confirmed). **Handoff to Arsha, Nov 6** (the bundle, with Ritik's last push to `trackB-main`); B24 re-read from the bundle (read Nov 4) | **C19, C25, C20 and C26 all run and read Nov 6** (FC1–FC4, `docs/trackC/FINDINGS_C.md`); merged Nov 6, 23:17 | **L3 done (Nov 4: the LLM judges by the protocol, Ritik's re-look of 7 cells; rows 67 and 290 kept as recorded, Nov 5)** |
-| Nov 8–12 | A40's training and E2 parts (from Nov 6), then A41 and A42 (pre-registered Nov 6); the 30's lines all ended Nov 6 and the Nov 6 07:00 rule said no cut, so the Nov 11 rule has nothing left to drop (the A39 log's §20) | B20 complete Nov 6 (read by Arsha, by its rule); **check-in and merge (Nov 12)** | check-in (Nov 12) | **Gate 2 (Nov 8)** |
-| Nov 13–18 | runs end Nov 15 (A39 on E2 and A40 read partial at 23:59 if not complete); A39 and A40 read Nov 17 | B20 read (complete Nov 6; FINDINGS_B); B18's table and figure (Nov 18); **check-ins Nov 15, 18** | **C24 and slides 11–12 (Nov 18)**; check-ins Nov 15, 18 | the report from Nov 10 |
+| Nov 8–12 | **A40, A41 and A42 read Nov 7** (F41–F43; each by its rule once complete). B1R2's last parts and its 4 sweeps (from about Nov 8, 03:00); **A39 complete, read by Nov 17** (its rule reads it once complete; Ritik picks the day). The 30's lines all ended Nov 6 and the Nov 6 07:00 rule said no cut, so the Nov 11 rule has nothing left to drop (the A39 log's §20) | B20 complete Nov 6 (read by Arsha, by its rule); **check-in and merge (Nov 12)** | check-in (Nov 12) | **Gate 2 (Nov 8)** |
+| Nov 13–18 | runs end Nov 15 (B1R2 read partial at 23:59 if not complete); A39 and B1R2 read by Nov 17 | B20 read (complete Nov 6; FINDINGS_B); B18's table and figure (Nov 18); **check-ins Nov 15, 18** | **C24 and slides 11–12 (Nov 18)**; check-ins Nov 15, 18 | the report from Nov 10 |
 | Nov 18 | results freeze: all evaluation done by Nov 18, no new runs after it | | | |
 | Nov 19–24 | Gate 3's final statement (Nov 20) | slides 2, 6, 7, 8 final; the report's Track B bullets (Nov 20) | the report's Track C bullets (Nov 20) | the report draft (Nov 22); rehearsal (Nov 23); final presentation and report (Nov 24) |
 
@@ -291,6 +297,44 @@ outlines and [`docs/paper/CLAIMS.md`](paper/CLAIMS.md) the claims.
     authority. Figure: none.
 
 **The supplement** is made by `tools/make_supplement.py`: pre-registrations, deviations, evidence and traps.
+
+### The report's state (Nov 7, 13:46) and the writing plan, Nov 18–24
+
+**Which sections are final.** "Final" means every number in the section's bullets is read and won't change before the
+Nov 18 freeze. REPORT holds bullets and figures only; the team writes the prose.
+
+| section (REPORT.md) | numbers | waits on (who, by when) |
+|---|---|---|
+| §1 Introduction | bullets in | the contributions line waits on A39 (Ritik, by Nov 17) |
+| §2 Setup | final but B20 | B20's three models: Arsha's reading (complete Nov 6; she reads it now) |
+| §3 Methods | final but B20 | B20's methods line (Arsha, Nov 20) |
+| §4 The failure | final but B20 | B20 (Arsha); B18's final table and slide 7's B24 arms (Arsha, Nov 18) |
+| §5 Level 1, inside | **final** | — |
+| §6 Level 2, in the words | **final** (L3 read Nov 4: not met) | slide 5's figure (Ritik and Shrey) |
+| §7 Fixing it | **final for F20, F27, F28, F38, F39, F41–F43** | A39 (Ritik, by Nov 17), B1R2 (Ritik, by Nov 17), Gate 3's final statement (Nov 20) |
+| §8 Level 3 | **final** (FC1) | C24, Track C's figures and tables (Shrey, Nov 18) |
+| §9 Across agents | **final** (FC2–FC4) | — |
+| §10 Limits | bullets in | B20's and A39's limits once read; frozen Nov 18 |
+| §11 Related work, §12 Conclusion | outline only | the frozen results (Nov 18) |
+
+**The writing plan, Nov 18–24.** Each section's prose is written by its owner, from REPORT's bullets and figures;
+numbers only from FINDINGS (and FINDINGS_B, FINDINGS_C). Owners are those REPORT's headings and the submission
+checklist already name. "Proposed" marks a date set nowhere else, for the team to confirm at the Nov 18 check-in.
+
+| section | prose by | bullets and figures from | prose draft by | final |
+|---|---|---|---|---|
+| §1 Introduction, §2 Setup, §3 Methods | Ritik (§2's and §3's Track B parts: Arsha; Track C's: Shrey) | REPORT §1–§3; `three_levels.svg`, `channels.svg` | Nov 21 (proposed) | Nov 24 |
+| §4 The failure | Arsha | REPORT §4 from `docs/trackB/REPORT_B.md` (Arsha's bullets, Nov 20); `gate2.png` | Nov 21 (proposed) | Nov 24 |
+| §5 Level 1, inside | Ritik | REPORT §5; `readout_by_layer.png` | Nov 21 (proposed) | Nov 24 |
+| §6 Level 2, in the words | Ritik with Arsha | REPORT §6; `bare_after_call.png` | Nov 21 (proposed) | Nov 24 |
+| §7 Fixing it | Ritik | REPORT §7; `gate3_vs_base_slide.png`, `a40_e2_fixes.png`, A39's two (after its read) | Nov 21 (proposed) | Nov 24 |
+| §8 Level 3, §9 Across agents | Shrey | REPORT §8–§9 from `docs/trackC/REPORT_C.md` (Shrey's bullets, Nov 20); `trackC_reviewers.png`, `c25_hops.png` | Nov 21 (proposed) | Nov 24 |
+| §10 Limits | each owner writes their track's limits; Ritik merges (proposed) | REPORT §10 and traps T1–T13 | Nov 21 (proposed) | Nov 24 |
+| §11 Related work, §12 Conclusion | everyone; Ritik merges (proposed) | `RELATED_WORK.md`; PLAN's story | Nov 21 (proposed) | Nov 24 |
+
+- **Nov 18:** results freeze; Track A's bullets final. **Nov 20:** Track B's and Track C's bullets; Gate 3's final
+  statement. **Nov 22:** the draft, assembled by Ritik. **Nov 23:** rehearsal. **Nov 24:** the final report and
+  presentation.
 
 ## Submission checklist, Nov 19–24
 
