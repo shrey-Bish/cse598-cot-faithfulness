@@ -197,3 +197,20 @@ Optional, Ritik's call: drop `reserve=240:2` from B1R2's lines (a queue-file edi
 - **Nov 8, once every B1R2 part has started:** §8's Sol block (the pull).
 - **Optional:** drop B1R2's `reserve=240:2`.
 - **Nov 18 check-in:** confirm the writing plan's proposed dates (PLAN).
+
+## 10. The checks (14:07, on `69b65d6`)
+
+- **The full suite, once:** 1,057 passed, 1 skipped, **1 failed** (9:34).
+  - The failure was `test_slide_figures.py::test_the_waiting_spec_names_every_waiting_slide`. It asserted that slide
+    12's `c25_hops.png` was still a spec, not a chart, in `docs/paper/figures/`.
+  - That stopped being true when Shrey's figure was placed there today (§6, CHECKIN §8). So the premise was out of
+    date; nothing in the code broke.
+  - The test now checks that WAITING names the three placed figures and that each is there with its CSV. Its file was
+    rerun alone: 13 passed. The full suite wasn't run a second time (the memory limit).
+- check_links: 0 broken, 0 missing RUNBOOK scripts.
+- `make_supplement` (40 rows) and `--check`: none unverified, no log outside the ledger, numbers only. CLAIMS: 3
+  mismatches (claim 2.6) and 12 source problems, as before; 13 weak matches.
+- `export_summaries --check`: numbers only.
+- The Gantt's dry run: 139 rows.
+- Both bundle dry runs: B 51 files, 73.8 MB; C 43 files, 31.3 MB.
+- `prepush_check` and nothing-missing: at the push (below).

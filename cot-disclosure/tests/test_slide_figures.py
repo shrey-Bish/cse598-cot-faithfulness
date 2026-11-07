@@ -69,10 +69,15 @@ def test_each_figure_writes_png_svg_and_its_table_at_16_9(tmp_path):
 
 
 def test_the_waiting_spec_names_every_waiting_slide():
-    text = (CODE.parent / "docs" / "paper" / "figures" / "WAITING.md").read_text()
-    for name in ("c25_hops",):                                   # slide 10 (readout_lora_vs_base) made Nov 3
-        assert f"`docs/paper/figures/{name}.png`" in text
-        assert not (CODE.parent / "docs" / "paper" / "figures" / f"{name}.png").exists()   # a spec, not a chart
+    """Slide 12's c25_hops was a spec until Shrey drew it (Nov 6, docs/trackC/figures/); Nov 7 it was placed in
+    docs/paper/figures/ with his other two (CHECKIN section 8). WAITING still names each, and each placed copy is there
+    with its CSV."""
+    figures = CODE.parent / "docs" / "paper" / "figures"
+    text = (figures / "WAITING.md").read_text()
+    assert "`docs/paper/figures/c25_hops.png`" in text
+    for name in ("c25_hops", "c19_authority", "pipeline_vs_model"):
+        assert name in text
+        assert (figures / f"{name}.png").exists() and (figures / f"{name}.csv").exists()
 
 
 def test_b16_rows_are_the_pre_registered_readings():
