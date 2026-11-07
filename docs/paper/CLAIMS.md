@@ -130,7 +130,7 @@ the interval excludes no effect), *tentative* (direction there, interval include
   reading (−24 following, −20 acceptance); R3 "adds, costs acceptance". **So still no fix beats the instruction by its
   rule;** the one that follows fewest does it by ignoring hints.
 - **Inside the model (A41, F42, Nov 7): "stops the readout, before them".** On base's own reasoning A40's weights
-  remove part of the hint's pull (+0.68 [+0.17, +1.18]), from layers 0–14, and more than LoRA (+1.40 [+0.73, +2.09]).
+  remove part of the hint's pull (+0.68 logits [+0.17, +1.18]), from layers 0–14, and more than LoRA (+1.40 [+0.73, +2.09]).
   The kind of target changes how the weights read the hint, unlike LoRA's.
 - **Settles it:** L4 part 2 (LoRA minus base in labels); A39's powered replication of Gate 3 on E2 (complete Nov 7;
   read by Nov 17).
