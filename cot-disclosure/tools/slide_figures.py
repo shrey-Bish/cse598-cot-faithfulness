@@ -275,18 +275,21 @@ SWAPS_A18 = (("lora", "LoRA, every layer"), ("base+lora_before", "base + LoRA's 
              ("base+lora_after", "base + LoRA's 24-31"))
 B1_SPANS = (("deployable", "tool_injected", "deployable (0.25), inserted turn"),
             ("oracle", "all", "oracle (0.5), every hint channel"))
+A41 = A18 / "a41_readout.json"                    # A41 (Nov 6 pre-registration, read Nov 7): A40's weights, as LoRA's
+SWAPS_A41 = (("a40", "A40, every layer"), ("base+a40_before", "base + A40's 0-14"),
+             ("base+a40_readout", "base + A40's 15, 19, 23"), ("base+a40_through", "base + A40's 0-23"),
+             ("base+a40_after", "base + A40's 24-31"))
+VS_A41 = "A40 minus LoRA, per case"
 
 
-def a18_rows(readout=A18 / "a18_readout.json", swap=A18 / "swap_rows.jsonl", b1=B1_REPORT):
-    """(a) base's tool-hint cases with TE_base >= the rule's 0.5: R = TE_base - TE_X per weight set (value: the mean
-    over cases, low/high: 95% bootstrap clustered by question, as A18's rule computes R_lora; n: cases); LoRA's row
-    carries the primary reading, the swaps "reported, not read"; (b) B1's two spans, following minus alpha = 1 on
-    the channel each is read on (k/n with the span, compared_k/n alpha = 1), with b1_verdict's reading."""
-    res = json.loads(Path(readout).read_text())["primary"]
+def swap_r(swap, min_gap, swaps, reading, rest):
+    """Panel (a)'s rows for one set of trained weights: on base's tool-hint cases with TE_base >= min_gap, R = TE_base -
+    TE_X per weight set (value: the mean over cases, low/high: 95% bootstrap clustered by question, as A18's rule
+    computes R; n: cases); the first (every layer) carries the reading, the swaps `rest`."""
     cases = [json.loads(x) for x in Path(swap).read_text().splitlines() if x.strip()]
-    cases = [c for c in cases if c["group"] == "tool" and c["te"]["base"] >= res["min_gap"]]
+    cases = [c for c in cases if c["group"] == "tool" and c["te"]["base"] >= min_gap]
     rows = []
-    for key, arm in SWAPS_A18:
+    for key, arm in swaps:
         by_q = {}
         for c in cases:
             by_q.setdefault(c["item_id"], []).append(c["te"]["base"] - c["te"][key])
@@ -294,7 +297,36 @@ def a18_rows(readout=A18 / "a18_readout.json", swap=A18 / "swap_rows.jsonl", b1=
         rows.append({"panel": "a", "model": "Olmo 3 7B Think", "arm": arm, "measure": "R: removes of base's TE (logits)",
                      "k": "", "n": len(cases), "value": m, "low": lo, "high": hi,
                      "interval": f"{CLUSTERED} ({len(by_q)} questions)", "compared_k": "", "compared_n": "",
-                     "reading": res["reading"].split(" (")[0] if key == "lora" else "reported, not read"})
+                     "reading": reading if key == swaps[0][0] else rest})
+    return rows
+
+
+def a41_rows(a41=A41, swap=A18 / "swap_a40_rows.jsonl"):
+    """A41: A40's weights on the same cases, as LoRA's (swap_r): its R with the primary's reading and where, its swaps'
+    R "reported, no decision" (A40's place is read on their shares, finetune/look/a18.py); and A40 minus LoRA per case
+    (A41's secondary: mean, 95% bootstrap clustered by question, n: cases), from the readout, with its reading."""
+    res = json.loads(Path(a41).read_text())
+    p, vs = res["primary"], res["against LoRA"]
+    reading = p["reading"].split(" (")[0] + (f", {p['where']}" if p.get("where") else "")
+    rows = swap_r(swap, p["min_gap"], SWAPS_A41, reading, "reported, no decision")
+    d = vs["difference"]
+    rows.append({"panel": "a", "model": "Olmo 3 7B Think", "arm": VS_A41, "measure": "R_A40 minus R_LoRA (logits)",
+                 "k": "", "n": vs["usable"], "value": d["mean"], "low": d["low"], "high": d["high"],
+                 "interval": f"{CLUSTERED} ({d['questions']} questions)", "compared_k": "", "compared_n": "",
+                 "reading": vs["reading"]})
+    return rows
+
+
+def a18_rows(readout=A18 / "a18_readout.json", swap=A18 / "swap_rows.jsonl", b1=B1_REPORT, a41=A41,
+             swap_a40=A18 / "swap_a40_rows.jsonl"):
+    """(a) base's tool-hint cases with TE_base >= the rule's 0.5: R = TE_base - TE_X per weight set (swap_r); LoRA's
+    row carries the primary reading, the swaps "reported, not read"; A41's rows after them when a41_readout.json is in
+    (a41_rows); (b) B1's two spans, following minus alpha = 1 on the channel each is read on (k/n with the span,
+    compared_k/n alpha = 1), with b1_verdict's reading."""
+    res = json.loads(Path(readout).read_text())["primary"]
+    rows = swap_r(swap, res["min_gap"], SWAPS_A18, res["reading"].split(" (")[0], "reported, not read")
+    if Path(a41).exists():
+        rows += a41_rows(a41, swap_a40)
     rep = json.loads(Path(b1).read_text())
     for span, channel, arm in B1_SPANS:
         v = pj.b1_verdict(rep, span, channel)
@@ -433,10 +465,10 @@ def swatch(color, hatch=None):
     return Rectangle((0, 0), 1, 1, facecolor=color, edgecolor=WHITE if hatch else color, hatch=hatch)
 
 
-def marker(color):
+def marker(color, shape="o"):
     from matplotlib.lines import Line2D
-    return Line2D([], [], color=color, linewidth=CI_LINE, marker="o", markersize=9, markeredgecolor=WHITE,
-                  markeredgewidth=1.5)
+    return Line2D([], [], color=color, linewidth=CI_LINE, marker=shape, markersize=9 if shape == "o" else 8,
+                  markeredgecolor=WHITE, markeredgewidth=1.5)
 
 
 def title(ax, text):
@@ -449,11 +481,13 @@ def ref(ax, at=0, vertical=True, dashed=False):
     (ax.axvline if vertical else ax.axhline)(at, **kw)
 
 
-def dot(ax, at, value, low, high, color, vertical=False):
-    """A point estimate: its interval a line in the series color, the dot on it ringed in white."""
+def dot(ax, at, value, low, high, color, vertical=False, shape="o"):
+    """A point estimate: its interval a line in the series color, the dot on it ringed in white (shape: a second
+    series' marker, e.g. "D", where color alone would carry identity)."""
     xs, ys = ([at, at], [low, high]) if vertical else ([low, high], [at, at])
     ax.plot(xs, ys, color=color, linewidth=CI_LINE, solid_capstyle="butt", zorder=2)
-    ax.plot(*((at, value) if vertical else (value, at)), color=color, zorder=3, **DOT)
+    ax.plot(*((at, value) if vertical else (value, at)), color=color, zorder=3,
+            **(DOT if shape == "o" else {**DOT, "marker": shape, "markersize": 8.5}))
 
 
 def whisker(ax, x, low, high):
@@ -666,44 +700,78 @@ def fig_b17(out=OUT, report=SUM / "trackB" / "b17_report.json"):
     return paths
 
 
-def fig_a18(out=OUT, readout=A18 / "a18_readout.json", swap=A18 / "swap_rows.jsonl", b1=B1_REPORT):
+def fig_a18(out=OUT, readout=A18 / "a18_readout.json", swap=A18 / "swap_rows.jsonl", b1=B1_REPORT, a41=A41,
+            swap_a40=A18 / "swap_a40_rows.jsonl"):
     plt, fig = frame()
-    rows = a18_rows(readout, swap, b1)
+    rows = a18_rows(readout, swap, b1, a41, swap_a40)
     res = json.loads(Path(readout).read_text())["primary"]
-    gs = fig.add_gridspec(1, 2, left=0.085, right=RIGHT, top=0.74, bottom=0.27, wspace=0.24, width_ratios=[1.55, 1])
+    mine = {arm for _, arm in SWAPS_A41} | {VS_A41}
+    a40 = [r for r in rows if r["arm"] in mine and r["arm"] != VS_A41]          # A41's bars, beside LoRA's
+    vs = next((r for r in rows if r["arm"] == VS_A41), None)
+    gs = fig.add_gridspec(1, 2, left=0.085, right=RIGHT, top=0.715 if a40 else 0.74, bottom=0.30 if a40 else 0.27,
+                          wspace=0.24, width_ratios=[1.55, 1])
     axes = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
-    a, b = [r for r in rows if r["panel"] == "a"], [r for r in rows if r["panel"] == "b"]
+    a, b = [r for r in rows if r["panel"] == "a" and r["arm"] not in mine], [r for r in rows if r["panel"] == "b"]
+    shift = 0.2 if a40 else 0
     for ax, panel, scale in ((axes[0], a, 1), (axes[1], b, 100)):
         ref(ax, 0, vertical=False)
         for i, r in enumerate(panel):
             c = (ROLE["damage"] if i == 0 else ROLE["cue"] if "15, 19, 23" in r["arm"] else ROLE["baseline"])
-            dot(ax, i, r["value"] * scale, r["low"] * scale, r["high"] * scale, c, vertical=True)
+            x = i - shift if panel is a else i
+            dot(ax, x, r["value"] * scale, r["low"] * scale, r["high"] * scale, c, vertical=True)
             label = (signed(r["value"], 2) if panel is a else
                      f"{signed(r['value'] * 100)} points\n{r['k']} vs {r['compared_k']} of {r['n']}")
-            value(ax, label, (i, r["value"] * scale), dx=12, dy=-5)
+            if panel is a and a40:                  # pairs side by side: LoRA's value over its interval, A40's beside
+                value(ax, label, (x, r["high"]), dx=0, dy=4, ha="center", va="bottom")
+            else:
+                value(ax, label, (i, r["value"] * scale), dx=12, dy=-5)
         ax.set_xlim(-0.5, len(panel) - 0.15)
         ax.grid(axis="y", color=GRID)
         ax.grid(axis="x", visible=False)
-    axes[0].set_xticks(range(len(a)), ["LoRA,\nevery layer", "LoRA's\n0–14", "LoRA's\n15, 19, 23", "LoRA's\n0–23",
-                                       "LoRA's\n24–31"])
-    axes[0].set_xlabel("weights: LoRA's on the layers shown, base's elsewhere")
+    for i, r in enumerate(a40):
+        dot(axes[0], i + shift, r["value"], r["low"], r["high"], ROLE["private"], vertical=True, shape="D")
+        value(axes[0], signed(r["value"], 2), (i + shift, r["value"]), dx=12, dy=-5)
+    if a40:
+        axes[0].set_xlim(-0.75, len(a) - 0.25)
+        axes[0].set_xticks(range(len(a)), ["every layer", "0–14", "15, 19, 23", "0–23", "24–31"])
+        axes[0].set_xlabel("weights on the layers shown, base's elsewhere: LoRA's (left), A40's (right)")
+    else:
+        axes[0].set_xticks(range(len(a)), ["LoRA,\nevery layer", "LoRA's\n0–14", "LoRA's\n15, 19, 23", "LoRA's\n0–23",
+                                           "LoRA's\n24–31"])
+        axes[0].set_xlabel("weights: LoRA's on the layers shown, base's elsewhere")
     axes[0].axvline(0.5, color=GRID, linewidth=1)
-    axes[0].text(2.5, 0.5, "layer swaps: reported, not read", ha="center", fontsize=LABEL_SIZE, color=MUTED)
     axes[0].set_ylabel("removes of base's hint effect (logits)")
-    axes[0].set_ylim(-1.6, 0.65)
+    axes[0].set_ylim(-1.6, 2.15 if a40 else 0.65)
+    axes[0].text(2.5, -1.45 if a40 else 0.5, "layer swaps: reported, not read", ha="center", fontsize=LABEL_SIZE,
+                 color=MUTED)
     r0 = a[0]
-    title(axes[0], f"(a) LoRA's weights on base's own reasoning\nR = {signed(r0['value'], 2)} [{signed(r0['low'], 2)}, "
-                   f"{signed(r0['high'], 2)}]: {r0['reading']}")
+    lora = f"R = {signed(r0['value'], 2)} [{signed(r0['low'], 2)}, {signed(r0['high'], 2)}]: {r0['reading']}"
+    if a40:
+        r1 = a40[0]
+        title(axes[0], f"(a) LoRA's and A40's weights on base's own reasoning\nLoRA {lora}\nA40 R = "
+                       f"{signed(r1['value'], 2)} [{signed(r1['low'], 2)}, {signed(r1['high'], 2)}]: {r1['reading']}")
+    else:
+        title(axes[0], f"(a) LoRA's weights on base's own reasoning\n{lora}")
     axes[1].set_xticks(range(len(b)), ["deployable (0.25)\ninserted turn", "oracle (0.5)\nevery hint channel"])
     axes[1].set_ylabel("following minus alpha = 1 (points)")
     axes[1].set_ylim(-35, 10)
     title(axes[1], "(b) B1 at inference (F38)\n" + "; ".join(f"{r['arm'].split(' (')[0]}: {r['reading']}" for r in b))
-    key(fig, [(marker(ROLE["damage"]), "read: LoRA's weights (a), B1's deployable span (b)"),
-              (marker(ROLE["cue"]), "LoRA's readout layers 15, 19, 23"),
-              (marker(ROLE["baseline"]), "other swaps (a), B1's oracle (b)")])
-    headline(fig, "Training didn't cut the readout: on base's own reasoning, LoRA's weights pull toward the hint's letter "
-             "harder.", "The change is in what LoRA writes. Scaling the readout's attention (B1) cuts following but "
-             "misses its limit.")
+    if a40:
+        key(fig, [(marker(ROLE["damage"]), "read: LoRA (a); B1 deployable (b)"),
+                  (marker(ROLE["cue"]), "LoRA's 15, 19, 23"),
+                  (marker(ROLE["baseline"]), "other swaps (a); B1 oracle (b)"),
+                  (marker(ROLE["private"], "D"), "A40's weights (A41)")])
+        a41res = json.loads(Path(a41).read_text())["primary"]
+        headline(fig, "LoRA's training didn't cut the readout: on base's own reasoning, its weights pull toward the hint's "
+                 "letter harder.", f"A40 (A41): {a40[0]['reading']}"
+                 f"{' (layers 0–14)' if a40[0]['reading'].endswith('before them') else ''}; {vs['reading']}.")
+    else:
+        key(fig, [(marker(ROLE["damage"]), "read: LoRA's weights (a), B1's deployable span (b)"),
+                  (marker(ROLE["cue"]), "LoRA's readout layers 15, 19, 23"),
+                  (marker(ROLE["baseline"]), "other swaps (a), B1's oracle (b)")])
+        headline(fig, "Training didn't cut the readout: on base's own reasoning, LoRA's weights pull toward the hint's "
+                 "letter harder.", "The change is in what LoRA writes. Scaling the readout's attention (B1) cuts "
+                 "following but misses its limit.")
     note(fig, " ".join([
         f"A18 (F39), pre-registered Oct 31 22:44 (cases amended Nov 1, before anything ran): base's tool-hint cases at the "
         f"takeover with base's effect ≥ {res['min_gap']}: {res['usable']} cases, {res['questions']} questions.",
@@ -711,6 +779,10 @@ def fig_a18(out=OUT, readout=A18 / "a18_readout.json", swap=A18 / "swap_rows.jso
         "under base minus TE under the weights shown; 95% bootstrap by question.",
         f"LoRA still answers with the hint's letter in {res['lora_still_answers_W']}. The swaps' shares (the rule's next "
         "step) are undefined when LoRA's R is below 0, so their R is shown, not read.",
+        *([f"A41, pre-registered Nov 6: A40's weights on the same cases by the same rule (A40 still answers with the "
+           f"hint's letter in {a41res['a40_still_answers_W']}); A40's place is read on its swaps' shares, so their R is "
+           f"shown with no decision; A40 minus LoRA per case: {signed(vs['value'], 2)} [{signed(vs['low'], 2)}, "
+           f"{signed(vs['high'], 2)}]."] if a40 else []),
         "B1 (F38): the held-out 30, following minus alpha = 1, paired by question; the rule's acceptance limit decides "
         "\"ignores tools\"."]))
     paths = save(fig, "readout_lora_vs_base", rows, out)

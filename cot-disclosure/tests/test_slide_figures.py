@@ -185,6 +185,45 @@ def test_a18_rows_are_the_pre_registered_readings():
     assert round(dep["value"] * 100) == -17 and round(ora["value"] * 100) == -9 and ora["reading"] == "no effect"
 
 
+def test_a41_puts_a40s_bars_beside_loras_and_without_it_the_rows_are_as_before(tmp_path):
+    """Slide 10 with A41 (the A41 log's section 6: "slide 10 beside LoRA's bars"): A40's R and its four swaps on the same
+    tool-hint cases, computed as LoRA's are, match a41_readout.json (the primary's reduction_a40; the layer R, reported
+    with no decision), with the primary's reading and where; A40 minus LoRA per case and its reading come from the
+    readout. Without a41_readout.json the rows, and the figure's CSV, are A18's and B1's alone."""
+    a41 = json.loads((SUM / "trackA" / "gpu" / "a18" / "a41_readout.json").read_text())
+    p, layer, vs = a41["primary"], a41["layer R (reported, no decision)"], a41["against LoRA"]
+    rows = sf.a18_rows()
+    mine = by([r for r in rows if "A40" in r["arm"]], "arm")
+    a40 = mine[("A40, every layer",)]
+    assert (a40["value"], a40["low"], a40["high"]) == pytest.approx(
+        (p["reduction_a40"]["mean"], p["reduction_a40"]["low"], p["reduction_a40"]["high"]))
+    assert a40["n"] == p["usable"] == 28 and f"{p['questions']} questions" in a40["interval"]
+    assert a40["reading"] == "stops the readout, before them"
+    for name, arm in (("before", "base + A40's 0-14"), ("readout", "base + A40's 15, 19, 23"),
+                      ("through", "base + A40's 0-23"), ("after", "base + A40's 24-31")):
+        r = mine[(arm,)]
+        assert (r["value"], r["low"], r["high"]) == pytest.approx((layer[name]["mean"], layer[name]["low"],
+                                                                   layer[name]["high"]))
+        assert r["reading"] == "reported, no decision"
+    d = mine[("A40 minus LoRA, per case",)]
+    assert (d["value"], d["low"], d["high"]) == (vs["difference"]["mean"], vs["difference"]["low"],
+                                                 vs["difference"]["high"])
+    assert d["reading"] == "A40 removes more of the hint's pull than LoRA" and d["n"] == vs["usable"]
+    assert len(mine) == 6 and all(r["panel"] == "a" for r in mine.values())
+    without = sf.a18_rows(a41=tmp_path / "none.json")
+    assert without == [r for r in rows if "A40" not in r["arm"]]
+    assert [r["arm"] for r in without] == [arm for _, arm in sf.SWAPS_A18] + [arm for _, _, arm in sf.B1_SPANS]
+    table = list(csv.DictReader(open(sf.fig_a18(out=tmp_path / "with")[2])))
+    got = {r["arm"]: r for r in table if "A40" in r["arm"]}
+    assert set(got) == {r["arm"] for r in mine.values()}
+    for arm, r in got.items():
+        x = mine[(arm,)]
+        assert (float(r["value"]), float(r["low"]), float(r["high"])) == pytest.approx((x["value"], x["low"], x["high"]))
+        assert r["reading"] == x["reading"]
+    before = list(csv.DictReader(open(sf.fig_a18(out=tmp_path / "without", a41=tmp_path / "none.json")[2])))
+    assert before == [r for r in table if "A40" not in r["arm"]] and len(before) == 7
+
+
 
 # ---------------------------------------------------------------- one style for every finished slide (Nov 4)
 SLIDE_NAMES = {"three_levels", "gate2", "readout_by_layer_slide", "readout_qwen8b", "bare_after_call", "b16_authority",
