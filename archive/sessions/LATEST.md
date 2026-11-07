@@ -1,207 +1,208 @@
-# Session log: B1R2 revived, team emails hashed, the Mac's memory, Nov 7 ready (2026-11-06 14:35 MST)
+# Session log: A40's training checked, Shrey's merge, B20 complete, the Windows hook fix (2026-11-06 23:16 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `eb135fd`. The 14:31 record (Arsha's step 6), prepared uncommitted while
-this session's Claude account wasn't Ritik's, is committed with this session's work: this prompt is Ritik's.
+**By:** Ritik. Branch `trackA-nosol`, from `2c0958f`. Still Nov 6 by `date`, so this goes in Nov 6's daily (§5).
 
 ## 0. Input
 
-- **The Mac crashed out of memory** (VS Code about 30 GB, Chrome 15 GB, Docker 8 GB; 18 GB of RAM).
-  - **Ritik's limits from now:** at most 2 helpers at a time; the full test suite once per session, at the end
-    (targeted tests before); leftover pytest or helper processes stopped first; no heavy work beside a Voyager run.
-  - **Found at 14:35:** no leftover pytest, guard or helper process of this project, and no Voyager run.
-- **Ritik's Sol steps:**
-  - `chmod g+r` on B20's three `b20_sol_vllm.jsonl.gz`, for Arsha's step 6;
-  - the safety diff, the pull (`eb135fd`), the A40 rsync, the feeder's dry run, log and `squeue`. These outputs
-    weren't in the message, so they were read from Sol directly (read-only, 14:35, below).
-- **Arsha (her email):**
-  - steps 1–5 fine: fair share 0.870, the snapshots match, the environments are right;
-  - step 6 failed on the three `.gz` files (Permission denied), now fixed. She reran it: the 14:31 log has her
-    matching counts;
-  - she'll send her commit email.
-- **Decisions:**
-  - **a. Revive B1R2.** An amendment (compute): it reverses decision f, because GPU places sit idle while A40 trains.
-    Nothing of B1R2 read; its design, rules and partial read at Nov 15 23:59 unchanged. Its lines go last in
-    Ritik's queue, after A42's and the 30's, so they fill only places nothing else can use.
-  - **b. Team identities:**
-    - Ritik's line, from the history, is right.
-    - Each of Shrey and Arsha gets two emails, a Gmail and an ASU one. Shrey's Gmail is to be checked against his
-      existing commits.
-    - Every email is stored as the SHA-256 of the lower-cased email, never in plain text, Ritik's included. The
-      hooks hash the commit's author and committer emails to compare. Names stay readable.
-    - Tests: each identity passes, a non-team or AI identity is refused, and no plain email appears in any tracked
-      file.
-  - **c. Messages sent:** Arsha (the fix, and the merge-and-install step) and Shrey (the two-line note).
+- **Ritik's Sol, about 23:10, at `2c0958f`:**
+  - the feeder: "200 lines: 1 failed, 10 not needed, 121 ok, 5 pending, 4 running, 59 to submit"; the dry run says
+    "the queue is full (10 places): a40-e2-12of16 waits";
+  - **"failed":** `e2-prompt_only-4of16` (job 460114, exit 138; known, all its runs saved), and `b1r2-06of40` (job
+    635986, FAILED 1:0 after 2:25:34 of its 2:30, "5 of its runs left"; alert 21:46:33). Ritik reads it as a stop at
+    Slurm's warning, with the leftovers for B1R2's sweeps; to confirm;
+  - **sacct since Nov 6 12:00:**
+    - `trackA-train` 639137 COMPLETED in 0:48:28, then 643581 in 0:01:04;
+    - A40's E2 parts: 5 COMPLETED (about 49 minutes each), 5 RUNNING, 3 PENDING;
+    - B1R2: 7 COMPLETED, 635986 FAILED, 642797 RUNNING;
+  - B20's three `.gz` files are now `-rw-------` (Ritik also ran `chmod o-r` on Nemotron's).
+- **Arsha, 21:11: B20 is complete on her account.**
+  - Granite's jobs 623932 and 632690 stopped themselves (exit 2), and 641890 completed. Gemma's 623933 stopped
+    (exit 2), and 632926 completed. Every template check passed.
+  - Her feeder: 20 lines, 3 "failed" (the three exit-2 stops), 15 not needed, 2 ok. `run_b20.py --dry-run`: 0 jobs to
+    run for both.
+  - **Counts** (runs file, records):
+    - Gemma 1,946 and 1,946;
+    - Granite 980 rows but 978 run ids: two run ids appear twice, `not_run` then `ok`. She reads them as retried
+      runs, with the report taking the last record per run id;
+    - Nemotron 1,946 (complete before).
+  - She merged `origin/main` and reinstalled the four hooks; her identity is in the team file. Ritik told her to stop
+    her feeder and to wait for his word before reading B20.
+  - **A bug she found:** under Git for Windows the hooks run Windows Python, which reads the commit message as
+    cp1252. So commit-msg lets the emoji "Generated with" footer line through: the emoji breaks the "Generated with"
+    match. Without the emoji, or under WSL or `PYTHONUTF8=1`, it's refused.
+- **Shrey:** setup, C19 and C25 done on `trackC-main`; the merge is due now.
 
-## 1. Ritik's Sol, read at 14:35 (read-only)
+## 1. Plan (at most 2 helpers; the full suite once, at the end)
 
-- **The clone:** at `eb135fd`, clean. The A40 data is there: 3 files, the sizes as sent.
-- **`a40-train-1` went in at 14:15:59 as job 622511,** its check passing ("check a40data passed"). It's pending on
-  Priority (fair share 0.0019). Nothing is wrong.
-- **The feeder:** "156 lines: 10 not needed, 106 ok, 1 pending, 39 to submit". The ticks run every 5 minutes.
-- **B20's three `.gz` files are regular files** (no symlinks), now `-rw-r-----` (Nemotron's `-rw-r--r--`). Closing
-  them again doesn't touch Arsha's copies, which are her own files.
-
-## 2. Plan (at most 2 helpers; helpers don't commit; the full suite once, at the end)
-
-- **Helper A, Sol:**
-  - B1R2's revival amendment first (the A39 log's §21);
-  - then its 44 lines back, last in the queue (after A42's and the 30's);
-  - the feeder keeps A40, A41, A42 and the 30 ahead of it, so B1R2 fills only places they can't use;
-  - targeted tests; the supplement's B1R2 rows.
-- **Helper B, decision b:**
-  - `configs/team_identities.txt` with SHA-256 emails;
-  - the hooks hash the identities' emails;
-  - tests;
-  - every plain team email removed from tracked files.
-- **Ritik's plan had helper B on the Mac's memory.** That's a few lines (a local `.vscode/settings.json` and a
-  RUNBOOK note), so I do it myself, and helper B takes decision b.
+- **Helper A, Sol, A40 and B20 (read-only; no E2 or B20 outcome read):**
+  - **A40's training, verified first.** train-1 took 48 minutes and train-2 1 minute, against about 3.2 GPU-hours
+    planned. Check:
+    - every planned epoch and step, on all 881 examples;
+    - the epoch chosen by the pre-registered validation rule;
+    - that the merged model is the one A40's E2 parts serve;
+    - train-3's fate.
+    If anything is short or wrong, stop A40's E2 lines (the commands for Ritik) and propose the fix.
+  - `b1r2-06of40`'s stop and its sweep.
+  - When A41's and A42's lines go in.
+  - B20's completeness against its design, and the code's last-record-per-run rule.
+  - When Arsha may read B20, by its rules.
+- **Helper B, the Windows hook bug:** a test that reproduces it; every hook made independent of the platform's
+  encoding (`path_check.py --commit-msg`, `prepush_check.py`'s `git()`); tests seen failing first; a line in both
+  START_HERE pages.
 - **Me:**
-  - the memory settings and note;
-  - Nov 7: Shrey's `trackC-main` read (setup and C19), its path check, the merge steps ready (no merge today);
-  - SOL_ARSHA's step 6 note;
-  - the records; the full suite once; the push to `trackA-nosol` and `main`.
+  - **Shrey's merge first** (the 14:35 log's §3), before helper B touches `path_check.py`, which the hooks run;
+  - my docs that cite Track C, from Shrey's FINDINGS_C entries only;
+  - Gate 2's statement for Nov 8 in PLAN, ready to mark;
+  - the stale scan (B20 isn't running; Arsha's account is done); the records; the full suite once; the push.
 
-## 3. Nov 7 prepared: Shrey's `trackC-main` (read-only; no merge today)
+## 2. Shrey's merge (`8f09eb9`, 23:17; the 14:35 log's §3)
 
-- **`trackC-main` at `cc2437a`:** 4 commits that `main` lacks, all authored and committed by Shrey Bishnoi, with no
-  AI line (no trailer at all).
-  1. `5665265` (09:42): setup, no calls.
-  2. `af37698` (10:31): C19 run and read: 400 reviews, 0 errors, no deviation.
-  3. `daa4047` (13:34): `origin/main` merged in, as Ritik's note asked (the team rule, the hooks).
-  4. `cc2437a` (14:20): **C25 run, spot check and read**: 200 notes and 600 decisions, 0 errors, no deviation. It
-     was due Nov 12.
-- **The path check:** `path_check.py --range origin/main..origin/trackC-main --branch trackC-main` prints nothing:
-  only Track C's paths, 19 files.
-- **A dry merge** (`git merge-tree --write-tree origin/main origin/trackC-main`): no conflict.
-- **The merge steps for Nov 7** (Ritik's session, on `trackA-nosol`, after its own work is committed):
-  ```bash
-  git fetch origin
-  python3 cot-disclosure/tools/path_check.py --range origin/main..origin/trackC-main --branch trackC-main  # prints nothing
-  git log origin/main..origin/trackC-main --format='%h %an | %cn'                                         # Shrey's only
-  git merge --no-ff origin/trackC-main -m "Shrey's Track C to Nov 7 merged (Ritik, Nov 7, HH:MM): setup, C19, C25 ..."
-  cd cot-disclosure && ../.venv/bin/python -m pytest -q tests/test_trackC_*.py && cd ..   # Track C's tests on the merge
-  ```
-  - Then the session's other checks, including the full suite once, and the push to `trackA-nosol` and `main`.
-  - Then tell Shrey to merge `origin/main` back.
-  - The pre-merge-commit hook checks the merge's paths and identities. FINDINGS_C, TODO_C and the summaries come in
-    as Shrey wrote them.
-  - Ritik's own docs that cite Track C (PLAN's calendar, ONE_PAGE's row, REPORT's Track C bullets) are updated after
-    the merge, from Shrey's FC entries; none of C19's or C25's numbers is copied before then.
+- **`trackC-main` at `6e176c9`:** 7 commits that `main` lacks, all authored and committed by Shrey Bishnoi, with no
+  AI line.
+  - setup (09:42); C19 (10:31); a merge of `origin/main` (13:34); C25 (14:20);
+  - **C20 and C26** (15:38, both nine days early); a second merge of `origin/main` (16:07); Track C's report bullets
+    (16:16).
+- **Checks before merging:**
+  - `path_check.py --range origin/main..origin/trackC-main --branch trackC-main` printed nothing;
+  - no "co-authored", "generated with", session or AI line in any message;
+  - `git merge-tree`: no conflict.
+- **The merge:** `--no-ff`, before helper B touched `path_check.py` (the hooks run it). Track C's tests on the merge:
+  52 passed (Shrey added 5).
+- **Track C in one line each** (Shrey's FC entries, their own words):
+  - **FC1, C19:** the answer-key claim lowers the Olmo reviewer's corrections against the own-working claim, 24 vs 31
+    of 53, −13 [−25, −2]. The rule's word is **"unclear"**, so H34 is neither supported nor not; the direction is
+    tentative.
+  - **FC2, C25:** the writer puts the tool back as the source (plain 35 of 55, kept; keep 55 of 55, confirmed). With
+    the source stripped, the Olmo decider accepts the wrong letter less, 9 vs 16 of 53, −13 [−23, −6], and the
+    rule's word is **"unclear"**.
+  - **FC3, C20:** the tag doesn't work by the rule (Olmo +8 [−2, +19], no change). It doesn't match the checker. It
+    beats the solver's own disclosure for the deferring reviewer by +34 [+21, +47].
+  - **FC4, C26:** without the "answer key" label the solver follows the bad passage in 19 of 55 (against 52),
+    still +35 [+22, +47] over the no-tool floor. The Olmo reviewer still defers (5 vs 15 of 21, −48 [−67, −29]):
+    **deference survives without the authority label** (confirmed).
 
-## 4. B1R2 revived (helper A; `64f6fe5`, `9d13493`, `5233aed`)
+## 3. My docs that cite Track C, and Gate 2
 
-- **The amendment first:** the A39 log's §21 (14:41), before any line.
-  - It reverses decision f because places sit idle while A40's training chain runs.
-  - Nothing of B1R2 read. Its design, code (`27a2a39`), reading and partial read at Nov 15 23:59 are unchanged.
-- **The lines:** B1R2's 44 lines as §13.5 had them (40 parts at `--estimate 1.6`, limit 2:30; 4 sweeps), last in the
-  queue after `a42-e2-sweep`.
-  - The labels are unchanged: at Nov 5 08:43 all 44 were "to submit", with no state.
-  - `needs=27a2a39` stays and `holdif=nov6` goes. Each line carries `reserve=240:2`.
-- **The feeder's `reserve=G[:P]`:** a line goes in only if G GPU-minutes and P places stay free after it, counting
-  running and pending jobs. Otherwise it ends the tick, as a line that doesn't fit does, so the order holds.
-  - 240:2 is the next training job and one E2 part.
-  - 6 tests, and 3 adjusted, each seen failing first.
-- **What it gives:**
-  - beside the pending `a40-train-1`, 4 B1R2 parts at first, then a fifth as running parts use up their time;
-  - the training chain never waits;
-  - when `a40-train-3` ends, at least 3 of A40's E2 parts start at once, and the rest of that wave waits at most one
-    B1R2 part (2:30).
-- **Simulated on the real queue:** after the pull, `--status` reads "200 lines: 10 not needed, 106 ok, 1 pending, 83
-  to submit". `--dry-run` would submit `b1r2-01of40` to `04of40`, then "b1r2-05of40 waits: it fills only spare room".
-- **The ledger:** B1R2's row waiting, with §21; A39's row no longer "running"; F38 one dated line.
+- **REPORT:**
+  - §8 takes FC1 in place of C19's "waiting" entry;
+  - §9 takes FC2–FC4 in place of the three "waiting" entries and the two schedule lines, as Shrey's
+    `docs/trackC/REPORT_C.md` says.
+  - Each bullet is copied verbatim (checked by script), with no number added.
+- **PLAN:**
+  - the C19–C26 rows read "done Nov 6 (FCn), merged Nov 6";
+  - the calendar's Track C cells;
+  - slide 11's bars and slide 12's figures are made by Shrey in `docs/trackC/figures/`, for Ritik to place.
+- **WAITING:** slides 11 and 12 point to Shrey's figures. **ONE_PAGE:** Track C "done early".
+- **Gate 2:** its statement is gathered in PLAN, ready to mark on Nov 8.
+  - The gap is clear on every model (B9; F15–F17, F29, F37).
+  - The labels are **not met** by the pre-registered rule (kappa under 0.6 in all six cells).
+  - The descriptive sentence is beside it.
+  - B20 isn't in it: it's read by its own rule.
 
-## 5. Team emails as hashes (helper B; `ede782b`, `6c9dde5`, `6da094c`, `29ff4d2`)
+## 4. Sol, A40 and B20 (helper A, read-only; no outcome read)
 
-- **`configs/team_identities.txt`:** names, and `sha256:` of each lower-cased email; no `@` in the file.
-  - The counts: Ritik 1, Shrey 2, Arsha 2.
-  - Shrey's Gmail matches his 9 commit author lines. Every email in the history hashes into the file. Checked
-    without printing an address.
-- **The hooks** hash a commit's author and committer emails. A name alone never passes, and `path_check.py --hash
-  EMAIL` prints the form.
-- **Tests,** each seen failing first: each identity passes; a non-team or AI identity is refused; every history email
-  is listed; no tracked file holds a team email in plain text.
-- **The scan's hits before:** the team file and CHECKIN's two lines (Ritik's address). After: none.
-- **Proved in a scratch clone:** Ritik's real identity passes; a non-team identity, Ritik's name with another email,
-  Claude as author and a Claude trailer are refused.
-- **Said plainly:**
-  - the old plain copy stays in history (`37738b4`), and commit metadata shows each commit's email;
-  - a hash of a guessable address can be confirmed by guessing;
-  - an ASU email in a public commit shows its Sol username, so Track B's and C's START_HERE now say: commit with the
-    Gmail.
+- **A40's training is SOUND.**
+  - **The jobs:** `a40-train-1` is job 622511, ran 17:48–19:42 (1:54:52) and stopped at Slurm's warning at step 161
+    after saving epoch 1. `a40-train-2` is 639137 (0:48:28): it resumed and reached step 222. `a40-train-3` is
+    643581 (0:01:04): its line is `afterany`, it found the training done and exported again.
+    - About 2:44 of wall time in all, not 49 minutes: 622511 was missing from Ritik's sacct list.
+  - **The examples:** every job printed "881 training and 100 validation examples; 2 epochs of 111 optimizer steps
+    (8 examples each): 222 steps". The training log has 222 steps, with 6,076,975 tokens an epoch. That's A40's §7
+    (lora's settings).
+  - **The data and the epoch:** it trained on the manifest's files, on the pinned base snapshot. `chosen.json`: epoch
+    1 by validation loss (0.198727 against 0.198789), §7's rule; `final/adapter` holds epoch 1.
+  - **The merged model:** `eval_job.prepare("a40")` merged it into `/scratch/$USER/trackA/models/a40_merged` (21:25).
+    Part 1/16's `.out` serves that path. A42's `a40_note` uses the same model.
+  - **Nothing to stop.**
+- **`b1r2-06of40`:** stopped at Slurm's warning (2:25:34 of 2:30; "stopped by a signal; the runs saved so far
+  count"). `provenance_job.py` exits 1 on that stop. **Correction:** part 6's questions fall in sweep **2/4**
+  (`qs[1::4]`), not 1/4; `b1r2-sweep-2of4` waits on parts 02, 06 … 38, with `left=b1r2:2/4`. Its 5 runs are covered.
+- **At 23:20:** "200 lines: 1 failed, 10 not needed, 125 ok, 4 pending, 4 running, 56 to submit".
+  - A40's E2 parts 1–6 are done, 7–10 running and 11–14 pending.
+  - **A41** goes in about midnight to 01:00 Nov 7, and **A42's** 16 parts from about 01:00, ending about Nov 7
+    morning to midday. B1R2's last 29 parts and 4 sweeps follow (projection).
+- **B20 is complete against its design** (the counts are status only):
 
-## 6. Mine
+| model | design | set aside (never read) | run ids expected | Arsha's |
+|---|---|---|---|---|
+| Gemma | 2 × 6 × 54 × 3 = 1,944 | 2 `tool_real` smokes (§15) | 1,946 | 1,946 |
+| Nemotron | 1,944 | 2 `tool_real` smokes (§16) | 1,946 | 1,946 |
+| Granite | thinking on only: 972 | 6 thinking-off runs (§15) | 978 | 978 (980 rows) |
 
-- **The Mac's memory:**
-  - a local `.vscode/settings.json` (gitignored), excluding `results/`, `finetune/data/`, `cache/` (896 MB),
-    `archive/`, `.venv/` and `logs/` from VS Code's watcher, search and Python analysis;
-  - RUNBOOK §0's limits note (`6c9dde5`).
-- **SOL_ARSHA:** step 6's owner-only `.gz` case (`cb6ec93`).
-- **The stale scan:** B1R2's "dropped" fixed in RUNBOOK, PLAN, REPORT, WAITING, CHECKIN, FIX_SO_FAR, the README, the
-  GPU README, TODO and both START_HERE pages (`4f8a316`, `534c6f5`, `d4f6d98`); ONE_PAGE.
-  - Kept as history: older "last updated" stamps, and the calendar's Nov 5 row.
-- **Nov 7 is ready** (§3).
+  - The two repeated Granite ids were retried after a transport error (`not_run`, then `ok`).
+  - `common.latest()` keeps the last record per run id, and `done_ids()` takes only `ok`. `--report` reads `latest()`
+    filtered by `in_design()`.
+  - So each counts once, as `ok`, and the set-aside runs are left out.
+- **When Arsha reads B20:** now. B20's rule (its log's §10) reads it "only when all … runs are done". §8's "read by
+  Nov 17" is a deadline, and §19.4's partial read applies only if B20 isn't complete by Nov 15. It's complete, so she
+  reads it in full, by its rule:
+  - the numbers-only copy-back (SOL_ARSHA step 9), then `run_b20.py --report`;
+  - in her own session log on `trackB-main`, and in FINDINGS_B.
 
-## 7. Rulings
+## 5. The Windows hook fix (helper B; `4d29ded`, `267244a`, `8b88b90`)
 
-- **A:**
-  - B1R2's labels kept, since no state was ever recorded for them.
-  - A per-line `reserve=`, not a global rule.
-  - §21's commit added to B1R2's ledger row after it was committed.
-- **B:**
-  - The name-only fallback is removed.
-  - An older copy's plain emails are read by their hash.
-  - `--hash` added.
-  - The plain-email scan is a test, not a hook.
+- **The fix:** both tools decode every commit message and every `git` output as UTF-8 (errors replaced). The tool-
+  line match skips any prefix without letters (mojibake included). A refusal prints on any console. The installed hook
+  scripts export `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8`, with LF line ends.
+- **6 tests, each seen failing first** (cp1252 forced as the default). One reproduces Arsha's case exactly: the
+  footer behind the emoji was let through.
+- **A scratch repo:** the emoji footer refused, also under `PYTHONUTF8=0 LC_ALL=C`; a clean message and "café
+  résumé" pass.
+- **Ritik's clone:** the hooks reinstalled (23:21), so the new environment line is in.
+- **Both START_HERE pages:** one line, "merge `origin/main` and rerun `--install` again".
+- An old hook already runs the merged `path_check.py`, so the merge alone fixes it; reinstalling adds the
+  environment line.
+
+## 6. Rulings
+
 - **Mine:**
-  - Helper B took decision b, and I did the Mac's memory setting myself (a few lines).
-  - `cache/` was added to the VS Code exclusions (896 MB of Voyager's replies).
-  - Each START_HERE got one line for B1R2 (a Track B or C path, with its `PATH_CHECK_ALLOW`).
+  - Shrey's merge went first, before helper B edited the hooks' code.
+  - REPORT takes Shrey's REPORT_C bullets verbatim, as his file asks.
+  - Gate 2's statement leaves out B20, which is read by its own rule.
+- **A:** reports the job mapping, the sweep correction and the read answer from the rules as written.
+- **B:** a "Generated with" line after any prefix without letters is refused; a mid-sentence use passes.
 
-## 8. Ritik's Sol block
+## 7. Messages
+
+**To Arsha:**
+> B20 is complete against its design: Gemma and Nemotron 1,944 runs each (plus 2 set-aside smoke runs, 1,946 ids),
+> Granite 972, thinking on only (plus 6 set-aside runs, 978 ids). Your two repeated Granite ids were retries after a
+> transport error. The report keeps the last record per run id and counts only `ok`, so each counts once, as `ok`.
+> **You may read B20 now:** its rule (the B20 log's §10) reads it once all runs are done, and Nov 17 was a deadline.
+> Copy back the numbers only (SOL_ARSHA step 9, `--exclude '*.jsonl.gz'`), then `progress/run_b20.py --report`. Write
+> the reading, word for word by its pre-registered rules, in your own session log on `trackB-main` and in FINDINGS_B.
+> Before your next commit: merge `origin/main` and rerun `python3 cot-disclosure/tools/path_check.py --install`. The
+> hooks now read every message as UTF-8, the fix for the Windows bug you found.
+
+**To Shrey:**
+> Your Track C is merged into `main`: setup, C19, C25, C20, C26 and the report bullets, which are now in REPORT §8–§9
+> as you wrote them. Please merge `origin/main` back into `trackC-main` and rerun
+> `python3 cot-disclosure/tools/path_check.py --install`: the hooks now read every message as UTF-8 (a Windows fix).
+> Next: C24 and slides 11–12 by Nov 18.
+
+## 8. Ritik's Sol block (optional: the safety diff is empty, and nothing the feeder reads changed)
 
 ```bash
-# On Sol
 cd /scratch/$USER/cse598-cot-faithfulness && git status --short && git fetch -q origin   # status prints nothing
-# 1. The safety diff (CHECKIN §1, step 4's command)
 git diff --stat HEAD..@{u} -- cot-disclosure/finetune cot-disclosure/progress/common.py cot-disclosure/progress/sol_trackB.py \
   cot-disclosure/progress/sol_b17.py cot-disclosure/progress/sol_b20.py cot-disclosure/progress/run_b20.py \
   cot-disclosure/progress/run_trackB.py cot-disclosure/agents/__init__.py cot-disclosure/agents/sol_c13.py \
   cot-disclosure/client.py cot-disclosure/parse.py cot-disclosure/detect.py cot-disclosure/experiments.py \
   cot-disclosure/tasks.py cot-disclosure/tools/answer_key.py cot-disclosure/providers cot-disclosure/configs \
   cot-disclosure/data ':!cot-disclosure/finetune/a39.py' ':!cot-disclosure/finetune/gpu/sol/queue_2026-11-04.txt'
-#   expect exactly 2 files: configs/team_identities.txt and finetune/gpu/README.md. No job loads either
-#   (a40-train-1, pending, loads neither), so: pull.
-# 2. The pull
-git pull --ff-only && git log --oneline -1                          # the commit the session names
-# 3. The feeder: B1R2's lines last, filling spare room only
+#   prints nothing
+git pull --ff-only && git log --oneline -1                 # the commit the session names
 P=/scratch/$USER/envs/olmo/bin/python; F=cot-disclosure/tools/sol_feeder.py
-$P $F --status | head -6      # "200 lines: 10 not needed, 106 ok, 1 pending, 83 to submit" (a40-train-1 pending)
-$P $F --dry-run | tail -6     # would submit b1r2-01of40 … b1r2-04of40, then
-                              # "b1r2-05of40 waits: it fills only spare room, keeping 240 GPU-minutes and 2 places free"
-tail -6 /scratch/$USER/trackA/feeder.log    # within 5 minutes: b1r2-01of40 … 04of40 submitted
-squeue -u $USER                             # a40-train-1 and 4 provenance_gen jobs, pending or running
-# 4. Arsha's copy matched (14:31), so close B20's three text records again
-chmod g-r /scratch/$USER/cse598-cot-faithfulness/cot-disclosure/results/trackB/b20/*/b20_sol_vllm.jsonl.gz
-ls -l /scratch/$USER/cse598-cot-faithfulness/cot-disclosure/results/trackB/b20/*/b20_sol_vllm.jsonl.gz   # no group r
+$P $F --status | head -6                                   # A40's E2 parts going in; A41's lines next
+grep -E "a41-|a42-" /scratch/$USER/trackA/feeder.log | tail -3   # by Nov 7 morning: a41-swap, then a42-e2-… submitted
 ```
-
-- **If `a40-train-1` has started by then,** `--status` reads "1 running" in place of "1 pending", and the B1R2 count
-  is the same.
-- **If the dry run submits no B1R2 part:** stop and send me its last lines.
 
 ## 9. Needs Ritik
 
-1. **Now:** his Sol block (§8). B1R2's first 4 parts go in at the next tick.
-2. **Nov 7:** Shrey's merge (§3); then Shrey merges `origin/main` and reruns `--install`.
-3. **Arsha:** steps 7–8 (her feeder, scrontab); she commits with her Gmail.
+1. **Send** §7's two messages. Arsha may read B20 on his word.
+2. **Nov 7:** nothing on Sol is needed; §8 is optional. A41 goes in about midnight, A42 from about 01:00.
+3. **Nov 8:** mark Gate 2 (PLAN's statement, ONE_PAGE, TODO's G2).
 
-## 10. Checks and push (written 15:02, on `8d3aab3`)
+## 10. Checks and push
 
-- **Checks:**
-  - the full suite, run once: 1,031 passed, 1 skipped;
-  - links 0 broken; the supplement 40 rows, none unverified, no log outside the ledger; export numbers only;
-  - the Gantt's dry run passes; bundles B 51 and C 43;
-  - all 200 queue lines parse, B1R2's 44 last;
-  - pre-push: nothing produced, and every commit the team's with no AI attribution; nothing missing.
-- **Memory:** no leftover processes at the start; at most 2 helpers at a time; the full suite once.
-- **Commits:** all Ritik's, no attribution line. **Push:** `trackA-nosol` and `main` only.
+CHECKS_PENDING
