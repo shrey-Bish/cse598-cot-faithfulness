@@ -16,9 +16,11 @@ in the comparison gray (a square). A wrapper system's R1 and R2 markers are holl
 pooled runs are its partner's; the amendment's 9.2); a difference whose two sides' no-answer shares are more than 5
 points apart carries a dagger (9.1). "too few questions" and "missing runs" are written where a dot would be.
 
-Drawn only after every A39 part is in (the report's "complete"; read Nov 17): an incomplete report is refused unless
---draft, which stamps every figure as a draft. The headlines say only what the readings say; the slide's own sentence
-is written once A39 is read.
+Drawn only after every A39 part is in (the report's "complete"; A39 was read Nov 7, once complete, by its rules): an
+incomplete report is refused unless --draft, which stamps every figure as a draft. The headlines say only what the
+readings say (written once A39 was read): the fixes figure, R2's "fewer than the instruction" systems, a wrapper system
+marked diluted by design, with the acceptance difference beside each, then R1's verdicts; the parts figure, what marking
+does alone (R4) and added to the note and to LoRA (R3), with those differences on the inserted tool turn.
 
   python tools/a39_figures.py --report results/summaries/trackA/gpu/a39/a39_e2.json      # -> docs/paper/figures/
   python tools/a39_figures.py --report OUT/a39_e2.json --out SOMEWHERE [--draft]
@@ -148,14 +150,16 @@ def row_of_dots(ax, y, rs, offsets, hollow=False):
         dot(ax, y + dy, rs[m], hollow)
 
 
-def frame(ax, rows, ylim):
-    """A difference axis: a zero line, recessive grid, x in points from the rows' intervals (at least -10 to +10)."""
+def frame(ax, rows, ylim, max_ticks=None):
+    """A difference axis: a zero line, recessive grid, x in points from the rows' intervals (at least -10 to +10); ticks
+    every 10 points, or every 20 when more than max_ticks would crowd a narrow panel."""
     vals = [x * 100 for r in rows if r["value"] != "" for x in (r["low"], r["high"])] or [0]
     lo, hi = min(-10, (min(vals) // 10) * 10 - 5), max(10, -(-max(vals) // 10) * 10 + 10)
     ax.set_xlim(lo, hi)
     ax.set_ylim(*ylim)
     ax.axvline(0, color=MUTED, linewidth=1.0, zorder=1)
-    ax.set_xticks([t for t in range(-200, 201, 10) if lo <= t <= hi])
+    ticks = [t for t in range(-200, 201, 10) if lo <= t <= hi]
+    ax.set_xticks(ticks if not max_ticks or len(ticks) <= max_ticks else [t for t in ticks if t % 20 == 0])
     ax.set_yticks([])
     ax.spines["left"].set_visible(False)
     ax.grid(axis="x", color=GRID)
@@ -189,10 +193,60 @@ def legend(fig, plt, x, y, measures, extra=True):
 
 
 def words(fig, headline, sub, foot):
-    """The headline (ink), what the readings say (ink, wrapped) and the method line at the foot (muted, wrapped)."""
-    fig.text(0.015, 0.935, headline, fontsize=15, color=INK)
-    fig.text(0.015, 0.905, textwrap.fill(sub, 140), fontsize=12.5, color=INK, va="top", linespacing=1.3)
+    """The headline (ink, wrapped), what the readings say (ink, wrapped, under it) and the method line at the foot
+    (muted, wrapped)."""
+    head = textwrap.fill(headline, 120)
+    fig.text(0.015, 0.955, head, fontsize=15, color=INK, va="top", linespacing=1.25)
+    fig.text(0.015, 0.905 - 0.033 * head.count("\n"), textwrap.fill(sub, 140), fontsize=12.5, color=INK, va="top",
+             linespacing=1.3)
     fig.text(0.015, 0.012, textwrap.fill(foot, 168), fontsize=10, color=MUTED, linespacing=1.35)
+
+
+def ci(d):
+    """A difference in points with its interval, "−14 [−20, −9]"; "too few questions" or "missing runs" if not
+    drawn."""
+    if not d:
+        return MISSING
+    if d.get("diff") is None:
+        return FEW
+    return f"{points(d['diff'])} [{points(d['interval'][0])}, {points(d['interval'][1])}]"
+
+
+def named(systems):
+    """Systems by name, a wrapper system marked: its pooled R1 and R2 are diluted by design (the amendment's 9.2)."""
+    return ", ".join(NAMES[s] + (" (diluted by design)" if s in SHARED else "") for s in systems)
+
+
+def fixes_words(res):
+    """(headline, sentence) of the fixes figure, the readings' words only: R2's "fewer than the instruction" systems,
+    the acceptance difference beside each (R2 reads following only), then R1's verdicts."""
+    name, n = SETS.get(res["qset"], res["qset"]), res["questions"]
+    fewer = [s for s in SYSTEMS if res["r2"].get(s, {}).get("reading") == "fewer than the instruction"]
+    passed = [s for s in SYSTEMS if res["r1"].get(s, {}).get("verdict") == "passes"]
+    failed = [s for s in SYSTEMS if s in res["r1"] and res["r1"][s].get("verdict") != "passes"]
+    head = (f"A39 on {name} ({n} questions): fewer wrong hints followed than the one-line instruction (R2): "
+            f"{named(fewer) or 'none'}.")
+    beside = "; ".join(f"{NAMES[s]} {ci(res['r2'][s]['acceptance'])}" for s in fewer)
+    sub = ((f"Correct-hint acceptance minus the instruction, beside it (not read by R2): {beside}. " if fewer else "")
+           + f"Gate 3's rule against base (R1) passes: {named(passed) or 'none'}"
+           + (f"; fails: {named(failed)}" if failed else "")
+           + ". A wrapper system's informative readings are R3 and R4, on the inserted tool turn (the parts figure).")
+    return head, sub
+
+
+def parts_words(res):
+    """(headline, sentence) of the parts figure, the readings' words only: what marking does alone (R4) and added to
+    the note and to LoRA (R3), with those differences on the inserted tool turn; LoRA + note's R3 beside."""
+    name, r3, r4 = SETS.get(res["qset"], res["qset"]), res["r3"], res["r4"]
+    reading = lambda s: r3.get(s, {}).get("reading", MISSING)  # noqa: E731
+    pair = lambda d: f"follows {ci(d.get('following'))}, takes {ci(d.get('acceptance'))}"  # noqa: E731
+    head = (f'A39 on {name}: the wrapper alone, "{r4["reading"]}" (R4); wrapper + note, "{reading("wrap_note")}", and '
+            f'LoRA + wrapper, "{reading("lora_wrap")}" (R3).')
+    sub = (f"On the inserted tool turn: wrapper − base {pair(r4)}; wrapper + note − the instruction "
+           f"{pair(r3.get('wrap_note', {}).get('minus prompt_only') or {})}; LoRA + wrapper − LoRA "
+           f"{pair(r3.get('lora_wrap', {}).get('minus lora') or {})}. "
+           f'LoRA + note, pooled (R3): "{reading("lora_note")}".')
+    return head, sub
 
 
 def stamp(fig, res, draft):
@@ -204,7 +258,7 @@ def stamp(fig, res, draft):
 def fig_fixes(res, out, draft=False):
     plt = style()
     rows = fixes_rows(res)
-    name, n = SETS.get(res["qset"], res["qset"]), res["questions"]
+    name = SETS.get(res["qset"], res["qset"])
     fig = plt.figure(figsize=SIZE)
     axes = {"base": fig.add_axes([0.215, 0.24, 0.355, 0.5]), "prompt_only": fig.add_axes([0.625, 0.24, 0.355, 0.5])}
     ys = {s: len(SYSTEMS) - 1 - i for i, s in enumerate(SYSTEMS)}
@@ -234,11 +288,7 @@ def fig_fixes(res, out, draft=False):
         sub = f"follows {f.get('k', '-')} of {f.get('n', '-')}, takes {a.get('k', '-')} of {a.get('n', '-')}"
         label(fig, axes["base"], 0.015, ys[s], NAMES[s] + (f" ({s})" if s != NAMES[s] else ""), sub)
     legend(fig, plt, 0.01, 0.112, ("following", "acceptance"))
-    po = [NAMES[s] for s, e in res["r2"].items() if e["reading"] == "fewer than the instruction"]
-    passed = [NAMES[s] for s, e in res["r1"].items() if e["verdict"] == "passes"]
-    words(fig, f"A39 on {name} ({n} questions): each fix against base and against the one-line instruction.",
-          f"Fewer wrong hints followed than the instruction (R2): {', '.join(po) or 'none'}. Gate 3's rule passed "
-          f"(R1): {', '.join(passed) or 'none'}.",
+    words(fig, *fixes_words(res),
           f"A39, pre-registered Nov 3 (the A39 log's sections 4 and 9): {name}, 12 runs a question a system (a wrapper "
           "system runs its 4 inserted-turn runs and shares the rest with its partner). Dots: the system minus the "
           "comparison, paired by question, answered runs only; lines: 95% bootstrap clustered by question (20,000 "
@@ -253,7 +303,6 @@ def fig_fixes(res, out, draft=False):
 def fig_parts(res, out, draft=False):
     plt = style()
     rows = parts_rows(res)
-    name = SETS.get(res["qset"], res["qset"])
     fig = plt.figure(figsize=SIZE)
     ax_b, ax_c = fig.add_axes([0.215, 0.24, 0.36, 0.5]), fig.add_axes([0.78, 0.24, 0.205, 0.5])
     b = [r for r in rows if r["panel"] == "b"]
@@ -273,16 +322,19 @@ def fig_parts(res, out, draft=False):
               f"of {f['compared_n']}" if f["n"] != "" else f"{f['channel']}: no runs")
     for combo in combos[:-1]:                                      # a line under each but the last
         ax_b.axhline(min(yy for (c, _), yy in ys.items() if c == combo) - 0.55, color=GRID, linewidth=0.8, zorder=0)
-    for combo in combos:
+    for combo in combos:                                 # the name in the label column, its reading in the panel
         top = max(yy for (c, _), yy in ys.items() if c == combo)
         reading = next(r["reading"] for r in b if r["system"] == combo)
-        label(fig, ax_b, 0.015, top + 0.62, f"{NAMES[combo]}: {reading}", bold=True)
+        label(fig, ax_b, 0.015, top + 0.62, f"{NAMES[combo]} (R3):", bold=True)
+        ax_b.text(ax_b.get_xlim()[0], top + 0.70, f" {reading}", fontsize=11.5, color=INK, va="bottom", ha="left",
+                  weight="bold", style="italic", zorder=4,
+                  bbox={"boxstyle": "square,pad=0.05", "facecolor": WHITE, "edgecolor": "none"})
     ax_b.set_title("(b) Each combination minus each part alone: R3 (A38's reading)", loc="left", color=INK, fontsize=13)
     c = [r for r in rows if r["panel"] == "c"]
     order = [("following", "inserted"), ("acceptance", "inserted"), ("accuracy", "no hint"), ("following", "pasted")]
     names = {("following", "inserted"): "follows, inserted turn", ("acceptance", "inserted"): "takes, inserted turn",
              ("accuracy", "no hint"): "no-hint accuracy (shared)", ("following", "pasted"): "check: pasted block"}
-    frame(ax_c, c, (-0.6, len(order) - 0.4))
+    frame(ax_c, c, (-0.6, len(order) - 0.4), max_ticks=6)
     for i, key in enumerate(order):
         r = next(x for x in c if (x["measure"], x["channel"]) == key)
         yy = len(order) - 1 - i
@@ -292,9 +344,7 @@ def fig_parts(res, out, draft=False):
     reading = c[0]["reading"]
     ax_c.set_title(f"(c) The wrapper alone: R4\nwrap − base: {reading}", loc="left", color=INK, fontsize=13)
     legend(fig, plt, 0.01, 0.112, tuple(MEASURES), extra=False)
-    r3 = "; ".join(f"{NAMES[s]} {e['reading']}" for s, e in res["r3"].items())
-    words(fig, f"A39 on {name}: do the fixes add up, and what does the wrapper alone do?",
-          f"R3: {r3}. R4: the wrapper alone, {reading}.",
+    words(fig, *parts_words(res),
           "R3 (A38's five readings, 5-point margins on acceptance and accuracy): LoRA + note pooled over the wrong-hint "
           "channels; the wrapper combinations on the inserted tool turn, the one channel the wrapper changes. R4: B1's "
           "five readings. Dots: minus the part (or base), paired by question, answered runs only; lines: 95% bootstrap "
@@ -316,7 +366,7 @@ def main(argv=None):
     if not res.get("complete") and not a.draft:
         missing = {s: e["missing"] for s, e in res.get("completeness", {}).items() if e["missing"]}
         raise SystemExit(f"not every A39 part is in ({a.report}: runs missing {missing or 'unknown'}); the figures are "
-                         "drawn once they are (Nov 17), or with --draft")
+                         "drawn once they are, or with --draft")
     paths = fig_fixes(res, a.out, a.draft) + fig_parts(res, a.out, a.draft)
     for p in paths:
         print(p)

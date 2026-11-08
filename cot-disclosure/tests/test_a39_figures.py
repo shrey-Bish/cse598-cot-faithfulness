@@ -142,3 +142,70 @@ def test_too_few_questions_and_missing_runs_are_written_not_drawn(tmp_path, monk
     assert {r["reading"] for r in table if r["system"] == "lora_wrap" and r["panel"] == "b"} == {"missing runs"}
     svg = (tmp_path / "fig" / "a39_mmlupro_30_parts.svg").read_text()
     assert "too few questions" in svg and "missing runs" in svg
+
+
+# ---------------------------------------------------------------- the headlines, once A39 is read (Nov 7)
+def read_report(synthetic):
+    """The synthetic report with its readings set: R2 "fewer than the instruction" for LoRA + note and, diluted by
+    design, wrapper + note; R1 fails only the wrapper; R4 "no effect"; R3 as E2's came out."""
+    res = json.loads(synthetic.read_text())
+    for s, e in res["r2"].items():
+        e["reading"] = "fewer than the instruction" if s in ("lora_note", "wrap_note") else "no difference detected"
+    for s, e in res["r1"].items():
+        e["verdict"], e["failed"] = ("fails", ["fewer wrong hints followed"]) if s == "wrap" else ("passes", [])
+    res["r4"]["reading"] = "no effect"
+    for s, reading in (("lora_note", "adds, costs acceptance"), ("wrap_note", "adds, costs acceptance"),
+                       ("lora_wrap", "adds to both")):
+        res["r3"][s]["reading"] = reading
+    return res
+
+
+def test_the_fixes_headline_says_r2_and_r1_and_marks_a_wrapper_system_diluted(synthetic):
+    res = read_report(synthetic)
+    head, sub = af.fixes_words(res)
+    assert "fewer wrong hints" in head and "(R2)" in head
+    assert "LoRA + note, wrapper + note (diluted by design)" in head          # the amendment's 9.2, in the words too
+    for s in ("lora_note", "wrap_note"):                                       # acceptance beside it, not read by R2
+        assert f"{af.NAMES[s]} {af.ci(res['r2'][s]['acceptance'])}" in sub
+    assert ("passes: the instruction, LoRA, LoRA + note, wrapper + note (diluted by design), LoRA + wrapper (diluted "
+            "by design); fails: wrapper (diluted by design)") in sub
+    for e in res["r2"].values():
+        e["reading"] = "no difference detected"
+    head, sub = af.fixes_words(res)
+    assert head.endswith("(R2): none.") and "beside it" not in sub
+
+
+def test_the_parts_headline_says_what_marking_does_alone_and_added(synthetic):
+    res = read_report(synthetic)
+    head, sub = af.parts_words(res)
+    assert '"no effect" (R4)' in head
+    assert 'wrapper + note, "adds, costs acceptance"' in head and 'LoRA + wrapper, "adds to both"' in head
+    r4, r3 = res["r4"], res["r3"]
+    for d in (r4["following"], r4["acceptance"], r3["wrap_note"]["minus prompt_only"]["following"],
+              r3["wrap_note"]["minus prompt_only"]["acceptance"], r3["lora_wrap"]["minus lora"]["following"],
+              r3["lora_wrap"]["minus lora"]["acceptance"]):
+        assert af.ci(d) in sub                                                 # the inserted turn's differences
+    assert 'LoRA + note, pooled (R3): "adds, costs acceptance"' in sub
+    res["r3"]["lora_wrap"] = {"against": ["lora", "wrap"], "channel": "inserted", "reading": "missing runs"}
+    res["r4"] = {"reading": "missing runs"}
+    head, sub = af.parts_words(res)
+    assert '"missing runs" (R4)' in head and "missing runs" in sub
+
+
+def test_the_figures_draw_those_words(synthetic, tmp_path, monkeypatch):
+    res = json.loads(synthetic.read_text())
+    said, real = [], af.words
+    monkeypatch.setattr(af, "words", lambda fig, head, sub, foot: (said.append((head, sub)),
+                                                                    real(fig, head, sub, foot)))
+    af.main(["--report", str(synthetic), "--out", str(tmp_path)])
+    assert said == [af.fixes_words(res), af.parts_words(res)]
+
+
+def test_a_narrow_panel_with_a_wide_range_gets_fewer_ticks():
+    plt = af.style()
+    fig = plt.figure(figsize=af.SIZE)
+    ax = fig.add_axes([0.78, 0.24, 0.205, 0.5])
+    af.frame(ax, [{"value": -0.18, "low": -0.34, "high": 0.02}], (-0.6, 3.6), max_ticks=6)
+    ticks = list(ax.get_xticks())
+    assert len(ticks) <= 6 and 0 in ticks
+    plt.close(fig)

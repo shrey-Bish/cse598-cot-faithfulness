@@ -1,0 +1,23 @@
+panel,system,against,channel,measure,value,low,high,questions,interval,k,n,compared_k,compared_n,no_answer_k,no_answer_n,compared_no_answer_k,compared_no_answer_n,no_answer_imbalance,reading,note
+b,lora_note,lora,pooled,following,-0.08022095285920533,-0.15931098696461826,-0.0058380414312617646,30,"95% bootstrap clustered by question, paired",50,179,64,178,1,180,2,180,,"adds, costs acceptance",
+b,lora_note,lora,pooled,acceptance,-0.06073446327683607,-0.15000000000000002,0.007913165266106414,30,"95% bootstrap clustered by question, paired",101,118,110,120,2,120,0,120,,"adds, costs acceptance",
+b,lora_note,lora,no hint,accuracy,0.06101694915254241,-0.01666666666666672,0.14880952380952372,30,"95% bootstrap clustered by question, paired",39,59,36,60,1,60,0,60,,"adds, costs acceptance",
+b,lora_note,prompt_only,pooled,following,-0.11050089953602882,-0.17867407239965122,-0.04320929204936402,30,"95% bootstrap clustered by question, paired",50,179,69,177,1,180,3,180,,"adds, costs acceptance",
+b,lora_note,prompt_only,pooled,acceptance,-0.06843754450932915,-0.15406345067362015,0.007110536522301314,30,"95% bootstrap clustered by question, paired",101,118,110,119,2,120,1,120,,"adds, costs acceptance",
+b,lora_note,prompt_only,no hint,accuracy,0.07768361581920902,0.0,0.1632768361581921,30,"95% bootstrap clustered by question, paired",39,59,35,60,1,60,0,60,,"adds, costs acceptance",
+b,wrap_note,wrap,inserted,following,-0.06666666666666665,-0.2,0.06666666666666665,30,"95% bootstrap clustered by question, paired",18,60,22,60,0,60,0,60,,no better than the better one alone,
+b,wrap_note,wrap,inserted,acceptance,-0.06977401129943495,-0.17033898305084738,0.014689265536723117,30,"95% bootstrap clustered by question, paired",48,59,53,60,1,60,0,60,,no better than the better one alone,
+b,wrap_note,wrap,no hint,accuracy,-0.04999999999999993,-0.15000000000000002,0.033333333333333326,30,"95% bootstrap clustered by question, paired",35,60,38,60,0,60,0,60,,no better than the better one alone,
+b,wrap_note,prompt_only,inserted,following,-0.027586206896551724,-0.12873563218390804,0.07298850574712645,30,"95% bootstrap clustered by question, paired",18,60,19,58,0,60,2,60,,no better than the better one alone,
+b,wrap_note,prompt_only,inserted,acceptance,-0.08644067796610166,-0.18757062146892656,0.0,30,"95% bootstrap clustered by question, paired",48,59,54,60,1,60,0,60,,no better than the better one alone,
+b,wrap_note,prompt_only,no hint,accuracy,0.0,0.0,0.0,30,"95% bootstrap clustered by question, paired",35,60,35,60,0,60,0,60,,no better than the better one alone,
+b,lora_wrap,lora,inserted,following,-0.01694915254237289,-0.14880952380952384,0.11379310344827587,30,"95% bootstrap clustered by question, paired",16,59,17,59,1,60,1,60,,no better than the better one alone,
+b,lora_wrap,lora,inserted,acceptance,-0.04999999999999993,-0.18333333333333335,0.06666666666666665,30,"95% bootstrap clustered by question, paired",50,60,53,60,0,60,0,60,,no better than the better one alone,
+b,lora_wrap,lora,no hint,accuracy,0.0,0.0,0.0,30,"95% bootstrap clustered by question, paired",36,60,36,60,0,60,0,60,,no better than the better one alone,
+b,lora_wrap,wrap,inserted,following,-0.09548022598870054,-0.23333333333333334,0.03813559322033899,30,"95% bootstrap clustered by question, paired",16,59,22,60,1,60,0,60,,no better than the better one alone,
+b,lora_wrap,wrap,inserted,acceptance,-0.04999999999999993,-0.16666666666666674,0.06666666666666665,30,"95% bootstrap clustered by question, paired",50,60,53,60,0,60,0,60,,no better than the better one alone,
+b,lora_wrap,wrap,no hint,accuracy,-0.033333333333333326,-0.1333333333333333,0.06666666666666671,30,"95% bootstrap clustered by question, paired",36,60,38,60,0,60,0,60,,no better than the better one alone,
+c,wrap,base,inserted,following,-0.17570621468926556,-0.3385057471264368,-0.013793103448275834,30,"95% bootstrap clustered by question, paired",22,60,32,59,0,60,1,60,,works,
+c,wrap,base,inserted,acceptance,0.016666666666666607,-0.050000000000000044,0.08333333333333337,30,"95% bootstrap clustered by question, paired",53,60,52,60,0,60,0,60,,works,
+c,wrap,base,no hint,accuracy,0.0,0.0,0.0,30,"95% bootstrap clustered by question, paired",38,60,38,60,0,60,0,60,,works,shared runs: exactly 0 by design
+c,wrap,base,pasted,following,0.0,0.0,0.0,30,"95% bootstrap clustered by question, paired",43,60,43,60,0,60,0,60,,exactly 0: True,the check: shared runs

@@ -1,0 +1,25 @@
+panel,system,against,channel,measure,value,low,high,questions,interval,k,n,compared_k,compared_n,no_answer_k,no_answer_n,compared_no_answer_k,compared_no_answer_n,no_answer_imbalance,reading,note
+a,prompt_only,base,pooled,following,-0.09007678971508598,-0.13989569752281616,-0.040091781393408465,120,"95% bootstrap clustered by question, paired",237,713,297,703,7,720,17,720,,passes,
+a,prompt_only,base,pooled,acceptance,-0.01680672268907568,-0.04358037578288099,0.01068111455108367,120,"95% bootstrap clustered by question, paired",431,476,439,476,4,480,4,480,,passes,
+a,lora,base,pooled,following,-0.0707020570402429,-0.11249323424715446,-0.03013495878027822,120,"95% bootstrap clustered by question, paired",248,705,297,703,15,720,17,720,,passes,
+a,lora,base,pooled,acceptance,-0.03966932685023705,-0.07198702265716417,-0.009723393080192655,120,"95% bootstrap clustered by question, paired",421,477,439,476,3,480,4,480,,passes,
+a,lora_note,base,pooled,following,-0.17036243062929496,-0.2208157524613221,-0.11943005233032544,120,"95% bootstrap clustered by question, paired",179,710,297,703,10,720,17,720,,passes,
+a,lora_note,base,pooled,acceptance,-0.10524763096728063,-0.1556807436350336,-0.057212843429328086,120,"95% bootstrap clustered by question, paired",384,470,439,476,10,480,4,480,,passes,
+a,wrap,base,pooled,following,-0.004628081189882283,-0.023463460113313128,0.014245014245014231,120,"95% bootstrap clustered by question, paired",295,706,297,703,14,720,17,720,,fails (fewer wrong hints followed),diluted by design
+a,wrap,base,pooled,acceptance,-0.0022689075630252242,-0.023515605403662154,0.01887437475260001,120,"95% bootstrap clustered by question, paired",437,475,439,476,5,480,4,480,,fails (fewer wrong hints followed),diluted by design
+a,wrap_note,base,pooled,following,-0.13716437222235617,-0.18221666373647452,-0.09167915293177503,120,"95% bootstrap clustered by question, paired",202,708,297,703,12,720,17,720,,passes,diluted by design
+a,wrap_note,base,pooled,acceptance,-0.07660294561799352,-0.11839166046165295,-0.03656886483406918,120,"95% bootstrap clustered by question, paired",400,473,439,476,7,480,4,480,,passes,diluted by design
+a,lora_wrap,base,pooled,following,-0.0971910157765421,-0.13931708984792335,-0.055563614969555586,120,"95% bootstrap clustered by question, paired",229,704,297,703,16,720,17,720,,passes,diluted by design
+a,lora_wrap,base,pooled,acceptance,-0.05015150714373806,-0.08740365558247076,-0.014675052410901501,120,"95% bootstrap clustered by question, paired",416,477,439,476,3,480,4,480,,passes,diluted by design
+a,base,prompt_only,pooled,following,0.09007678971508598,0.040091781393408465,0.13989569752281616,120,"95% bootstrap clustered by question, paired",297,703,237,713,17,720,7,720,,more,
+a,base,prompt_only,pooled,acceptance,0.01680672268907568,-0.01068111455108367,0.04358037578288099,120,"95% bootstrap clustered by question, paired",439,476,431,476,4,480,4,480,,more,
+a,lora,prompt_only,pooled,following,0.019374732674843076,-0.020637991080574236,0.05714486638537275,120,"95% bootstrap clustered by question, paired",248,705,237,713,15,720,7,720,,no difference detected,
+a,lora,prompt_only,pooled,acceptance,-0.02286260416116137,-0.05392351988960542,0.007160364145658238,120,"95% bootstrap clustered by question, paired",421,477,431,476,3,480,4,480,,no difference detected,
+a,lora_note,prompt_only,pooled,following,-0.08028564091420898,-0.11888111888111888,-0.041455405862185546,120,"95% bootstrap clustered by question, paired",179,710,237,713,10,720,7,720,,fewer than the instruction,
+a,lora_note,prompt_only,pooled,acceptance,-0.08844090827820494,-0.12738360188729636,-0.05252659574468088,120,"95% bootstrap clustered by question, paired",384,470,431,476,10,480,4,480,,fewer than the instruction,
+a,wrap,prompt_only,pooled,following,0.0854487085252037,0.04290361399329112,0.12797083609506676,120,"95% bootstrap clustered by question, paired",295,706,237,713,14,720,7,720,,more,diluted by design
+a,wrap,prompt_only,pooled,acceptance,0.014537815126050457,-0.012552301255230214,0.040731217860278446,120,"95% bootstrap clustered by question, paired",437,475,431,476,5,480,4,480,,more,diluted by design
+a,wrap_note,prompt_only,pooled,following,-0.04708758250727019,-0.06483798372755456,-0.03026691618240912,120,"95% bootstrap clustered by question, paired",202,708,237,713,12,720,7,720,,fewer than the instruction,diluted by design
+a,wrap_note,prompt_only,pooled,acceptance,-0.05979622292891784,-0.0912079285644195,-0.02965501990269792,120,"95% bootstrap clustered by question, paired",400,473,431,476,7,480,4,480,,fewer than the instruction,diluted by design
+a,lora_wrap,prompt_only,pooled,following,-0.007114226061456119,-0.048121990369181356,0.03257926857247739,120,"95% bootstrap clustered by question, paired",229,704,237,713,16,720,7,720,,no difference detected,diluted by design
+a,lora_wrap,prompt_only,pooled,acceptance,-0.03334478445466238,-0.06663551156960545,-0.0022172156063369197,120,"95% bootstrap clustered by question, paired",416,477,431,476,3,480,4,480,,no difference detected,diluted by design
