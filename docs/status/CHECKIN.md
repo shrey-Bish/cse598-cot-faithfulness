@@ -1,6 +1,6 @@
 # The daily check-in
 
-**Edited by:** Ritik. Written 2026-11-04 16:19 MST; the labels corrected 17:54 (the standing rule, Nov 7, Nov 8); the daily rule 22:33; the push to two branches 22:34; Nov 5, 09:40: two Sol accounts (B20 on Arsha's), B1R2 dropped, §1 step 4 and §9; Nov 7, 20:45: §3, A39 read and L6's row.
+**Edited by:** Ritik. Written 2026-11-04 16:19 MST; the labels corrected 17:54 (the standing rule, Nov 7, Nov 8); the daily rule 22:33; the push to two branches 22:34; Nov 5, 09:40: two Sol accounts (B20 on Arsha's), B1R2 dropped, §1 step 4 and §9; Nov 7, 20:45: §3, A39 read and L6's row; Nov 8, 15:15: §3, L6's sheet built and B20 read and merged.
 History: `git log -- docs/status/CHECKIN.md`.
 
 One routine, once a day, in this order: §1 to §7. §8 is the merge, on the merge days. §9 is what each day from Nov 5 to
@@ -147,8 +147,8 @@ Nothing is read before its rule says so. The checks below run on Sol, from the c
 | **A39 on E2 and the 30** | **read Nov 7** (F44; the 20:33 log), once complete | Ritik | the A39 log, §4 and §9 |
 | **B1R2** | `for k in 1 2 3 4; do $P $F --runs-left b1r2:$k/4; done` all 0 (after Sol pulls the Nov 7 fix; before it, confirm on the Mac with the report's own counts); **or Nov 15 23:59**, whatever is done | Ritik, **when complete, by Nov 17** | the A39 log, §13 and §22 |
 | **A40, A41, A42** | **read Nov 7** (F41–F43; the 13:29 and 13:31 logs), each once complete by its own rule | Ritik | their logs |
-| **L6** (labels) | pre-registered Nov 7, not run; if Ritik says yes: the sheet built on Sol, labelled by Ritik, then J-opus | Ritik | the 20:25 log, §5 |
-| **B20** | the feeder shows every line of a model done or not needed (`$P $F --status \| grep '^b20-'`) | **Arsha, by Nov 17** | the B20 log, §6, §8 and §10 |
+| **L6** (labels) | Ritik's yes Nov 8, reduced to lora and prompt_only (§9); the sheet built Nov 8 (`tools/l6_sheet.py`); complete when Ritik's `sheet_L6.csv` is labelled and saved, then J-opus (2 batches of 42) | Ritik | the 20:25 log, §5 and §9 |
+| **B20** | **read Nov 7 by Arsha** (FB1; her 19:17 log), merged Nov 8 (`5f767e4`) | Arsha | the B20 log, §6, §8 and §10 |
 | **C19, C25, C20, C26** | Shrey's own logs, merged in §8 | Shrey | his pre-registrations |
 
 The logs: [A39](../../archive/sessions/2026-11-03/2026-11-03_1130_A_e2-a39-prereg.md),

@@ -83,8 +83,8 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
   `results/trackA/gpu/a39/a39_e2.json` and `a39_mmlupro_30.json` (`tools/export_summaries.py` copies them to the
   tool's default path). Three departures from the spec below, made after the reading (tests seen failing first):
   - **The headlines carry the readings' words** (the spec left the slide's sentence until A39 was read). The fixes
-    figure: R2's "fewer than the instruction" systems, a wrapper system marked "diluted by design", with the acceptance
-    difference beside each, then R1's verdicts. The parts figure: the wrapper alone (R4) and wrapper + note and LoRA +
+    figure: R2's "fewer than the instruction" systems, a wrapper system marked "diluted by design", each with its
+    acceptance difference in the same sentence (Nov 8, Ritik's decision c), then R1's verdicts. The parts figure: the wrapper alone (R4) and wrapper + note and LoRA +
     wrapper (R3), with those differences on the inserted tool turn.
   - **Panel (b)'s readings are written inside the panel,** beside each combination's name, so the longer ones ("no
     better than the better one alone", on the 30) don't run across the plot.
@@ -166,7 +166,7 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 
 ## Additions to figures that exist (no new file)
 
-- **Slide 2:** made Nov 3 as `docs/paper/figures/gate2.png` (B18's rows, with B17's efforts); B20 if read by Nov 17.
+- **Slide 2:** made Nov 3 as `docs/paper/figures/gate2.png` (B18's rows, with B17's efforts); B20 was read Nov 7 (FB1, merged Nov 8), so its rows go in with B18's final table (Arsha, by Nov 18).
   Owner: Arsha, from Nov 6.
 - **Slide 5** (PLAN lists `docs/paper/figures/cue_experiments_slide.png`, the supplement's `cue_experiments`; it plots
   C16–C18, not F3): L3's kappa in the caption once the labels are read under the LLM-judge protocol (kappa under 0.6

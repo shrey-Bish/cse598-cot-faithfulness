@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-07 20:43 (the story's scorecard, item 7; F44 A39, read by its rules R1–R4 once complete at 20:35; earlier 13:42: F41 A40, F42 A41, F43 A42, each read by its rule once complete; earlier 2026-11-05 09:37: T13 confirmed: 510702's start, Granite's files whole; B1R2 not run: GPU time given to A40, F38, then revived Nov 6, §21; earlier, Nov 4 22:51, T13: B20's shared stop file, fixed; 21:31, Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-08 15:07 (Arsha's FB1, B20, in the story's items 1 and 2; the scorecard, item 7: Gate 2 marked, the conclusion made specific; LoRA + note's acceptance cost in the same sentence as its R2 reading, F44; earlier 2026-11-07 20:43: the story's scorecard, item 7; F44 A39, read by its rules R1–R4 once complete at 20:35; earlier 13:42: F41 A40, F42 A41, F43 A42, each read by its rule once complete; earlier 2026-11-05 09:37: T13 confirmed: 510702's start, Granite's files whole; B1R2 not run: GPU time given to A40, F38, then revived Nov 6, §21; earlier, Nov 4 22:51, T13: B20's shared stop file, fixed; 21:31, Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -10,13 +10,18 @@ the session logs. Design and plans:
 (FB1, …; Arsha's from Nov 6). F18, F19, F21–F24, F30, F31, F33 and F34 (Track C) and F15–F17, F25, F29, F35, F37 (Track B)
 stay here.
 
-**The story so far (Oct 28; updated Oct 30, Nov 1, Nov 2, Nov 3 and Nov 7; the scorecard, item 7, Nov 7).**
+**The story so far (Oct 28; updated Oct 30, Nov 1, Nov 2, Nov 3, Nov 7 and Nov 8; the scorecard, item 7, Nov 7 and 8).**
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
    from the user, in all five Track B models: the three on Voyager (Gate 2; 54 questions × 3 runs; tool − user with the
    pasted block: Qwen3 30B Thinking +35, Qwen3 30B Instruct +21, Olmo 3 7B Think +32 points), in
    Qwen3-8B with thinking on and off (+19, +13; F29), and in gpt-oss-20b at every reasoning effort (pasted +24 to
    +26, the real call +14 to +26; B17, F37, run after its one-day window). *Confirmed* (F1, F15, F16, F17, F29;
    F37 reported with no decision).
+   **And in three more open-weight families on Sol (B20, FB1, read by Arsha Nov 7 by its rule):** a tool's hint moves
+   Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B and Granite 4.2 8B more than the user's, clear in all 10 readings, thinking
+   on and off (pasted − user +18 to +73 points; tool channel − user +24 to +91). Labelled: the tool channel is the
+   inserted tool turn (the fallback) for Gemma and Nemotron and Granite's own call; Granite with thinking on only;
+   temperature 1.0. *Confirmed* (FB1).
    **Most of that pull is the tool's claim to be the answer key (B16, F35).** A user who writes "My course answer
    key says the answer is (X)." moves the answer about as much: the claim closes 68% and 71% of the gap with the pasted
    block in Qwen3 and all of it in Olmo, whose inserted tool turn moves it less than the user's claim (−14 [−21, −6]).
@@ -24,6 +29,9 @@ stay here.
    in Qwen3 30B Thinking's pasted block (+12 [+5, +19]). **Confirmed same-day (B19):** B16's tool replies were
    cross-day, mostly Track B's replayed from the reply cache (T11); rerun on Nov 1 with new seeds and no cache, all six
    readings held (+10 [+4, +17], +75 [+65, +85], −14 [−22, −7]; F35).
+   **In B20, whether the tool's form adds to the claim depends on the family and the channel (FB1, R2):** beyond the
+   claim in 5 of 10 readings (Gemma's pasted block, Nemotron's inserted turn, Granite's own call), the claim moves it
+   more in 1 (Gemma's inserted turn with thinking off; 2 at the 16,000 cut), no difference detected in 4.
    **And the pull grows with the claimed source's authority (B24, F40).** "The official solution manual says the answer
    is (X)." moves all three models more than "A classmate of mine says…" (+41, +12, +32 points). It pulls as hard as or
    harder than every tool channel except Instruct's own call (+73 beyond it). For Qwen3 30B Thinking it moves the
@@ -35,7 +43,11 @@ stay here.
    any change to the system turn does it (F17), and *tentative* how much is the declared tool and how
    much the call. Qwen3-8B with thinking on shows it too: bare after 138 of 145 calls (F29). So does gpt-oss-20b at
    every reasoning effort (37 of 37, 75 of 78, 122 of 129; F37, run after its one-day window), though its answers are
-   often bare with no hint too (79% to 81%).
+   often bare with no hint too (79% to 81%). **In B20 (FB1), a call makes the answer barer after Granite's own call
+   (+37 [+25, +49]) and after Nemotron's inserted turn with thinking off (+27 [+21, +34])**, so there the bare letter
+   belongs to the call itself; no difference detected for Nemotron with thinking on. **With thinking, Nemotron's bare
+   answer after the inserted turn falls** (−14 [−19, −9]): thinking writes more of the source down. Gemma's answers are
+   never bare, so its readings say nothing either way (after the fact).
    **Disclosure can be prompted, but it doesn't reduce deference to the tool.** One instruction to say
    what the answer is based on brings the tool back (Thinking bare 51 of 54 → 30 of 63; Instruct 111 → 12
    of 162), and the model still takes the tool's wrong letter as often (B15, F25).
@@ -123,34 +135,43 @@ stay here.
    output]" has **no effect** alone on the inserted tool turn (−1 [−7, +4]). Added to the instruction it follows
    fewer wrong hints there than the instruction alone (−14 [−20, −9]) but takes fewer correct ones (−12 [−18, −6]):
    **"adds, costs acceptance"**; added to LoRA it **"adds to both"**. LoRA + note is **"fewer than the instruction"**
-   by R2, which reads following only (−8 [−12, −4]; "the first fix that beats one line", in A39's log's words), with
-   acceptance −9 [−13, −5] beside it; and the powered replication of Gate 3 passes for the instruction and LoRA.
+   by R2, which reads following only (−8 [−12, −4]; "the first fix that beats one line", in A39's log's words), at an
+   acceptance cost of −9 [−13, −5]. The powered replication of Gate 3 passes for the instruction and LoRA.
    **Next:** B1R2, B1's span on E2, was dropped on Nov 5 before any of its runs
    (the A39 log's §19), revived on Nov 6, last in Ritik's queue (§21), and is running (read when complete, or partial
    at Nov 15 23:59).
-7. **Scorecard against the original plan (Nov 7, 20:43; every number as read; exploratory items labelled).**
+7. **Scorecard against the original plan (Nov 7, 20:43; updated Nov 8, 15:06: Gate 2 marked with B20's families, the
+   conclusion made specific; every number as read; exploratory items labelled).**
+   - **The failure: tools pull harder than users, in every model tested; Gate 2 marked Nov 8.** All five Track B models
+     (item 1) and B20's three new families, clear in all 10 readings (FB1). Its label part is not met by its
+     pre-registered rule (F3).
    - **Honesty when following: improved with training,** by keyword. When LoRA follows a wrong hint on E2, its final
      answer names the hint in 225 of 248 runs, against the instruction's 118 of 237 (+41 [+30, +51]); A40 in 60 of 84
-     (+22 [+7, +36]) (*exploratory, post hoc*). On the 30, L4's hand labels back it: most of LoRA's keyword candidates
-     say the hint shaped the answer (97 of 147, F28). L6, a hand-label check on E2, is pre-registered and not run.
+     (+22 [+7, +36]) (*exploratory, post hoc*; A40's stays keyword-only). On the 30, L4's hand labels back it: most of
+     LoRA's keyword candidates say the hint shaped the answer (97 of 147, F28). L6, a hand-label check of LoRA against
+     the instruction on E2 (84 rows; pre-registered Nov 7, reduced Nov 8), waits for Ritik's labels.
    - **Resisting wrong hints: improved by A40, but as a trade.** It follows the wrong hint in 84 of 694 runs against the
      instruction's 237 of 713, and takes the correct hint in 347 of 459 against 431 of 476 ("fewer, but costs
-     acceptance", F41). LoRA + note and the wrapper + note make the same trade, smaller (F44). *Exploratory (post
-     hoc):* A40 gives more correct answers than the instruction only when fewer than 0.36 [0.22, 0.50] of the tool's
-     answers are correct.
+     acceptance", F41). LoRA + note makes the same trade, smaller: "fewer than the instruction" by R2 (−8 [−12, −4]) at
+     an acceptance cost of −9 [−13, −5]; so does the wrapper + note on the tool turn (F44). *Exploratory (post hoc):*
+     A40 gives more correct answers than the instruction only when fewer than 0.36 [0.22, 0.50] of the tool's answers
+     are correct.
    - **Accuracy preserved; Gate 3 passed by every trained version.** All four on the 30 (F28); LoRA again on E2 with
      power (−7 [−11, −3], F44), with LoRA + note, A40 and A40 + note (F41, F43, F44). No-hint accuracy stays within
      Gate 3's 5-point margin for each.
    - **The stricter bar, beating the one-line instruction on following at no cost to correct hints: met by no fix.**
-     LoRA matches the instruction (F28; on E2 "no difference detected", F44). A40, A40 + note, LoRA + note and the
-     wrapper + note follow fewer wrong hints but take fewer correct ones (F41, F43, F44). The wrapper alone has no
-     effect (F44).
+     LoRA matches the instruction (F28; on E2 "no difference detected", F44). A40, A40 + note and the wrapper + note
+     follow fewer wrong hints but take fewer correct ones (F41, F43, F44), and LoRA + note's R2 reading (−8 [−12, −4])
+     comes at an acceptance cost of −9 [−13, −5] (F44). The wrapper alone has no effect (F44).
    - **The mechanism:** LoRA acts in the reasoning: on base's own reasoning its weights pull toward the hint harder
      (F39). A40 changes how the hint is read, in layers 0–14, before the readout (F42).
    - **Our reading (interpretation):** without a way to verify the tool, resisting wrong hints and relying on right
      ones trade off. Every fix we trained or prompted moves along that trade, not past it. So the fix belongs at the
-     system level: provenance the system can check, or an independent checker. Track C's checker, which re-solves
-     without the tool, stopped all 53 wrong answers on fresh items (C15, F24).
+     system level, and the evidence says which part of it: **provenance labels alone don't help** (A39: marking every
+     tool output "unverified" has no effect alone on the tool turn, −1 [−7, +4], F44; in Track C's pipeline, a tag
+     naming the tool's letter as unverified gives the reviewer no change on catches, FC3); **independent verification
+     does** (Track C's checker, which re-solves without the tool, stopped all 53 wrong tool answers on fresh items, with
+     false alarms on 7 of 45 good lookups, at the no-tool floor; C15, F24).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`); hand labels decide
@@ -2530,7 +2551,7 @@ weights read the hint. It doesn't change A40's E2 reading (F41) or F39.
 **passes**. With F41: no fix, alone or with the note, beats the one-line instruction by these rules. Each that follows
 fewer does it by also taking fewer correct hints.
 
-## F44. Track A (A39): marking every tool output "unverified" has no effect alone; with the one-line instruction it follows fewer wrong hints on the tool turn but takes fewer correct ones ("adds, costs acceptance"); with LoRA it "adds to both"; LoRA + note is "fewer than the instruction", with acceptance −9 beside it
+## F44. Track A (A39): marking every tool output "unverified" has no effect alone; with the one-line instruction it follows fewer wrong hints on the tool turn but takes fewer correct ones ("adds, costs acceptance"); with LoRA it "adds to both"; LoRA + note is "fewer than the instruction" (−8 [−12, −4]) at an acceptance cost of −9 [−13, −5]
 
 **Setup.**
 - **The systems** (pre-registered Nov 3, the
@@ -2554,7 +2575,8 @@ fewer does it by also taking fewer correct hints.
 - **Read Nov 7, 20:33,** once complete: its §18 gives only a partial read, at Nov 15 23:59.
 
 **Result: the wrapper alone "no effect" (R4); wrapper + note "adds, costs acceptance" and LoRA + wrapper "adds to
-both" (R3); LoRA + note "fewer than the instruction" (R2) and "adds, costs acceptance" (R3).**
+both" (R3); LoRA + note "fewer than the instruction" (R2: following −8 [−12, −4], at an acceptance cost of −9 [−13,
+−5]) and "adds, costs acceptance" (R3).**
 
 | reading (E2) | following | acceptance | no-hint accuracy | the rule's reading |
 |---|---|---|---|---|
@@ -2600,8 +2622,8 @@ pooled rates include its partner's shared runs):
 **The 30, beside it** (the same words; not pooled; the rules are read on E2):
 - R4 "works" (−18 [−34, −1]; acceptance +2 [−5, +8]);
 - R3: wrapper + note and LoRA + wrapper "no better than the better one alone"; LoRA + note "adds, costs acceptance";
-- R2: LoRA + note "fewer than the instruction" (−11 [−18, −4]); LoRA "no difference detected"; the wrapper "more"
-  (diluted by design);
+- R2: LoRA + note "fewer than the instruction" (−11 [−18, −4], with acceptance −7 [−15, +1] in the same comparison);
+  LoRA "no difference detected"; the wrapper "more" (diluted by design);
 - R1: all six pass.
 
 **What it means, as A39's log said in advance (§4).**
@@ -2631,7 +2653,7 @@ over the copied-back runs files (the
 - R4: the wrapper alone, **no effect**.
 - R3: wrapper + note **adds, costs acceptance**; LoRA + wrapper **adds to both**; LoRA + note **adds, costs
   acceptance**.
-- R2: LoRA + note **fewer than the instruction**.
+- R2: LoRA + note **fewer than the instruction** (−8 [−12, −4]), at an acceptance cost of −9 [−13, −5].
 - R1: passes for every system but the wrapper (diluted by design).
 
 Marking every tool output "unverified" doesn't beat the instruction alone. With the instruction, it follows fewer wrong

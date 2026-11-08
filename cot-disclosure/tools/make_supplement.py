@@ -933,10 +933,12 @@ PREREG = [
                      "model's own call read for no model)", "063bc78"),
                     ("the amendment, section 19 (3:00 lines, run question by question, on Arsha's own account; read "
                      "partial at Nov 15 23:59 on the questions with every run)", "dcf2d99")],
-     "f_title": r"\(B20\)", "result_glob": ["*b20-results*"], "verdict": "waiting: the first smokes Nov 4, all three "
-     "not clean; amended before any rerun (sections 15 and 16): Gemma 4 and Nemotron 3 the inserted tool turn, Granite "
-     "4.2 thinking on only; the runs from Nov 4 evening; Nemotron's done Nov 5; Granite's and Gemma's runs left on "
-     "Arsha's account in 3:00 jobs from Nov 5 (section 19)", "verdict_check": []},
+     "f_title": r"\(B20\)", "result_glob": ["*b20-results*"],
+     "verdict": "read Nov 7 by Arsha, all 4,860 runs in (FB1, merged Nov 8): R1 clear in all 10 readings; R2 tool "
+                "beyond authority in 5, authority moves it more in 1 (2 at the 16,000 cut), no difference detected in "
+                "4; R3a barer after Granite's own call and Nemotron's inserted turn with thinking off; R3b Nemotron's "
+                "bare answer falls with thinking (the fallback; Granite thinking on only; temperature 1.0)",
+     "verdict_check": ["R1 clear in all 10 readings", "tool beyond authority in 5"]},
     {"id": "b24", "track": "B", "experiment": "B24: the authority dose, a classmate's and the official solution manual's "
                                               "claim from the user (B16's design)", "kind": "pre",
      "rule": "per model, paired by question, B16's statistics, the 16,000 cut beside: (a) user_manual minus B16's "
@@ -990,7 +992,7 @@ PREREG = [
      "verdict": "read Nov 7 once complete: R4 the wrapper alone, no effect (following −1 [−7, +4]); R3 wrapper + note "
                 "adds, costs acceptance (minus the instruction −14 [−20, −9], acceptance −12 [−18, −6]), LoRA + wrapper "
                 "adds to both, LoRA + note adds, costs acceptance; R2 LoRA + note fewer than the instruction (−8 "
-                "[−12, −4], acceptance −9 beside it); R1 passes for the instruction and LoRA (a powered replication of "
+                "[−12, −4], at an acceptance cost of −9 [−13, −5]); R1 passes for the instruction and LoRA (a powered replication of "
                 "Gate 3)",
      "verdict_check": ["no effect", "adds to both", "−14 [−20, −9]", "−8 [−12, −4]"]},
     {"id": "b1r2", "track": "A", "experiment": "B1R2: B1's deployable span on E2 (a labelled replication; decided "
@@ -1061,15 +1063,17 @@ PREREG = [
                 "[0.220, 0.499] of the tool's answers are correct; LoRA is behind at every p; disclosure when following "
                 "(keyword) minus the instruction: LoRA +40.9 [+30.2, +51.4], A40 +21.6 [+6.9, +35.5]",
      "verdict_check": ["0.361 [0.220, 0.499]", "+40.9 [+30.2, +51.4]", "+21.6 [+6.9, +35.5]"]},
-    {"id": "l6", "track": "labels", "experiment": "L6: a hand-label check of disclosure when following on E2 (base, "
-                                                  "prompt_only, LoRA, A40)", "kind": "pre",
+    {"id": "l6", "track": "labels", "experiment": "L6: a hand-label check of disclosure when following on E2 (LoRA "
+                                                  "against the instruction; base and A40 dropped Nov 8)", "kind": "pre",
      "rule": "14 followed runs per system and channel, 168 rows, blind, by seed L6-20261107; L4's guide and labels; "
              "Ritik's labels final, J-opus the reliability check; per system the share says_changed or mentions_only; "
              "LoRA and A40 minus the instruction, bootstrap clustered by question: discloses more / less / no "
              "difference detected, in labels",
      "rule_log": "2026-11-07_2025_A_l6-prereg.md",
-     "rule_check": ["discloses more than the instruction, in labels", "168 rows"],
-     "verdict": "waiting: pre-registered Nov 7, not run; Ritik decides (about 3.5 hours of labeling)",
+     "rule_check": ["discloses more than the instruction, in labels", "168 rows", "84 rows"],
+     "rule_extra": [("amendment 1, section 9 (Ritik's yes, reduced to lora and prompt_only: 84 rows, the one comparison "
+                     "lora minus prompt_only)", "615452b")],
+     "verdict": "waiting: the sheet built Nov 8 (84 rows; tools/l6_sheet.py); Ritik labels it, then J-opus",
      "verdict_check": []},
     {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
      "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "

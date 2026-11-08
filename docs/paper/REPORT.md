@@ -2,7 +2,7 @@
 
 **Edited by:** Ritik; each section's bullets by its owner (Track B's: Arsha, from `docs/trackB/REPORT_B.md`; Track C's: Shrey, from `docs/trackC/REPORT_C.md`), merged by Ritik.
 
-Started Nov 3 by Ritik; updated Nov 7, 20:43 (§7's exploratory trade-off bullet, post hoc; earlier 20:35, F44 in §7: A39 read by its rules R1–R4, its figures drawn, its waiting entry replaced); earlier Nov 7, 13:52 (F41–F43 in §7, A40, A41 and A42 read; A39 complete and B1R2 running in §7's waiting list; §6's L3 entry read Nov 4, no longer waiting; Shrey's figures placed in `docs/paper/figures/`); earlier Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
+Started Nov 3 by Ritik; updated Nov 8, 15:09 (Arsha's FB1, B20, in §2–§4 and §6; §7's LoRA + note with its acceptance cost in the same sentence; §12's conclusion bullets, made specific; earlier Nov 7, 20:43: §7's exploratory trade-off bullet, post hoc; earlier 20:35, F44 in §7: A39 read by its rules R1–R4, its figures drawn, its waiting entry replaced); earlier Nov 7, 13:52 (F41–F43 in §7, A40, A41 and A42 read; A39 complete and B1R2 running in §7's waiting list; §6's L3 entry read Nov 4, no longer waiting; Shrey's figures placed in `docs/paper/figures/`); earlier Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
 methods are filled in as bullets** (facts with their source), so the prose can be written from them. Numbers come from
 [`FINDINGS.md`](../FINDINGS.md), the tracks' `FINDINGS_B.md` and `FINDINGS_C.md`, and the claims from
 [`CLAIMS.md`](CLAIMS.md). Results freeze on Nov 18; the draft is due Nov 22, the final report Nov 24.
@@ -10,8 +10,8 @@ methods are filled in as bullets** (facts with their source), so the prose can b
 **Results bullets (§4–§10), Nov 4, 03:52 (Ritik; F40, B24, added 11:16; at 16:16 every bullet checked against
 FINDINGS, and F40's limits, the slide figures and the traps T1–T12 (§10) added).** One bullet per finding, F1–F40: the
 claim in plain words; the numbers as FINDINGS states them (X of Y, 95% intervals); its status, as FINDINGS words it;
-its limits; its figure. `FINDINGS_B.md` and `FINDINGS_C.md` have no entries yet (FINDINGS_B holds one note before any
-reading, descriptive: B20's smokes). A finding with two parts (the pull, the words) has a bullet in each section.
+its limits; its figure. `FINDINGS_B.md` and `FINDINGS_C.md` had no entries then; since, FC1–FC4 (merged Nov 6, §8 and
+§9) and FB1 (merged Nov 8, §4 and §6). A finding with two parts (the pull, the words) has a bullet in each section.
 Results still running say so, with their dates. One row per finding:
 [`tables/results_at_a_glance.md`](tables/results_at_a_glance.md). Figures: the report's own file and, where one exists,
 the slide's 16:9 version from the same rows (`_slide`, `tools/slide_figures.py`; PLAN's presentation map).
@@ -37,10 +37,11 @@ the slide's 16:9 version from the same rows (`_slide`, `tools/slide_figures.py`;
 | Qwen3-8B | Sol, our vLLM, `enable_thinking` | on and off, same weights | Track B (F29), A37 (F36) |
 | gpt-oss-20b (`6cee5e81`) | Sol, our vLLM, harmony | effort low / medium / high | B17 (F37), temperature 1.0 |
 | Olmo 3.1 32B Instruct, Olmo 3 7B Instruct, Qwen3 30B Thinking, Granite 4.1 30B, Mistral Small 3.2 24B | Voyager; Sol (C13) | — | Track C's reviewers (F18, F22, F30) |
-| B20's three (Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B, Granite 4.2 8B) | Sol, our vLLM | on and off (Granite 4.2 8B on only: amendment, Nov 4) | B20, if run (Nov 15) |
+| B20's three (Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B, Granite 4.2 8B) | Sol, our vLLM | on and off (Granite 4.2 8B on only: amendment, Nov 4) | B20 (FB1, read Nov 7 by Arsha), temperature 1.0 |
 
 - **Sampling:** temperature 0.6 for Track A and Track B's models (each model's recommended); gpt-oss-20b 1.0 (its
-  recommended); every comparison is within one model or labelled with each model's setting.
+  recommended), and B20's three 1.0 (each one's recommended; FB1); every comparison is within one model or labelled
+  with each model's setting.
 - **The budget:** one 32,768-token budget per run, prompt and every reply (a run past it has no answer); Track B also
   reports a 16,000-token cut.
 
@@ -50,8 +51,9 @@ the slide's 16:9 version from the same rows (`_slide`, `tools/slide_figures.py`;
 - the user's authority claim ("My course answer key says the answer is (X).", B16);
 - the user's claim from a classmate or from the solution manual (B24, read Nov 4, F40; §4);
 - a tool result pasted into the user's turn (`[tool result: lookup_answer_key] …`);
-- the model's own call to the lookup tool (`tool_real`; Qwen3, gpt-oss);
-- a tool turn written into the conversation (`tool_injected`, declared or undeclared; Olmo);
+- the model's own call to the lookup tool (`tool_real`; Qwen3, gpt-oss, and Granite 4.2 8B in B20);
+- a tool turn written into the conversation (`tool_injected`, declared or undeclared; Olmo, and Gemma 4 and Nemotron 3
+  Nano in B20, the fallback, since their smokes didn't call the tool and answer);
 - a system note.
 
 **Questions:**
@@ -110,6 +112,14 @@ reliability. On Nov 4, before any further judging, we pre-registered an LLM-judg
   (`archive/sessions/…-prereg.md`); the supplement's ledger checks each rule's commit against its first result, and
   DEVIATIONS lists every change of plan. Readings made after the fact are labelled so.
 
+**Across models (Track B):**
+- **Gate 2:** following, tool minus the user's hint, paired by question, 54 questions × 3 runs; B16's authority arm
+  ("My course answer key says the answer is (X).") separates the tool's form from its claim (F35).
+- **B20** (FB1; pre-registered Nov 3, amended Nov 4–5 before the runs each amendment changes; read once, all 4,860 runs
+  in): R1 tool channel and pasted block minus the user's hint; R2 the same minus the authority claim; R3a the bare
+  share after the tool channel minus after the pasted block; R3b the bare share after the tool channel, thinking on
+  minus off. 27 readings, not corrected for multiplicity; the 16,000-token cut beside each.
+
 **Inside the model (Track A, Olmo 3 7B Think; A37 on Qwen3-8B):**
 - the takeover: where in the reasoning the hinted answer takes over (probes, Step 3);
 - attention to the hint at the answer position (Step 9) and activation patching at the takeover (Step 10, cut (ii)):
@@ -130,7 +140,7 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 ## 4. The failure: tools pull harder (Arsha)
 
 - Gate 2 on five models (B18's table, `docs/paper/tables/trackB_final.md`); tool or authority (B16, F35); the authority
-  dose (B24, F40); the thinking dose (B17, F37); B20 if read.
+  dose (B24, F40); the thinking dose (B17, F37); three more families (B20, FB1).
 - Figure: `docs/paper/figures/gate2.png`.
 
 **Results** (Gate 2 = tool minus the user's hint, following, paired by question, 54 questions × 3 runs unless noted):
@@ -238,17 +248,26 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
   - figure: waiting: slide 7's `docs/paper/figures/b16_authority.png` takes B24's two arms beside B16's (Arsha, from
     Nov 6; PLAN's map, WAITING.md "Additions")
 
-**Waiting:**
-
-- **B20 (waiting): three new open-weight families on Sol.** Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B and Granite 4.2
-  8B, thinking on and off, with Track B's design and B16's authority arm. Pre-registered Nov 3
-  ([log](../../archive/sessions/2026-11-03/2026-11-03_1219_B_b20-prereg.md)). Runs by Nov 15; read Nov 17 (Arsha).
-  - Amendments of Nov 4 (the B20 log's §15, `2361152`, before any rerun): Gemma 4's tool channel is the inserted tool
-    turn (`tool_injected`), labelled, because its smoke never called the tool (0 of 2); Granite 4.2 8B runs with
-    thinking on only, because with thinking off it still wrote a closed think block in 6 of 6 smoke runs. Nemotron's
-    smoke failed the tool path only, so its tool channel is the inserted tool turn too (§16, `063bc78`). The design is
-    4,860 runs.
-  - figure: waiting (WAITING.md, slide 2: B20's rows go into docs/paper/figures/gate2.png if read by Nov 17)
+- **FB1. B20 (Arsha's; read Nov 7 by its rule, all 4,860 runs in): a tool's hint moves all three new open-weight
+  families more than the user's; whether the tool's form adds to the claim it carries depends on the family and the
+  channel.** Gemma 4 26B-A4B and Nemotron 3 Nano 30B-A3B thinking on and off (1,944 runs each), Granite 4.2 8B thinking
+  on only (972); Track B's 54 questions × 3 runs and B16's authority arm. Pre-registered Nov 3
+  ([log](../../archive/sessions/2026-11-03/2026-11-03_1219_B_b20-prereg.md)); amended Nov 4 and 5 (§15, §16, §19).
+  - Numbers (R1, minus the user's hint; Gemma on, Gemma off, Nemotron on, Nemotron off, Granite on): pasted +39
+    [+28, +51], +73 [+64, +83], +51 [+41, +62], +35 [+27, +43], +18 [+10, +28]; tool channel +24 [+13, +35], +33 [+22,
+    +44], +75 [+68, +82], +61 [+54, +69], +91 [+85, +96]: **clear in all 10**. R2, minus the authority claim: pasted
+    +12 [+5, +20], +10 [+3, +18], +5 [−2, +12], +0 [−8, +9], −1 [−5, +2]; tool channel −3 [−10, +4] (−8 [−15, −1] at
+    the 16,000 cut), −30 [−40, −20], +29 [+19, +39], +27 [+20, +33], +70 [+58, +81].
+  - Status: confirmed by the rule as stated (FB1): R1 clear in all 10 readings; R2 tool beyond authority in 5 (Gemma's
+    pasted block, Nemotron's inserted turn, Granite's own call), authority moves it more in 1 (Gemma's inserted turn
+    with thinking off; 2 at the cut), no difference detected in 4 (3 at the cut).
+  - Limits: the tool channel is the inserted tool turn (the fallback) for Gemma and Nemotron, Granite's own call for
+    Granite (it called in 162 of 162); Granite thinking on only; temperature 1.0 (Track B's models 0.6); one model a
+    family; keyword measures; 54 questions ("no difference detected" is not a finding of no difference); the 16,000
+    cut leaves Gemma and Granite, thinking on, with as few as 22 questions; 27 readings, not corrected for
+    multiplicity.
+  - figure: waiting (WAITING.md, slide 2: B20's rows go into docs/paper/figures/gate2.png with B18's table, Arsha, by
+    Nov 18)
 
 ## 5. Level 1, inside the model (Ritik)
 
@@ -456,6 +475,19 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
   - figure: waiting (slide 7, as F40 in §4)
 - **F24 (the words), reported with no decision.** On C15's 100 fresh items the solver's final answer after a lookup is
   bare in 50 of 55 (bad) and 43 of 45 (good), against 0 of 100 without the tool; good − bad +5 [−5, +15].
+- **FB1 (the words). In B20, a call makes the answer barer in Granite and Nemotron, and Nemotron's bare answer falls
+  with thinking.** Its rule's bullet is in §4.
+  - Numbers: R3a, bare after the tool channel minus after the pasted block: Granite (its own call) +37 [+25, +49] and
+    Nemotron with thinking off (the inserted turn) +27 [+21, +34], "a call makes the answer barer"; Nemotron with
+    thinking on −2 [−9, +5], no difference detected. R3b, Nemotron's bare answer after the inserted turn, thinking on
+    minus off: −14 [−19, −9], "falls with thinking" (−16 at the 16,000 cut): thinking writes more of the source down.
+  - Status: confirmed by the rule as stated (FB1). Gemma's R3a and R3b are uninformative: its answered runs are never
+    bare (0 in every arm, 0 of 162 with no hint), so their zero-width intervals don't mean the arms agree (after the
+    fact). Granite's R3b is not read (thinking on only).
+  - Limits: Nemotron with thinking off answers in a few tokens (median 6) and is bare after the inserted turn in 162 of
+    162, which bounds its R3a off and R3b (after the fact); the final answer names the tool (keywords) on the tool
+    channel in 8 of 156 (Nemotron on), 0 of 162 (off) and 0 of 162 (Granite), reported with no decision.
+  - figure: none yet
 
 **The labels (read; no longer waiting):**
 
@@ -586,8 +618,8 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     - R3, LoRA + wrapper − LoRA: following −8 [−14, −2], acceptance −2 [−7, +3]; − the wrapper: −14 [−20, −8], −4
       [−9, +1]: "adds to both".
   - Numbers, the rest (pooled):
-    - LoRA + note − the instruction: following −8 [−12, −4] (R2: "fewer than the instruction"), acceptance −9 [−13, −5]
-      beside it; with − LoRA (−10 [−14, −6], acceptance −7 [−11, −3]), R3 "adds, costs acceptance". It follows 179
+    - LoRA + note − the instruction: following −8 [−12, −4] (R2: "fewer than the instruction"), at an acceptance cost
+      of −9 [−13, −5]; with − LoRA (−10 [−14, −6], acceptance −7 [−11, −3]), R3 "adds, costs acceptance". It follows 179
       of 710 [22, 29%] and takes 384 of 470 [78, 85%].
     - R2: base "more" (+9 [+4, +14]); LoRA "no difference detected" (+2 [−2, +6]); diluted by design, the wrapper
       "more", wrapper + note "fewer than the instruction" (−5 [−6, −3]), LoRA + wrapper "no difference detected".
@@ -595,10 +627,12 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
       Gate 3 (F28's verdict stays), and for LoRA + note, wrapper + note and LoRA + wrapper; the wrapper fails (−0.5
       [−2, +1]; diluted by design). No no-answer imbalance.
     - The 30, beside it (not pooled): R4 "works" (−18 [−34, −1]); R3 for both wrapper combinations "no better than the
-      better one alone"; LoRA + note "fewer than the instruction" (−11 [−18, −4]).
+      better one alone"; LoRA + note "fewer than the instruction" (−11 [−18, −4]), acceptance −7 [−15, +1] in the
+      same comparison.
   - Status: confirmed by the rules (F44). R4 "no effect"; R3: wrapper + note "adds, costs acceptance", LoRA + wrapper
-    "adds to both", LoRA + note "adds, costs acceptance"; R2: LoRA + note "fewer than the instruction" (in A39's log's
-    words said in advance, "the first fix that beats one line": on following, the one measure R2 reads); R1 passes for
+    "adds to both", LoRA + note "adds, costs acceptance"; R2: LoRA + note "fewer than the instruction" (−8 [−12, −4])
+    at an acceptance cost of −9 [−13, −5] (in A39's log's words said in advance, "the first fix that beats one line":
+    on following, the one measure R2 reads); R1 passes for
     every system but the wrapper. The wrapper "works" isn't reached.
   - Limits: one model; MMLU-Pro's evaluation categories; the wrapper acts on one of three channels, on 2 wrong-hint and
     2 correct-hint runs a question; the wrapper systems' R1 and R2 are diluted by design; keyword hiding; T12 (the
@@ -889,3 +923,15 @@ supplement's [`TRAPS.md`](supplement/TRAPS.md) lists them with sources; figure: 
   217).
 
 ## 11. Related work ([`RELATED_WORK.md`](RELATED_WORK.md)), 12. Conclusion and deployment (everyone)
+
+- **§12, the conclusion's bullets (Ritik, Nov 8; our reading, labelled as interpretation):**
+  - The failure holds across families: a tool's hint moves the answer more than the user's in all five Track B models
+    and in B20's three new families (Gate 2, marked Nov 8; FB1). The label part of Gate 2 is not met (F3).
+  - Without a way to verify the tool, resisting wrong hints and relying on right ones trade off: every fix we trained
+    or prompted moves along that trade, not past it (F41, F43, F44; FINDINGS' story, item 7).
+  - So the fix belongs at the system level, and the evidence says which part. **Provenance labels alone don't help:**
+    marking every tool output "unverified" has no effect alone on the tool turn (A39, −1 [−7, +4], F44), and in the
+    pipeline a tag naming the tool's letter as unverified gives the blind reviewer no change on catches (C20, FC3).
+    **Independent
+    verification does:** Track C's checker, which re-solves without the tool, stopped all 53 wrong tool answers on
+    fresh items, with false alarms on 7 of 45 good lookups, at the no-tool floor (C15, F24).

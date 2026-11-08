@@ -19,7 +19,7 @@ points apart carries a dagger (9.1). "too few questions" and "missing runs" are 
 Drawn only after every A39 part is in (the report's "complete"; A39 was read Nov 7, once complete, by its rules): an
 incomplete report is refused unless --draft, which stamps every figure as a draft. The headlines say only what the
 readings say (written once A39 was read): the fixes figure, R2's "fewer than the instruction" systems, a wrapper system
-marked diluted by design, with the acceptance difference beside each, then R1's verdicts; the parts figure, what marking
+marked diluted by design, each with its acceptance difference in the same sentence (Nov 8), then R1's verdicts; the parts figure, what marking
 does alone (R4) and added to the note and to LoRA (R3), with those differences on the inserted tool turn.
 
   python tools/a39_figures.py --report results/summaries/trackA/gpu/a39/a39_e2.json      # -> docs/paper/figures/
@@ -219,16 +219,16 @@ def named(systems):
 
 def fixes_words(res):
     """(headline, sentence) of the fixes figure, the readings' words only: R2's "fewer than the instruction" systems,
-    the acceptance difference beside each (R2 reads following only), then R1's verdicts."""
+    each with its correct-hint acceptance minus the instruction in the same sentence (Nov 8, Ritik: R2 reads following
+    only, so its cost goes with it), then R1's verdicts."""
     name, n = SETS.get(res["qset"], res["qset"]), res["questions"]
     fewer = [s for s in SYSTEMS if res["r2"].get(s, {}).get("reading") == "fewer than the instruction"]
     passed = [s for s in SYSTEMS if res["r1"].get(s, {}).get("verdict") == "passes"]
     failed = [s for s in SYSTEMS if s in res["r1"] and res["r1"][s].get("verdict") != "passes"]
+    each = "; ".join(f"{named([s])}, with correct hints taken {ci(res['r2'][s]['acceptance'])}" for s in fewer)
     head = (f"A39 on {name} ({n} questions): fewer wrong hints followed than the one-line instruction (R2): "
-            f"{named(fewer) or 'none'}.")
-    beside = "; ".join(f"{NAMES[s]} {ci(res['r2'][s]['acceptance'])}" for s in fewer)
-    sub = ((f"Correct-hint acceptance minus the instruction, beside it (not read by R2): {beside}. " if fewer else "")
-           + f"Gate 3's rule against base (R1) passes: {named(passed) or 'none'}"
+            f"{each or 'none'}.")
+    sub = (f"Gate 3's rule against base (R1) passes: {named(passed) or 'none'}"
            + (f"; fails: {named(failed)}" if failed else "")
            + ". A wrapper system's informative readings are R3 and R4, on the inserted tool turn (the parts figure).")
     return head, sub

@@ -1,4 +1,4 @@
-## In plain words: Track A's fix so far (as of Nov 7, 20:39: A39 read; by Ritik; earlier 13:44 and Nov 5, 09:08)
+## In plain words: Track A's fix so far (as of Nov 8, 15:12: the conclusion made specific, L6's sheet built; by Ritik; earlier Nov 7, 20:39: A39 read; 13:44 and Nov 5, 09:08)
 
 **The verdict.** Every trained version follows fewer wrong hints than base and passes Gate 3 (on E2 too, with power:
 A39's R1). **Nothing beats one line of instruction in the prompt without a cost.** Each fix that follows fewer wrong
@@ -17,8 +17,8 @@ hints than the instruction also takes fewer correct ones.
   −14 [−20, −9]) and takes fewer correct ones (76% against 88%; −12 [−18, −6]): "adds, costs acceptance". Added to
   LoRA, it "adds to both" at no acceptance cost beyond 5 points.
 - **LoRA + note is "fewer than the instruction"** by A39's R2, which reads following only (25% against 33%; −8
-  [−12, −4]). A39's log called that, in advance, "the first fix that beats one line". Acceptance falls 9 points beside
-  it (82% against 91%), which R2 doesn't read, and R3 reads the same system "adds, costs acceptance".
+  [−12, −4]), at an acceptance cost of −9 [−13, −5] (82% against 91%). A39's log called that reading, in advance, "the
+  first fix that beats one line"; R2 doesn't read acceptance, and R3 reads the same system "adds, costs acceptance".
 
 Olmo 3 7B Think, the held-out 30 MMLU-Pro questions, 930 runs per system (F28, final Oct 31). Sources:
 [FINDINGS](../FINDINGS.md); Gate 3's [table](../../cot-disclosure/results/summaries/trackA/gpu/eval/gate3_table.md)
@@ -110,10 +110,16 @@ the rules of Nov 3, [its log](../../archive/sessions/2026-11-03/2026-11-03_1130_
 - **LoRA still matches the instruction** (R2: +2 [−2, +6], "no difference detected"), now with the power to say so.
 - **The wrapper alone "no effect"** (R4). It "works" on the 30 (−18 [−34, −1]), reported beside, not read.
 - **Combinations:** LoRA + wrapper "adds to both"; wrapper + note and LoRA + note "add, costs acceptance".
-- **The meanings said in advance:** "fewer than the instruction" (LoRA + note) is "the first fix that beats one line",
-  on following, the one measure R2 reads; the wrapper "works" isn't reached.
+- **The meanings said in advance:** "fewer than the instruction" (LoRA + note, −8 [−12, −4], at an acceptance cost of
+  −9 [−13, −5]) is "the first fix that beats one line", on following, the one measure R2 reads; the wrapper "works"
+  isn't reached.
 
 **4. Next.**
-- **B1R2** (B1's span on E2) is running: 31 of 40 parts ended at 20:22 Nov 7. Read when complete, or partial at
+- **B1R2** (B1's span on E2) is running: at Nov 8 14:55, all 40 parts had ended (by 06:35; four at the planned warning stop: 06, 21, 24, 37); sweep 2 done, sweep 3 not needed; sweeps 1 and 4 (11 and 9 runs left when submitted) pending in Sol's queue (`Priority`), no start time from `squeue --start`. Read when complete, or partial at
   Nov 15 23:59.
-- **L6** (a hand-label check of disclosure when following, pre-registered Nov 7, not run): Ritik decides.
+- **L6** (a hand-label check of disclosure when following, LoRA against the instruction on E2): pre-registered Nov 7,
+  reduced Nov 8 to those two systems (84 rows); the sheet is built and waits for Ritik's labels, then J-opus.
+- **What it means for the fix** (our reading, interpretation): without a way to verify the tool, resisting wrong
+  hints and relying on right ones trade off, so the fix belongs at the system level. Provenance labels alone don't
+  help (the wrapper alone, "no effect", F44); independent verification does (Track C's checker, which re-solves
+  without the tool, stopped all 53 wrong tool answers on fresh items, F24).

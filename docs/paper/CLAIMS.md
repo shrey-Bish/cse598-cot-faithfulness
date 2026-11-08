@@ -1,6 +1,6 @@
 # Candidate claims: evidence, status, objection, what settles it
 
-Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-07 20:39 (A39 read, F44: claims 1.5 and 1.6; L6 pre-registered, not run; earlier 13:53: A40, A41 and A42 read: claim 1.5; B1R2 running: claim 1.7; earlier 2026-11-05 09:52: B1R2 not run: GPU time given to A40; 2026-11-04 17:50: the second
+Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-08 15:10 (B20, FB1, in claim 1.1 and Gate 2's gap marked; claim 1.5: LoRA + note's acceptance cost in the same sentence, L6 reduced and its sheet built; earlier 2026-11-07 20:39: A39 read, F44: claims 1.5 and 1.6; L6 pre-registered, not run; earlier 13:53: A40, A41 and A42 read: claim 1.5; B1R2 running: claim 1.7; earlier 2026-11-05 09:52: B1R2 not run: GPU time given to A40; 2026-11-04 17:50: the second
 rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; earlier: B17, B1, the hand labels, A18, B1R2 decided; **edited by:** Ritik; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
 the interval excludes no effect), *tentative* (direction there, interval includes 0 or a confound remains), *waiting*
 (the run is going or planned), *not supported*, *dropped*.
@@ -19,13 +19,18 @@ the interval excludes no effect), *tentative* (direction there, interval include
     - gpt-oss-20b, the same weights at reasoning effort low / medium / high, pasted +24 [+16, +34], +25 [+15, +36],
       +26 [+16, +36]; real call +14 [+7, +20], +25 [+16, +35], +26 [+17, +36] (B17, F37; reported with no decision;
       temperature 1.0; run after its one-day window, pre-registration §13).
+  - **B20 (FB1, read Nov 7 by Arsha), three more open-weight families on Sol,** tool − user, pasted / the tool channel
+    (the inserted turn for Gemma and Nemotron, Granite's own call), clear in all 10 readings: Gemma 4 26B-A4B on +39 /
+    +24, off +73 / +33; Nemotron 3 Nano 30B-A3B on +51 / +75, off +35 / +61; Granite 4.2 8B on +18 / +91 (temperature
+    1.0; Granite thinking on only). R2, minus the authority claim: tool beyond it in 5 of 10, the claim more in 1 (2 at
+    the 16,000 cut), no difference detected in 4.
   - **B16 (F35, Nov 1), the user with the tool's authority** ("My course answer key says the answer is (X)."), tool
     minus that, pasted / the tool's channel: Qwen3 30B Thinking +12 [+5, +19] / +6 [−7, +19]; Instruct +6 [−1, +13] /
     **+75 [+65, +85]**; Olmo 3 7B Think −3 [−10, +3] / **−14 [−21, −6]** (authority moves it more). The share of
     Gate 2's gap the claim closes: the pasted block 68% and 71% (Qwen3), 109% (Olmo); the tool's channel 80%
     (Thinking), 164% (Olmo), 16% (Instruct's own call).
 - **Status:** *confirmed* as worded, against the plain user hint (five models; thinking on and off in one of them,
-  three reasoning efforts in another).
+  three reasoning efforts in another; and B20's three families, FB1). **Gate 2's gap part marked met Nov 8.**
   *Tentative* for Olmo alone in its pinned format (F1: +19 [−2, +40], one user run per question). **Restated by B16:**
   most of the gap is the source's claimed authority, not the channel; the channel adds to it only for Qwen3 30B
   Instruct's own call and Qwen3 30B Thinking's pasted block.
@@ -134,11 +139,12 @@ the interval excludes no effect), *tentative* (direction there, interval include
   The kind of target changes how the weights read the hint, unlike LoRA's.
 - **The powered replication on E2 (A39, F44, read Nov 7 by the rules of Nov 3):** Gate 3's rule passes again for the
   instruction (−9 [−14, −4]) and LoRA (−7 [−11, −3]), and LoRA matches the instruction (R2 +2 [−2, +6], "no difference
-  detected"), now with power. **LoRA + note is "fewer than the instruction"** (R2, following only: −8 [−12, −4]), which
-  A39's log called in advance "the first fix that beats one line"; its acceptance falls 9 points beside it (−9 [−13,
-  −5]), and R3 reads it "adds, costs acceptance". So no fix beats the instruction without a cost to correct hints.
-- **Settles it:** L4 part 2 (LoRA minus base in labels); L6, a hand-label check of disclosure when following on E2
-  (pre-registered Nov 7, not run: Ritik decides).
+  detected"), now with power. **LoRA + note is "fewer than the instruction"** (R2, following only: −8 [−12, −4]) at an
+  acceptance cost of −9 [−13, −5]; A39's log called that reading in advance "the first fix that beats one line", and R3
+  reads it "adds, costs acceptance". So no fix beats the instruction without a cost to correct hints.
+- **Settles it:** L4 part 2 (LoRA minus base in labels); L6, a hand-label check of disclosure when following on E2,
+  LoRA against the instruction (pre-registered Nov 7, reduced Nov 8 to those two, 84 rows; the sheet built Nov 8,
+  waiting for Ritik's labels).
 
 **1.6 Input-embedding provenance tags don't help.**
 - **Evidence:** F20.

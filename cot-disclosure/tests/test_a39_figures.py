@@ -164,9 +164,10 @@ def test_the_fixes_headline_says_r2_and_r1_and_marks_a_wrapper_system_diluted(sy
     res = read_report(synthetic)
     head, sub = af.fixes_words(res)
     assert "fewer wrong hints" in head and "(R2)" in head
-    assert "LoRA + note, wrapper + note (diluted by design)" in head          # the amendment's 9.2, in the words too
-    for s in ("lora_note", "wrap_note"):                                       # acceptance beside it, not read by R2
-        assert f"{af.NAMES[s]} {af.ci(res['r2'][s]['acceptance'])}" in sub
+    for s in ("lora_note", "wrap_note"):   # Nov 8 (Ritik): each one's acceptance in the same sentence as R2's reading;
+        label = af.NAMES[s] + (" (diluted by design)" if s in af.SHARED else "")    # the amendment's 9.2, in the words
+        assert f"{label}, with correct hints taken {af.ci(res['r2'][s]['acceptance'])}" in head
+    assert "beside it" not in sub
     assert ("passes: the instruction, LoRA, LoRA + note, wrapper + note (diluted by design), LoRA + wrapper (diluted "
             "by design); fails: wrapper (diluted by design)") in sub
     for e in res["r2"].values():

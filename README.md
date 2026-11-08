@@ -1,6 +1,6 @@
 # Do Thinking Modes Make Chain-of-Thought More Honest?
 
-CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-05. **Edited by:** Ritik.
+CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-08. **Edited by:** Ritik.
 
 We slip a wrong hint into a multiple-choice question, from the user or from a tool, and ask two things: does the hint
 change the model's answer, and does the model say so? Thinking models return their private reasoning and their final
@@ -18,18 +18,21 @@ experiment on that map. Results freeze on Nov 18; the final presentation and rep
 and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The story so far").
 
 1. **Tools sway models more than users, mostly through their claim to be the answer key.** The same wrong hint moves
-   the answer more from a tool than from the user, in all five models tested (Gate 2); a user who claims the answer
+   the answer more from a tool than from the user, in all five Track B models (Gate 2, marked Nov 8); a user who claims the answer
    key's authority moves it about as much, except where the model calls the tool itself every time (B16, F35;
    confirmed same-day, B19). The pull grows with the claimed source's authority: the official solution manual moves
    all three Voyager models more than a classmate, and for Qwen3 30B Thinking more than "answer key" (B24, F40).
-   Running: three new open-weight families on Sol (B20; amended Nov 4: Gemma and Nemotron with the inserted tool
-   turn, Granite thinking on only). Nemotron's runs are done; Granite's and Gemma's run on Arsha's own Sol account
-   from Nov 5, read by Nov 17.
+   In three more open-weight families on Sol (B20, FB1: Gemma 4, Nemotron 3 Nano, Granite 4.2), tools beat users in
+   all 10 readings; whether the tool's form adds to the claim it carries depends on the family and the channel (beyond
+   the claim in 5 of 10 readings, the claim moves it more in 1, no difference detected in 4). Labelled: the inserted
+   tool turn for Gemma and Nemotron, Granite thinking on only, temperature 1.0.
 2. **After a tool call, the final answer stops explaining.** It becomes a bare letter while the private reasoning
    names the tool. Disclosure can be prompted, but it doesn't reduce deference to the tool (B15). More thinking
    doesn't change it: in gpt-oss-20b, raising the reasoning effort from low to high changes neither the bare answer
    after a call nor how often the model follows the tool (no change detected on either; B17, F37, run after its
-   one-day window).
+   one-day window). In B20 (FB1), a call makes the answer barer after Granite's own call and after Nemotron's inserted
+   turn with thinking off; with thinking on, Nemotron's bare answer after the inserted turn falls (−14 [−19, −9]):
+   thinking writes more of the source down.
 3. **Inside Olmo 3 7B Think, layers 15, 19 and 23 read the hint straight from the prompt.** They hold 0.90 of the
    drop at the takeover, and the result replicates on questions not used to find them, by two methods (F26, F32).
    It isn't forced by Olmo's sliding windows: in Qwen3-8B, whose layers all see the whole prompt, three layers chosen
@@ -47,26 +50,31 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    harder, not less, and when LoRA follows it is through the same three layers (in plain words:
    [`docs/status/FIX_SO_FAR.md`](docs/status/FIX_SO_FAR.md)). On E2, 120 fresh questions, A39 (F44) finds that marking
    every tool output "unverified" has no effect alone; with the one-line instruction it follows fewer wrong hints on the
-   tool turn but takes fewer correct ones, and LoRA with the instruction follows fewer than the instruction alone (R2),
-   with acceptance 9 points lower beside it. Also on E2, A40 trains on the model's own reasoning written without the
+   tool turn but takes fewer correct ones, and LoRA with the instruction follows fewer than the instruction alone (R2,
+   −8 [−12, −4]) at an acceptance cost of −9 [−13, −5]. Also on E2, A40 trains on the model's own reasoning written without the
    hint (bias-augmented consistency training): it follows far fewer wrong hints than the one-line instruction but takes
    fewer correct ones, "fewer, but costs acceptance" by its rule (F41; with the note, A42, the same, F43). Inside the
    model it is the first fix that acts on the readout, before layers 15, 19 and 23 (A41, F42). B1's replication on E2
-   (B1R2) was revived on Nov 6 and is running.
+   (B1R2) was revived on Nov 6; all 40 parts ended Nov 8, and its last two sweeps wait in Sol's queue.
 
-**Scorecard against the original plan (Nov 7; numbers as read in [`docs/FINDINGS.md`](docs/FINDINGS.md), story item 7).**
+**Scorecard against the original plan (Nov 7, updated Nov 8; numbers as read in [`docs/FINDINGS.md`](docs/FINDINGS.md), story item 7).**
+- **The failure: tools pull harder than users in every model tested** (Gate 2, marked Nov 8): all five Track B models
+  and B20's three new families, 10 of 10 readings (FB1). The label part of Gate 2 is not met (F3).
 - **Honesty when following improved with training,** by keyword: when LoRA follows a wrong hint on E2, its answer names
   the hint in 225 of 248 runs against the instruction's 118 of 237 (exploratory, post hoc). On the 30, hand labels back
-  it (L4, F28). L6, a hand-label check on E2, is pre-registered and not run.
+  it (L4, F28). L6, a hand-label check of LoRA against the instruction on E2 (84 rows), waits for Ritik's labels.
 - **Resisting wrong hints improved with A40, but as a trade:** 84 of 694 wrong hints followed against the
-  instruction's 237 of 713, and 347 of 459 correct hints taken against 431 of 476 (F41). Exploratory (post hoc): A40
+  instruction's 237 of 713, and 347 of 459 correct hints taken against 431 of 476 (F41). LoRA + note is "fewer than
+  the instruction" by R2 (−8 [−12, −4]) at an acceptance cost of −9 [−13, −5] (F44). Exploratory (post hoc): A40
   gives more correct answers than the instruction only when fewer than about 36% of the tool's answers are right.
 - **Accuracy was preserved, and every trained version passes Gate 3** (F28; on E2 with power, F44).
 - **The stricter bar, beating the one-line instruction on following at no cost to correct hints, is met by no fix**
   (F28, F41, F43, F44).
 - **The mechanism:** LoRA acts in the reasoning (F39); A40 changes how the hint is read, in layers 0–14 (F42).
 - **Our reading:** without a way to verify the tool, resisting wrong hints and relying on right ones trade off. So the
-  fix belongs at the system level: provenance the system can check, or an independent checker (Track C, F24).
+  fix belongs at the system level, and the evidence says which part: provenance labels alone don't help (marking every
+  tool output "unverified" has no effect alone, F44); independent verification does (Track C's checker, which
+  re-solves without the tool, stopped all 53 wrong tool answers on fresh items, F24).
 
 ## Read this first
 

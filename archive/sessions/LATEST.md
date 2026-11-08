@@ -1,187 +1,155 @@
-# Session log: A39 read; the trade-off, explored (post hoc); L6's pre-registration, a label check of disclosure (not run) (2026-11-07 20:19 MST)
+# Session log: L6 reduced and its sheet; Gate 2 marked; the conclusion made specific; B1R2; Arsha's B20 merged (2026-11-08 14:55 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `905ed4a`. The day's second session (the first was
-[13:15](2026-11-07/2026-11-07_1315_ALL_overnight-reads-report.md)).
+**By:** Ritik. Branch `trackA-nosol`, from `d85d90c`. The day's first session (the daily
+[DAILY_2026-11-08](2026-11-08/DAILY_2026-11-08.md) opened, carrying Nov 7's "For Nov 8").
 
 ## 0. Input
 
-- **Ritik sends Shrey the C24 message** (merge `origin/main` back).
-- **Ritik's sacct (latest), B1R2:** 680258 and 683313 FAILED, exit 1, after 2:25:48 and 2:26:06 (Ritik: "the
-  planned stop at the warning, I believe"); 686233, 695986 and 702072 RUNNING; 702635 and 703028 PENDING; the rest
-  COMPLETED.
 - **Decisions:**
-  - **a. Read A39 now** (complete; its rule reads it once complete), by its rules R1–R4 only, in its own log, with its
-    F-entry, FINDINGS' story, REPORT §7 and `a39_figures`. The wrapper systems first: does marking tool output
-    "unverified" beat the instruction, and at what acceptance cost?
-  - **b. An exploratory trade-off analysis,** labelled post hoc wherever it appears, never replacing a
-    pre-registered verdict, in its own log written before computing: the trade-off figure (every E2 system, wrong-hint
-    following against correct-hint acceptance); expected accuracy under hints as a function of p, the share of tool
-    answers that are correct, and where each pair of systems crosses (A40 against prompt_only first, then LoRA against
-    prompt_only); "disclosure when following" by keyword, per system. REPORT then gets one labelled exploratory bullet
-    and the figure.
-  - **c. Pre-register (not run) a hand-label check of disclosure when following,** under the LLM-judge protocol (Ritik's
-    labels final; J-opus the reliability check): E2 runs that followed the wrong hint, from base, prompt_only, lora and
-    a40, about 40 a system, by a fixed seed, balanced over channels, blind and shuffled, L4's guide and labels; the rule
-    fixed now; the sheet's size and the labeling time, for Ritik's yes or no.
-  - **d. A "scorecard against the original plan" paragraph** in FINDINGS' story and the README, every number as already
-    read, exploratory items labelled.
-  - **e. Arsha's B20 reading** (added by Ritik at 20:31, during this session): when she says `trackB-main` is pushed,
-    merge it into `main` by the merge steps (path check, her identity only, no AI lines, Track B's tests on the
-    merge). Then update Ritik's docs from her FB1 entry, copying no number FB1 doesn't give: FINDINGS' story line 1 and
-    the README (tools beat users in all three new families, 10 of 10 readings; the claim against the tool's form
-    depends on family and channel); line 2 (the bare answer after a call in Granite and Nemotron, and Nemotron's drop
-    with thinking); REPORT §2–§4's bullets; the scorecard (d). If she hasn't pushed by the end of this session, the
-    merge waits for the next one.
-    - **At 20:31:** `origin/trackB-main` has nothing new (still `10f7920`, Nov 6 10:08). Checked again before the push.
+  - **a. L6: yes, reduced.** An amendment to L6's log before any sheet is built (nothing labelled or read): lora and
+    prompt_only only, the same draw (14 a system and channel, seed `L6-20261107`, one run a question), so 84 rows; the
+    one comparison lora − prompt_only by its §5 rule; base and a40 dropped (A40's disclosure stays keyword-only,
+    labelled so). Then the builder and its tests, the sheet built on Sol (the command for Ritik if it needs Ritik's login),
+    copied to the Mac at `results/labels/L6/`, and where to open it. J-opus only after Ritik has saved the labels.
+  - **b. Gate 2 today:** marked in PLAN, ONE_PAGE and TODO's G2 from PLAN's statement: the tool-vs-user gap met on
+    every model (Voyager, Sol, and B20's three families once Arsha's FB1 is merged); the label part not met by its
+    pre-registered rule, with its descriptive sentence.
+  - **c. The conclusion's wording** (FINDINGS' story item 7, the README, REPORT): "the fix belongs at the system level"
+    made specific: provenance labels alone don't help (A39: the wrapper alone, "no effect"); independent verification
+    does (Track C's checker, F24). Wherever LoRA + note's R2 reading appears, its acceptance cost (−9 [−13, −5]) in the
+    same sentence.
+  - **d. B1R2:** drop `reserve=240:2` from its remaining lines; then, once every part has started, the Sol pull (the
+    13:15 log's §8 block).
+  - **e. Arsha's B20 merge:** `trackB-main` pushed at `b53c0e9` (authored and committed by Arsha Jindal, on `905ed4a`;
+    Track B's tests 167 passed, 4 skipped). Merge by the merge steps (path check, her identity only, no AI lines,
+    Track B's tests on the merge); then Ritik's docs from FB1, copying no number FB1 doesn't give (the story's lines 1
+    and 2, the README, REPORT §2–§4, the scorecard, Gate 2's statement). Check her new files for broken characters
+    from Windows ("ยง" for "§", "â€”" for a dash); list any for her to fix in her paths (not edited here).
+- **Limits:** at most 2 helpers; the full suite once, at the end. Sol by its access rule.
 
-## 1. Plan (at most 2 helpers; helpers don't commit; the full suite once, at the end)
+## 1. Plan (written 14:58, before any work)
 
-- **First, committed before anything below is computed:** this plan and the exploratory analysis's own log (b), which
-  says exactly what is computed.
-- **Helper A:** A39's reading (a): its reader (`finetune/a39.py --report`, E2 and the 30), the reading by R1–R4 only
-  in its own log, the wrapper systems first; then `tools/a39_figures.py`. It drafts the F-entry and REPORT's bullets;
-  I put them in FINDINGS and REPORT.
-- **Helper B:** the exploratory analysis (b), exactly as its log says: the numbers and the figure, with tests.
-- **Me:**
-  - the label check's pre-registration (c). **Ruling:** it is named **L6**, since **L5** is already Track B's labeling
-    batch (TODO's L5, PLAN, CLAIMS). Cost if wrong: a rename;
-  - B1R2's status from Ritik's sacct (the two stops, the sweeps, the out-of-memory leftovers), Sol read-only;
-  - the scorecard (d), after A39 is read, so it includes the wrapper;
-  - then the stale scan, the records, the checks and the push (`trackA-nosol` and `main` only).
+- **Helper A (L6):** the builder `tools/l6_sheet.py` and its tests on synthetic runs (the draw, the blind columns,
+  the shuffle, the record match), seen failing first; the Mac's dry run (84 rows, 42 a system, 14 a stratum, the
+  pool's counts as §2 of L6's log). No commit, no Sol.
+- **Me:** L6's amendment (committed before the builder runs on any text); then Arsha's merge (e); Gate 2 (b); the
+  wording (c); B1R2 (d); the sheet's texts read on Sol once the builder is committed; the records, the checks, the
+  push.
+- **Ruling (B1R2, d):** at 14:55 every B1R2 line had gone in (all 40 parts ended by 06:35; sweep 2 done, sweep 3 not
+  needed; sweeps 1 and 4 pending in Slurm, reason `Priority`). `reserve=` only gates the feeder's submissions, so
+  dropping it now changes nothing: no queue edit is made. Cost if wrong: none; the edit stays possible.
+- **Ruling (the pull, d):** the safety diff prints `finetune/eval.py`, `finetune/gpu/plan_eval.py` and
+  `finetune/gpu/provenance_job.py` (Nov 7's counting fix), which sweeps 1 and 4 load when they start. By §1 step 4
+  the pull waits until both have started. Cost if wrong: Sol's clone a day behind.
+- **Ruling (L6's sheet, a):** the draw is made from the numbers alone on the Mac (as L4's plan was), and the texts are
+  read on Sol by a read-only command streamed to the Mac, so nothing is written on Sol and Sol's clone (which can't
+  pull yet) needs no new code. Said in the amendment. Cost if wrong: the same rows built another way.
 
-## 2. B1R2 on Sol (me, read-only, 20:22–20:24; status counts only, nothing of B1R2 read)
+## 2. L6: amended, built, waiting for Ritik's labels (decision a)
 
-- **The two "FAILED, exit 1" jobs are the planned stop at the warning,** as Ritik thought.
-  - 680258 is `b1r2-21of40` (2:25:48) and 683313 is `b1r2-24of40` (2:26:06), each against a limit of 2:30.
-  - Slurm's warning comes 5 minutes before the limit (`--signal=B:USR1@300`). `provenance_job.py` finishes the round
-    in flight, then ends with "stopped by a signal; the runs saved so far count, a rerun does the rest". That message
-    is a `SystemExit`, so the exit code is 1.
-  - The feeder alerted each (6 and 7 of its runs left), as it did for `b1r2-06of40` on Nov 6 (5 left). The sweeps
-    take those runs. No fix is needed.
-- **The parts:** 31 of 40 have ended (28 COMPLETED, 3 stopped at the warning: 06, 21 and 24).
-  - Four are pending, all on Priority: 32–35 (702635, 703028, 704784 and 705727). `squeue --start` gives no time.
-  - Five are still to submit (36–40). Each waits only for room (`reserve=240:2`).
-  - Ritik's 686233, 695986 and 702072 have since COMPLETED (parts 27, 28 and 31; ended 18:57–19:29).
-- **The sweeps** (each after its 10 parts, `left=b1r2:k/4`): 66, 66, 60 and 99 runs left, 291 in all.
-  - 270 of those are parts 32–40, not yet run (9 × 30).
-  - The other 21 are leftovers: the three warning stops (06: 5, 21: 6, 24: 7), and parts 14 (1) and 20 (2). Those
-    three are the "out of memory alone" runs at alpha 0.25 (the 13:15 log's §2), which the sweeps retry and which may
-    run out of memory again.
-- **Projected finish:** none from Sol (`squeue --start` gives N/A for all four pending parts). Parts take 0:41–2:26
-  each. The last parts and the four sweeps need several more hours of starts.
-- **The Sol clone:** still at `81ab922`, clean. **The pull still waits:** parts 36–40 haven't started, and they load
-  `finetune/` (the 13:15 log's §8).
-- **The feeder:** last tick 20:20; "200 lines: 4 failed, 12 not needed, 171 ok, 4 pending, 9 to submit". The 4
-  failed are the three warning stops and `a41-step10`'s planned exit 2.
+- **The amendment** (`615452b`, 15:00): [L6's log, §9](2026-11-07/2026-11-07_2025_A_l6-prereg.md). Committed before the
+  builder existed and before any text was read.
+- **The builder** (helper A; `a457b3c`, 15:09): `cot-disclosure/tools/l6_sheet.py`, 40 tests on synthetic runs
+  (`tests/test_l6_sheet.py`), seen failing first (24 failed, 16 errors against a stub), then 40 passed.
+  - The Mac's dry run (verbatim): the pool lora 79 (63) / 100 (66) / 69 (42) = 248, prompt_only 78 (56) / 82 (52) /
+    77 (49) = 237, "the pool is section 2's table"; 84 rows, 42 a system, 14 a stratum; "one ok record with its
+    timestamp in the numbers files: 84 of 84".
+  - Beyond the brief: `--remote-script` and `--build` stop if the pool differs from §2's table; `assemble` never
+    overwrites a sheet or key (labels in progress are safe); errors name run ids, never text.
+- **The texts** (15:09): `tools/l6_sheet.py --remote-script` piped to Sol's Python on the login node, read-only
+  (`python -I -S -`; it writes no file). Sol: "84 runs, one record each, from 36 files; nothing written".
+- **The sheet** (15:10), in `cot-disclosure/results/labels/L6/` (gitignored):
+  - `sheet_L6.csv`: 84 rows, columns `row, channel, hint_letter, final_answer, label_final, guess_trained, note`.
+    **Ritik opens this file only.**
+  - `key_L6.csv` (run id, system, channel, question, timestamp, keyword, seed) and `texts_L6.jsonl` (Sol's output)
+    name the systems: not for Ritik's eyes until the labels are saved.
+  - The final answers: mean 1,246 characters, median 1,422, from 11 to 12,415. L4's were about 1,000–1,400, so §8's
+    estimate stands: **about 1¾ hours** (84 × 1¼ minutes).
+- **Next:** Ritik labels `label_final` (L4's five labels) and `guess_trained`; then J-opus (2 batches of 42, the
+  protocol's §10); then the reading by §5, in a dated log.
 
-## 3. L6's pre-registration, not run (c; [its log](2026-11-07/2026-11-07_2025_A_l6-prereg.md), `838bc86`)
+## 3. Arsha's B20 merged (decision e)
 
-- **The name:** asked for as L5, which is Track B's labeling batch, so it is **L6**.
-- **The question:** when a system follows the wrong hint, does its final answer really say the hint shaped it? It
-  tests the keyword result: LoRA names the hint in 225 of 248 followed runs (91%), base in 132 of 297 (44%),
-  prompt_only in 118 of 237 (50%), A40 in 60 of 84 (71%).
-- **The sheet:** 14 followed runs per system and channel from base, prompt_only, lora and a40, one per question, drawn
-  by seed `L6-20261107`; **168 rows**, shuffled, with the system, run id, question and keywords hidden. Every stratum
-  has 20 or more distinct questions (pool: base 297, prompt_only 237, lora 248, a40 84 runs).
-- **The labels:** L4's guide and five labels, the final answer only. Ritik's labels are final; J-opus is the
-  reliability check (the Nov 4 protocol's batch files), run after Ritik's sheet is saved; no re-look.
-- **The rule:** per system, the share labelled `says_changed` or `mentions_only`. LoRA − prompt_only and A40 −
-  prompt_only by a bootstrap clustered by question: "discloses more / less than the instruction, in labels" or "no
-  difference detected in labels". Each outcome's meaning is said in advance.
-- **For Ritik's yes or no:** 168 rows, **about 3½ hours of labeling** (L4's 1¼ minutes a row); J-opus under an hour;
-  the sheet is built on Sol from the texts (no GPU). To land before the Nov 18 freeze, the sheet should reach Ritik by
-  about Nov 12.
+- `origin/trackB-main` at `b53c0e9`: one commit, author and committer Arsha Jindal (her email's hash in
+  `team_identities.txt`); no AI line in the message; `path_check --range origin/main..origin/trackB-main` printed
+  nothing; only her paths (FINDINGS_B, TODO_B, her 19:17 log, INDEX, `b20_report.json`, `test_trackB_b20.py`).
+- **Broken characters:** none in her six files. All are valid UTF-8 with no CR; no "ยง", "â€", "Ã" or U+FFFD; the
+  only non-ASCII characters are § – — − × † … →. The "ยง9" was in her message only. Nothing to list for her.
+- **The merge** `5f767e4` (15:01). On it: Track B's test files (`test_trackB*.py`, `test_trackb_final.py`) 118
+  passed, 1 skipped on the Mac (her 167 passed, 4 skipped were on her own machine and set); export numbers-only;
+  0 broken links.
+- **From FB1 into Ritik's docs, copying no number FB1 doesn't give:** FINDINGS' story item 1 (R1 in all 10; R2 split by
+  family and channel) and item 2 (R3a barer after Granite's own call and Nemotron's inserted turn with thinking off;
+  R3b Nemotron falls with thinking); the README's lines 1 and 2 and its scorecard; REPORT §2 (the models' row,
+  sampling, channels), §3 (B20's readings), §4 (FB1's bullet, replacing "waiting"), §6 (FB1's words part); CLAIMS 1.1;
+  PLAN (Gate 2, the open question answered, the B20 row, slide 2, the report's state); `results_at_a_glance` (an FB1
+  row); the supplement's B20 row (verdict read).
+  - **Ruling:** REPORT §6 gets FB1's words part too (REPORT's own rule: a finding with two parts has a bullet in
+    each section). Cost if wrong: one bullet to drop.
+- **For Arsha:** "Merged `trackB-main` into `main` (`5f767e4`). Please run `git fetch origin && git merge
+  origin/main` on your branch, then `python3 cot-disclosure/tools/path_check.py --install`, then push. Your files
+  had no broken characters."
 
-## 4. A39 read (a; helper A; [its log](2026-11-07/2026-11-07_2033_A_a39-results.md), F44)
+## 4. Gate 2 marked (decision b), at 15:11
 
-- **When:** complete, and its rule reads it once complete (§18 gives only a partial read at Nov 15 23:59).
-- **Checked by me:** the log's verbatim block matches the reader's JSON exactly (`a39.text` on `a39_e2.json`, 40 of 40
-  lines). Both reports are complete (E2: 1,440 a core system, 480 own runs a wrapper system; the 30: 360 and 120).
-  There are no text keys and no no-answer imbalance.
-- **The wrapper, first:**
-  - **alone (R4): "no effect"** on the inserted tool turn (following −1 [−7, +4], acceptance −0.5 [−5, +4]); the
-    pasted block's check is exactly 0;
-  - **with the instruction (R3): "adds, costs acceptance".** Against the instruction alone it follows −14 [−20, −9]
-    and takes −12 [−18, −6] on the tool turn: 42 of 232 against 77 of 237, and 179 of 235 against 210 of 238;
-  - **with LoRA (R3): "adds to both"** (−8 [−14, −2] against LoRA, −14 [−20, −8] against the wrapper; acceptance
-    within 5 points).
-- **The rest:**
-  - **R2: LoRA + note is "fewer than the instruction"** (−8 [−12, −4]), which the pre-registration called "the first
-    fix that beats one line". R2 reads following only; acceptance −9 [−13, −5] sits beside it, and R3 reads the same
-    system "adds, costs acceptance";
-  - LoRA "no difference detected" (+2 [−2, +6]); base "more";
-  - **R1 (Gate 3's rule): passes for the instruction (−9 [−14, −4]) and LoRA (−7 [−11, −3])**, the powered
-    replication (F28 stays); it passes for every system but the wrapper (diluted by design).
-- **The 30, beside it:** R4 "works" (−18 [−34, −1]); both wrapper combinations "no better than the better one alone";
-  LoRA + note "fewer than the instruction" (−11 [−18, −4]).
-- **Figures** (`tools/a39_figures.py`, headlines with the readings' words; 4 new tests seen failing first; its file 8
-  passed): `a39_e2_fixes`, `a39_e2_parts` and the 30's two. I looked at both E2 PNGs: clean.
-- **My edits after helper A:** FINDINGS' story sentence on A40 now says "doesn't beat the instruction by its rule"
-  (A39's R2 reads LoRA + note "fewer"); A39's log's limits note L6. The supplement's A39 row has its verdict and checks;
-  the export's comment says F44.
+- PLAN's statement, marked: **"Gate 2: the gap is met; the labels are not."** The gap is clear on every model tested,
+  3 runs a question: the five Track B models on Voyager and Sol (F15–F17, F29), gpt-oss-20b at every effort (F37), and
+  B20's three families, 10 of 10 readings (FB1; the fallback, Granite thinking on only, temperature 1.0). The label
+  part is not met by the pre-registered rule (0.472 / 0.353 / 0.576 private; 0.234 / 0.223 / 0.201 final), with its
+  descriptive sentence (J-opus and AI rater 1 agreed with Ritik; the majority held two judges that didn't follow the
+  guide).
+- The same in ONE_PAGE's table and TODO's G2 ("done"). The Nov 6 statement's "B20 … read apart" is replaced, as
+  Ritik decided.
 
-## 5. The trade-off, explored (b; post hoc; helper B; [its log](2026-11-07/2026-11-07_2020_A_tradeoff-exploratory.md) §5)
+## 5. The conclusion made specific (decision c)
 
-- **Written and committed before computing** (`3c3aa62`); §1–§4 unchanged since (80 lines added below them, none
-  removed).
-- **Checked by me:** I recomputed A40's and LoRA's crossings and four systems' disclosure counts in a separate script.
-  They match: A40 dW +8.4, dC −14.9, p* 0.361; LoRA dW −2.4, dC −2.3, no crossing; 132/297, 118/237, 225/248, 60/84.
-- **The numbers (exploratory, post hoc):**
-  - every E2 system that follows fewer wrong hints than the instruction also takes fewer correct ones, pooled and on
-    the tool turn (point estimates);
-  - **A40 gives more correct answers than the instruction only when fewer than 0.361 [0.220, 0.499] of the tool's
-    answers are correct** (no answer counted wrong: 0.288 [0.149, 0.417]);
-  - **LoRA is behind the instruction at every p,** by about 2 points, every pointwise interval including 0;
-  - **disclosure when following (keyword):** LoRA 225 of 248, A40 60 of 84, the instruction 118 of 237, base 132 of
-    297; LoRA − the instruction +40.9 [+30.2, +51.4], A40 +21.6 [+6.9, +35.5]. A40's depends on the channel: user 5
-    of 24, inserted 29 of 29.
-- **Tests:** `tests/test_tradeoff.py`, 24 seen failing (no module) then passing. The export then refused
-  `tradeoff_e2.json`: its bootstrap description was one 406-character string, and the limit is 200. A test was added
-  first (RED), then the description was split into four strings; 25 passed. The rerun gives the same numbers.
-- **Recorded:** REPORT §7's labelled exploratory bullet and `tradeoff_e2.png`; WAITING; the supplement's row (kind
-  "exploratory"); PLAN's row; the export.
+- **"The fix belongs at the system level"** now says which part: provenance labels alone don't help (A39, the wrapper
+  alone "no effect", −1 [−7, +4], F44); independent verification does (Track C's checker re-solves without the tool:
+  53 of 53 wrong tool answers stopped on fresh items, 7 of 45 false alarms, at the no-tool floor; F24). In FINDINGS'
+  item 7, the README, REPORT §12 (new conclusion bullets) and FIX_SO_FAR.
+  - **Ruling:** FC3 (C20's pipeline tag naming the tool's letter as unverified: no change on the reviewer's catches)
+    added beside A39 in FINDINGS and REPORT, as the same claim at the pipeline level. Cost if wrong: one clause.
+- **LoRA + note's R2 reading with its acceptance cost (−9 [−13, −5]) in the same sentence:** FINDINGS (story item 6,
+  item 7, F44's heading, result and status), the README, REPORT §7, CLAIMS 1.5, PLAN, ONE_PAGE, TODO, FIX_SO_FAR,
+  `results_at_a_glance` (md and csv), the supplement's A39 row, and the A39 fixes figure's headline.
+  - On the 30, its R2 sentence now carries acceptance −7 [−15, +1] (from `a39_mmlupro_30_fixes.csv`), not a cost.
+  - **The figure** (`tools/a39_figures.py`): the test changed first and seen failing (1 failed, 7 passed), then the
+    headline puts each R2 system's acceptance in the same sentence; 8 passed. `a39_e2_fixes` and
+    `a39_mmlupro_30_fixes` redrawn (PNG, SVG; the CSVs unchanged); the parts figures unchanged.
 
-## 6. The scorecard (d)
+## 6. B1R2 (decision d), Sol read-only at 14:55
 
-FINDINGS' story item 7 and the README, every number as already read, the exploratory ones labelled:
-- honesty when following improved with training (keyword; backed on the 30 by L4; L6 pending);
-- resisting wrong hints improved by A40, as a trade (A40's crossing at 0.36, exploratory);
-- accuracy preserved, and Gate 3 passed by every trained version (on E2 with power);
-- the stricter bar (beating the instruction on following at no cost) met by no fix;
-- the mechanism (LoRA in the reasoning, F39; A40 in layers 0–14, F42);
-- our reading: without verification, the two trade off, so the fix belongs at the system level (Track C, F24).
-- **Not in it yet:** Arsha's FB1 (decision e), which waits for her push.
+- **All 40 parts ended** by 06:35. Part 37 (723741) "FAILED, exit 1" after 2:25:06, its log "stopped by a signal; the
+  runs saved so far count": the planned stop, like 06, 21 and 24. Sweep 2 (731809) done; sweep 3 not needed;
+  **sweeps 1 (731966, 11 runs left) and 4 (733766, 9 left) pending**, `Priority`, no start time.
+- **`reserve=240:2` not dropped** (ruling, §1): every line had gone in. **The pull waits** (ruling, §1): the safety
+  diff lists `finetune/eval.py`, `finetune/gpu/plan_eval.py` and `finetune/gpu/provenance_job.py` (`f42523e`,
+  Nov 7's counting fix), which the two sweeps load. Sol's clone stays at `81ab922`, clean.
+- Last 24 h on Sol: 51.3 GPU-hours (the 07:00 digest); the feeder ticks every 5 minutes; no new alert but part 37's.
 
-## 7. Stale lines fixed
+## 7. Stale lines fixed, and one known limit
 
-- FINDINGS (F44 and story item 6 by helper A; item 7 and the A40 sentence by me), REPORT §7 and its header, CLAIMS
-  1.5 and 1.6, FIX_SO_FAR, `results_at_a_glance` (F44's row), PLAN (A39, B1R2, the trade-off and L6 rows; the
-  calendar; Gate 3's statement; the report's state; slide 9 and the slide history), TODO (A39, B1R2, L6), ONE_PAGE,
-  CHECKIN §3, WAITING, the README.
-- **A slip, corrected:** I first wrote REPORT's header time as 20:52, ahead of the clock (20:43). It was set to the
-  clock at once.
+- REPORT's opening said FINDINGS_B and FINDINGS_C "have no entries yet" (Nov 4): now it names FC1–FC4 and FB1. PLAN's
+  report-state rows for §2–§4, §10 and §12; PLAN's slide 2 row and calendar; WAITING's slide 2 line; CHECKIN §3's L6
+  and B20 rows; the README's "Last updated" (it said Nov 5).
+- **Known limit, not wrong numbers:** `make_supplement`'s CLAIMS check reads only FINDINGS' F entries, so claim 1.1's
+  new B20 bullet (it cites FB1, in FINDINGS_B) adds 4 "mismatches" (+33, +61, +91, "5 of 10"): 7 in all, against 3
+  before. Each number is FB1's.
 
 ## 8. Needs Ritik, and Sol
 
-- **L6:** yes or no (168 rows, about 3½ hours of labeling; if yes, the sheet should reach Ritik by about Nov 12).
-- **Nov 8:** mark Gate 2 (PLAN's statement, ONE_PAGE, TODO's G2).
-- **Once every B1R2 part has started** (36–40 are still to submit): the Sol pull, by the 13:15 log's §8 block.
-- **Optional:** drop B1R2's `reserve=240:2` (a queue-file edit), so parts 36–40 and the sweeps go in faster.
-- **Arsha:** when she says `trackB-main` is pushed, the merge (decision e) in the next session.
-- **No Sol block tonight:** nothing on Sol needs a command now. The clone is clean at `81ab922`, and the pull waits for
-  parts 36–40 to start.
+- **L6:** label `cot-disclosure/results/labels/L6/sheet_L6.csv` (about 1¾ hours). Open only that file. Then J-opus
+  runs (a session's sub-agents, 2 batches of 42), then the reading.
+- **Once B1R2's sweeps 1 and 4 have started:** the Sol pull, by the 13:15 log's §8 block (Nov 7); its `squeue … -t PD`
+  line must print 0 first. Any session can run it over the ControlMaster.
+- **Send Arsha** §3's message (merge `origin/main` back, `--install`, push). Shrey: the C24 message, if not sent.
+- **No Sol block is needed now:** the clone is clean at `81ab922` and the pull waits for the sweeps.
 
-## 9. Checks (20:57)
+## 9. Checks (15:27)
 
-- **The full suite, once** (on `df9a060` with the two doc fixes below): **1,087 passed, 1 skipped**, in 9:31. Two
-  pytest processes on this Mac belonged to other projects' Docker containers, not this repo; left alone.
-- **Links:** one broken at first (WAITING's link to the exploratory log needed `../../../` from
-  `docs/paper/figures/`); fixed, 0 broken, 0 missing RUNBOOK scripts.
-- **The supplement:** this log was first listed "outside the ledger": two of its headings said "pre-registered",
-  though it pre-registers nothing itself (L6 has its own log). They now say "L6's pre-registration". Then 42 rows,
-  none unverified, no log outside the ledger; `--check` passes. CLAIMS: 3 mismatches (claim 2.6) and 12 source
-  problems, as before; 13 weak matches.
-- **Export:** `--check` numbers-only (after the trade-off's 200-character fix, §5). **Gantt:** dry run and the real run,
-  140 rows. **Bundles:** B 51 files, 73.8 MB; C 43 files, 31.3 MB.
-- **Arsha:** `origin/trackB-main` still at `10f7920` at 20:48, so decision e waits for the next session.
-- **Before the push:** the pre-push check and nothing-missing, below the commit.
+- **The full suite, once** (on the working tree after every edit): 1,127 passed, 1 skipped (10:12); Nov 7's 1,087 plus
+  L6's 40.
+- Links 0 broken, 0 missing RUNBOOK scripts; the supplement 42 rows, none unverified, no log outside the ledger
+  (CLAIMS 7 mismatches: 4 from §7's known limit, 3 as before; 12 source problems and 13 weak matches as before);
+  export numbers-only; the Gantt 140 rows; bundles B 51 files, 73.8 MB, and C 43 files, 31.3 MB, as before.
+- The pre-push check and the "nothing missing" check before the push (§6 of CHECKIN).
