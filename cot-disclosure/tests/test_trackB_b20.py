@@ -835,12 +835,32 @@ def test_the_second_amendment_nemotron_takes_the_inserted_turn(monkeypatch):
     assert len(rb.all_jobs()) == 1944 + 1944 + 972
 
 
+def smoke_ids(name):
+    """The run ids a Nov 4 smoke ran: the design's first SMOKE_JOBS with tool_real put back (before the amendment). The
+    inserted-turn ids aren't among them, so these pick the smoke's records out of any flags, the Nov 4 files or the
+    complete ones (each id has one record, from Nov 4; the rerun's 2 ran Nov 5)."""
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setitem(rb.MODELS[name], "tool", "tool_real")
+        return {j["run_id"] for j in rb.jobs(rb.config(name), name)[:rb.SMOKE_JOBS]}
+
+
+def rerun_added(every, todo):
+    """The rerun's ids (the first SMOKE_JOBS the smoke didn't run) found in the flags: none in the Nov 4 files, both in
+    the complete ones (Nov 6)."""
+    later = {r["run_id"] for r in every} & {j["run_id"] for j in todo}
+    assert later in (set(), {j["run_id"] for j in todo})
+    return later
+
+
 def test_nemotrons_real_smoke_under_its_amendment():
     """Nemotron's smoke (460109): 10 of the amended design's first 12 ran and the tool path is now the inserted turn;
     the rerun adds the 2 inserted-turn runs (question 1, thinking on and off). Its flags (on the Mac from Nov 4):
     offered the tool, it called it once, thinking on, and that run reached the length limit with no answer; thinking
-    off, it answered without a call. Skipped until its flags are copied back."""
-    flags = real_flags(NEMOTRON)
+    off, it answered without a call. Read on the smoke's own run ids, so it holds on the Nov 4 files and on the complete
+    ones, where the first 12 are all in, the rerun's 2 included (Arsha, Nov 7, with Ritik's OK: the test read the whole
+    file, which held only the smoke until all of B20 was in). Skipped until its flags are copied back."""
+    every = real_flags(NEMOTRON)
+    flags = [r for r in every if r["run_id"] in smoke_ids(NEMOTRON)]     # the smoke's 12 records
     real = [(r["thinking"], r["called_tool"], r["finish_reason"]) for r in flags if r["condition"] == "tool_real"]
     assert real == [(True, True, "length"), (False, False, "stop")]     # what failed: no run called the tool and answered
     res = rb.smoke_check(flags, NEMOTRON)
@@ -848,13 +868,19 @@ def test_nemotrons_real_smoke_under_its_amendment():
     assert res["checks"]["parse"] and "applied" in res["fallback"]
     todo = [j for j in rb.jobs(rb.config(NEMOTRON), NEMOTRON)[:rb.SMOKE_JOBS] if j["run_id"] not in {r["run_id"] for r in flags}]
     assert [(j["model"]["thinking"], j["condition"]) for j in todo] == [(True, INJECTED), (False, INJECTED)]
+    if rerun_added(every, todo):                                         # the complete files: 12, the rerun's 2 included
+        res = rb.smoke_check(every, NEMOTRON)
+        assert res["ran"] == res["status_ok"] == 12 and res["ok"]
 
 
 def test_the_smoke_check_on_the_real_smokes_under_the_amendments():
     """The real smokes' flags (456999, 457471): Gemma's 10 finished runs count and its 2 inserted-turn runs are what
     the rerun adds; Granite's 6 thinking-on runs pass every check, its 6 thinking-off runs are set aside, and the rerun
-    adds the design's next 6 (question 2, thinking on)."""
-    gemma = real_flags(GEMMA)
+    adds the design's next 6 (question 2, thinking on). Gemma's read on its smoke's own run ids, as Nemotron's (Arsha,
+    Nov 7, with Ritik's OK: the complete files have the rerun's 2 as well); Granite's question-1 rows past its smoke's are
+    thinking on and outside the first 12, so they change nothing below."""
+    every_gemma = real_flags(GEMMA)
+    gemma = [r for r in every_gemma if r["run_id"] in smoke_ids(GEMMA)]    # the smoke's 12 records
     res = rb.smoke_check(gemma, GEMMA)
     assert res["ran"] == 10 and not res["checks"]["all ran"] and res["checks"]["tool path ran"]
     assert res["checks"]["reasoning split"] and "applied" in res["fallback"]
@@ -864,6 +890,9 @@ def test_the_smoke_check_on_the_real_smokes_under_the_amendments():
               "called_tool": False, "parsed_letter": "B", "finish_reason": "stop",
               "reasoning_turns": 1 if j["model"]["thinking"] else 0} for j in todo]
     assert rb.smoke_check(gemma + rerun, GEMMA)["ok"]
+    if rerun_added(every_gemma, todo):                                   # the complete files: 12, the rerun's 2 included
+        res = rb.smoke_check(every_gemma, GEMMA)
+        assert res["ran"] == res["status_ok"] == 12 and res["ok"]
 
     every = real_flags(GRANITE)
     granite = [r for r in every if r["item_id"] == "pilot-0"]                 # the first smoke's (question 1)
