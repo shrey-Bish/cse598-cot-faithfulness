@@ -1,6 +1,6 @@
 # The daily check-in
 
-**Edited by:** Ritik. Written 2026-11-04 16:19 MST; the labels corrected 17:54 (the standing rule, Nov 7, Nov 8); the daily rule 22:33; the push to two branches 22:34; Nov 5, 09:40: two Sol accounts (B20 on Arsha's), B1R2 dropped, §1 step 4 and §9.
+**Edited by:** Ritik. Written 2026-11-04 16:19 MST; the labels corrected 17:54 (the standing rule, Nov 7, Nov 8); the daily rule 22:33; the push to two branches 22:34; Nov 5, 09:40: two Sol accounts (B20 on Arsha's), B1R2 dropped, §1 step 4 and §9; Nov 7, 20:45: §3, A39 read and L6's row.
 History: `git log -- docs/status/CHECKIN.md`.
 
 One routine, once a day, in this order: §1 to §7. §8 is the merge, on the merge days. §9 is what each day from Nov 5 to
@@ -144,10 +144,10 @@ Nothing is read before its rule says so. The checks below run on Sol, from the c
 
 | experiment | complete when (read-only check, on Sol) | read by | rule |
 |---|---|---|---|
-| **A39 on E2** (primary) | **complete (counted Nov 7, the A39 log's §22).** Count on the Mac after §2's copy-back: `finetune/a39.py --report` says "complete". Sol's `--runs-left` overcounts until Sol pulls the Nov 7 fix (a part's older `not_run` hid a sweep's `ok`) | Ritik, **by Nov 17** | the A39 log, §4 and §9 |
-| **A39 on the 30** (beside it) | the same with `mmlupro_30`, unless dropped (Nov 6 or Nov 11) | Ritik, with E2 | §10.2, §16, §17 |
+| **A39 on E2 and the 30** | **read Nov 7** (F44; the 20:33 log), once complete | Ritik | the A39 log, §4 and §9 |
 | **B1R2** | `for k in 1 2 3 4; do $P $F --runs-left b1r2:$k/4; done` all 0 (after Sol pulls the Nov 7 fix; before it, confirm on the Mac with the report's own counts); **or Nov 15 23:59**, whatever is done | Ritik, **when complete, by Nov 17** | the A39 log, §13 and §22 |
 | **A40, A41, A42** | **read Nov 7** (F41–F43; the 13:29 and 13:31 logs), each once complete by its own rule | Ritik | their logs |
+| **L6** (labels) | pre-registered Nov 7, not run; if Ritik says yes: the sheet built on Sol, labelled by Ritik, then J-opus | Ritik | the 20:25 log, §5 |
 | **B20** | the feeder shows every line of a model done or not needed (`$P $F --status \| grep '^b20-'`) | **Arsha, by Nov 17** | the B20 log, §6, §8 and §10 |
 | **C19, C25, C20, C26** | Shrey's own logs, merged in §8 | Shrey | his pre-registrations |
 

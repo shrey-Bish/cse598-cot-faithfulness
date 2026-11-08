@@ -1,6 +1,6 @@
 # Candidate claims: evidence, status, objection, what settles it
 
-Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-07 13:53 (A40, A41 and A42 read: claim 1.5; B1R2 running: claim 1.7; earlier 2026-11-05 09:52: B1R2 not run: GPU time given to A40; 2026-11-04 17:50: the second
+Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-07 20:39 (A39 read, F44: claims 1.5 and 1.6; L6 pre-registered, not run; earlier 13:53: A40, A41 and A42 read: claim 1.5; B1R2 running: claim 1.7; earlier 2026-11-05 09:52: B1R2 not run: GPU time given to A40; 2026-11-04 17:50: the second
 rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; earlier: B17, B1, the hand labels, A18, B1R2 decided; **edited by:** Ritik; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
 the interval excludes no effect), *tentative* (direction there, interval includes 0 or a confound remains), *waiting*
 (the run is going or planned), *not supported*, *dropped*.
@@ -127,13 +127,18 @@ the interval excludes no effect), *tentative* (direction there, interval include
   target, the model's own reasoning written without the hint. It follows far fewer wrong hints than the instruction
   (84 of 694 against 237 of 713; −21 [−26, −16]) but takes fewer correct ones (−15 [−20, −10]): **"fewer, but costs
   acceptance"**, against the instruction and against LoRA; R1 against base passes. With the note (A42): the same
-  reading (−24 following, −20 acceptance); R3 "adds, costs acceptance". **So still no fix beats the instruction by its
+  reading (−24 following, −20 acceptance); R3 "adds, costs acceptance". **So A40 doesn't beat the instruction by its
   rule;** the one that follows fewest does it by ignoring hints.
 - **Inside the model (A41, F42, Nov 7): "stops the readout, before them".** On base's own reasoning A40's weights
   remove part of the hint's pull (+0.68 logits [+0.17, +1.18]), from layers 0–14, and more than LoRA (+1.40 [+0.73, +2.09]).
   The kind of target changes how the weights read the hint, unlike LoRA's.
-- **Settles it:** L4 part 2 (LoRA minus base in labels); A39's powered replication of Gate 3 on E2 (complete Nov 7;
-  read by Nov 17).
+- **The powered replication on E2 (A39, F44, read Nov 7 by the rules of Nov 3):** Gate 3's rule passes again for the
+  instruction (−9 [−14, −4]) and LoRA (−7 [−11, −3]), and LoRA matches the instruction (R2 +2 [−2, +6], "no difference
+  detected"), now with power. **LoRA + note is "fewer than the instruction"** (R2, following only: −8 [−12, −4]), which
+  A39's log called in advance "the first fix that beats one line"; its acceptance falls 9 points beside it (−9 [−13,
+  −5]), and R3 reads it "adds, costs acceptance". So no fix beats the instruction without a cost to correct hints.
+- **Settles it:** L4 part 2 (LoRA minus base in labels); L6, a hand-label check of disclosure when following on E2
+  (pre-registered Nov 7, not run: Ritik decides).
 
 **1.6 Input-embedding provenance tags don't help.**
 - **Evidence:** F20.
@@ -142,6 +147,10 @@ the interval excludes no effect), *tentative* (direction there, interval include
   - injected − pasted +0.0003 [−0.0008, +0.0015].
 - **Status:** *confirmed* in loss. Behavior (F28): tags pass Gate 3 (−6 [−10, −2]) but help no more on the inserted
   turn than the pasted block (−2 [−13, +9]): not tool-specific.
+- **A source mark in the prompt doesn't help alone either (A39, F44, read Nov 7 by the rules of Nov 3):** prefixing every
+  tool output "[unverified tool output] " reads **"no effect"** on the inserted tool turn (R4: following −1 [−7, +4]).
+  With the one-line instruction it "adds, costs acceptance" (following −14 [−20, −9], acceptance −12 [−18, −6] against
+  the instruction alone); with LoRA it "adds to both" (−8 [−14, −2] against LoRA).
 - **Strongest objection:** loss can't show whether tags change how tool text is treated.
 - **Settles it:** Gate 3's behavior test per channel.
 

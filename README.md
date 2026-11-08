@@ -45,12 +45,28 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    the budget allowed (B1R) couldn't settle it, so neither it nor A38 is run. Inside the trained model (A18, F39), training
    acts in the reasoning, not on the readout: given base's own reasoning, LoRA's weights pull toward the hint's letter
    harder, not less, and when LoRA follows it is through the same three layers (in plain words:
-   [`docs/status/FIX_SO_FAR.md`](docs/status/FIX_SO_FAR.md)). A39 tests a provenance wrapper and combinations on E2,
-   120 fresh questions (complete; read by Nov 17). On E2, A40 trains on the model's own reasoning written without the
+   [`docs/status/FIX_SO_FAR.md`](docs/status/FIX_SO_FAR.md)). On E2, 120 fresh questions, A39 (F44) finds that marking
+   every tool output "unverified" has no effect alone; with the one-line instruction it follows fewer wrong hints on the
+   tool turn but takes fewer correct ones, and LoRA with the instruction follows fewer than the instruction alone (R2),
+   with acceptance 9 points lower beside it. Also on E2, A40 trains on the model's own reasoning written without the
    hint (bias-augmented consistency training): it follows far fewer wrong hints than the one-line instruction but takes
    fewer correct ones, "fewer, but costs acceptance" by its rule (F41; with the note, A42, the same, F43). Inside the
    model it is the first fix that acts on the readout, before layers 15, 19 and 23 (A41, F42). B1's replication on E2
    (B1R2) was revived on Nov 6 and is running.
+
+**Scorecard against the original plan (Nov 7; numbers as read in [`docs/FINDINGS.md`](docs/FINDINGS.md), story item 7).**
+- **Honesty when following improved with training,** by keyword: when LoRA follows a wrong hint on E2, its answer names
+  the hint in 225 of 248 runs against the instruction's 118 of 237 (exploratory, post hoc). On the 30, hand labels back
+  it (L4, F28). L6, a hand-label check on E2, is pre-registered and not run.
+- **Resisting wrong hints improved with A40, but as a trade:** 84 of 694 wrong hints followed against the
+  instruction's 237 of 713, and 347 of 459 correct hints taken against 431 of 476 (F41). Exploratory (post hoc): A40
+  gives more correct answers than the instruction only when fewer than about 36% of the tool's answers are right.
+- **Accuracy was preserved, and every trained version passes Gate 3** (F28; on E2 with power, F44).
+- **The stricter bar, beating the one-line instruction on following at no cost to correct hints, is met by no fix**
+  (F28, F41, F43, F44).
+- **The mechanism:** LoRA acts in the reasoning (F39); A40 changes how the hint is read, in layers 0–14 (F42).
+- **Our reading:** without a way to verify the tool, resisting wrong hints and relying on right ones trade off. So the
+  fix belongs at the system level: provenance the system can check, or an independent checker (Track C, F24).
 
 ## Read this first
 

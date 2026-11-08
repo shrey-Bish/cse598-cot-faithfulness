@@ -986,10 +986,13 @@ PREREG = [
                      "B1R2 held until E2's sweeps and B20's lines are in)", "ee14295"),
                     ("the amendment, section 19 (B1R2 dropped; the Nov 11 rule checks E2's and A40's lines; A40 before "
                      "the 30)", "dcf2d99")],
-     "f_title": r"\(A39\)", "result_glob": ["*a39-results*"], "verdict": "waiting: complete (every run of its seven "
-     "systems has an ok record on E2 and the 30, Nov 7, section 22; Sol's runs-left had miscounted 54); its rule reads "
-     "it once complete, by Nov 17",
-     "verdict_check": []},
+     "f_title": r"\(A39\)", "result_glob": ["*a39-results*"],
+     "verdict": "read Nov 7 once complete: R4 the wrapper alone, no effect (following −1 [−7, +4]); R3 wrapper + note "
+                "adds, costs acceptance (minus the instruction −14 [−20, −9], acceptance −12 [−18, −6]), LoRA + wrapper "
+                "adds to both, LoRA + note adds, costs acceptance; R2 LoRA + note fewer than the instruction (−8 "
+                "[−12, −4], acceptance −9 beside it); R1 passes for the instruction and LoRA (a powered replication of "
+                "Gate 3)",
+     "verdict_check": ["no effect", "adds to both", "−14 [−20, −9]", "−8 [−12, −4]"]},
     {"id": "b1r2", "track": "A", "experiment": "B1R2: B1's deployable span on E2 (a labelled replication; decided "
                                                "Nov 4: it runs)", "kind": "pre",
      "rule": "alpha 0.25 against alpha = 1 on E2's inserted tool turn, by B1's rule (b1_verdict) unchanged; B1's verdict "
@@ -1046,6 +1049,28 @@ PREREG = [
      "verdict": "fewer, but costs acceptance: against the instruction following −24 [−30, −19] and acceptance −20 "
                 "[−26, −14]; R3 adds, costs acceptance; R1 passes; read Nov 7 once complete",
      "verdict_check": ["fewer, but costs acceptance", "−24 [−30, −19]", "adds, costs acceptance"]},
+    {"id": "tradeoff", "track": "A", "experiment": "The trade-off on E2 (post hoc): wrong hints followed against correct "
+                                                 "hints taken, Acc(p) and where each system crosses the instruction, "
+                                                 "disclosure when following by keyword", "kind": "exploratory",
+     "rule": "written and committed before computing, after A40-A42 were read: each E2 system's following and "
+             "acceptance; Acc(p) = p a_C + (1 - p) a_W on the tool channels and p* = dW / (dW - dC) against the "
+             "instruction, 20,000 paired resamples of questions; the keyword share of followed runs naming the hint",
+     "rule_log": "2026-11-07_2020_A_tradeoff-exploratory.md", "rule_check": ["Exploratory, not pre-registered"],
+     "result_glob": ["*tradeoff-exploratory*"],
+     "verdict": "exploratory (post hoc): A40 gives more correct answers than the instruction only when fewer than 0.361 "
+                "[0.220, 0.499] of the tool's answers are correct; LoRA is behind at every p; disclosure when following "
+                "(keyword) minus the instruction: LoRA +40.9 [+30.2, +51.4], A40 +21.6 [+6.9, +35.5]",
+     "verdict_check": ["0.361 [0.220, 0.499]", "+40.9 [+30.2, +51.4]", "+21.6 [+6.9, +35.5]"]},
+    {"id": "l6", "track": "labels", "experiment": "L6: a hand-label check of disclosure when following on E2 (base, "
+                                                  "prompt_only, LoRA, A40)", "kind": "pre",
+     "rule": "14 followed runs per system and channel, 168 rows, blind, by seed L6-20261107; L4's guide and labels; "
+             "Ritik's labels final, J-opus the reliability check; per system the share says_changed or mentions_only; "
+             "LoRA and A40 minus the instruction, bootstrap clustered by question: discloses more / less / no "
+             "difference detected, in labels",
+     "rule_log": "2026-11-07_2025_A_l6-prereg.md",
+     "rule_check": ["discloses more than the instruction, in labels", "168 rows"],
+     "verdict": "waiting: pre-registered Nov 7, not run; Ritik decides (about 3.5 hours of labeling)",
+     "verdict_check": []},
     {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
      "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "
              "H34 supported by fewer corrections (or a smaller drop), not supported by no change",

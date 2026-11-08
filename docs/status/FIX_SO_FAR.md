@@ -1,7 +1,8 @@
-## In plain words: Track A's fix so far (as of Nov 7, 13:44; by Ritik; earlier Nov 5, 09:08)
+## In plain words: Track A's fix so far (as of Nov 7, 20:39: A39 read; by Ritik; earlier 13:44 and Nov 5, 09:08)
 
-**The verdict.** Every trained version follows fewer wrong hints than base and passes Gate 3. **None beats one line of
-instruction in the prompt by its pre-registered rule.**
+**The verdict.** Every trained version follows fewer wrong hints than base and passes Gate 3 (on E2 too, with power:
+A39's R1). **Nothing beats one line of instruction in the prompt without a cost.** Each fix that follows fewer wrong
+hints than the instruction also takes fewer correct ones.
 - **LoRA matched the instruction** (the 30, F28). Its training changed the reasoning LoRA writes, not how it reads the
   hint (F39).
 - **Consistency training (A40) trades instead** (E2's 120 fresh questions, F41, read Nov 7). It follows the wrong hint
@@ -11,6 +12,13 @@ instruction in the prompt by its pre-registered rule.**
   reading.
 - **Inside the model, A40 is the first fix that changes how the hint is read off** (A41, F42). In layers 0–14, before
   the readout, it removes part of the hint's pull, where LoRA's weights added to it.
+- **Marking every tool output "[unverified tool output]" (A39's wrapper, F44, read Nov 7)** does nothing alone on the
+  tool turn ("no effect": −1 [−7, +4]). Added to the instruction, it follows fewer wrong hints there (18% against 32%;
+  −14 [−20, −9]) and takes fewer correct ones (76% against 88%; −12 [−18, −6]): "adds, costs acceptance". Added to
+  LoRA, it "adds to both" at no acceptance cost beyond 5 points.
+- **LoRA + note is "fewer than the instruction"** by A39's R2, which reads following only (25% against 33%; −8
+  [−12, −4]). A39's log called that, in advance, "the first fix that beats one line". Acceptance falls 9 points beside
+  it (82% against 91%), which R2 doesn't read, and R3 reads the same system "adds, costs acceptance".
 
 Olmo 3 7B Think, the held-out 30 MMLU-Pro questions, 930 runs per system (F28, final Oct 31). Sources:
 [FINDINGS](../FINDINGS.md); Gate 3's [table](../../cot-disclosure/results/summaries/trackA/gpu/eval/gate3_table.md)
@@ -39,15 +47,20 @@ and [report](../../cot-disclosure/results/summaries/trackA/gpu/eval/eval_report.
 - **Tags aren't tool-specific:** the predicted extra help on the inserted tool turn isn't borne out (tags −2 [−13, +9];
   LoRA + tags −13 [−24, −1], the wrong side).
 
-**1b. Consistency training on E2** (A40 and A42; 120 questions, 1,440 runs a system; F41, F43; read Nov 7 by the
-rules fixed Nov 5 and 6; [A40's reading](../../archive/sessions/2026-11-07/2026-11-07_1329_A_a40-reading.md),
-[A42's](../../archive/sessions/2026-11-07/2026-11-07_1331_A_a42-reading.md))
+**1b. The fixes on E2** (A39, A40 and A42; 120 questions, 1,440 runs a system; F44, F41, F43; read Nov 7 by the
+rules fixed Nov 3, 5 and 6; [A39's reading](../../archive/sessions/2026-11-07/2026-11-07_2033_A_a39-results.md),
+[A40's](../../archive/sessions/2026-11-07/2026-11-07_1329_A_a40-reading.md),
+[A42's](../../archive/sessions/2026-11-07/2026-11-07_1331_A_a42-reading.md)). Pooled over the channels unless the row
+says the inserted tool turn; there the instruction follows 77 of 237 (32%) and takes 210 of 238 (88%).
 
 | system | wrong hints followed | − the instruction | correct hints accepted | − the instruction | no-hint accuracy | reading |
 |---|---|---|---|---|---|---|
 | base | 297 of 703 (42%) | | 439 of 476 (92%) | | 156 of 236 (66%) | |
 | the instruction (prompt_only) | 237 of 713 (33%) | — | 431 of 476 (91%) | — | 154 of 235 (66%) | |
-| LoRA | 248 of 705 (35%) | | 421 of 477 (88%) | | 155 of 235 (66%) | A39's, not read yet |
+| LoRA | 248 of 705 (35%) | +2 [−2, +6] | 421 of 477 (88%) | −2 [−5, +1] | 155 of 235 (66%) | no difference detected (A39's R2); R1 passes (a powered replication of Gate 3) |
+| LoRA + note (A39) | 179 of 710 (25%) | −8 [−12, −4] | 384 of 470 (82%) | −9 [−13, −5] | 151 of 236 (64%) | **fewer than the instruction** (R2, following only); R3 adds, costs acceptance |
+| wrapper + note (A39), inserted tool turn | 42 of 232 (18%) | −14 [−20, −9] | 179 of 235 (76%) | −12 [−18, −6] | 154 of 235 (66%) | **adds, costs acceptance** (R3) |
+| wrapper (A39), inserted tool turn | 83 of 236 (35%) | (− base −1 [−7, +4]) | 207 of 239 (87%) | (− base −0.5) | 156 of 236 (66%) | **no effect** (R4, against base) |
 | **A40** (consistency training) | **84 of 694 (12%)** | **−21 [−26, −16]** | **347 of 459 (76%)** | **−15 [−20, −10]** | 146 of 229 (64%) | **fewer, but costs acceptance**; R1 passes |
 | **A40 + note** (A42) | **64 of 706 (9%)** | **−24 [−30, −19]** | **334 of 472 (71%)** | **−20 [−26, −14]** | 147 of 238 (62%) | **fewer, but costs acceptance**; R3 adds, costs acceptance; R1 passes |
 
@@ -90,24 +103,17 @@ rules fixed Nov 5 and 6; [A40's reading](../../archive/sessions/2026-11-07/2026-
   F38); training's cut kept acceptance near base's (no interval). B1 is underpowered at 30 questions.
 - **Power** [shown]. On the 30, following differences are ±6 to ±7 points (A39 log §1): too wide to tell apart.
 
-**3. What A39 will settle** ([its log](../../archive/sessions/2026-11-03/2026-11-03_1130_A_e2-a39-prereg.md) §1–4, §18)
-- **E2:** 120 fresh MMLU-Pro questions (30 each of law, engineering, chemistry, physics; not the 30, Track A's pool or
-  C15's). Planned 95% half-widths: following ±4.6, ±4.9, ±3.8 (LoRA − base, prompt_only − base, LoRA − prompt_only).
-- **Seven systems:** base, prompt_only, LoRA, LoRA + note, a wrapper (every tool message prefixed "[unverified tool
-  output] "), wrapper + note, LoRA + wrapper. 12 runs a question each; 7,200 on E2 after shared runs.
-- **The rules,** paired by question: **R1**, Gate 3's rule against base (for prompt_only and LoRA a powered
-  replication; F28 stays); **R2**, each against prompt_only: "fewer than the instruction", "more" or "no difference
-  detected"; **R3**, each combination against its parts; **R4**, the wrapper against base on the tool turn, by B1's rule.
-- **What each outcome means** (said Nov 3): "fewer than the instruction" is the first fix that beats one line; a
-  combination "adds to both": they stack; the wrapper "works": marking the source does what training didn't; all "no
-  difference detected" at ±5: the instruction is as good as these fixes get, now with the power to say so.
-- **When:** complete (every run of all seven systems has an ok record, Nov 7, 13:28); its rule reads it once complete,
-  so it is read when Ritik chooses, by Nov 17 ([PLAN](../PLAN.md)). The partial rule (§18, Nov 15 23:59) isn't
-  needed.
+**3. What A39 settled** ([its reading](../../archive/sessions/2026-11-07/2026-11-07_2033_A_a39-results.md), F44;
+the rules of Nov 3, [its log](../../archive/sessions/2026-11-03/2026-11-03_1130_A_e2-a39-prereg.md) §4)
+- **The powered replication of Gate 3 passes** for the instruction (−9 [−14, −4]) and LoRA (−7 [−11, −3]) against
+  base. F28's verdict stays; E2 now says it with power.
+- **LoRA still matches the instruction** (R2: +2 [−2, +6], "no difference detected"), now with the power to say so.
+- **The wrapper alone "no effect"** (R4). It "works" on the 30 (−18 [−34, −1]), reported beside, not read.
+- **Combinations:** LoRA + wrapper "adds to both"; wrapper + note and LoRA + note "add, costs acceptance".
+- **The meanings said in advance:** "fewer than the instruction" (LoRA + note) is "the first fix that beats one line",
+  on following, the one measure R2 reads; the wrapper "works" isn't reached.
 
 **4. Next.**
-- **A39** (the wrapper and the combinations, with a powered replication of Gate 3) is complete on E2 and the 30.
-  Its rule reads it once complete, by Nov 17 (Ritik). Its base, prompt_only and lora rows are already printed above as
-  A40's comparisons; its own rules R1–R4 aren't read yet.
-- **B1R2** (B1's span on E2) is running: 19 of 40 parts done at 13:18 Nov 7. Read when complete, or partial at
+- **B1R2** (B1's span on E2) is running: 31 of 40 parts ended at 20:22 Nov 7. Read when complete, or partial at
   Nov 15 23:59.
+- **L6** (a hand-label check of disclosure when following, pre-registered Nov 7, not run): Ritik decides.

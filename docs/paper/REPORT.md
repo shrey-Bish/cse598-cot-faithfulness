@@ -2,7 +2,7 @@
 
 **Edited by:** Ritik; each section's bullets by its owner (Track B's: Arsha, from `docs/trackB/REPORT_B.md`; Track C's: Shrey, from `docs/trackC/REPORT_C.md`), merged by Ritik.
 
-Started Nov 3 by Ritik; updated Nov 7, 13:52 (F41–F43 in §7, A40, A41 and A42 read; A39 complete and B1R2 running in §7's waiting list; §6's L3 entry read Nov 4, no longer waiting; Shrey's figures placed in `docs/paper/figures/`); earlier Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
+Started Nov 3 by Ritik; updated Nov 7, 20:43 (§7's exploratory trade-off bullet, post hoc; earlier 20:35, F44 in §7: A39 read by its rules R1–R4, its figures drawn, its waiting entry replaced); earlier Nov 7, 13:52 (F41–F43 in §7, A40, A41 and A42 read; A39 complete and B1R2 running in §7's waiting list; §6's L3 entry read Nov 4, no longer waiting; Shrey's figures placed in `docs/paper/figures/`); earlier Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
 methods are filled in as bullets** (facts with their source), so the prose can be written from them. Numbers come from
 [`FINDINGS.md`](../FINDINGS.md), the tracks' `FINDINGS_B.md` and `FINDINGS_C.md`, and the claims from
 [`CLAIMS.md`](CLAIMS.md). Results freeze on Nov 18; the draft is due Nov 22, the final report Nov 24.
@@ -474,7 +474,7 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 - Gate 3; the instruction; false disclosure in labels (L4); B1; consistency training (A40, A41, A42); A39 on E2.
 - Figure: `docs/paper/figures/gate3_vs_base_slide.png` (slide 9; the same rows as `finetune/gate3.py`'s
   `cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png`), or A39's (`a39_e2_fixes.png`,
-  `a39_e2_parts.png`, drawn Nov 17; WAITING.md).
+  `a39_e2_parts.png`, drawn Nov 7, F44; WAITING.md).
 
 **Results** (Olmo 3 7B Think; the held-out 30 unless noted):
 
@@ -573,24 +573,55 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     rules.
   - Limits: as F41's.
   - figure: docs/paper/figures/a40_e2_fixes.png (the A40 + note rows)
+- **F44. A39 (E2): marking every tool output "unverified" has no effect alone; with the instruction it follows fewer
+  wrong hints on the tool turn but takes fewer correct ones; with LoRA it "adds to both"; LoRA + note is "fewer than
+  the instruction".** (E2's 120 questions; 1,440 runs a core system, 480 own runs a wrapper system; read Nov 7 by the
+  rules of Nov 3, [log](../../archive/sessions/2026-11-07/2026-11-07_2033_A_a39-results.md).)
+  - Numbers, the wrapper (its informative readings, on the inserted tool turn):
+    - R4, the wrapper − base: following −1 [−7, +4], acceptance −0.5 [−5, +4]: "no effect" (the pasted block's check
+      exactly 0).
+    - R3, wrapper + note − the instruction: following −14 [−20, −9], acceptance −12 [−18, −6]; − the wrapper: −17
+      [−22, −12], −10 [−16, −5]: "adds, costs acceptance". It follows 42 of 232 [14, 24%] against the instruction's
+      77 of 237 [27, 39%], and takes 179 of 235 [70, 81%] against 210 of 238 [84, 92%].
+    - R3, LoRA + wrapper − LoRA: following −8 [−14, −2], acceptance −2 [−7, +3]; − the wrapper: −14 [−20, −8], −4
+      [−9, +1]: "adds to both".
+  - Numbers, the rest (pooled):
+    - LoRA + note − the instruction: following −8 [−12, −4] (R2: "fewer than the instruction"), acceptance −9 [−13, −5]
+      beside it; with − LoRA (−10 [−14, −6], acceptance −7 [−11, −3]), R3 "adds, costs acceptance". It follows 179
+      of 710 [22, 29%] and takes 384 of 470 [78, 85%].
+    - R2: base "more" (+9 [+4, +14]); LoRA "no difference detected" (+2 [−2, +6]); diluted by design, the wrapper
+      "more", wrapper + note "fewer than the instruction" (−5 [−6, −3]), LoRA + wrapper "no difference detected".
+    - R1 (Gate 3's rule): passes for the instruction (−9 [−14, −4]) and LoRA (−7 [−11, −3]), a powered replication of
+      Gate 3 (F28's verdict stays), and for LoRA + note, wrapper + note and LoRA + wrapper; the wrapper fails (−0.5
+      [−2, +1]; diluted by design). No no-answer imbalance.
+    - The 30, beside it (not pooled): R4 "works" (−18 [−34, −1]); R3 for both wrapper combinations "no better than the
+      better one alone"; LoRA + note "fewer than the instruction" (−11 [−18, −4]).
+  - Status: confirmed by the rules (F44). R4 "no effect"; R3: wrapper + note "adds, costs acceptance", LoRA + wrapper
+    "adds to both", LoRA + note "adds, costs acceptance"; R2: LoRA + note "fewer than the instruction" (in A39's log's
+    words said in advance, "the first fix that beats one line": on following, the one measure R2 reads); R1 passes for
+    every system but the wrapper. The wrapper "works" isn't reached.
+  - Limits: one model; MMLU-Pro's evaluation categories; the wrapper acts on one of three channels, on 2 wrong-hint and
+    2 correct-hint runs a question; the wrapper systems' R1 and R2 are diluted by design; keyword hiding; T12 (the
+    log's §15): 340 runs another model's server served were set aside unread and run again; 33 runs with two ok
+    records, the newest kept by the reader's fixed rule.
+  - figure: docs/paper/figures/a39_e2_fixes.png and a39_e2_parts.png (the 30's a39_mmlupro_30_fixes and _parts, for
+    the supplement)
+- **Exploratory (post hoc), not pre-registered: the trade-off on E2.** Written and committed before computing, after
+  A40–A42 were read ([log](../../archive/sessions/2026-11-07/2026-11-07_2020_A_tradeoff-exploratory.md),
+  `tools/tradeoff.py`). It replaces and qualifies no verdict above.
+  - Every E2 system that follows fewer wrong hints than the instruction also takes fewer correct ones, pooled and on the
+    inserted tool turn (point estimates; figure `tradeoff_e2.png`).
+  - Expected accuracy under tool hints, Acc(p) = p · a_C + (1 − p) · a_W, with p the share of the tool's answers that
+    are correct: A40 gives more correct answers than the instruction only when p is below 0.36 [0.22, 0.50] (a_W 61.2
+    against 52.7, a_C 75.6 against 90.5). LoRA is behind the instruction at every p, by about 2 points with every
+    pointwise interval including 0 (`tradeoff_acc_p.png`, supplement).
+  - Disclosure when following, by keyword (followed runs whose final answer names the hint): LoRA 225 of 248 [87, 94%]
+    against the instruction's 118 of 237 [44, 56%], +41 [+30, +51]; A40 60 of 84 [61, 80%], +22 [+7, +36]. A keyword
+    measure: LoRA's trained opener names the hint (F28), and L6, a hand-label check, is pre-registered and not run.
+  - figure: docs/paper/figures/tradeoff_e2.png (exploratory (post hoc); `tradeoff_acc_p.png` for the supplement)
 
 **Waiting:**
 
-- **A39 (complete, to be read): Track A's second evaluation, on Sol.** A provenance wrapper and combinations, with a powered
-  replication of Gate 3, on E2's 120 fresh questions (pre-registered Nov 3,
-  [log](../../archive/sessions/2026-11-03/2026-11-03_1130_A_e2-a39-prereg.md)). Runs in 1-GPU parts, up to 10 at
-  once, submitted by the feeder (from Nov 4, 2:00 parts and 3:00 sweeps: the log's §14). **Complete:** every line
-  ended by Nov 6, 10:56, and on Nov 7 (13:28) every run of its seven systems had an ok record, on E2 and on the 30.
-  Sol's `--runs-left` showed 54 runs left, from a counting bug fixed Nov 7 (the 13:29 log's §6); its readers were never
-  affected. Its rule reads it once complete (partial only at Nov 15 23:59, §18): Ritik reads it, by Nov 17. Its base,
-  prompt_only and lora rows already appear in F41 as A40's comparisons; its own rules R1–R4 aren't read yet.
-  - **The 30** ran beside E2: the Nov 6 07:00 rule said no cut (60.6 GPU-hours), and all 29 of its lines ended Nov 6
-    (the log's §20), so the Nov 11 rule has nothing to drop.
-  - **T12 (Nov 4; the log's §15):** two A39 jobs shared a node and one server six times; three parts' runs (340) came
-    from another model's server, set aside unread and run again; 160 from a server of the same model and command are
-    kept, labelled. No earlier result is affected (§10).
-  - figure: waiting: `docs/paper/figures/a39_e2_fixes.png` and `a39_e2_parts.png` (`tools/a39_figures.py`, drawn
-    only from a complete report, Nov 17; spec in WAITING.md), after slide 9's `gate3_vs_base_slide.png`
 - **B1R2 (waiting): revived Nov 6.** Decided Nov 4 to run (the A39 log's §13); dropped Nov 5, before any B1R2 job
   was submitted (§19); revived Nov 6 (§21), last in Ritik's queue. B1 on the 30 (F38) stays the primary result on
   the deployable span; B1R2 is reported as a labelled replication. **Running:** at 13:18 Nov 7, 19 of its 40 parts

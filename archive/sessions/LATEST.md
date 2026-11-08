@@ -1,216 +1,172 @@
-# Session log: the overnight runs, what may be read now, the report's state (2026-11-07 13:15 MST)
+# Session log: A39 read; the trade-off, explored (post hoc); a label check of disclosure, pre-registered (2026-11-07 20:19 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `81ab922`. The day's first session, so it opens Nov 7's daily (§0 carries
-in Nov 6's "For Nov 7").
+**By:** Ritik. Branch `trackA-nosol`, from `905ed4a`. The day's second session (the first was
+[13:15](2026-11-07/2026-11-07_1315_ALL_overnight-reads-report.md)).
 
 ## 0. Input
 
-- **Ritik's Sol, Nov 6 at 23:58:** the feeder said "200 lines: 1 failed, 10 not needed, 125 ok, 3 pending, 6 running,
-  55 to submit".
-- **This morning, sacct since Nov 6 12:00** (its last 25 lines):
-  - `trackA-a39-1gpu` 659497, 660008, 660989, 660990, 661201, 664550, 668574 and 669744 COMPLETED (44–55 minutes
-    each); none of that job type running or pending;
-  - `trackA-a18` 667862 COMPLETED in 0:22:16 (A41's swap?);
-  - `trackA-prov-gen` (B1R2): 675320, 675871, 676233, 676234, 676474, 676986, 677532, 678538 and 681191 COMPLETED;
-    677995, 680258 and 682548 RUNNING; 683313, 684392 and 685235 PENDING;
-  - no failure in the list; the feeder's job 460080 REQUEUED (normal).
-- **Ritik sent both messages:** Arsha may read B20 now; Shrey's branch is merged, so he merges back and reinstalls.
+- **Ritik sends Shrey the C24 message** (merge `origin/main` back).
+- **Ritik's sacct (latest), B1R2:** 680258 and 683313 FAILED, exit 1, after 2:25:48 and 2:26:06 (Ritik: "the
+  planned stop at the warning, I believe"); 686233, 695986 and 702072 RUNNING; 702635 and 703028 PENDING; the rest
+  COMPLETED.
+- **Decisions:**
+  - **a. Read A39 now** (complete; its rule reads it once complete), by its rules R1–R4 only, in its own log, with its
+    F-entry, FINDINGS' story, REPORT §7 and `a39_figures`. The wrapper systems first: does marking tool output
+    "unverified" beat the instruction, and at what acceptance cost?
+  - **b. An exploratory trade-off analysis,** labelled post hoc wherever it appears, never replacing a
+    pre-registered verdict, in its own log written before computing: the trade-off figure (every E2 system, wrong-hint
+    following against correct-hint acceptance); expected accuracy under hints as a function of p, the share of tool
+    answers that are correct, and where each pair of systems crosses (A40 against prompt_only first, then LoRA against
+    prompt_only); "disclosure when following" by keyword, per system. REPORT then gets one labelled exploratory bullet
+    and the figure.
+  - **c. Pre-register (not run) a hand-label check of disclosure when following,** under the LLM-judge protocol (Ritik's
+    labels final; J-opus the reliability check): E2 runs that followed the wrong hint, from base, prompt_only, lora and
+    a40, about 40 a system, by a fixed seed, balanced over channels, blind and shuffled, L4's guide and labels; the rule
+    fixed now; the sheet's size and the labeling time, for Ritik's yes or no.
+  - **d. A "scorecard against the original plan" paragraph** in FINDINGS' story and the README, every number as already
+    read, exploratory items labelled.
+  - **e. Arsha's B20 reading** (added by Ritik at 20:31, during this session): when she says `trackB-main` is pushed,
+    merge it into `main` by the merge steps (path check, her identity only, no AI lines, Track B's tests on the
+    merge). Then update Ritik's docs from her FB1 entry, copying no number FB1 doesn't give: FINDINGS' story line 1 and
+    the README (tools beat users in all three new families, 10 of 10 readings; the claim against the tool's form
+    depends on family and channel); line 2 (the bare answer after a call in Granite and Nemotron, and Nemotron's drop
+    with thinking); REPORT §2–§4's bullets; the scorecard (d). If she hasn't pushed by the end of this session, the
+    merge waits for the next one.
+    - **At 20:31:** `origin/trackB-main` has nothing new (still `10f7920`, Nov 6 10:08). Checked again before the push.
 
-## 1. Plan (at most 2 helpers; the full suite once, at the end)
+## 1. Plan (at most 2 helpers; helpers don't commit; the full suite once, at the end)
 
-- **Helper A, Sol (read-only; status counts only, no outcome):**
-  - the night in full: A40's E2 (16 parts and its sweep), A41 (the swap and Step 10), A42's E2 (16 parts and its
-    sweep), B1R2 (parts done and left, its 4 sweeps);
-  - any failure or alert, each diagnosed with its fix (commands for Ritik, not run);
-  - the projected finish of anything not done (`squeue --start` only);
-  - the runs left of A39's seven systems on E2 and the 30, since A40's and A42's comparisons are A39's runs;
-  - the Sol clone and the safety diff (no pull by the helper).
-- **Me, reading:**
-  - from each pre-registration, exactly when A40, A41, A42 and B1R2 may be read;
-  - each that is complete and allowed now: the numbers-only copy-back, its reader, its reading by its rules only in its
-    own log, with its F-entry, FINDINGS' story, REPORT's bullets and its figure. A40 first, then A41, then A42;
-  - each that is complete but whose rule says wait: said plainly, with its date in PLAN's calendar.
-- **Me, the report's state:** which REPORT sections are final and which wait (A40–A42, B1R2, B20 with Arsha, C24
-  with Shrey), with dates; the team's writing plan for Nov 18–24 as a short table in PLAN (bullets and figures from
-  Ritik's side; the team writes the prose).
-- **Then:** the stale scan, the records, the full suite once, the push (`trackA-nosol` and `main` only).
+- **First, committed before anything below is computed:** this plan and the exploratory analysis's own log (b), which
+  says exactly what is computed.
+- **Helper A:** A39's reading (a): its reader (`finetune/a39.py --report`, E2 and the 30), the reading by R1–R4 only
+  in its own log, the wrapper systems first; then `tools/a39_figures.py`. It drafts the F-entry and REPORT's bullets;
+  I put them in FINDINGS and REPORT.
+- **Helper B:** the exploratory analysis (b), exactly as its log says: the numbers and the figure, with tests.
+- **Me:**
+  - the label check's pre-registration (c). **Ruling:** it is named **L6**, since **L5** is already Track B's labeling
+    batch (TODO's L5, PLAN, CLAIMS). Cost if wrong: a rename;
+  - B1R2's status from Ritik's sacct (the two stops, the sweeps, the out-of-memory leftovers), Sol read-only;
+  - the scorecard (d), after A39 is read, so it includes the wrapper;
+  - then the stale scan, the records, the checks and the push (`trackA-nosol` and `main` only).
 
-## 2. The night on Sol (helper A, read-only, 13:18–13:25; status counts only)
+## 2. B1R2 on Sol (me, read-only, 20:22–20:24; status counts only, nothing of B1R2 read)
 
-- **The feeder:** last tick 13:15:56; "200 lines: 2 failed, 12 not needed, 162 ok, 4 pending, 3 running, 17 to
-  submit". No new alert since `b1r2-06of40` (Nov 6 21:46, known). The digest: 49.2 GPU-hours in 24 h, no tick gaps.
-- **A40: complete.** Its 16 E2 parts (643805 … 652218) all COMPLETED, exit 0, in 0:44–1:07 each; the last ended Nov 7
-  01:50. The sweep wasn't needed; `--runs-left a39:a40:e2` = 0.
-- **A41: complete.**
-  - `a41-swap`: 652219, 0:24:43, ended 01:20.
-  - `a41-step10`: 652471, exit 2 after 2:55:46. That is the planned stop at its limit, with 50 cuts saved.
-  - `a41-step10-again`: 667862, 0:22:16, the last 2 cuts, ended 07:25. Ritik's note this morning read 667862 as the
-    swap; it was this again-line.
-- **A42: complete.** 16 parts (653898 … 669744), all exit 0, 0:44–0:55 each; the last ended 07:51. The sweep wasn't
-  needed; runs left 0. The eight `trackA-a39-1gpu` jobs in Ritik's sacct were A42's parts 9–16.
-- **Every A40 and A42 part served its own requests:** 90 or 91 each, on its own port.
-- **B1R2: running.**
-  - 19 of 40 parts done; 3 running (19, 21, 23); 4 pending (24–27); 13 to submit; the 4 sweeps wait.
-  - 556 of 1,200 runs left (by sweep: 135, 126, 143, 152).
-  - Parts 14 and 20 left 3 runs "not_run: static engine: out of memory alone" (alpha 0.25), which the sweeps retry.
-    They may run out of memory again.
-- **No new failure.** `a41-step10`'s exit 2 is by design (A41's §5).
-- **The Sol clone:** at `81ab922`, clean; the safety diff printed nothing. No pull was needed.
-- **The finding:** Sol's `--runs-left` said A39's E2 had 54 runs left. Every one has an ok record (§4).
+- **The two "FAILED, exit 1" jobs are the planned stop at the warning,** as Ritik thought.
+  - 680258 is `b1r2-21of40` (2:25:48) and 683313 is `b1r2-24of40` (2:26:06), each against a limit of 2:30.
+  - Slurm's warning comes 5 minutes before the limit (`--signal=B:USR1@300`). `provenance_job.py` finishes the round
+    in flight, then ends with "stopped by a signal; the runs saved so far count, a rerun does the rest". That message
+    is a `SystemExit`, so the exit code is 1.
+  - The feeder alerted each (6 and 7 of its runs left), as it did for `b1r2-06of40` on Nov 6 (5 left). The sweeps
+    take those runs. No fix is needed.
+- **The parts:** 31 of 40 have ended (28 COMPLETED, 3 stopped at the warning: 06, 21 and 24).
+  - Four are pending, all on Priority: 32–35 (702635, 703028, 704784 and 705727). `squeue --start` gives no time.
+  - Five are still to submit (36–40). Each waits only for room (`reserve=240:2`).
+  - Ritik's 686233, 695986 and 702072 have since COMPLETED (parts 27, 28 and 31; ended 18:57–19:29).
+- **The sweeps** (each after its 10 parts, `left=b1r2:k/4`): 66, 66, 60 and 99 runs left, 291 in all.
+  - 270 of those are parts 32–40, not yet run (9 × 30).
+  - The other 21 are leftovers: the three warning stops (06: 5, 21: 6, 24: 7), and parts 14 (1) and 20 (2). Those
+    three are the "out of memory alone" runs at alpha 0.25 (the 13:15 log's §2), which the sweeps retry and which may
+    run out of memory again.
+- **Projected finish:** none from Sol (`squeue --start` gives N/A for all four pending parts). Parts take 0:41–2:26
+  each. The last parts and the four sweeps need several more hours of starts.
+- **The Sol clone:** still at `81ab922`, clean. **The pull still waits:** parts 36–40 haven't started, and they load
+  `finetune/` (the 13:15 log's §8).
+- **The feeder:** last tick 20:20; "200 lines: 4 failed, 12 not needed, 171 ok, 4 pending, 9 to submit". The 4
+  failed are the three warning stops and `a41-step10`'s planned exit 2.
 
-## 3. When each may be read, from its pre-registration
+## 3. L6 pre-registered, not run (c; [its log](2026-11-07/2026-11-07_2025_A_l6-prereg.md), `838bc86`)
 
-| experiment | its rule | complete? | so |
-|---|---|---|---|
-| **A40** | §10: partial only if not complete by Nov 15 23:59; no earlier date | yes (1,440 of 1,440, and its comparisons') | **read now** (13:29) |
-| **A41** | §6: "Read when both jobs have ended" | yes (07:25) | **read now** (13:31) |
-| **A42** | §5: partial only if not complete by Nov 15 23:59; no earlier date | yes | **read now** (13:31) |
-| **B1R2** | the A39 log's §13.7–§13.8: when its sweeps leave 0 runs, or partial at Nov 15 23:59 | no (19 of 40 parts) | **wait**: when complete (projected Nov 8), by Nov 17 |
-| A39 (A40's comparisons) | its §18: partial only at Nov 15 23:59; no earlier date | yes (counted 13:28) | may be read; Ritik picks the day, by Nov 17 |
+- **The name:** asked for as L5, which is Track B's labeling batch, so it is **L6**.
+- **The question:** when a system follows the wrong hint, does its final answer really say the hint shaped it? It
+  tests the keyword result: LoRA names the hint in 225 of 248 followed runs (91%), base in 132 of 297 (44%),
+  prompt_only in 118 of 237 (50%), A40 in 60 of 84 (71%).
+- **The sheet:** 14 followed runs per system and channel from base, prompt_only, lora and a40, one per question, drawn
+  by seed `L6-20261107`; **168 rows**, shuffled, with the system, run id, question and keywords hidden. Every stratum
+  has 20 or more distinct questions (pool: base 297, prompt_only 237, lora 248, a40 84 runs).
+- **The labels:** L4's guide and five labels, the final answer only. Ritik's labels are final; J-opus is the
+  reliability check (the Nov 4 protocol's batch files), run after Ritik's sheet is saved; no re-look.
+- **The rule:** per system, the share labelled `says_changed` or `mentions_only`. LoRA − prompt_only and A40 −
+  prompt_only by a bootstrap clustered by question: "discloses more / less than the instruction, in labels" or "no
+  difference detected in labels". Each outcome's meaning is said in advance.
+- **For Ritik's yes or no:** 168 rows, **about 3½ hours of labeling** (L4's 1¼ minutes a row); J-opus under an hour;
+  the sheet is built on Sol from the texts (no GPU). To land before the Nov 18 freeze, the sheet should reach Ritik by
+  about Nov 12.
 
-- PLAN's "read Nov 17" for A40 and A42 was the planned deadline, not a rule; B20's reading was settled the same way on
-  Nov 6.
-- PLAN's calendar now carries B1R2's and A39's dates.
+## 4. A39 read (a; helper A; [its log](2026-11-07/2026-11-07_2033_A_a39-results.md), F44)
 
-**The readings** (each in its own log, by its rules only):
-- **A40** ([13:29](2026-11-07/2026-11-07_1329_A_a40-reading.md)): **"fewer, but costs acceptance"** against the instruction
-  (following −21 [−26, −16]; acceptance −15 [−20, −10]) and against LoRA; R1 passes. **It doesn't beat the
-  instruction.**
-- **A41** ([13:31](2026-11-07/2026-11-07_1331_A_a41-reading.md)): **"stops the readout", "before them"** (R_A40 +0.68 [+0.17,
-  +1.18]; layers 0–14 carry 1.89 [1.39, 4.82] of it); **"A40 removes more of the hint's pull than LoRA"** (+1.40
-  [+0.73, +2.09]).
-- **A42** ([13:31](2026-11-07/2026-11-07_1331_A_a42-reading.md)): **"fewer, but costs acceptance"** (following −24 [−30, −19];
-  acceptance −20 [−26, −14]); R3 **"adds, costs acceptance"**; R1 passes.
-- **Recorded:**
-  - F41–F43 and FINDINGS' story;
-  - REPORT §7's bullets, in place of A40's waiting entry;
-  - `results_at_a_glance`, FIX_SO_FAR and the supplement's rows;
-  - the summaries exported.
-- **Figures:** by helper B (§5).
+- **When:** complete, and its rule reads it once complete (§18 gives only a partial read at Nov 15 23:59).
+- **Checked by me:** the log's verbatim block matches the reader's JSON exactly (`a39.text` on `a39_e2.json`, 40 of 40
+  lines). Both reports are complete (E2: 1,440 a core system, 480 own runs a wrapper system; the 30: 360 and 120).
+  There are no text keys and no no-answer imbalance.
+- **The wrapper, first:**
+  - **alone (R4): "no effect"** on the inserted tool turn (following −1 [−7, +4], acceptance −0.5 [−5, +4]); the
+    pasted block's check is exactly 0;
+  - **with the instruction (R3): "adds, costs acceptance".** Against the instruction alone it follows −14 [−20, −9]
+    and takes −12 [−18, −6] on the tool turn: 42 of 232 against 77 of 237, and 179 of 235 against 210 of 238;
+  - **with LoRA (R3): "adds to both"** (−8 [−14, −2] against LoRA, −14 [−20, −8] against the wrapper; acceptance
+    within 5 points).
+- **The rest:**
+  - **R2: LoRA + note is "fewer than the instruction"** (−8 [−12, −4]), which the pre-registration called "the first
+    fix that beats one line". R2 reads following only; acceptance −9 [−13, −5] sits beside it, and R3 reads the same
+    system "adds, costs acceptance";
+  - LoRA "no difference detected" (+2 [−2, +6]); base "more";
+  - **R1 (Gate 3's rule): passes for the instruction (−9 [−14, −4]) and LoRA (−7 [−11, −3])**, the powered
+    replication (F28 stays); it passes for every system but the wrapper (diluted by design).
+- **The 30, beside it:** R4 "works" (−18 [−34, −1]); both wrapper combinations "no better than the better one alone";
+  LoRA + note "fewer than the instruction" (−11 [−18, −4]).
+- **Figures** (`tools/a39_figures.py`, headlines with the readings' words; 4 new tests seen failing first; its file 8
+  passed): `a39_e2_fixes`, `a39_e2_parts` and the 30's two. I looked at both E2 PNGs: clean.
+- **My edits after helper A:** FINDINGS' story sentence on A40 now says "doesn't beat the instruction by its rule"
+  (A39's R2 reads LoRA + note "fewer"); A39's log's limits note L6. The supplement's A39 row has its verdict and checks;
+  the export's comment says F44.
 
-## 4. The counting bug (`f42523e`)
+## 5. The trade-off, explored (b; post hoc; helper B; [its log](2026-11-07/2026-11-07_2020_A_tradeoff-exploratory.md) §5)
 
-- **The cause:**
-  - `eval.runs_files` lists the whole-system file first, then the parts by name;
-  - the resume, the feeder's `--runs-left`, `plan_eval` and B1R2's report took each run's last record of any status;
-  - so an older `not_run` in a file listed later hid an `ok`.
-- **What it did:**
-  - E2's sweeps re-ran 33 runs that already had an ok record (base 26, lora 6, prompt_only 1);
-  - Sol showed 54 runs left on a complete A39;
-  - B1R2's report could have dropped finished runs once its sweeps of 4 (which sort before parts 5, 9, 21, … of 40)
-    write.
-- **The readers were never affected** (`a39.py`, `a40.py`, `a42.py`: any ok record counts, each run's last ok kept).
-- **The fix, tests first:**
-  - two tests, RED (90 runs left where 87 are; `ok_rows` missing), then GREEN;
-  - `eval.done_ids` and `provenance_job.ok_rows`, and Gate 3's `rows_of` the same;
-  - on B1's and Gate 3's saved runs, 0 of 824 and 0 of 5,580 runs change, so F38 and F28 stand;
-  - the targeted suites: 321 passed.
-- **Recorded:** the A39 log's §22 (operational, no rule changes).
-- **Sol:** the pull waits until every B1R2 part has started, since `finetune/` is on the safety diff's list. Until
-  then, at worst a sweep re-runs a run that is already done.
+- **Written and committed before computing** (`3c3aa62`); §1–§4 unchanged since (80 lines added below them, none
+  removed).
+- **Checked by me:** I recomputed A40's and LoRA's crossings and four systems' disclosure counts in a separate script.
+  They match: A40 dW +8.4, dC −14.9, p* 0.361; LoRA dW −2.4, dC −2.3, no crossing; 132/297, 118/237, 225/248, 60/84.
+- **The numbers (exploratory, post hoc):**
+  - every E2 system that follows fewer wrong hints than the instruction also takes fewer correct ones, pooled and on
+    the tool turn (point estimates);
+  - **A40 gives more correct answers than the instruction only when fewer than 0.361 [0.220, 0.499] of the tool's
+    answers are correct** (no answer counted wrong: 0.288 [0.149, 0.417]);
+  - **LoRA is behind the instruction at every p,** by about 2 points, every pointwise interval including 0;
+  - **disclosure when following (keyword):** LoRA 225 of 248, A40 60 of 84, the instruction 118 of 237, base 132 of
+    297; LoRA − the instruction +40.9 [+30.2, +51.4], A40 +21.6 [+6.9, +35.5]. A40's depends on the channel: user 5
+    of 24, inserted 29 of 29.
+- **Tests:** `tests/test_tradeoff.py`, 24 seen failing (no module) then passing. The export then refused
+  `tradeoff_e2.json`: its bootstrap description was one 406-character string, and the limit is 200. A test was added
+  first (RED), then the description was split into four strings; 25 passed. The rerun gives the same numbers.
+- **Recorded:** REPORT §7's labelled exploratory bullet and `tradeoff_e2.png`; WAITING; the supplement's row (kind
+  "exploratory"); PLAN's row; the export.
 
-## 5. The figures (helper B; checked by eye before committing, `1898709`)
+## 6. The scorecard (d)
 
-- **`docs/paper/figures/a40_e2_fixes.png`** (new, `tools/a40_figures.py`, 9 tests, RED then GREEN):
-  - A40 against the instruction, LoRA and base; A40 + note against the instruction, A40 (R3) and base;
-  - following, acceptance and no-hint accuracy, each reading under its row;
-  - drawn only from the numbers-only reports; an incomplete report is refused unless `--draft`;
-  - A42's `vs_a40` reading, which `a42.py` marks "(no decision)", isn't drawn.
-- **Slide 10, `readout_lora_vs_base.png`:** A40's bars (A41) sit beside LoRA's, as A41's §6 said.
-  - 1 test, RED then GREEN. Without A41's file the figure is byte-identical to before.
-  - The headline: line 1 is F39's; line 2 is A41's reading. B1's readings stay in panel (b)'s title.
-  - A small blemish, left: the "+0.02" label touches the 0–23 whisker.
-- **Helper B's calls, accepted:**
-  - A40 is drawn in the "private" blue, no new color (validator: worst CVD ΔE 10.2);
-  - A40 − LoRA (+1.40) goes in the note and the CSV, not as a dot;
-  - R3's "minus the instruction" row repeats A42's primary, with R3's reading once.
+FINDINGS' story item 7 and the README, every number as already read, the exploratory ones labelled:
+- honesty when following improved with training (keyword; backed on the 30 by L4; L6 pending);
+- resisting wrong hints improved by A40, as a trade (A40's crossing at 0.36, exploratory);
+- accuracy preserved, and Gate 3 passed by every trained version (on E2 with power);
+- the stricter bar (beating the instruction on following at no cost) met by no fix;
+- the mechanism (LoRA in the reasoning, F39; A40 in layers 0–14, F42);
+- our reading: without verification, the two trade off, so the fix belongs at the system level (Track C, F24).
+- **Not in it yet:** Arsha's FB1 (decision e), which waits for her push.
 
-## 6. Shrey's C24, merged (`0c7a26f`), and Track C's files placed (`1a5002d`)
+## 7. Stale lines fixed
 
-- **`trackC-main` at `50f041c`:** one commit by Shrey Bishnoi (author and committer).
-  - No AI attribution line; the path check is clean; Track C paths only.
-  - Shrey had merged `origin/main` back and reinstalled the hooks first (the 09:15 log).
-- **C24:** `agents/trackc_tables.py` writes three tables into `docs/trackC/tables/`: `trackC_experiments` (71
-  comparisons), `trackC_pipelines` (C20's four pipelines) and `at_a_glance_FC`. 4 new tests pass.
-- **Placed, copied unchanged** (CHECKIN §8):
-  - Shrey's three figures (`c19_authority`, `c25_hops`, `pipeline_vs_model`) into `docs/paper/figures/`;
-  - the two tables into `docs/paper/tables/`;
-  - FC1–FC4 into `results_at_a_glance` (md and CSV), verbatim from Shrey's generated rows.
-- **Shrey's next step:** merge `origin/main` back again (the message in §8).
+- FINDINGS (F44 and story item 6 by helper A; item 7 and the A40 sentence by me), REPORT §7 and its header, CLAIMS
+  1.5 and 1.6, FIX_SO_FAR, `results_at_a_glance` (F44's row), PLAN (A39, B1R2, the trade-off and L6 rows; the
+  calendar; Gate 3's statement; the report's state; slide 9 and the slide history), TODO (A39, B1R2, L6), ONE_PAGE,
+  CHECKIN §3, WAITING, the README.
+- **A slip, corrected:** I first wrote REPORT's header time as 20:52, ahead of the clock (20:43). It was set to the
+  clock at once.
 
-## 7. The report's state, and the writing plan (PLAN, "The report's state")
+## 8. Needs Ritik, and Sol
 
-- **Final** (every number read): §5, §6 (L3 read Nov 4: not met), §8, §9. §7 is final for F20, F27, F28, F38, F39 and
-  F41–F43.
-- **Waiting:**
-  - §1's contributions line on A39 (Ritik, by Nov 17);
-  - §2–§4 on B20 (Arsha reads it now; Track B's bullets Nov 20; B18's table and slide 7's B24 arms Nov 18);
-  - §7 on A39 and B1R2 (by Nov 17) and Gate 3's final statement (Nov 20);
-  - §10–§12 on the freeze (Nov 18).
-- **The writing plan, Nov 18–24:** a table in PLAN.
-  - Each section's prose is by its owner, as REPORT's headings and the submission checklist already name them:
-    - Ritik: §1–§3, §5, §7, and §6 with Arsha;
-    - Arsha: §4;
-    - Shrey: §8–§9;
-    - everyone: §10–§12, merged by Ritik (proposed).
-  - The prose is written from REPORT's bullets and figures.
-  - Prose drafts by Nov 21 (proposed), the draft Nov 22, the rehearsal Nov 23, final Nov 24.
-- **Stale lines fixed:**
-  - REPORT §6's L3 entry (read Nov 4) and §7's waiting list;
-  - CLAIMS 1.5 and 1.7, README's fix paragraph, F38's B1R2 note, TRACK_A_FIX, PLAN's L3 and B1R2 rows;
-  - ONE_PAGE rewritten; CHECKIN's completeness checks.
-  - Left: Track B's and Track C's START_HERE still say B1R2 was dropped (their owners' paths).
-
-## 8. Messages, and Sol
-
-**To Shrey:** "C24 is merged into `main` (`0c7a26f`). Your three figures and two tables are placed in `docs/paper/`,
-and FC1–FC4 are in `results_at_a_glance` as you generated them. Please run `git fetch origin && git merge origin/main`
-on `trackC-main`, then push it. Nothing else is due from Track C before the Nov 18 freeze; check-ins Nov 12, 15, 18."
-
-**Arsha:** nothing new. B20's word was sent this morning.
-
-**Sol: no block is needed today.** The clone is current (`81ab922`) and every job runs. Today's commits change
-`finetune/eval.py` and `finetune/gpu/provenance_job.py`, which B1R2's parts load. So the safety diff will print them,
-and the pull waits until every B1R2 part has started (projected Nov 8, early). **Nov 8's block** (after
-`ssh -O check` says "Master running"):
-```bash
-ssh login.sol.rc.asu.edu 'bash -s' <<'EOS'
-cd /scratch/ragarw68/cse598-cot-faithfulness; P=/scratch/ragarw68/envs/olmo/bin/python; F=cot-disclosure/tools/sol_feeder.py
-$P $F --status | head -6                      # B1R2: no line "to submit" left among b1r2-01of40 … b1r2-40of40
-squeue -u $USER -n trackA-prov-gen -h -t PD | wc -l   # 0: no B1R2 part waiting
-git status --short && git fetch -q origin     # status prints nothing
-git diff --stat HEAD..@{u} -- cot-disclosure/finetune cot-disclosure/progress/common.py   # lists eval.py, provenance_job.py, plan_eval.py: expected, now safe
-git pull --ff-only && git log --oneline -1   # today's last commit
-for k in 1 2 3 4; do $P $F --runs-left b1r2:$k/4; done   # now counted by the fix
-EOS
-```
-Optional, Ritik's call: drop `reserve=240:2` from B1R2's lines (a queue-file edit). It now only paces B1R2.
-
-## 9. Needs Ritik
-
-- **Now:** send Shrey §8's message.
-- **Any day, by Nov 17: read A39** (complete).
-  - From `cot-disclosure/`: `a39.py --report --qset e2`, then `--qset mmlupro_30`, `export_summaries.py` and
-    `a39_figures.py` (CHECKIN §3). The runs files are already copied back.
-  - Its rules R1–R4 haven't been run.
+- **L6:** yes or no (168 rows, about 3½ hours of labeling; if yes, the sheet should reach Ritik by about Nov 12).
 - **Nov 8:** mark Gate 2 (PLAN's statement, ONE_PAGE, TODO's G2).
-- **Nov 8, once every B1R2 part has started:** §8's Sol block (the pull).
-- **Optional:** drop B1R2's `reserve=240:2`.
-- **Nov 18 check-in:** confirm the writing plan's proposed dates (PLAN).
-
-## 10. The checks (14:07, on `69b65d6`)
-
-- **The full suite, once:** 1,057 passed, 1 skipped, **1 failed** (9:34).
-  - The failure was `test_slide_figures.py::test_the_waiting_spec_names_every_waiting_slide`. It asserted that slide
-    12's `c25_hops.png` was still a spec, not a chart, in `docs/paper/figures/`.
-  - That stopped being true when Shrey's figure was placed there today (§6, CHECKIN §8). So the premise was out of
-    date; nothing in the code broke.
-  - The test now checks that WAITING names the three placed figures and that each is there with its CSV. Its file was
-    rerun alone: 13 passed. The full suite wasn't run a second time (the memory limit).
-- check_links: 0 broken, 0 missing RUNBOOK scripts.
-- `make_supplement` (40 rows) and `--check`: none unverified, no log outside the ledger, numbers only. CLAIMS: 3
-  mismatches (claim 2.6) and 12 source problems, as before; 13 weak matches.
-- `export_summaries --check`: numbers only.
-- The Gantt's dry run: 139 rows.
-- Both bundle dry runs: B 51 files, 73.8 MB; C 43 files, 31.3 MB.
-- `prepush_check` and nothing-missing: at the push (below).
+- **Once every B1R2 part has started** (36–40 are still to submit): the Sol pull, by the 13:15 log's §8 block.
+- **Optional:** drop B1R2's `reserve=240:2` (a queue-file edit), so parts 36–40 and the sweeps go in faster.
+- **Arsha:** when she says `trackB-main` is pushed, the merge (decision e) in the next session.
+- **No Sol block tonight:** nothing on Sol needs a command now. The clone is clean at `81ab922`, and the pull waits for
+  parts 36–40 to start.

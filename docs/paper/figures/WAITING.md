@@ -5,7 +5,7 @@
 Written Nov 1 for the final presentation map in [`docs/PLAN.md`](../../PLAN.md); updated Nov 3 (slides 4, 7, 8, 2 and 10
 are made; slide 12 is drawn by Shrey) and Nov 4 (A39's spec, 04:05; slides 3, 9 and 11 made as `_slide` versions,
 04:09; at 16:19 the additions below brought in line with the map: B24 on slide 7, B1R2 on slide 10, the `_slide`
-files); Nov 5, 09:53: B1R2 dropped, so slide 10 waits on nothing). Nothing here is drawn from fake or partial numbers. Ritik's slides are added to
+files); Nov 5, 09:53: B1R2 dropped, so slide 10 waits on nothing); Nov 7, 20:36: A39's figures drawn (A39 read, F44). Nothing here is drawn from fake or partial numbers. Ritik's slides are added to
 `cot-disclosure/tools/slide_figures.py` in the style of `bare_after_call` (16:9, white, colors by role, X of Y on the
 bars, a CSV of every plotted number), from a numbers-only summary under `cot-disclosure/results/summaries/`. **Shrey's
 (slides 11–12) are drawn by a script under `cot-disclosure/agents/` into `docs/trackC/figures/` (shared code is read-only
@@ -78,10 +78,22 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 
 ## A39: the fix round on E2 (after slide 9; the report's section 6)
 
+- **Made Nov 7** (A39 read by its rules, F44): `docs/paper/figures/a39_e2_fixes.png` and `a39_e2_parts.png`, and the
+  30's `a39_mmlupro_30_fixes.png` and `a39_mmlupro_30_parts.png` (.svg, .csv), from the complete reports
+  `results/trackA/gpu/a39/a39_e2.json` and `a39_mmlupro_30.json` (`tools/export_summaries.py` copies them to the
+  tool's default path). Three departures from the spec below, made after the reading (tests seen failing first):
+  - **The headlines carry the readings' words** (the spec left the slide's sentence until A39 was read). The fixes
+    figure: R2's "fewer than the instruction" systems, a wrapper system marked "diluted by design", with the acceptance
+    difference beside each, then R1's verdicts. The parts figure: the wrapper alone (R4) and wrapper + note and LoRA +
+    wrapper (R3), with those differences on the inserted tool turn.
+  - **Panel (b)'s readings are written inside the panel,** beside each combination's name, so the longer ones ("no
+    better than the better one alone", on the 30) don't run across the plot.
+  - **Panel (c)'s ticks are every 20 points** when every 10 would crowd it (the 30's range, −45 to +20).
+- **The spec, as written Nov 4:**
 - **Figures:** `docs/paper/figures/a39_e2_fixes.png` and `docs/paper/figures/a39_e2_parts.png` (.svg, .csv), drawn by
   `cot-disclosure/tools/a39_figures.py` (written Nov 4, 04:05) in `bare_after_call`'s style. The 30, reported beside
   E2, gives `a39_mmlupro_30_fixes` and `a39_mmlupro_30_parts` for the supplement.
-- **Drawn only after all A39 parts are in (Nov 17).** The tool refuses a report whose `complete` is false (its
+- **Drawn only after all A39 parts are in** (they were on Nov 7, 13:28). The tool refuses a report whose `complete` is false (its
   `completeness` lists the runs missing per system). `--draft` stamps "DRAFT"; a draft never goes on a slide.
 - **Source:** `finetune/a39.py --report --qset e2` writes `a39_e2.json` (numbers only) from the run files copied back
   from Sol's `$TRACKA_OUT/a39/` (`eval_*_a39_e2*_runs.jsonl`). It is exported to
@@ -112,9 +124,22 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
   - The headline lines come from the readings only. The slide's own sentence is written once A39 is read.
 - **The comparison:** R1–R4 as pre-registered Nov 3, with the amendment (the A39 log's section 9), both before any
   run; `finetune/a39.py`'s docstring.
-- **Tested only on synthetic reports**, written to a temporary folder (`tests/test_a39_figures.py`). Nothing is drawn
-  into this folder before Nov 17.
-- **Owner and date:** Ritik. The runs end Nov 15; A39 is read and drawn Nov 17.
+- **Tested on synthetic reports**, written to a temporary folder (`tests/test_a39_figures.py`); drawn into this folder
+  only from the complete reports, Nov 7.
+- **Owner and date:** Ritik. Read and drawn Nov 7 (F44), once complete (its rule; PLAN's Nov 17 was a deadline).
+
+## The trade-off on E2, exploratory (post hoc) (REPORT §7's labelled bullet; the supplement)
+
+- **Made Nov 7:** `docs/paper/figures/tradeoff_e2.png` (.svg, .csv) and `tradeoff_acc_p.png` (.svg, .csv), drawn by
+  `cot-disclosure/tools/tradeoff.py --figures` from its numbers-only `tradeoff_e2.json` (exported to
+  `results/summaries/trackA/gpu/a39/`).
+- **Exploratory (post hoc), not pre-registered:** the analysis is the
+  [Nov 7 20:20 log](../../archive/sessions/2026-11-07/2026-11-07_2020_A_tradeoff-exploratory.md), written and committed
+  before computing. Each figure's headline and each CSV's first line say so. It replaces no verdict.
+- **`tradeoff_e2`:** every E2 system as a point, wrong-hint following against correct-hint acceptance, Wilson bars on
+  both axes; (a) pooled, the wrapper systems hollow (diluted by design); (b) the inserted tool turn.
+- **`tradeoff_acc_p`:** Acc(p) for base, the instruction, LoRA and A40; A40's crossing with the instruction (p* 0.36
+  [0.22, 0.50]); LoRA doesn't cross (behind at every p).
 
 ## Slide 12: Across agents, and what holds (C25; C20, C26)
 
@@ -151,7 +176,7 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
   beside B16's, from `results/summaries/trackB/b24_report.json` (read Nov 4, F40), with B24's readings (the gradient
   same day; the rest cross-day, labelled). Owner: Arsha, from Nov 6.
 - **Slide 9** (`docs/paper/figures/gate3_vs_base_slide.png`, made Nov 4 from `finetune/gate3.py`'s rows): false
-  disclosure from L4 part 1's hand labels (read Nov 3, F28); A39's powered replication on E2 (read Nov 17) goes in its
+  disclosure from L4 part 1's hand labels (read Nov 3, F28); A39's powered replication on E2 (read Nov 7, F44) is in its
   own figures (above). The final statement is Nov 20. Owner: Ritik.
 - **Slide 10** (`docs/paper/figures/readout_lora_vs_base.png`): **A41's bars added Nov 7** (A40's weights beside LoRA's,
   from `a41_readout.json`; F42). B1R2, revived Nov 6 (the A39 log's §21), is running: panel (b) gains it once read

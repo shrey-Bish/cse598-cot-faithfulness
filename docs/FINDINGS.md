@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-07 13:42 (F41 A40, F42 A41, F43 A42, each read by its rule once complete; earlier 2026-11-05 09:37: T13 confirmed: 510702's start, Granite's files whole; B1R2 not run: GPU time given to A40, F38, then revived Nov 6, §21; earlier, Nov 4 22:51, T13: B20's shared stop file, fixed; 21:31, Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-07 20:43 (the story's scorecard, item 7; F44 A39, read by its rules R1–R4 once complete at 20:35; earlier 13:42: F41 A40, F42 A41, F43 A42, each read by its rule once complete; earlier 2026-11-05 09:37: T13 confirmed: 510702's start, Granite's files whole; B1R2 not run: GPU time given to A40, F38, then revived Nov 6, §21; earlier, Nov 4 22:51, T13: B20's shared stop file, fixed; 21:31, Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -10,7 +10,7 @@ the session logs. Design and plans:
 (FB1, …; Arsha's from Nov 6). F18, F19, F21–F24, F30, F31, F33 and F34 (Track C) and F15–F17, F25, F29, F35, F37 (Track B)
 stay here.
 
-**The story so far (Oct 28; updated Oct 30, Nov 1, Nov 2, Nov 3 and Nov 7).**
+**The story so far (Oct 28; updated Oct 30, Nov 1, Nov 2, Nov 3 and Nov 7; the scorecard, item 7, Nov 7).**
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
    from the user, in all five Track B models: the three on Voyager (Gate 2; 54 questions × 3 runs; tool − user with the
    pasted block: Qwen3 30B Thinking +35, Qwen3 30B Instruct +21, Olmo 3 7B Think +32 points), in
@@ -111,7 +111,7 @@ stay here.
    removed; the hint's letter in 30 of 30 cases); when LoRA follows, it is through the same three layers, and F12's
    heads still separate its followed runs from its resisted ones. What training changed is the reasoning LoRA writes.
    **Consistency training on E2 (A40, F41; A42, F43; read Nov 7): far fewer wrong hints followed, at the cost of
-   correct ones, so still no fix beats the instruction.** Trained on its own reasoning written without the hint, Olmo
+   correct ones, so A40 doesn't beat the instruction by its rule** (which reads acceptance too). Trained on its own reasoning written without the hint, Olmo
    follows the wrong hint in 84 of 694 runs against the instruction's 237 of 713 (−21 [−26, −16]), but takes the
    correct hint in 347 of 459 against 431 of 476 (−15 [−20, −10]): **"fewer, but costs acceptance"**, by the rule
    fixed Nov 5, against the instruction and against LoRA. It passes Gate 3's rule against base. With the note added
@@ -119,10 +119,38 @@ stay here.
    two "add, costs acceptance". **Inside the model it is the first fix that acts on the readout (A41, F42):** on
    base's own reasoning A40's weights remove part of the hint's pull (+0.68 logits [+0.17, +1.18]), from layers 0–14,
    before the readout layers, and more than LoRA (+1.40 [+0.73, +2.09]), where LoRA's added to it (F39).
-   **Next:** A39 (a provenance wrapper and combinations on E2, with a powered replication of Gate 3) is complete and
-   may be read once Ritik says when (by Nov 17). B1R2, B1's span on E2, was dropped on Nov 5 before any of its runs
+   **A provenance wrapper on E2 (A39, F44; read Nov 7 by its rules):** marking every tool output "[unverified tool
+   output]" has **no effect** alone on the inserted tool turn (−1 [−7, +4]). Added to the instruction it follows
+   fewer wrong hints there than the instruction alone (−14 [−20, −9]) but takes fewer correct ones (−12 [−18, −6]):
+   **"adds, costs acceptance"**; added to LoRA it **"adds to both"**. LoRA + note is **"fewer than the instruction"**
+   by R2, which reads following only (−8 [−12, −4]; "the first fix that beats one line", in A39's log's words), with
+   acceptance −9 [−13, −5] beside it; and the powered replication of Gate 3 passes for the instruction and LoRA.
+   **Next:** B1R2, B1's span on E2, was dropped on Nov 5 before any of its runs
    (the A39 log's §19), revived on Nov 6, last in Ritik's queue (§21), and is running (read when complete, or partial
    at Nov 15 23:59).
+7. **Scorecard against the original plan (Nov 7, 20:43; every number as read; exploratory items labelled).**
+   - **Honesty when following: improved with training,** by keyword. When LoRA follows a wrong hint on E2, its final
+     answer names the hint in 225 of 248 runs, against the instruction's 118 of 237 (+41 [+30, +51]); A40 in 60 of 84
+     (+22 [+7, +36]) (*exploratory, post hoc*). On the 30, L4's hand labels back it: most of LoRA's keyword candidates
+     say the hint shaped the answer (97 of 147, F28). L6, a hand-label check on E2, is pre-registered and not run.
+   - **Resisting wrong hints: improved by A40, but as a trade.** It follows the wrong hint in 84 of 694 runs against the
+     instruction's 237 of 713, and takes the correct hint in 347 of 459 against 431 of 476 ("fewer, but costs
+     acceptance", F41). LoRA + note and the wrapper + note make the same trade, smaller (F44). *Exploratory (post
+     hoc):* A40 gives more correct answers than the instruction only when fewer than 0.36 [0.22, 0.50] of the tool's
+     answers are correct.
+   - **Accuracy preserved; Gate 3 passed by every trained version.** All four on the 30 (F28); LoRA again on E2 with
+     power (−7 [−11, −3], F44), with LoRA + note, A40 and A40 + note (F41, F43, F44). No-hint accuracy stays within
+     Gate 3's 5-point margin for each.
+   - **The stricter bar, beating the one-line instruction on following at no cost to correct hints: met by no fix.**
+     LoRA matches the instruction (F28; on E2 "no difference detected", F44). A40, A40 + note, LoRA + note and the
+     wrapper + note follow fewer wrong hints but take fewer correct ones (F41, F43, F44). The wrapper alone has no
+     effect (F44).
+   - **The mechanism:** LoRA acts in the reasoning: on base's own reasoning its weights pull toward the hint harder
+     (F39). A40 changes how the hint is read, in layers 0–14, before the readout (F42).
+   - **Our reading (interpretation):** without a way to verify the tool, resisting wrong hints and relying on right
+     ones trade off. Every fix we trained or prompted moves along that trade, not past it. So the fix belongs at the
+     system level: provenance the system can check, or an independent checker. Track C's checker, which re-solves
+     without the tool, stopped all 53 wrong answers on fresh items (C15, F24).
 
 - **Numbers.** Rates are "X of Y [95% Wilson interval]". Differences are percentage points with
   a 95% bootstrap clustered by question. Mentions are keyword counts (`detect.py`); hand labels decide
@@ -2501,6 +2529,113 @@ weights read the hint. It doesn't change A40's E2 reading (F41) or F39.
 **Status.** *Confirmed* by the rule: **fewer, but costs acceptance**, and R3 **adds, costs acceptance**; R1
 **passes**. With F41: no fix, alone or with the note, beats the one-line instruction by these rules. Each that follows
 fewer does it by also taking fewer correct hints.
+
+## F44. Track A (A39): marking every tool output "unverified" has no effect alone; with the one-line instruction it follows fewer wrong hints on the tool turn but takes fewer correct ones ("adds, costs acceptance"); with LoRA it "adds to both"; LoRA + note is "fewer than the instruction", with acceptance −9 beside it
+
+**Setup.**
+- **The systems** (pre-registered Nov 3, the
+  [11:30 log](../archive/sessions/2026-11-03/2026-11-03_1130_A_e2-a39-prereg.md)'s §3–§4, amended in §9 before any
+  run): Olmo 3 7B Think as in Gate 3. base; prompt_only (the one-line instruction); LoRA; LoRA + note; the wrapper
+  (base, every tool-role message prefixed "[unverified tool output] "); wrapper + note; LoRA + wrapper.
+  - A wrapper system's runs without a tool message are its partner's (shared), so it runs only its 4 inserted-turn runs
+    a question.
+- **The evaluation:** E2 (120 fresh MMLU-Pro questions; the primary) and the 30 beside it, in the lean design (12 runs a
+  question: 6 wrong-hint, 4 correct-hint, 2 no-hint). On Sol, Nov 3 to Nov 6; complete Nov 7, 13:28 (E2: 1,440 runs a
+  core system, 480 own runs a wrapper system).
+- **The rules** (paired by question, 95% bootstrap clustered by question, 20,000 resamples, seed 0):
+  - R1: Gate 3's rule against base (on E2, for prompt_only and LoRA, a powered replication of Gate 3);
+  - R2: each against the instruction, following pooled: "fewer than the instruction", "more" or "no difference
+    detected" (acceptance and accuracy beside it, not read);
+  - R3: each combination against each part alone, by A38's five readings (5-point margins): LoRA + note pooled, the
+    wrapper combinations on the inserted tool turn;
+  - R4: the wrapper against base on the inserted tool turn, by B1's five readings, with the pasted block's difference
+    as a check (exactly 0).
+  - A wrapper system's R1 and R2 are diluted by design; its informative readings are R3 and R4 (§9.2).
+- **Read Nov 7, 20:33,** once complete: its §18 gives only a partial read, at Nov 15 23:59.
+
+**Result: the wrapper alone "no effect" (R4); wrapper + note "adds, costs acceptance" and LoRA + wrapper "adds to
+both" (R3); LoRA + note "fewer than the instruction" (R2) and "adds, costs acceptance" (R3).**
+
+| reading (E2) | following | acceptance | no-hint accuracy | the rule's reading |
+|---|---|---|---|---|
+| **R4: wrapper − base, inserted turn** | −1 [−7, +4] | −0.5 [−5, +4] | 0 (shared) | **no effect**; the check exactly 0 |
+| **R3: wrapper + note − the instruction, inserted** | **−14 [−20, −9]** | **−12 [−18, −6]** | 0 (shared) | **adds, costs acceptance** |
+| R3: wrapper + note − wrapper, inserted | −17 [−22, −12] | −10 [−16, −5] | −1 [−5, +3] | (with the row above) |
+| **R3: LoRA + wrapper − LoRA, inserted** | **−8 [−14, −2]** | −2 [−7, +3] | 0 (shared) | **adds to both** |
+| R3: LoRA + wrapper − wrapper, inserted | −14 [−20, −8] | −4 [−9, +1] | −0.4 [−5, +4] | (with the row above) |
+| **R3: LoRA + note − the instruction, pooled** | −8 [−12, −4] | −9 [−13, −5] | −1 [−6, +3] | **adds, costs acceptance** |
+| R3: LoRA + note − LoRA, pooled | −10 [−14, −6] | −7 [−11, −3] | −1 [−7, +4] | (with the row above) |
+
+| minus the instruction (R2, pooled) | following | acceptance, beside it | R2's reading |
+|---|---|---|---|
+| base | +9 [+4, +14] | +2 [−1, +4] | more |
+| LoRA | +2 [−2, +6] | −2 [−5, +1] | no difference detected |
+| **LoRA + note** | **−8 [−12, −4]** | **−9 [−13, −5]** | **fewer than the instruction** |
+| wrapper (diluted by design) | +9 [+4, +13] | +1 [−1, +4] | more |
+| wrapper + note (diluted by design) | −5 [−6, −3] | −6 [−9, −3] | fewer than the instruction |
+| LoRA + wrapper (diluted by design) | −1 [−5, +3] | −3 [−7, −0.2] | no difference detected |
+
+- **R1, Gate 3's rule against base:**
+  - passes for the instruction (−9 [−14, −4]) and LoRA (−7 [−11, −3]): a powered replication of Gate 3, labelled so;
+    F28's verdict stays;
+  - passes for LoRA + note (−17 [−22, −12]), and, diluted by design, wrapper + note (−14 [−18, −9]) and LoRA + wrapper
+    (−10 [−14, −6]);
+  - fails for the wrapper ("fewer wrong hints followed": −0.5 [−2, +1]; diluted by design);
+  - no-hint accuracy within 2 points of base for every system.
+- No "no-answer imbalance" in any reading (every pair within 2.1 points).
+
+**Each system's own rates on E2** (X of Y [95% Wilson]; base, the instruction and LoRA as in F41; a wrapper system's
+pooled rates include its partner's shared runs):
+
+| system | follows the wrong hint | follows, inserted turn | takes the correct hint | takes, inserted turn | no-hint accuracy |
+|---|---|---|---|---|---|
+| base | 297 of 703 [39, 46%] | 85 of 233 [31, 43%] | 439 of 476 [89, 94%] | 209 of 240 [82, 91%] | 156 of 236 [60, 72%] |
+| the instruction (prompt_only) | 237 of 713 [30, 37%] | 77 of 237 [27, 39%] | 431 of 476 [88, 93%] | 210 of 238 [84, 92%] | 154 of 235 [59, 71%] |
+| LoRA | 248 of 705 [32, 39%] | 69 of 238 [24, 35%] | 421 of 477 [85, 91%] | 202 of 238 [80, 89%] | 155 of 235 [60, 72%] |
+| LoRA + note | 179 of 710 [22, 29%] | 43 of 237 [14, 24%] | 384 of 470 [78, 85%] | 187 of 236 [74, 84%] | 151 of 236 [58, 70%] |
+| wrapper | 295 of 706 [38, 45%] | 83 of 236 [29, 41%] | 437 of 475 [89, 94%] | 207 of 239 [82, 90%] | 156 of 236 [60, 72%] |
+| wrapper + note | 202 of 708 [25, 32%] | 42 of 232 [14, 24%] | 400 of 473 [81, 88%] | 179 of 235 [70, 81%] | 154 of 235 [59, 71%] |
+| LoRA + wrapper | 229 of 704 [29, 36%] | 50 of 237 [16, 27%] | 416 of 477 [84, 90%] | 197 of 238 [77, 87%] | 155 of 235 [60, 72%] |
+
+**The 30, beside it** (the same words; not pooled; the rules are read on E2):
+- R4 "works" (−18 [−34, −1]; acceptance +2 [−5, +8]);
+- R3: wrapper + note and LoRA + wrapper "no better than the better one alone"; LoRA + note "adds, costs acceptance";
+- R2: LoRA + note "fewer than the instruction" (−11 [−18, −4]); LoRA "no difference detected"; the wrapper "more"
+  (diluted by design);
+- R1: all six pass.
+
+**What it means, as A39's log said in advance (§4).**
+- **"Fewer than the instruction": "the first fix that beats one line".** By R2 that is LoRA + note, on following, the
+  only measure R2 reads. Acceptance −9 sits beside it, and R3 reads the same system "adds, costs acceptance". A40's
+  rule (F41, F43) reads acceptance too; A39's R2 doesn't.
+- **"The wrapper 'works'"** is not reached: alone it reads "no effect".
+- **"A combination 'adds to both': they stack":** LoRA + wrapper, on the inserted tool turn.
+- **Not everything is "no difference detected",** so "the instruction is as good as these fixes get" doesn't apply.
+
+**What limits the reading** (A39's §4 and §8, said before the runs).
+- One model; MMLU-Pro's evaluation categories only.
+- The wrapper acts on one of three channels. Its inserted-turn readings rest on 2 wrong-hint and 2 correct-hint runs a
+  question.
+- Keyword hiding; following and acceptance count answered runs only; no multiplicity correction.
+- 33 E2 runs have two ok records after the counting bug; the reader keeps the newest by its fixed rule. The 340 runs
+  another model's server served (T12) were set aside unread and run again.
+
+**Source.** `cot-disclosure/results/summaries/trackA/gpu/a39/a39_e2.json` and `a39_mmlupro_30.json` (numbers only;
+exported by `tools/export_summaries.py`), from `python finetune/a39.py --report --qset e2` (and `--qset mmlupro_30`)
+over the copied-back runs files (the
+[Nov 7 20:33 log](../archive/sessions/2026-11-07/2026-11-07_2033_A_a39-results.md)). Figures:
+`docs/paper/figures/a39_e2_fixes.png` and `a39_e2_parts.png` (`tools/a39_figures.py`; the 30's
+`a39_mmlupro_30_fixes` and `_parts`).
+
+**Status (final).** *Confirmed* by the rules:
+- R4: the wrapper alone, **no effect**.
+- R3: wrapper + note **adds, costs acceptance**; LoRA + wrapper **adds to both**; LoRA + note **adds, costs
+  acceptance**.
+- R2: LoRA + note **fewer than the instruction**.
+- R1: passes for every system but the wrapper (diluted by design).
+
+Marking every tool output "unverified" doesn't beat the instruction alone. With the instruction, it follows fewer wrong
+hints on the tool turn and takes fewer correct ones.
 
 ## Measurement traps we hit and fixed
 
