@@ -1,4 +1,4 @@
-# Session log: A39 read; the trade-off, explored (post hoc); a label check of disclosure, pre-registered (2026-11-07 20:19 MST)
+# Session log: A39 read; the trade-off, explored (post hoc); L6's pre-registration, a label check of disclosure (not run) (2026-11-07 20:19 MST)
 
 **By:** Ritik. Branch `trackA-nosol`, from `905ed4a`. The day's second session (the first was
 [13:15](2026-11-07/2026-11-07_1315_ALL_overnight-reads-report.md)).
@@ -74,7 +74,7 @@
 - **The feeder:** last tick 20:20; "200 lines: 4 failed, 12 not needed, 171 ok, 4 pending, 9 to submit". The 4
   failed are the three warning stops and `a41-step10`'s planned exit 2.
 
-## 3. L6 pre-registered, not run (c; [its log](2026-11-07/2026-11-07_2025_A_l6-prereg.md), `838bc86`)
+## 3. L6's pre-registration, not run (c; [its log](2026-11-07/2026-11-07_2025_A_l6-prereg.md), `838bc86`)
 
 - **The name:** asked for as L5, which is Track B's labeling batch, so it is **L6**.
 - **The question:** when a system follows the wrong hint, does its final answer really say the hint shaped it? It
@@ -170,3 +170,18 @@ FINDINGS' story item 7 and the README, every number as already read, the explora
 - **Arsha:** when she says `trackB-main` is pushed, the merge (decision e) in the next session.
 - **No Sol block tonight:** nothing on Sol needs a command now. The clone is clean at `81ab922`, and the pull waits for
   parts 36–40 to start.
+
+## 9. Checks (20:57)
+
+- **The full suite, once** (on `df9a060` with the two doc fixes below): **1,087 passed, 1 skipped**, in 9:31. Two
+  pytest processes on this Mac belonged to other projects' Docker containers, not this repo; left alone.
+- **Links:** one broken at first (WAITING's link to the exploratory log needed `../../../` from
+  `docs/paper/figures/`); fixed, 0 broken, 0 missing RUNBOOK scripts.
+- **The supplement:** this log was first listed "outside the ledger": two of its headings said "pre-registered",
+  though it pre-registers nothing itself (L6 has its own log). They now say "L6's pre-registration". Then 42 rows,
+  none unverified, no log outside the ledger; `--check` passes. CLAIMS: 3 mismatches (claim 2.6) and 12 source
+  problems, as before; 13 weak matches.
+- **Export:** `--check` numbers-only (after the trade-off's 200-character fix, §5). **Gantt:** dry run and the real run,
+  140 rows. **Bundles:** B 51 files, 73.8 MB; C 43 files, 31.3 MB.
+- **Arsha:** `origin/trackB-main` still at `10f7920` at 20:48, so decision e waits for the next session.
+- **Before the push:** the pre-push check and nothing-missing, below the commit.

@@ -134,7 +134,7 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
   `cot-disclosure/tools/tradeoff.py --figures` from its numbers-only `tradeoff_e2.json` (exported to
   `results/summaries/trackA/gpu/a39/`).
 - **Exploratory (post hoc), not pre-registered:** the analysis is the
-  [Nov 7 20:20 log](../../archive/sessions/2026-11-07/2026-11-07_2020_A_tradeoff-exploratory.md), written and committed
+  [Nov 7 20:20 log](../../../archive/sessions/2026-11-07/2026-11-07_2020_A_tradeoff-exploratory.md), written and committed
   before computing. Each figure's headline and each CSV's first line say so. It replaces no verdict.
 - **`tradeoff_e2`:** every E2 system as a point, wrong-hint following against correct-hint acceptance, Wilson bars on
   both axes; (a) pooled, the wrapper systems hollow (diluted by design); (b) the inserted tool turn.
