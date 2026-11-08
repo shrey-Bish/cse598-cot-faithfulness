@@ -1,0 +1,12 @@
+# exploratory (post hoc): tools/tradeoff.py, from results/trackA/gpu/a39/tradeoff_e2.json (numbers only); the log archive/sessions/2026-11-07/2026-11-07_2020_A_tradeoff-exploratory.md, written before computing; not pre-registered and replaces no verdict
+kind,system,name,against,measure,p,value,low,high,interval,k,n,status,flipped,resamples
+line,base,base,,a_W (Acc at p = 0),0,0.41416309012875535,0.37031975230672715,0.4594100459309976,95% Wilson,193,466,,,
+line,base,base,,a_C (Acc at p = 1),1,0.9222689075630253,0.8946944038967054,0.9430823087225507,95% Wilson,439,476,,,
+line,prompt_only,the instruction,,a_W (Acc at p = 0),0,0.5273109243697479,0.4824212915687591,0.5717632719339789,95% Wilson,251,476,,,
+line,prompt_only,the instruction,,a_C (Acc at p = 1),1,0.9054621848739496,0.8758376617884034,0.9285947040599369,95% Wilson,431,476,,,
+line,lora,LoRA,,a_W (Acc at p = 0),0,0.5031712473572939,0.4582688429677205,0.5480225562890434,95% Wilson,238,473,,,
+line,lora,LoRA,,a_C (Acc at p = 1),1,0.8825995807127882,0.850609485950111,0.908476473170786,95% Wilson,421,477,,,
+line,a40,A40,,a_W (Acc at p = 0),0,0.6115879828326181,0.5665956630773648,0.6547555992135932,95% Wilson,285,466,,,
+line,a40,A40,,a_C (Acc at p = 1),1,0.7559912854030502,0.7146805006744712,0.7930527533170861,95% Wilson,347,459,,,
+crossing,a40,A40,prompt_only,p* (value: Acc at p*),0.3605467153931215,0.6636521192663065,0.22038589074343293,0.49943425653316964,"95% bootstrap over questions, paired, clipped",,,"crosses in (0, 1)",0,20000
+crossing,lora,LoRA,prompt_only,p* (value: Acc at p*),,,0.603582780501746,1.0,"95% bootstrap over questions, paired, clipped",,,behind at every p,9464,10535
