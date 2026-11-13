@@ -11,7 +11,7 @@ shows it, its letter, the texts. No writer model, run id, system name or label o
 
   python tools/llm_judge.py --rows                                  # the blind rows per sheet (counts)
   python tools/llm_judge.py --run --judge qwen|olmo [--sheet S] [--stop-file F]
-  python tools/llm_judge.py --batches                               # J-opus's prompts, results/labels/llm_judge/opus/
+  python tools/llm_judge.py --batches [--sheet L6]                  # J-opus's prompts, results/labels/llm_judge/opus/
   python tools/llm_judge.py --import-opus FILE...                   # its replies, <sheet>_batch_NN_reply.txt
   python tools/llm_judge.py --report                                # the measures, Gate 2, the re-look sheets
   python tools/llm_judge.py --relook-both                           # section 11's smaller re-look (post hoc)
@@ -50,7 +50,12 @@ SHEETS = {
     "L4_part1": {"human": LABELS_DIR / "gate3" / "L4" / "L4_part1_RA.csv",
                  "ai1": LABELS_DIR / "gate3" / "L4" / "L4_part1_SB.csv", "texts": ("final",), "source": "channel",
                  "letter": "hint_letter", "fields": {"final": "final_answer"}},
+    # L6 (its log, archive/sessions/2026-11-07/2026-11-07_2025_A_l6-prereg.md, sections 4 and 9): Ritik's frozen
+    # labels (Nov 13), the final answer only, J-opus its only judge (no Voyager judge, no AI1)
+    "L6": {"human": LABELS_DIR / "L6" / "L6_RA_20261113.csv", "ai1": None, "judges": ("opus",), "texts": ("final",),
+           "source": "channel", "letter": "hint_letter", "fields": {"final": "final_answer"}},
 }
+PROTOCOL_SHEETS = ("L3", "L4_part1")                               # the four AI sets' sheets: report, re-look, Gate 2
 JUDGES = {"qwen": "qwen3-30b-a3b-instruct-2507", "olmo": "olmo3-32b-instruct"}
 SETS = ("AI1", "opus", "qwen", "olmo")                              # the four AI sets, in the report's order
 BATCH = 50                                                          # J-opus: about this many rows a sub-agent
@@ -214,10 +219,10 @@ def run(judge, sheets, stop_file=None, passes=PASSES):
 
 
 # ---------------------------------------------------------------- J-opus: batches out, replies in
-def batches():
-    """J-opus's prompts: the instruction (batch form), the guide, about BATCH blind rows each."""
+def batches(sheets=PROTOCOL_SHEETS):
+    """J-opus's prompts for the sheets given: the instruction (batch form), the guide, about BATCH blind rows each."""
     paths = []
-    for sheet in SHEETS:
+    for sheet in sheets:
         rows = blind_rows(sheet)
         k = max(1, round(len(rows) / BATCH))
         size = -(-len(rows) // k)
@@ -321,6 +326,8 @@ def family(r):
 def report(write=False):
     rep, gate = {}, None
     for sheet, s in SHEETS.items():
+        if sheet not in PROTOCOL_SHEETS:                            # L6 has its own reading (tools/l6_read.py)
+            continue
         human = read(s["human"])
         paths = {j: sheet_of(sheet, j) for j in SETS}
         paths = {j: p for j, p in paths.items() if p and Path(p).exists()}
@@ -373,6 +380,8 @@ def relook_both(write=False):
     it differs from Ritik's, as blind sheets (relook_both_<sheet>.csv); section 6's sheets stay as they were."""
     out = {}
     for sheet, s in SHEETS.items():
+        if sheet not in PROTOCOL_SHEETS:
+            continue
         human = read(s["human"])
         ai1, opus = as_labels(sheet_of(sheet, "AI1"), sheet), as_labels(sheet_of(sheet, "opus"), sheet)
         cells_ = [{"row": r["row"], "text": t, "source": r[s["source"]], "letter": r[s["letter"]],
@@ -425,7 +434,7 @@ def main(argv=None):
     ap.add_argument("--sheet", choices=sorted(SHEETS))
     ap.add_argument("--stop-file", help="start no new request once this file exists (progress/guard.py)")
     a = ap.parse_args(argv)
-    sheets = [a.sheet] if a.sheet else list(SHEETS)
+    sheets = [a.sheet] if a.sheet else [s for s in PROTOCOL_SHEETS if s in SHEETS]
     if a.rows:
         for sh in sheets:
             rows = blind_rows(sh)
@@ -434,9 +443,12 @@ def main(argv=None):
     if a.run:
         if not a.judge:
             ap.error("--run needs --judge")
+        for sh in sheets:
+            if a.judge not in SHEETS[sh].get("judges", tuple(JUDGES) + ("opus",)):
+                ap.error(f"--run: {sh} is judged by {', '.join(SHEETS[sh]['judges'])} only")
         return run(a.judge, sheets, a.stop_file)
     if a.batches:
-        for p in batches():
+        for p in batches(sheets):
             print(p)
         return 0
     if a.import_opus:

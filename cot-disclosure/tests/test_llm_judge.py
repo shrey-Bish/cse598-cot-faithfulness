@@ -212,3 +212,62 @@ def test_the_post_hoc_re_look_keeps_only_cells_both_strong_raters_set_against_ri
     assert [(r["row"], r["text"], r["label"]) for r in sheet] == [("1", "private", "")]
     assert set(sheet[0]) == {"row", "text", "source", "letter", "excerpt", "label", "note"}
     assert "no_mention" not in json.dumps(sheet) and "mentions_only" not in json.dumps(sheet)
+
+
+# ---------------------------------------------------------------- L6 (Nov 13): J-opus only, by L6's log, section 4 and 9
+L6_COLS = ["row", "channel", "hint_letter", "final_answer", "label_final", "guess_trained", "note"]
+
+
+@pytest.fixture
+def l6(setup, tmp_path, monkeypatch):
+    """Setup's L3 world plus an 84-row L6 sheet labelled by Ritik (final answer only; no AI1, no Voyager judge)."""
+    labels = lj.LABELS_DIR
+    rows = [{"row": str(n), "channel": ("user", "pasted", "inserted")[n % 3], "hint_letter": "C",
+             "final_answer": f"answer text {n}", "label_final": "says_changed", "guess_trained": "yes",
+             "note": "ritik-secret-note"} for n in range(1, 85)]
+    (labels / "L6").mkdir()
+    sheet(labels / "L6" / "L6_RA_20261113.csv", rows, cols=L6_COLS)
+    monkeypatch.setattr(lj, "SHEETS", {**lj.SHEETS, "L6": {**REAL_L6, "human": labels / "L6" / "L6_RA_20261113.csv"}})
+    return labels
+
+
+REAL_L6 = dict(lj.SHEETS.get("L6", {}))
+
+
+def test_l6_is_a_final_answer_sheet_for_j_opus_only():
+    s = lj.SHEETS["L6"]
+    assert s["human"].name == "L6_RA_20261113.csv" and s["human"].parent.name == "L6"   # the frozen copy (Nov 13)
+    assert s["texts"] == ("final",) and s["fields"] == {"final": "final_answer"}
+    assert (s["source"], s["letter"]) == ("channel", "hint_letter")
+    assert s["ai1"] is None and s["judges"] == ("opus",)
+    assert "L6" not in lj.PROTOCOL_SHEETS and lj.PROTOCOL_SHEETS == ("L3", "L4_part1")
+
+
+def test_l6_batches_are_two_of_42_blind_rows_and_no_other_sheet_is_written(l6):
+    paths = lj.batches(["L6"])
+    assert [p.name for p in paths] == ["L6_batch_01.txt", "L6_batch_02.txt"]
+    assert sorted(p.name for p in (lj.OUT / "opus").iterdir()) == ["L6_batch_01.txt", "L6_batch_02.txt"]
+    for i, p in enumerate(paths):
+        text = p.read_text()
+        assert re.findall(r"^Row (\d+)$", text, re.M) == [str(n) for n in range(1 + 42 * i, 43 + 42 * i)]
+        assert text.startswith(lj.INSTRUCTION_OPUS) and "L4's guess" not in text and "Label what the text says" in text
+        for hidden in ("says_changed\n", "guess_trained", "ritik-secret-note", "label_final", "yes\n"):
+            assert hidden not in text.split("# The rows")[1]
+
+
+def test_run_refuses_l6_and_the_report_reads_only_the_protocols_sheets(l6, monkeypatch):
+    with pytest.raises(SystemExit):
+        lj.main(["--run", "--judge", "qwen", "--sheet", "L6"])
+    monkeypatch.setattr(lj, "fleiss", lambda items: None)   # this small world has one AI set (AI1): no Fleiss to take
+    rep = lj.report(write=False)
+    assert "L6" not in rep and set(rep) == {"L3", "gate2"}
+
+
+def test_l6_replies_are_imported_by_row(l6):
+    paths = lj.batches(["L6"])
+    reply = paths[0].with_name("L6_batch_01_reply.txt")
+    reply.write_text("\n".join(f"{n} final: mentions_only" for n in range(1, 43)) + "\n1 final: no_mention\n")
+    lj.import_opus([reply])
+    got = lj.load_labels("L6", "opus")
+    assert len(got) == 42 and got["2"] == {"final": "mentions_only"}
+    assert got["1"] == {"final": None}                     # two different answers for one text: no label (section 3)
