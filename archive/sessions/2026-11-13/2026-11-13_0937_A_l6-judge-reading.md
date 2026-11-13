@@ -63,3 +63,64 @@
   `finetune/gpu/provenance_job.py` (Nov 7's counting fix, "expected, now safe"). `git pull --ff-only`: Sol at `97c0628`.
 - **B1R2 complete:** the fixed counting gives 0 runs left in each quarter (`--runs-left b1r2:k/4`, k = 1–4). Its rule
   reads it once complete (by Nov 17): not in this prompt, so left for Ritik's next one.
+
+## 4. J-opus (09:48–09:49), by the protocol's §10
+
+- **The code first** (`4419653`, 09:47): `tools/llm_judge.py` takes the sheet `L6` (Ritik's frozen labels, the final
+  answer only, J-opus its only judge; `--run` refuses it); `--batches --sheet L6` writes only L6's files; the
+  protocol's report, re-look and Gate 2 read L3 and L4 part 1 only, and the report recomputed without writing equals
+  `report.json`. 4 tests, seen failing first; the file's 13 pass.
+- **The batches:** `L6_batch_01.txt` (rows 1–42, 1,410 lines, sha256 `169f2d1b…`) and `L6_batch_02.txt` (rows 43–84,
+  1,290 lines, sha256 `2dea2524…`): the instruction (batch form), the guide without its "L4's guess" section, the
+  blind rows (row, channel, the hint's letter, the final answer). §10's fixed message saved beside each
+  (`L6_batch_0N_message.txt`).
+- **The two sub-agents** (fresh; the sub-agent tool's `opus` model, `claude-opus-5-5`; launched together at 09:48):
+  each read only its own batch file, twice (the whole file, then from an offset; the two reads covered every line),
+  then handed back 42 label lines. No other tool.
+- **The replies,** taken from each sub-agent's record by a script (not retyped), saved verbatim as
+  `L6_batch_0N_reply.txt`; `--import-opus`: 84 of 84 rows with a label.
+
+## 5. The reading (09:51): [its own log](2026-11-13_0951_A_l6-reading.md)
+
+- The reader `tools/l6_read.py` (`5c31b03`, committed before it read; 8 tests on synthetic sheets, seen failing
+  first), run once on the frozen sheet.
+- **"discloses more than the instruction, in labels":** LoRA 37 of 42 [75, 95%], the instruction 18 of 42 [29, 58%],
+  +45.2 [+25.4, +64.2]. Ritik against J-opus kappa 0.961. Ritik guessed "trained" on 32 of LoRA's 42 rows.
+- After the run, the says_changed-alone interval was relabelled "beside, no reading of its own" (test first, 1
+  failed, then 8 passed); no number changed. Its numbers-only report exported
+  (`results/summaries/trackA/labels/l6_report.json`).
+
+## 6. The docs, by L6's §6 meanings
+
+- **F45** (L6's own entry; ruling in §1) and **F28**'s line on E2; FINDINGS' story: item 6's sentence and item 7's
+  honesty line ("rests on labels, not only keywords", §6's words); the README's scorecard line.
+- **REPORT:** §3 (how L6's labels were made), §6 (F45's words part), §7 (F45's bullet; the exploratory bullet's L6
+  clause; B1R2 complete); `results_at_a_glance` (an F45 row); CLAIMS 1.5 ("Settles it" answered on E2); the
+  supplement's L6 row (read, verified against F45 and the reading log).
+- **Status:** PLAN (L6's row, never updated Nov 8, now read; B1R2 complete; the calendar; the Nov 11 rule; §7's
+  report row), TODO (L6 done; B1R2's runs complete), ONE_PAGE, CHECKIN §3, FIX_SO_FAR.
+
+## 7. Stale lines fixed
+
+- PLAN's L6 row still said "168 rows … not run" (missed on Nov 8): now read. PLAN's calendar said the Nov 11 rule had
+  "nothing left to drop" (future tense): now "applied, no effect".
+- REPORT's B1R2 entry still said "running … project to end Nov 8": now complete.
+- **Missed dates:** no session ran Nov 9–12, so the Nov 12 check-ins and merges didn't happen; on Nov 13 neither
+  `trackB-main` nor `trackC-main` had anything `main` lacks, so nothing was waiting.
+
+## 8. Needs Ritik
+
+- **B1R2:** read by its rule, by Nov 17 (its runs are complete). A prompt of its own: the copy-back (CHECKIN §2), the
+  report, B1's rule, F38's replication line.
+- **Nov 16 or Nov 18:** stop the feeder (CHECKIN §4); its queue is empty.
+- **Nov 15:** check-ins and merges (Arsha's merge-back, Shrey's).
+- **No Sol block is needed:** the clone is at `97c0628`, clean, and nothing is queued.
+
+## 9. Checks (10:07)
+
+- **The full suite, once** (after every edit): 1,139 passed, 1 skipped (9:20): Nov 8's 1,127, `llm_judge`'s 4 new
+  tests and the reader's 8.
+- Links 0 broken; the supplement 42 rows, none unverified, no log outside the ledger (CLAIMS 7 mismatches as on Nov 8;
+  its 3 new source problems were F45's files, uncommitted, and clear once committed); export numbers-only; the Gantt
+  140 rows; bundles B 51 files, 73.8 MB, and C 43 files, 31.3 MB, as before. The pre-push and "nothing missing"
+  checks before the push.

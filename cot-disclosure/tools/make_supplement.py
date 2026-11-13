@@ -1073,8 +1073,11 @@ PREREG = [
      "rule_check": ["discloses more than the instruction, in labels", "168 rows", "84 rows"],
      "rule_extra": [("amendment 1, section 9 (Ritik's yes, reduced to lora and prompt_only: 84 rows, the one comparison "
                      "lora minus prompt_only)", "615452b")],
-     "verdict": "waiting: the sheet built Nov 8 (84 rows; tools/l6_sheet.py); Ritik labels it, then J-opus",
-     "verdict_check": []},
+     "f_title": r"\(L6\)", "result_glob": ["*l6-reading*"],
+     "verdict": "read Nov 13 once Ritik's labels were frozen and J-opus's were in: discloses more than the instruction, "
+                "in labels (LoRA 37 of 42, the instruction 18 of 42, +45.2 [+25.4, +64.2]); Ritik against J-opus "
+                "kappa 0.961",
+     "verdict_check": ["discloses more than the instruction, in labels", "+45.2 [+25.4, +64.2]", "0.961"]},
     {"id": "c19", "track": "C", "experiment": "C19: H34, is an authority claim the cue?", "kind": "pre",
      "rule": "answer_key minus my_working on corrections after bad lookups, paired by item, C11's two-sided ±20 rule; "
              "H34 supported by fewer corrections (or a smaller drop), not supported by no change",

@@ -1,6 +1,6 @@
 # Candidate claims: evidence, status, objection, what settles it
 
-Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-08 15:10 (B20, FB1, in claim 1.1 and Gate 2's gap marked; claim 1.5: LoRA + note's acceptance cost in the same sentence, L6 reduced and its sheet built; earlier 2026-11-07 20:39: A39 read, F44: claims 1.5 and 1.6; L6 pre-registered, not run; earlier 13:53: A40, A41 and A42 read: claim 1.5; B1R2 running: claim 1.7; earlier 2026-11-05 09:52: B1R2 not run: GPU time given to A40; 2026-11-04 17:50: the second
+Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-13 09:55 (claim 1.5: L6 read, F45; earlier 2026-11-08 15:10 (B20, FB1, in claim 1.1 and Gate 2's gap marked; claim 1.5: LoRA + note's acceptance cost in the same sentence, L6 reduced and its sheet built; earlier 2026-11-07 20:39: A39 read, F44: claims 1.5 and 1.6; L6 pre-registered, not run; earlier 13:53: A40, A41 and A42 read: claim 1.5; B1R2 running: claim 1.7; earlier 2026-11-05 09:52: B1R2 not run: GPU time given to A40; 2026-11-04 17:50: the second
 rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; earlier: B17, B1, the hand labels, A18, B1R2 decided; **edited by:** Ritik; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
 the interval excludes no effect), *tentative* (direction there, interval includes 0 or a confound remains), *waiting*
 (the run is going or planned), *not supported*, *dropped*.
@@ -142,9 +142,10 @@ the interval excludes no effect), *tentative* (direction there, interval include
   detected"), now with power. **LoRA + note is "fewer than the instruction"** (R2, following only: −8 [−12, −4]) at an
   acceptance cost of −9 [−13, −5]; A39's log called that reading in advance "the first fix that beats one line", and R3
   reads it "adds, costs acceptance". So no fix beats the instruction without a cost to correct hints.
-- **Settles it:** L4 part 2 (LoRA minus base in labels); L6, a hand-label check of disclosure when following on E2,
-  LoRA against the instruction (pre-registered Nov 7, reduced Nov 8 to those two, 84 rows; the sheet built Nov 8,
-  waiting for Ritik's labels).
+- **Settles it:** L4 part 2 (LoRA minus base in labels). **Answered on E2 (L6, F45, Nov 13):** in hand labels, when
+  LoRA follows a wrong hint its answer says so in 37 of 42 runs against the instruction's 18 of 42 (+45.2 [+25.4,
+  +64.2], "discloses more than the instruction, in labels"; Ritik against J-opus kappa 0.961), and none of LoRA's
+  claims to reject the hint it ends on (0 of 42).
 
 **1.6 Input-embedding provenance tags don't help.**
 - **Evidence:** F20.

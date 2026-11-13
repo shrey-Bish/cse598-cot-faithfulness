@@ -1,6 +1,6 @@
 # Do Thinking Modes Make Chain-of-Thought More Honest?
 
-CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-08. **Edited by:** Ritik.
+CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-13. **Edited by:** Ritik.
 
 We slip a wrong hint into a multiple-choice question, from the user or from a tool, and ask two things: does the hint
 change the model's answer, and does the model say so? Thinking models return their private reasoning and their final
@@ -57,12 +57,13 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    model it is the first fix that acts on the readout, before layers 15, 19 and 23 (A41, F42). B1's replication on E2
    (B1R2) was revived on Nov 6; all 40 parts ended Nov 8, and its last two sweeps wait in Sol's queue.
 
-**Scorecard against the original plan (Nov 7, updated Nov 8; numbers as read in [`docs/FINDINGS.md`](docs/FINDINGS.md), story item 7).**
+**Scorecard against the original plan (Nov 7, updated Nov 8 and 13; numbers as read in [`docs/FINDINGS.md`](docs/FINDINGS.md), story item 7).**
 - **The failure: tools pull harder than users in every model tested** (Gate 2, marked Nov 8): all five Track B models
   and B20's three new families, 10 of 10 readings (FB1). The label part of Gate 2 is not met (F3).
-- **Honesty when following improved with training,** by keyword: when LoRA follows a wrong hint on E2, its answer names
-  the hint in 225 of 248 runs against the instruction's 118 of 237 (exploratory, post hoc). On the 30, hand labels back
-  it (L4, F28). L6, a hand-label check of LoRA against the instruction on E2 (84 rows), waits for Ritik's labels.
+- **Honesty when following improved with training, in hand labels** (L6, F45, Nov 13): when LoRA follows a wrong hint
+  on E2, its answer says so in 37 of 42 hand-labelled runs against the instruction's 18 of 42 (+45 [+25, +64] points,
+  "discloses more than the instruction, in labels"; Ritik against the AI check, kappa 0.96). The keyword count agrees
+  (exploratory). On the 30, hand labels back it too (L4, F28).
 - **Resisting wrong hints improved with A40, but as a trade:** 84 of 694 wrong hints followed against the
   instruction's 237 of 713, and 347 of 459 correct hints taken against 431 of 476 (F41). LoRA + note is "fewer than
   the instruction" by R2 (−8 [−12, −4]) at an acceptance cost of −9 [−13, −5] (F44). Exploratory (post hoc): A40

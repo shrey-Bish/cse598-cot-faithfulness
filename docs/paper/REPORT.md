@@ -2,7 +2,7 @@
 
 **Edited by:** Ritik; each section's bullets by its owner (Track B's: Arsha, from `docs/trackB/REPORT_B.md`; Track C's: Shrey, from `docs/trackC/REPORT_C.md`), merged by Ritik.
 
-Started Nov 3 by Ritik; updated Nov 8, 15:09 (Arsha's FB1, B20, in §2–§4 and §6; §7's LoRA + note with its acceptance cost in the same sentence; §12's conclusion bullets, made specific; earlier Nov 7, 20:43: §7's exploratory trade-off bullet, post hoc; earlier 20:35, F44 in §7: A39 read by its rules R1–R4, its figures drawn, its waiting entry replaced); earlier Nov 7, 13:52 (F41–F43 in §7, A40, A41 and A42 read; A39 complete and B1R2 running in §7's waiting list; §6's L3 entry read Nov 4, no longer waiting; Shrey's figures placed in `docs/paper/figures/`); earlier Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
+Started Nov 3 by Ritik; updated Nov 13, 09:54 (F45, L6 read: §3's labels, §6 and §7; B1R2 complete; earlier Nov 8, 15:09: Arsha's FB1, B20, in §2–§4 and §6; §7's LoRA + note with its acceptance cost in the same sentence; §12's conclusion bullets, made specific; earlier Nov 7, 20:43: §7's exploratory trade-off bullet, post hoc; earlier 20:35, F44 in §7: A39 read by its rules R1–R4, its figures drawn, its waiting entry replaced); earlier Nov 7, 13:52 (F41–F43 in §7, A40, A41 and A42 read; A39 complete and B1R2 running in §7's waiting list; §6's L3 entry read Nov 4, no longer waiting; Shrey's figures placed in `docs/paper/figures/`); earlier Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
 methods are filled in as bullets** (facts with their source), so the prose can be written from them. Numbers come from
 [`FINDINGS.md`](../FINDINGS.md), the tracks' `FINDINGS_B.md` and `FINDINGS_C.md`, and the claims from
 [`CLAIMS.md`](CLAIMS.md). Results freeze on Nov 18; the draft is due Nov 22, the final report Nov 24.
@@ -104,6 +104,11 @@ reliability. On Nov 4, before any further judging, we pre-registered an LLM-judg
   FINDINGS (F3, F28), and the protocol and its amendments in the session logs of Nov 4 (17:42, 17:45, 17:56).
 - Corrected Nov 4: this section first said "two raters … no AI involved". The second rater was an AI model, not
   Shrey; see the 17:42 log.
+- **L6 (Nov 13), the same way:** 84 blind final answers from E2's followed runs (LoRA and the instruction, 42 each,
+  drawn by seed from the numbers alone; no system, run id or keyword shown). Ritik labelled them alone, with no AI
+  help, by L4's guide; the sheet was frozen (its sha256 recorded) before any judge ran. Claude Opus (2 fresh
+  sub-agents of 42 rows, each reading only its own batch file) was the reliability check: kappa 0.961 against
+  Ritik. The reading rests on Ritik's labels (F45).
 
 **Statistics:**
 - X of Y with 95% Wilson intervals; differences paired by question, 95% bootstrap clustered by question
@@ -491,6 +496,11 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 
 **The labels (read; no longer waiting):**
 
+- **L6 (F45, the words): when LoRA follows a wrong hint on E2, its final answer says so more often than the
+  instruction's, in hand labels.** says_changed or mentions_only in 37 of 42 [75, 95%] against 18 of 42 [29, 58%],
+  +45.2 [+25.4, +64.2]: "discloses more than the instruction, in labels" (L6's rule; read Nov 13). Ritik against
+  J-opus kappa 0.961. Its rule's bullet is in §7.
+
 - **L3: Gate 2's hand labels, which F3 would rest on. Read Nov 4, 17:56, by the LLM-judge protocol (pre-registered
   Nov 4, 17:45): not met** (F3). Ritik's labels are the final labels. Against the AI judges' 3-of-4 majority they are
   under 0.6 in all six cells: private 0.472 (tool 0.353, user 0.576); final 0.234 (tool 0.223, user 0.201). So F3
@@ -640,6 +650,22 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     records, the newest kept by the reader's fixed rule.
   - figure: docs/paper/figures/a39_e2_fixes.png and a39_e2_parts.png (the 30's a39_mmlupro_30_fixes and _parts, for
     the supplement)
+- **F45. L6 (E2, read Nov 13 by its rule): in hand labels, when LoRA follows a wrong hint its answer says so more
+  often than the instruction's.** 84 blind final answers of followed runs, 42 a system, 14 a channel; Ritik's labels
+  final, J-opus the check. Pre-registered Nov 7 ([log](../../archive/sessions/2026-11-07/2026-11-07_2025_A_l6-prereg.md)),
+  reduced Nov 8 (§9) before any text was read.
+  - Numbers: discloses, in labels (says_changed or mentions_only): LoRA 37 of 42 [75, 95%], the instruction 18 of 42
+    [29, 58%]; LoRA − the instruction +45.2 [+25.4, +64.2] (50 questions). Beside it: says_changed alone +35.7 [+15.6,
+    +55.7]; rejects_hint 0 and 1 of 42; the keyword agrees with the labels on 42 and 41 of 42; by channel LoRA 12, 11,
+    14 of 14, the instruction 7, 6, 5 of 14. Ritik against J-opus kappa 0.961 (user 0.943, pasted 1.000, inserted
+    0.941).
+  - Status: confirmed by the rule: "discloses more than the instruction, in labels". By its §6, the keyword result
+    holds, and "honesty when following improved with training" rests on labels; F28's cautionary claim isn't revived
+    on E2 (no LoRA row rejects the hint it ends on).
+  - Limits: one rater, one AI check; the final answer only; 42 rows a system, E2 only, one model; not blind in
+    practice (Ritik guessed "trained" on 32 of LoRA's 42 rows and 9 of the instruction's 42); it is about what LoRA
+    says when it follows, not how often it follows (F44: no difference detected).
+  - figure: none (a table; the supplement's ledger row)
 - **Exploratory (post hoc), not pre-registered: the trade-off on E2.** Written and committed before computing, after
   A40–A42 were read ([log](../../archive/sessions/2026-11-07/2026-11-07_2020_A_tradeoff-exploratory.md),
   `tools/tradeoff.py`). It replaces and qualifies no verdict above.
@@ -651,17 +677,17 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     pointwise interval including 0 (`tradeoff_acc_p.png`, supplement).
   - Disclosure when following, by keyword (followed runs whose final answer names the hint): LoRA 225 of 248 [87, 94%]
     against the instruction's 118 of 237 [44, 56%], +41 [+30, +51]; A40 60 of 84 [61, 80%], +22 [+7, +36]. A keyword
-    measure: LoRA's trained opener names the hint (F28), and L6, a hand-label check, is pre-registered and not run.
+    measure: LoRA's trained opener names the hint (F28). L6's hand labels (F45, below; read Nov 13 by its own rule)
+    back it: 37 of 42 against 18 of 42, and the keyword agreed with the labels on 83 of 84 rows.
   - figure: docs/paper/figures/tradeoff_e2.png (exploratory (post hoc); `tradeoff_acc_p.png` for the supplement)
 
 **Waiting:**
 
-- **B1R2 (waiting): revived Nov 6.** Decided Nov 4 to run (the A39 log's §13); dropped Nov 5, before any B1R2 job
+- **B1R2 (complete Nov 9; read by Nov 17): revived Nov 6.** Decided Nov 4 to run (the A39 log's §13); dropped Nov 5, before any B1R2 job
   was submitted (§19); revived Nov 6 (§21), last in Ritik's queue. B1 on the 30 (F38) stays the primary result on
   the deployable span; B1R2 is reported as a labelled replication. **Running:** at 13:18 Nov 7, 19 of its 40 parts
-  were done, 3 running and 4 pending, with 556 of its 1,200 runs left; the 40 parts project to end Nov 8, about 02:00
-  to 03:00, then its 4 sweeps (a projection from today's pace, not `squeue`). Read once its sweeps leave 0 runs, or
-  partial at Nov 15 23:59 (§13.8).
+  were done, 3 running and 4 pending, with 556 of its 1,200 runs left. **Complete:** the 40 parts ended Nov 8 and the
+  last sweeps Nov 9 (05:29); Sol's fixed count gives 0 runs left (Nov 13). Read once complete, by Nov 17 (§13.8).
 - **Gate 3's final statement:** Nov 20, after A39 (PLAN). L4 part 2 (LoRA minus base in labels): SHOULD, no date.
 
 ## 8. Level 3, between agents (Shrey)

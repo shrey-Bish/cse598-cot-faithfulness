@@ -1,4 +1,4 @@
-## In plain words: Track A's fix so far (as of Nov 8, 15:12: the conclusion made specific, L6's sheet built; by Ritik; earlier Nov 7, 20:39: A39 read; 13:44 and Nov 5, 09:08)
+## In plain words: Track A's fix so far (as of Nov 13, 09:56: L6 read, F45; B1R2 complete; earlier Nov 8, 15:12: the conclusion made specific, L6's sheet built; by Ritik; earlier Nov 7, 20:39: A39 read; 13:44 and Nov 5, 09:08)
 
 **The verdict.** Every trained version follows fewer wrong hints than base and passes Gate 3 (on E2 too, with power:
 A39's R1). **Nothing beats one line of instruction in the prompt without a cost.** Each fix that follows fewer wrong
@@ -115,10 +115,12 @@ the rules of Nov 3, [its log](../../archive/sessions/2026-11-03/2026-11-03_1130_
   isn't reached.
 
 **4. Next.**
-- **B1R2** (B1's span on E2) is running: at Nov 8 14:55, all 40 parts had ended (by 06:35; four at the planned warning stop: 06, 21, 24, 37); sweep 2 done, sweep 3 not needed; sweeps 1 and 4 (11 and 9 runs left when submitted) pending in Sol's queue (`Priority`), no start time from `squeue --start`. Read when complete, or partial at
-  Nov 15 23:59.
-- **L6** (a hand-label check of disclosure when following, LoRA against the instruction on E2): pre-registered Nov 7,
-  reduced Nov 8 to those two systems (84 rows); the sheet is built and waits for Ritik's labels, then J-opus.
+- **B1R2** (B1's span on E2): its runs are complete (the last sweeps ended Nov 9; Sol's fixed count, Nov 13, gives 0
+  runs left). Read by its rule by Nov 17.
+- **L6, read Nov 13 (F45): what LoRA says when it follows is more honest than the instruction's, in hand labels.**
+  When LoRA follows a wrong hint on E2, its answer says so in 37 of 42 hand-labelled runs, against the instruction's
+  18 of 42 (+45 [+25, +64]: "discloses more than the instruction, in labels"; Ritik against J-opus kappa 0.96). It
+  still follows as often as the instruction (F44); this is about what it says when it does.
 - **What it means for the fix** (our reading, interpretation): without a way to verify the tool, resisting wrong
   hints and relying on right ones trade off, so the fix belongs at the system level. Provenance labels alone don't
   help (the wrapper alone, "no effect", F44); independent verification does (Track C's checker, which re-solves

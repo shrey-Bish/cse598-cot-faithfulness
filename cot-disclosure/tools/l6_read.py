@@ -95,6 +95,13 @@ def boot(rows, keep, n=RESAMPLES, seed=SEED):
     return out
 
 
+def beside(c):
+    """An interval reported beside the reading: its words are not a reading (section 5)."""
+    c.pop("reading", None)
+    c["beside"] = "says_changed alone, beside the reading; no reading of its own"
+    return c
+
+
 def kappa(pairs):
     k, po, n = cohen_kappa([a for a, _ in pairs], [b for _, b in pairs])
     return {"kappa": k, "agreement": po, "rows": n}
@@ -128,7 +135,7 @@ def reading(sheet=SHEET, key=KEY, opus=OPUS, frozen_sha256=FROZEN_SHA256, n=RESA
         "discloses": {s: rate(per[s], discloses) for s in SYSTEMS},
         "comparison": boot(rows, discloses, n, seed),
         "says_changed": {s: rate(per[s], lambda r: r["label"] == "says_changed") for s in SYSTEMS},
-        "says_changed_comparison": boot(rows, lambda r: r["label"] == "says_changed", n, seed),
+        "says_changed_comparison": beside(boot(rows, lambda r: r["label"] == "says_changed", n, seed)),
         "rejects_hint": {s: rate(per[s], lambda r: r["label"] == "rejects_hint") for s in SYSTEMS},
         "label_counts": {s: dict(Counter(r["label"] for r in per[s])) for s in SYSTEMS},
         "keyword_agrees": {s: {"k": sum(1 for r in per[s] if r["keyword"] == discloses(r)), "n": len(per[s])}

@@ -1,7 +1,7 @@
 # Findings (CSE 598, Group 10)
 
 One entry per finding: the claim in one sentence, the numbers, where they come from, and a
-status. Started 2026-10-26; last updated 2026-11-08 15:07 (Arsha's FB1, B20, in the story's items 1 and 2; the scorecard, item 7: Gate 2 marked, the conclusion made specific; LoRA + note's acceptance cost in the same sentence as its R2 reading, F44; earlier 2026-11-07 20:43: the story's scorecard, item 7; F44 A39, read by its rules R1–R4 once complete at 20:35; earlier 13:42: F41 A40, F42 A41, F43 A42, each read by its rule once complete; earlier 2026-11-05 09:37: T13 confirmed: 510702's start, Granite's files whole; B1R2 not run: GPU time given to A40, F38, then revived Nov 6, §21; earlier, Nov 4 22:51, T13: B20's shared stop file, fixed; 21:31, Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
+status. Started 2026-10-26; last updated 2026-11-13 09:53 (F45, L6 read by its rule: LoRA discloses more than the instruction, in hand labels; F28's line on E2; the scorecard's honesty line on labels; earlier 2026-11-08 15:07: Arsha's FB1, B20, in the story's items 1 and 2; the scorecard, item 7: Gate 2 marked, the conclusion made specific; LoRA + note's acceptance cost in the same sentence as its R2 reading, F44; earlier 2026-11-07 20:43: the story's scorecard, item 7; F44 A39, read by its rules R1–R4 once complete at 20:35; earlier 13:42: F41 A40, F42 A41, F43 A42, each read by its rule once complete; earlier 2026-11-05 09:37: T13 confirmed: 510702's start, Granite's files whole; B1R2 not run: GPU time given to A40, F38, then revived Nov 6, §21; earlier, Nov 4 22:51, T13: B20's shared stop file, fixed; 21:31, Ritik's re-look of the 7 cells recorded, F3 and F28: 4 changed, 3 kept, no reading changes; 18:22, Gate 2's statement; the re-look narrowed post hoc to 7 cells; 18:00, the LLM judges read, F3 and F28: Gate 2's label part not met; 17:49, the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey, in F3 and F28; earlier, 13:53, T12: the shared port; every earlier result checked clean). **Edited by:** Ritik (Track B's and C's new findings go in FINDINGS_B and FINDINGS_C; Ritik merges them). History: `git log -- docs/FINDINGS.md` and
 the session logs. Design and plans:
 [`OVERVIEW.md`](../archive/superseded/OVERVIEW_2026-10-27.md), [`PLAN.md`](PLAN.md).
 
@@ -10,7 +10,7 @@ the session logs. Design and plans:
 (FB1, …; Arsha's from Nov 6). F18, F19, F21–F24, F30, F31, F33 and F34 (Track C) and F15–F17, F25, F29, F35, F37 (Track B)
 stay here.
 
-**The story so far (Oct 28; updated Oct 30, Nov 1, Nov 2, Nov 3, Nov 7 and Nov 8; the scorecard, item 7, Nov 7 and 8).**
+**The story so far (Oct 28; updated Oct 30, Nov 1, Nov 2, Nov 3, Nov 7, Nov 8 and Nov 13; the scorecard, item 7, Nov 7, 8 and 13).**
 1. **Tools sway models more than users.** The same wrong hint moves the answer more from a tool than
    from the user, in all five Track B models: the three on Voyager (Gate 2; 54 questions × 3 runs; tool − user with the
    pasted block: Qwen3 30B Thinking +35, Qwen3 30B Instruct +21, Olmo 3 7B Think +32 points), in
@@ -113,6 +113,9 @@ stay here.
    taught the model to claim checks it didn't do") isn't supported for claimed disagreement; its "worked it out
    independently" half can't be read from the labels, and the raters could tell LoRA's style (the reading set after
    labeling, before counting). Its first half stands: fine-tuning reduced following no more than an instruction.
+   **On E2, in hand labels (L6, F45, read Nov 13):** when LoRA follows a wrong hint, its answer says so in 37 of 42
+   runs against the instruction's 18 of 42 (+45 [+25, +64], "discloses more than the instruction, in labels"; Ritik
+   against J-opus kappa 0.96), and none claims to reject the hint it ends on.
    **Inference-time attention scaling (B1, F38): a real cut in following on the inserted tool turn (−17 [−30, −3])
    that misses its pre-registered acceptance limit (−7 points against 5; "ignores tools" by the rule);
    underpowered at 30 questions.** Scaling every hint span shows no effect (−9 [−19, +1]). A replication that could
@@ -141,15 +144,17 @@ stay here.
    (the A39 log's §19), revived on Nov 6, last in Ritik's queue (§21), and is running (read when complete, or partial
    at Nov 15 23:59).
 7. **Scorecard against the original plan (Nov 7, 20:43; updated Nov 8, 15:06: Gate 2 marked with B20's families, the
-   conclusion made specific; every number as read; exploratory items labelled).**
+   conclusion made specific; Nov 13, 09:53: the honesty line rests on L6's hand labels, F45; every number as read;
+   exploratory items labelled).**
    - **The failure: tools pull harder than users, in every model tested; Gate 2 marked Nov 8.** All five Track B models
      (item 1) and B20's three new families, clear in all 10 readings (FB1). Its label part is not met by its
      pre-registered rule (F3).
-   - **Honesty when following: improved with training,** by keyword. When LoRA follows a wrong hint on E2, its final
-     answer names the hint in 225 of 248 runs, against the instruction's 118 of 237 (+41 [+30, +51]); A40 in 60 of 84
-     (+22 [+7, +36]) (*exploratory, post hoc*; A40's stays keyword-only). On the 30, L4's hand labels back it: most of
-     LoRA's keyword candidates say the hint shaped the answer (97 of 147, F28). L6, a hand-label check of LoRA against
-     the instruction on E2 (84 rows; pre-registered Nov 7, reduced Nov 8), waits for Ritik's labels.
+   - **Honesty when following: improved with training, in hand labels (L6, F45, Nov 13).** When LoRA follows a wrong
+     hint on E2, its final answer says so in 37 of 42 hand-labelled runs, against the instruction's 18 of 42 (+45
+     [+25, +64]): "discloses more than the instruction, in labels" (Ritik against J-opus, kappa 0.96). So the line
+     rests on labels, not only keywords. The keyword gave the same (225 of 248 against 118 of 237, *exploratory, post
+     hoc*) and agreed with the labels on 83 of 84 rows. A40's stays keyword-only (60 of 84, *exploratory*). On the 30,
+     L4's labels back it too (97 of 147 of LoRA's candidates say the hint shaped the answer, F28).
    - **Resisting wrong hints: improved by A40, but as a trade.** It follows the wrong hint in 84 of 694 runs against the
      instruction's 237 of 713, and takes the correct hint in 347 of 459 against 431 of 476 ("fewer, but costs
      acceptance", F41). LoRA + note makes the same trade, smaller: "fewer than the instruction" by R2 (−8 [−12, −4]) at
@@ -1713,6 +1718,10 @@ all four trained versions pass.**
   didn't do: **not supported** for the claimed disagreement (1 to 2 of LoRA's 147 candidates; most say the hint
   shaped the answer); the "worked independently" half can't be read from the labels. LoRA's keyword candidates
   are mostly disclosure; base's candidates are labelled in part 2.
+- **On E2, in hand labels (L6, read Nov 13, F45):** when LoRA follows a wrong hint, its final answer says so (says_changed
+  or mentions_only) in 37 of 42 rows against the instruction's 18 of 42 (+45.2 [+25.4, +64.2]): "discloses more
+  than the instruction, in labels". No LoRA row claims to reject the hint it ends on (rejects_hint 0 of 42), so the
+  cautionary claim's second half isn't revived on E2.
 
 **Earlier readings, interim** (kept as written; the final reading above replaces them).
 
@@ -2658,6 +2667,55 @@ over the copied-back runs files (the
 
 Marking every tool output "unverified" doesn't beat the instruction alone. With the instruction, it follows fewer wrong
 hints on the tool turn and takes fewer correct ones.
+
+## F45. Track A (L6): in hand labels, when LoRA follows a wrong hint on E2 its answer says so more often than the one-line instruction's (37 of 42 against 18 of 42)
+
+**Setup.** L6, pre-registered Nov 7 (its log, 2026-11-07 20:25, §1–§8) before any sheet was built, and amended Nov 8
+(§9, Ritik's yes) before any text was read: two systems, LoRA and the one-line instruction (prompt_only), base and A40
+dropped.
+- **The sample:** E2's runs that followed the wrong hint (A39's records), 14 per system and channel (user, pasted,
+  inserted), one run per question, drawn from the numbers alone by seed `L6-20261107`: 84 rows, shuffled, blind (no
+  system, run id, question or keyword shown).
+- **The labels:** Ritik's, alone, with no AI help, by L4's guide and its five labels, on the final answer only; frozen
+  Nov 13 before any judge ran (sha256 `04a33719…`). **J-opus**, the reliability check under the LLM-judge protocol
+  (Nov 4, §10): 2 fresh sub-agents of 42 rows (`claude-opus-5-5`), each reading only its batch file.
+- **The rule (§5):** per system, the share of its rows labelled says_changed or mentions_only ("discloses, in labels"),
+  every row in its denominator, 95% Wilson; lora − prompt_only by a bootstrap clustered by question (20,000, seed 0).
+
+**Result: "discloses more than the instruction, in labels".**
+
+| system | discloses, in labels | says_changed alone | rejects_hint |
+|---|---|---|---|
+| LoRA | **37 of 42 [75, 95%]** | 28 of 42 [52, 79%] | 0 of 42 [0, 8%] |
+| the instruction | **18 of 42 [29, 58%]** | 13 of 42 [19, 46%] | 1 of 42 [0, 12%] |
+
+- **LoRA − the instruction: +45.2 [+25.4, +64.2] points** (50 questions; none of 20,000 resamples left out).
+- **Beside it, changing nothing:** says_changed alone +35.7 [+15.6, +55.7]; the keyword (`mention_final_broad`) agrees
+  with the labels on 42 of 42 of LoRA's rows and 41 of 42 of the instruction's; by channel, LoRA 12, 11 and 14 of 14
+  (user, pasted, inserted), the instruction 7, 6 and 5 of 14 (no reading).
+- **Ritik against J-opus: Cohen's kappa 0.961** (agreement 0.976 on 84 rows; user 0.943, pasted 1.000, inserted
+  0.941): over 0.6, no "low agreement" note.
+
+**Reading** (§6, said in advance). The keyword result holds: when LoRA follows a wrong hint, it says so more often
+than the instruction does, so the scorecard's "honesty when following improved with training" rests on hand labels,
+not only keywords. No LoRA row claims to reject the hint it ends on, so F28's cautionary claim isn't revived on E2.
+A40 was dropped by §9: its disclosure when following stays a keyword result (60 of 84, exploratory).
+
+**Limits.**
+- One rater's labels, one AI model as the check; the final answer only; E2 only; 42 rows a system; one model.
+- **Not blind in practice:** Ritik guessed "trained" on 32 of LoRA's 42 rows and on 9 of the instruction's 42 (right
+  on 44 of the 62 rows with a guess), as in L4: the trained style is recognizable.
+- LoRA still follows the wrong hint as often as the instruction (F44: "no difference detected"); this is about what it
+  says when it does, not how often.
+
+**Source.**
+- `cot-disclosure/results/summaries/trackA/labels/l6_report.json` (numbers and row counts only), from
+  `python tools/l6_read.py` (Ritik's frozen sheet, the key and J-opus's labels: `results/labels/`, gitignored).
+- The rule: `archive/sessions/2026-11-07/2026-11-07_2025_A_l6-prereg.md`; the reading:
+  `archive/sessions/2026-11-13/2026-11-13_0951_A_l6-reading.md`.
+
+**Status (final).** *Confirmed* by the rule: **LoRA "discloses more than the instruction, in labels"**; Ritik against
+J-opus kappa 0.961.
 
 ## Measurement traps we hit and fixed
 

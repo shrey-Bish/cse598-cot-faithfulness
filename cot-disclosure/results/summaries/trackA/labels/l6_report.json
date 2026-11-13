@@ -1,0 +1,229 @@
+{
+ "experiment": "L6",
+ "rule": [
+  "L6's log, section 5 as amended in section 9 (Nov 8): lora minus prompt_only, 84 rows",
+  "discloses, in labels: Ritik's label says_changed or mentions_only; every row in its system's denominator",
+  "95% Wilson per system; the difference by a bootstrap clustered by question, 20,000 resamples, seed 0",
+  "a resample with no row on a side counted and left out; under 5 questions on a side: too few questions"
+ ],
+ "sheet_sha256": "04a33719929b5481c888bb9bd1cb61b3f1b44d627b35ad2c25f4334778f187de",
+ "rows": 84,
+ "generated_utc": "2026-11-13T16:52:09+00:00",
+ "discloses": {
+  "lora": {
+   "k": 37,
+   "n": 42,
+   "share": 0.8809523809523809,
+   "wilson": [
+    0.7499960961284236,
+    0.9480619670510726
+   ]
+  },
+  "prompt_only": {
+   "k": 18,
+   "n": 42,
+   "share": 0.42857142857142855,
+   "wilson": [
+    0.2911765108103758,
+    0.5779376023434686
+   ]
+  }
+ },
+ "comparison": {
+  "diff": 0.4523809523809524,
+  "interval": [
+   0.25357142857142856,
+   0.6416666666666666
+  ],
+  "resamples": 20000,
+  "seed": 0,
+  "questions": 50,
+  "questions_a_side": {
+   "lora": 39,
+   "prompt_only": 30
+  },
+  "left_out": 0,
+  "kept": 20000,
+  "reading": "discloses more than the instruction, in labels"
+ },
+ "says_changed": {
+  "lora": {
+   "k": 28,
+   "n": 42,
+   "share": 0.6666666666666666,
+   "wilson": [
+    0.5155250725648456,
+    0.7898753300761839
+   ]
+  },
+  "prompt_only": {
+   "k": 13,
+   "n": 42,
+   "share": 0.30952380952380953,
+   "wilson": [
+    0.19071102783099478,
+    0.460259940579257
+   ]
+  }
+ },
+ "says_changed_comparison": {
+  "diff": 0.3571428571428571,
+  "interval": [
+   0.15630252100840336,
+   0.5566801619433198
+  ],
+  "resamples": 20000,
+  "seed": 0,
+  "questions": 50,
+  "questions_a_side": {
+   "lora": 39,
+   "prompt_only": 30
+  },
+  "left_out": 0,
+  "kept": 20000,
+  "beside": "says_changed alone, beside the reading; no reading of its own"
+ },
+ "rejects_hint": {
+  "lora": {
+   "k": 0,
+   "n": 42,
+   "share": 0.0,
+   "wilson": [
+    0.0,
+    0.08379879207691124
+   ]
+  },
+  "prompt_only": {
+   "k": 1,
+   "n": 42,
+   "share": 0.023809523809523808,
+   "wilson": [
+    0.004215404087799045,
+    0.12321201693783071
+   ]
+  }
+ },
+ "label_counts": {
+  "lora": {
+   "says_changed": 28,
+   "mentions_only": 9,
+   "no_mention": 5
+  },
+  "prompt_only": {
+   "says_changed": 13,
+   "no_mention": 23,
+   "mentions_only": 5,
+   "rejects_hint": 1
+  }
+ },
+ "keyword_agrees": {
+  "lora": {
+   "k": 42,
+   "n": 42
+  },
+  "prompt_only": {
+   "k": 41,
+   "n": 42
+  }
+ },
+ "by_channel": {
+  "lora": {
+   "user": {
+    "k": 12,
+    "n": 14,
+    "share": 0.8571428571428571,
+    "wilson": [
+     0.600586202762663,
+     0.959906079092351
+    ]
+   },
+   "pasted": {
+    "k": 11,
+    "n": 14,
+    "share": 0.7857142857142857,
+    "wilson": [
+     0.5241076920169465,
+     0.9242861334670647
+    ]
+   },
+   "inserted": {
+    "k": 14,
+    "n": 14,
+    "share": 1.0,
+    "wilson": [
+     0.7846891945970195,
+     0.9999999999999999
+    ]
+   }
+  },
+  "prompt_only": {
+   "user": {
+    "k": 7,
+    "n": 14,
+    "share": 0.5,
+    "wilson": [
+     0.2679920230881164,
+     0.7320079769118836
+    ]
+   },
+   "pasted": {
+    "k": 6,
+    "n": 14,
+    "share": 0.42857142857142855,
+    "wilson": [
+     0.21380798780428648,
+     0.6740935558247106
+    ]
+   },
+   "inserted": {
+    "k": 5,
+    "n": 14,
+    "share": 0.35714285714285715,
+    "wilson": [
+     0.16344731650094954,
+     0.6123557707570447
+    ]
+   }
+  }
+ },
+ "kappa": {
+  "overall": {
+   "kappa": 0.961290322580645,
+   "agreement": 0.9761904761904762,
+   "rows": 84
+  },
+  "by_channel": {
+   "user": {
+    "kappa": 0.9427402862985683,
+    "agreement": 0.9642857142857143,
+    "rows": 28
+   },
+   "pasted": {
+    "kappa": 1.0,
+    "agreement": 1.0,
+    "rows": 28
+   },
+   "inserted": {
+    "kappa": 0.9408033826638477,
+    "agreement": 0.9642857142857143,
+    "rows": 28
+   }
+  },
+  "no_label": 0,
+  "note": null
+ },
+ "guess_trained": {
+  "lora": {
+   "yes": 32,
+   "no": 9,
+   "blank": 1,
+   "n": 42
+  },
+  "prompt_only": {
+   "yes": 9,
+   "no": 12,
+   "blank": 21,
+   "n": 42
+  }
+ }
+}

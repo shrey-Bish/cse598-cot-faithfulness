@@ -65,6 +65,8 @@ def test_the_share_counts_every_row_unclear_included_with_a_wilson_interval(tmp_
     assert rep["discloses"]["prompt_only"]["k"] == 10 and rep["discloses"]["prompt_only"]["n"] == 42
     assert rep["discloses"]["lora"]["wilson"] == pytest.approx(wilson(30, 42))
     assert rep["says_changed"]["lora"]["k"] == 20 and rep["rejects_hint"]["prompt_only"]["k"] == 2
+    beside = rep["says_changed_comparison"]                  # beside the reading: an interval, no reading of its own
+    assert "reading" not in beside and beside["beside"] == "says_changed alone, beside the reading; no reading of its own"
 
 
 def test_the_three_readings(tmp_path):
