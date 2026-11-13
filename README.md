@@ -32,7 +32,9 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    after a call nor how often the model follows the tool (no change detected on either; B17, F37, run after its
    one-day window). In B20 (FB1), a call makes the answer barer after Granite's own call and after Nemotron's inserted
    turn with thinking off; with thinking on, Nemotron's bare answer after the inserted turn falls (−14 [−19, −9]):
-   thinking writes more of the source down.
+   thinking writes more of the source down. **So the title question is answered mixed:** with thinking on, Qwen3-8B
+   names the tool in its private reasoning but not its final answer (F29); gpt-oss-20b's effort changes nothing (F37);
+   Nemotron's answer is less bare (FB1). The training result below (L6) doesn't bear on it.
 3. **Inside Olmo 3 7B Think, layers 15, 19 and 23 read the hint straight from the prompt.** They hold 0.90 of the
    drop at the takeover, and the result replicates on questions not used to find them, by two methods (F26, F32).
    It isn't forced by Olmo's sliding windows: in Qwen3-8B, whose layers all see the whole prompt, three layers chosen
@@ -55,15 +57,18 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
    hint (bias-augmented consistency training): it follows far fewer wrong hints than the one-line instruction but takes
    fewer correct ones, "fewer, but costs acceptance" by its rule (F41; with the note, A42, the same, F43). Inside the
    model it is the first fix that acts on the readout, before layers 15, 19 and 23 (A41, F42). B1's replication on E2
-   (B1R2) was revived on Nov 6; all 40 parts ended Nov 8, and its last two sweeps wait in Sol's queue.
+   (B1R2, read Nov 13 by B1's rule) reads "ignores tools" again: on 120 questions the cut in following replicates
+   (−13.8 [−20.0, −7.5] points on the tool turn), and correct tool hints are taken less too (−5.8 [−10.8, −1.3]), just
+   past the rule's 5-point limit (F38).
 
 **Scorecard against the original plan (Nov 7, updated Nov 8 and 13; numbers as read in [`docs/FINDINGS.md`](docs/FINDINGS.md), story item 7).**
 - **The failure: tools pull harder than users in every model tested** (Gate 2, marked Nov 8): all five Track B models
   and B20's three new families, 10 of 10 readings (FB1). The label part of Gate 2 is not met (F3).
-- **Honesty when following improved with training, in hand labels** (L6, F45, Nov 13): when LoRA follows a wrong hint
-  on E2, its answer says so in 37 of 42 hand-labelled runs against the instruction's 18 of 42 (+45 [+25, +64] points,
-  "discloses more than the instruction, in labels"; Ritik against the AI check, kappa 0.96). The keyword count agrees
-  (exploratory). On the 30, hand labels back it too (L4, F28).
+- **Training made the answer more candid about a hint it followed, in hand labels, without making it follow less**
+  (L6, F45, Nov 13): when LoRA follows a wrong hint on E2, its answer says so in 37 of 42 hand-labelled runs against
+  the instruction's 18 of 42 (+45 [+25, +64] points); it follows as often as the instruction (F44). Limits: LoRA's
+  trained opener names the hint (F28); one model, E2 only, 42 rows a system, the final answer only; the sheet wasn't
+  blind in practice, though the AI check (blind to systems) agreed on 82 of 84 rows.
 - **Resisting wrong hints improved with A40, but as a trade:** 84 of 694 wrong hints followed against the
   instruction's 237 of 713, and 347 of 459 correct hints taken against 431 of 476 (F41). LoRA + note is "fewer than
   the instruction" by R2 (−8 [−12, −4]) at an acceptance cost of −9 [−13, −5] (F44). Exploratory (post hoc): A40

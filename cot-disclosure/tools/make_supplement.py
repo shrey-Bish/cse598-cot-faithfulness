@@ -1005,10 +1005,11 @@ PREREG = [
                     ("the amendment, section 19 (dropped Nov 5, before any B1R2 run)", "dcf2d99"),
                     ("the amendment, section 21 (revived Nov 6, before any B1R2 run; last in the queue, reserve=240:2)",
                      "64f6fe5")],
-     "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"], "verdict": "waiting: revived Nov 6 (the A39 log's "
-     "section 21; dropped Nov 5 before any B1R2 job, section 19); running, 19 of 40 parts done at Nov 7 13:18; read "
-     "when complete or partial at Nov 15 23:59",
-     "verdict_check": []},
+     "f_title": r"\(B1R2\)", "result_glob": ["*b1r2-results*"],
+     "verdict": "read Nov 13 once complete, by B1's rule unchanged: ignores tools again (following 82 to 49 of 240, "
+                "−13.8 [−20.0, −7.5]; acceptance −5.8 [−10.8, −1.3]; no-hint accuracy +0.8); B1's verdict on the 30 "
+                "stays primary",
+     "verdict_check": ["ignores tools", "−13.8 [−20.0, −7.5]", "−5.8 [−10.8, −1.3]"]},
     {"id": "a40", "track": "A", "experiment": "A40: bias-augmented consistency training (Chua et al., 2024): the "
                                               "model's own no-hint reasoning as the target for hinted prompts, with a "
                                               "final answer that names the hint", "kind": "pre",

@@ -1,0 +1,160 @@
+{
+ "engine": "v2",
+ "base": "prov-a1-v2",
+ "systems": {
+  "prov-a1-v2": {
+   "span": "deployable",
+   "alpha": 1.0,
+   "runs": 600,
+   "no_answer": 9,
+   "wrong_hint_following | all": {
+    "k": 82,
+    "n": 240,
+    "text": "82 of 240",
+    "wilson": [
+     0.2845811757917764,
+     0.4037408989338453
+    ],
+    "questions": 120
+   },
+   "wrong_hint_following | tool_injected": {
+    "k": 82,
+    "n": 240,
+    "text": "82 of 240",
+    "wilson": [
+     0.2845811757917764,
+     0.4037408989338453
+    ],
+    "questions": 120
+   },
+   "correct_hint_acceptance | all": {
+    "k": 211,
+    "n": 240,
+    "text": "211 of 240",
+    "wilson": [
+     0.831850088640375,
+     0.9145365218851103
+    ],
+    "questions": 120
+   },
+   "correct_hint_acceptance | tool_injected": {
+    "k": 211,
+    "n": 240,
+    "text": "211 of 240",
+    "wilson": [
+     0.831850088640375,
+     0.9145365218851103
+    ],
+    "questions": 120
+   },
+   "no_hint_accuracy | all": {
+    "k": 78,
+    "n": 120,
+    "text": "78 of 120",
+    "wilson": [
+     0.5612132452610987,
+     0.7294810046710389
+    ],
+    "questions": 120
+   }
+  },
+  "prov-deployable-a0.25-v2": {
+   "span": "deployable",
+   "alpha": 0.25,
+   "runs": 600,
+   "no_answer": 7,
+   "wrong_hint_following | all": {
+    "k": 49,
+    "n": 240,
+    "text": "49 of 240",
+    "wilson": [
+     0.15801913993565442,
+     0.2596352628411648
+    ],
+    "questions": 120,
+    "minus_alpha1": {
+     "diff": -0.1375,
+     "interval": [
+      -0.2,
+      -0.07499999999999998
+     ],
+     "questions": 120
+    }
+   },
+   "wrong_hint_following | tool_injected": {
+    "k": 49,
+    "n": 240,
+    "text": "49 of 240",
+    "wilson": [
+     0.15801913993565442,
+     0.2596352628411648
+    ],
+    "questions": 120,
+    "minus_alpha1": {
+     "diff": -0.1375,
+     "interval": [
+      -0.2,
+      -0.07499999999999998
+     ],
+     "questions": 120
+    }
+   },
+   "correct_hint_acceptance | all": {
+    "k": 197,
+    "n": 240,
+    "text": "197 of 240",
+    "wilson": [
+     0.7673804757008424,
+     0.8641774255130297
+    ],
+    "questions": 120,
+    "minus_alpha1": {
+     "diff": -0.05833333333333335,
+     "interval": [
+      -0.10833333333333328,
+      -0.012500000000000067
+     ],
+     "questions": 120
+    }
+   },
+   "correct_hint_acceptance | tool_injected": {
+    "k": 197,
+    "n": 240,
+    "text": "197 of 240",
+    "wilson": [
+     0.7673804757008424,
+     0.8641774255130297
+    ],
+    "questions": 120,
+    "minus_alpha1": {
+     "diff": -0.05833333333333335,
+     "interval": [
+      -0.10833333333333328,
+      -0.012500000000000067
+     ],
+     "questions": 120
+    }
+   },
+   "no_hint_accuracy | all": {
+    "k": 79,
+    "n": 120,
+    "text": "79 of 120",
+    "wilson": [
+     0.5697483136029076,
+     0.7370956168810154
+    ],
+    "questions": 120,
+    "minus_alpha1": {
+     "diff": 0.008333333333333304,
+     "interval": [
+      -0.06666666666666665,
+      0.08333333333333337
+     ],
+     "questions": 120
+    }
+   }
+  }
+ },
+ "bootstrap": "paired by question (clustered), 20,000 resamples, seed 0",
+ "set_aside": {}
+}

@@ -2,7 +2,7 @@
 
 **Edited by:** Ritik; each section's bullets by its owner (Track B's: Arsha, from `docs/trackB/REPORT_B.md`; Track C's: Shrey, from `docs/trackC/REPORT_C.md`), merged by Ritik.
 
-Started Nov 3 by Ritik; updated Nov 13, 09:54 (F45, L6 read: §3's labels, §6 and §7; B1R2 complete; earlier Nov 8, 15:09: Arsha's FB1, B20, in §2–§4 and §6; §7's LoRA + note with its acceptance cost in the same sentence; §12's conclusion bullets, made specific; earlier Nov 7, 20:43: §7's exploratory trade-off bullet, post hoc; earlier 20:35, F44 in §7: A39 read by its rules R1–R4, its figures drawn, its waiting entry replaced); earlier Nov 7, 13:52 (F41–F43 in §7, A40, A41 and A42 read; A39 complete and B1R2 running in §7's waiting list; §6's L3 entry read Nov 4, no longer waiting; Shrey's figures placed in `docs/paper/figures/`); earlier Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
+Started Nov 3 by Ritik; updated Nov 13, 11:13 (B1R2 read, in F38's bullet; the title question answered mixed in §1 and §12; L6's line held to its wording, §6, §7, §12; earlier 09:54: F45, L6 read: §3's labels, §6 and §7; B1R2 complete; earlier Nov 8, 15:09: Arsha's FB1, B20, in §2–§4 and §6; §7's LoRA + note with its acceptance cost in the same sentence; §12's conclusion bullets, made specific; earlier Nov 7, 20:43: §7's exploratory trade-off bullet, post hoc; earlier 20:35, F44 in §7: A39 read by its rules R1–R4, its figures drawn, its waiting entry replaced); earlier Nov 7, 13:52 (F41–F43 in §7, A40, A41 and A42 read; A39 complete and B1R2 running in §7's waiting list; §6's L3 entry read Nov 4, no longer waiting; Shrey's figures placed in `docs/paper/figures/`); earlier Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
 methods are filled in as bullets** (facts with their source), so the prose can be written from them. Numbers come from
 [`FINDINGS.md`](../FINDINGS.md), the tracks' `FINDINGS_B.md` and `FINDINGS_C.md`, and the claims from
 [`CLAIMS.md`](CLAIMS.md). Results freeze on Nov 18; the draft is due Nov 22, the final report Nov 24.
@@ -24,6 +24,11 @@ the slide's 16:9 version from the same rows (`_slide`, `tools/slide_figures.py`;
 - The evidence per level, as the figure lists it: inside (F11, F26, F32, F36); in the words (F15, F25, F29, F35);
   between agents (F18, F31, F33, F34). Every result, one row each:
   [`tables/results_at_a_glance.md`](tables/results_at_a_glance.md).
+- **The title question, answered mixed** (do thinking modes make chain-of-thought more honest?): with thinking on,
+  Qwen3-8B names the tool in its private reasoning after 141 of 145 calls but in the final answer in 0 of 143 followed
+  runs (F29); in gpt-oss-20b, more reasoning effort changes neither following on the real call nor the bare answer
+  after it (F37); Nemotron 3 Nano's answer after the inserted tool turn is less bare with thinking on (−14 [−19, −9],
+  FB1). L6 (F45) is about a training fix and doesn't bear on it.
 
 ## 2. Setup (Ritik; Track B's part, Arsha)
 
@@ -499,7 +504,9 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 - **L6 (F45, the words): when LoRA follows a wrong hint on E2, its final answer says so more often than the
   instruction's, in hand labels.** says_changed or mentions_only in 37 of 42 [75, 95%] against 18 of 42 [29, 58%],
   +45.2 [+25.4, +64.2]: "discloses more than the instruction, in labels" (L6's rule; read Nov 13). Ritik against
-  J-opus kappa 0.961. Its rule's bullet is in §7.
+  J-opus kappa 0.961. In plain words: training made the answer more candid about a hint it followed, in hand labels, without making it follow less. Beside it: LoRA's trained opener names the hint (F28); one model, E2
+  only, 42 rows a system, the final answer only; the sheet not blind in practice, with J-opus (blind to systems)
+  agreeing on 82 of 84 rows. Its rule's bullet is in §7.
 
 - **L3: Gate 2's hand labels, which F3 would rest on. Read Nov 4, 17:56, by the LLM-judge protocol (pre-registered
   Nov 4, 17:45): not met** (F3). Ritik's labels are the final labels. Against the AI judges' 3-of-4 majority they are
@@ -569,9 +576,16 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     isn't run.
   - Status: by the rule, deployable "ignores tools", oracle "no effect"; the cut in following is confirmed; the
     acceptance miss (a point estimate on 2 of 30 runs) is tentative; underpowered at 30 questions.
+  - **B1R2, a labelled replication on E2 (read Nov 13 by B1's rule, unchanged; the A39 log's §13):** 120 fresh
+    questions, the deployable span (0.25) against alpha = 1 on the inserted tool turn, 600 runs each, all in. Following
+    82 of 240 → 49 of 240, −13.8 [−20.0, −7.5]; correct-hint acceptance 211 → 197 of 240, −5.8 [−10.8, −1.3]; no-hint
+    accuracy 78 → 79 of 120, +0.8 [−6.7, +8.3]: **"ignores tools" again.** The cut in following replicates; the cost
+    to correct hints is now real (its interval excludes 0) and past the 5-point limit by the point estimate (2 runs),
+    though the interval includes −5. B1's verdict on the 30 stays primary.
   - Limits: the rule's 5-point limits sit inside the sampling noise at 30 questions (no-hint accuracy moved +10 under
-    both spans, though the scaling can't touch it); alpha was chosen on forced answers.
-  - figure: docs/paper/figures/readout_lora_vs_base.png (panel b)
+    both spans, though the scaling can't touch it; on E2 it moved +0.8); alpha was chosen on forced answers; one
+    model; the inserted tool turn only.
+  - figure: docs/paper/figures/readout_lora_vs_base.png (panel b); `b1r2_vs_b1.png` (B1 and B1R2 side by side)
 - **F39. A18: inside the fixed model, training acts in the reasoning.**
   - Numbers: on base's tool-hint cases at the takeover (28 cases, 13 questions), R_LoRA = −0.72 logits [−1.02, −0.39]:
     LoRA's weights pull toward the hint's letter harder, not less; LoRA still answers the hint's letter in 30 of 30.
@@ -661,10 +675,11 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     0.941).
   - Status: confirmed by the rule: "discloses more than the instruction, in labels". By its §6, the keyword result
     holds, and "honesty when following improved with training" rests on labels; F28's cautionary claim isn't revived
-    on E2 (no LoRA row rejects the hint it ends on).
-  - Limits: one rater, one AI check; the final answer only; 42 rows a system, E2 only, one model; not blind in
-    practice (Ritik guessed "trained" on 32 of LoRA's 42 rows and 9 of the instruction's 42); it is about what LoRA
-    says when it follows, not how often it follows (F44: no difference detected).
+    on E2 (no LoRA row rejects the hint it ends on). In plain words: training made the answer more candid about a hint it followed, in hand labels, without making it follow less.
+  - Limits: LoRA's trained opener names the hint (F28), so part of what is labelled is a taught habit; one rater,
+    one AI check; the final answer only; 42 rows a system, E2 only, one model; not blind in practice (Ritik guessed
+    "trained" on 32 of LoRA's 42 rows and 9 of the instruction's 42), with J-opus (blind to systems) agreeing on 82
+    of 84 rows; it is about what LoRA says when it follows, not how often it follows (F44: no difference detected).
   - figure: none (a table; the supplement's ledger row)
 - **Exploratory (post hoc), not pre-registered: the trade-off on E2.** Written and committed before computing, after
   A40–A42 were read ([log](../../archive/sessions/2026-11-07/2026-11-07_2020_A_tradeoff-exploratory.md),
@@ -683,11 +698,7 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 
 **Waiting:**
 
-- **B1R2 (complete Nov 9; read by Nov 17): revived Nov 6.** Decided Nov 4 to run (the A39 log's §13); dropped Nov 5, before any B1R2 job
-  was submitted (§19); revived Nov 6 (§21), last in Ritik's queue. B1 on the 30 (F38) stays the primary result on
-  the deployable span; B1R2 is reported as a labelled replication. **Running:** at 13:18 Nov 7, 19 of its 40 parts
-  were done, 3 running and 4 pending, with 556 of its 1,200 runs left. **Complete:** the 40 parts ended Nov 8 and the
-  last sweeps Nov 9 (05:29); Sol's fixed count gives 0 runs left (Nov 13). Read once complete, by Nov 17 (§13.8).
+- **B1R2: read Nov 13** (in F38's bullet above).
 - **Gate 3's final statement:** Nov 20, after A39 (PLAN). L4 part 2 (LoRA minus base in labels): SHOULD, no date.
 
 ## 8. Level 3, between agents (Shrey)
@@ -953,11 +964,16 @@ supplement's [`TRAPS.md`](supplement/TRAPS.md) lists them with sources; figure: 
 - **§12, the conclusion's bullets (Ritik, Nov 8; our reading, labelled as interpretation):**
   - The failure holds across families: a tool's hint moves the answer more than the user's in all five Track B models
     and in B20's three new families (Gate 2, marked Nov 8; FB1). The label part of Gate 2 is not met (F3).
-  - Without a way to verify the tool, resisting wrong hints and relying on right ones trade off: every fix we trained
-    or prompted moves along that trade, not past it (F41, F43, F44; FINDINGS' story, item 7).
+  - Without a way to verify the tool, resisting wrong hints and relying on right ones trade off: every fix we trained,
+    prompted or applied at inference moves along that trade, not past it (F41, F43, F44; B1R2 in F38; FINDINGS' story,
+    item 7).
   - So the fix belongs at the system level, and the evidence says which part. **Provenance labels alone don't help:**
     marking every tool output "unverified" has no effect alone on the tool turn (A39, −1 [−7, +4], F44), and in the
     pipeline a tag naming the tool's letter as unverified gives the blind reviewer no change on catches (C20, FC3).
-    **Independent
-    verification does:** Track C's checker, which re-solves without the tool, stopped all 53 wrong tool answers on
+    **Independent verification does:** Track C's checker, which re-solves without the tool, stopped all 53 wrong tool answers on
     fresh items, with false alarms on 7 of 45 good lookups, at the no-tool floor (C15, F24).
+  - **The title question is answered mixed** (Nov 13): thinking on moves the tool into Qwen3-8B's private reasoning but
+    not its final answer (F29); more reasoning effort changes nothing in gpt-oss-20b (F37); Nemotron 3 Nano's answer is
+    less bare after the tool turn with thinking on (FB1). It depends on the model and on how thinking is varied:
+    thinking doesn't reliably make the final answer say where it came from.
+  - **One training fix made the answer more candid** (L6, F45): training made the answer more candid about a hint it followed, in hand labels, without making it follow less. Its limits, beside it: LoRA's trained opener names the hint (F28); LoRA's following shows no difference from the instruction (F44); one model, E2 only, 42 rows a system, the final answer only; the sheet not blind in practice, with J-opus (blind to systems) agreeing on 82 of 84 rows.

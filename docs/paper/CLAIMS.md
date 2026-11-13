@@ -145,7 +145,9 @@ the interval excludes no effect), *tentative* (direction there, interval include
 - **Settles it:** L4 part 2 (LoRA minus base in labels). **Answered on E2 (L6, F45, Nov 13):** in hand labels, when
   LoRA follows a wrong hint its answer says so in 37 of 42 runs against the instruction's 18 of 42 (+45.2 [+25.4,
   +64.2], "discloses more than the instruction, in labels"; Ritik against J-opus kappa 0.961), and none of LoRA's
-  claims to reject the hint it ends on (0 of 42).
+  claims to reject the hint it ends on (0 of 42). In plain words: training made the answer more candid about a hint it followed, in hand labels, without making it follow less. Limits: LoRA's trained opener names the
+  hint (F28); one model, E2 only, 42 rows a system, the final answer only; the sheet not blind in practice, with J-opus
+  (blind to systems) agreeing on 82 of 84 rows.
 
 **1.6 Input-embedding provenance tags don't help.**
 - **Evidence:** F20.
@@ -174,9 +176,11 @@ without making the model ignore correct tools.**
   following on the inserted turn that misses its pre-registered acceptance limit; underpowered at 30 questions.
   *Tentative* on the cost: it is 2 of 30 runs, and no-hint accuracy, which the scaling can't touch, moved +10 by
   sampling alone. **A replication (B1R) isn't run:** 35 GPU-hours fit 70 fresh questions, an acceptance half-width
-  of 6 to 9 points; ±5 needs about 107 to 245 questions (53 to 122 GPU-hours; F38). A38 isn't run. B1R2 (on E2):
-  dropped Nov 5 before any run (the A39 log's §19), revived Nov 6 (§21), running on Nov 7 (19 of 40 parts done);
-  read when complete, or partial at Nov 15 23:59, as a labelled replication.
+  of 6 to 9 points; ±5 needs about 107 to 245 questions (53 to 122 GPU-hours; F38). A38 isn't run. **B1R2, a
+  labelled replication on E2 (120 questions; read Nov 13 by B1's rule, F38): "ignores tools" again.** Following
+  82 of 240 → 49 of 240, −13.8 [−20.0, −7.5] (the cut replicates); correct-hint acceptance 211 → 197 of 240, −5.8 [−10.8,
+  −1.3] (a real cost, past the 5-point limit by the point estimate, 2 runs; the interval includes −5); no-hint
+  accuracy +0.8 [−6.7, +8.3]. B1's verdict on the 30 stays primary.
 - **Strongest objection:** it may just make the model ignore tools. Its layers and alpha could be
   tuned on the evaluation questions.
 - **Settles it:**
@@ -258,7 +262,8 @@ families); prompt fixes don't help the deferring family (2.3); the blind checker
 - **Evidence:** C14 (exploratory, no F entry: log 2026-10-29 23:00, `results/summaries/trackC/c14_disagreement.json`;
   chosen on C4's cases as reviewed in C4 and C9–C12). Against the checker's
   pipeline with the same reviewer: catches 56–73 of 73 against 73; with Qwen3 reviewers about the same false
-  alarms (+1 [−6, +8]) at ~30–45% of the checker's tokens; with Olmo reviewers 12–21 points more false alarms.
+  alarms (+1 [−6, +8]) at ~30–45% of the checker's tokens (Qwen3 30B Instruct 30–31%, Olmo 39–43%; Qwen3 30B
+  Thinking's reviews cost 76%); with Olmo reviewers 12–21 points more false alarms.
 - **Status:** *refuted* as a replacement for the checker (C15, F24): on fresh items neither pre-registered claim
   held, and it shipped 4 (Olmo) and 7 (Qwen3) wrong answers of 53 where the checker's pipeline shipped none. Keep as a
   cautionary result: chosen on C4's cases, it failed on fresh ones.
