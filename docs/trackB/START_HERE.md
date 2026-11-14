@@ -2,6 +2,11 @@
 
 **Edited by:** Arsha, on `trackB-main`, from Nov 6. Written by Ritik on Nov 3 (updated Nov 4: B20's two amendments, B24; Nov 5: B20 on your own Sol account; Nov 6: the handoff); Ritik keeps it until his last push to `trackB-main` on Nov 6.
 
+**Updated Nov 14** (Arsha): B20 is done (all 4,860 runs on your account, Nov 6) and read (Nov 7 by its rule, FB1;
+merged into `main` Nov 8). B18's table has B20's rows and its open choices are settled (§5). The re-reads of B16,
+B19, B17 and B24 match F35, F37 and F40 (the Nov 14 log). B1R2 was revived Nov 6 (§0). Nothing of Track B's runs on
+Sol any more.
+
 **The handoff, Nov 6, 09:14** (Ritik): §0 says what changed since Nov 4 (read it even if you read the earlier
 version); §9 maps the repo, folder by folder; §10 is how `trackB-main` stays out of conflict with `main`; §11 is how
 Claude Code works here (your commits carry only your name). The bundle is now a zip for ASU Drive,
@@ -38,9 +43,9 @@ final answer stop naming the tool once the model has called it? It is the eviden
   B20, three open-weight families with thinking on and off. Amended Nov 4 after its three smokes (§4): Gemma's and
   Nemotron's tool channel is the inserted tool turn, and Granite runs thinking on only. The runs started Nov 4 evening
   on Ritik's account. Granite's and Gemma's first run jobs stopped badly that night, fixed the same night and the
-  cause confirmed Nov 5 (§4; FINDINGS T13). Nemotron's runs are done; Granite's 849 and Gemma's 1,784 left run on 3:00
-  lines, question by question (B20's log §19). Its runs end by Nov 15 (read partial at 23:59 if not complete); you
-  read them Nov 17.
+  cause confirmed Nov 5 (§4; FINDINGS T13). **Done Nov 6** on your own account (all 4,860 runs) and **read Nov 7** by
+  its rule (FB1 in [`FINDINGS_B.md`](FINDINGS_B.md); merged Nov 8): a tool's hint moves all three families more than
+  the user's, clear in all 10 readings.
 - **Read Nov 4 (F40):** B24, the authority dose (§4a): the pull grows from a classmate to the official solution
   manual in all three models. You re-read it from the bundle.
 
@@ -48,12 +53,12 @@ final answer stop naming the tool once the model has called it? It is the eviden
 
 | # | what | by | check-in |
 |---|---|---|---|
-| 0 | **Setup on your machine** (§1, steps 1–7): clone, `trackB-main` level with `main`, your own git name and email, the venv, the tests, the three hooks, your own Voyager key, the zip `trackB_20261106.zip` with `--verify`, and the Track B numbers reproduced with no calls | **Fri Nov 6** | **Nov 6** (handoff) |
-| 1 | **B20 on your own Sol account** (§1, step 8; [`SOL_ARSHA.md`](SOL_ARSHA.md)): the numbered block, typed in your own login, each step with its expected output; then your feeder runs B20's lines. Its steps 4 and 6 wait for Ritik's own Sol check (his message says when it's done) | **Fri Nov 6** (Sat Nov 7 at the latest; Ritik to confirm) | **Nov 6** |
-| 2 | **Re-read** B16, B19 and B17 by their reports, against F35 and F37 | Sat Nov 7 | — |
-| 2a | **B24** (§4a): read by Ritik Nov 4 (F40); re-read it from the bundle's records against F40 | Mon Nov 9 | Nov 12 |
-| 3 | **B18**: check every row of the table against FINDINGS; settle its open choices; its figure | Wed Nov 18 | Nov 12, Nov 18 |
-| 4 | **B20's reading**, by its pre-registered rule, from the numbers-only files you copy back (§4; SOL_ARSHA step 9): an FB entry, B20 in B18's table, and the decision whether slide 2 shows it | **Tue Nov 17** | Nov 18 |
+| 0 | **Done Nov 6.** **Setup on your machine** (§1, steps 1–7): clone, `trackB-main` level with `main`, your own git name and email, the venv, the tests, the three hooks, your own Voyager key, the zip `trackB_20261106.zip` with `--verify`, and the Track B numbers reproduced with no calls | **Fri Nov 6** | **Nov 6** (handoff) |
+| 1 | **Done Nov 6** (all runs in). **B20 on your own Sol account** (§1, step 8; [`SOL_ARSHA.md`](SOL_ARSHA.md)): the numbered block, typed in your own login, each step with its expected output; then your feeder runs B20's lines. Its steps 4 and 6 wait for Ritik's own Sol check (his message says when it's done) | **Fri Nov 6** (Sat Nov 7 at the latest; Ritik to confirm) | **Nov 6** |
+| 2 | **Done Nov 14** (they match). **Re-read** B16, B19 and B17 by their reports, against F35 and F37 | Sat Nov 7 | — |
+| 2a | **Done Nov 14** (it matches). **B24** (§4a): read by Ritik Nov 4 (F40); re-read it from the bundle's records against F40 | Mon Nov 9 | Nov 12 |
+| 3 | **Table done Nov 14** (§5; slide 2's labels with Ritik). **B18**: check every row of the table against FINDINGS; settle its open choices; its figure | Wed Nov 18 | Nov 12, Nov 18 |
+| 4 | **Done Nov 7** (FB1; B20 in B18's table Nov 14). **B20's reading**, by its pre-registered rule, from the numbers-only files you copy back (§4; SOL_ARSHA step 9): an FB entry, B20 in B18's table, and the decision whether slide 2 shows it | **Tue Nov 17** | Nov 18 |
 | 5 | **Slides 2, 6, 7 and 8**, final (§5), and Track B's section of the report as bullets in `docs/trackB/REPORT_B.md` | **Fri Nov 20** | — |
 
 **Check-ins with Ritik: Nov 6, Nov 12, Nov 15 and Nov 18.**
@@ -114,11 +119,11 @@ canary log, §1, step 5).
 - **The partial read** (Nov 5, decision c; §19.4): if B20 isn't complete by Nov 15 23:59, each model is read on the
   questions with every run of its design, "partial: N of 54 questions"; a model with no whole question is "not run:
   no GPU time by Nov 15" (§4).
-- **Runs left** (Nov 5, from Ritik's Sol outputs; nothing of B20 has run since): Granite 849 of 972, Gemma 1,784 of
-  1,944, Nemotron 0 (done).
-- **B1R2 dropped** (Nov 5, decision f, before any run: "not run: GPU time given to A40"). It was Track A's second
-  round of B1 (provenance-scaled attention, F38); nothing of Track B's depended on it. **Revived Nov 6** (the A39 log's §21), last in Ritik's queue; still nothing of yours
-  depends on it.
+- **B20 complete Nov 6** on your account (Granite 623932, 632690, 641890; Gemma 623933, 632926; each model's dry run
+  leaves 0) and read Nov 7 (FB1). Runs left on Nov 5 had been Granite 849 of 972, Gemma 1,784 of 1,944, Nemotron 0.
+- **B1R2 revived Nov 6** (the A39 log's §21), after it was dropped Nov 5 (decision f: "not run: GPU time given to
+  A40"). It is Track A's second round of B1 (provenance-scaled attention, F38), last in Ritik's queue and running from
+  Nov 7 (PLAN's row). Nothing of yours depends on it.
 - **A40** (Track A, pre-registered Nov 5): consistency training for Olmo 3 7B Think. Its training data was generated
   on Voyager from Ritik's Mac (finished Nov 6, 05:03); it trains and is evaluated on Sol under Ritik's account.
   Nothing of yours waits on it, and it never touches your queue.
@@ -271,8 +276,8 @@ canary log, §1, step 5).
 | Sat Nov 7 | re-read B16, B19 and B17 by their reports |
 | Mon Nov 9 | B24 re-read against F40 (§4a; read Nov 4) |
 | **Thu Nov 12** | B18: every row checked against FINDINGS; its open choices settled (§5); **check-in and merge** |
-| **Sun Nov 15** | B20's runs end on your Sol account; 23:59, the partial cut-off (§4); **check-in and merge** |
-| **Tue Nov 17** | **B20 read** by its rule (§4), partial if not complete: an FB entry; B20's rows in B18's table |
+| **Sun Nov 15** | **check-in and merge** (B20's runs ended Nov 6, so the partial cut-off no longer applies) |
+| ~~Tue Nov 17~~ | **B20 read Nov 7** by its rule (§4), all runs in: FB1; B20's rows in B18's table Nov 14 |
 | **Wed Nov 18** | **results freeze** (no new runs after it); **B18's table and figure** done; **check-in and merge** |
 | **Fri Nov 20** | **slides 2, 6, 7 and 8 final** (§5); Track B's section of the report, as bullets in `docs/trackB/REPORT_B.md` |
 | Sun Nov 22 | the report draft (Ritik merges the sections) |
@@ -280,7 +285,12 @@ canary log, §1, step 5).
 
 Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), after L3 and L4.
 
-## 4. B20's reading (by Nov 17)
+## 4. B20's reading (read Nov 7, FB1)
+
+- **Done:** all 4,860 runs on your account by Nov 6; read once, Nov 7 19:17, by §6 with all runs in, so the partial
+  read didn't apply ([the Nov 7 log](sessions/2026-11-07/2026-11-07_1917_B_b20-results.md); FB1 in
+  [`FINDINGS_B.md`](FINDINGS_B.md); merged into `main` Nov 8). B20's rows are in B18's table (Nov 14, §5). The rest of
+  this section is how it got there.
 
 - **What it is:** Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B and Granite 4.2 8B on our vLLM on Sol, thinking on and off,
   Track B's design plus B16's authority arm. Pre-registered in `archive/sessions/2026-11-03/2026-11-03_1219_B_b20-prereg.md`
@@ -343,8 +353,8 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
   ```
   The reading goes in a results session log (the command, what it printed, the rule's words) and an FB entry.
   Then:
-  - add B20's models to `tools/trackb_final.py`'s list;
-  - decide whether slide 2 shows them.
+  - add B20's models to `tools/trackb_final.py`'s list (done Nov 14);
+  - decide whether slide 2 shows them (Nov 14: it does, once Ritik relabels its legend and note, §5).
 
 ## 4a. B24, the authority dose (read Nov 4, F40)
 
@@ -375,6 +385,10 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
   only. Its tests are in `tests/test_trackb_final.py`.
   - Check every row.
   - Decide: the 16,000-token cut beside each row or not; B19 beside B16 or not; the figure (slide 2's, or another).
+  - **Done Nov 14 (Arsha):** every row checked against F15–F17, F29, F35, F37 and FB1; B20's five rows added with
+    their labels (13 model settings). **Decided:** the 16,000 cut as one note under the table (it changes one reading:
+    Gemma, thinking on, tool vs authority); B19 as the existing note; the figure is slide 2 (`gate2.png`), which takes
+    B20's rows from the table. Its legend and note name only Track B's models, so Ritik relabels them (his file).
 - **The slides** (PLAN's presentation map; the specs and colors are in `docs/paper/figures/WAITING.md`):
   - slide 2: Gate 2 (`gate2.png`);
   - slide 6: the bare answer after a call (`bare_after_call.png`);

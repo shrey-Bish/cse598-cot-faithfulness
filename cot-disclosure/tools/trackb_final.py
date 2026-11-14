@@ -7,7 +7,9 @@ from the tracked numbers-only summaries in results/summaries/trackB/ (no calls, 
 Columns: following per channel (X of Y, the model's answered runs at the 32,768 budget), Gate 2 (each tool channel
 minus the user's hint, paired by question, 95% bootstrap clustered by question, "clear" if above 0), and, for the three
 Voyager models, B16's user_authority arm and each tool arm's reading against it (F35; B19 confirmed it same-day).
-B20's models join here when they are read (Nov 17).
+B20's three families (FB1, read Nov 7 by its rule; Arsha, Nov 14) follow, each with B20's labels: temperature 1.0
+(each model's recommended), the inserted tool turn as the pre-registered fallback (Gemma, Nemotron), Granite thinking on
+only. Their authority arm is B20's own, run with the rest of B20, and their Gate 2 is B20's R1 (the same numbers).
 """
 import csv
 import json
@@ -27,6 +29,14 @@ TRACKB = (("voyager | qwen3-30b-a3b-thinking-2507 | thinking=None", "Qwen3 30B T
           ("sol_vllm | qwen3-8b | thinking=False", "Qwen3-8B", "thinking off", "0.6", "Sol, our vLLM", None, "F29"))
 TOOL = ("tool_real", "tool_injected")                       # the model's own call, or Olmo's inserted turn
 TOOL_NAME = {"tool_real": "its own call", "tool_injected": "inserted tool turn"}
+# B20 (FB1): (summary key, model), then its labels by tool channel (B20's log §15, §16; FINDINGS_B FB1)
+B20 = (("gemma-4-26b-a4b-it", "Gemma 4 26B-A4B"), ("nemotron-3-nano-30b-a3b", "Nemotron 3 Nano 30B-A3B"),
+       ("granite-4.2-8b", "Granite 4.2 8B"))
+B20_CHANNEL = {"tool_real": "its own call", "tool_injected": "inserted tool turn, the fallback"}
+B20_NOTE = {"tool_injected": "B20: temperature 1.0, each model's recommended; the inserted tool turn is the "
+                             "pre-registered fallback (B20's log §15, §16); the authority arm is B20's own, same day",
+            "tool_real": "B20: temperature 1.0, its recommended; thinking on only: its off mode still wrote a think "
+                         "block (6 of 6 smoke runs, B20's log §15); the authority arm is B20's own, same day"}
 
 
 def _rates(channels):
@@ -78,6 +88,68 @@ def rows(summaries=SUM):
                     **_gate2(p["gate2_tool_minus_user"], tc), "authority_k": None, "authority_n": None,
                     "authority_reading_pasted": "", "authority_reading_tool": "",
                     "note": "B17: its recommended temperature; run after its one-day window (pre-registration §13)"})
+    out += b20_rows(summaries)
+    return out
+
+
+def b20_rows(summaries=SUM):
+    """B20's rows (FB1): one per family and thinking setting, at the 32,768 budget, from b20_report.json's
+    secondaries (Gate 2 there is R1's numbers) and R2's readings against B20's own authority arm."""
+    b20 = json.loads((Path(summaries) / "b20_report.json").read_text())
+    out = []
+    for key, model in B20:
+        m = b20[key]
+        for s, d in m["settings"].items():
+            b = d["budget_32768"]
+            sec = b["secondary"]
+            rates, tc = _rates(sec["channels"])
+            only = len(m["settings"]) == 1
+            f = sec["user_authority"]["following"]
+            out.append({"model": model, "setting": f"thinking {s}" + (" only" if only else ""),
+                        "temperature": f"{m['temperature']:.1f}", "served": "Sol, our vLLM", "finding": "FB1",
+                        **rates, "tool_channel": B20_CHANNEL[tc], **_gate2(sec["gate2_tool_minus_user"], tc),
+                        "authority_k": f["k"], "authority_n": f["n"],
+                        "authority_reading_pasted": b["R2_tool_or_authority"]["tool_pasted"]["reading"],
+                        "authority_reading_tool": b["R2_tool_or_authority"][tc]["reading"], "note": B20_NOTE[tc]})
+    return out
+
+
+def cut_changes(summaries=SUM):
+    """Every reading in the table that reads otherwise at the 16,000-token cut, as (model, setting, reading, at the
+    budget, at the cut): Gate 2 (clear or not) for every row, tool vs authority for B16's and B20's rows. Decided Nov 14
+    (Arsha): the table stays at the 32,768 budget with one note naming these, not a column per reading."""
+    S = Path(summaries)
+    rep = json.loads((S / "trackB_report.json").read_text())
+    b16 = json.loads((S / "b16_report.json").read_text())
+    b17 = json.loads((S / "b17_report.json").read_text())
+    b20 = json.loads((S / "b20_report.json").read_text())
+    clear = lambda e: "clear" if (e or {}).get("clear") else "not clear"                     # noqa: E731
+    name = lambda c, names: "pasted" if c == "tool_pasted" else names.get(c, c)               # noqa: E731
+    out = []
+
+    def gate2(model, setting, at, cut, names):
+        out.extend((model, setting, f"Gate 2 ({name(c, names)})", clear(at[c]), clear(cut.get(c)))
+                   for c in at if clear(at[c]) != clear(cut.get(c)))
+
+    for key, model, setting, _t, _s, b16key, _f in TRACKB:
+        gate2(model, setting, rep["budget_32768"][key]["gate2_tool_minus_user"],
+              rep["cut_16000"].get(key, {}).get("gate2_tool_minus_user", {}), TOOL_NAME)
+        if b16key:
+            v = b16[b16key]
+            out.extend((model, setting, f"tool vs authority ({name(c, TOOL_NAME)})", p["reading"],
+                        v["primary_16k"][c]["reading"]) for c, p in v["primary"].items()
+                       if v["primary_16k"][c]["reading"] != p["reading"])
+    for e in ("low", "medium", "high"):
+        gate2("gpt-oss-20b", f"effort {e}", b17["per_effort"][e]["gate2_tool_minus_user"],
+              b17["per_effort_cut_16000"][e]["gate2_tool_minus_user"], TOOL_NAME)
+    for key, model in B20:
+        m = b20[key]
+        for s, d in m["settings"].items():
+            setting = f"thinking {s}" + (" only" if len(m["settings"]) == 1 else "")
+            for r, what in (("R1_gate2", "Gate 2"), ("R2_tool_or_authority", "tool vs authority")):
+                out.extend((model, setting, f"{what} ({name(c, B20_CHANNEL)})", x["reading"],
+                            d["cut_16000"][r][c]["reading"]) for c, x in d["budget_32768"][r].items()
+                           if d["cut_16000"][r][c]["reading"] != x["reading"])
     return out
 
 
@@ -105,7 +177,8 @@ def write(out=OUT, summaries=SUM):
         w.writeheader()
         w.writerows(rs)
     head = ("| model | setting | temp. | user | pasted | tool (channel) | system | Gate 2: pasted − user | "
-            "Gate 2: tool − user | user's authority claim (B16) | tool vs authority (pasted; tool) | source |")
+            "Gate 2: tool − user | user's authority claim (B16; B20 its own) | tool vs authority (pasted; tool) | "
+            "source |")
     lines = ["# Track B, the final table (B18; started Nov 3, Arsha's from Nov 6)", "",
              "Generated by `cot-disclosure/tools/trackb_final.py` from `results/summaries/trackB/`; do not edit by "
              "hand. Following = answered runs ending on the wrong hint's letter, X of Y (54 questions × 3 runs, the "
@@ -123,6 +196,10 @@ def write(out=OUT, summaries=SUM):
         if r["note"]:
             notes.setdefault(r["note"], []).append(r["model"])
     lines += ["", "Notes: " + "; ".join(f"{', '.join(dict.fromkeys(m))}: {n}" for n, m in notes.items()) + "."]
+    changed = cut_changes(summaries)
+    lines += ["", "At the 16,000-token cut (each report gives it beside every reading): every reading in this table "
+              "is the same" + (", except " + "; ".join(f"{m}, {s}: {what} reads {cut} ({at} at the budget)"
+                                                     for m, s, what, at, cut in changed) if changed else "") + "."]
     md = out / "trackB_final.md"
     md.write_text("\n".join(lines) + "\n")
     return md, path
