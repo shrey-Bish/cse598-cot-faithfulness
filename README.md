@@ -82,6 +82,21 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
   tool output "unverified" has no effect alone, F44); independent verification does (Track C's checker, which
   re-solves without the tool, stopped all 53 wrong tool answers on fresh items, F24).
 
+## The results demo
+
+**Open [`docs/demo/index.html`](docs/demo/index.html) in any browser** (it works offline: one file, no network). Seven
+screens follow the story: 0 the question and the three tracks; 1 tools against users; 2 the bare final answer and the
+title question (answered mixed); 3 inside the model; 4 between agents; 5 the fixes (with an exploratory slider, "How
+often is the tool right?"); 6 the scorecard, the limits and how we worked. Every chart names its F-number and shows
+X of Y with 95% intervals.
+- **Keys:** ← → (or PageUp, PageDown) between screens; Home, End; 0–6 to jump; `i` the index; `t` light or dark; `n`
+  every number on the screen as a table; `f` full screen; Esc closes. `#s0` … `#s6` open a screen directly.
+- **Rebuild** (from `cot-disclosure/`): `../.venv/bin/python tools/build_demo.py`. It reads only the tracked
+  numbers-only summaries and stops if a number it needs is missing. Example model outputs never go in the tracked page:
+  `tools/demo_examples.py` draws a few by a fixed seed into the gitignored `results/demo/`, and the build then also
+  writes `cot-disclosure/results/demo/index.html`, the same page with an examples screen (`e`), for the presenter's
+  laptop only.
+
 ## Read this first
 
 | You are | Read first | Then |
@@ -89,7 +104,7 @@ and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The sto
 | Ritik (Track A, labels, the report) | [`docs/status/STATUS.md`](docs/status/STATUS.md), [`docs/status/TODO.md`](docs/status/TODO.md) | the newest daily in [`archive/sessions/`](archive/sessions/INDEX.md); [`docs/RUNBOOK.md`](docs/RUNBOOK.md) |
 | Shrey (Track C, from Oct 30) | [`docs/trackC/START_HERE.md`](docs/trackC/START_HERE.md) (its Quick start first) | [`docs/tracks/SOL_SETUP.md`](docs/tracks/SOL_SETUP.md), [`docs/labeling/RATER_GUIDE.md`](docs/labeling/RATER_GUIDE.md), the code map [`cot-disclosure/README.md`](cot-disclosure/README.md) |
 | Arsha (Track B, from Nov 6) | [`docs/trackB/START_HERE.md`](docs/trackB/START_HERE.md) (its Quick start first), then [`docs/tracks/TRACK_B.md`](docs/tracks/TRACK_B.md); B20 on her own Sol account from Nov 5: [`docs/trackB/SOL_ARSHA.md`](docs/trackB/SOL_ARSHA.md) | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) §18, the code map |
-| A grader | this page, then FINDINGS' "story so far" | [`docs/paper/REPORT.md`](docs/paper/REPORT.md) (the report's skeleton), [`docs/PLAN.md`](docs/PLAN.md) (the calendar, the presentation map; the figures in `docs/paper/figures/`), [`docs/status/STATUS.md`](docs/status/STATUS.md) |
+| A grader | this page and the demo (`docs/demo/index.html`), then FINDINGS' "story so far" | [`docs/paper/REPORT.md`](docs/paper/REPORT.md) (the report's skeleton), [`docs/PLAN.md`](docs/PLAN.md) (the calendar, the presentation map; the figures in `docs/paper/figures/`), [`docs/status/STATUS.md`](docs/status/STATUS.md) |
 | A paper reviewer | [`docs/paper/CLAIMS.md`](docs/paper/CLAIMS.md) | [`docs/paper/supplement/EVIDENCE.md`](docs/paper/supplement/EVIDENCE.md) and [`PREREGISTRATIONS.md`](docs/paper/supplement/PREREGISTRATIONS.md) |
 
 ## The folders

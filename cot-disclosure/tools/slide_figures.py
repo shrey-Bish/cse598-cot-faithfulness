@@ -14,6 +14,12 @@ summaries (no calls, no gitignored data). One style for every finished slide: 16
                     on MMLU-Pro (the test) beside Olmo 3 7B Think's at 15, 19 and 23 and the rule's 0.5; (b, c) the
                     drop by layer at the takeover, puzzles and MMLU-Pro, the chosen layers marked (95% bootstraps
                     clustered by question, as patching.handoff computes them for the rule)
+  private_vs_final  slide 5 (F3): the private reasoning and the final answer naming the hint, in keyword counts
+                    (detect.py's pre-sort, not hand labels: L3's label part is not met) from docs/labeling/
+                    RESULTS_SUMMARY.json: (a) Test 1's hinted runs per thinking model and all three, beside the private
+                    keyword with no hint (it fires anyway, so the private count is an upper bound); (b) Test 2, the
+                    runs where the tool's hint won; X of Y with 95% Wilson. F3's pinned-format rates (Step 2b) need the
+                    gitignored replies, so they are not here
   bare_after_call   slide 6 (F15, F25, F29): (a) Track B, the final answer after the model's own tool call against
                     the same hint pasted: bare (30 characters or fewer), X of Y with 95% bootstraps clustered by
                     question; (b) C4's control, Qwen3 30B Thinking with the call forced: after a right lookup, a wrong
@@ -72,7 +78,7 @@ sys.path.insert(0, str(CODE / "tools"))
 sys.path.insert(0, str(CODE / "progress"))
 
 import paper_figures as pf  # noqa: E402
-from common import boot_mean  # noqa: E402
+from common import boot_mean, wilson  # noqa: E402
 from finetune.gpu import provenance_job as pj  # noqa: E402
 from tools import answer_key as ak  # noqa: E402
 from paper_figures import GRID, INK, MUTED  # noqa: E402
@@ -413,6 +419,51 @@ def gate2_rows():
                          "high": r[f"gate2_{name}_high"], "interval": CLUSTERED + ", paired",
                          "compared_k": r["user_k"], "compared_n": r["user_n"],
                          "reading": "clear" if r[f"gate2_{name}_clear"] else "not clear"})
+    return rows
+
+
+SUMMARY_F3 = CODE.parent / "docs" / "labeling" / "RESULTS_SUMMARY.json"
+MODELS_F3 = (("olmo3-7b-think", "Olmo 3 7B Think"), ("olmo3-32b-think", "Olmo 3 32B Think"),
+             ("qwen3-30b-a3b-thinking-2507", "Qwen3 30B Thinking"))
+TEXTS_F3 = (("private_mentions_hinted", "private reasoning", "hinted", "private"),     # (field, text, runs, role)
+            ("final_mentions_hinted", "final answer", "hinted", "final"),
+            ("private_keyword_rate_no_hint", "private reasoning", "no hint", "baseline"))
+TOTALS_F3 = (("private_mentions_all_thinking", "private reasoning"), ("final_mentions_all_thinking", "final answer"))
+OVERLAP_F3 = (("both", "both"), ("private_only", "private only"), ("final_only", "final only"), ("neither", "neither"))
+TEST2_F3 = (("tool_steered_private_mention", "private reasoning"), ("tool_steered_final_mention", "final answer"))
+ALL_F3 = "all three"
+
+
+def private_final_rows(summary=SUMMARY_F3):
+    """F3 (slide 5): keyword counts (detect.py's pre-sort, not hand labels) from docs/labeling/RESULTS_SUMMARY.json,
+    each X of Y with 95% Wilson. Panel a, Test 1's hinted runs (wrong and right user hints): per thinking model, the
+    private reasoning and the final answer naming the hint and the private keyword with no hint (bars); the totals over
+    the three (bars); how the two overlap in those runs (the note). Panel b, Test 2: in the runs where the tool's hint
+    won, the private reasoning and the final answer naming the tool (bars), and how many runs it won (the note)."""
+    s = json.loads(Path(summary).read_text())
+    p, t2 = s["pilot"], s["scope_numbers"]["test2_thinking_combined"]
+    names = dict(MODELS_F3)
+
+    def f3(panel, test, model, text, runs, measure, shown, e, source):
+        k, n = (e["num"], e["den"]) if isinstance(e, dict) else e
+        lo, hi = wilson(k, n)
+        return {"panel": panel, "test": test, "model": model, "text": text, "runs": runs, "measure": measure,
+                "shown": shown, "k": k, "n": n, "value": k / n, "low": lo, "high": hi, "interval": WILSON,
+                "source": source}
+    rows = [f3("a", "Test 1", name, text, runs, "names the hint" if runs == "hinted" else "the keyword fires", "bar",
+               p["mentions"][key][field], f"pilot.mentions.{key}.{field}")
+            for key, name in MODELS_F3 for field, text, runs, _ in TEXTS_F3]
+    rows += [f3("a", "Test 1", ALL_F3, text, "hinted", "names the hint", "bar", p[field], f"pilot.{field}")
+             for field, text in TOTALS_F3]
+    over = s["scope_numbers"]["pilot_mention_overlap"]["all_thinking"]
+    rows += [f3("a", "Test 1", ALL_F3, text, "hinted", "overlap", "note", (over[field], over["runs"]),
+                f"scope_numbers.pilot_mention_overlap.all_thinking.{field}") for field, text in OVERLAP_F3]
+    both = " + ".join(names[m] for m in t2["models"])
+    pre = "scope_numbers.test2_thinking_combined"
+    rows += [f3("b", "Test 2", both, text, "the tool hint won", "names the tool", "bar", t2[field], f"{pre}.{field}")
+             for field, text in TEST2_F3]
+    rows.append(f3("b", "Test 2", both, "", "the tool hint", "the tool hint won", "note", t2["tool_hint_followed"],
+                   f"{pre}.tool_hint_followed"))
     return rows
 
 
@@ -1187,8 +1238,63 @@ def fig_gate3_slide(out=OUT, report=EVAL / "eval_report.json"):
     return paths
 
 
-SLIDE_FIGURES = (fig_levels, fig_gate2, fig_layers_slide, fig_qwen8b, fig_bare, fig_b16, fig_b17, fig_gate3_slide,
-                 fig_a18, fig_reviewer_slide, fig_reviewers_slide, fig_cues_slide, fig_channels)
+def fig_private_final(out=OUT, summary=SUMMARY_F3):
+    """Slide 5 (F3): the private reasoning names the hint, the final answer almost never does, in keyword counts."""
+    plt, fig = frame()
+    rows = private_final_rows(summary)
+    s = json.loads(Path(summary).read_text())
+    gs = fig.add_gridspec(1, 2, width_ratios=[4.3, 1.45], left=0.075, right=RIGHT, top=0.74, bottom=0.29, wspace=0.2)
+    ax_a, ax_b = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
+    a = {(r["model"], r["text"], r["runs"]): r for r in rows if r["panel"] == "a" and r["shown"] == "bar"}
+    groups, width = [name for _, name in MODELS_F3] + [ALL_F3], 0.27
+    for i, name in enumerate(groups):
+        mine = [(a[(name, text, runs)], role, runs) for _, text, runs, role in TEXTS_F3 if (name, text, runs) in a]
+        for j, (r, role, runs) in enumerate(mine):
+            bar(ax_a, i + (j - (len(mine) - 1) / 2) * (width + 0.02), r, ROLE[role], width,
+                hatch="//" if runs == "no hint" else None)
+    ax_a.axvline(len(MODELS_F3) - 0.5, color=GRID, linewidth=1.2, zorder=0)       # the models | their total
+    total = {r["text"]: r for r in rows if r["model"] == ALL_F3 and r["shown"] == "bar"}
+    ax_a.set_xticks(range(len(groups)), [n.replace(" Think", "\nThink") for n in groups[:-1]]
+                    + [f"All three\n({total['final answer']['n']} runs)"])
+    ax_a.set_xlim(-0.6, len(groups) - 0.45)
+    percent_axis(ax_a, 112)
+    ax_a.set_ylabel("names the hint, by keyword (% of runs)")
+    title(ax_a, "(a) Test 1: the user's hint,\nper thinking model and all three (F3)")
+    b = [r for r in rows if r["panel"] == "b" and r["shown"] == "bar"]
+    for i, r in enumerate(b):
+        bar(ax_b, i, r, ROLE["private" if r["text"] == "private reasoning" else "final"], 0.6)
+    ax_b.set_xticks(range(len(b)), [r["text"].replace(" ", "\n") for r in b])
+    ax_b.set_xlim(-0.6, len(b) - 0.4)
+    percent_axis(ax_b, 112)
+    ax_b.set_ylabel("names the tool, by keyword (% of runs)")
+    won = next(r for r in rows if r["panel"] == "b" and r["shown"] == "note")
+    ax_b.set_xlabel(won["model"].replace(" + ", " +\n"), fontsize=LABEL_SIZE)
+    title(ax_b, "(b) Test 2: when the\ntool's hint won")
+    key(fig, [(swatch(ROLE["private"]), "the private reasoning names it"),
+              (swatch(ROLE["final"]), "the final answer names it"),
+              (swatch(ROLE["baseline"], "//"), "the private keyword with no hint in the prompt (it fires anyway)")])
+    pr, fi = total["private reasoning"], total["final answer"]
+    headline(fig, "The private reasoning names the hint; the final answer almost never does.",
+             f"Test 1, in keyword counts: the private reasoning names it in {pr['k']} of {pr['n']} hinted runs, the "
+             f"final answer in {fi['k']} of {fi['n']}.")
+    over = {r["text"]: r["k"] for r in rows if r["measure"] == "overlap"}
+    seven = a[(MODELS_F3[0][1], "private reasoning", "no hint")]
+    note(fig, f"F3. Keyword counts (detect.py's pre-sort), not hand labels; bars: the share of runs, whiskers: "
+         f"{WILSON}. Test 1: {s['pilot']['calls']['puzzles']} puzzles, wrong and right hints in the user's turn; in "
+         f"the {pr['n']} hinted runs both name it in {over['both']}, the private reasoning only in "
+         f"{over['private only']}, the final answer only in {over['final only']}, neither in {over['neither']}. Test 2: "
+         f"a simulated tool block in the user's turn; the {won['k']} of {won['n']} runs that ended on its letter. "
+         f"The private keyword also fires with no hint ({seven['k']} of "
+         f"{seven['n']} {MODELS_F3[0][1]} no-hint runs), so {pr['k']} is an upper bound. L3's hand labels were read "
+         f"Nov 4 under the LLM-judge protocol: Gate 2's label part is not met (kappa under 0.6 in all six cells), so "
+         f"no claim here rests on the labels. Source: docs/labeling/RESULTS_SUMMARY.json.")
+    paths = save(fig, "private_vs_final", rows, out)
+    plt.close(fig)
+    return paths
+
+
+SLIDE_FIGURES = (fig_levels, fig_gate2, fig_layers_slide, fig_qwen8b, fig_private_final, fig_bare, fig_b16, fig_b17,
+                 fig_gate3_slide, fig_a18, fig_reviewer_slide, fig_reviewers_slide, fig_cues_slide, fig_channels)
 
 
 def main():

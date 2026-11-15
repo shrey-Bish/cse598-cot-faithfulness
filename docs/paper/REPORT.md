@@ -421,8 +421,8 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     is not met (below), so no claim rests on them.
   - Limits: the private keyword also fires with no hint (22 of 72 Olmo 3 7B Think no-hint runs), so 208 is an upper
     bound.
-  - figure: waiting (WAITING.md, slide 5: L3's kappa in the caption). PLAN's map lists
-    `docs/paper/figures/cue_experiments_slide.png` for slide 5 and flags it: it plots C16–C18 (F31, F33, F34), not F3.
+  - figure: `docs/paper/figures/private_vs_final.png` (slide 5, made Nov 13: Test 1 per model and all three, Test 2; keyword counts, with L3's verdict
+    in its note).
 - **F15 (the words). After a tool call, Qwen3 30B Thinking's final answer is a bare letter, whether the tool was right
   or wrong.**
   - Numbers: after its own call the reply is a bare "Answer: (X)" in 51 of 54 [85, 98%] (median 11 characters); with
@@ -516,7 +516,7 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
   - Before the protocol (Nov 3, 101 rows; Ritik and AI rater 1, ChatGPT 5 Astra High): kappa under 0.6 in four of
     six cells, human-vs-AI agreement.
   - Corrected Nov 4, 17:51: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log.
-  - figure: waiting (WAITING.md, slide 5)
+  - figure: none of its own; `docs/paper/figures/private_vs_final.png`'s note (slide 5) carries L3's verdict
 
 ## 7. Fixing it (Ritik)
 

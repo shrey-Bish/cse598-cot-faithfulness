@@ -1,10 +1,10 @@
 # The daily check-in
 
-**Edited by:** Ritik. Written 2026-11-04 16:19 MST; the labels corrected 17:54 (the standing rule, Nov 7, Nov 8); the daily rule 22:33; the push to two branches 22:34; Nov 5, 09:40: two Sol accounts (B20 on Arsha's), B1R2 dropped, §1 step 4 and §9; Nov 7, 20:45: §3, A39 read and L6's row; Nov 8, 15:15: §3, L6's sheet built and B20 read and merged; Nov 13, 09:56: §3, L6 read and B1R2 complete; Nov 13, 11:14: §3, B1R2 read.
+**Edited by:** Ritik. Written 2026-11-04 16:19 MST; the labels corrected 17:54 (the standing rule, Nov 7, Nov 8); the daily rule 22:33; the push to two branches 22:34; Nov 5, 09:40: two Sol accounts (B20 on Arsha's), B1R2 dropped, §1 step 4 and §9; Nov 7, 20:45: §3, A39 read and L6's row; Nov 8, 15:15: §3, L6's sheet built and B20 read and merged; Nov 13, 09:56: §3, L6 read and B1R2 complete; Nov 13, 11:14: §3, B1R2 read; Nov 13, 14:12: §10, the freeze procedure, and §9's Nov 18 row.
 History: `git log -- docs/status/CHECKIN.md`.
 
 One routine, once a day, in this order: §1 to §7. §8 is the merge, on the merge days. §9 is what each day from Nov 5 to
-Nov 24 brings. Run it after 07:00, when the feeder's daily digest is out.
+Nov 24 brings. §10 is the results freeze (Nov 18). Run it after 07:00, when the feeder's daily digest is out.
 
 Mac commands run from the repo root, `~/Documents/Projects/ODL/cse598-cot-faithfulness`, unless a line says
 `cd cot-disclosure`. Sol commands run from Sol's clone, `/scratch/ragarw68/cse598-cot-faithfulness`. The steps
@@ -208,7 +208,7 @@ The day's row in §9 says which of these applies.
     If the 30 was dropped on Nov 6, record "no effect".
 - **Nov 15, 23:59:** runs end. B1R2 is read partial if not done (§3). A39 on E2 has no partial rule (§3).
   - Needs Ritik on Nov 16: stop the feeder now or at the freeze.
-- **Nov 18: the results freeze.** No new runs after it, on Sol or Voyager.
+- **Nov 18: the results freeze.** No new runs after it, on Sol or Voyager. The day's procedure is §10.
   - Needs Ritik: stop the feeder (`touch /scratch/$USER/trackA/feeder.stop`, `scrontab -r`) and decide on any pending
     job (`scancel`).
   - Record what didn't run, and why, in FINDINGS, PLAN and TODO.
@@ -375,10 +375,71 @@ From PLAN's calendar, the TODOs and the logs. "Needs Ritik" goes in the report.
 | Sun Nov 15 | **runs end**; B20's runs by today (Arsha's account); C20 and C26 (Shrey); **check-ins and merges** B and C; **23:59: the partial cut-offs** of A39 on E2 (§18), A40 and B20 (the B20 log's §19) | §8 twice; §3's completeness checks |
 | Mon Nov 16 | — (B1R2, revived Nov 6, runs by Nov 15 and is read with the rest) | §3; needs Ritik: stop the feeder now or at the freeze |
 | Tue Nov 17 | **A39 read by now** (complete since Nov 7's count; E2 and the 30); **B1R2 read** (complete, or partial at Nov 15 23:59); B20 read by Arsha (complete Nov 6). A40, A41 and A42 were read Nov 7 (F41–F43) | §2 copy-back, §3 |
-| Wed Nov 18 | **the results freeze**: no new runs. **Check-ins and merges** B and C; C24 and slides 11–12 (Shrey); B18's table and figure (Arsha) | §8 twice; §4's freeze (needs Ritik: the feeder's stop, any `scancel`) |
+| Wed Nov 18 | **the results freeze**: no new runs. **Check-ins and merges** B and C; C24 and slides 11–12 (Shrey); B18's table and figure (Arsha) | **§10, the freeze procedure, in order:** nothing runs (three accounts), §8 twice, the supplement and the demo rebuilt, §6, the final bundles with sha256s, the tag `results-freeze-2026-11-18` on `main` (needs Ritik's go), the freeze log. Needs Ritik: the feeder's stop if not done Nov 16, any `scancel` |
 | Thu Nov 19 | — | §1–§7 |
 | Fri Nov 20 | **Gate 3's final statement** (G3, A17, D6: final verdicts, figures, supplement, STATUS); Arsha's slides 2, 6, 7, 8 final and Track B's report bullets; Track C's bullets (`docs/trackC/REPORT_C.md`) | needs Ritik: Gate 3's statement; a merge to bring in Nov 20's bullets and slides (no merge day is set after Nov 18) |
 | Sat Nov 21 | the submission folder (D13) | — |
 | Sun Nov 22 | **the report draft** (D7, everyone) | — |
 | Mon Nov 23 | **rehearsal** (D8) | — |
 | Tue Nov 24 | **final presentation and report** (D9) | — |
+
+## 10. The results freeze, Nov 18: the procedure
+
+Written Nov 13 (14:12), before the day. The freeze is set in PLAN (the calendar, "Freeze readiness for Nov 18") and
+in §4 above. This section says what "frozen" means and how the day runs.
+
+**What "frozen" means.**
+- **No new runs** after the day's merges, on Sol, Voyager or anywhere: no job, batch, sweep, smoke or rerun, on any
+  account. No new experiment is pre-registered or read.
+- **The numbers are final:** every F, FB and FC entry, the numbers-only summaries in `cot-disclosure/results/summaries/`,
+  the figures in `docs/paper/figures/` and the demo (`docs/demo/index.html`). The report, the slides and the demo
+  read only these.
+- **Any later change gets a dated note.** A fix to a frozen number, figure or verdict (a typo, a wrong copy, a
+  regenerated figure) is made only with a line in its F-entry and in that day's session log:
+  `Changed after the freeze (<date>, <HH:MM from date>): <what>, from <old> to <new>, because <why>.` The tag below
+  keeps the frozen state; `git diff results-freeze-2026-11-18..main` shows every later change.
+- **What didn't run stays recorded with its reason** (PLAN's freeze page, "not run, with the reason"; FINDINGS and
+  TODO the same).
+
+**The day, in order** (after §0–§3 of the day's check-in).
+1. **Nothing runs.** Ritik's account (read-only, §1 step 2): `squeue -u $USER` prints no job; `scrontab -l` has no
+   feeder line and `squeue -u $USER -n trackA-feeder -h` prints nothing (the feeder was stopped by Ritik, due Nov 16:
+   `touch /scratch/$USER/trackA/feeder.stop; scrontab -r`; if not, needs Ritik, and any pending job is his decision,
+   `scancel`). Arsha confirms her own account the same way (her `docs/trackB/SOL_ARSHA.md`), and Shrey that no Track C
+   run is going on Voyager. Their answers go in the log.
+2. **The day's merges** (§8): `trackB-main` (Arsha) and `trackC-main` (Shrey), the last before the freeze; their FB and
+   FC entries into FINDINGS, the story and REPORT (§5); their figures placed.
+3. **The supplement regenerated** from the frozen results (from `cot-disclosure/`):
+   `../.venv/bin/python tools/make_supplement.py && ../.venv/bin/python tools/make_supplement.py --check` (no row
+   unverified, no log outside the ledger). The demo rebuilt: `../.venv/bin/python tools/build_demo.py` (it fails if a
+   number it needs is missing).
+4. **The checks** (§6 in full): the full suite once, links, the supplement, the export (`--check`), the Gantt, the
+   pre-push check and nothing missing. Then commit (`Results freeze (Ritik, <date>): ...`) and push as §6's first row.
+5. **Final bundles with sha256s** (produced data, gitignored; for ASU storage, never GitHub; from `cot-disclosure/`):
+   ```bash
+   for T in A B C; do python3 tools/make_handoff_bundle.py --track $T --dry-run; done   # files and MB (A was 1,744 MB on Nov 13)
+   for T in A B C; do python3 tools/make_handoff_bundle.py --track $T; done
+   for f in results/handoff/track?_20261118.tar.gz; do python3 tools/make_handoff_bundle.py --verify "$f"; done   # "bundle matches its manifest"
+   shasum -a 256 results/handoff/track?_20261118.tar.gz                                 # each bundle's sha256, into the log
+   ```
+   Each manifest (beside its bundle) holds every file's bytes and sha256. The labels (`results/labels/`) are in no
+   bundle: they stay on Ritik's Mac, their frozen sheets named by sha256 in their logs (L6: `04a33719…`).
+6. **The tag**, on `main` after the push (an annotated tag under Ritik's identity, no attribution line; pushing a tag
+   is new, so it waits for Ritik's go that day):
+   ```bash
+   git fetch origin && git status --short                                  # prints nothing
+   S=$(git rev-parse origin/main); git log --oneline -1 "$S"               # main after the day's merges and push
+   git tag -a results-freeze-2026-11-18 -m "Results freeze (Ritik, $(date '+%b %-d, %H:%M')): main at ${S:0:7}; no new runs after it" "$S"
+   git show --no-patch --format='%an %s' results-freeze-2026-11-18 | head -4   # tagger Ritik; the message as written
+   git push origin results-freeze-2026-11-18                               # the pre-push hook checks it: nothing new to send
+   git ls-remote --tags origin results-freeze-2026-11-18                   # the tag on GitHub
+   ```
+   If the hook refuses it, stop and report; never `--no-verify`. The tag isn't moved later: a change after it is a
+   dated note (above), not a new tag.
+7. **The record:** the day's log, `archive/sessions/2026-11-18/2026-11-18_<HHMM>_ALL_freeze.md`: main's commit and the
+   tag; each bundle's sha256 and size; the supplement's rows; the suite's count; the three accounts' "nothing runs";
+   what didn't run, with its reason. PLAN's freeze page and ONE_PAGE then say "frozen Nov 18, <HH:MM>"; TODO's freeze
+   row done, with the tag as evidence.
+
+**After the freeze** (Nov 19–24): the check-in runs §0, §5–§7 (no §2 copy-back, nothing to read in §3); merges of the
+report bullets and slides (§8) touch docs only. Any change to a frozen number follows the note rule above.

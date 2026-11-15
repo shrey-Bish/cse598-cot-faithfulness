@@ -1,4 +1,4 @@
-## In plain words (Ritik's page, as of Nov 13, 11:14: B1R2 read; the freeze page; the wording held after L6; earlier 09:56: L6 read, F45; Sol pulled; edited by hand in `docs/status/ONE_PAGE.md`)
+## In plain words (Ritik's page, as of Nov 14, 20:14: the results demo; slide 5's figure; Gate 3's statement drafted; the freeze procedure; the submission folder; earlier Nov 13, 11:14: B1R2 read; the freeze page; the wording held after L6; earlier 09:56: L6 read, F45; Sol pulled; edited by hand in `docs/status/ONE_PAGE.md`)
 
 **Done. Every experiment is read; nothing runs.**
 - **45 findings** (F1–F45, in `docs/FINDINGS.md`) and Track B's **FB1**. **Gate 2 is marked** (Nov 8). **Gate 3 is
@@ -20,15 +20,21 @@
   The fix belongs at the system level: provenance labels alone don't help (F44, FC3); independent verification does
   (Track C's checker, F24). FINDINGS' story item 7 is the scorecard.
 
+- **For the presentation (Nov 13–14):** the results demo, [`docs/demo/index.html`](../demo/index.html) (opens offline; ←
+  → between screens, `i` index, `t` theme, `n` the numbers, `f` full screen); slide 5's figure of F3
+  (`private_vs_final.png`); **Gate 3's final statement drafted in PLAN for Ritik's approval** ("met; the stricter bar:
+  not met"); the freeze procedure (CHECKIN §10); the submission folder (`docs/submission/`) with the AI-use facts.
+
 **Running.** Nothing. Ritik's Sol queue is empty; the feeder still ticks every 5 minutes until Ritik stops it (Nov 16).
 
 **The freeze, Nov 18** (the full page is in PLAN, "Freeze readiness for Nov 18").
 
 | item | state | on whom, by when |
 |---|---|---|
-| Gate 3's final statement | waiting | Ritik, Nov 20 |
+| Gate 3's final statement | drafted Nov 13 in PLAN; waits on Ritik's approval | Ritik, Nov 20 |
+| The demo (`docs/demo/index.html`) | built Nov 13, checked Nov 14 | rebuilt at the freeze (CHECKIN §10) |
 | Slide 2 (B20's rows) and B18's table | in progress | Arsha, Nov 18 |
-| Slide 5 (a figure of F3) | **no figure** | Ritik and Shrey, Nov 18 |
+| Slide 5 (F3) | figure made Nov 13 (`private_vs_final.png`) | Ritik and Shrey place it, Nov 18 |
 | Slide 7 (B24's arms) | waiting | Arsha, Nov 18 (final Nov 20) |
 | Slide 10 (B1R2 in panel b) | figure drawn Nov 13 | Ritik places it |
 | Slides 11–12 | figures placed | Shrey, Nov 18 |
@@ -37,7 +43,8 @@
 
 **Waiting on whom.**
 - **Ritik:** Nov 15, the check-ins and merges; Nov 16, stop the feeder (`touch /scratch/ragarw68/trackA/feeder.stop;
-  scrontab -r`); Nov 18, slide 5's figure with Shrey; Nov 20, Gate 3's final statement.
+  scrontab -r`); Nov 18, the freeze by CHECKIN §10 (its tag needs Ritik's go) and slide 5 placed with Shrey; Nov 20,
+  approve or change Gate 3's draft; Nov 22, confirm the AI-use inventory's "to confirm" lines.
 - **Arsha:** merge `origin/main` back and push; B18's table with B20's rows and slides 2 and 7 (Nov 18); slides 6–8 and
   `docs/trackB/REPORT_B.md`'s bullets (Nov 20).
 - **Shrey:** merge `origin/main` back; slides 11–12 (Nov 18).

@@ -1,116 +1,173 @@
-# Session log: B1R2 read; freeze readiness for Nov 18; the wording held after L6 (2026-11-13 11:00 MST)
+# Session log: the results demo, slide 5's figure, Gate 3's draft, the freeze and the submission prepared (2026-11-13 13:36 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `01645c4`. The day's second session (the first:
-[09:37](2026-11-13/2026-11-13_0937_A_l6-judge-reading.md); the daily [DAILY_2026-11-13](2026-11-13/DAILY_2026-11-13.md)).
+**By:** Ritik. Branch `trackA-nosol`, from `1dfd6b8`. The day's third session (the first two:
+[09:37](2026-11-13/2026-11-13_0937_A_l6-judge-reading.md), [11:00](2026-11-13/2026-11-13_1100_A_b1r2-freeze-wording.md); the daily
+[DAILY_2026-11-13](2026-11-13/DAILY_2026-11-13.md)). Interrupted Nov 13 (a network error, then a usage limit) and continued
+Nov 14 from 20:08 (§8; the daily [DAILY_2026-11-14](2026-11-14/DAILY_2026-11-14.md)).
 
 ## 0. Input
 
-- **B1R2's runs are complete** (0 left; Sol at `97c0628`). Read it now.
-- **Ritik stops the feeder on Nov 16** (`touch feeder.stop; scrontab -r`).
-- **The wording, decided after L6, to hold everywhere:**
-  - L6/F45: "training made the answer more candid about a hint it followed, in hand labels, without making it follow
-    less." Not "honesty solved", not "a yes for training". Its limits beside it: LoRA's trained opener names the hint
-    (F28); LoRA's following shows no difference from the instruction (F44); one model, E2 only, 42 rows a system, the
-    final answer only; the sheet not blind in practice, with J-opus (blind to systems) agreeing on 82 of 84 rows.
-  - The title question (do thinking modes make CoT more honest?) is answered **mixed**, and L6 doesn't bear on it:
-    Qwen3-8B with thinking on moves the tool into the private reasoning but not the final answer (F29); gpt-oss-20b's
-    reasoning effort changes nothing (F37); Nemotron's answer is less bare after the tool turn with thinking (FB1).
-- **Limits:** at most 2 helpers; the full suite once, at the end.
+A pasted prompt ("Prompt 1: the demo and the remaining work, run once"; a second, daily prompt was pasted with it, for
+later days). Decisions in it, as Ritik's:
+- **a. A final results demo:** one self-contained HTML file, no network, built by `tools/build_demo.py` into
+  `docs/demo/index.html` (tracked, numbers only) from the tracked numbers-only summaries and FINDINGS; the build fails if
+  a number it needs is missing. Sections 0–6 following the story; every chart with its F-number, X of Y, 95%
+  intervals and the reading's words; exploratory items marked. Example outputs only from a local, gitignored
+  `results/demo/examples.json`, drawn by a fixed seed from labelled rows (L6, L4). Tests: every number equals its
+  summary; no network request; no text field in the tracked HTML.
+- **b.** Slide 5's figure (F3), from tracked numbers, in the house style.
+- **c.** Gate 3's final statement (due Nov 20): a draft in PLAN for Ritik's approval.
+- **d.** The freeze (Nov 18), prepared: a written procedure in CHECKIN; §9's Nov 18 row pointing to it.
+- **e.** The submission (Nov 19–24), prepared: the folder's structure; a factual AI-use inventory (facts only).
+- **Limits:** at most 2 helpers (they don't commit); the full suite once, at the end.
 
-## 1. Plan (11:00, before any B1R2 number is read)
+## 1. Plan (13:36, before any helper starts)
 
-1. **Me, first:** B1R2's numbers-only copy-back (CHECKIN §2: `eval_prov-*_runs.jsonl` from `/scratch/ragarw68/trackA/b1r2/`),
-   read-only on Sol.
-2. **Helper A:** B1R2's report and reading from the copied-back files, by §13.7 only: `provenance_job.py report --out
-   results/trackA/gpu/b1r2`, then `b1_verdict` (the deployable span, the inserted tool turn; alpha 0.25 against
-   alpha = 1; following, correct-hint acceptance, no-hint accuracy), paired by question, in its own log; F38's line
-   "B1R2, a labelled replication on E2" (B1's verdict on the 30 stays primary); its figure beside B1's. No commit, no
-   Sol.
-3. **Me:** freeze readiness for Nov 18, one page in PLAN; the 7 CLAIMS mismatches classified (real error or the
-   check's known limit), any real one fixed.
-4. **Me:** B1R2 into FINDINGS' story item 6, the README's fix paragraph and REPORT §7; every scorecard line checked
-   against its F-entry; §0's wording applied wherever L6, the honesty line or the title question appears, every
-   sentence changed listed in §5.
+1. **Me, first:** `cot-disclosure/results/demo/` made a produced-data folder (gitignored; the pre-push check refuses
+   it), test first, so no example text can reach GitHub.
+2. **Helper A:** the demo: `tools/build_demo.py`, its tests, `docs/demo/index.html`, then
+   `tools/demo_examples.py` (writes the gitignored examples file). No commit.
+3. **Helper B:** slide 5's figure of F3 (`docs/paper/figures/`), from tracked numbers, with its test. No commit.
+4. **Me:** c (Gate 3's draft in PLAN), d (the freeze procedure in CHECKIN, §9's Nov 18 row), e (the submission folder's
+   structure and the AI-use inventory); then the demo checked by eye at presentation size, light and dark, section by
+   section, and anything cluttered fixed.
+5. **Then:** the README links the demo; the docs, logs, TODO and the Gantt; the checks; the full suite once; the push.
 
-## 2. B1R2's copy-back (11:00), read-only on Sol
+## 2. The demo's examples kept off GitHub, test first
 
-- `rsync` of `eval_prov-*_runs.jsonl` from `/scratch/ragarw68/trackA/b1r2/` to `cot-disclosure/results/trackA/gpu/b1r2/`
-  (gitignored): 83 files, 1,203 records (`prov-a1-v2`, alpha = 1, and `prov-deployable-a0.25-v2`). The records with
-  text stayed on Sol.
+- `cot-disclosure/results/demo/` is now a produced-data folder: in `cot-disclosure/.gitignore`, and in
+  `tools/prepush_check.py`'s list (`PRODUCED`), so a push carrying `results/demo/examples.json` is refused.
+  `tests/test_repo_hygiene.py` gained that path first and failed; then 11 passed.
+- **Ruling (mine):** the build writes two pages. `docs/demo/index.html` (tracked) never holds example text; when
+  `results/demo/examples.json` exists, it also writes `results/demo/index.html` (gitignored), the same page with
+  the examples panel. The prompt asks both that the build read the local examples "if present" and that no text reach
+  the tracked HTML; two outputs satisfy both. If wrong: one panel to move.
 
-## 3. The 7 CLAIMS mismatches, classified
+## 3. Gate 3's final statement, a draft (13:40), for Ritik's approval
 
-- **Claim 2.6's 3** ("56–73 of 73", "+1 [−6, +8]", "30–45%"): C14 is exploratory with no F-entry, so its numbers live
-  in its log and `results/summaries/trackC/c14_disagreement.json`, which the check reads only as "session log only":
-  **the check's known limit.** Checked against the summary's 20 pairings: catches 56 to 73 of 73 against the checker's
-  73 (right); Qwen3 30B Instruct's false alarms minus the checker's pipeline +1 [−6, +8] (C4, tool log: right); Olmo
-  +12 to +21 (right). **One real imprecision, fixed:** "~30–45% of the checker's tokens" holds for Qwen3 30B Instruct
-  (30–31%) and Olmo (39–43%) but not for Qwen3 30B Thinking (76%); the sentence now says so.
-- **Claim 1.1's 4 B20 numbers** (+33, +61, +91, "5 of 10"): each is FB1's (Gemma off's tool channel +33, Nemotron off's
-  +61, Granite's +91; R2 "tool beyond authority in 5 of 10"); the check reads only FINDINGS' F entries, not
-  FINDINGS_B: **the check's known limit** (recorded Nov 8).
+In PLAN's Gates, under Gate 3, marked "Draft ... for Ritik's approval. Not marked". Every number as read in F28, F38,
+F41, F43, F44 and F45; nothing computed.
+- **The gate: met.** All four trained versions on the 30 (F28); on E2, the powered replication for LoRA (−7
+  [−11, −3]) and the instruction (−9 [−14, −4]), and LoRA + note, A40 and A40 + note by the same rule.
+- **The stricter bar (beating the instruction on following at no cost to correct hints): not met by any fix,** each
+  stated with its numbers (LoRA matches; A40, A40 + note and LoRA + note trade acceptance; the wrapper alone no
+  effect; B1 and B1R2 "ignores tools").
+- **Beside it, not part of the gate:** L6's line with its limits (F45); F39 and F42 inside the model. Limits: one
+  model, one training run a version, keyword hiding, the 30's comparisons with the instruction not pre-registered.
+- The line before it ("nothing it waits on is left but B1R2's replication") now says B1R2 was read Nov 13.
 
-## 4. B1R2 read (helper A, 11:09): [its log](2026-11-13/2026-11-13_1109_A_b1r2-results.md)
+## 4. The freeze procedure (14:12): CHECKIN §10
 
-- **Complete:** 600 of 600 runs a configuration (each run's last ok record, §22), the run ids exactly `b1r2_jobs()`'s;
-  1,203 records = 1,200 ok + 3 `not_run` that also have an ok record.
-- **B1's rule, unchanged** (`b1_verdict`, the deployable span, the inserted tool turn; recomputed by me on the exported
-  report: identical): following 82 of 240 → 49 of 240, **−13.8 [−20.0, −7.5]**; correct-hint acceptance 211 → 197 of
-  240, **−5.8 [−10.8, −1.3]**; no-hint accuracy 78 → 79 of 120, +0.8 [−6.7, +8.3]: **"ignores tools"**, as B1 on the
-  30.
-- **What it means:** the cut in following replicates on 120 questions; the cost to correct hints is now real (its
-  interval excludes 0) and past the 5-point limit by the point estimate (14 runs of 240, where 5 points is 12), though
-  the interval includes −5. B1's verdict on the 30 stays primary.
-- **Files (helper A):** F38's heading ("(B1R2)" in it, for the ledger), its B1R2 block and status line;
-  `tools/b1r2_figure.py` with 7 tests (seen failing first) and `docs/paper/figures/b1r2_vs_b1.{png,svg,csv}` (looked at:
-  no overlaps); `export_summaries.py`'s KEEP_PATH line and the exported numbers-only
-  `results/summaries/trackA/gpu/b1r2/provenance_gen_report.json`.
-- **Mine:** FINDINGS' story item 6 (B1R2 replaces "Next") and item 7 (the stricter bar; "trained, prompted or applied
-  at inference"); the README's fix paragraph; REPORT §7 (F38's bullet; its waiting entry closed) and §12; CLAIMS 1.7;
-  `results_at_a_glance` (F38's row); the supplement's B1R2 row (read, verified); PLAN, TODO, ONE_PAGE, CHECKIN,
-  FIX_SO_FAR, WAITING (slide 10).
+- **What "frozen" means:** no new runs on any account; the F/FB/FC entries, summaries, figures and the demo final;
+  any later change with a dated note (`Changed after the freeze (<date>, <time>): ...`) in its F-entry and the day's
+  log; what didn't run keeps its reason.
+- **The day, in order:** nothing runs (three accounts; the feeder's stop is Ritik's, Nov 16); the merges (§8); the
+  supplement and the demo rebuilt; §6 in full; final bundles A, B and C with `--verify` and each bundle's sha256 in
+  the log (A was 1,744 MB at Nov 13's dry run; the labels in no bundle); the annotated tag
+  `results-freeze-2026-11-18` on `main` after the push, under Ritik's identity (**a tag push is new: Ritik's go
+  that day**); the freeze log.
+- Checked: the pre-push hook peels a pushed tag to its commit (`git rev-list <sha> --not --remotes`), so a tag on a
+  commit already on `main` passes. The only earlier tag, `progress-oct-2026`, is a lightweight one.
+- §9's Nov 18 row points to §10; §4's freeze bullet too; the header.
+- **A slip, fixed:** I typed 13:44 into §10's first line before running `date`; it printed 14:12, and the line says
+  14:12.
 
-## 5. The wording held after L6: every sentence changed
+## 5. The submission prepared (14:13)
 
-- **The L6 line** ("training made the answer more candid about a hint it followed, in hand labels, without making it
-  follow less"), with its limits beside it (LoRA's trained opener names the hint, F28; no difference in following,
-  F44; one model, E2, 42 rows a system, the final answer only; not blind in practice, J-opus agreeing on 82 of 84):
-  - FINDINGS: story item 6's L6 sentence; item 7's honesty line (was "improved with training, in hand labels"); F45's
-    Reading (one sentence added) and Limits (the opener and the 82 of 84 added).
-  - README: the scorecard's honesty bullet (was "Honesty when following improved with training, in hand labels").
-  - REPORT: §6's F45 bullet (one sentence and its limits added); §7's F45 status (one sentence) and limits (the opener,
-    the 82 of 84); §12, a new bullet.
-  - ONE_PAGE: the L6 bullet (was "LoRA's answer is more honest about a wrong hint it followed").
-  - FIX_SO_FAR: the L6 headline (was "what LoRA says when it follows is more honest than the instruction's").
-  - CLAIMS 1.5: "Settles it" (one sentence and its limits added).
-- **The title question, answered mixed** (F29, F37, FB1; L6 doesn't bear on it): FINDINGS' story item 5 (a closing
-  sentence); F45's Reading; the README's story line 2 (a closing sentence); REPORT §1 (a new bullet) and §12 (a new
-  bullet); ONE_PAGE (a new bullet).
-- **Not changed:** F45's heading and §6's quoted meaning ("honesty when following improved with training", the
-  pre-registered words, kept in quotes beside the plain line). REPORT has no abstract yet (it is a skeleton).
-- **Also fixed:** §12's "Independent verification does" broken across lines (Nov 8); a time I typed by hand into the
-  scorecard's heading ("11:15", ahead of the clock), set to the clock's 11:12 at once.
+- [`docs/submission/README.md`](../../docs/submission/README.md): what goes in (report, supplement, slides, the demo,
+  the code link at the freeze tag, the contribution statement, the AI-use disclosure), where, who, by when, the state
+  on Nov 13, and the folder at Nov 24. The statement and the disclosure are not created: the team writes them.
+- [`docs/submission/AI_USE_INVENTORY.md`](../../docs/submission/AI_USE_INVENTORY.md): facts only, each with where the
+  repo records it: Claude Code (code, tests, analyses, docs; its sub-agents; the 7 re-look labels mapped to categories
+  at Ritik's request, Nov 4 21:24; the no-attribution rules, Nov 5–6); Claude in chat for planning; ChatGPT 5 Astra
+  High as AI rater 1 (L3, L4 part 1, Nov 3; corrected Nov 4 17:51); the LLM judges (Nov 4: J-opus, J-qwen, J-olmo,
+  AI1; Nov 13: J-opus on L6); the models studied, kept apart as subjects; what the repo records as done by hand. Lines
+  the repo doesn't record are marked *to confirm* by the member they name (when Claude Code use began; which prompts
+  came from Claude in chat; Arsha's and Shrey's own use).
+- PLAN's submission checklist: a row for the demo; the folder's row and the disclosure's row link both files.
 
-## 6. Freeze readiness: PLAN's new page, "Freeze readiness for Nov 18"
+## 6. Slide 5's figure of F3 (helper B; placed in the docs at 14:43)
 
-- Every experiment by state with its F-number; the 13 slides; what Arsha and Shrey owe; REPORT's "waiting" lines (all
-  figures); the CLAIMS mismatches; Ritik's dates.
-- **The slide map brought up to date:** slide 5 (no figure of F3 exists; L3 is read), 10 (`b1r2_vs_b1.png`), 11
-  (C19's bars placed Nov 7) and 12 (made Nov 6, placed Nov 7) no longer say "waiting" on results that are in.
-- **CLAIMS' mismatches, now 10: none a wrong number.** 6 are C14's in claim 2.6 (the 3 of §3, and the 3 token shares
-  added by its fix, all in `c14_disagreement.json`); 4 are FB1's in claim 1.1. B1R2's "82 → 49 of 240" first showed as
-  one more; written as F38 writes it ("82 of 240 → 49 of 240") in every file, it matches.
+- `docs/paper/figures/private_vs_final.{png,svg,csv}` (`tools/slide_figures.py`, `fig_private_final`; 16:9, the house
+  style). Panel (a), Test 1 per model and all three: private reasoning 66, 71 and 71 of 72 (208 of 216), final answer
+  0, 0 and 8 of 72 (8 of 216), the private keyword with no hint beside it (22, 18 and 2 of 72). Panel (b), Test 2 where
+  the tool's hint won: private 16 of 17, final 6 of 17. Wilson 95% whiskers; F3 in the title and the note.
+- Every number from `docs/labeling/RESULTS_SUMMARY.json` (key in the CSV's `source` column). From F3's text only:
+  "Nov 4", "0.6" and "all six cells" in the note (L3's verdict). Left out: the pinned-format final-answer rates (no
+  tracked numbers file holds them; `base_format.py --report` reads gitignored runs).
+- `tests/test_slide_figures.py`: 3 new tests (written first), 16 passed. No existing figure changed.
+- Checked by eye (the PNG): no overlap. The docs that said "no figure for F3" now point to it: PLAN (the freeze page,
+  the slide map, §6's row, REPORT's waiting list), REPORT §6 (F3 and L3), WAITING.md, ONE_PAGE, FINDINGS F3 (a
+  "Figure" line), `results_at_a_glance` (.md, .csv), TODO D14.
 
-## 7. Needs Ritik
+## 7. The demo (helper A)
 
-- **Nov 15:** check-ins and merges. **Nov 16:** stop the feeder. **Nov 18:** slide 5's figure of F3, with Shrey; the
-  freeze. **Nov 20:** Gate 3's final statement.
-- **No Sol block:** the clone is at `97c0628`, clean; nothing is queued.
+- **Files:** `tools/build_demo.py`; `tools/demo_page/` (template.html, demo.css, demo.js, examples.html, inlined at
+  build time); `tools/demo_examples.py`; `tests/test_build_demo.py` (13) and `tests/test_demo_examples.py` (4),
+  each seen failing first. Built: `docs/demo/index.html` (about 337 KB, tracked) and, gitignored,
+  `results/demo/examples.json` (9 examples) and `results/demo/index.html`.
+- **Every number** sits in one data block with its summary path and key (or, for the per-layer swaps, the loader
+  `slide_figures.a18_rows` and its row); the test recomputes each (over 300). A missing summary, key or quoted FINDINGS
+  sentence stops the build (exit 1). No request but `file:`; the only URL in the page is the SVG namespace.
+- **Screens:** 0 the question, the tracks and the models; 1 tools against users (13 model and setting rows, F40's
+  authority dose with B16, FB1's R2); 2 the bare answer (F15, F16, F29, C4, F25) and the title question "answered
+  mixed", stamped "not a yes" (F29, F37, FB1); 3 inside the model (F11, F26, F32, F36; F39 and F42's swaps); 4 between
+  agents (the diagram; six reviewers and C15; the checker 53 of 53, 7 of 45, floor 7 of 100; C16–C18; F44's wrapper and
+  FC3's tag, no effect); 5 the fixes on E2 (the trade-off scatter and the Acc(p) slider, both stamped exploratory, post
+  hoc; the keyword bars with L6's hand-label points and L6's line with its four limits; B1R2 beside B1); 6 story item
+  7 as written, how we worked, AI use, limits.
+- **The examples draw** (seed `cse598-demo-examples-2026-11-13`): L3, Ritik's sheet (3 rows: the only labelled sheet
+  with private text), L6 (2 LoRA, 2 instruction), L4 part 1 (2 LoRA); each marked "illustrative, drawn by seed".
+  Read-only on every source (hashes checked in the test).
+- **The helper's rulings:** L3's private excerpts for the side-by-side (L6 and L4 hold the final answer only); C17's
+  part (a) left out of the cue chart (C16, C17 (b), C18 kept); B1's 5-point limit as 0.05 in the page's script
+  (`provenance_job.MARGIN`); the 82 of 84 computed from `l6_report.json` (agreement 0.976 × 84).
 
-## 8. Checks (11:26)
+## 8. Interrupted twice; resumed Nov 14
 
-- **The full suite, once:** 1,146 passed, 1 skipped (9:50): the morning's 1,139 and `test_b1r2_figure.py`'s 7. (Another
-  project's pytest was running beside it; left alone.)
-- Links 0 broken; the supplement 42 rows, none unverified, no log outside the ledger (CLAIMS 10 mismatches, §6;
-  source problems 12 once committed); export numbers-only; the Gantt; bundles B 51 files, 73.8 MB, and C 43 files,
-  31.3 MB, as before. The pre-push and "nothing missing" checks before the push.
+- **Nov 13, found at 14:39:** both helpers stopped on a network error (the API server unreachable). Helper B's figure was
+  on disk; helper A had written nothing yet. Both resumed with their context.
+- **Later on Nov 13** (after helper A's 15:03 build): a usage limit stopped helper A while it re-took its screenshots.
+- **Nov 14, 20:08:** Ritik: "continue, and resume the agents". Helper A resumed and finished (helper B had finished on
+  Nov 13).
+
+## 9. The demo checked by eye (Nov 14, 20:09–20:14)
+
+- All seven screens at 1920×1080, light and dark (Playwright, Chrome): no request but `file:`, no console error, no
+  screen scrolls. The numbers on screen checked against FINDINGS (Gate 2's tool − user column, FB1's 10 R2 readings
+  (5 beyond, 1 authority more, 4 no difference), F15, F25, F29, F37, FB1's −14, F11's layers, F39 and F42's swaps, the
+  checker's tiles, C16–C18, the E2 trade-off, the A40 crossing 0.36 [0.22, 0.50], L6's 37/42 and 18/42, B1 and B1R2).
+- B1's and B1R2's shaded limits checked at 2× zoom: acceptance [−5, …], no-hint accuracy [−5, +5], as the rule reads.
+- **One fix:** the Acc(p) chart listed each system's value at the slider's p beside the lines' right ends (p = 1); it
+  now says "at p = 0.50:" above them (`demo.js`). Rebuilt; the keys work (→ moves on, `t` switches the theme);
+  33 tests passed (the demo's 17, the slide figures' 16).
+- **Left as they are:** some empty space on screen 0 and under screen 2's left chart; small type in the captions and
+  source lines (the headings, labels and values are large); s6's limit "(F38)" is FINDINGS' own wording (F40's limits).
+
+## 10. The docs
+
+- **README:** "The results demo" (open `docs/demo/index.html`; the keys; how to rebuild; examples local only); the
+  grader's row names it.
+- **TODO:** D15 (the demo) done; D14 (slide 5); G3 (the draft); D5 (the procedure); D13 (the folder); the header.
+- **PLAN:** the header; the freeze page (Gate 3 drafted; slide 5 made; Ritik's dates). **ONE_PAGE:** the header, the
+  presentation line, the freeze table (Gate 3's draft, the demo), Ritik's dates. **FINDINGS:** the header; F3's figure.
+
+## 11. Needs Ritik
+
+- **By Nov 20:** approve or change Gate 3's draft (PLAN, Gates). **Nov 16:** stop the feeder. **Nov 18:** the freeze by
+  CHECKIN §10; the tag `results-freeze-2026-11-18` waits on your go that day. **By Nov 22:** the AI-use inventory's
+  *to confirm* lines (when Claude Code use began; which prompts came from Claude in chat); Arsha and Shrey add theirs.
+- **Before Nov 24:** open the demo on the presenting laptop with Wi-Fi off; the local page with examples is
+  `cot-disclosure/results/demo/index.html` (on this Mac only).
+
+## 12. The checks (Nov 14, 20:15–20:27)
+
+- **The full suite once** (20:15–20:26): **1,166 passed, 1 skipped** (1,146 on Nov 13 + 20 new: the demo's 17, slide
+  5's 3). No leftover pytest of ours before it.
+- Links: 0 broken, 0 missing RUNBOOK scripts. The export: numbers only. The Gantt: `--dry-run` passes; STATUS and the
+  Gantt regenerated. Bundles (dry run): B 51 files, 73.8 MB; C 43 files, 31.3 MB.
+- No example text in the tracked page: of 53 snippets sampled from `examples.json`, 0 in `docs/demo/index.html`, 25
+  in the local page.
+- **The supplement:** 42 rows, none unverified, no log outside the ledger; CLAIMS 10 mismatches as before. Source
+  problems 13 before the commit: the new one is F3's figure, "on disk, not tracked", which the commit clears; so the
+  supplement is regenerated after it, in its own commit (as on Nov 13).
