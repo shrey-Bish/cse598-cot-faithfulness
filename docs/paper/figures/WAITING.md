@@ -168,9 +168,11 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 
 - **Slide 2:** made Nov 3 as `docs/paper/figures/gate2.png` (B18's rows, with B17's efforts); B20 was read Nov 7 (FB1, merged Nov 8), so its rows go in with B18's final table (Arsha, by Nov 18).
   Owner: Arsha, from Nov 6.
-- **Slide 5** (PLAN lists `docs/paper/figures/cue_experiments_slide.png`, the supplement's `cue_experiments`; it plots
-  C16–C18, not F3): L3's kappa in the caption once the labels are read under the LLM-judge protocol (kappa under 0.6
-  on Nov 3, Ritik against an AI rater; Gate 2 Nov 8). Owners: Ritik and Shrey. Corrected Nov 4, 17:55: rater 2 was an
+- **Slide 5: made Nov 13, 14:43** as `docs/paper/figures/private_vs_final.png` (`tools/slide_figures.py`, `fig_private_final`, from
+  `docs/labeling/RESULTS_SUMMARY.json`): F3's Test 1 per model and all three (private 208 of 216, final 8 of 216), the
+  private keyword with no hint beside it, and Test 2 where the tool's hint won (16 of 17, 6 of 17); its note says keyword
+  counts, 208 an upper bound, and L3 not met under the LLM-judge protocol. Before: PLAN listed
+  `cue_experiments_slide.png`, which plots C16–C18, not F3. Owners of the slide: Ritik and Shrey. Corrected Nov 4, 17:55: rater 2 was an
   AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log; no settling call or fresh batch.
 - **Slide 7** (`docs/paper/figures/b16_authority.png`): B24's two arms (the classmate, the official solution manual)
   beside B16's, from `results/summaries/trackB/b24_report.json` (read Nov 4, F40), with B24's readings (the gradient

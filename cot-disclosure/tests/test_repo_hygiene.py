@@ -74,7 +74,8 @@ def test_prepush_refuses_produced_gpqa_and_big_files(repo):
     ok = check(repo, "clean")
     assert ok.returncode == 0, ok.stderr                                 # gpqa in a .py name is code; data on main is public
     for path in ("cot-disclosure/results/trackB/run.jsonl", "cot-disclosure/data/GPQA_diamond.jsonl",
-                 "cot-disclosure/finetune/data/train.jsonl"):
+                 "cot-disclosure/finetune/data/train.jsonl",
+                 "cot-disclosure/results/demo/examples.json"):     # the demo's example texts (Nov 13): local only
         git(repo, "checkout", "-q", "-B", "bad", "clean")
         write(repo, path, "{\"changed\": 1}\n")
         git(repo, "add", "-f", path)

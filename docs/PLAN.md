@@ -1,6 +1,6 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-11-13 11:14 MST (the freeze-readiness page for Nov 18; B1R2 read, F38: "ignores tools" again; the slide map's rows 5, 10, 11 and 12 brought up to date; earlier 09:55: L6 read, F45: LoRA discloses more than the instruction, in hand labels; B1R2 complete Nov 9, Sol pulled Nov 13; the Nov 11 rule no effect; earlier 2026-11-08 15:11: Gate 2 marked: the gap met on every model, B20's three families included, the labels not; Arsha's B20 merged, FB1 in the story, §2–§4 and slide 2's row; L6 reduced and its sheet built; LoRA + note's acceptance cost beside its R2 reading; B1R2's 40 parts ended, 2 sweeps pending; earlier 2026-11-07 20:44: A39 read Nov 7, F44; the trade-off explored, post hoc; L6 pre-registered, not run; the scorecard in FINDINGS' story; B1R2 31 of 40 parts ended; earlier 13:46: A40, A41 and A42 complete and read Nov 7 by their rules, F41–F43; A39 complete, the 54 runs left a counting bug, fixed; the report's state and the writing plan for Nov 18–24; earlier Nov 6 23:19: Track C's four read and merged; Gate 2's statement ready to mark Nov 8; B1R2 revived; earlier 11:30: E2's and the 30's lines all ended; the nov6 rule said no cut; A40's data and its gated lines; A41 and A42 after A40's training; earlier, Nov 5 13:42: the pull done; A40's targets about 11 h; Arsha's setup Nov 6; 09:54: two Sol accounts from Nov 5: B20 on Arsha's own, the Sol order, B1R2 dropped for A40 and A40's row, the calendar's rows from Nov 5, slide 10 and the Sol risk; earlier, Nov 4 22:52: the calendar's Nov 5–7 row: that night's Sol state, the projections from ONE_PAGE, B20's stop fixed (T13); 21:31: Ritik's re-look of the 7 cells recorded: 4 changed, 3 kept, Gate 2's verdict unchanged; earlier, 18:22: Gate 2's statement with the descriptive sentence; 17:51: the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; L3, L4 and Gate 2 under the LLM-judge protocol; earlier, 16:38: Gate 2's statement; the presentation map and the submission checklist; the 30's Nov 6 and Nov 11 rules applied by the feeder, the A39 log's §16 and §17; earlier: B24 read: F40; B20's second amendment, §16; A39's parts at 2:00, its log's §14; earlier Nov 4: B20 amended after its first smokes, §15 of its log; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
+Last updated: 2026-11-14 23:09 MST (the demo is now the Hint Explainer, in the checklist; earlier 2026-11-14 20:14: Gate 3's final statement drafted for Ritik's approval, Gates; slide 5's figure made, `private_vs_final.png`; the demo and the submission folder in the checklist; the freeze procedure in CHECKIN §10; earlier 2026-11-13 11:14: the freeze-readiness page for Nov 18; B1R2 read, F38: "ignores tools" again; the slide map's rows 5, 10, 11 and 12 brought up to date; earlier 09:55: L6 read, F45: LoRA discloses more than the instruction, in hand labels; B1R2 complete Nov 9, Sol pulled Nov 13; the Nov 11 rule no effect; earlier 2026-11-08 15:11: Gate 2 marked: the gap met on every model, B20's three families included, the labels not; Arsha's B20 merged, FB1 in the story, §2–§4 and slide 2's row; L6 reduced and its sheet built; LoRA + note's acceptance cost beside its R2 reading; B1R2's 40 parts ended, 2 sweeps pending; earlier 2026-11-07 20:44: A39 read Nov 7, F44; the trade-off explored, post hoc; L6 pre-registered, not run; the scorecard in FINDINGS' story; B1R2 31 of 40 parts ended; earlier 13:46: A40, A41 and A42 complete and read Nov 7 by their rules, F41–F43; A39 complete, the 54 runs left a counting bug, fixed; the report's state and the writing plan for Nov 18–24; earlier Nov 6 23:19: Track C's four read and merged; Gate 2's statement ready to mark Nov 8; B1R2 revived; earlier 11:30: E2's and the 30's lines all ended; the nov6 rule said no cut; A40's data and its gated lines; A41 and A42 after A40's training; earlier, Nov 5 13:42: the pull done; A40's targets about 11 h; Arsha's setup Nov 6; 09:54: two Sol accounts from Nov 5: B20 on Arsha's own, the Sol order, B1R2 dropped for A40 and A40's row, the calendar's rows from Nov 5, slide 10 and the Sol risk; earlier, Nov 4 22:52: the calendar's Nov 5–7 row: that night's Sol state, the projections from ONE_PAGE, B20's stop fixed (T13); 21:31: Ritik's re-look of the 7 cells recorded: 4 changed, 3 kept, Gate 2's verdict unchanged; earlier, 18:22: Gate 2's statement with the descriptive sentence; 17:51: the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; L3, L4 and Gate 2 under the LLM-judge protocol; earlier, 16:38: Gate 2's statement; the presentation map and the submission checklist; the 30's Nov 6 and Nov 11 rules applied by the feeder, the A39 log's §16 and §17; earlier: B24 read: F40; B20's second amendment, §16; A39's parts at 2:00, its log's §14; earlier Nov 4: B20 amended after its first smokes, §15 of its log; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
 **Edited by:** Ritik. History: `git log -- docs/PLAN.md`; the Oct 31 version and the per-track design notes that
 were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`](../archive/superseded/PLAN_2026-10-31.md). Where things are:
 - progress: [`STATUS.md`](status/STATUS.md);
@@ -228,7 +228,40 @@ comparison, rule, what counts as each outcome, cost) and a dry run before it run
   - **Met on Oct 31** (F28): all four trained versions pass.
   - The final statement is Nov 20 (it was due Nov 22). L4 part 1 was read Nov 3 (F28: LoRA's candidates rarely real);
     A18 was read Nov 3 (F39: training acts in the reasoning); A39's powered replication on E2 was read Nov 7 (F44:
-    Gate 3's rule passes again for the instruction and LoRA), so nothing it waits on is left but B1R2's replication.
+    Gate 3's rule passes again for the instruction and LoRA). B1R2's replication was read Nov 13 (F38), so nothing it
+    waits on is left.
+  - **Draft of the final statement (Nov 13, 13:40), for Ritik's approval.** Not marked: Ritik approves or changes it
+    by Nov 20. Every number is as read in its F-entry; nothing new is computed.
+    > **Gate 3: met; the stricter bar: not met.**
+    >
+    > **The gate, by its rule fixed before the runs** (a trained version follows fewer wrong hints than base on
+    > held-out questions, the 95% bootstrap difference clustered by question excluding 0; no-hint accuracy within 5
+    > points; the hiding check not rising). All four trained versions of Olmo 3 7B Think pass on the held-out 30 (F28,
+    > Oct 31, 930 runs a system): following minus base, LoRA −10 [−16, −4], tags −6 [−10, −2], LoRA + tags −7
+    > [−13, −1], LoRA on layers 15/19/23 −7 [−13, −2]; no-hint accuracy within 3 points; hiding falls for each. On
+    > E2's 120 fresh questions, a powered replication passes for LoRA (−7 [−11, −3]) and the one-line instruction (−9
+    > [−14, −4]) (F44, R1), and the later fixes pass the same rule: LoRA + note (−17 [−22, −12], F44), A40 (−30
+    > [−35, −26], F41) and A40 + note (−33 [−38, −28], F43), with no-hint accuracy within 4 points of base.
+    >
+    > **The stricter bar: beating the one-line instruction on following at no cost to correct hints. No fix meets
+    > it.** LoRA matches the instruction (+3 [−1, +8] on the 30, not pre-registered, F28; "no difference detected" on
+    > E2, +2 [−2, +6], F44). The fixes that follow fewer wrong hints than the instruction also take fewer correct ones:
+    > A40 −21 [−26, −16] with acceptance −15 [−20, −10] (F41) and A40 + note −24 [−30, −19] with −20 [−26, −14]
+    > (F43), both "fewer, but costs acceptance"; LoRA + note "fewer than the instruction" by A39's R2 (−8 [−12, −4]) at
+    > an acceptance cost of −9 [−13, −5] (F44). Marking tool output "unverified" has no effect alone (−1 [−7, +4],
+    > F44). Attention scaling at inference cuts following on the inserted tool turn (B1, −17 [−30, −3] on the 30), and
+    > on E2 the cut replicates with a real cost to correct hints (B1R2, −13.8 [−20.0, −7.5], acceptance −5.8 [−10.8,
+    > −1.3]): "ignores tools" by its rule (F38).
+    >
+    > **Beside the gate, not part of it.** In hand labels, training made the answer more candid about a hint it
+    > followed, without making it follow less (L6, F45: when LoRA follows a wrong hint on E2, its answer says so in 37
+    > of 42 runs against the instruction's 18 of 42, +45 [+25, +64]; LoRA's trained opener names the hint, F28; one
+    > model, E2 only, 42 rows a system, the final answer only; the sheet not blind in practice, with J-opus agreeing
+    > on 82 of 84 rows). Inside the model, LoRA acts in the reasoning (F39) and A40 before the readout layers (F42).
+    >
+    > **Limits.** One model (Olmo 3 7B Think) and MMLU-Pro's evaluation categories; one training run a version;
+    > hiding is a keyword measure; the comparisons with the instruction on the 30 were not pre-registered (on E2 they
+    > were, F44).
 
 ## Freeze readiness for Nov 18 (as of Nov 13, 11:14)
 
@@ -243,7 +276,7 @@ now: Ritik's Sol queue is empty (B1R2 ended Nov 9), and Arsha's B20 ended Nov 6.
 | **read** (Track B, Arsha's from Nov 6) | B9/Gate 2 (F15–F17, F29; marked Nov 8); B15 (F25); B16 and B19 (F35); B17 (F37); B24 (F40); B20 (FB1) |
 | **read** (Track C, Shrey's) | C4 (F18); C9 (F19); C10 (F21); C11 (F22); C12 (F23); C13 (F30); C14 (exploratory, CLAIMS 2.6); C15 (F24); C16 (F31); C17 (F33); C18 (F34); C19 (FC1); C25 (FC2); C20 (FC3); C26 (FC4); C24 (the tables) |
 | **in progress** | B18, Track B's final table with B20's rows (Arsha, by Nov 18) |
-| **waiting** | Gate 3's final statement (Ritik, Nov 20) |
+| **waiting** | Gate 3's final statement: drafted Nov 13 (Gates, Gate 3), waits on Ritik's approval (Nov 20) |
 | **not run, with the reason** | A38 (dropped Nov 3 as pre-registered: B1's span reads "ignores tools"); B1R (not run Nov 3: underpowered within budget; B1R2 ran instead); L4 part 2 (a SHOULD, not labelled); L5, Track B's labeling batch (a SHOULD, not labelled); C22 (a STRETCH, not prepared) |
 
 **Slides** (the presentation map below):
@@ -252,7 +285,7 @@ now: Ritik's Sol queue is empty (B1R2 ended Nov 9), and Arsha's B20 ended Nov 6.
 |---|---|---|---|
 | 1, 3, 4, 6, 8, 11, 12 | made | ready | — (slides 11–12 themselves: Shrey, Nov 18) |
 | 2 | `gate2.png` | made; B20's rows not in | Arsha: B20's rows with B18's table, by Nov 18 |
-| 5 | none for F3 | **no figure** | Ritik and Shrey: a figure of F3 (keyword counts, L3's verdict in the caption), by Nov 18 |
+| 5 | `private_vs_final.png` | made Nov 13, 14:43 (F3 in keyword counts, L3's verdict in its note) | — (the slide itself: Ritik and Shrey, Nov 18) |
 | 7 | `b16_authority.png` | made; B24's arms not in | Arsha: B24's two arms beside B16's, by Nov 18 (final Nov 20) |
 | 9 | `gate3_vs_base_slide.png`; A39's | made | Ritik: Gate 3's final statement, Nov 20 |
 | 10 | `readout_lora_vs_base.png` | made | Ritik: panel (b) takes `b1r2_vs_b1.png` (drawn Nov 13) |
@@ -266,7 +299,7 @@ now: Ritik's Sol queue is empty (B1R2 ended Nov 9), and Arsha's B20 ended Nov 6.
   (REPORT §8–§9, Nov 6).
 
 **REPORT, still marked waiting** (each a figure, not a number): §4 F40 (slide 7's B24 arms, Arsha); §4 FB1 (`gate2.png`
-with B20, Arsha); §6 F3 and L3 (slide 5, Ritik and Shrey); §6 F40's words (slide 7); §6 FB1's words (no figure planned:
+with B20, Arsha); §6 F40's words (slide 7); §6 FB1's words (no figure planned:
 a table is enough); §7 Gate 3's final statement (Nov 20). §11 and §12 are bullets only until Nov 18–21.
 
 **CLAIMS' 10 mismatches: none is a wrong number.** 6 are C14's numbers in claim 2.6 (exploratory, no F-entry, so the
@@ -274,8 +307,8 @@ check finds them only in C14's log; all match `c14_disagreement.json`); 4 are FB
 doesn't read FINDINGS_B). One imprecision in claim 2.6 was fixed Nov 13 (the token share named per reviewer).
 
 **Ritik, by date:** Nov 15, the check-ins and merges (Arsha's merge-back, Shrey's); Nov 16, stop the feeder
-(`touch /scratch/ragarw68/trackA/feeder.stop; scrontab -r`); Nov 18, the freeze, slide 5's figure with Shrey; Nov 20,
-Gate 3's final statement.
+(`touch /scratch/ragarw68/trackA/feeder.stop; scrontab -r`); Nov 18, the freeze by CHECKIN §10 (its tag with Ritik's
+go), slide 5 placed with Shrey; Nov 20, Gate 3's final statement (approve or change the draft).
 
 ## Final presentation map (about 12 slides)
 
@@ -303,7 +336,7 @@ this style; `taught_loss` (F20) has no 16:9 version.
 | 2 | **Tools pull harder than users.** Gate 2 on five models (F15–F17, F29, F37) | `gate2.png` (B18's rows) | made Nov 3 | B20's rows (FB1, read Nov 7) with B18's table; final by Nov 20 | Arsha |
 | 3 | **Level 1: three layers read the tool's letter.** F11, replicated on set A (F26); the heads (F12, F32) | `readout_by_layer_slide.png` (the report's `readout_by_layer` and the supplement's `readout_setA_vs_test2`) | made Nov 4 | — | Ritik |
 | 4 | **Level 1 on a second model.** Qwen3-8B (A37; F36: replicates) | `readout_qwen8b.png` | made Nov 1 | — | Ritik |
-| 5 | **Level 2: the private reasoning names it, the final answer doesn't** (F3, with L3's kappa) | listed: `cue_experiments_slide.png` (the supplement's `cue_experiments`); it shows C16–C18 (F31, F33, F34), not F3 | **no figure for F3 yet** (Nov 13) | L3 was read Nov 4 (not met), so F3 stays keyword counts and the caption can say so now; what's missing is a figure of F3 itself (`cue_experiments_slide.png` plots C16–C18, not F3): Ritik and Shrey, by Nov 18 | Ritik and Shrey |
+| 5 | **Level 2: the private reasoning names it, the final answer doesn't** (F3, with L3's kappa) | `private_vs_final.png` (Test 1 per model and all three, Test 2; keyword counts) | **made Nov 13, 14:43** (`tools/slide_figures.py`). Before: the map listed `cue_experiments_slide.png`, which plots C16–C18, not F3 | — (L3 read Nov 4, not met: the figure's note says so; the slide itself by Nov 18) | Ritik and Shrey |
 | 6 | **Level 2: after a tool call, the answer goes bare.** F15, C4's control, F29; one instruction brings the source back without reducing deference (F25) | `bare_after_call.png` | made Nov 1 | — | Arsha |
 | 7 | **Tool or authority?** (B16, F35; the authority dose, B24, F40) | `b16_authority.png` | made Nov 1 | B24's two arms beside B16's (B24 read Nov 4, F40; spec in WAITING.md's additions); Arsha, from Nov 6; final by Nov 20 | Ritik, then Arsha |
 | 8 | **Thinking dose** (B17, F37; labelled §13) | `b17_effort.png` | made Nov 3 | — | Arsha |
@@ -370,7 +403,7 @@ Nov 18 freeze. REPORT holds bullets and figures only; the team writes the prose.
 | §3 Methods | **final** (B20's readings in, Nov 8, from FB1) | Arsha checks B20's methods line (Nov 20) |
 | §4 The failure | **final for FB1** (merged Nov 8) | B18's final table and slide 7's B24 arms (Arsha, Nov 18) |
 | §5 Level 1, inside | **final** | — |
-| §6 Level 2, in the words | **final** (L3 read Nov 4: not met) | slide 5's figure (Ritik and Shrey) |
+| §6 Level 2, in the words | **final** (L3 read Nov 4: not met) | — (slide 5's figure made Nov 13, `private_vs_final.png`) |
 | §7 Fixing it | **final for F20, F27, F28, F38, F39, F41–F45**; the exploratory trade-off bullet (post hoc, labelled) | Gate 3's final statement (Nov 20); B1R2 read Nov 13, in F38's bullet |
 | §8 Level 3 | **final** (FC1; C24's tables merged Nov 7) | — |
 | §9 Across agents | **final** (FC2–FC4) | — |
@@ -410,8 +443,9 @@ course page". "Proposed" marks an owner or date set nowhere else in the repo, fo
 | the slides | the 13 slides of the presentation map above, figures from `docs/paper/figures/`, each slide by its owner (Ritik 1, 3, 4, 9, 10; Arsha 2, 6, 7, 8; Ritik and Shrey 5; Shrey 11, 12; everyone 13); the speaker notes by the team; one deck (proposed: Ritik assembles it); format and time limit: confirm against the course page | each slide's owner; the deck Ritik (proposed) | 11–12 Nov 18; 2 by Nov 20, 6–8 in Nov 19–24 (the calendar); 9 after Gate 3's final statement (Nov 20); 13 Nov 21–22; rehearsal Nov 23; presented Nov 24 |
 | the code link | https://github.com/shrey-Bish/cse598-cot-faithfulness (`git remote get-url origin`): `main` with `trackB-main` and `trackC-main` merged at the Nov 18 check-in; the README's test and recompute commands; produced data local (gitignored), the numbers-only summaries tracked (Deliverables, 5); the graders' access: confirm against the course page | Ritik (the merges and the push) | the last merge Nov 18; in the submission folder Nov 21 |
 | a contribution statement | who did what, by track and date, from "Who runs what" (top of this file) and each track's TODO: Track A Ritik; Track B Ritik to Nov 6, Arsha from Nov 6; Track C Shrey from Oct 30; the hand labels Ritik (L3, L4; the second sheets by an AI model, ChatGPT 5 Astra High, and the LLM judges, as the 17:42 and 17:45 logs record them; corrected Nov 4, 17:51: not Shrey); the report's sections and the slides by owner (above); form: confirm against the course page | each member their own lines; Ritik merges (proposed) | with the draft, Nov 22 (proposed) |
-| an AI-use disclosure | which AI tools each member used, for what (code, analysis, writing), and what was checked by hand; how the hand labels were made: Ritik's by hand, the second sheets by ChatGPT 5 Astra High (run by Ritik with the guide and the blind sheets), and the LLM judges by their protocol (the 17:42 and 17:45 logs; corrected Nov 4, 17:51); Ritik's 7 re-look labels written in his own words and put into the five categories by Claude Code at his request (the 21:24 log); form and policy: confirm against the course page | each member for their own work; Ritik merges (proposed) | with the draft, Nov 22 (proposed) |
-| the submission folder (TODO D13) | the report and slide files, the code link, the statement and the disclosure in one place | Ritik | Nov 21 (D13); submitted Nov 24 |
+| an AI-use disclosure | which AI tools each member used, for what (code, analysis, writing), and what was checked by hand; how the hand labels were made: Ritik's by hand, the second sheets by ChatGPT 5 Astra High (run by Ritik with the guide and the blind sheets), and the LLM judges by their protocol (the 17:42 and 17:45 logs; corrected Nov 4, 17:51); Ritik's 7 re-look labels written in his own words and put into the five categories by Claude Code at his request (the 21:24 log); form and policy: confirm against the course page. The facts to write it from: [`docs/submission/AI_USE_INVENTORY.md`](submission/AI_USE_INVENTORY.md) (Nov 13) | each member for their own work; Ritik merges (proposed) | with the draft, Nov 22 (proposed) |
+| the demo | [`docs/demo/index.html`](demo/index.html), the **Hint Explainer** (Nov 14; it replaced Nov 13's seven-screen demo): one file that opens offline in any browser; an animated diagram of a wrong hint's path (input, inside the model, private reasoning, final answer, review team), a 7-scene guided tour (about 2 minutes) and an article, in plain names (the IDs behind a toggle; [`docs/GLOSSARY.md`](GLOSSARY.md)); built by `cot-disclosure/tools/build_demo.py` from the numbers-only summaries; rebuilt at the freeze (CHECKIN §10) | Ritik | built Nov 14; rebuilt Nov 18 |
+| the submission folder (TODO D13) | the report and slide files, the code link, the demo, the statement and the disclosure in one place. **Set up Nov 13 (14:14):** [`docs/submission/README.md`](submission/README.md) (what goes in, who, by when) and the AI-use facts, [`docs/submission/AI_USE_INVENTORY.md`](submission/AI_USE_INVENTORY.md), for the team's disclosure | Ritik | Nov 21 (D13); submitted Nov 24 |
 
 ---
 

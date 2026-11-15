@@ -1,4 +1,4 @@
-level,where,evidence,open
-1,Inside the model,"F11, F26, F32, F36",the trained model (A18)
-2,In the model's words,"F15, F25, F29, F35",thinking dose (B17)
-3,Between agents,"F18, F31, F33, F34",handoff notes (C25); pipeline vs model (C20)
+level,where,evidence,read_since
+1,Inside the model,"F11, F26, F32, F36","inside the trained models (A18, F39; A41, F42)"
+2,In the model's words,"F15, F25, F29, F35","reasoning effort (B17, F37)"
+3,Between agents,"F18, F31, F33, F34","handoff notes (C25, FC2); an unverified tag (C20, FC3)"

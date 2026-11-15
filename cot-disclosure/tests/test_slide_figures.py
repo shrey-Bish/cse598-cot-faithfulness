@@ -2,6 +2,7 @@
 writes PNG, SVG and its CSV at 16:9, and a slide still waiting on a result has a spec, not a chart. No calls."""
 import csv
 import json
+import re
 import struct
 import sys
 from pathlib import Path
@@ -233,7 +234,7 @@ def test_a41_puts_a40s_bars_beside_loras_and_without_it_the_rows_are_as_before(t
 # ---------------------------------------------------------------- one style for every finished slide (Nov 4)
 SLIDE_NAMES = {"three_levels", "gate2", "readout_by_layer_slide", "readout_qwen8b", "bare_after_call", "b16_authority",
                "b17_effort", "gate3_vs_base_slide", "readout_lora_vs_base", "reviewer_by_prompt_slide",
-               "trackC_reviewers_slide", "cue_experiments_slide", "channels"}
+               "trackC_reviewers_slide", "cue_experiments_slide", "channels", "private_vs_final"}
 
 
 def test_every_slide_figure_is_2000_by_1125_with_its_csv(tmp_path):
@@ -314,3 +315,144 @@ def test_slide_versions_keep_their_sources_numbers(tmp_path):
     assert csv_rows(sf.fig_gate3_slide(out=mine)[2]) == csv_rows(tracked)
     rep = json.loads((SUM / "trackA" / "gpu" / "eval" / "eval_report.json").read_text())
     assert sf.gate3_slide_rows() == gate3.vs_base_rows(rep)
+
+
+# ---------------------------------------------------------------- slide 5 (F3, Nov 13)
+SUMMARY = CODE.parent / "docs" / "labeling" / "RESULTS_SUMMARY.json"
+MODELS_TEST2 = ("olmo3-7b-think", "qwen3-30b-a3b-thinking-2507")
+
+
+def test_private_final_rows_are_f3s_keyword_counts():
+    """Slide 5 (F3): in Test 1's hinted runs, per thinking model, the private reasoning and the final answer naming the
+    user's hint (detect.py's keyword), and the private keyword with no hint; the totals, the overlap and Test 2's runs
+    where the tool hint won. Every k and n is RESULTS_SUMMARY.json's; the per-model counts sum to F3's totals; the
+    intervals are progress/common.py's Wilson and round to F3's."""
+    from common import wilson
+    s = json.loads(SUMMARY.read_text())
+    men = s["pilot"]["mentions"]
+    rows = sf.private_final_rows()
+    a = by([r for r in rows if r["panel"] == "a" and r["shown"] == "bar"], "model", "text", "runs")
+    for key, name in sf.MODELS_F3:
+        for field, text, runs, _ in sf.TEXTS_F3:
+            r, e = a[(name, text, runs)], men[key][field]
+            assert (r["k"], r["n"]) == (e["num"], e["den"]) and r["source"] == f"pilot.mentions.{key}.{field}"
+    models = [name for _, name in sf.MODELS_F3]
+    assert [a[(m, "private reasoning", "hinted")]["k"] for m in models] == [66, 71, 71]
+    assert [a[(m, "final answer", "hinted")]["k"] for m in models] == [0, 0, 8]
+    assert all(a[(m, t, "hinted")]["n"] == 72 for m in models for t in ("private reasoning", "final answer"))
+    for key, _ in sf.MODELS_F3:                       # the final total sums the runs with private reasoning: the same
+        assert men[key]["final_mentions_hinted"] == {**men[key]["final_mentions_hinted_with_trace"],
+                                                     "function": men[key]["final_mentions_hinted"]["function"]}
+    seven = a[("Olmo 3 7B Think", "private reasoning", "no hint")]
+    assert (seven["k"], seven["n"]) == (22, 72)                                     # F3's caveat: an upper bound
+    total = {t: a[(sf.ALL_F3, t, "hinted")] for t in ("private reasoning", "final answer")}
+    assert [(r["k"], r["n"]) for r in total.values()] == [(208, 216), (8, 216)]     # F3, Test 1
+    for t, field in (("private reasoning", "private_mentions_all_thinking"),
+                     ("final answer", "final_mentions_all_thinking")):
+        assert (total[t]["k"], total[t]["n"]) == (s["pilot"][field]["num"], s["pilot"][field]["den"])
+        assert total[t]["source"] == f"pilot.{field}"
+        assert sum(a[(m, t, "hinted")]["k"] for m in models) == total[t]["k"]
+        assert sum(a[(m, t, "hinted")]["n"] for m in models) == total[t]["n"]
+    assert (sf.ALL_F3, "private reasoning", "no hint") not in a                   # no total the summary doesn't give
+    over = by([r for r in rows if r["measure"] == "overlap"], "text")
+    assert [(over[(t,)]["k"], over[(t,)]["n"]) for t in ("both", "private only", "final only", "neither")] == \
+        [(8, 216), (200, 216), (0, 216), (8, 216)]                                   # F3: both 8; 200; 0; 8
+    assert over[("both",)]["k"] + over[("private only",)]["k"] == total["private reasoning"]["k"]
+    assert over[("both",)]["k"] + over[("final only",)]["k"] == total["final answer"]["k"]
+    b = by([r for r in rows if r["panel"] == "b"], "text", "measure")
+    t2 = s["scope_numbers"]["test2_thinking_combined"]
+    assert t2["models"] == list(MODELS_TEST2)
+    for text, field in (("private reasoning", "followed_and_private_mention"),
+                        ("final answer", "followed_and_final_mention")):
+        r = b[(text, "names the tool")]
+        cells = [s["expB"]["cells"][f"{m}|cue_tool|all"][field] for m in MODELS_TEST2]
+        assert (r["k"], r["n"]) == (sum(c["num"] for c in cells), sum(c["den"] for c in cells))
+    assert [(b[(t, "names the tool")]["k"], b[(t, "names the tool")]["n"]) for t in ("private reasoning", "final answer")] \
+        == [(16, 17), (6, 17)]                                                        # F3, Test 2
+    won = b[("", "the tool hint won")]
+    assert (won["k"], won["n"]) == (t2["tool_hint_followed"]["num"], t2["tool_hint_followed"]["den"]) == (17, 31)
+    for r in rows:
+        assert r["value"] == r["k"] / r["n"] and r["interval"] == sf.WILSON
+        assert (r["low"], r["high"]) == tuple(wilson(r["k"], r["n"]))
+    rounded = [[round(x * 100) for x in (r["low"], r["high"])] for r in
+               (total["private reasoning"], total["final answer"], b[("private reasoning", "names the tool")],
+                b[("final answer", "names the tool")])]
+    assert rounded == [[93, 98], [2, 7], [73, 99], [17, 59]]                          # F3's intervals
+
+
+def strings(o, key=""):
+    if isinstance(o, dict):
+        return [x for k, v in o.items() for x in strings(v, k)]
+    if isinstance(o, list):
+        return [x for v in o for x in strings(v, key)]
+    return [(key, o)] if isinstance(o, str) else []
+
+
+def test_f3s_source_holds_numbers_not_model_text():
+    """The parts of RESULTS_SUMMARY.json the figure reads hold numbers, ids, paths and our own short notes: no reply
+    text (the model ids, the source paths, the function names, the notes and the run ids are every string there)."""
+    s = json.loads(SUMMARY.read_text())
+    parts = [s["pilot"]["mentions"], s["pilot"]["private_mentions_all_thinking"], s["pilot"]["final_mentions_all_thinking"],
+             s["scope_numbers"]["pilot_mention_overlap"], s["scope_numbers"]["test2_thinking_combined"],
+             [s["expB"]["cells"][f"{m}|cue_tool|all"] for m in MODELS_TEST2]]
+    found = strings(parts)
+    ids = {"models", "model", "channel", "group", "ci_method"}
+    assert found and {k for k, _ in found} <= ids | {"source", "function", "note", "run_ids"}
+    assert all(len(v) <= 120 and "\n" not in v for _, v in found)
+    assert all(re.fullmatch(r"[a-z0-9_.\-]+", v) for k, v in found if k in ids)
+    assert all(re.fullmatch(r"cot-disclosure/[A-Za-z0-9_/.\-]+\.jsonl", v) for k, v in found if k == "source")
+    assert all(len(v) == 16 and int(v, 16) >= 0 for k, v in found if k == "run_ids")
+
+
+def test_private_final_figure_plots_only_its_csv(monkeypatch, tmp_path):
+    """The figure's bars are the CSV's "bar" rows, every "X of Y" it prints is a CSV row, the CSV is the rows (numbers
+    and short labels only), and the note says what the counts are and why no claim rests on L3's labels."""
+    fig = drawn(monkeypatch, sf.fig_private_final, tmp_path)
+    rows = sf.private_final_rows()
+    table = list(csv.DictReader(open(tmp_path / "private_vs_final.csv")))
+    assert table == [{k: str(v) for k, v in r.items()} for r in rows]
+    assert png_size(tmp_path / "private_vs_final.png") == (2000, 1125)
+    assert (tmp_path / "private_vs_final.svg").stat().st_size > 0
+    numeric = ("k", "n", "value", "low", "high")
+    for r in table:
+        for k, v in r.items():
+            if k in numeric:
+                float(v)
+            else:
+                assert len(v) <= 80 and "\n" not in v, (k, v)
+        assert re.fullmatch(r"[a-z0-9_.\-]+", r["source"]), r["source"]
+    heights = sorted(b.get_height() for ax in fig.axes for c in ax.containers for b in c)
+    assert heights == pytest.approx(sorted(r["value"] * 100 for r in rows if r["shown"] == "bar"))
+    words = " ".join(t.get_text() for t in fig.findobj(lambda o: hasattr(o, "get_text"))).replace("\n", " ")
+    printed = {(int(k), int(n)) for k, n in re.findall(r"(\d+) of (\d+)", words)}
+    assert printed and printed <= {(r["k"], r["n"]) for r in rows}
+    assert {(r["k"], r["n"]) for r in rows if r["shown"] == "bar"} <= printed
+    for must in ("not hand labels", "hand labels of private versus final", "Nov 4", "AI-judge", "tool-vs-user test",
+                 "not met", "0.6",
+                 "all six cells", "upper bound", "22 of 72"):
+        assert must in words, must
+
+
+# ---------------------------------------------------------------- plain names (Nov 14)
+CODES = re.compile(r"\b(?:[ABCEFHLT]\d+(?:R\d)?|FB\d+|FC\d+|Gate \d|Track [ABC]|Step \d+|set A|tool_[a-z]+|user_[a-z]+|"
+                   r"prompt_only|B1R\d?|J-[a-z]+)\b")
+
+
+def test_no_figure_shows_an_internal_code(monkeypatch, tmp_path):
+    """Plain names on the slides (tools/explainer/names.json, docs/GLOSSARY.md): no visible title, key, axis label or note
+    carries an internal code (A40, F41, B1R2, Gate 3, Track B, set A, tool_real ...). The CSVs keep them."""
+    from matplotlib.text import Text
+    for f in sf.SLIDE_FIGURES:
+        fig = drawn(monkeypatch, f, tmp_path)
+        words = " ".join(t.get_text() for t in fig.findobj(Text) if t.get_visible()).replace("\n", " ")
+        assert not CODES.findall(words), (f.__name__, sorted(set(CODES.findall(words))))
+
+
+def test_slide_1_lists_nothing_as_open_that_has_been_read(tmp_path):
+    """Slide 1 (three_levels) once listed A18, B17, C25 and C20 as open; all four were read by Nov 7 (F39 and F42, F37,
+    FC2, FC3). Its last line is now what was read since, by finding (Nov 14)."""
+    table = list(csv.DictReader(open(sf.fig_levels(out=tmp_path)[2])))
+    assert [r["level"] for r in table] == ["1", "2", "3"]
+    assert "open" not in table[0] and all(r["read_since"] for r in table)
+    for r, ids in zip(table, (("F39", "F42"), ("F37",), ("FC2", "FC3"))):
+        assert all(i in r["read_since"] for i in ids), (r["level"], r["read_since"])
