@@ -1,7 +1,20 @@
 # Moves: every file moved, and why
 
-Two reorganizations: Nov 1, 2026 (below) and Oct 30, 2026 (further down); and on Nov 4, 2026, one daily folded into the day before (first below). Every move was a `git mv` in a commit of
+Two reorganizations: Nov 1, 2026 (below) and Oct 30, 2026 (further down); on Nov 4, 2026, one daily folded into the day before; and on Nov 14, 2026, the old demo's template archived (first below). Every move was a `git mv` in a commit of
 its own with the content unchanged, so `git log --follow <new path>` shows a file's whole history.
+
+## Nov 14, 2026: the old demo's template archived
+
+By: Ritik; session log [`2026-11-14_2215_A_explainer.md`](sessions/2026-11-14/2026-11-14_2215_A_explainer.md). The demo of
+Nov 13 (seven screens) was replaced by the Hint Explainer (templates in `cot-disclosure/tools/explainer/`), and
+`tools/build_demo.py` no longer reads the old template. Moved in a commit of its own, the content unchanged.
+
+| # | old path | new path | why |
+|---|---|---|---|
+| 1 | `cot-disclosure/tools/demo_page/template.html` | `archive/superseded/demo_page_2026-11-13/template.html` | superseded by `tools/explainer/` (the Hint Explainer, Nov 14) |
+| 2 | `cot-disclosure/tools/demo_page/demo.css` | `archive/superseded/demo_page_2026-11-13/demo.css` | the same |
+| 3 | `cot-disclosure/tools/demo_page/demo.js` | `archive/superseded/demo_page_2026-11-13/demo.js` | the same; the explainer's article charts reuse parts of its chart code |
+| 4 | `cot-disclosure/tools/demo_page/examples.html` | `archive/superseded/demo_page_2026-11-13/examples.html` | the same |
 
 ## Nov 4, 2026: a daily folded into the day before
 
