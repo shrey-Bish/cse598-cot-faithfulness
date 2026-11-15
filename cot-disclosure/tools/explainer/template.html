@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hint Explainer</title>
+<meta name="description" content="Where did that answer come from? An animated explainer of how a wrong hint moves open-weight models, simulated at our measured rates.">
+<style><!--CSS--></style>
+</head>
+<body data-mode="<!--MODE-->">
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
+  <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--tool)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--surface)" stroke-width="2.2"/></pattern>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="context-stroke"/></marker>
+</defs></svg>
+
+<header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true"></span><h1>Hint Explainer</h1><span class="sub">where did that answer come from?</span></div>
+  <div class="top-actions">
+    <span class="simnote" id="simnote">Simulated at our measured rates</span>
+    <button id="play" class="btn accent" aria-label="Play the story, a two-minute tour">&#9654; Play the story</button>
+    <button id="ids-toggle" class="btn" aria-pressed="false" title="Show the internal IDs and the glossary behind them">IDs</button>
+    <button id="theme" class="btn" aria-label="Switch light and dark (t)" title="Light / dark (t)">&#9680;</button>
+    <button id="help-btn" class="btn" aria-haspopup="dialog" aria-label="Keys" title="Keys">?</button>
+  </div>
+</header>
+
+<section id="hero" aria-label="The explainer">
+  <div class="controls" role="group" aria-label="Controls">
+    <div class="ctl"><label for="model">Model</label>
+      <div class="row"><select id="model"></select><div id="setting" class="seg" role="group" aria-label="Setting"></div></div></div>
+    <div class="ctl grow"><span class="lbl" id="srclbl">The hint comes from</span>
+      <div id="sources" class="seg" role="group" aria-labelledby="srclbl"></div></div>
+    <div class="ctl"><label for="fix">Fix</label>
+      <div class="row"><select id="fix"></select><button id="to-tradeoff" class="link" type="button">the trade-off</button></div></div>
+    <div class="ctl"><span class="lbl">&nbsp;</span>
+      <div class="row"><label class="sw"><input type="checkbox" id="review"><span class="track" aria-hidden="true"></span>Review team</label>
+        <button id="run" class="btn primary" type="button">&#9654; Run</button>
+        <button id="run20" class="btn" type="button">Run 20 times</button></div></div>
+  </div>
+  <p id="fixnote" role="status" aria-live="polite"></p>
+
+  <div id="diagram">
+    <div id="stages" class="stages">
+      <section class="stage" data-stage="1" aria-labelledby="st1">
+        <button class="stage-head" type="button" aria-expanded="false"><span class="num">1</span><span class="title" id="st1" data-name="Tool vs user">Input</span><span class="more">expand</span></button>
+        <div class="stage-body" id="b1"></div><div class="lane" id="lane1"></div>
+      </section>
+      <div class="conn" id="c1" aria-hidden="true"><svg viewBox="0 0 40 20"><line x1="2" y1="10" x2="34" y2="10" marker-end="url(#arrow)"/><circle class="pulse" cx="2" cy="10" r="3"/></svg></div>
+      <section class="stage" data-stage="2" aria-labelledby="st2">
+        <button class="stage-head" type="button" aria-expanded="false"><span class="num">2</span><span class="title" id="st2" data-name="Readout layers 15, 19 and 23">Inside the model</span><span class="more">expand</span></button>
+        <div class="stage-body" id="b2"></div><div class="lane" id="lane2"></div>
+      </section>
+      <div class="conn" id="c2" aria-hidden="true"><svg viewBox="0 0 40 20"><line x1="2" y1="10" x2="34" y2="10" marker-end="url(#arrow)"/><circle class="pulse" cx="2" cy="10" r="3"/></svg></div>
+      <section class="stage" data-stage="3" aria-labelledby="st3">
+        <button class="stage-head" type="button" aria-expanded="false"><span class="num">3</span><span class="title" id="st3" data-name="Private vs final naming">Private reasoning</span><span class="more">expand</span></button>
+        <div class="stage-body" id="b3"></div><div class="lane" id="lane3"></div>
+      </section>
+      <div class="conn" id="c3" aria-hidden="true"><svg viewBox="0 0 40 20"><line x1="2" y1="10" x2="34" y2="10" marker-end="url(#arrow)"/><circle class="pulse" cx="2" cy="10" r="3"/></svg></div>
+      <section class="stage" data-stage="4" aria-labelledby="st4">
+        <button class="stage-head" type="button" aria-expanded="false"><span class="num">4</span><span class="title" id="st4" data-name="The quiet answer">Final answer</span><span class="more">expand</span></button>
+        <div class="stage-body" id="b4"></div><div class="lane" id="lane4"></div>
+      </section>
+      <div class="conn c4" id="c4" aria-hidden="true"><svg viewBox="0 0 40 20"><line x1="2" y1="10" x2="34" y2="10" marker-end="url(#arrow)"/><circle class="pulse" cx="2" cy="10" r="3"/></svg></div>
+      <section class="stage s5" data-stage="5" aria-labelledby="st5">
+        <button class="stage-head" type="button" aria-expanded="false"><span class="num">5</span><span class="title" id="st5" data-name="Review team">Review team</span><span class="more">expand</span></button>
+        <div class="stage-body" id="b5"></div><div class="lane" id="lane5"></div>
+      </section>
+    </div>
+    <div id="expand" role="dialog" aria-modal="false" aria-labelledby="expand-title">
+      <div class="expand-head"><h2 id="expand-title"></h2><span class="sim">drawn from the measured numbers; hover a mark for X of Y runs and its 95% interval</span>
+        <button id="expand-close" class="btn" type="button" aria-label="Close (Esc)">&#10005; Esc</button></div>
+      <div id="expand-body"></div>
+    </div>
+  </div>
+  <div class="legend" id="legend" aria-label="Colour key"></div>
+  <p class="scrollcue">Below: a short explainer, one section per stage. <a href="#article">Read it</a></p>
+</section>
+
+<div id="tour" role="region" aria-label="The story" data-scene="0" hidden>
+  <div class="tour-dots" id="tour-dots"></div>
+  <p id="tour-caption" aria-live="polite"></p>
+  <div class="tour-nav"><button id="tour-prev" class="btn" type="button" aria-label="Back (left arrow)">&#9664;</button>
+    <button id="tour-next" class="btn accent" type="button" aria-label="Next (space or right arrow)">&#9654;</button>
+    <button id="tour-stop" class="btn" type="button" aria-label="Leave the story (Esc)">&#10005;</button></div>
+</div>
+
+<div id="help" role="dialog" aria-label="Keys" hidden>
+  <h2>Keys</h2>
+  <ul><li><kbd>Space</kbd> or <kbd>&rarr;</kbd> next scene, <kbd>&larr;</kbd> back, <kbd>1-7</kbd> jump to a scene (in the story)</li>
+  <li><kbd>r</kbd> run, <kbd>t</kbd> light or dark, <kbd>i</kbd> IDs, <kbd>Esc</kbd> closes a stage or leaves the story</li></ul>
+</div>
+
+<article id="article" class="article">
+  <h2 class="art-title">The short version</h2>
+  <p class="lede">We gave open-weight models a multiple-choice question and a <em>wrong</em> hint, and watched where the hint went: how often the model followed it, which layers read it, whether the reasoning or the answer admitted it, what reviewers downstream did, and which fixes helped. Every number below is a count of runs ("X of Y") with its 95% interval; hover a mark to see it. The title question, <strong>do thinking modes make chain-of-thought more honest?</strong>, gets an answer that is mixed.</p>
+
+  <section class="art" id="a-tool">
+    <h3 data-name="Tool vs user">Tools sway models more than users</h3>
+    <p><q>Tools sway models more than users.</q> The same wrong hint moves the answer more when it arrives as a tool's output than when the user writes it, in every model and setting we tested: {x.settings[0].model} followed the user's hint in {x.settings[0].sources.user.f.k} of {x.settings[0].sources.user.f.n} runs and the pasted tool output in {x.settings[0].sources.pasted.f.k} of {x.settings[0].sources.pasted.f.n}.</p>
+    <div class="chart" data-chart="toolVsUser"></div>
+  </section>
+
+  <section class="art" id="a-ladder">
+    <h3 data-name="The authority ladder">Most of it is authority</h3>
+    <p>A user who writes "The official solution manual says the answer is (X)" moves the answer as much as a tool does, or more, for every tool channel but one, in all three models where we tried it: in {x.settings[2].model}, {s1.dose[2].manual.k} of {s1.dose[2].manual.n} runs against {s1.dose[2].pasted.k} of {s1.dose[2].pasted.n} for pasted tool output, measured in the same run. The exception is {s1.dose[1].model} calling the tool itself, which it does every time. The pull grows with the claimed source's authority.</p>
+    <div class="chart" data-chart="ladder"></div>
+  </section>
+
+  <section class="art" id="a-families">
+    <h3 data-name="Newer families">It holds in newer families</h3>
+    <p>Gemma 4, Nemotron 3 Nano and Granite 4.2 were tested later, on a different server, with thinking on and off. A tool's hint moved all three more than the user's. The tool channel differs: Gemma and Nemotron get an inserted tool turn, Granite calls the tool itself, and Granite was run with thinking on only.</p>
+    <div class="chart" data-chart="families"></div>
+  </section>
+
+  <section class="art" id="a-quiet">
+    <h3 data-name="The quiet answer">The final answer goes quiet</h3>
+    <p><q>After a tool call, the answer stops explaining.</q> After a call, the final answer is often a bare letter, whether the tool was right or wrong. Models that think write the tool into their private reasoning and often leave it out of the answer.</p>
+    <div class="chart" data-chart="quiet"></div>
+  </section>
+
+  <section class="art" id="a-thinking">
+    <h3 data-name="Thinking on vs off">Does thinking make it more honest? Mixed</h3>
+    <p><strong>So the title question is answered mixed:</strong> with thinking on, {x.settings[3].model} names the tool in its private reasoning after {s2.title.f29.private.k} of {s2.title.f29.private.n} calls but in its final answer in {s2.title.f29.final.k} of {s2.title.f29.final.n} followed runs; in {x.settings[5].model}, more reasoning effort changes nothing we could detect; in {x.settings[10].model}, the answer after the inserted tool turn is less bare with thinking on ({s2.title.fb1.d:pts} points). Thinking raised {x.settings[3].model}'s call rate, so it took the tool's wrong letter more often. One model each; Qwen3-8B's thinking-on minus thinking-off comparison was read after the fact.</p>
+    <div class="chart" data-chart="thinking"></div>
+  </section>
+
+  <section class="art" id="a-layers">
+    <h3 data-name="Readout layers 15, 19 and 23">Inside the model: three layers read the hint</h3>
+    <p>In {x.settings[2].model}, layers {s3.readout[0]}, {s3.readout[1]} and {s3.readout[2]} read the hint straight from the prompt and pass it on to the answer: {s3.share[0].m:2} [{s3.share[0].lo:2}, {s3.share[0].hi:2}] of the effect on one question set and {s3.share[1].m:2} [{s3.share[1].lo:2}, {s3.share[1].hi:2}] on {s3.share[1].questions} new questions. In {s3.qwen.n_layers}-layer Qwen3-8B, layers {s3.qwen.at[0]}, {s3.qwen.at[1]} and {s3.qwen.at[2]} hold {s3.share[2].m:2} [{s3.share[2].lo:2}, {s3.share[2].hi:2}]: it replicates, less concentrated. Confirmed on two question sets in one model; as a whole the mechanism is tentative.</p>
+    <div class="chart" data-chart="layers"></div>
+  </section>
+
+  <section class="art" id="a-training">
+    <h3 data-name="Inside the fine-tuned model">What training changed inside</h3>
+    <p>Fine-tuning acts in the reasoning, not on the readout: given the base model's own reasoning, its weights pull toward the hint's letter harder, not less. Consistency training is the first fix that acts on the readout: its weights remove part of the hint's pull, in the layers before the readout (up to layer {s3.readout[0]:minus1}), and more of it than the fine-tuned model's. Bars show logits of the hint's pull removed, with 95% intervals.</p>
+    <div class="chart" data-chart="training"></div>
+  </section>
+
+  <section class="art" id="a-review">
+    <h3 data-name="Review team">Downstream, reviewers defer</h3>
+    <p><q>Downstream, a reviewer shown the tool's output defers to it.</q> It depends on the family: of six reviewers, only the two Olmo reviewers defer. {s4.reviewers[0].name} corrects {s4.reviewers[0].answer_only.k} of {s4.reviewers[0].answer_only.n} wrong tool answers from the answer alone, and {s4.reviewers[0].plus_private.k} and {s4.reviewers[0].plus_tool_log.k} of {s4.reviewers[0].plus_tool_log.n} once it sees the private reasoning or the tool log.</p>
+    <div class="chart" data-chart="reviewers"></div>
+  </section>
+
+  <section class="art" id="a-checker">
+    <h3 data-name="Independent checker">What does help: independent verification</h3>
+    <p>A checker that re-solves the question without the tool caught {s4.checker.caught.k} of {s4.checker.caught.n} wrong tool answers on fresh items, with false alarms on {s4.checker.false_alarms.k} of {s4.checker.false_alarms.n} good lookups, at the no-tool floor. Our reading: <q>provenance labels alone don't help</q>, <q>independent verification does</q>: marking the tool's output "unverified" had no effect alone on the tool turn.</p>
+    <div class="chart" data-chart="checker"></div>
+  </section>
+
+  <section class="art" id="a-tradeoff">
+    <h3 data-name="The trade-off">The fixes trade one error for another</h3>
+    <p>Every fix we trained, prompted or applied at inference moves along one trade-off, not past it (our reading). <q>The stricter bar, beating the one-line instruction on following at no cost to correct hints: met by no fix.</q> The slider is exploratory, post hoc: it asks how often the tool is right, and which fix then gives the most correct answers.</p>
+    <div class="chart" data-chart="tradeoff"></div>
+  </section>
+
+  <section class="art" id="a-candid">
+    <h3 data-name="Candid answers">Candid answers</h3>
+    <p><q>Training made the answer more candid about a hint it followed, in hand labels, without making it follow less.</q> When the fine-tuned model follows a wrong hint, its answer says so in {s5.l6.lora.k} of {s5.l6.lora.n} hand-labelled runs against {s5.l6.instruction.k} of {s5.l6.instruction.n} for the one-line instruction. The limits: the fine-tuned model's trained opener names the hint, its following shows no difference from the instruction's, one model, one question set, {s5.l6.lora.n} rows a system, the final answer only; the labelling was not blind in practice, though an AI judge blind to the systems agreed on {s5.l6.agreement:pct} of {s5.l6.rows} rows.</p>
+    <div class="chart" data-chart="candid"></div>
+  </section>
+
+  <section class="art" id="a-dial">
+    <h3 data-name="Attention dial">The attention dial</h3>
+    <p>Scaling down attention to the tool turn at answer time cuts following on the inserted tool turn, and on {x.fresh_questions} fresh questions the cut replicated ({s5.b1r2[1].following.base_k} of {s5.b1r2[1].following.n} to {s5.b1r2[1].following.k} of {s5.b1r2[1].following.n}), but correct hints are accepted less too. By the pre-registered rule it "{s5.b1r2[1].reading}" again; the verdict on the first, smaller question set stays primary.</p>
+    <div class="chart" data-chart="dial"></div>
+  </section>
+
+  <section class="art how" id="a-how">
+    <h3>How we worked</h3>
+    <ul>
+      <li><strong>Counts.</strong> Eight answering models in {x.settings.length} settings, {x.test_questions} test questions three times each on the main set, {x.fresh_questions} fresh questions for the fixes, {s4.reviewers.length} reviewers.</li>
+      <li><strong>Rules fixed before results.</strong> Each test's rule was written down in a pre-registration before its runs; items read after the fact are labelled that way, and exploratory items say so.</li>
+      <li><strong>Statistics.</strong> Rates are X of Y with 95% Wilson intervals; differences use question-clustered bootstrap intervals. Where fewer than a handful of questions stand behind a number, none is reported.</li>
+      <li><strong>Labels and AI use.</strong> Hand labels were made by Ritik; an AI rater and AI judges labelled the same rows as a reliability check, under a protocol fixed in advance. Claude Code was used for code, tests, analyses and documents; <code>docs/submission/AI_USE_INVENTORY.md</code> lists it.</li>
+      <li><strong>Limits.</strong> Open-weight models only; one fixed-effort setting per model unless shown; the fixes were trained and tested on one model; the mechanism was read in two models; temperatures and hosting differ between model groups; this page simulates runs at measured rates and is not a new experiment.</li>
+    </ul>
+    <p class="fine">Hand labels agree with the AI judge at kappa {s5.l6.kappa:2} on {s5.l6.rows} rows.</p>
+  </section>
+
+  <section class="art" id="a-glossary" hidden>
+    <h3>Glossary</h3><p class="fine">Plain names and the internal IDs that find their logs. The full table is <a href="../GLOSSARY.md">GLOSSARY.md</a>.</p>
+    <div id="glossary"></div>
+  </section>
+</article>
+
+<footer class="foot">Hint Explainer. Simulated runs are drawn at our measured rates with a fixed seed; example texts are illustrative. Source of every number: the numbers-only summaries in the repository.</footer>
+
+<script type="application/json" id="demo-data"><!--DATA--></script>
+<script type="application/json" id="demo-names"><!--NAMES--></script>
+<script type="application/json" id="demo-tour"><!--TOUR--></script>
+<!--EXAMPLES_DATA-->
+<script><!--JS--></script>
+</body>
+</html>

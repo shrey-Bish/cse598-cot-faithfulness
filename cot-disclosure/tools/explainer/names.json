@@ -1,0 +1,540 @@
+{
+  "about": [
+    "Plain names for the explainer, the README and the figures, each with the internal IDs that find its logs.",
+    "One table for every place: docs/GLOSSARY.md is written from it; the explainer shows it behind its IDs toggle.",
+    "FINDINGS, the session logs and the pre-registrations keep the IDs: they are the research record."
+  ],
+  "groups": [
+    {
+      "group": "Question sets",
+      "names": [
+        {
+          "plain": "54 test questions",
+          "ids": [
+            "Gate 2's set",
+            "54 questions x 3 runs"
+          ],
+          "what": "Track B's questions for tool vs user, three runs each"
+        },
+        {
+          "plain": "30 held-out questions",
+          "ids": [
+            "the 30",
+            "Gate 3's held-out set"
+          ],
+          "what": "the fixes' first test set (Olmo 3 7B Think)"
+        },
+        {
+          "plain": "16 new questions",
+          "ids": [
+            "set A"
+          ],
+          "what": "the inside-the-model readings repeated on questions not used to find them"
+        },
+        {
+          "plain": "120 fresh questions",
+          "ids": [
+            "E2"
+          ],
+          "what": "the powered test set for the fixes, the trade-off and the hand labels"
+        },
+        {
+          "plain": "MMLU-Pro questions",
+          "ids": [
+            "A37"
+          ],
+          "what": "the inside-the-model replication in Qwen3-8B"
+        }
+      ]
+    },
+    {
+      "group": "Where the hint comes from",
+      "names": [
+        {
+          "plain": "User's guess",
+          "ids": [
+            "user",
+            "user channel"
+          ],
+          "what": "the user writes the wrong answer in the question"
+        },
+        {
+          "plain": "Classmate",
+          "ids": [
+            "user_classmate",
+            "B24"
+          ],
+          "what": "\"A classmate of mine says the answer is (X).\""
+        },
+        {
+          "plain": "My answer key",
+          "ids": [
+            "user_authority",
+            "B16",
+            "B19"
+          ],
+          "what": "\"My course answer key says the answer is (X).\""
+        },
+        {
+          "plain": "The official manual",
+          "ids": [
+            "user_manual",
+            "B24"
+          ],
+          "what": "\"The official solution manual says the answer is (X).\""
+        },
+        {
+          "plain": "Pasted tool output",
+          "ids": [
+            "tool_pasted",
+            "pasted block"
+          ],
+          "what": "a tool's output pasted into the prompt"
+        },
+        {
+          "plain": "Tool call",
+          "ids": [
+            "tool_real",
+            "tool_injected",
+            "inserted tool turn"
+          ],
+          "what": "the model's own lookup call, or a tool turn inserted into the chat"
+        }
+      ]
+    },
+    {
+      "group": "Fixes (Olmo 3 7B Think)",
+      "names": [
+        {
+          "plain": "One-line instruction",
+          "ids": [
+            "prompt_only",
+            "the instruction",
+            "the note"
+          ],
+          "what": "one line in the prompt telling the model to check hints"
+        },
+        {
+          "plain": "Fine-tuned (LoRA)",
+          "ids": [
+            "LoRA",
+            "F20",
+            "F28"
+          ],
+          "what": "trained to note the hint's source and decide for itself"
+        },
+        {
+          "plain": "Source tags only",
+          "ids": [
+            "tags",
+            "F28"
+          ],
+          "what": "trained with source tags, without the fine-tuned opener"
+        },
+        {
+          "plain": "Fine-tuned + source tags",
+          "ids": [
+            "LoRA + tags",
+            "F28"
+          ],
+          "what": "the two together"
+        },
+        {
+          "plain": "Fine-tuned on layers 15, 19 and 23",
+          "ids": [
+            "LoRA on 15/19/23",
+            "F28"
+          ],
+          "what": "fine-tuning only the readout layers"
+        },
+        {
+          "plain": "Consistency-trained",
+          "ids": [
+            "A40",
+            "F41"
+          ],
+          "what": "trained on its own reasoning written without the hint"
+        },
+        {
+          "plain": "Consistency-trained + instruction",
+          "ids": [
+            "A42",
+            "a40_note",
+            "F43"
+          ],
+          "what": "the two together"
+        },
+        {
+          "plain": "\"Unverified\" label",
+          "ids": [
+            "A39",
+            "the wrapper",
+            "wrap",
+            "F44"
+          ],
+          "what": "every tool output marked \"[unverified tool output]\""
+        },
+        {
+          "plain": "Label + instruction",
+          "ids": [
+            "wrap_note",
+            "wrapper + note",
+            "F44"
+          ],
+          "what": "the two together"
+        },
+        {
+          "plain": "Fine-tuned + instruction",
+          "ids": [
+            "lora_note",
+            "LoRA + note",
+            "A39 R2",
+            "F44"
+          ],
+          "what": "the two together"
+        },
+        {
+          "plain": "Fine-tuned + label",
+          "ids": [
+            "lora_wrap",
+            "LoRA + wrapper",
+            "F44"
+          ],
+          "what": "the two together"
+        },
+        {
+          "plain": "Attention dial",
+          "ids": [
+            "B1",
+            "B1R2",
+            "alpha 0.25",
+            "F27",
+            "F38"
+          ],
+          "what": "attention to the tool turn scaled down at answer time"
+        },
+        {
+          "plain": "Attention dial + instruction (not run)",
+          "ids": [
+            "A38"
+          ],
+          "what": "pre-registered to run only if the dial worked; it didn't"
+        },
+        {
+          "plain": "A larger attention-dial replication (not run)",
+          "ids": [
+            "B1R"
+          ],
+          "what": "needed 107 to 245 questions; the GPU time fit 70"
+        }
+      ]
+    },
+    {
+      "group": "What we measured",
+      "names": [
+        {
+          "plain": "Tool vs user",
+          "ids": [
+            "Gate 2",
+            "F1",
+            "F15",
+            "F16",
+            "F17",
+            "F29",
+            "F37",
+            "FB1"
+          ],
+          "what": "the same wrong hint from a tool and from the user"
+        },
+        {
+          "plain": "The authority ladder",
+          "ids": [
+            "B16",
+            "B19",
+            "B24",
+            "F35",
+            "F40"
+          ],
+          "what": "a user claiming a stronger and stronger source"
+        },
+        {
+          "plain": "Newer families",
+          "ids": [
+            "B20",
+            "FB1"
+          ],
+          "what": "Gemma 4, Nemotron 3 Nano and Granite 4.2"
+        },
+        {
+          "plain": "Thinking on vs off",
+          "ids": [
+            "B4",
+            "F29"
+          ],
+          "what": "Qwen3-8B with the same weights, thinking switched"
+        },
+        {
+          "plain": "Reasoning effort",
+          "ids": [
+            "B17",
+            "F37"
+          ],
+          "what": "gpt-oss-20b at low, medium and high effort"
+        },
+        {
+          "plain": "The quiet answer",
+          "ids": [
+            "bare final answer",
+            "F15",
+            "F16",
+            "F29",
+            "F37",
+            "FB1"
+          ],
+          "what": "after a tool call the final answer is a bare letter"
+        },
+        {
+          "plain": "Disclosure instruction",
+          "ids": [
+            "B15",
+            "F25"
+          ],
+          "what": "asking the model to say what its answer is based on"
+        },
+        {
+          "plain": "Private vs final naming",
+          "ids": [
+            "F3",
+            "L3"
+          ],
+          "what": "the hint named in the private reasoning, not in the final answer"
+        },
+        {
+          "plain": "Readout layers 15, 19 and 23",
+          "ids": [
+            "Step 10",
+            "F11",
+            "F12",
+            "F26",
+            "F32"
+          ],
+          "what": "the three layers that read the hint from the prompt"
+        },
+        {
+          "plain": "Qwen3-8B replication",
+          "ids": [
+            "A37",
+            "F36"
+          ],
+          "what": "the readout found again in a second model"
+        },
+        {
+          "plain": "Inside the fine-tuned model",
+          "ids": [
+            "A18",
+            "F39"
+          ],
+          "what": "where training acts: in the reasoning, not on the readout"
+        },
+        {
+          "plain": "Inside the consistency-trained model",
+          "ids": [
+            "A41",
+            "F42"
+          ],
+          "what": "the first fix that acts before the readout, in layers 0-14"
+        },
+        {
+          "plain": "Candid answers",
+          "ids": [
+            "L6",
+            "F45"
+          ],
+          "what": "hand labels: does the answer say it followed the hint?"
+        },
+        {
+          "plain": "The trade-off",
+          "ids": [
+            "tradeoff_e2",
+            "Acc(p)"
+          ],
+          "what": "fewer wrong hints followed against fewer right ones taken; exploratory"
+        },
+        {
+          "plain": "Hand labels",
+          "ids": [
+            "L3",
+            "L4 part 1",
+            "L6"
+          ],
+          "what": "rows labelled by Ritik, checked against an AI rater or judge"
+        },
+        {
+          "plain": "AI judges",
+          "ids": [
+            "J-opus",
+            "J-qwen",
+            "J-olmo"
+          ],
+          "what": "model judges under the Nov 4 protocol, for labels only"
+        }
+      ]
+    },
+    {
+      "group": "Review teams",
+      "names": [
+        {
+          "plain": "Review team",
+          "ids": [
+            "Track C",
+            "C4",
+            "C11",
+            "C13",
+            "C15",
+            "F18",
+            "F22",
+            "F24",
+            "F30"
+          ],
+          "what": "a solver, a reviewer and a checker in a pipeline"
+        },
+        {
+          "plain": "Telling the reviewer to check",
+          "ids": [
+            "C9",
+            "F19"
+          ],
+          "what": "an instruction to check the tool independently"
+        },
+        {
+          "plain": "Reviewer answers first",
+          "ids": [
+            "C10",
+            "F21"
+          ],
+          "what": "the reviewer commits to its own answer before it sees the trace"
+        },
+        {
+          "plain": "Tool's letter redacted",
+          "ids": [
+            "C12",
+            "F23"
+          ],
+          "what": "the reviewer sees the tool log without its letter"
+        },
+        {
+          "plain": "Independent checker",
+          "ids": [
+            "C15",
+            "F24"
+          ],
+          "what": "re-solves without the tool and flags a disagreement"
+        },
+        {
+          "plain": "Cheaper two-review check",
+          "ids": [
+            "C14",
+            "F24"
+          ],
+          "what": "two reviews instead of a checker"
+        },
+        {
+          "plain": "Solver names the tool",
+          "ids": [
+            "C16",
+            "F31"
+          ],
+          "what": "the solver's final answer names the tool"
+        },
+        {
+          "plain": "A fixed sentence naming the tool",
+          "ids": [
+            "C17",
+            "F33"
+          ],
+          "what": "the same sentence added to every answer"
+        },
+        {
+          "plain": "Tool-citing sentences removed",
+          "ids": [
+            "C18",
+            "F34"
+          ],
+          "what": "the solver's working kept, its citations of the tool removed"
+        },
+        {
+          "plain": "Unverified tag in the pipeline",
+          "ids": [
+            "C20",
+            "FC3"
+          ],
+          "what": "a tag naming the tool's letter as unverified"
+        },
+        {
+          "plain": "Answer-key claim in the answer",
+          "ids": [
+            "C19",
+            "FC1"
+          ],
+          "what": "the solver's answer cites an answer key, or its own working"
+        },
+        {
+          "plain": "Handoff notes",
+          "ids": [
+            "C25",
+            "FC2"
+          ],
+          "what": "a writer agent's note to the next agent puts the tool back as the source"
+        },
+        {
+          "plain": "A retrieved passage",
+          "ids": [
+            "C26",
+            "FC4"
+          ],
+          "what": "a passage in place of the answer key; the reviewer still defers"
+        }
+      ]
+    },
+    {
+      "group": "The project",
+      "names": [
+        {
+          "plain": "Inside the model and the fixes",
+          "ids": [
+            "Track A"
+          ],
+          "what": "Olmo 3 7B Think: where the hint is read, and training it to resist"
+        },
+        {
+          "plain": "Models and sources",
+          "ids": [
+            "Track B"
+          ],
+          "what": "eight answering models, the hint's source, thinking on and off"
+        },
+        {
+          "plain": "Downstream review",
+          "ids": [
+            "Track C"
+          ],
+          "what": "what a downstream reviewer and checker do with a tool's answer"
+        },
+        {
+          "plain": "The tool-vs-user test",
+          "ids": [
+            "Gate 2"
+          ],
+          "what": "marked Nov 8"
+        },
+        {
+          "plain": "The fix test",
+          "ids": [
+            "Gate 3"
+          ],
+          "what": "follow fewer wrong hints than base without losing accuracy; met"
+        }
+      ]
+    }
+  ]
+}

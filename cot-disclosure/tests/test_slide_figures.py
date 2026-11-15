@@ -427,6 +427,32 @@ def test_private_final_figure_plots_only_its_csv(monkeypatch, tmp_path):
     printed = {(int(k), int(n)) for k, n in re.findall(r"(\d+) of (\d+)", words)}
     assert printed and printed <= {(r["k"], r["n"]) for r in rows}
     assert {(r["k"], r["n"]) for r in rows if r["shown"] == "bar"} <= printed
-    for must in ("F3", "detect.py", "not hand labels", "L3", "Nov 4", "LLM-judge", "Gate 2", "not met", "0.6",
+    for must in ("not hand labels", "hand labels of private versus final", "Nov 4", "AI-judge", "tool-vs-user test",
+                 "not met", "0.6",
                  "all six cells", "upper bound", "22 of 72"):
         assert must in words, must
+
+
+# ---------------------------------------------------------------- plain names (Nov 14)
+CODES = re.compile(r"\b(?:[ABCEFHLT]\d+(?:R\d)?|FB\d+|FC\d+|Gate \d|Track [ABC]|Step \d+|set A|tool_[a-z]+|user_[a-z]+|"
+                   r"prompt_only|B1R\d?|J-[a-z]+)\b")
+
+
+def test_no_figure_shows_an_internal_code(monkeypatch, tmp_path):
+    """Plain names on the slides (tools/explainer/names.json, docs/GLOSSARY.md): no visible title, key, axis label or note
+    carries an internal code (A40, F41, B1R2, Gate 3, Track B, set A, tool_real ...). The CSVs keep them."""
+    from matplotlib.text import Text
+    for f in sf.SLIDE_FIGURES:
+        fig = drawn(monkeypatch, f, tmp_path)
+        words = " ".join(t.get_text() for t in fig.findobj(Text) if t.get_visible()).replace("\n", " ")
+        assert not CODES.findall(words), (f.__name__, sorted(set(CODES.findall(words))))
+
+
+def test_slide_1_lists_nothing_as_open_that_has_been_read(tmp_path):
+    """Slide 1 (three_levels) once listed A18, B17, C25 and C20 as open; all four were read by Nov 7 (F39 and F42, F37,
+    FC2, FC3). Its last line is now what was read since, by finding (Nov 14)."""
+    table = list(csv.DictReader(open(sf.fig_levels(out=tmp_path)[2])))
+    assert [r["level"] for r in table] == ["1", "2", "3"]
+    assert "open" not in table[0] and all(r["read_since"] for r in table)
+    for r, ids in zip(table, (("F39", "F42"), ("F37",), ("FC2", "FC3"))):
+        assert all(i in r["read_since"] for i in ids), (r["level"], r["read_since"])

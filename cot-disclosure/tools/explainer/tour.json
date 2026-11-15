@@ -1,0 +1,70 @@
+[
+ {
+  "label": "User's guess",
+  "row": 1,
+  "source": "user",
+  "fix": null,
+  "review": false,
+  "focus": 4,
+  "caption": "A user's guess barely moves the answer: {x.settings[1].model} followed it in {x.settings[1].sources.user.f.k} of {x.settings[1].sources.user.f.n} runs."
+ },
+ {
+  "label": "Tool's answer",
+  "row": 1,
+  "source": "call",
+  "fix": null,
+  "review": false,
+  "focus": 4,
+  "caption": "A tool's answer moves it a lot: the same model, with no thinking, followed the tool call in {x.settings[1].sources.call.f.k} of {x.settings[1].sources.call.f.n} runs."
+ },
+ {
+  "label": "Authority",
+  "row": 2,
+  "source": "manual",
+  "fix": null,
+  "review": false,
+  "focus": 1,
+  "caption": "It is mostly authority: \"the official manual\" pulls at least as hard as a tool. {x.settings[2].model}: the manual {s1.dose[2].manual.k} of {s1.dose[2].manual.n}, pasted tool output {s1.dose[2].pasted.k} of {s1.dose[2].pasted.n}, in the same run."
+ },
+ {
+  "label": "Inside the model",
+  "row": 2,
+  "source": "call",
+  "fix": null,
+  "review": false,
+  "focus": 2,
+  "caption": "Inside the model, layers {s3.readout[0]}, {s3.readout[1]} and {s3.readout[2]} read the hint straight from the prompt: {s3.share[0].m:2} [{s3.share[0].lo:2}, {s3.share[0].hi:2}] of the effect."
+ },
+ {
+  "label": "The quiet answer",
+  "row": 3,
+  "source": "call",
+  "fix": null,
+  "review": false,
+  "focus": 4,
+  "caption": "The final answer goes quiet: {x.settings[3].model} with thinking on names the tool in its reasoning after {x.settings[3].sources.call.private.k} of {x.settings[3].sources.call.private.n} calls, but in its answer in {x.settings[3].sources.call.names.k} of {x.settings[3].sources.call.names.n} followed runs."
+ },
+ {
+  "label": "Review team",
+  "row": 2,
+  "source": "call",
+  "fix": null,
+  "review": true,
+  "reviewer": 0,
+  "view": "plus_tool_log",
+  "checker": true,
+  "focus": 5,
+  "caption": "Reviewers defer to the tool's log: {s4.reviewers[0].name} corrects {s4.reviewers[0].answer_only.k} of {s4.reviewers[0].answer_only.n} wrong answers from the answer alone, {s4.reviewers[0].plus_tool_log.k} of {s4.reviewers[0].plus_tool_log.n} with the tool log; an independent checker caught {s4.checker.caught.k} of {s4.checker.caught.n}.",
+  "seed": "s6-c"
+ },
+ {
+  "label": "Fixes",
+  "row": 2,
+  "source": "call",
+  "fix": "a40",
+  "review": false,
+  "expand": "tradeoff",
+  "focus": 0,
+  "caption": "Our reading: every fix we tried moves along one trade-off, not past it. Consistency-trained follows {x.fresh.a40.sources.call.f.k} of {x.fresh.a40.sources.call.f.n} wrong tool hints but takes {x.fresh.a40.accept.call.k} of {x.fresh.a40.accept.call.n} right ones; with no fix, {x.fresh.base.sources.call.f.k} of {x.fresh.base.sources.call.f.n} and {x.fresh.base.accept.call.k} of {x.fresh.base.accept.call.n}."
+ }
+]

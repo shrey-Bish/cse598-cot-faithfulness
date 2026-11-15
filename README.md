@@ -1,101 +1,129 @@
 # Do Thinking Modes Make Chain-of-Thought More Honest?
 
-CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-13. **Edited by:** Ritik.
+CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-14. **Edited by:** Ritik.
 
-We slip a wrong hint into a multiple-choice question, from the user or from a tool, and ask two things: does the hint
-change the model's answer, and does the model say so? Thinking models return their private reasoning and their final
-answer separately, so we can check which of the two admits the hint. Three tracks:
-- **Track A** looks inside one open thinking model, Olmo 3 7B Think, to find where the hint takes over, and tries
-  fixes.
-- **Track B** tests more models and channels.
-- **Track C** asks what a wrong tool answer does to a team of agents: a solver, a reviewer and a checker.
+**New here?** Open the [Hint Explainer](docs/demo/index.html) first (details below), and keep the
+[glossary](docs/GLOSSARY.md) beside you: the repo's logs and findings use short internal codes (A40, B1R2, F41), and the
+glossary turns each one into a plain name and back.
+
+## What we ask
+
+We slip a wrong hint into a multiple-choice question. The hint comes from the user or from a tool. Then we ask two
+things: does the hint change the model's answer, and does the model say so? Thinking models hand back their private
+reasoning and their final answer as two separate pieces, so we can check which of the two admits the hint.
+
+Three tracks share the work:
+- **Inside the model and the fixes** (Track A) looks inside one open thinking model, Olmo 3 7B Think, to find where
+  the hint takes over, and tries ways to make it resist.
+- **Models and sources** (Track B) tests more models, and different sources for the hint.
+- **Review teams** (Track C) asks what a wrong tool answer does to a team of agents: a solver, a reviewer and a
+  checker.
 
 ## The theme and the story in five lines
 
-**"Where did that answer come from?"** A tool's influence loses its source at three levels: inside the model (line
-3), in the model's words (line 2) and between agents (line 4). [`docs/PLAN.md`](docs/PLAN.md) places every remaining
-experiment on that map. Results freeze on Nov 18; the final presentation and report are on Nov 24. Details, numbers
-and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The story so far").
+**"Where did that answer come from?"** A tool's influence loses its source at three levels: inside the model
+(line 3 below), in the model's own words (line 2) and between agents (line 4). [`docs/PLAN.md`](docs/PLAN.md) places
+every remaining experiment on that map. Results freeze on Nov 18, and the final presentation and report are due on
+Nov 24. Numbers and status for each line are in [`docs/FINDINGS.md`](docs/FINDINGS.md) ("The story so far"). Where a
+code appears in parentheses, it is what to search for there.
 
-1. **Tools sway models more than users, mostly through their claim to be the answer key.** The same wrong hint moves
-   the answer more from a tool than from the user, in all five Track B models (Gate 2, marked Nov 8); a user who claims the answer
-   key's authority moves it about as much, except where the model calls the tool itself every time (B16, F35;
-   confirmed same-day, B19). The pull grows with the claimed source's authority: the official solution manual moves
-   all three Voyager models more than a classmate, and for Qwen3 30B Thinking more than "answer key" (B24, F40).
-   In three more open-weight families on Sol (B20, FB1: Gemma 4, Nemotron 3 Nano, Granite 4.2), tools beat users in
-   all 10 readings; whether the tool's form adds to the claim it carries depends on the family and the channel (beyond
-   the claim in 5 of 10 readings, the claim moves it more in 1, no difference detected in 4). Labelled: the inserted
-   tool turn for Gemma and Nemotron, Granite thinking on only, temperature 1.0.
+1. **Tools sway models more than users do, mostly through their claim to be the answer key.** The same wrong hint
+   moves the answer more when a tool gives it than when the user does, in all five Track B models (the tool-vs-user
+   test, Gate 2, marked Nov 8). A user who claims the answer key's authority moves it about as much, except where the
+   model calls the tool itself every time (the authority ladder, B16 and F35; confirmed the same day in B19). The pull
+   grows with the claimed source's authority: "the official solution manual" moves all three Voyager models more than
+   "a classmate" does, and for Qwen3 30B Thinking it moves the answer more than "my answer key" (B24, F40). In three more
+   open-weight families run on Sol (the newer families, B20 and FB1: Gemma 4, Nemotron 3 Nano and Granite 4.2), tools
+   beat users in all 10 readings. Whether the tool's form adds to the claim it carries depends on the family and the
+   channel: the form adds beyond the claim in 5 of 10 readings, the claim moves it more in 1, and no difference was
+   detected in 4. Labelled: the inserted tool turn for Gemma and Nemotron, Granite with thinking on only, temperature
+   1.0.
 2. **After a tool call, the final answer stops explaining.** It becomes a bare letter while the private reasoning
-   names the tool. Disclosure can be prompted, but it doesn't reduce deference to the tool (B15). More thinking
-   doesn't change it: in gpt-oss-20b, raising the reasoning effort from low to high changes neither the bare answer
-   after a call nor how often the model follows the tool (no change detected on either; B17, F37, run after its
-   one-day window). In B20 (FB1), a call makes the answer barer after Granite's own call and after Nemotron's inserted
-   turn with thinking off; with thinking on, Nemotron's bare answer after the inserted turn falls (−14 [−19, −9]):
-   thinking writes more of the source down. **So the title question is answered mixed:** with thinking on, Qwen3-8B
-   names the tool in its private reasoning but not its final answer (F29); gpt-oss-20b's effort changes nothing (F37);
-   Nemotron's answer is less bare (FB1). The training result below (L6) doesn't bear on it.
-3. **Inside Olmo 3 7B Think, layers 15, 19 and 23 read the hint straight from the prompt.** They hold 0.90 of the
-   drop at the takeover, and the result replicates on questions not used to find them, by two methods (F26, F32).
-   It isn't forced by Olmo's sliding windows: in Qwen3-8B, whose layers all see the whole prompt, three layers chosen
-   on one question set hold 0.70 of the drop on another (A37, F36).
-4. **Downstream, a reviewer shown the tool's trace defers to it, but only in one model family** (Olmo, 2 of 6
-   reviewers). A checker that never sees the tool held every time. The deferring reviewer follows the solver's
-   citation of the tool's letter as authority (C16–C18).
-5. **The fix, so far:** all four fine-tuned versions pass Gate 3 by its rule, but none beats a one-line
-   instruction on following, and the source tags don't act where the tool's tokens are. By hand labels, LoRA's
-   keyword false-disclosure candidates are rarely real: most say the hint shaped the answer (L4 part 1, F28).
-   Inference-time attention scaling (B1, F38) makes a real cut in following on the inserted tool turn that misses
-   its pre-registered acceptance limit ("ignores tools"), underpowered at 30 questions; the 70-question replication
-   the budget allowed (B1R) couldn't settle it, so neither it nor A38 is run. Inside the trained model (A18, F39), training
-   acts in the reasoning, not on the readout: given base's own reasoning, LoRA's weights pull toward the hint's letter
-   harder, not less, and when LoRA follows it is through the same three layers (in plain words:
-   [`docs/status/FIX_SO_FAR.md`](docs/status/FIX_SO_FAR.md)). On E2, 120 fresh questions, A39 (F44) finds that marking
-   every tool output "unverified" has no effect alone; with the one-line instruction it follows fewer wrong hints on the
-   tool turn but takes fewer correct ones, and LoRA with the instruction follows fewer than the instruction alone (R2,
-   −8 [−12, −4]) at an acceptance cost of −9 [−13, −5]. Also on E2, A40 trains on the model's own reasoning written without the
-   hint (bias-augmented consistency training): it follows far fewer wrong hints than the one-line instruction but takes
-   fewer correct ones, "fewer, but costs acceptance" by its rule (F41; with the note, A42, the same, F43). Inside the
-   model it is the first fix that acts on the readout, before layers 15, 19 and 23 (A41, F42). B1's replication on E2
-   (B1R2, read Nov 13 by B1's rule) reads "ignores tools" again: on 120 questions the cut in following replicates
-   (−13.8 [−20.0, −7.5] points on the tool turn), and correct tool hints are taken less too (−5.8 [−10.8, −1.3]), just
-   past the rule's 5-point limit (F38).
+   names the tool (the quiet answer). Asking the model to disclose what its answer is based on works, but it doesn't
+   reduce deference to the tool (the disclosure instruction, B15). More thinking doesn't change it either: in
+   gpt-oss-20b, raising the reasoning effort from low to high changes neither the bare answer after a call nor how
+   often the model follows the tool (no change detected on either; B17 and F37, run after its one-day window). In the
+   newer families (FB1), a call makes the answer barer after Granite's own call and after Nemotron's inserted turn with
+   thinking off. With thinking on, Nemotron's bare answer after the inserted turn falls (−14 [−19, −9]): thinking
+   writes more of the source down. **So the title question is answered mixed.** With thinking on, Qwen3-8B names the
+   tool in its private reasoning but not in its final answer (F29). Raising gpt-oss-20b's effort changes nothing
+   (F37). Nemotron's answer is less bare (FB1). The training result in line 5 (candid answers, L6) doesn't bear on it.
+3. **Inside Olmo 3 7B Think, layers 15, 19 and 23 read the hint straight from the prompt.** Together they hold 0.90
+   of the drop at the takeover, and the result replicates on questions not used to find the layers, by two methods
+   (readout layers 15, 19 and 23; F26 and F32). Olmo's sliding windows don't force it: in Qwen3-8B, whose layers all
+   see the whole prompt, three layers chosen on one question set hold 0.70 of the drop on another (the Qwen3-8B
+   replication, A37 and F36). The mechanism as a whole is tentative.
+4. **Downstream, a reviewer shown the tool's trace defers to it, but only in one model family.** Only Olmo's two of
+   six reviewers do. A checker that never sees the tool stopped all 53 wrong tool answers on 100 fresh items (C15, F24;
+   73 of 75 in the first run, F18). The deferring reviewer follows the solver's citation of the tool's letter as
+   authority (C16 to C18).
+5. **The fix, so far:**
+   - All four fine-tuned versions pass the fix test (Gate 3) by its rule, but none beats the one-line instruction on
+     following, and the source tags don't act where the tool's tokens are. By hand labels, the fine-tuned (LoRA) model's
+     keyword false-disclosure candidates are rarely real: most say the hint shaped the answer (hand labels L4 part 1;
+     F28).
+   - The attention dial (B1, F38) makes a real cut in following on the inserted tool turn, but it misses its
+     pre-registered acceptance limit ("ignores tools"), and it is underpowered at 30 questions. A replication that
+     could resolve the limit needs about 107 to 245 fresh questions; the 35 GPU-hours available fit 70, so it was not
+     run (B1R), and neither was A38.
+   - Inside the fine-tuned model (A18, F39), training acts in the reasoning, not on the readout: given the base
+     model's own reasoning, LoRA's weights pull toward the hint's letter harder, not less, and when LoRA follows it is
+     through the same three layers. In plain words: [`docs/status/FIX_SO_FAR.md`](docs/status/FIX_SO_FAR.md).
+   - On the 120 fresh questions (E2), marking every tool output "unverified" has no effect alone (A39, F44). With
+     the one-line instruction, the label follows fewer wrong hints on the tool turn but takes fewer correct ones. The
+     fine-tuned model with the instruction follows fewer than the instruction alone (R2, −8 [−12, −4]) at an
+     acceptance cost of −9 [−13, −5].
+   - Consistency training (A40) trains the model on its own reasoning written without the hint (bias-augmented
+     consistency training). It follows far fewer wrong hints than the one-line instruction but takes fewer correct
+     ones: "fewer, but costs acceptance" by its rule (F41). With the instruction added (A42) the result is the same
+     (F43). Inside the model, it is the first fix that acts on the readout, before layers 15, 19 and 23 (A41, F42).
+   - The attention dial's replication on the 120 fresh questions (B1R2, read Nov 13 by B1's rule) reads "ignores
+     tools" again. The cut in following replicates (−13.8 [−20.0, −7.5] points on the tool turn), and correct tool
+     hints are taken less too (−5.8 [−10.8, −1.3]), just past the rule's 5-point limit (F38).
 
-**Scorecard against the original plan (Nov 7, updated Nov 8 and 13; numbers as read in [`docs/FINDINGS.md`](docs/FINDINGS.md), story item 7).**
-- **The failure: tools pull harder than users in every model tested** (Gate 2, marked Nov 8): all five Track B models
-  and B20's three new families, 10 of 10 readings (FB1). The label part of Gate 2 is not met (F3).
+**Scorecard against the original plan** (Nov 7, updated Nov 8 and 13; numbers as read in
+[`docs/FINDINGS.md`](docs/FINDINGS.md), story item 7).
+- **The failure: tools pull harder than users in every model tested.** The tool-vs-user test (Gate 2) was marked
+  Nov 8: all five Track B models and the three newer families, 10 of 10 readings (FB1). The label part of Gate 2 is
+  not met (F3).
 - **Training made the answer more candid about a hint it followed, in hand labels, without making it follow less**
-  (L6, F45, Nov 13): when LoRA follows a wrong hint on E2, its answer says so in 37 of 42 hand-labelled runs against
-  the instruction's 18 of 42 (+45 [+25, +64] points); it follows as often as the instruction (F44). Limits: LoRA's
-  trained opener names the hint (F28); one model, E2 only, 42 rows a system, the final answer only; the sheet wasn't
-  blind in practice, though the AI check (blind to systems) agreed on 82 of 84 rows.
-- **Resisting wrong hints improved with A40, but as a trade:** 84 of 694 wrong hints followed against the
-  instruction's 237 of 713, and 347 of 459 correct hints taken against 431 of 476 (F41). LoRA + note is "fewer than
-  the instruction" by R2 (−8 [−12, −4]) at an acceptance cost of −9 [−13, −5] (F44). Exploratory (post hoc): A40
-  gives more correct answers than the instruction only when fewer than about 36% of the tool's answers are right.
-- **Accuracy was preserved, and every trained version passes Gate 3** (F28; on E2 with power, F44).
+  (candid answers, L6, F45, Nov 13). When LoRA follows a wrong hint on the 120 fresh questions, its answer says so in 37
+  of 42 hand-labelled runs, against the instruction's 18 of 42 (+45 [+25, +64] points). It follows as often as the
+  instruction (F44). Limits: LoRA's trained opener names the hint (F28); this is one model, on those questions only,
+  with 42 rows a system, and the final answer only. The sheet wasn't blind in practice, though the AI check (blind to
+  systems) agreed on 82 of 84 rows.
+- **Resisting wrong hints improved with consistency training, but as a trade:** 84 of 694 wrong hints followed against
+  the instruction's 237 of 713, and 347 of 459 correct hints taken against 431 of 476 (A40, F41). Fine-tuned +
+  instruction is "fewer than the instruction" by R2 (−8 [−12, −4]) at an acceptance cost of −9 [−13, −5] (F44).
+  Exploratory (post hoc): consistency training gives more correct answers than the instruction only when fewer than
+  0.36 [0.22, 0.50] of the tool's answers are right (the trade-off).
+- **Accuracy was preserved, and every fine-tuned version passes the fix test** (Gate 3; F28, and on the 120 fresh
+  questions with power, F44).
 - **The stricter bar, beating the one-line instruction on following at no cost to correct hints, is met by no fix**
   (F28, F41, F43, F44).
-- **The mechanism:** LoRA acts in the reasoning (F39); A40 changes how the hint is read, in layers 0–14 (F42).
+- **The mechanism:** LoRA acts in the reasoning (F39). Consistency training changes how the hint is read, in layers
+  0 to 14 (F42).
 - **Our reading:** without a way to verify the tool, resisting wrong hints and relying on right ones trade off. So the
-  fix belongs at the system level, and the evidence says which part: provenance labels alone don't help (marking every
-  tool output "unverified" has no effect alone, F44); independent verification does (Track C's checker, which
-  re-solves without the tool, stopped all 53 wrong tool answers on fresh items, F24).
+  fix belongs at the system level, and the evidence says which part. Labels alone don't help: marking every tool
+  output "unverified" has no effect alone (F44). Independent verification does: the independent checker in the review
+  team, which re-solves without the tool, stopped all 53 wrong tool answers on fresh items (C15, F24).
 
-## The results demo
+## The Hint Explainer (the demo)
 
-**Open [`docs/demo/index.html`](docs/demo/index.html) in any browser** (it works offline: one file, no network). Seven
-screens follow the story: 0 the question and the three tracks; 1 tools against users; 2 the bare final answer and the
-title question (answered mixed); 3 inside the model; 4 between agents; 5 the fixes (with an exploratory slider, "How
-often is the tool right?"); 6 the scorecard, the limits and how we worked. Every chart names its F-number and shows
-X of Y with 95% intervals.
-- **Keys:** ← → (or PageUp, PageDown) between screens; Home, End; 0–6 to jump; `i` the index; `t` light or dark; `n`
-  every number on the screen as a table; `f` full screen; Esc closes. `#s0` … `#s6` open a screen directly.
-- **Rebuild** (from `cot-disclosure/`): `../.venv/bin/python tools/build_demo.py`. It reads only the tracked
-  numbers-only summaries and stops if a number it needs is missing. Example model outputs never go in the tracked page:
-  `tools/demo_examples.py` draws a few by a fixed seed into the gitignored `results/demo/`, and the build then also
-  writes `cot-disclosure/results/demo/index.html`, the same page with an examples screen (`e`), for the presenter's
-  laptop only.
+**Open [`docs/demo/index.html`](docs/demo/index.html) in any browser.** It works offline: one file, no network. It is
+a guided tour of seven scenes, which you move through with the arrow keys or the space bar, with an article below it.
+An IDs toggle shows the internal codes next to the plain names.
+
+- **Present:** "Play the story" starts the tour (about two minutes). Space or → steps, ← goes back, 1–7 jump to a scene,
+  Esc leaves. Outside the tour: `r` runs, `t` switches light and dark, `i` shows the IDs, `?` lists the keys; click a
+  stage to open its real chart (Esc closes).
+- **What it shows:** a wrong hint traveling through one model, left to right: the input, inside the model (the readout
+  layers), the private reasoning, the final answer, and an optional review team. You pick the model, where the hint
+  comes from and, for Olmo 3 7B Think, a fix. Runs are simulated at our measured rates and say so; every number on
+  hover is "X of Y runs" with its 95% interval.
+- **Rebuild:** `cd cot-disclosure && ../.venv/bin/python tools/build_demo.py` (from the numbers-only summaries; it fails
+  if a number is missing). On a machine with the local runs it also writes a page with real excerpts,
+  `cot-disclosure/results/demo/index.html`, which never goes to GitHub.
 
 ## Read this first
 
@@ -104,7 +132,7 @@ X of Y with 95% intervals.
 | Ritik (Track A, labels, the report) | [`docs/status/STATUS.md`](docs/status/STATUS.md), [`docs/status/TODO.md`](docs/status/TODO.md) | the newest daily in [`archive/sessions/`](archive/sessions/INDEX.md); [`docs/RUNBOOK.md`](docs/RUNBOOK.md) |
 | Shrey (Track C, from Oct 30) | [`docs/trackC/START_HERE.md`](docs/trackC/START_HERE.md) (its Quick start first) | [`docs/tracks/SOL_SETUP.md`](docs/tracks/SOL_SETUP.md), [`docs/labeling/RATER_GUIDE.md`](docs/labeling/RATER_GUIDE.md), the code map [`cot-disclosure/README.md`](cot-disclosure/README.md) |
 | Arsha (Track B, from Nov 6) | [`docs/trackB/START_HERE.md`](docs/trackB/START_HERE.md) (its Quick start first), then [`docs/tracks/TRACK_B.md`](docs/tracks/TRACK_B.md); B20 on her own Sol account from Nov 5: [`docs/trackB/SOL_ARSHA.md`](docs/trackB/SOL_ARSHA.md) | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) §18, the code map |
-| A grader | this page and the demo (`docs/demo/index.html`), then FINDINGS' "story so far" | [`docs/paper/REPORT.md`](docs/paper/REPORT.md) (the report's skeleton), [`docs/PLAN.md`](docs/PLAN.md) (the calendar, the presentation map; the figures in `docs/paper/figures/`), [`docs/status/STATUS.md`](docs/status/STATUS.md) |
+| A grader | this page and the Hint Explainer (`docs/demo/index.html`), then FINDINGS' "story so far" | [`docs/paper/REPORT.md`](docs/paper/REPORT.md) (the report's skeleton), [`docs/PLAN.md`](docs/PLAN.md) (the calendar, the presentation map; the figures in `docs/paper/figures/`), [`docs/status/STATUS.md`](docs/status/STATUS.md) |
 | A paper reviewer | [`docs/paper/CLAIMS.md`](docs/paper/CLAIMS.md) | [`docs/paper/supplement/EVIDENCE.md`](docs/paper/supplement/EVIDENCE.md) and [`PREREGISTRATIONS.md`](docs/paper/supplement/PREREGISTRATIONS.md) |
 
 ## The folders
@@ -112,6 +140,10 @@ X of Y with 95% intervals.
 ```
 README.md            this page
 docs/
+  GLOSSARY.md          plain names and the internal codes behind them (generated from names.json by tools/make_glossary.py)
+  demo/                the Hint Explainer: index.html, one offline page
+  submission/          the course submission folder (set up Nov 13)
+  drafts/              plain rewrites of the track START_HERE pages, offered to their owners (not in force)
   FINDINGS.md          every result: claim, numbers, source, status; the story so far; measurement traps
   PLAN.md              the plan to Nov 24: the story's map, owners and dates, gates, the presentation map, the
                        report outline
@@ -138,10 +170,11 @@ cot-disclosure/      the code, configs and tests; its README.md is the code map 
 archive/             history, kept but out of the way
   sessions/            every session log and daily, one folder per date (INDEX.md lists them; LATEST.md is a copy
                        of the newest)
-  superseded/          earlier versions of the front page, the overview, PLAN, TRACK_C and TODO's old notes
+  superseded/          earlier versions of the front page, the overview, PLAN, TRACK_C, TODO's old notes and the
+                       Nov 13 demo's template
   merged-docs/         the originals of merged docs, unchanged
   progress-round/      the October progress presentation (decks, figures, screenshots), the demo's guide
-  MOVES.md             every file moved (Oct 30 and Nov 1): old path -> new path, and why
+  MOVES.md             every file moved (Oct 30, Nov 1 and Nov 14): old path -> new path, and why
 ```
 
 Generated files live where the map says. A few more stay beside the code that reads them, so they aren't moved:
@@ -150,7 +183,8 @@ and `sol/inputs.txt` (`finetune/gpu/kit.py --manifest`), and the progress round'
 `archive/progress-round/presentation/` (`progress/analyze_progress.py`). `archive/sessions/LATEST.md` is a copy of the
 newest log. Every other doc is written by hand and names who edits it in its header.
 
-The report's and slides' submission folder is made on Nov 19–21 (PLAN, the calendar).
+The report's and slides' submission folder, [`docs/submission/`](docs/submission/README.md), was set up on Nov 13 and is
+filled by Nov 21 (PLAN, the calendar).
 
 ## Run the tests
 

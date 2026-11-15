@@ -1,173 +1,171 @@
-# Session log: the results demo, slide 5's figure, Gate 3's draft, the freeze and the submission prepared (2026-11-13 13:36 MST)
+# Session log: the Hint Explainer replaces the results demo; plain names (2026-11-14 22:15 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `1dfd6b8`. The day's third session (the first two:
-[09:37](2026-11-13/2026-11-13_0937_A_l6-judge-reading.md), [11:00](2026-11-13/2026-11-13_1100_A_b1r2-freeze-wording.md); the daily
-[DAILY_2026-11-13](2026-11-13/DAILY_2026-11-13.md)). Interrupted Nov 13 (a network error, then a usage limit) and continued
-Nov 14 from 20:08 (§8; the daily [DAILY_2026-11-14](2026-11-14/DAILY_2026-11-14.md)).
+**By:** Ritik. Branch `trackA-nosol`, from `4e9e1fe`. The day's second session (the first: the Nov 13
+[13:36](../2026-11-13/2026-11-13_1336_A_demo-freeze-submission.md) session, continued from 20:08; the daily
+[DAILY_2026-11-14](DAILY_2026-11-14.md)).
 
 ## 0. Input
 
-A pasted prompt ("Prompt 1: the demo and the remaining work, run once"; a second, daily prompt was pasted with it, for
-later days). Decisions in it, as Ritik's:
-- **a. A final results demo:** one self-contained HTML file, no network, built by `tools/build_demo.py` into
-  `docs/demo/index.html` (tracked, numbers only) from the tracked numbers-only summaries and FINDINGS; the build fails if
-  a number it needs is missing. Sections 0–6 following the story; every chart with its F-number, X of Y, 95%
-  intervals and the reading's words; exploratory items marked. Example outputs only from a local, gitignored
-  `results/demo/examples.json`, drawn by a fixed seed from labelled rows (L6, L4). Tests: every number equals its
-  summary; no network request; no text field in the tracked HTML.
-- **b.** Slide 5's figure (F3), from tracked numbers, in the house style.
-- **c.** Gate 3's final statement (due Nov 20): a draft in PLAN for Ritik's approval.
-- **d.** The freeze (Nov 18), prepared: a written procedure in CHECKIN; §9's Nov 18 row pointing to it.
-- **e.** The submission (Nov 19–24), prepared: the folder's structure; a factual AI-use inventory (facts only).
+A pasted prompt, acted on as Ritik's. Its decisions:
+- **The current demo is replaced by an explainer**, "Hint Explainer: where did that answer come from?", built by
+  `tools/build_demo.py` into `docs/demo/index.html`: one animated left-to-right diagram of the whole system (input,
+  inside the model, private reasoning, final answer, review team), a guided tour of 7 scenes (about 2 minutes), and an
+  explainer article below. Inspired by Transformer Explainer (poloclub), not a copy.
+- **Public-facing names everywhere**; internal codes (A40, B1R2, C18, F41, E2, L6, ...) only behind an IDs toggle.
+- **Honesty:** simulated runs, illustrative texts and exploratory items labelled; DATA = compact(the summaries'
+  object); no network request; real excerpts only in a local build, never in the tracked file.
+- **Helper B:** `docs/GLOSSARY.md`; the README and both START_HERE pages rewritten in plain names; the slide
+  figures' titles, legends and notes in plain names. FINDINGS, logs and pre-registrations keep their IDs.
 - **Limits:** at most 2 helpers (they don't commit); the full suite once, at the end.
 
-## 1. Plan (13:36, before any helper starts)
+## 1. Plan (22:15, before any helper starts)
 
-1. **Me, first:** `cot-disclosure/results/demo/` made a produced-data folder (gitignored; the pre-push check refuses
-   it), test first, so no example text can reach GitHub.
-2. **Helper A:** the demo: `tools/build_demo.py`, its tests, `docs/demo/index.html`, then
-   `tools/demo_examples.py` (writes the gitignored examples file). No commit.
-3. **Helper B:** slide 5's figure of F3 (`docs/paper/figures/`), from tracked numbers, with its test. No commit.
-4. **Me:** c (Gate 3's draft in PLAN), d (the freeze procedure in CHECKIN, §9's Nov 18 row), e (the submission folder's
-   structure and the AI-use inventory); then the demo checked by eye at presentation size, light and dark, section by
-   section, and anything cluttered fixed.
-5. **Then:** the README links the demo; the docs, logs, TODO and the Gantt; the checks; the full suite once; the push.
+1. **Not found:** `demo_source.zip` (with `compact_data.py` and its charts) is in neither Downloads nor anywhere
+   under the home folder (find, Spotlight). Ruling: `compact()` is written here, in `tools/build_demo.py`, and the
+   article's charts reuse the current demo's chart code (`tools/demo_page/demo.js`), restyled.
+2. **Me, first:** the plain names as one machine-readable table (`tools/explainer/names.json`: plain name → the
+   internal IDs) that both helpers use; the explainer's extra numbers in `collect()` (every model's following and
+   "names the source in its final answer" by hint source; Olmo 3 7B Think's fixes by hint source on the 120 fresh
+   questions; the attention dial), and `compact()`, each number still traced to its summary by the tests.
+3. **Helper A:** the explainer (the brief's A–F) in `tools/explainer/`, built by `tools/build_demo.py`, with its
+   tests; screenshots of each tour scene at 1920×1080, light and dark, looked at and fixed. No commit.
+4. **Helper B:** `docs/GLOSSARY.md` from the names table; the README in plain names; slide figures' titles, legends
+   and notes in plain names, regenerated and looked at. **Ruling on the START_HERE pages:** they are Track B's and
+   Track C's paths (CLAUDE.md: another track's path changes only with its owner's agreement), and Arsha's unmerged
+   688cf48 on `trackB-main` edits her START_HERE, so an in-place rewrite would conflict at the Nov 15 merge. The
+   plain rewrites go to `docs/drafts/` (Track B's from her branch's version) for Arsha and Shrey to adopt. Cost if
+   wrong: one copy each into place with `PATH_CHECK_ALLOW`.
+5. **Me, then:** the old demo template to `archive/` (MOVES.md); the explainer checked by eye scene by scene, and its
+   article's every claim against FINDINGS; the docs, logs, TODO and the Gantt; the checks; the full suite once; the push.
 
-## 2. The demo's examples kept off GitHub, test first
+## 2. The plain names and the explainer's numbers (me; written 22:22, after the helpers started)
 
-- `cot-disclosure/results/demo/` is now a produced-data folder: in `cot-disclosure/.gitignore`, and in
-  `tools/prepush_check.py`'s list (`PRODUCED`), so a push carrying `results/demo/examples.json` is refused.
-  `tests/test_repo_hygiene.py` gained that path first and failed; then 11 passed.
-- **Ruling (mine):** the build writes two pages. `docs/demo/index.html` (tracked) never holds example text; when
-  `results/demo/examples.json` exists, it also writes `results/demo/index.html` (gitignored), the same page with
-  the examples panel. The prompt asks both that the build read the local examples "if present" and that no text reach
-  the tracked HTML; two outputs satisfy both. If wrong: one panel to move.
+- **The plain names:** `cot-disclosure/tools/explainer/names.json`, 6 groups (question sets; where the hint comes from;
+  the fixes; what we measured; review teams; the project), each plain name with its IDs and one line. Both helpers read
+  it; helper B writes `docs/GLOSSARY.md` from it; the explainer shows it behind its IDs toggle.
+- **The explainer's numbers** (`build_demo.explainer()`, `collect()`'s new `x`), each through `Sources`, so the
+  provenance test traces it:
+  - `x.settings`: the 13 settings of the 8 answering models; for each hint source, following the wrong hint, the final
+    answer naming the source when it follows (keyword counts) and the private reasoning mentioning it (after a call,
+    for the tool call), None where nothing was measured (n = 0: no thinking, or no run followed). User, pasted and
+    call from one run per setting (Gate 2's, B17's, B20's); classmate and manual from B24, the answer key from B16.
+    B24's `mention_source` counts all runs, not runs that followed, so those three sources have no "names" number.
+  - `x.fresh`: Olmo 3 7B Think on the 120 fresh questions, the nine trade-off systems by source (user, pasted, the
+    inserted tool turn) with the correct-hint acceptance; the attention dial (B1R2's alpha 0.25 on the tool turn, with
+    its own run's no-fix numbers). **Found:** the three label systems' user and pasted runs are their partner's runs
+    (`finetune/eval.SHARED`: the label only touches the tool turn; the trade-off file's `shared` 960 each), so
+    their identical numbers are one measurement, not two: the data marks it (`same_runs_as`) and the page says so.
+  - `compact()`: the page's DATA with each number's provenance dropped (56 KB against 381 KB sourced).
+- `tests/test_build_demo.py` unchanged: 13 passed with `x` (every one of its numbers traced to its summary).
+- **Helper A** (the explainer, A–F, its tests, the screenshots) and **helper B** (the glossary, the README, the
+  slide figures, the START_HERE drafts) started just before this section was written; neither commits.
 
-## 3. Gate 3's final statement, a draft (13:40), for Ritik's approval
+## 3. Helper B's work, checked (written 22:37)
 
-In PLAN's Gates, under Gate 3, marked "Draft ... for Ritik's approval. Not marked". Every number as read in F28, F38,
-F41, F43, F44 and F45; nothing computed.
-- **The gate: met.** All four trained versions on the 30 (F28); on E2, the powered replication for LoRA (−7
-  [−11, −3]) and the instruction (−9 [−14, −4]), and LoRA + note, A40 and A40 + note by the same rule.
-- **The stricter bar (beating the instruction on following at no cost to correct hints): not met by any fix,** each
-  stated with its numbers (LoRA matches; A40, A40 + note and LoRA + note trade acceptance; the wrapper alone no
-  effect; B1 and B1R2 "ignores tools").
-- **Beside it, not part of the gate:** L6's line with its limits (F45); F39 and F42 inside the model. Limits: one
-  model, one training run a version, keyword hiding, the 30's comparisons with the instruction not pre-registered.
-- The line before it ("nothing it waits on is left but B1R2's replication") now says B1R2 was read Nov 13.
+- **The glossary:** `docs/GLOSSARY.md`, written by `tools/make_glossary.py` from `names.json` (test first:
+  `tests/test_make_glossary.py`, 4). Helper B's notes on the table, acted on: the source-tag versions split in three
+  (as Gate 3's figure needs them), the duplicate "Review teams" renamed "Downstream review", and five entries added
+  (the answer-key claim C19/FC1, handoff notes C25/FC2, a retrieved passage C26/FC4; not run: A38, B1R). 59 plain
+  names, all distinct; the glossary regenerated.
+- **The README,** rewritten in plain names (the glossary linked at the top; the demo section names the Hint Explainer).
+  Checked against FINDINGS' story, line by line. Corrected by me: "a checker that never sees the tool held every
+  time" (already in the old README) is now "stopped all 53 wrong tool answers on 100 fresh items (C15, F24; 73 of
+  75 in the first run, F18)"; line 3 again says the mechanism as a whole is tentative (FINDINGS item 3); the
+  trade-off's crossing keeps its interval (0.36 [0.22, 0.50], not "about 36%"). Helper B's own correction kept: the
+  old README's "the 70-question replication ... couldn't settle it" is now FINDINGS' wording (needs 107 to 245
+  questions; 35 GPU-hours fit 70; not run).
+- **The slide figures:** every title, key, axis label and note in plain names (IDs stay in the CSVs); a test that
+  no figure shows an internal code (seen failing first); all 14 regenerated and looked at by helper B (four layouts
+  fixed). Helper B's relabel of the reasoning-effort figure's panel (b) checked: it plots the bare answer after a
+  call (`fig_b17`'s series "bare final answer after a call"), so "bare answers (% of runs with a call)" is right.
+- **Slide 1 (three_levels) fixed by me:** its last line listed as "Open" four items read by Nov 7 (A18 and A41: F39,
+  F42; B17: F37; C25: FC2; C20: FC3). Test first (`test_slide_1_lists_nothing_as_open_that_has_been_read`, failed),
+  then the line became "Read since:" with each result in plain words, the CSV column `open` became `read_since`,
+  and the boxes grew to hold three lines (looked at: nothing clipped). Slide tests 18 passed.
+- **The START_HERE drafts** (`docs/drafts/`, with a README): Track B's from `origin/trackB-main`; the top of each
+  rewritten in plain sentences, the reference sections kept verbatim with plain names added; "left out as stale": 11
+  (Track B) and 10 (Track C). **Checked by me:** helper B left out Track B's queue-owner lines believing they held a
+  classmate's Sol username; they don't (`owner: ragarw68`, Ritik's own, and `owner: not ragarw68`), so the
+  draft's reason now says they belong to B20's runs, which ended Nov 6. Track C's draft replaces its stale runbook
+  (C19, C25, C20, C26 "ready to run") with their results: every number in that table found in `FINDINGS_C.md` as
+  written.
+- Tests after my edits: slide figures, glossary and links, 24 passed; `check_links.py`: 0 broken links.
 
-## 4. The freeze procedure (14:12): CHECKIN §10
+## 4. Helper A's explainer, checked by eye and against FINDINGS (written 23:10)
 
-- **What "frozen" means:** no new runs on any account; the F/FB/FC entries, summaries, figures and the demo final;
-  any later change with a dated note (`Changed after the freeze (<date>, <time>): ...`) in its F-entry and the day's
-  log; what didn't run keeps its reason.
-- **The day, in order:** nothing runs (three accounts; the feeder's stop is Ritik's, Nov 16); the merges (§8); the
-  supplement and the demo rebuilt; §6 in full; final bundles A, B and C with `--verify` and each bundle's sha256 in
-  the log (A was 1,744 MB at Nov 13's dry run; the labels in no bundle); the annotated tag
-  `results-freeze-2026-11-18` on `main` after the push, under Ritik's identity (**a tag push is new: Ritik's go
-  that day**); the freeze log.
-- Checked: the pre-push hook peels a pushed tag to its commit (`git rev-list <sha> --not --remotes`), so a tag on a
-  commit already on `main` passes. The only earlier tag, `progress-oct-2026`, is a lightweight one.
-- §9's Nov 18 row points to §10; §4's freeze bullet too; the header.
-- **A slip, fixed:** I typed 13:44 into §10's first line before running `date`; it printed 14:12, and the line says
-  14:12.
+- **What helper A built:** `tools/explainer/` (template, CSS, JS, `tour.json`); `build_demo.py` reads it, embeds
+  `names.json` and `tour.json`, and writes DATA = `compact(collect())` (two more sourced numbers: Qwen3-8B's 36
+  per-layer drops, `s3.qwen`, and the 54 test questions); `tests/test_build_demo.py` rewritten (35; with
+  `test_demo_examples.py`, 39). Helper A says it wrote these tests after the page's first draft, so they weren't seen
+  failing first; recorded here as it is. 177 KB tracked, 190 KB local.
+- **Looked at by me:** all 7 tour scenes at 1920×1080, light and dark (helper A had opened 4 of 14); the 5 expanded
+  stages; the article, page by page and as text; 1366×768 and 1440×900 (no horizontal scroll); a run measured: no long
+  task during a run or 20 runs, 335 frames in 5.5 s, worst gap 33 ms; one 71 ms task at load; 0 console errors, 0
+  requests but the file. The hint wordings and the tool's name checked against the code (`experiments.py`'s CUE,
+  `lookup_answer_key`).
+- **Fixed by me, after looking:**
+  - Scene 6's run used a seed helper A picked from 8 to show a wrong answer reaching the review team. Ruling: kept, and
+    the scene now says so on screen ("a seed picked to show a wrong answer reaching the review team; the rates are as
+    measured"). Cost if wrong: one field in `tour.json`.
+  - Scene 7: the tour shows the trade-off and the slider only (the dial and candid-answer cells sat under the tour bar);
+    the scatter's labels collided, now placed in clear space with leaders; "No fix" was drawn in the "wrong" red, now
+    neutral; its caption said "Our reading, exploratory": FINDINGS' interpretation isn't an exploratory analysis, so
+    "Our reading: every fix we tried moves along one trade-off, not past it" (FINDINGS item 7's words).
+  - Stage 2 said "measured" for user-side hints, but every layer measurement used tool hints (F11: "all tool hints";
+    set A: pasted and inserted runs; Qwen3-8B: its own call): with a user-side hint it now says "measured with tool
+    hints; ... drawn to explain". Qwen3-8B's layer labels 21 and 22 overlapped: now on two rows.
+  - The controls bar changed height between scenes, so the diagram jumped: one height on wide screens.
+  - Stage 3's long model names ran out of their column: "Nemotron 3 Nano", "Gemma 4" in those charts (full names in
+    the controls and hovers).
+  - The fine-tuned model "behind at every p" is on point estimates (its pointwise intervals all include 0): said so.
+- **The article, sentence by sentence against FINDINGS; corrected:** "far more ... in every model" → "more" (item 1);
+  the manual "as much as a tool, or more, in all three models" → for every tool channel but one, the exception
+  Qwen3 30B Instruct's own call (F40); the fine-tuned weights pull "at least as hard" → "harder, not less" (F39);
+  consistency training "the first fix that acts before the readout" → "the first fix that acts on the readout ... in
+  the layers before the readout" (F42); "provenance labels alone don't help" marked as our reading, and the label's
+  null "alone on the tool turn" (F44); "no different from" → "shows no difference from" (F44); the thinking chart's
+  caption said the comparison for its first row was read after the fact, but that row is gpt-oss-20b's pre-registered
+  effort run: now Qwen3-8B's comparison is the one read after the fact; the dial's caption "so did its cost" → the
+  cost is real on the 120 questions (on the 30 its interval includes 0); "How we worked": the rule written before
+  its runs, and the AI rater and judges as a reliability check on Ritik's labels, Claude Code for code, tests,
+  analyses and documents (as `docs/submission/AI_USE_INVENTORY.md` says). The judge's agreement stays "98% of 84
+  rows" (82 of 84; the summary holds the rate and the rows, not the count).
+- Tests after my edits: 39 passed (the lint caught one hard-coded "120" of mine; it now comes from DATA). The 14
+  scene screenshots retaken from the final page: `cot-disclosure/results/demo/screens/scene{1..7}_{light,dark}.png`
+  (gitignored), with the stages, 1366, 1440 and the phone.
+- **Not done, and why:** the brief's 1–6 jump keys are 1–7 (seven scenes); helper A didn't open the reference page;
+  the article's charts reuse the old demo's chart code (`demo_source.zip` not on this Mac).
 
-## 5. The submission prepared (14:13)
+## 5. The docs and the move (written 23:11)
 
-- [`docs/submission/README.md`](../../docs/submission/README.md): what goes in (report, supplement, slides, the demo,
-  the code link at the freeze tag, the contribution statement, the AI-use disclosure), where, who, by when, the state
-  on Nov 13, and the folder at Nov 24. The statement and the disclosure are not created: the team writes them.
-- [`docs/submission/AI_USE_INVENTORY.md`](../../docs/submission/AI_USE_INVENTORY.md): facts only, each with where the
-  repo records it: Claude Code (code, tests, analyses, docs; its sub-agents; the 7 re-look labels mapped to categories
-  at Ritik's request, Nov 4 21:24; the no-attribution rules, Nov 5–6); Claude in chat for planning; ChatGPT 5 Astra
-  High as AI rater 1 (L3, L4 part 1, Nov 3; corrected Nov 4 17:51); the LLM judges (Nov 4: J-opus, J-qwen, J-olmo,
-  AI1; Nov 13: J-opus on L6); the models studied, kept apart as subjects; what the repo records as done by hand. Lines
-  the repo doesn't record are marked *to confirm* by the member they name (when Claude Code use began; which prompts
-  came from Claude in chat; Arsha's and Shrey's own use).
-- PLAN's submission checklist: a row for the demo; the folder's row and the disclosure's row link both files.
+- **The README:** the explainer's section now has the keys (the tour; `r`, `t`, `i`, `?`), what it shows, and the
+  rebuild command; the folder map names the archived template and the Nov 14 move.
+- **PLAN** (the checklist's demo row; the header), **ONE_PAGE** (the presentation bullet, the freeze table's demo row),
+  **TODO** (D16, the Hint Explainer; D17, plain names; the header), `docs/submission/README.md` (the demo's row and
+  the folder layout), `AI_USE_INVENTORY.md` (this session's helpers, in the sub-agents row; facts only), the daily
+  (§2, and Nov 15's ask to Arsha and Shrey about the drafts). STATUS and the Gantt regenerated (`make_gantt.py`).
+- **The move:** `cot-disclosure/tools/demo_page/` (4 files) → `archive/superseded/demo_page_2026-11-13/`, unchanged;
+  `archive/MOVES.md`'s Nov 14 section. Committed on its own, after the work's commit, as MOVES.md asks.
+- FINDINGS, the pre-registrations and the earlier logs keep their IDs (the brief); not touched.
 
-## 6. Slide 5's figure of F3 (helper B; placed in the docs at 14:43)
+## 6. Needs Ritik
 
-- `docs/paper/figures/private_vs_final.{png,svg,csv}` (`tools/slide_figures.py`, `fig_private_final`; 16:9, the house
-  style). Panel (a), Test 1 per model and all three: private reasoning 66, 71 and 71 of 72 (208 of 216), final answer
-  0, 0 and 8 of 72 (8 of 216), the private keyword with no hint beside it (22, 18 and 2 of 72). Panel (b), Test 2 where
-  the tool's hint won: private 16 of 17, final 6 of 17. Wilson 95% whiskers; F3 in the title and the note.
-- Every number from `docs/labeling/RESULTS_SUMMARY.json` (key in the CSV's `source` column). From F3's text only:
-  "Nov 4", "0.6" and "all six cells" in the note (L3's verdict). Left out: the pinned-format final-answer rates (no
-  tracked numbers file holds them; `base_format.py --report` reads gitignored runs).
-- `tests/test_slide_figures.py`: 3 new tests (written first), 16 passed. No existing figure changed.
-- Checked by eye (the PNG): no overlap. The docs that said "no figure for F3" now point to it: PLAN (the freeze page,
-  the slide map, §6's row, REPORT's waiting list), REPORT §6 (F3 and L3), WAITING.md, ONE_PAGE, FINDINGS F3 (a
-  "Figure" line), `results_at_a_glance` (.md, .csv), TODO D14.
+- **Nov 15:** the check-ins and merges (Arsha's 688cf48 on `trackB-main`; Shrey's); ask Arsha and Shrey about their
+  plain START_HERE drafts (`docs/drafts/`): adopt (they move it into place, or agree to `PATH_CHECK_ALLOW`), change
+  or decline.
+- **Nov 16:** stop the feeder (`touch /scratch/ragarw68/trackA/feeder.stop; scrontab -r`).
+- **Nov 18:** the freeze by CHECKIN §10 (the tag with Ritik's go); the explainer rebuilt there; slide 5 placed with
+  Shrey; slide 1's figure changed today ("Read since" in place of "Open"): check it suits the deck.
+- **Nov 20:** approve or change Gate 3's draft (PLAN, Gates). **Nov 22:** the AI-use inventory's "to confirm" lines.
+- **Before Nov 24:** open the explainer on the presenting laptop with Wi-Fi off and play the tour once; scene 6's
+  picked seed is said on screen (delete `seed` in `tour.json` to draw it like the others).
 
-## 7. The demo (helper A)
+## 7. The checks (written 23:22)
 
-- **Files:** `tools/build_demo.py`; `tools/demo_page/` (template.html, demo.css, demo.js, examples.html, inlined at
-  build time); `tools/demo_examples.py`; `tests/test_build_demo.py` (13) and `tests/test_demo_examples.py` (4),
-  each seen failing first. Built: `docs/demo/index.html` (about 337 KB, tracked) and, gitignored,
-  `results/demo/examples.json` (9 examples) and `results/demo/index.html`.
-- **Every number** sits in one data block with its summary path and key (or, for the per-layer swaps, the loader
-  `slide_figures.a18_rows` and its row); the test recomputes each (over 300). A missing summary, key or quoted FINDINGS
-  sentence stops the build (exit 1). No request but `file:`; the only URL in the page is the SVG namespace.
-- **Screens:** 0 the question, the tracks and the models; 1 tools against users (13 model and setting rows, F40's
-  authority dose with B16, FB1's R2); 2 the bare answer (F15, F16, F29, C4, F25) and the title question "answered
-  mixed", stamped "not a yes" (F29, F37, FB1); 3 inside the model (F11, F26, F32, F36; F39 and F42's swaps); 4 between
-  agents (the diagram; six reviewers and C15; the checker 53 of 53, 7 of 45, floor 7 of 100; C16–C18; F44's wrapper and
-  FC3's tag, no effect); 5 the fixes on E2 (the trade-off scatter and the Acc(p) slider, both stamped exploratory, post
-  hoc; the keyword bars with L6's hand-label points and L6's line with its four limits; B1R2 beside B1); 6 story item
-  7 as written, how we worked, AI use, limits.
-- **The examples draw** (seed `cse598-demo-examples-2026-11-13`): L3, Ritik's sheet (3 rows: the only labelled sheet
-  with private text), L6 (2 LoRA, 2 instruction), L4 part 1 (2 LoRA); each marked "illustrative, drawn by seed".
-  Read-only on every source (hashes checked in the test).
-- **The helper's rulings:** L3's private excerpts for the side-by-side (L6 and L4 hold the final answer only); C17's
-  part (a) left out of the cue chart (C16, C17 (b), C18 kept); B1's 5-point limit as 0.05 in the page's script
-  (`provenance_job.MARGIN`); the 82 of 84 computed from `l6_report.json` (agreement 0.976 × 84).
-
-## 8. Interrupted twice; resumed Nov 14
-
-- **Nov 13, found at 14:39:** both helpers stopped on a network error (the API server unreachable). Helper B's figure was
-  on disk; helper A had written nothing yet. Both resumed with their context.
-- **Later on Nov 13** (after helper A's 15:03 build): a usage limit stopped helper A while it re-took its screenshots.
-- **Nov 14, 20:08:** Ritik: "continue, and resume the agents". Helper A resumed and finished (helper B had finished on
-  Nov 13).
-
-## 9. The demo checked by eye (Nov 14, 20:09–20:14)
-
-- All seven screens at 1920×1080, light and dark (Playwright, Chrome): no request but `file:`, no console error, no
-  screen scrolls. The numbers on screen checked against FINDINGS (Gate 2's tool − user column, FB1's 10 R2 readings
-  (5 beyond, 1 authority more, 4 no difference), F15, F25, F29, F37, FB1's −14, F11's layers, F39 and F42's swaps, the
-  checker's tiles, C16–C18, the E2 trade-off, the A40 crossing 0.36 [0.22, 0.50], L6's 37/42 and 18/42, B1 and B1R2).
-- B1's and B1R2's shaded limits checked at 2× zoom: acceptance [−5, …], no-hint accuracy [−5, +5], as the rule reads.
-- **One fix:** the Acc(p) chart listed each system's value at the slider's p beside the lines' right ends (p = 1); it
-  now says "at p = 0.50:" above them (`demo.js`). Rebuilt; the keys work (→ moves on, `t` switches the theme);
-  33 tests passed (the demo's 17, the slide figures' 16).
-- **Left as they are:** some empty space on screen 0 and under screen 2's left chart; small type in the captions and
-  source lines (the headings, labels and values are large); s6's limit "(F38)" is FINDINGS' own wording (F40's limits).
-
-## 10. The docs
-
-- **README:** "The results demo" (open `docs/demo/index.html`; the keys; how to rebuild; examples local only); the
-  grader's row names it.
-- **TODO:** D15 (the demo) done; D14 (slide 5); G3 (the draft); D5 (the procedure); D13 (the folder); the header.
-- **PLAN:** the header; the freeze page (Gate 3 drafted; slide 5 made; Ritik's dates). **ONE_PAGE:** the header, the
-  presentation line, the freeze table (Gate 3's draft, the demo), Ritik's dates. **FINDINGS:** the header; F3's figure.
-
-## 11. Needs Ritik
-
-- **By Nov 20:** approve or change Gate 3's draft (PLAN, Gates). **Nov 16:** stop the feeder. **Nov 18:** the freeze by
-  CHECKIN §10; the tag `results-freeze-2026-11-18` waits on your go that day. **By Nov 22:** the AI-use inventory's
-  *to confirm* lines (when Claude Code use began; which prompts came from Claude in chat); Arsha and Shrey add theirs.
-- **Before Nov 24:** open the demo on the presenting laptop with Wi-Fi off; the local page with examples is
-  `cot-disclosure/results/demo/index.html` (on this Mac only).
-
-## 12. The checks (Nov 14, 20:15–20:27)
-
-- **The full suite once** (20:15–20:26): **1,166 passed, 1 skipped** (1,146 on Nov 13 + 20 new: the demo's 17, slide
-  5's 3). No leftover pytest of ours before it.
-- Links: 0 broken, 0 missing RUNBOOK scripts. The export: numbers only. The Gantt: `--dry-run` passes; STATUS and the
-  Gantt regenerated. Bundles (dry run): B 51 files, 73.8 MB; C 43 files, 31.3 MB.
-- No example text in the tracked page: of 53 snippets sampled from `examples.json`, 0 in `docs/demo/index.html`, 25
-  in the local page.
-- **The supplement:** 42 rows, none unverified, no log outside the ledger; CLAIMS 10 mismatches as before. Source
-  problems 13 before the commit: the new one is F3's figure, "on disk, not tracked", which the commit clears; so the
-  supplement is regenerated after it, in its own commit (as on Nov 13).
+- **The full suite, once** (23:11–23:22): 1,194 passed, 1 skipped; no pytest left running.
+- Links: 0 broken, 0 missing RUNBOOK scripts (`check_links.py`); the new docs' links checked by helper B with its link
+  function (seven links in the drafts to the owners' own files made plain paths). The summaries: numbers-only
+  (`export_summaries.py --check`). STATUS and the Gantt regenerated.
+- The commit identity: `Ritik`, the email's hash on Ritik Agarwal's line of `configs/team_identities.txt`.
+- To do after the commits: the pre-push check, the push (`trackA-nosol` and `main` only), and the supplement
+  regenerated from the work's commit, in its own commit.

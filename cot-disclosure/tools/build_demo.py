@@ -1,12 +1,12 @@
-"""The final results demo for the Nov 24 presentation (Nov 13): one self-contained HTML page, built from the tracked
+"""The Hint Explainer for the Nov 24 presentation (Nov 14): one self-contained HTML page, built from the tracked
 numbers-only summaries (results/summaries/) and FINDINGS' wording, that opens from file:// with no network request.
 
   python tools/build_demo.py      # -> docs/demo/index.html (tracked: numbers, ids and paths only)
                                   #    and, when results/demo/examples.json exists (tools/demo_examples.py), also
-                                  #    results/demo/index.html (gitignored): the same page plus the example outputs
+                                  #    results/demo/index.html (gitignored): the same page plus a "Show a real run" control
 
-Two outputs, one ruling (Ritik's session, Nov 13): the brief wants the build to read the local examples "if present"
-and wants no text field in the tracked page, so the examples go only into the local page.
+Two outputs, one ruling (Ritik's session, Nov 13): the build reads the local examples "if present" and no text field
+may reach the tracked page, so the examples go only into the local page.
 
 Every number on the page comes from one JSON data block in which each number is {"v": value, "src": the summary's
 path, "key": the key path to it} (or, for the per-layer swaps that only a loader computes, {"fn": the loader, "where":
@@ -14,13 +14,12 @@ its row, "field": the column}; FNS lists those loaders). tests/test_build_demo.p
 key that is missing stops the build with a message naming it (MissingNumber; exit 1), and so does a sentence the page
 quotes that FINDINGS no longer has (WORDING).
 
-The page: seven sections, one per screen (0 the question; 1 tools vs users; 2 the bare final answer and the title
-question; 3 inside the model; 4 between agents; 5 the fixes; 6 the scorecard, the limits and how we worked); keys
-<- -> PageUp PageDown Home End, 0-6, i (index), t (theme), n (the numbers), f (full screen); #s0 ... #s6 open a
-section. Its CSS and JS are tools/demo_page/ (inlined at build time).
+The page (tools/explainer/: template.html, explainer.css, explainer.js, tour.json, names.json): one animated diagram of
+the whole system, input to review team, controls on top, click a stage to expand it in place; "Play the story" (a
+two-minute tour, seven scenes, captions from DATA through placeholders); a short article below. Keys: space and
+-> step the tour, <- back, 1-7 a scene, Esc leaves it or closes a stage, t theme, i the IDs toggle, r run.
 """
 import argparse
-import html
 import json
 import re
 import sys
@@ -38,7 +37,7 @@ FINDINGS = ROOT / "docs" / "FINDINGS.md"
 OUT = ROOT / "docs" / "demo" / "index.html"
 EXAMPLES = CODE / "results" / "demo" / "examples.json"
 LOCAL_OUT = CODE / "results" / "demo" / "index.html"
-PAGE = CODE / "tools" / "demo_page"
+PAGE = CODE / "tools" / "explainer"
 
 
 class MissingNumber(Exception):
@@ -291,7 +290,12 @@ def section3(s, rows):
             "lora_reading": s.word(a18, "primary", "reading"), "a40_reading": s.word(a41, "primary", "reading"),
             "a40_where": s.word(a41, "primary", "where"),
             "a40_minus_lora": {**s.ci(a41, "against LoRA", "difference"), "reading": s.word(a41, "against LoRA", "reading")}}
-    return {"layers": layers, "full": full, "readout": readout, "share": share, "heads": heads, "swap": swap}
+    loc = ["localization"]
+    qwen = {"n_layers": s.num(q, *loc, "n_layers"), "questions": s.num(q, *loc, "questions"),
+            "drop": [s.num(q, *loc, "drop_by_layer_mean", i) for i in range(len(s.get(q, *loc, "drop_by_layer_mean")))],
+            "at": [s.num(q, "replication", "layers", i) for i in range(3)]}
+    return {"layers": layers, "full": full, "readout": readout, "share": share, "heads": heads, "swap": swap,
+            "qwen": qwen}
 
 
 # ---------------------------------------------------------------- section 4: between agents
@@ -408,33 +412,113 @@ def section5(s):
     return {"systems": systems, "crossings": crossings, "keyword_vs": keyword_vs, "l6": l6, "b1r2": b1r2}
 
 
+# ---------------------------------------------------------------- the explainer's main view (Nov 14): by hint source
+# Every answering model's setting with what was measured for each hint source: following the wrong hint ("f"), the
+# final answer naming the source when it follows ("names", keyword counts), the private reasoning mentioning the hint
+# ("private"; after a call, for the tool call), and the call rate where the model calls the tool itself. "names" and
+# "private" are None where nothing was measured (no thinking, or no run followed). The user, pasted and call sources
+# come from one run per setting; classmate, answer key and manual from the authority runs (B24; the answer key B16).
+X_TRACKB = (("voyager | qwen3-30b-a3b-thinking-2507 | thinking=None", "Qwen3 30B Thinking", "thinking always", True,
+             "qwen3-30b-a3b-thinking-2507", ["F15", "F35", "F40"]),
+            ("voyager | qwen3-30b-a3b-instruct-2507 | thinking=None", "Qwen3 30B Instruct", "no thinking", False,
+             "qwen3-30b-a3b-instruct-2507", ["F16", "F35", "F40"]),
+            ("voyager | olmo3-7b-think | thinking=None", "Olmo 3 7B Think", "thinking always", True, "olmo3-7b-think",
+             ["F17", "F35", "F40"]),
+            ("sol_vllm | qwen3-8b | thinking=True", "Qwen3-8B", "thinking on", True, None, ["F29"]),
+            ("sol_vllm | qwen3-8b | thinking=False", "Qwen3-8B", "thinking off", False, None, ["F29"]))
+X_SOURCES = (("user", "user"), ("pasted", "tool_pasted"))
+X_FRESH = (("user", "user"), ("pasted", "pasted"), ("call", "inserted"))
+
+
+def _measured(s, rel, *keys):
+    """X of Y with its interval, or None when nothing was measured there (n = 0)."""
+    return s.kn(rel, *keys) if s.get(rel, *keys, "n") else None
+
+
+def _by_source(s, rel, ch):
+    tc = tool_key(s, rel, *ch)
+    out = {}
+    for name, c in X_SOURCES + (("call", tc),):
+        priv = "mention_private_when_called" if s.has(rel, *ch, c, "mention_private_when_called") else "mention_private"
+        out[name] = {"f": s.kn(rel, *ch, c, "following"), "names": _measured(s, rel, *ch, c, "mention_final_when_followed"),
+                     "private": _measured(s, rel, *ch, c, priv)}
+        if s.has(rel, *ch, c, "tool_call_rate"):
+            out[name]["calls"] = s.kn(rel, *ch, c, "tool_call_rate")
+    return ("own" if tc == "tool_real" else "inserted"), out
+
+
+def explainer(s):
+    rows, tb = [], "trackB/trackB_report.json"
+    for key, model, setting, thinks, vkey, ids in X_TRACKB:
+        call, src = _by_source(s, tb, ["budget_32768", key, "channels"])
+        if vkey:
+            src["classmate"] = {"f": s.kn("trackB/b24_report.json", vkey, "arms", "user_classmate", "following")}
+            src["answer_key"] = {"f": s.kn("trackB/b16_report.json", vkey, "arms", "user_authority", "following")}
+            src["manual"] = {"f": s.kn("trackB/b24_report.json", vkey, "arms", "user_manual", "following")}
+        rows.append({"model": model, "setting": setting, "thinks": thinks, "call": call, "ids": ids, "sources": src})
+    for e in ("low", "medium", "high"):
+        call, src = _by_source(s, "trackB/b17_report.json", ["per_effort", e, "channels"])
+        rows.append({"model": "gpt-oss-20b", "setting": f"effort {e}", "thinks": True, "call": call, "ids": ["F37"],
+                     "sources": src})
+    for key, model, settings in B20:
+        for st in settings:
+            call, src = _by_source(s, "trackB/b20_report.json",
+                                   [key, "settings", st, "budget_32768", "secondary", "channels"])
+            rows.append({"model": model, "setting": f"thinking {st}", "thinks": st == "on", "call": call,
+                         "ids": ["FB1"], "sources": src})
+    t = "trackA/gpu/a39/tradeoff_e2.json"
+    from finetune import eval as ev                        # a label system's runs without a tool message are its
+    fresh = {}                                             # partner's (the label only touches the tool turn)
+    for sy in SYSTEMS:
+        b = ["systems", sy]
+        fresh[sy] = {"sources": {name: {"f": s.kn(t, *b, "following", c),
+                                        "names": _measured(s, t, *b, "disclosure_when_following", c)}
+                                 for name, c in X_FRESH},
+                     "accept": {name: s.kn(t, *b, "acceptance", c) for name, c in X_FRESH[1:]},
+                     "same_runs_as": ev.SHARED.get(sy) if s.num(t, *b, "shared")["v"] else None}
+    rel = B1[1][1]                                         # the attention dial on the 120 fresh questions (B1R2)
+    res = s.load(rel)
+    sy = next(k for k, e in res["systems"].items() if e.get("span") == "deployable" and e.get("alpha") not in (None, 1.0))
+    base = s.word(rel, "base")
+    fresh["dial"] = {"alpha": s.num(rel, "systems", sy, "alpha"),
+                     "sources": {"call": {"f": s.kn(rel, "systems", sy, "wrong_hint_following | tool_injected"),
+                                          "names": None}},
+                     "accept": {"call": s.kn(rel, "systems", sy, "correct_hint_acceptance | tool_injected")},
+                     "same_run_none": {"f": s.kn(rel, "systems", base, "wrong_hint_following | tool_injected"),
+                                       "accept": s.kn(rel, "systems", base, "correct_hint_acceptance | tool_injected")}}
+    olmo = "voyager | olmo3-7b-think | thinking=None"
+    return {"settings": rows, "fresh": fresh, "fresh_questions": s.num(t, "questions"),
+            "test_questions": s.num(tb, "budget_32768", olmo, "questions")}
+
+
 def collect(summaries=SUM):
     s, rows = Sources(summaries), Rows(Path(summaries))
     return {"s1": section1(s), "s2": section2(s), "s3": section3(s, rows), "s4": section4(s), "s5": section5(s),
-            "s6": {"kappa_l6": s.num("trackA/labels/l6_report.json", "kappa", "overall", "kappa")}}
+            "s6": {"kappa_l6": s.num("trackA/labels/l6_report.json", "kappa", "overall", "kappa")}, "x": explainer(s)}
+
+
+def compact(o):
+    """The page's DATA: the sourced object with each number's provenance dropped ({"v": x, "src", "key"} -> x).
+    tests/test_build_demo.py traces every number of collect() to its summary and checks the page's DATA equals this."""
+    if isinstance(o, dict):
+        if "v" in o and "src" in o:
+            return o["v"]
+        return {k: compact(v) for k, v in o.items()}
+    if isinstance(o, list):
+        return [compact(v) for v in o]
+    return o
 
 
 # ---------------------------------------------------------------- FINDINGS' wording
-WORDING = (  # every sentence the page quotes, as FINDINGS has it (markdown emphasis and line breaks aside)
+WORDING = (  # every sentence the page quotes, as FINDINGS has it (markdown emphasis and line breaks aside); no ID in any
     "Tools sway models more than users.",
     "After a tool call, the answer stops explaining.",
     "Downstream, a reviewer shown the tool's output defers to it.",
     "So the title question is answered mixed",
-    "with thinking on, Qwen3-8B names the tool in its private reasoning but not in its final answer (F29); in "
-    "gpt-oss-20b, more reasoning effort changes nothing (F37); in Nemotron 3 Nano, the answer after the inserted tool "
-    "turn is less bare with thinking on",
     "Training made the answer more candid about a hint it followed, in hand labels, without making it follow less.",
-    "LoRA's trained opener names the hint (F28); LoRA's following shows no difference from the instruction (F44); one "
-    "model, E2 only, 42 rows a system, the final answer only; the sheet not blind in practice, with J-opus (blind to "
-    "systems) agreeing on 82 of 84 rows.",
-    "\"ignores tools\" again",
-    "B1's verdict on the 30 stays primary",
-    "A40 gives more correct answers than the instruction only when fewer than 0.36 [0.22, 0.50] of the tool's answers "
-    "are correct.",
     "The stricter bar, beating the one-line instruction on following at no cost to correct hints: met by no fix.",
     "provenance labels alone don't help",
     "independent verification does",
-    "Scorecard against the original plan",
 )
 
 
@@ -453,40 +537,6 @@ def check_wording(findings):
     return p.read_text()
 
 
-def md_inline(t):
-    """FINDINGS' markdown, inline: escaped, **bold** and *italic* kept, links to their text."""
-    t = html.escape(t, quote=False)
-    t = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", t)
-    t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
-    return re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])", r"<em>\1</em>", t)
-
-
-def scorecard(findings_text):
-    """FINDINGS' story item 7, its bullets as written: [(lead, rest)] in HTML."""
-    lines = findings_text.splitlines()
-    try:
-        start = next(i for i, x in enumerate(lines) if x.startswith("7. **Scorecard against the original plan"))
-    except StopIteration:
-        raise MissingNumber("FINDINGS has no story item 7 (\"7. **Scorecard against the original plan\")") from None
-    bullets, cur = [], None
-    for x in lines[start + 1:]:
-        if not x.startswith("   ") or not x.strip():
-            break
-        if x.startswith("   - "):
-            cur = [x[5:].strip()]
-            bullets.append(cur)
-        elif cur is not None:
-            cur.append(x.strip())
-    if len(bullets) < 5:
-        raise MissingNumber(f"FINDINGS' scorecard (item 7) has {len(bullets)} bullets; expected its 7")
-    out = []
-    for b in bullets:
-        h = md_inline(" ".join(b))
-        m = re.match(r"\s*<strong>(.+?)</strong>\s*(.*)$", h, re.S)
-        out.append((m.group(1), m.group(2)) if m else ("", h))
-    return out
-
-
 # ---------------------------------------------------------------- the page
 def script_json(obj):
     """JSON safe inside a <script> element (no "</", "<!--" or "]]>" can close or confuse it)."""
@@ -496,14 +546,12 @@ def script_json(obj):
 
 def render(data, findings_text, examples=None):
     tpl = (PAGE / "template.html").read_text()
-    css, js = (PAGE / "demo.css").read_text(), (PAGE / "demo.js").read_text()
-    card = "\n".join(f'<li><p class="sc-lead">{lead}</p><p class="sc-rest">{rest}</p></li>'
-                     for lead, rest in scorecard(findings_text))
     local = examples is not None
-    parts = {"CSS": css, "JS": js, "DATA": script_json(data), "SCORECARD": card,
+    parts = {"CSS": (PAGE / "explainer.css").read_text(), "JS": (PAGE / "explainer.js").read_text(),
+             "DATA": script_json(data), "NAMES": script_json(json.loads((PAGE / "names.json").read_text())),
+             "TOUR": script_json(json.loads((PAGE / "tour.json").read_text())),
              "EXAMPLES_DATA": (f'<script type="application/json" id="demo-examples">{script_json(examples)}</script>'
                                if local else ""),
-             "EXAMPLES_SLIDE": ((PAGE / "examples.html").read_text() if local else ""),
              "MODE": "local" if local else "tracked"}
     out = tpl
     for k, v in parts.items():
@@ -517,7 +565,7 @@ def render(data, findings_text, examples=None):
 def build(summaries=SUM, findings=FINDINGS, out=OUT, examples=EXAMPLES, local_out=LOCAL_OUT):
     """Write the tracked page (numbers only) and, when the examples file exists, the local page with them."""
     text = check_wording(findings)
-    data = collect(summaries)
+    data = compact(collect(summaries))
     page = render(data, text)
     written = []
     out = Path(out)

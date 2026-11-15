@@ -1,4 +1,4 @@
-## In plain words (Ritik's page, as of Nov 14, 20:14: the results demo; slide 5's figure; Gate 3's statement drafted; the freeze procedure; the submission folder; earlier Nov 13, 11:14: B1R2 read; the freeze page; the wording held after L6; earlier 09:56: L6 read, F45; Sol pulled; edited by hand in `docs/status/ONE_PAGE.md`)
+## In plain words (Ritik's page, as of Nov 14, 23:09: the demo is now the Hint Explainer; plain names (the glossary, the README, the slide figures); earlier Nov 14, 20:14: the results demo; slide 5's figure; Gate 3's statement drafted; the freeze procedure; the submission folder; earlier Nov 13, 11:14: B1R2 read; the freeze page; the wording held after L6; earlier 09:56: L6 read, F45; Sol pulled; edited by hand in `docs/status/ONE_PAGE.md`)
 
 **Done. Every experiment is read; nothing runs.**
 - **45 findings** (F1–F45, in `docs/FINDINGS.md`) and Track B's **FB1**. **Gate 2 is marked** (Nov 8). **Gate 3 is
@@ -20,8 +20,10 @@
   The fix belongs at the system level: provenance labels alone don't help (F44, FC3); independent verification does
   (Track C's checker, F24). FINDINGS' story item 7 is the scorecard.
 
-- **For the presentation (Nov 13–14):** the results demo, [`docs/demo/index.html`](../demo/index.html) (opens offline; ←
-  → between screens, `i` index, `t` theme, `n` the numbers, `f` full screen); slide 5's figure of F3
+- **For the presentation (Nov 13–14):** the demo is now the **Hint Explainer**, [`docs/demo/index.html`](../demo/index.html)
+  (opens offline; "Play the story" for the 7-scene tour, about 2 minutes: space or → steps, ← back, 1–7 jump, Esc leaves;
+  `t` theme, `i` the IDs); everything in plain names, the IDs in [`docs/GLOSSARY.md`](../GLOSSARY.md); the slide
+  figures relabelled in plain names (slide 1's stale "Open" line now "Read since"); slide 5's figure of F3
   (`private_vs_final.png`); **Gate 3's final statement drafted in PLAN for Ritik's approval** ("met; the stricter bar:
   not met"); the freeze procedure (CHECKIN §10); the submission folder (`docs/submission/`) with the AI-use facts.
 
@@ -32,7 +34,7 @@
 | item | state | on whom, by when |
 |---|---|---|
 | Gate 3's final statement | drafted Nov 13 in PLAN; waits on Ritik's approval | Ritik, Nov 20 |
-| The demo (`docs/demo/index.html`) | built Nov 13, checked Nov 14 | rebuilt at the freeze (CHECKIN §10) |
+| The demo (`docs/demo/index.html`), the Hint Explainer | built and checked Nov 14 | rebuilt at the freeze (CHECKIN §10) |
 | Slide 2 (B20's rows) and B18's table | in progress | Arsha, Nov 18 |
 | Slide 5 (F3) | figure made Nov 13 (`private_vs_final.png`) | Ritik and Shrey place it, Nov 18 |
 | Slide 7 (B24's arms) | waiting | Arsha, Nov 18 (final Nov 20) |
