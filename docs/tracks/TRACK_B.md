@@ -1,7 +1,8 @@
 # Track B handoff: test widely (for Arsha, from Nov 6)
 
 **Edited by:** Ritik until Nov 6, then Arsha. **Start with [`docs/trackB/START_HERE.md`](../trackB/START_HERE.md)** (its Quick
-start and plan hold where this page differs). Last updated: 2026-11-14 (Arsha: B20 done and read, FB1, §3 and §5;
+start and plan hold where this page differs). Last updated: 2026-11-15 (Arsha: slide 7 drawn with B24's arms, §1a,
+§3, §4); earlier, 2026-11-14 (Arsha: B20 done and read, FB1, §3 and §5;
 B18's table with B20's rows and its choices settled, §1a; the re-reads done, §1); earlier, 2026-11-06 09:18 (the handoff: START_HERE's §0,
 §9–§11, the zip `trackB_20261106.zip`, the three hooks: §0 and §1 here; earlier, 2026-11-05 09:54: B20 on your own
 Sol account from Nov 5, its 3:00 lines, run order and partial read, the B20 log's §19: §0, §1, §3, §5, §6, §7; Nov 6's last push to
@@ -10,6 +11,10 @@ the bundle built and checked, §0; B20 in the plan, §1; T12, §6; earlier: B24 
 second amendment, §3; B20's smokes and its amendment of Nov 4, §3; START_HERE, B18 and slide 2 started for you, §1a;
 closed models dropped). History: `git log --follow docs/tracks/TRACK_B.md` (it was `docs/handoff/TRACK_B.md` until
 Nov 1). Ritik runs Track B until Nov 6, then it's yours; B20's Sol runs are yours from Nov 5, on your own account.
+
+**Updated Nov 15** (Arsha): slide 7 drawn with B24's two arms beside B16's (§1a;
+`docs/trackB/figures/authority_ladder.png`), for Ritik to place at the merge
+([the Nov 15 log](../trackB/sessions/2026-11-15/2026-11-15_1455_B_slide7.md)).
 
 **Updated Nov 14** (Arsha): B20 is done (all 4,860 runs on Arsha's Sol account by Nov 6) and read (Nov 7, by its
 rule, all runs in: FB1 in [`FINDINGS_B.md`](../trackB/FINDINGS_B.md), merged into `main` Nov 8; §3). B18's table has
@@ -123,6 +128,20 @@ and for level 2 (after a tool call, the final answer stops naming its source).
     turn") and note (temperature 0.6; F15–F17, F29, F37) name only Track B's models, so Ritik relabels them in
     `tools/slide_figures.py` (his file) and regenerates it.
 - **Tests:** `tests/test_trackb_final.py`, 7 (B20's rows against FB1's summary; the cut note).
+
+**Done Nov 15 (Arsha): slide 7** (Ritik's Nov 14 OK: drawn in Track B's paths, placed by him at the merge):
+- `docs/trackB/figures/authority_ladder.png` (.svg, .csv), by `tools/trackb_final.py --slide7` (`fig_slide7`), in
+  `tools/slide_figures.py`'s style, imported read-only. Every number from `b16_report.json`, `b24_report.json` and
+  `b20_report.json`.
+- (a) Following per source the user cites, by the authority claimed: the guess (Track B, Oct 27–28), a classmate (B24,
+  Nov 4), my answer key (B16, Oct 31), the official manual (B24, Nov 4); X of Y, 95% Wilson, the two other days
+  hatched; B24's same-day manual minus classmate as a bracket (+41, +12, +32; F40).
+- (b) Each tool arm minus my answer key (B16's primary, F35) and minus the official manual (B24's (c), against B19's
+  tool arms, F40), each with its pre-registered reading; the tool's X of Y beside each row.
+- The note: B24's two cross-day readings, the 16,000 cut (every reading on the slide the same), and B20's count (FB1:
+  the tool beyond its own answer-key arm in 5 of 10 readings, authority moves it more in 1).
+- Plain names on the slide (slide_figures' Nov 14 rule, its test applied here); the CSV keeps the ids, F-numbers and
+  each number's source. Tests: 4 more in `tests/test_trackb_final.py` (11).
 
 ## 2. Results (through B16)
 
@@ -286,8 +305,8 @@ the answer is (X)."; each tool arm minus that, paired by question:
     +29] (the manual higher; F35 holds for B16's wording, with that as its limit); Instruct and Olmo no difference
     detected. With the manual's wording the user's claim pulls as hard as every tool channel, or harder, except
     Instruct's own call (+73 beyond it). Every reading the same at the 16,000 cut.
-  - **Yours from Nov 6:** re-read it from the bundle's records (`run_b24.py --report`) against F40. Slide 7's
-    `b16_authority.png` can take B24's two arms (PLAN's map).
+  - **Yours from Nov 6:** re-read it from the bundle's records (`run_b24.py --report`) against F40 (done Nov 14, it
+    matches). Slide 7 has B24's two arms beside B16's (drawn Nov 15, §1a).
   - **The name:** Ritik called it "B21", but B21–B23 are the dropped closed-provider rows, so it is B24.
 - **B18, the final table and one figure (due Nov 18):** B14's table (`trackB_report.py`, `--by-set`, `--export`) with
   B16's and B17's readings beside it, each labelled with its own settings (B17 at temperature 1.0), and one figure
@@ -307,6 +326,7 @@ the answer is (X)."; each tool arm minus that, paired by question:
 ../.venv/bin/python progress/run_b20.py --smoke-check --model M  # a smoke's verdict from its flags (after a copy-back)
 ../.venv/bin/python progress/run_b20.py --report               # B20 (FB1; read Nov 7)
 ../.venv/bin/python tools/trackb_final.py                      # B18's table (with B20's rows)
+../.venv/bin/python tools/trackb_final.py --slide7             # slide 7 -> docs/trackB/figures/authority_ladder.*
 ../.venv/bin/python progress/run_b24.py --report               # B24 (F40)
 # a new Voyager run: dry run, smoke, then under the guard (the Mac plugged in, lid open)
 ../.venv/bin/python progress/run_trackB.py --dry-run --model M

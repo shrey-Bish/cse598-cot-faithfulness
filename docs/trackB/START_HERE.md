@@ -2,6 +2,10 @@
 
 **Edited by:** Arsha, on `trackB-main`, from Nov 6. Written by Ritik on Nov 3 (updated Nov 4: B20's two amendments, B24; Nov 5: B20 on your own Sol account; Nov 6: the handoff); Ritik keeps it until his last push to `trackB-main` on Nov 6.
 
+**Updated Nov 15** (Arsha): slide 7 is drawn with B24's two arms beside B16's (§5;
+`docs/trackB/figures/authority_ladder.png`, by `tools/trackb_final.py --slide7`), for Ritik to place at the merge, as
+he asked Nov 14. `main` merged back first.
+
 **Updated Nov 14** (Arsha): B20 is done (all 4,860 runs on your account, Nov 6) and read (Nov 7 by its rule, FB1;
 merged into `main` Nov 8). B18's table has B20's rows and its open choices are settled (§5). The re-reads of B16,
 B19, B17 and B24 match F35, F37 and F40 (the Nov 14 log). B1R2 was revived Nov 6 (§0). Nothing of Track B's runs on
@@ -59,7 +63,7 @@ final answer stop naming the tool once the model has called it? It is the eviden
 | 2a | **Done Nov 14** (it matches). **B24** (§4a): read by Ritik Nov 4 (F40); re-read it from the bundle's records against F40 | Mon Nov 9 | Nov 12 |
 | 3 | **Table done Nov 14** (§5; slide 2's labels with Ritik). **B18**: check every row of the table against FINDINGS; settle its open choices; its figure | Wed Nov 18 | Nov 12, Nov 18 |
 | 4 | **Done Nov 7** (FB1; B20 in B18's table Nov 14). **B20's reading**, by its pre-registered rule, from the numbers-only files you copy back (§4; SOL_ARSHA step 9): an FB entry, B20 in B18's table, and the decision whether slide 2 shows it | **Tue Nov 17** | Nov 18 |
-| 5 | **Slides 2, 6, 7 and 8**, final (§5), and Track B's section of the report as bullets in `docs/trackB/REPORT_B.md` | **Fri Nov 20** | — |
+| 5 | **Slide 7 drawn Nov 15** (§5; Ritik places it). **Slides 2, 6, 7 and 8**, final (§5), and Track B's section of the report as bullets in `docs/trackB/REPORT_B.md` | **Fri Nov 20** | Nov 18 |
 
 **Check-ins with Ritik: Nov 6, Nov 12, Nov 15 and Nov 18.**
 - Bring what finished (session logs, FB entries, the table, figures), what's next, and anything blocked.
@@ -276,7 +280,7 @@ canary log, §1, step 5).
 | Sat Nov 7 | re-read B16, B19 and B17 by their reports |
 | Mon Nov 9 | B24 re-read against F40 (§4a; read Nov 4) |
 | **Thu Nov 12** | B18: every row checked against FINDINGS; its open choices settled (§5); **check-in and merge** |
-| **Sun Nov 15** | **check-in and merge** (B20's runs ended Nov 6, so the partial cut-off no longer applies) |
+| **Sun Nov 15** | **check-in and merge** (B20's runs ended Nov 6, so the partial cut-off no longer applies); slide 7 drawn with B24's arms (§5) |
 | ~~Tue Nov 17~~ | **B20 read Nov 7** by its rule (§4), all runs in: FB1; B20's rows in B18's table Nov 14 |
 | **Wed Nov 18** | **results freeze** (no new runs after it); **B18's table and figure** done; **check-in and merge** |
 | **Fri Nov 20** | **slides 2, 6, 7 and 8 final** (§5); Track B's section of the report, as bullets in `docs/trackB/REPORT_B.md` |
@@ -376,8 +380,8 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
   ```bash
   ../.venv/bin/python progress/run_b24.py --report
   ```
-  It must print the log's numbers. Its records never enter Track B's table. Slide 7's figure can take its two arms
-  (PLAN's map).
+  It must print the log's numbers. Its records never enter Track B's table. Slide 7's figure has its two arms (Nov 15,
+  §5).
 
 ## 5. B18 and the slides
 
@@ -399,6 +403,14 @@ Should, if time allows: L5, Track B's labeling batch (171 rows, two raters), aft
   - the numbers only: ask Ritik to rerun it;
   - the design: draw yours with a script in your own files, into `docs/trackB/figures/` (PNG, SVG and a CSV of every
     plotted number). Ritik places it at merge.
+  - **Slide 7, drawn Nov 15 (Arsha; Ritik's OK of Nov 14):** `docs/trackB/figures/authority_ladder.png` (.svg, .csv),
+    by `../.venv/bin/python tools/trackb_final.py --slide7` (`fig_slide7`, in slide_figures' style, imported
+    read-only). (a) Following per source the user cites (the guess, a classmate, my answer key, the official manual;
+    X of Y, 95% Wilson; the two other days hatched), the same-day manual minus classmate as a bracket (F40);
+    (b) each tool arm minus my answer key (F35) and minus the official manual (F40), with the readings. The note
+    gives the cross-day readings, the 16,000 cut (every reading the same) and B20's count (FB1: the tool beyond the
+    answer key in 5 of 10 readings). Plain names on the slide; the CSV keeps the ids, F-numbers and sources. Tests:
+    `tests/test_trackb_final.py`, 4 (every number against F35 and F40).
 
 ## 6. Working rules, hand-back and merges
 
