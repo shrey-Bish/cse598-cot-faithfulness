@@ -1,6 +1,47 @@
 # Do Thinking Modes Make Chain-of-Thought More Honest?
 
-CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-14. **Edited by:** Ritik.
+CSE 598, Fall 2026 · Group 10: Shrey Bishnoi, Arsha Jindal, Ritik Agarwal. Last updated: 2026-11-19. **Edited by:** Ritik.
+
+## Start here in five minutes
+
+**The question.** We put a wrong hint in a multiple-choice question, from the user or from a tool. Does the model
+follow it, and does it say so? Thinking models return their private reasoning and their final answer separately, so
+we can see which of the two admits the hint.
+
+**Five findings** (results frozen Nov 18, the tag `results-freeze-2026-11-18`; codes in parentheses are what to search
+for in [`docs/FINDINGS.md`](docs/FINDINGS.md) and the [glossary](docs/GLOSSARY.md)):
+1. **Tools sway models more than users do.** The same wrong hint moves the answer more from a tool than from the user,
+   in all five models of the models-and-sources track and in all 10 readings of three newer families (Gate 2, FB1).
+   Most of the pull is the claim to be the answer key, and it grows with the claimed authority (B16, B24; F35, F40).
+2. **The final answer drops the source.** By keyword counts, the private reasoning names the hint in 208 of 216 runs,
+   the final answer in 8 (F3); after a real tool call, Qwen3 30B Thinking's final answer is a bare letter in 51 of 54
+   (F15). Does thinking make it more honest? Mixed: it depends on the model and how thinking is varied (F29, F37, FB1).
+3. **Inside Olmo 3 7B Think, three layers read the hint's letter straight from the prompt.** Layers 15, 19 and 23
+   carry 0.90 [0.85, 0.96] of the drop at the takeover (F11), and it replicates on new questions and, with its own
+   three layers, in a second family, Qwen3-8B: 0.70 [0.60, 0.83] (F26, F36).
+4. **The fixes trade; none wins.** Every fine-tuned version passes the fix test (Gate 3, F28), but none beats a
+   one-line instruction without taking fewer correct hints: consistency training follows fewer wrong hints than the
+   instruction (−21 [−26, −16] points) and takes fewer correct ones (−15 [−20, −10]) (A40, F41).
+5. **A reviewer that sees the solver's trace stops checking.** Olmo 3.1 32B corrected 59 of 73 wrong answers from the
+   answer alone and 6 of 73 with the solver's private reasoning beside it (C4, F18), in one model family of the four tried (F22); a checker that never sees the
+   tool stopped all 53 wrong tool answers on fresh items (C15, F24).
+
+**See it.** Open [`docs/demo/index.html`](docs/demo/index.html), the Hint Explainer, in any browser (it works offline:
+download the file and double-click it). Press "Play the story" for the 7-scene tour (about 15 s a scene; space
+pauses, → steps).
+
+**Where things are.**
+- **The report's material:** [`docs/paper/REPORT.md`](docs/paper/REPORT.md) (every section's bullets, numbers and
+  figure), [`RELATED_WORK.md`](docs/paper/RELATED_WORK.md), [`CLAIMS.md`](docs/paper/CLAIMS.md); the figures in
+  [`docs/paper/figures/`](docs/paper/figures/), the tables in [`docs/paper/tables/`](docs/paper/tables/).
+- **The slides:** [`docs/presentation/deck.pptx`](docs/presentation/deck.pptx) (the shell), with
+  [`TALK_MAP.md`](docs/presentation/TALK_MAP.md) and [`QA_FACTS.md`](docs/presentation/QA_FACTS.md).
+- **The submission:** [`docs/submission/`](docs/submission/README.md), its checklist and one command that builds the zip.
+- **The data:** every number in [`docs/FINDINGS.md`](docs/FINDINGS.md) (and Track B's
+  [`FINDINGS_B.md`](docs/trackB/FINDINGS_B.md), Track C's [`FINDINGS_C.md`](docs/trackC/FINDINGS_C.md)); the
+  numbers-only summaries in [`cot-disclosure/results/summaries/`](cot-disclosure/results/summaries/); the produced data
+  stays local, in three bundles whose sha256s are in
+  [`docs/submission/BUNDLES.sha256`](docs/submission/BUNDLES.sha256).
 
 **New here?** Open the [Hint Explainer](docs/demo/index.html) first (details below), and keep the
 [glossary](docs/GLOSSARY.md) beside you: the repo's logs and findings use short internal codes (A40, B1R2, F41), and the

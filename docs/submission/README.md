@@ -1,34 +1,71 @@
 # The submission, Nov 19–24
 
 **Edited by:** Ritik. Set up Nov 13 (14:13) from PLAN's
-[submission checklist](../PLAN.md#submission-checklist-nov-1924). Every file here reads only the results frozen on
-Nov 18 (CHECKIN [§10](../status/CHECKIN.md#10-the-results-freeze-nov-18-the-procedure)). The course's exact requirements
-(formats, length and time limits, where and how to submit, the form of the contribution statement and of the AI-use
-disclosure) are not in the repo: each row says what to confirm against the course page.
+[submission checklist](../PLAN.md#submission-checklist-nov-1924); made a checklist with one command Nov 19 (10:25).
+Every file here reads only the results frozen on Nov 18: the tag `results-freeze-2026-11-18` on `7e1fdc0` (CHECKIN
+[§10](../status/CHECKIN.md#10-the-results-freeze-nov-18-the-procedure)). The course's exact requirements (formats,
+length and time limits, where and how to submit, the form of the contribution statement and of the AI-use disclosure)
+are not in the repo: confirm them against the course page.
 
-## What goes in, and where
+## One command
 
-| piece | where it is, or will be | who | by when | state (Nov 13) |
+```bash
+python3 cot-disclosure/tools/make_submission.py --check     # each piece and its state; writes nothing
+python3 cot-disclosure/tools/make_submission.py             # the zip, once every piece is ready
+```
+
+The second refuses, naming what isn't ready, while a part we write is missing (or `CONTRIBUTIONS.md` still holds its
+placeholder, or `AI_USE.md` still says "to confirm"). Once all are in, it writes
+`cot-disclosure/results/submission/cse598_group10_submission.zip` (gitignored): the report, the slides, the
+contributions, the AI-use disclosure, every figure (`docs/paper/figures/`: PNG, SVG and CSV), the explainer
+(`explainer/index.html`), `CODE_LINK.txt` (the repository, the freeze tag and its commit, main's commit at the build),
+`BUNDLES.sha256` and a `MANIFEST.sha256` of every file. `--with-supplement` adds `docs/paper/supplement/` (whether it
+goes in as an appendix: confirm). `--verify-bundles` checks the bundles on this Mac against `BUNDLES.sha256` (all three
+matched on Nov 19, 10:22). Stdlib only; tests in `cot-disclosure/tests/test_make_submission.py`.
+
+## The checklist
+
+"Ready" means made and checked; "to write by us" means the team's own words, which no tool writes.
+
+| piece | file | state (Nov 19) | who | by when |
 |---|---|---|---|---|
-| **the report** | the prose written from [`docs/paper/REPORT.md`](../paper/REPORT.md)'s bullets (numbers only from FINDINGS and CLAIMS); the final file here as `docs/submission/report.<pdf or docx>` (format and length: confirm) | each section's owner (PLAN's writing plan); Ritik merges | draft Nov 22; final Nov 24 | bullets in; prose not started |
-| **the supplement** | [`docs/paper/supplement/`](../paper/supplement/), regenerated at the freeze by `tools/make_supplement.py`; whether it goes in as an appendix: confirm | Ritik | Nov 20 (D6) | regenerated Nov 13 (42 rows) |
-| **the slides** | one deck, `docs/submission/slides.<pptx or pdf>` (format and time limit: confirm), from the 13 slides of PLAN's [presentation map](../PLAN.md#final-presentation-map-about-12-slides), figures from [`docs/paper/figures/`](../paper/figures/) | each slide's owner; the deck Ritik (proposed) | 11–12 Nov 18; 2, 6–8 Nov 20; 9 after Gate 3's statement (Nov 20); 13 Nov 21–22; presented Nov 24 | figures made but slide 5's (Nov 13) and 13 |
-| **the demo** | [`docs/demo/index.html`](../demo/index.html), the Hint Explainer: one file, opens offline in any browser; a guided tour of 7 scenes and an article; built by `cot-disclosure/tools/build_demo.py` from the tracked numbers-only summaries | Ritik | rebuilt at the freeze (Nov 18) | built Nov 13; replaced by the Hint Explainer Nov 14 |
-| **the code link** | https://github.com/shrey-Bish/cse598-cot-faithfulness, `main` at the tag `results-freeze-2026-11-18` (made Nov 18, CHECKIN §10); the README's test and recompute commands; produced data local, numbers-only summaries tracked; the graders' access: confirm | Ritik (the merges, the push, the tag) | the tag Nov 18 | the tag not made yet |
-| **the contribution statement** | `docs/submission/CONTRIBUTIONS.md` (not created: the team writes it), from PLAN's "Who runs what" and each track's TODO; form: confirm | each member their own lines; Ritik merges (proposed) | Nov 22 (proposed) | not started |
-| **the AI-use disclosure** | `docs/submission/AI_USE.md` (not created: the team writes it), from the facts in [`AI_USE_INVENTORY.md`](AI_USE_INVENTORY.md); form and policy: confirm | each member for their own work; Ritik merges (proposed) | Nov 22 (proposed) | the inventory written Nov 13; the statement not started |
+| the report's material | [`docs/paper/REPORT.md`](../paper/REPORT.md): every section's bullets with exact numbers, plain names (codes in parentheses), limits and its figure or table; [`RELATED_WORK.md`](../paper/RELATED_WORK.md); [`CLAIMS.md`](../paper/CLAIMS.md) | ready | — | done Nov 19 |
+| **the report** | `docs/submission/report.pdf` or `report.docx`: the prose, from REPORT's bullets (numbers only from FINDINGS, FINDINGS_B, FINDINGS_C); format and length: confirm | **to write by us** | each section's owner (PLAN's writing plan); Ritik merges | draft Nov 22; final Nov 24 |
+| the supplement | [`docs/paper/supplement/`](../paper/supplement/), regenerated at the freeze by `tools/make_supplement.py` | ready | — | done Nov 18 |
+| the figures | [`docs/paper/figures/`](../paper/figures/): each slide's and each report section's figure, with a CSV of every plotted number | ready | — | done |
+| the slide shell | [`docs/presentation/deck.pptx`](../presentation/deck.pptx), built by `tools/make_deck.py` from [`TALK_MAP.md`](../presentation/TALK_MAP.md): a title slide, one slide a map entry (its figure and a short plain title), "Limits and next steps"; no paragraphs, no notes | ready | — | done Nov 19 |
+| **the slides** | `docs/submission/slides.pptx` or `slides.pdf`: the shell with our words; format and time limit (about 12 minutes planned): confirm | **to write by us** | each slide's owner (PLAN's map); Ritik assembles | rehearsal Nov 23; presented Nov 24 |
+| the presentation kit | [`TALK_MAP.md`](../presentation/TALK_MAP.md) (slide by slide: the point, the figure, the explainer scene, the time; the speaker column blank) and [`QA_FACTS.md`](../presentation/QA_FACTS.md) (likely questions and the facts to point to) | ready | — | done Nov 19 |
+| the explainer | [`docs/demo/index.html`](../demo/index.html), the Hint Explainer: one file, opens offline in any browser; rebuilt at the freeze, presentation fixes Nov 18 (its DATA the tag's) | ready | — | done Nov 18 |
+| the code link | https://github.com/shrey-Bish/cse598-cot-faithfulness, the tag `results-freeze-2026-11-18` (`7e1fdc0`); the tool writes it into `CODE_LINK.txt`; the graders' access: confirm | ready | — | the tag Nov 18 |
+| the bundles' sha256s | [`BUNDLES.sha256`](BUNDLES.sha256): Track A 1,704.3 MB, Track B 60.1 MB, Track C 5.1 MB (built and verified Nov 18; the [freeze log](../../archive/sessions/2026-11-18/2026-11-18_2044_ALL_freeze.md)); the bundles stay local | ready | — | done Nov 18 |
+| **the contribution statement** | [`CONTRIBUTIONS.md`](CONTRIBUTIONS.md): the placeholder "Contributions: to be completed before submission"; the facts in PLAN's "Who runs what" and each track's TODO; form: confirm | **to write by us** | Ritik | before submission |
+| **the AI-use disclosure** | `docs/submission/AI_USE.md`, written from [`AI_USE_INVENTORY.md`](AI_USE_INVENTORY.md); form and policy: confirm | **to write by us** | each member for their own work; Ritik merges | Nov 22 |
+
+## The inventory's "to confirm" lines
+
+The AI-use inventory records what the repo shows; these lines it can't, so the member each names confirms or corrects
+it before `AI_USE.md` is written:
+
+1. **Ritik:** from when Claude Code was used (the git history starts Oct 2, the session logs Oct 27).
+2. **Ritik:** which prompts Claude in chat (claude.ai) drafted for planning, and from when.
+3. **Arsha:** Track B's own AI use, from Nov 6 (her `docs/trackB/sessions/`).
+4. **Shrey:** Track C's own AI use, from Oct 30 (his `docs/trackC/sessions/`).
+5. **Each member:** what you checked by hand in AI-written code, docs or analyses.
 
 ## The folder at submission (Nov 24)
 
 ```
 docs/submission/
   README.md               this page
-  AI_USE_INVENTORY.md     the facts the disclosure is written from (Nov 13)
-  AI_USE.md               the AI-use disclosure, written by the team
-  CONTRIBUTIONS.md        the contribution statement, written by the team
+  AI_USE_INVENTORY.md     the facts the disclosure is written from
+  AI_USE.md               the AI-use disclosure, written by us
+  CONTRIBUTIONS.md        the contribution statement, written by us (now the placeholder)
+  BUNDLES.sha256          the three bundles' sha256s, from the freeze
   report.<pdf|docx>       the final report
-  slides.<pptx|pdf>       the deck
-docs/demo/index.html      the demo, the Hint Explainer (linked, not copied)
+  slides.<pptx|pdf>       the deck, from docs/presentation/deck.pptx
+docs/presentation/        the slide shell, TALK_MAP.md, QA_FACTS.md
+docs/demo/index.html      the Hint Explainer (linked, and copied into the zip)
 ```
 
 A file over 50 MB doesn't go in git (the pre-push check refuses it): it goes where the course page says, and this

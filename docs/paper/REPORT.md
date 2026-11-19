@@ -2,7 +2,7 @@
 
 **Edited by:** Ritik; each section's bullets by its owner (Track B's: Arsha, from `docs/trackB/REPORT_B.md`; Track C's: Shrey, from `docs/trackC/REPORT_C.md`), merged by Ritik.
 
-Started Nov 3 by Ritik; updated Nov 13, 11:13 (B1R2 read, in F38's bullet; the title question answered mixed in §1 and §12; L6's line held to its wording, §6, §7, §12; earlier 09:54: F45, L6 read: §3's labels, §6 and §7; B1R2 complete; earlier Nov 8, 15:09: Arsha's FB1, B20, in §2–§4 and §6; §7's LoRA + note with its acceptance cost in the same sentence; §12's conclusion bullets, made specific; earlier Nov 7, 20:43: §7's exploratory trade-off bullet, post hoc; earlier 20:35, F44 in §7: A39 read by its rules R1–R4, its figures drawn, its waiting entry replaced); earlier Nov 7, 13:52 (F41–F43 in §7, A40, A41 and A42 read; A39 complete and B1R2 running in §7's waiting list; §6's L3 entry read Nov 4, no longer waiting; Shrey's figures placed in `docs/paper/figures/`); earlier Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
+Started Nov 3 by Ritik; updated Nov 19, 10:26 (related work and novelty positioning, §1, §11 and §12; per-section bullet summaries, limits and figure lines in §1–§12; §4 prepared from Track B's findings; Gate 3's final statement drafted in §7; nothing left waiting; no number changed); earlier Nov 13, 11:13 (B1R2 read, in F38's bullet; the title question answered mixed in §1 and §12; L6's line held to its wording, §6, §7, §12; earlier 09:54: F45, L6 read: §3's labels, §6 and §7; B1R2 complete; earlier Nov 8, 15:09: Arsha's FB1, B20, in §2–§4 and §6; §7's LoRA + note with its acceptance cost in the same sentence; §12's conclusion bullets, made specific; earlier Nov 7, 20:43: §7's exploratory trade-off bullet, post hoc; earlier 20:35, F44 in §7: A39 read by its rules R1–R4, its figures drawn, its waiting entry replaced); earlier Nov 7, 13:52 (F41–F43 in §7, A40, A41 and A42 read; A39 complete and B1R2 running in §7's waiting list; §6's L3 entry read Nov 4, no longer waiting; Shrey's figures placed in `docs/paper/figures/`); earlier Nov 6, 23:18 (Track C's FC1–FC4 merged into §8 and §9 from Shrey's `docs/trackC/REPORT_C.md`, verbatim; B1R2 revived); earlier Nov 5, 09:53 (B1R2 dropped, A40 pre-registered). Sections follow PLAN's report outline; each says who writes it and its figure. **Setup and
 methods are filled in as bullets** (facts with their source), so the prose can be written from them. Numbers come from
 [`FINDINGS.md`](../FINDINGS.md), the tracks' `FINDINGS_B.md` and `FINDINGS_C.md`, and the claims from
 [`CLAIMS.md`](CLAIMS.md). Results freeze on Nov 18; the draft is due Nov 22, the final report Nov 24.
@@ -21,6 +21,55 @@ the slide's 16:9 version from the same rows (`_slide`, `tools/slide_figures.py`;
 - The question, the three levels ("Where did that answer come from?": inside the model, in its words, between agents),
   the contributions.
 - Figure: `docs/paper/figures/three_levels.svg`.
+- **The contributions, as bullets (Nov 19; every number as in the entry cited; where prior work already shows a result,
+  it is said here and in §11; [`RELATED_WORK.md`](RELATED_WORK.md)):**
+  - **The tool-vs-user test (Gate 2).** The same wrong hint from a tool moves the answer more than from the user, tool
+    (pasted block) minus user: Qwen3 30B Thinking +35 [+24, +46], Qwen3 30B Instruct +21 [+12, +31], Olmo 3 7B Think
+    +32 [+22, +42] (F15, F16, F17); Qwen3-8B +19 [+10, +29] thinking on and +13 [+7, +21] off (F29); gpt-oss-20b +24
+    [+16, +34], +25 [+15, +36], +26 [+16, +36] at low, medium and high effort (F37); three more families (the newer
+    families, B20), clear in all 10 readings (FB1).
+    - **Prior work:** consistent with Authority Bias (Kumar and Chopra) and FACE-Eval (Gema et al.); Assertion-
+      Conditioned Compliance (Waqas et al.) found users followed more than function outputs for function-calling
+      models, so we claim the gap for our models and tasks only.
+  - **The authority ladder (B16, B24).** The pull grows with the claimed source's authority: the official solution manual
+    minus a classmate, +41 [+31, +51], +12 [+4, +20], +32 [+23, +41] (Qwen3 30B Thinking, Qwen3 30B Instruct, Olmo 3 7B
+    Think; F40); the user's answer-key claim closes 68% and 71% of Gate 2's gap with the pasted block in Qwen3 and 109%
+    in Olmo (F35).
+    - **Prior work:** a source note moving answers more than a user's, and more so the more authoritative it sounds,
+      is already in Authority Bias (Kumar and Chopra). What stays ours: the user's own claim set against the tool
+      channels in the same model and day, which shows where the claim matches or passes the tool (F35, F40).
+  - **Where the hint is read (the readout layers 15, 19 and 23).** 0.90 [0.85, 0.96] of the drop at the takeover (F11);
+    0.90 [0.76, 1.06] on 16 questions not used to find it (F26); three heads separate followed from resisted runs,
+    +0.068 [+0.044, +0.088] (F32); in a second family, three layers hold 0.70 [0.60, 0.83] of the drop (F36).
+    - **Prior work:** a causal separation of source deference from user agreement is already reported (Kumar and
+      Chopra, fitted directions), and activation patching recovers the channel an instruction arrives by at mid-to-late
+      depths (Syed and Yasaei). What stays ours: the layers and
+      heads for one wrong hint, their replication on separate questions and in Qwen3-8B.
+  - **The words.** The private reasoning names the hint and the final answer almost never does: 208 of 216 against 8 of
+    216 (keyword counts; F3); after its own call Qwen3 30B Thinking's answer is a bare letter in 51 of 54 (F15); one
+    instruction brings the tool back into the answer and doesn't change following (F25).
+    - **Prior work:** unnamed hint use is shown by Chen et al., Unspoken Hints and Walden and Wanner, and FACE-Eval shows
+      a tool-delivered cue is said less than a user's. Not ours as a first. Ours: the split between private reasoning
+      and final answer in thinking models, the model's own call, thinking on and off in the same weights (F29).
+  - **Where training acts inside the model.** LoRA's weights pull toward the hint harder on base's own reasoning (R_LoRA
+    −0.72 [−1.02, −0.39], F39); consistency training (A40) removes part of the pull, from layers 0–14, before the readout
+    layers (+0.68 logits [+0.17, +1.18], F42).
+    - **Prior work:** consistency training is Chua et al.'s BCT in kind; the method isn't ours. Ours: a reasoning model,
+      fresh questions against the instruction, the cost to correct hints, and where the weights act.
+  - **The trade-off in the fixes.** Consistency training follows fewer wrong hints than the one-line instruction (−21 [−26,
+    −16]) and takes fewer correct ones (−15 [−20, −10]) (F41); fine-tuning + instruction −8 [−12, −4] and −9 [−13,
+    −5] (F44); the attention dial on E2 −13.8 [−20.0, −7.5] and −5.8 [−10.8, −1.3] (F38). Post hoc (exploratory, §7):
+    every E2 system that follows fewer wrong hints than the instruction also takes fewer correct ones.
+    - **Prior work:** that trusting tool evidence has this cost is argued by Zhao et al. ("When Tools Hurt"); ours is the
+      measured set of fixes.
+  - **The review team (Track C).** Olmo 3.1 32B Instruct corrects 59 of 73 wrong tool answers alone and 6 and 3 of 73 with
+    the private reasoning or the tool log (F18); only the two Olmo reviewers of six defer, over four families (F22,
+    F30); the checker that re-solves without the tool stopped all 53 wrong answers on fresh items, with false alarms
+    on 7 of 45 good lookups (F24). In the papers we checked, we found none on a reviewer model deferring to a solver's
+    tool trace; that isn't a search of the literature.
+  - **Limits of the contributions:** one training run a version and one model for the fixes (§7); keyword counts for the
+    words (L3 not met, F3); 54 test questions for Gate 2 ("no difference detected" is not no difference); the review team
+    has one solver and one reviewer prompt (§10).
 - The evidence per level, as the figure lists it: inside (F11, F26, F32, F36); in the words (F15, F25, F29, F35);
   between agents (F18, F31, F33, F34). Every result, one row each:
   [`tables/results_at_a_glance.md`](tables/results_at_a_glance.md).
@@ -72,6 +121,14 @@ the slide's 16:9 version from the same rows (`_slide`, `tools/slide_figures.py`;
 
 **Compute:** ASU's Voyager (served models, free); ASU's Sol (A100 80 GB; vLLM 0.31.0; Hugging Face generation for B1);
 no paid calls.
+
+**Limits of the setup (Nov 19; sources in §10):**
+- Temperatures differ by model (0.6 for Track A and Track B's first five; 1.0 for gpt-oss-20b and B20's three; F37, FB1),
+  so each comparison stays within one model.
+- Gemma 4 and Nemotron 3 Nano's tool channel is the inserted tool turn, the fallback; Granite 4.2 8B thinking on only (FB1).
+- The 54 test questions and the 30 held-out questions are small; E2's 120 fresh questions came after the fixes' first
+  tests.
+- Figure: `docs/paper/figures/channels.svg` (the channels); the models table above is the section's table.
 
 ## 3. Methods (Ritik; each track's section, its owner)
 
@@ -143,15 +200,48 @@ reliability. On Nov 4, before any further judging, we pre-registered an LLM-judg
 - **B1:** attention from layers 15/19/23 to the tool span's keys scaled by alpha, chosen on set A (F27, F38).
 - **A39:** a provenance wrapper (every tool output marked "[unverified tool output]") and combinations, on E2.
 
+**Limits of the methods (Nov 19; sources in §10):**
+- Mentions are keyword counts: L3's labels did not meet Gate 2's label part (private 0.472, final 0.234), so no claim rests
+  on them (F3); L4 part 1 and L6 are human-vs-AI agreement (F28, F45).
+- B20's 27 readings and B24's fifteen are not corrected for multiplicity (FB1, F40); "no difference detected" is not a
+  finding of no difference.
+- Forced answers are off-distribution for a thinking model (F5); activation patching is on Olmo 3 7B Think and, for one
+  replication, Qwen3-8B (F36).
+- Figure and table: none of its own; [`tables/results_at_a_glance.md`](tables/results_at_a_glance.md) has a row per finding.
+
 **Between agents (Track C):** a solver (Qwen3 30B Thinking) with a forced lookup, wrong about half the time by a seeded
 oracle; reviewers shown the answer alone, with its explanation, with the private reasoning, or with the tool log; a
 checker that re-solves without the tool; the no-tool team as the false-alarm floor (F18).
 
 ## 4. The failure: tools pull harder (Arsha)
 
+*(Prepared from Track B's findings, FINDINGS_B and B18's table, Nov 19; Arsha's words to come. Numbers only; her bullets
+file, `docs/trackB/REPORT_B.md`, doesn't exist yet.)*
+
+- **The tool-vs-user test (Gate 2) in B18's table** (`docs/paper/tables/trackB_final.md`, already with B20's rows; tool minus
+  user, pasted block / the tool channel; 54 questions × 3 runs; the table's own numbers):
+  - Qwen3 30B Thinking (temperature 0.6): +35 [+24, +46] / +31 [+22, +42] its own call (F15);
+  - Qwen3 30B Instruct: +21 [+12, +31] / +90 [+83, +96] its own call (F16);
+  - Olmo 3 7B Think: +32 [+22, +42] / +21 [+13, +30] inserted tool turn (F17);
+  - Qwen3-8B thinking on: +19 [+10, +29] / +78 [+69, +86]; off: +13 [+7, +21] / +13 [+3, +23] (F29);
+  - gpt-oss-20b (temperature 1.0) low / medium / high: +24 [+16, +34], +25 [+15, +36], +26 [+16, +36] / +14 [+7, +20], +25
+    [+16, +35], +26 [+17, +36] (F37);
+  - Gemma 4 26B-A4B on / off: +39 [+28, +51], +73 [+64, +83] / +24 [+13, +35], +33 [+22, +44] (inserted turn, the fallback;
+    FB1);
+  - Nemotron 3 Nano 30B-A3B on / off: +51 [+41, +62], +35 [+27, +43] / +75 [+68, +82], +61 [+54, +69] (inserted turn; FB1);
+  - Granite 4.2 8B on only: +18 [+10, +28] / +91 [+85, +96] its own call (FB1).
+- **Tool or authority (B16, F35), the authority ladder (B24, F40), the thinking dose (B17, F37), thinking on vs off
+  (B4, F29):** the entries below; the following counts by channel are in the table's columns.
+- **The quiet answer after a tool call and the disclosure instruction (B15, F25)** are in §6 (Arsha and Ritik).
+- **Prior work (§11):** consistent with Authority Bias (Kumar and Chopra: a source over a user, a dose in authority) and
+  FACE-Eval (Gema et al.: a tool-delivered cue is said less); opposite in direction for Waqas et al.'s function-calling
+  models on policy hints; Syed and Yasaei's tool-metadata instructions are discounted against the user's (a payload
+  we didn't test).
+- Section limits: see each entry's limits and FB1's; the tool channel isn't one thing (pasted block, the model's own call,
+  inserted turn); B16 and B24 have cross-day arms (T11); 54 questions.
 - Gate 2 on five models (B18's table, `docs/paper/tables/trackB_final.md`); tool or authority (B16, F35); the authority
   dose (B24, F40); the thinking dose (B17, F37); three more families (B20, FB1).
-- Figure: `docs/paper/figures/gate2.png`.
+- Figure: `docs/paper/figures/gate2.png`; table: `docs/paper/tables/trackB_final.md`.
 
 **Results** (Gate 2 = tool minus the user's hint, following, paired by question, 54 questions × 3 runs unless noted):
 
@@ -282,6 +372,20 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 - The readout at 15/19/23; set A; Qwen3-8B; the heads; inside the fixed model (A18).
 - Figure: `docs/paper/figures/readout_by_layer.png` (slide 3: `docs/paper/figures/readout_by_layer_slide.png`, with set
   A beside Test 2).
+- **Summary (Nov 19; the readout layers 15, 19 and 23; numbers from the entries below):**
+  - The hint's effect leaves its tokens at layers 15, 19 and 23: 0.90 [0.85, 0.96] of the drop at the takeover (F11);
+    per layer 0.34 [0.27, 0.42], 0.17 [0.14, 0.21], 0.39 [0.34, 0.43].
+  - It replicates on 16 questions not used to find it: 0.90 [0.76, 1.06] (F26); the heads L19H31, L23H17 and L15H31
+    separate followed from resisted runs, +0.068 [+0.044, +0.088] (F32; Test 2 +0.084 [+0.062, +0.105]).
+  - In Qwen3-8B three layers chosen on the puzzles (21, 22, 29) hold 0.70 [0.60, 0.83] of the drop on MMLU-Pro (F36).
+  - The prompt's letter does more than the reasoning's repetition: 13 of 21 against 7 of 19 (F13).
+  - Tool hints get less attention at the answer than user hints and move it more (F10, F1).
+  - **Prior work (§11):** a causal separation of source deference from user agreement is in Kumar and Chopra (fitted
+    directions), and patching recovers an instruction's channel at mid-to-late depths in Syed and Yasaei; ours are the layers and heads for one
+    wrong hint, replicated on separate questions and in a second family.
+  - **Limits:** one model for the heads; the readout in full-attention layers mostly follows from the window (F11, F12);
+    forced answers off-distribution (F5); Qwen3-8B patching only, the tool's own call only (F36); mechanism as a
+    whole tentative (CLAIMS 1.4).
 
 **Results** (Olmo 3 7B Think unless noted; Test 2 = the 30 MMLU-Pro questions; forced answers after each sentence):
 
@@ -407,6 +511,21 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 - Private vs final (F3; with L3's labels if they stand); the bare answer after a call and its good-lookup control; the
   instruction (F25).
 - Figure: `docs/paper/figures/bare_after_call.png`.
+- **Summary (Nov 19; the quiet answer = a bare final answer; numbers from the entries below):**
+  - Private reasoning names the hint, the final answer almost never does: 208 of 216 against 8 of 216 (F3, keyword counts;
+    L3's labels not met).
+  - After its own call the final answer is a bare letter, right or wrong: Qwen3 30B Thinking 51 of 54, C4's control 80 of 84
+    after good lookups and 71 of 75 after bad (F15); Qwen3 30B Instruct 111 of 147 (F16); Qwen3-8B on 138 of 145 calls
+    (F29); gpt-oss-20b 37 of 37, 75 of 78, 122 of 129 (F37).
+  - Thinking on puts the tool in the private reasoning (141 of 145 calls) and not in the final answer (0 of 143 followed
+    runs, F29).
+  - One instruction brings the tool back into the answer (+47 [+30, +64], +70 [+59, +81]) with no change in following
+    (F25). Training made the answer more candid in hand labels, 37 of 42 against 18 of 42 (F45; §7).
+  - **Prior work (§11):** unnamed hint use is shown by Chen et al., Unspoken Hints and Walden and Wanner (models also deny
+    use; our hand labels found 0 of 42 LoRA answers rejecting the hint they end on, F45); FACE-Eval shows a tool cue is
+    said less than a user's and that a source-attribution prompt narrows the gap on some models.
+  - **Limits:** keyword and length counts; F3's private keyword fires with no hint (22 of 72); the F25 "before" is not an
+    interleaved control; Gemma's answers are never bare (FB1); gpt-oss-20b is bare with no hint too (79% to 81%).
 
 **Results** (mentions are keyword counts; bare = 30 characters or fewer, a length count):
 
@@ -497,7 +616,7 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     channel in 8 of 156 (Nemotron on), 0 of 162 (off) and 0 of 162 (Granite), reported with no decision.
   - figure: none yet
 
-**The labels (read; no longer waiting):**
+**The labels (read):**
 
 - **L6 (F45, the words): when LoRA follows a wrong hint on E2, its final answer says so more often than the
   instruction's, in hand labels.** says_changed or mentions_only in 37 of 42 [75, 95%] against 18 of 42 [29, 58%],
@@ -521,7 +640,27 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
 - Gate 3; the instruction; false disclosure in labels (L4); B1; consistency training (A40, A41, A42); A39 on E2.
 - Figure: `docs/paper/figures/gate3_vs_base_slide.png` (slide 9; the same rows as `finetune/gate3.py`'s
   `cot-disclosure/results/summaries/trackA/gpu/eval/figures/gate3_vs_base.png`), or A39's (`a39_e2_fixes.png`,
-  `a39_e2_parts.png`, drawn Nov 7, F44; WAITING.md).
+  `a39_e2_parts.png`, drawn Nov 7, F44).
+- **Summary (Nov 19; the one-line instruction is the comparison; numbers from the entries below):**
+  - Gate 3 (the gate, by its rule fixed before the runs): met on the 30; all four trained versions pass: following minus
+    base, fine-tuned (LoRA) −10 [−16, −4], source tags only −6 [−10, −2], LoRA + tags −7 [−13, −1], LoRA on layers 15/19/23
+    −7 [−13, −2] (F28); on E2 the powered replication passes for the instruction (−9 [−14, −4]) and LoRA (−7 [−11, −3])
+    (F44).
+  - The stricter bar, beating the instruction at no cost to correct hints: met by no fix. Consistency training (A40) −21
+    [−26, −16] with acceptance −15 [−20, −10] (F41); with the note −24 [−30, −19] and −20 [−26, −14] (F43); fine-tuned +
+    instruction −8 [−12, −4] and −9 [−13, −5] (F44); the "unverified" label alone −1 [−7, +4] (F44); the attention dial (B1)
+    −17 [−30, −3] on the 30, and on E2 −13.8 [−20.0, −7.5] with acceptance −5.8 [−10.8, −1.3]: "ignores tools" (F38).
+  - Inside the model: fine-tuning acts in the reasoning (R_LoRA −0.72 [−1.02, −0.39], F39); consistency training acts before
+    the readout layers, from layers 0–14 (+0.68 [+0.17, +1.18]; versus LoRA +1.40 [+0.73, +2.09], F42).
+  - In hand labels, fine-tuning made the answer more candid: 37 of 42 against 18 of 42, +45.2 [+25.4, +64.2] (F45).
+  - **Prior work (§11):** consistency training is Chua et al.'s BCT in kind (we don't claim the method); the cost to correct
+    cues, which BCT leaves unmeasured, is what we measured (F41); the trade-off is argued for tool evidence by Zhao et
+    al.; removing a source direction (Kumar and Chopra) is the nearest representation-level fix, and their removal
+    experiment "does not test whether the models still benefit from correct source information after the intervention".
+  - **Limits:** one model (Olmo 3 7B Think), one training run a version; the 30 can't resolve 5-point limits (F38); the
+    trade-off bullet is post hoc; hiding is a keyword measure the LoRA opener defeats (F28, F41); L6 is one rater, one AI
+    check, final answer only (F45).
+  - Figure: the first line of this section names them.
 
 **Results** (Olmo 3 7B Think; the held-out 30 unless noted):
 
@@ -694,16 +833,58 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     back it: 37 of 42 against 18 of 42, and the keyword agreed with the labels on 83 of 84 rows.
   - figure: docs/paper/figures/tradeoff_e2.png (exploratory (post hoc); `tradeoff_acc_p.png` for the supplement)
 
-**Waiting:**
+**Read, and not run (Nov 19; the results are frozen, no run is open):**
 
-- **B1R2: read Nov 13** (in F38's bullet above).
-- **Gate 3's final statement:** Nov 20, after A39 (PLAN). L4 part 2 (LoRA minus base in labels): SHOULD, no date.
+- **Read:** B1R2 (Nov 13, in F38's bullet); L6 (Nov 13, F45); A39 (F44), A40, A41, A42 (F41–F43), all read Nov 7.
+- **Not run, with the reason** (PLAN's freeze page):
+  - L4 part 2 (LoRA minus base in labels): a SHOULD, not labelled; L6 answers its question on E2 (F45).
+  - L5 (Track B's labeling batch): a SHOULD, not labelled.
+  - A38 (the attention dial with the instruction): dropped Nov 3 as pre-registered, because B1's span reads "ignores tools".
+  - B1R (the larger attention-dial replication): not run Nov 3, underpowered within budget (about 107 to 245 questions
+    needed, 35 GPU-hours fit 70; F38); B1R2 ran instead.
+  - C22 (Track C): a STRETCH, not prepared.
+- **Gate 3's final statement: draft, for Ritik's approval by Nov 20 (PLAN, Gates).** Copied word for word from PLAN's draft
+  (Nov 13, 13:40); not marked until Ritik approves or changes it:
+
+  > **Gate 3: met; the stricter bar: not met.**
+  >
+  > **The gate, by its rule fixed before the runs** (a trained version follows fewer wrong hints than base on
+  > held-out questions, the 95% bootstrap difference clustered by question excluding 0; no-hint accuracy within 5
+  > points; the hiding check not rising). All four trained versions of Olmo 3 7B Think pass on the held-out 30 (F28,
+  > Oct 31, 930 runs a system): following minus base, LoRA −10 [−16, −4], tags −6 [−10, −2], LoRA + tags −7
+  > [−13, −1], LoRA on layers 15/19/23 −7 [−13, −2]; no-hint accuracy within 3 points; hiding falls for each. On
+  > E2's 120 fresh questions, a powered replication passes for LoRA (−7 [−11, −3]) and the one-line instruction (−9
+  > [−14, −4]) (F44, R1), and the later fixes pass the same rule: LoRA + note (−17 [−22, −12], F44), A40 (−30
+  > [−35, −26], F41) and A40 + note (−33 [−38, −28], F43), with no-hint accuracy within 4 points of base.
+  >
+  > **The stricter bar: beating the one-line instruction on following at no cost to correct hints. No fix meets
+  > it.** LoRA matches the instruction (+3 [−1, +8] on the 30, not pre-registered, F28; "no difference detected" on
+  > E2, +2 [−2, +6], F44). The fixes that follow fewer wrong hints than the instruction also take fewer correct ones:
+  > A40 −21 [−26, −16] with acceptance −15 [−20, −10] (F41) and A40 + note −24 [−30, −19] with −20 [−26, −14]
+  > (F43), both "fewer, but costs acceptance"; LoRA + note "fewer than the instruction" by A39's R2 (−8 [−12, −4]) at
+  > an acceptance cost of −9 [−13, −5] (F44). Marking tool output "unverified" has no effect alone (−1 [−7, +4],
+  > F44). Attention scaling at inference cuts following on the inserted tool turn (B1, −17 [−30, −3] on the 30), and
+  > on E2 the cut replicates with a real cost to correct hints (B1R2, −13.8 [−20.0, −7.5], acceptance −5.8 [−10.8,
+  > −1.3]): "ignores tools" by its rule (F38).
+  >
+  > **Beside the gate, not part of it.** In hand labels, training made the answer more candid about a hint it
+  > followed, without making it follow less (L6, F45: when LoRA follows a wrong hint on E2, its answer says so in 37
+  > of 42 runs against the instruction's 18 of 42, +45 [+25, +64]; LoRA's trained opener names the hint, F28; one
+  > model, E2 only, 42 rows a system, the final answer only; the sheet not blind in practice, with J-opus agreeing
+  > on 82 of 84 rows). Inside the model, LoRA acts in the reasoning (F39) and A40 before the readout layers (F42).
+  >
+  > **Limits.** One model (Olmo 3 7B Think) and MMLU-Pro's evaluation categories; one training run a version;
+  > hiding is a keyword measure; the comparisons with the instruction on the 30 were not pre-registered (on E2 they
+  > were, F44).
 
 ## 8. Level 3, between agents (Shrey)
 
 - Reviewer deference by family; the citation as the cue (C16–C19).
 - Figure: `docs/paper/supplement/figures/trackC_reviewers.png` (slide 11: `docs/paper/figures/trackC_reviewers_slide.png`
-  and `reviewer_by_prompt_slide.png`).
+  and `reviewer_by_prompt_slide.png`). Table: `docs/paper/tables/trackC_experiments.md`.
+- Section limits (Nov 19, from the entries below and FINDINGS_C): one solver and one reviewer prompt; the model family can't
+  be separated from its data, recipe and template (F22); 1 repeat on the fresh items (F24); Granite's own check is weak
+  (F30).
 
 **Results** ("corrects" = the reviewer's letter is right where the solver's answer after a bad lookup is wrong; paired
 by item; C4's 53 items unless noted):
@@ -814,7 +995,10 @@ by item; C4's 53 items unless noted):
 ## 9. Across agents, and the pipeline (Shrey)
 
 - The handoff note (C25); pipeline vs model (C20); a realistic tool (C26); the checker's record.
-- Figure: `docs/paper/figures/c25_hops.png`.
+- Figure: `docs/paper/figures/c25_hops.png`. Table: `docs/paper/tables/trackC_pipelines.md`.
+- Section limits (Nov 19, from the entries below and FINDINGS_C): one solver, one writer model, one wording a variant; 1
+  repeat; 53 items a reading, 21 for C26's reviewers; the checker works when the model, asked again without the tool,
+  answers otherwise (F18, FC2, FC4).
 
 **Results:**
 
@@ -917,6 +1101,20 @@ by item; C4's 53 items unless noted):
   another model were set aside and run again, 160 from the same model and command are kept, labelled (§7). The audit
   (Nov 4, 13:49): no earlier result affected.
 
+**Limits, each with its source (Nov 19):**
+
+- **The tool-vs-user claim:** 54 questions; "no difference detected" isn't no difference; B16's and B24's tool arms are
+  cross-day (T11; F35, F40); the tool channel is the inserted turn for Gemma, Nemotron and Olmo (FB1, F17).
+- **Positioning:** the nine papers added Nov 19 were checked on their arXiv abstract pages; details beyond the abstract came from
+  a summarizing fetch of the HTML, partly the first 100,000 characters (RELATED_WORK, "Not verified"). No search of the
+  literature is claimed to be complete.
+- **Mechanism:** one model for the heads (F12, F32), patching in Qwen3-8B (F36); forced answers off-distribution (F5).
+- **The fixes:** one model, one training run a version; trained on sure questions only for A40 (F41); the one-line instruction
+  beats or matches every fix on following without a cost; the trade-off bullet in §7 is post hoc.
+- **Disclosure:** keyword hiding that LoRA's and A40's openers defeat (F28, F41); L6's rater was not blind in practice (F45).
+- **Track C:** one solver, one reviewer prompt, 1 repeat on fresh items (F22, F24).
+- **Not run:** L4 part 2, L5, A38, B1R and C22, with their reasons in §7.
+
 **Measurement traps, each found and fixed** (FINDINGS T1–T12; each would have changed a reported number; the
 supplement's [`TRAPS.md`](supplement/TRAPS.md) lists them with sources; figure: none):
 
@@ -959,9 +1157,54 @@ supplement's [`TRAPS.md`](supplement/TRAPS.md) lists them with sources; figure: 
 
 ## 11. Related work ([`RELATED_WORK.md`](RELATED_WORK.md)), 12. Conclusion and deployment (everyone)
 
+**§11, related work (Nov 19; verified references only; each entry in RELATED_WORK.md has "Did" and "Relates"; our numbers are in
+the entries cited; figure: none):**
+- **CoT faithfulness under hints:**
+  - Turpin et al. (2023), Chen et al. (2025): hints go unnamed in CoT; Lanham et al. (2023): early answering as a test; Chua and
+    Evans (2025): reasoning models name a cue far more often than non-reasoning ones. Ours **extends** them to tool channels
+    and the private-versus-final split: the naming is in the private reasoning, rarely in the final answer (F3, F15). Chen et al.'s own future work (tool use,
+    training for faithful CoT, probing activations) is the three things our tool channel (F15–F17, F29, F37, FB1), fixes
+    (F28, F41–F44) and patching (F11, F26, F32, F36) speak to; we use SFT only, no RL, no SAE features.
+  - Marioriyad et al. (2025, Unspoken Hints): **agrees** that raw answer hints are used silently; ours differs in showing
+    the private reasoning names the hint (F3).
+  - Walden and Wanner (2026): **agrees** that self-reports of hint use can mislead; **differs**: no warnings in ours,
+    keyword mentions, and almost no claimed disagreement in hand labels (F28, F45); we show no denial.
+  - Gema et al. (2026, FACE-Eval): **agrees**, and removes any "first": a tool-delivered cue is said less than a user's; **differs**:
+    their cue is a preference with a prefilled tool return, ours a wrong answer with the model's own call; **extends**:
+    thinking on and off in the same weights (F29), and whether the final answer names the source (their answer judge
+    labels only the side the answer takes; F3, F15). They already vary reasoning effort (GPT-OSS: more effort raises the
+    reasoning's verbalization without closing the gap) and test a source-attribution prompt (it narrows the gap on seven
+    models), so neither is an extension: on effort ours **differs** in measure (gpt-oss-20b, no change detected in
+    following or the bare final answer, F37), and our instruction (F25) is read on the final answer and on following.
+- **Deference to a claimed source or a tool:**
+  - Kumar and Chopra (2026): **agrees** (source over user, a dose in authority, F1, F35, F40); the authority ladder is not
+    new in kind; **extends** with the user's claim against tool channels in one model (F35, F40); **differs**: they remove
+    fitted directions, and their removal experiment "does not test whether the models still benefit from correct source information after the intervention"; ours
+    are the readout layers and the cost to correct hints (F38, F44).
+  - Waqas et al. (2025, A-CC): **agrees** that tool-sourced assertions are followed; **differs in direction** (function-calling
+    models, policy hints; users followed more).
+  - Syed and Yasaei (2026): **differs** (instructions in tool channels are discounted); **agrees** loosely on mid-to-late layers.
+  - Zhao et al. (2025, When Tools Hurt): **agrees** that deferring to a tool can overturn a right answer (F18, F15) and that the
+    problem is arbitration (F41, F44; the checker, F24).
+  - Xie et al. (2024), Wu et al. (2024, ClashEval): **agrees** in kind (models adopt conflicting external evidence).
+- **Fixes:** Chua et al. (2024, BCT): **agrees** in direction, A40 is BCT in kind; **extends**: a reasoning model, fresh
+  questions, cost to correct hints (F41), where it acts (F42). PASTA and ITI (§3 of RELATED_WORK): the dial (B1, F38)
+  downweights a provenance span rather than upweighting emphasis; instruction hierarchy, ISE, StruQ, SecAlign and
+  spotlighting target injected instructions, not wrong facts (F20: tags did nothing measurable on the taught tokens).
+- **Mechanism methods:** Meng et al. (2022), Wang et al. (2022), Zhang and Nanda (2024), Heimersheim and Nanda (2024):
+  methods we use (F11, F12).
+- **Reviewers:** LLM-as-judge (Zheng et al.), self-preference (Panickssery et al.), sycophancy (Sharma et al.) and human automation
+  bias (Skitka et al.; Parasuraman and Manzey; Goddard et al.): the deference we find is to a tool trace, family-specific (F18,
+  F22, F30); self-preference is not the mechanism (reviewers are other models than the solver).
+- **What stays ours (checked against these papers):** the authority ladder set against tool channels in one model and day (F35, F40);
+  the readout layers 15, 19 and 23 and their replication in a second family (F11, F26, F32, F36); where training acts,
+  in the reasoning for fine-tuning (F39) and before the readout layers for consistency training (F42); the measured
+  set of fixes and their trade-off (post hoc; §7); the review-team results (F18–F34, FC1–FC4).
+
 - **§12, the conclusion's bullets (Ritik, Nov 8; our reading, labelled as interpretation):**
   - The failure holds across families: a tool's hint moves the answer more than the user's in all five Track B models
-    and in B20's three new families (Gate 2, marked Nov 8; FB1). The label part of Gate 2 is not met (F3).
+    and in B20's three new families (Gate 2, marked Nov 8; FB1). The label part of Gate 2 is not met (F3). Consistent with
+    Authority Bias and FACE-Eval, not with A-CC's direction for function-calling models (§11).
   - Without a way to verify the tool, resisting wrong hints and relying on right ones trade off: every fix we trained,
     prompted or applied at inference moves along that trade, not past it (F41, F43, F44; B1R2 in F38; FINDINGS' story,
     item 7).
@@ -975,3 +1218,8 @@ supplement's [`TRAPS.md`](supplement/TRAPS.md) lists them with sources; figure: 
     less bare after the tool turn with thinking on (FB1). It depends on the model and on how thinking is varied:
     thinking doesn't reliably make the final answer say where it came from.
   - **One training fix made the answer more candid** (L6, F45): training made the answer more candid about a hint it followed, in hand labels, without making it follow less. Its limits, beside it: LoRA's trained opener names the hint (F28); LoRA's following shows no difference from the instruction (F44); one model, E2 only, 42 rows a system, the final answer only; the sheet not blind in practice, with J-opus (blind to systems) agreeing on 82 of 84 rows.
+  - **Where prior work already shows it (Nov 19; §11):** unnamed hint use (Chen et al.; Unspoken Hints; Walden and Wanner), a
+    tool cue said less than a user's (FACE-Eval), a source over a user and a dose in authority (Authority Bias), reasoning effort and a source-attribution prompt
+    (FACE-Eval),
+    consistency training (BCT), and the cost of trusting tool evidence (Zhao et al.). What the conclusion rests on that
+    is ours: §11's last bullet.

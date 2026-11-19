@@ -1,6 +1,6 @@
 # AI use: the inventory
 
-**Edited by:** Ritik. Written Nov 13 (14:13). **Facts only, for the team to write the AI-use disclosure from**
+**Edited by:** Ritik. Written Nov 13 (14:13); updated Nov 19 (10:23): the helpers' Nov 18 and Nov 19 uses added, and "$0 spent" restored (a shell had turned it into a path). **Facts only, for the team to write the AI-use disclosure from**
 (`AI_USE.md`, the team's own words; form and policy: confirm against the course page). Each line says where the repo
 records it. A line marked *to confirm* is something the repo doesn't record: the member it names confirms or corrects
 it. Arsha and Shrey add their own tracks' uses.
@@ -10,7 +10,7 @@ it. Arsha and Shrey add their own tracks' uses.
 | tool | used for | who, when | where it is recorded |
 |---|---|---|---|
 | **Claude Code** (Anthropic's coding agent, in VS Code and the terminal) | writing and running code, tests, analyses and figures; writing the docs, session logs and handoff guides; reading results by their pre-registered rules (each reading's code has tests, written before it) | Ritik's Track A sessions and the shared docs. *To confirm (Ritik):* from when; the git history starts Oct 2 and the session logs Oct 27 | the session logs, [`archive/sessions/`](../../archive/sessions/INDEX.md), each with its §0 "Input" (the instructions given) |
-| Claude Code's sub-agents ("helpers", at most 2 at once from Nov 13's rule) | parallel pieces of a session, e.g. B1R2's report and figure (Nov 13, [the 11:09 log](../../archive/sessions/2026-11-13/2026-11-13_1109_A_b1r2-results.md)); the demo and slide 5's figure (Nov 13, [the 13:36 log](../../archive/sessions/2026-11-13/2026-11-13_1336_A_demo-freeze-submission.md)); the Hint Explainer, and the glossary, the README's plain rewrite, the slide figures' plain labels and the START_HERE drafts (Nov 14, [the 22:15 log](../../archive/sessions/2026-11-14/2026-11-14_2215_A_explainer.md)) | Ritik's sessions; helpers never commit | those logs |
+| Claude Code's sub-agents ("helpers", at most 2 at once from Nov 13's rule) | parallel pieces of a session, e.g. B1R2's report and figure (Nov 13, [the 11:09 log](../../archive/sessions/2026-11-13/2026-11-13_1109_A_b1r2-results.md)); the demo and slide 5's figure (Nov 13, [the 13:36 log](../../archive/sessions/2026-11-13/2026-11-13_1336_A_demo-freeze-submission.md)); the Hint Explainer, and the glossary, the README's plain rewrite, the slide figures' plain labels and the START_HERE drafts (Nov 14, [the 22:15 log](../../archive/sessions/2026-11-14/2026-11-14_2215_A_explainer.md)); the explainer's presentation fixes after the freeze (Nov 18, [the 20:44 log](../../archive/sessions/2026-11-18/2026-11-18_2044_ALL_freeze.md)); the related-work look-ups on arXiv, the report's bullets completed from FINDINGS, the slide shell (`docs/presentation/deck.pptx`, built by `tools/make_deck.py`) and the presentation kit (Nov 19, [the 10:18 log](../../archive/sessions/2026-11-19/2026-11-19_1018_ALL_last-materials.md)) | Ritik's sessions; helpers never commit | those logs |
 | Claude Code, mapping words to labels | Ritik's 7 re-look labels, written in his own words, were put into the guide's five categories by Claude Code (Claude Opus) at his request, before any comparison; his words are shown beside each | Nov 4, 21:24 | [the 21:24 log](../../archive/sessions/2026-11-04/2026-11-04_2124_ALL_relook-recorded.md) |
 | Claude Code, the rules it works under | every commit is the member's own, with no AI author, co-author or "generated with" line: `CLAUDE.md` and `.claude/settings.json` (Nov 5), enforced by git hooks (Nov 6) | all three members' clones | [the Nov 5 23:13 log](../../archive/sessions/2026-11-05/2026-11-05_2313_ALL_shrey-handoff.md), [the Nov 6 11:07 log](../../archive/sessions/2026-11-06/2026-11-06_1107_ALL_a40-gate-no-ai-sol-busy.md); Track B's and Track C's `START_HERE.md`, §11 |
 | **Claude in chat** (claude.ai) | planning: drafting the prompts given to the Claude Code sessions | *To confirm (Ritik):* which prompts and from when. Named in Ritik's Nov 13 prompt ("Claude in chat for planning") | each session log's §0 "Input" records what a prompt decided, e.g. [Nov 8, 14:55](../../archive/sessions/2026-11-08/2026-11-08_1455_ALL_l6-gate2-b20-merge.md), Nov 13 [09:37](../../archive/sessions/2026-11-13/2026-11-13_0937_A_l6-judge-reading.md), [11:00](../../archive/sessions/2026-11-13/2026-11-13_1100_A_b1r2-freeze-wording.md) and [13:36](../../archive/sessions/2026-11-13/2026-11-13_1336_A_demo-freeze-submission.md) |
@@ -34,7 +34,7 @@ Olmo 3 7B Think (Voyager and Sol) and its trained versions (Sol); Olmo 3 32B Thi
 first tests (F3); Qwen3-8B (Sol). Track B: Qwen3 30B Thinking and Instruct, Olmo 3 7B
 Think (ASU Voyager); Qwen3-8B and gpt-oss-20b (Sol); Gemma 4 26B-A4B, Nemotron 3 Nano 30B-A3B and Granite 4.2 8B (Sol,
 B20). Track C: the solver, reviewers and checker (Voyager and Sol), as FINDINGS F18–F34 and FC1–FC4 name them. No paid
-API was called (/bin/zsh spent; PLAN, Budget).
+API was called ($0 spent; PLAN, Budget).
 
 ## 4. What the repo records as done by hand
 

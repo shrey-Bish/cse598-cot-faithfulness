@@ -16,6 +16,8 @@ results/labels/
 results/handoff/
 # the demo's example texts and its local page with them (Nov 13; tools/demo_examples.py, tools/build_demo.py)
 results/demo/
+# the submission zip (Nov 19; tools/make_submission.py): built from tracked files, kept off GitHub
+results/submission/
 # old produced data and bundles, kept off GitHub (Oct 30 cleanup)
 results/archive/
 finetune/data/

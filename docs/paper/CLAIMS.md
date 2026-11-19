@@ -1,6 +1,6 @@
 # Candidate claims: evidence, status, objection, what settles it
 
-Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-13 09:55 (claim 1.5: L6 read, F45; earlier 2026-11-08 15:10 (B20, FB1, in claim 1.1 and Gate 2's gap marked; claim 1.5: LoRA + note's acceptance cost in the same sentence, L6 reduced and its sheet built; earlier 2026-11-07 20:39: A39 read, F44: claims 1.5 and 1.6; L6 pre-registered, not run; earlier 13:53: A40, A41 and A42 read: claim 1.5; B1R2 running: claim 1.7; earlier 2026-11-05 09:52: B1R2 not run: GPU time given to A40; 2026-11-04 17:50: the second
+Bullets for the team; numbers as in [`docs/FINDINGS.md`](../FINDINGS.md). Last updated 2026-11-19 10:26 (updated Nov 19, 10:26: wording only, no number changed; "Prior work" bullets in 1.1, 1.2, 1.4, 1.5, 1.7, 2.2 and the Track B supporting list, from RELATED_WORK.md's nine additions; earlier 2026-11-13 09:55 (claim 1.5: L6 read, F45; earlier 2026-11-08 15:10 (B20, FB1, in claim 1.1 and Gate 2's gap marked; claim 1.5: LoRA + note's acceptance cost in the same sentence, L6 reduced and its sheet built; earlier 2026-11-07 20:39: A39 read, F44: claims 1.5 and 1.6; L6 pre-registered, not run; earlier 13:53: A40, A41 and A42 read: claim 1.5; B1R2 running: claim 1.7; earlier 2026-11-05 09:52: B1R2 not run: GPU time given to A40; 2026-11-04 17:50: the second
 rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; earlier: B17, B1, the hand labels, A18, B1R2 decided; **edited by:** Ritik; history: `git log -- docs/paper/CLAIMS.md`). Status words as in FINDINGS: *confirmed* (measured as stated,
 the interval excludes no effect), *tentative* (direction there, interval includes 0 or a confound remains), *waiting*
 (the run is going or planned), *not supported*, *dropped*.
@@ -34,6 +34,12 @@ the interval excludes no effect), *tentative* (direction there, interval include
   *Tentative* for Olmo alone in its pinned format (F1: +19 [−2, +40], one user run per question). **Restated by B16:**
   most of the gap is the source's claimed authority, not the channel; the channel adds to it only for Qwen3 30B
   Instruct's own call and Qwen3 30B Thinking's pasted block.
+  **Prior work (RELATED_WORK.md, checked Nov 19):** a claimed or tool source moving answers more
+  than a user's opinion is consistent with Authority Bias (Kumar and Chopra) and, for how much the cue is said, with
+  FACE-Eval (Gema et al.); we add the same-model, same-day comparison of the user's own claim against the tool
+  channels (B16, B24), which is where the claim matches or passes the tool. Assertion-Conditioned Compliance (Waqas et
+  al.) found the opposite direction for function-calling models on policy hints; we don't reconcile the two and claim
+  the gap only for our models and tasks.
 - **Strongest objection:** B16 is cross-day (T11: its tool arms were Track B's replies, replayed from the cache; the
   canary held) and one wording, and "answer key" is also the tool's name for itself.
 - **Settles it:** B19, the same comparison made the same day (new seeds), and a second authority wording.
@@ -41,7 +47,8 @@ the interval excludes no effect), *tentative* (direction there, interval include
   +17] / −2 [−13, +10]; Instruct +4 [−1, +10] / **+75 [+65, +85]**; Olmo −3 [−11, +5] / **−14 [−22, −7]**.
   **A second wording, answered (B24, Nov 4, F40):** "The official solution manual says the answer is (X)." moves all
   three more than "A classmate of mine says…" (+41 [+31, +51], +12 [+4, +20], +32 [+23, +41]; same day): the pull
-  grows with the claimed source's authority. Against B16's wording (cross-day): Qwen3 30B Thinking +21 [+14, +29], the
+  grows with the claimed source's authority (a dose-response in authority is also reported by Authority Bias, Kumar
+  and Chopra, with a source note; ours is the user's own claim set against the tool channels). Against B16's wording (cross-day): Qwen3 30B Thinking +21 [+14, +29], the
   manual higher, so the claim holds for B16's wording with that as its limit; Instruct and Olmo no difference detected.
   With the manual's wording the user's claim pulls as hard as every tool channel, or harder, except Instruct's own
   call (+73 [+62, +84] beyond it).
@@ -55,9 +62,14 @@ the interval excludes no effect), *tentative* (direction there, interval include
   Astra High): kappa below 0.6 in four of six cells** (private 0.63, tool 0.29, user 0.85; final 0.54, tool 0.59,
   user 0.43; F3), human-vs-AI agreement. They don't stand yet. L3 is now read under the LLM-judge protocol
   (pre-registered Nov 4): Ritik's labels are the final labels, several AI judges the reliability check; no
-  acknowledgment claim from hand labels goes in the report before that. L5 (171 rows) waits.
+  acknowledgment claim from hand labels goes in the report before that. L5 (171 rows) was not run (a SHOULD, not labelled; PLAN's freeze page).
   - Corrected Nov 4, 17:50: rater 2 was an AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log. The
     two-rater route (settle the disagreements, tighten the guide, a fresh batch) no longer applies.
+  - **Prior work:** hint use that goes unnamed is already shown (Chen et al.; Unspoken Hints, Marioriyad et al.;
+    Walden and Wanner, where models also deny use), and FACE-Eval (Gema et al.) shows a tool-delivered cue is said less
+    than the user's. So "the final answer hides the hint" is not ours as a first; ours is the split between the
+    private reasoning and the final answer in thinking models, with the model's own tool call, as keyword counts. We
+    don't claim lying: the hand-labelled look at LoRA's final answers found almost no claimed disagreement (F28, F45).
 - **Strongest objection:** a keyword is not an acknowledgment, and "the user asks…" fires with no
   hint (22 of 72).
 - **Settles it:** Ritik's labels against the AI judges' majority, Cohen's kappa per channel (the LLM-judge protocol);
@@ -97,6 +109,10 @@ the interval excludes no effect), *tentative* (direction there, interval include
   cuts, 14 questions) and are its own top three; 0.74 on the puzzles. Less concentrated than Olmo's 0.90 (four layers
   hold 80%), the tool's own call only, and patching only (no heads). So the readout isn't an artifact of Olmo's
   sliding windows; the layers differ by model.
+  **Prior work:** a causal intervention that separates source deference from user agreement inside models is already
+  reported (Kumar and Chopra: fitted directions), and activation patching recovers the channel an instruction arrives
+  by at mid-to-late depths (Syed and Yasaei, in other models). What stays ours: the readout layers and heads for one wrong hint, their replication on separate
+  questions and in a second family, and the finding that training acts elsewhere (1.5).
 
 **1.5 Training learns the taught text; most of LoRA's gain is reachable from the three layers alone.**
 - **Evidence:** F20.
@@ -137,11 +153,17 @@ the interval excludes no effect), *tentative* (direction there, interval include
 - **Inside the model (A41, F42, Nov 7): "stops the readout, before them".** On base's own reasoning A40's weights
   remove part of the hint's pull (+0.68 logits [+0.17, +1.18]), from layers 0–14, and more than LoRA (+1.40 [+0.73, +2.09]).
   The kind of target changes how the weights read the hint, unlike LoRA's.
+  **Prior work:** consistency training is Chua et al.'s bias-augmented consistency training (BCT) in kind; the method
+  isn't ours. BCT reduced biased reasoning on held-out tasks and leaves the cost on correct cues unmeasured and has no
+  mechanistic part. Ours adds, for a reasoning model: fresh questions against the one-line instruction, the cost to
+  correct hints ("fewer, but costs acceptance"), and where the weights act (before the readout layers, unlike LoRA).
 - **The powered replication on E2 (A39, F44, read Nov 7 by the rules of Nov 3):** Gate 3's rule passes again for the
   instruction (−9 [−14, −4]) and LoRA (−7 [−11, −3]), and LoRA matches the instruction (R2 +2 [−2, +6], "no difference
   detected"), now with power. **LoRA + note is "fewer than the instruction"** (R2, following only: −8 [−12, −4]) at an
   acceptance cost of −9 [−13, −5]; A39's log called that reading in advance "the first fix that beats one line", and R3
-  reads it "adds, costs acceptance". So no fix beats the instruction without a cost to correct hints.
+  reads it "adds, costs acceptance". So no fix beats the instruction without a cost to correct hints. (That following less costs correct hints is a form of the
+  arbitration problem Zhao et al., "When Tools Hurt", describe for tool evidence; the trade-off across our fixes is
+  post hoc, and what is ours is the measured set of fixes.)
 - **Settles it:** L4 part 2 (LoRA minus base in labels). **Answered on E2 (L6, F45, Nov 13):** in hand labels, when
   LoRA follows a wrong hint its answer says so in 37 of 42 runs against the instruction's 18 of 42 (+45.2 [+25.4,
   +64.2], "discloses more than the instruction, in labels"; Ritik against J-opus kappa 0.961), and none of LoRA's
@@ -181,6 +203,8 @@ without making the model ignore correct tools.**
   82 of 240 → 49 of 240, −13.8 [−20.0, −7.5] (the cut replicates); correct-hint acceptance 211 → 197 of 240, −5.8 [−10.8,
   −1.3] (a real cost, past the 5-point limit by the point estimate, 2 runs; the interval includes −5); no-hint
   accuracy +0.8 [−6.7, +8.3]. B1's verdict on the 30 stays primary.
+- **Prior work:** the closest representation-level fix is removing a source direction (Kumar and Chopra), whose removal
+  experiment "does not test whether the models still benefit from correct source information after the intervention"; ours reports that cost, and it is where B1's verdict is "ignores tools".
 - **Strongest objection:** it may just make the model ignore tools. Its layers and alpha could be
   tuned on the evaluation questions.
 - **Settles it:**
@@ -225,6 +249,9 @@ families); prompt fixes don't help the deferring family (2.3); the blind checker
 - **Evidence:** F18. Right in 128 of 159 from the answer, 92 and 89 with the trace; the tool
   itself 84 of 159. Good lookups 67 → 84 of 84 (+20 [+8, +35]).
 - **Status:** *confirmed* (Olmo).
+- **Prior work:** deferring to a tool that overturns a right answer is also reported by Zhao et al. ("When Tools
+  Hurt", real tools; they propose arbitration); our checker is an arbitration of the same family, not compared with
+  theirs.
 - **Objection:** on a mix with more good lookups, deferring would look like a gain.
 - **Settles it:** report both sides at the observed bad-lookup rate (here 75 bad and 84 good lookups) and say what
   a lower rate would show.
@@ -286,6 +313,9 @@ families); prompt fixes don't help the deferring family (2.3); the blind checker
     after a call; hand labels would settle it.
   - **Objection:** the "before" is not an interleaved control. It is Track B's runs from one to two days earlier
     (same route, canary passed); only the right-letter arm without the instruction ran beside B15.
+- **Prior work:** FACE-Eval (Gema et al.) also finds that a prompt asking for the source narrows the disclosure gap
+  on seven models (they read the reasoning's verbalization; the final answer only for the side it takes); B15 reads the
+  final answer, and adds that following doesn't fall.
 - **Headline:** disclosure can be prompted, but it doesn't reduce deference to the tool. Downstream (C16, F31), a
   final answer that names the tool makes the Olmo reviewer correct fewer wrong answers (−21 [−34, −8]; unclear by
   the 20-point rule) and leaves Qwen3 unchanged. A fixed naming sentence alone doesn't (C17, F33); removing the

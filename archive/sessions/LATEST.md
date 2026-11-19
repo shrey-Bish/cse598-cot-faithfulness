@@ -1,180 +1,174 @@
-# Session log: the merges, the results freeze, and the explainer's presentation fixes (2026-11-18 20:44 MST)
+# Session log: the last materials: related work, the report's material, the slide shell, the presentation kit, the submission folder (2026-11-19 10:18 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `55c01fb` (main and `trackA-nosol` level). The day's first session;
-the daily: [DAILY_2026-11-18](2026-11-18/DAILY_2026-11-18.md). The previous session: Nov 14,
-[22:15](2026-11-14/2026-11-14_2215_A_explainer.md). No session ran Nov 15–17.
+**By:** Ritik. Branch `trackA-nosol`, from `7e7f340` (main, `trackA-nosol` and `origin/main` level). The day's first
+session; the daily: [DAILY_2026-11-19](2026-11-19/DAILY_2026-11-19.md). The previous session: Nov 18,
+[20:44](2026-11-18/2026-11-18_2044_ALL_freeze.md). The results are frozen: the tag `results-freeze-2026-11-18` on
+`7e1fdc0`.
 
 ## 0. Input
 
-A pasted prompt, acted on as Ritik's. Its decisions:
-- **a. Merges first** (the Nov 15 check-in didn't happen): `trackB-main` and `trackC-main` where they have commits
-  main lacks, by CHECKIN §8; Ritik's docs updated from FINDINGS_B and FINDINGS_C without copying numbers they don't
-  give; a START_HERE draft adopted by its owner is deleted from `docs/drafts/` (MOVES.md).
-- **b. The freeze by CHECKIN §10, after the merges.** Ritik's go for the tag, on one condition: every check passes (the
-  full suite, links, the supplement's check, export, bundles, pre-push, nothing missing). Then tag `main`
-  `results-freeze-2026-11-18`, push the tag, record its commit in PLAN, ONE_PAGE and the daily. If a check fails,
-  no tag: report what failed.
-- **c. The explainer** (presentation work after the freeze; no result changes; one dated note in its log): c1 the
-  thread, c2 no empty boxes and the focus ring, c3 one legend line, c4 "too few runs to say" under 5, c5 the hint
-  chips as the model saw them, c6 one compact row of controls, sentence case, 16px stage text, the footer matching
-  the run, c7 autoplay and Esc's order, c8 scene 2 kept and the others on models with content, c9 the article
-  trimmed; then all 14 scene screenshots retaken and looked at.
-- **d. The feeder:** no action (Ritik stops it himself later); not on "needs Ritik".
-- **Limits:** at most 2 helpers (after the tag; they don't commit); the full suite once.
+A pasted prompt, acted on as Ritik's: the last working session, to finish every remaining piece of material without
+waiting for Arsha or Shrey. Its decisions:
+- **Teammates' missing pieces** are prepared from the tracked, frozen numbers in Ritik's paths (`docs/paper/`,
+  `docs/presentation/`, `docs/submission/`), each said to come from its track; their paths (`docs/trackB/`,
+  `docs/trackC/`) aren't edited.
+- **The team's words stay theirs:** materials only (figures, tables, bullets with exact numbers, a slide shell, facts
+  for questions); no report prose, no slide paragraphs, no speaker notes or scripts. Contributions: a placeholder
+  ("Contributions: to be completed before submission"); Ritik writes it.
+- **a.** RELATED_WORK: nine references added, each checked on arXiv, with what it found and how our result relates;
+  CLAIMS and REPORT: every novelty claim checked against them and reworded where they already show it. What stays
+  ours: the authority ladder (dose-response); the readout layers with a second-family replication; where training acts
+  inside the model (fine-tuning vs consistency training); the nine-fix trade-off; the review-team results.
+- **b.** REPORT complete: every section with bullets, exact numbers, plain names (codes in parentheses), limits, its
+  figure or table; Track B's section from FINDINGS_B and B18's table ("prepared from Track B's findings"); Track C's
+  from Shrey's bullets as they are; nothing left "waiting".
+- **c.** Gate 3's draft statement from PLAN printed word for word in the handoff.
+- **d.** Every slide in PLAN's map with a current figure (a missing one made from frozen numbers, house style, plain
+  names); then `docs/presentation/deck.pptx`: a title slide, one slide per TALK_MAP entry (its figure and a short plain
+  title), a final "Limits and next steps" slide with the limits as short lines from FINDINGS. No paragraphs, no notes.
+- **e.** `docs/presentation/TALK_MAP.md` (about 12 minutes, slide by slide: the point, the figure, the explainer scene,
+  a time budget; a blank speaker column) and `QA_FACTS.md` (likely questions with the facts and findings to point to;
+  no scripted answers).
+- **f.** The submission folder: a checklist of every file with its state (ready / to write by us), the contribution
+  placeholder, the AI-use inventory's "to confirm" lines listed, and one command that assembles the submission zip
+  (report, slides, figures, the explainer, the code link, the bundles' sha256s) once our parts are written.
+- **g.** The README: a "Start here in five minutes" opening; the rest as is.
+- **h.** Sol and the feeder: no action.
+- **Limits:** at most 2 helpers (helpers don't commit); the full suite once, at the end; push `trackA-nosol` and
+  `main` only.
 
-## 1. Plan (20:44, before any helper starts)
+## 1. Plan (10:18, before any helper starts)
 
-1. **The merges (me):** `trackB-main` has 3 commits main lacks (688cf48 B18's table with B20's rows; 7e2805a her
-   merge of main; a0c5603 slide 7, `authority_ladder`); `trackC-main` has none: nothing to merge. Neither owner
-   adopted the START_HERE draft (Arsha's page has her own Nov 14 and 15 updates; Shrey's is unchanged), so
-   `docs/drafts/` stays. Then what her logs ask of Ritik: slide 7's figure placed; slide 2's legend and note (B20's
-   rows) in `slide_figures.py`. FINDINGS_B and FINDINGS_C are unchanged on both branches: no new FB or FC numbers.
-2. **The freeze (me), by §10:** Sol's "nothing runs" (read-only); the supplement and the explainer rebuilt; the checks
-   (§6 in full: the full suite, links, the supplement and its check, export, the Gantt, the bundles' dry runs); the
-   freeze commit and push; the bundles A, B, C with sha256s; the pre-push check and nothing missing; then the tag,
-   only if every check passed.
-3. **Ruling on the full suite:** Ritik's go needs the full suite before the tag, and the helpers start after the tag,
-   so the suite runs once, for the freeze. The explainer's work afterwards runs its own tests (`test_build_demo.py`,
-   `test_demo_examples.py`) and the repo checks (hygiene, links, export), not the full suite a second time. Cost if
-   wrong: an interaction with another test unseen until the next full run; the explainer touches only
-   `tools/explainer/`, `tools/build_demo.py`, its test and `docs/demo/`.
-4. **After the tag:** helper A (c1, c2, c5, c7, c8: the diagram, the thread, the tour) and helper B (c3, c4, c6, c9:
-   the legend, the small-n rule, layout and type, the article), on separate files where possible; then I review both
-   against all 14 screenshots, rebuild `docs/demo/index.html`, and write the explainer's dated post-freeze note.
+State at the start: `git fetch` (10:18) shows no commit on `trackB-main` or `trackC-main` that `main` lacks, so there
+is nothing to merge. Track B's report bullets (`docs/trackB/REPORT_B.md`) don't exist; Track C's
+(`docs/trackC/REPORT_C.md`) were merged into REPORT §8–§9 on Nov 6. Every slide in PLAN's map but 13 has a figure in
+`docs/paper/figures/`; slides 6 and 8's (`bare_after_call.png`, `b17_effort.png`) were made Nov 1 and Nov 3 by
+`tools/slide_figures.py` and are there. `docs/presentation/` doesn't exist yet. python-pptx 1.0.2 is in `.venv`.
 
-## 2. The merges (written 20:51)
+1. **Helper A (a and b):** RELATED_WORK's nine references, each looked up on arXiv (the abstract page: its title,
+   authors and date against the prompt's), an entry only where they match; the novelty claims in CLAIMS and REPORT
+   checked against them; REPORT completed section by section from FINDINGS, FINDINGS_B, FINDINGS_C, B18's table and
+   `REPORT_C.md`; nothing marked waiting.
+2. **Helper B (d and e):** the slide map's figures checked (each exists, plain names, the house style); a missing one
+   made only from frozen, tracked numbers; TALK_MAP and QA_FACTS; the deck built by a script, `tools/make_deck.py`
+   (tests first), from TALK_MAP's table, so the deck and the map can't drift.
+3. **Me (c, f, g), while they run:** the submission folder (its checklist, `CONTRIBUTIONS.md`'s placeholder, the
+   "to confirm" lines, the bundles' sha256s as a tracked file, and `tools/make_submission.py`, tests first, which
+   refuses to build the zip while a part the team writes is missing); the README's opening.
+4. **Then I review both helpers' work against FINDINGS, every number against the frozen tag** (`git show
+   results-freeze-2026-11-18:<file>`); fix what I find; the logs, TODO and the Gantt; the full suite once; commit; the
+   supplement after the commit if CLAIMS changed; push.
 
-- **`trackC-main`:** `git log origin/main..origin/trackC-main` prints nothing (Shrey's last, `50f041c`, Nov 7, is in
-  main): nothing to merge. FINDINGS_C unchanged.
-- **`trackB-main`** (Arsha): 3 commits main lacked, all Arsha's identity, no AI line; `path_check.py --range` printed
-  nothing; only Track B's paths (13 files: `tools/trackb_final.py` and its test, B18's table, START_HERE, TRACK_B,
-  TODO_B, `docs/trackB/figures/authority_ladder.*`, two session logs). Read: her Nov 14 log (B18's table with B20's
-  rows; B16, B19, B17 and B24 re-read, every reading matching F35, F37 and F40; slide 2's legend and note left to
-  Ritik) and her Nov 15 log (slide 7 drawn; Sol on Nov 14, her own login: B20's feeder stopped, no crontab entry, no
-  job queued or run since Nov 7). Merged `--no-ff` (`0c7467c`), the hooks passing it; Track B's tests with the
-  slide tests on the merge: 142 passed, 1 skipped. FINDINGS_B unchanged, so no FB number to copy.
-- **The START_HERE drafts:** neither owner adopted one (Arsha's page carries her own Nov 14 and 15 updates; Shrey's is
-  unchanged since Nov 7), so `docs/drafts/` stays as it is.
-- **What Arsha's logs ask of Ritik, done** (`d325620`): slide 2 (`gate2.png`) redrawn with B20's five rows, 13
-  settings, its legend and note naming the newer families (Olmo, Gemma and Nemotron: an inserted tool turn;
-  temperature 1.0; Granite with thinking on only), looked at, every row against FINDINGS item 1's ranges (pasted
-  minus user +18 to +73 in the newer families; tool +24 to +91); slide 7: her `authority_ladder.png` placed in
-  `docs/paper/figures/` (looked at; its bars against F35 and F40), `b16_authority.png` kept for REPORT's F35. PLAN
-  (the freeze page, the slide map, the writing plan), REPORT (F40's and FB1's figures no longer waiting), WAITING and
-  ONE_PAGE. Slide tests: 18 passed.
-- **Tell Arsha:** "Merged `trackB-main` into `main`; please run `git fetch origin && git merge origin/main` on your
-  branch, then push it."
+**Rulings (10:18):**
+- **"Nothing left waiting" and Gate 3:** Gate 3's final statement is Ritik's to approve (Nov 20). REPORT §7 carries
+  PLAN's draft word for word, marked "draft, for Ritik's approval by Nov 20": a decision of Ritik's, not a result
+  waiting. Cost if wrong: one heading to change on Nov 20.
+- **A reference that doesn't check out isn't cited:** an arXiv number whose page shows another title (or none) goes
+  under RELATED_WORK's "Not verified" with what the page showed, and no claim is reworded against it. Cost if wrong:
+  a real paper left out until someone finds its right number.
+- **Slides 6 and 8 have figures** (made by Track A's script from Track B's tracked rows), so nothing new is drawn for
+  them unless the check finds one stale; Arsha's words for those slides stay hers.
+- **The deck is built, not hand-made:** `tools/make_deck.py` reads TALK_MAP's table, so a figure or title changed in
+  the map changes the deck the same way. Cost if wrong: none beyond the script.
+- **The supplement:** `tools/make_supplement.py` checks every number in CLAIMS against FINDINGS (its EVIDENCE.md). If
+  CLAIMS changes today, the supplement is regenerated after the work's commit, from a clean tree, and that change gets
+  a dated note here (it changes no number; the tag keeps the frozen supplement).
+- **The full suite once, at the end;** the helpers run their own tests.
 
-## 3. The freeze, by CHECKIN §10 (written 20:51; finished in §4)
+## 2. What the helpers did (10:19–10:28)
 
-1. **Nothing runs.** Sol isn't reachable from this Mac tonight (`login.sol.rc.asu.edu` doesn't resolve: off ASU's
-   network or VPN), so the read-only check of Ritik's account wasn't made; Ritik's lines are in §5. Ritik's queue was
-   empty from Nov 13 (B1R2 done) and nothing was added to it; Arsha's account: nothing queued or run since Nov 7 (her
-   Nov 15 log, from her Nov 14 check); Shrey: no Track C commit since Nov 7, no word tonight. Ritik's go lists the
-   checks below, not this one.
-2. **The merges:** §2.
-3. **The supplement:** regenerated and `--check`ed: 42 rows, none unverified, no log outside the ledger; CLAIMS 10
-   mismatches (the check's known limit, as before), 12 source problems as before; all generated files numbers-only.
-   Its files' headers said the inputs had uncommitted changes (today's log, untracked), so it is restored and
-   regenerated again after the freeze commit, in a commit of its own (as on Nov 13 and 14). **The explainer rebuilt:**
-   one sentence changed, "How we worked"'s labels line, which Nov 14's session edited in the template but didn't
-   rebuild (`23fa3c3` carried the page one sentence behind its template); now level.
-4. **The checks:** links: 2 broken, both in `archive/sessions/LATEST.md` (a copy of Nov 14's log, whose relative
-   links point from its own folder; copied after that session's link check): fixed by writing today's LATEST with its
-   links rewritten for `archive/sessions/`, then 0 broken. Export: numbers-only. The Gantt's dry run passes. The
-   bundles' dry runs: A 1,706 files, 1,744.3 MB; B 51, 73.8 MB; C 43, 31.3 MB.
-5. **The bundles** (`results/handoff/`, gitignored; each verified: "bundle matches its manifest"):
-   - `trackA_20261118.tar.gz`, 1,704.3 MB: sha256 `12f3c5602eeea179e75b659e0c7a1219e4a67677d933c488831f5ddc89579155`
-   - `trackB_20261118.tar.gz`, 60.1 MB: sha256 `cc7be2d1e2b00dc9c6e538a9c8d8c1c4a115737af99bce809e149bee569585b4`
-   - `trackC_20261118.tar.gz`, 5.1 MB: sha256 `09ba152480b2982130ada6225b3867f5a0da97c83f2ae765ec45361a356b5d0c`
-   - The labels (`results/labels/`) are in no bundle; they stay on Ritik's Mac (L6's frozen sheet: `04a33719…`).
+- **Helper A (a, b):** `docs/paper/RELATED_WORK.md`, `CLAIMS.md`, `REPORT.md` only.
+  - **The nine references:** all nine ids match their arXiv pages (title, authors, v1 date); FACE-Eval found by search
+    (arXiv 2608.29464, Gema et al., which introduces it); BCT is arXiv 2403.05518. Four titles given were short forms of
+    the arXiv titles (Assertion-Conditioned Compliance, Trust Asymmetry: "Same Payload, Different Channel: ...", When
+    Tools Hurt, Unspoken Hints). Each entry: "Did:" from its abstract, "Relates:" agrees / extends / differs with our
+    entries. Chen et al.'s three future-work directions kept (tool use; training by SFT or RL; probing activations).
+  - **Novelty:** no "first" wording existed; "Prior work" bullets added to CLAIMS 1.1, 1.2, 1.4, 1.5, 1.7, 2.2 and
+    B15, and to REPORT §1's new contribution bullets, §4–§7, §11 and §12. Not claimed as ours any more: unnamed hint use
+    (Chen; Unspoken Hints; Walden and Wanner), a tool cue said less than a user's (FACE-Eval), a source over a user and
+    a dose in authority (Authority Bias), consistency training as a method (BCT), tool evidence overturning right
+    answers (When Tools Hurt). What stays ours, as worded: the user's own claim set against the tool channels in one
+    model and day (the ladder, F35, F40); the readout layers and heads and their replication in a second family (F11,
+    F26, F32, F36); where training acts, fine-tuning in the reasoning (F39) and consistency training before the readout
+    (F42); the measured set of fixes and their trade-off (post hoc); the review team (F18–F34, FC1–FC4).
+  - **REPORT:** every section with bullets, plain names, limits and its figure or table; §4 "prepared from Track B's
+    findings, FINDINGS_B and B18's table, Nov 19; Arsha's words to come"; §8–§9 left as Shrey's bullets (REPORT_C.md
+    unchanged since Nov 6), with a table line and a limits line; §7's "Waiting:" became "Read, and not run" (reasons
+    from PLAN's freeze page) and Gate 3's draft, word for word, "for Ritik's approval by Nov 20".
+- **Helper B (d, e):** `docs/presentation/` (TALK_MAP, QA_FACTS, `deck.pptx`), `tools/make_deck.py` and its test.
+  - Every slide in the map has its figure (2000x1125 PNG with SVG and CSV; `test_slide_figures.py` 18 passed); none
+    made or redrawn; slides 6 and 8's are there. TALK_MAP: 14 rows (title, 13 slides), 12:00. QA_FACTS: 12 questions.
+  - The deck: tests first (RED on the missing module, then 13 passed); 3.6 MB; rendered and looked at.
 
-## 4. The full suite, the freeze commit and the tag (written 21:02)
+## 3. My review (10:28–10:35): every number against the tag, every paper against its own text
 
-- **The full suite, once** (20:49–21:02): 1,200 passed, 1 skipped; no pytest left running.
-- STATUS and the Gantt regenerated (Arsha's TODO_B rows with them).
-- Then: the freeze commit and its push; the supplement regenerated from it, its own commit and push; then, every check
-  having passed, the tag on `main` (recorded below and in PLAN, ONE_PAGE and the daily).
-- **Done:** the freeze commit `85b3e32` (21:03), pushed after the pre-push check (nothing produced, GPQA or over 50 MB;
-  every commit the team's, no AI attribution) and the missing-files check (nothing missing); the supplement regenerated
-  from it and checked, `7e1fdc0` (21:03; its headers clean), pushed the same way.
-- **The tag** (21:04, every check having passed, Ritik's go given in the prompt): `results-freeze-2026-11-18`, annotated,
-  tagger Ritik, on `main` at `7e1fdc0f5f204cca778c66428fa456c257ae0468` ("Results freeze (Ritik, Nov 18, 21:04): main at
-  7e1fdc0; no new runs after it"); pushed through the pre-push hook; `git ls-remote` shows it on GitHub (tag object
-  `837030c`). Recorded (written 21:04) in PLAN's freeze page and header, ONE_PAGE, TODO's D5 and the daily.
-- From here, a change to a frozen number, figure or verdict gets a dated note (CHECKIN §10). The explainer's work below
-  changes its presentation only, with one dated note in this log (§7).
+- **Numbers:** a script compares every number added today (`git diff`) in REPORT, CLAIMS, RELATED_WORK, TALK_MAP,
+  QA_FACTS and the README with the frozen sources (`git show results-freeze-2026-11-18:` FINDINGS, FINDINGS_B,
+  FINDINGS_C, PLAN, REPORT_C, the tables, the frozen REPORT/CLAIMS/RELATED_WORK). Missing: none, but RELATED_WORK's
+  arXiv ids, A-CC's two percentages (checked in its text) and three numbers written with "-" for "−" (fixed). CLAIMS
+  by the supplement's own check: 244 numbers, the same 10 known mismatches, 12 source problems.
+- **The papers, a second pass** (arXiv's API for titles, authors and dates; a text search of five papers' full HTML):
+  - **Corrected:** FACE-Eval already varies reasoning effort (on GPT-OSS) and tests a source-attribution prompt, so
+    RELATED_WORK and REPORT §11 no longer list them as our extensions (ours differs in measure: F37, F25); what stays
+    ours there: thinking on and off in the same weights (F29) and whether the final answer names the source (their
+    answer judge labels only the side taken). CLAIMS' B15 line said FACE-Eval measures "verbalization, not following":
+    it measures both; reworded.
+  - **Corrected:** Syed and Yasaei's patching recovers the channel an instruction arrives by; it doesn't separate source
+    deference from user agreement (that is Kumar and Chopra's). CLAIMS 1.4 and REPORT §1, §5.
+  - **Made exact:** Kumar and Chopra's untested cost now quotes the paper ("does not test whether the models still
+    benefit from correct source information after the intervention"); BCT's quotes "we always bias towards incorrect
+    answers"; BCT has 7 authors, not 8; "1 and 2 of 147" was "1 to 2" in F28; "is the arbitration problem" became "a
+    form of" (CLAIMS 1.5); "address" became "speak to" (REPORT §11, Chen's directions).
+  - **Confirmed in the text:** Chen's three directions, verbatim; A-CC's 36.3% (confident user assertions) and 27.8%
+    (function-sourced); Authority Bias's four wordings and Qwen3.5 with thinking off; FACE-Eval's models include Olmo 3
+    Think and GPT-OSS. Walden and Wanner, Unspoken Hints, Zhao et al. and Syed and Yasaei rest on their abstracts.
+- **TALK_MAP:** slide 5's kappas were the human-vs-AI-rater ones (0.63, 0.54), not the Gate 2 rule's (judges'
+  majority 0.472, 0.234): corrected; slide 8 "0 of 143" made "0 of 143 followed runs name it"; slide 10 "+0.68" given
+  its unit, logits. **QA_FACTS:** one bullet run into another (item 3) split; item 2's keyword counts labelled; item 5
+  (related work) filled with the checked facts, the disagreements (A-CC, Syed and Yasaei) and its limits.
+- **The deck, looked at slide by slide** (LibreOffice to PDF to PNG): slides 9–12 put two figures side by side, each too
+  small to read. Tests first (3 failed), then one figure a slide: the row's first on the slide, the second on a backup
+  slide after "Limits and next steps" ("(backup)" in its title); 13 passed; all 18 slides looked at again, readable.
 
-## 5. Needs Ritik
+**Rulings (10:35):**
+- **The two-figure slides:** the map's first figure stays on the slide; the second goes to a full-size backup slide.
+  Cost if wrong: the team moves a backup slide up (TALK_MAP's header says how).
+- **"What stays ours":** Ritik's list named "the authority ladder (dose-response)"; Authority Bias (Kumar and Chopra)
+  already reports compliance rising with the note's authority, so the dose-response isn't claimed as ours: what stays
+  is the user's own claim set against the tool channels in one model and day (F35, F40). "The nine-fix trade-off" is
+  worded "the measured set of fixes" (no entry counts nine). Cost if wrong: two phrases for Ritik to restore.
+- **README's opening:** five findings in plain words from the story's five lines and FINDINGS, every number checked;
+  finding 5 says "the solver's trace" (F18's table: the private reasoning beside the answer), not "the tool's".
 
-- **Sol, read-only, when on ASU's network or VPN** (the freeze's "nothing runs", not made tonight):
-  `ssh login.sol.rc.asu.edu 'squeue -u $USER; scrontab -l'`. Expected: no job but the feeder's own scrontab entry
-  (pending), and the feeder's line in `scrontab -l` until Ritik stops it. Any other job: tell the session.
-- **Arsha:** "Merged `trackB-main` into `main` (`0c7467c`); please merge `origin/main` back and push." Slides 6–8
-  and Track B's report bullets, Nov 20. Her START_HERE draft: hers to adopt or decline.
-- **Shrey:** confirm no Track C run went on after Nov 7; slides 11–12; his START_HERE draft.
-- **Nov 20:** Gate 3's final statement (PLAN, Gates). **Nov 22:** the AI-use inventory's "to confirm" lines.
+## 4. Changed after the freeze (dated notes, CHECKIN §10)
 
-## 6. The explainer's presentation fixes: helpers launched (written 21:07, after the tag)
+- Changed after the freeze (Nov 19, 10:35): CLAIMS' and REPORT's positioning, from claims stated without prior work
+  to "Prior work" bullets that say where nine checked papers already show a result, because Ritik asked for honest
+  positioning against them. No number, figure or verdict changed; CLAIMS keeps its 244 numbers and 10 known mismatches.
+- Changed after the freeze (Nov 19, 10:35): REPORT's "waiting" marks, from "Waiting:" (B1R2, Gate 3) to "Read, and not
+  run" with PLAN's draft of Gate 3's statement word for word, because every result was read by Nov 13; the statement
+  stays Ritik's to approve (Nov 20).
+- No figure changed: the deck uses the frozen figures' files byte for byte (its tests compare hashes).
 
-- **Helper A:** c1 (one continuous thread, particles, breaks where the answer drops the source), c2 (empty stages
-  collapse to a slim line; the tour's focus ring, no greying), c5 (the hint chips), c7 (autoplay, a progress bar,
-  space pauses, Esc closes a panel before the tour; tests), c8 (the scenes' models). **Helper B:** c3 (one legend line:
-  solid measured, dashed drawn to explain, italic illustrative), c4 ("too few runs to say" under 5; test first), c6
-  (one controls row, sentence case, 16px stage text, the footer matching the run), c9 (the article, one chart a
-  section). Both edit the same three files, so both use Edit only, re-read before each edit, and put their tests in
-  new files (`test_explainer_tour.py`, `test_explainer_layout.py`).
-- **Ruling, c5:** Ritik's text for the user's hint ("I think the answer is (C), but I’m curious what you think.") has a
-  comma and a curly apostrophe the model never saw; the brief asks for what the model saw, so the chip uses the
-  code's exact string (`experiments.py` CUE: "I think the answer is (C) but I'm curious what you think."). The
-  pasted and called hints keep Ritik's short chips ("Tool: the answer key says (C).", "lookup_answer_key → (C)"),
-  with the exact text the model received (`tools/answer_key.py`'s JSON block and tool reply) on hover. Cost if wrong:
-  one comma and one apostrophe.
-- **Presentation only:** neither helper changes `collect()`, DATA, a summary or a finding; I check after that the
-  page's DATA is byte-for-byte the tag's.
+## 5. The checks (CHECKIN §6)
 
-## 7. The explainer after the freeze: the dated note, and my review (written 21:36)
+- **The full suite, once:** 1,238 passed, 1 skipped (10:37–10:48; 24 new today: `test_make_submission.py` 11,
+  `test_make_deck.py` 13).
+- **Links:** 0 broken, 0 missing RUNBOOK scripts. **Export:** numbers only. **The Gantt:** regenerated (144 rows).
+- **The supplement's check:** 42 rows, none unverified, no log outside the ledger; CLAIMS 244 numbers, 10 mismatches
+  (the known ones), 12 source problems. CLAIMS changed, so the supplement is regenerated after this commit, from a clean
+  tree (the ruling in §1), and committed next.
+- **The bundles:** dry runs B 51 files, 73.8 MB; C 43 files, 31.3 MB. `make_submission.py --verify-bundles`: the three
+  Nov 18 bundles on this Mac match `BUNDLES.sha256`. `make_submission.py --check`: 4 pieces ready, 4 to write by us
+  (the report, the slides, the contributions, the AI-use disclosure).
+- **Gate 3's block in REPORT §7** equals PLAN's draft word for word (compared by script).
 
-**Changed after the freeze (Nov 18, 21:36): the Hint Explainer's presentation (`docs/demo/index.html`, built from
-`tools/explainer/`), from the page at the tag (`7e1fdc0`) to the one committed with this log, because of Ritik's
-presentation fixes (the prompt's c1–c9). No number, finding or verdict changed: the page's DATA is byte for byte the
-tag's (sha256 `2d4b4389a42fe5d4…`, 51,397 bytes, checked after the rebuild), and `collect()` and the summaries are
-untouched.**
+## 6. For Ritik
 
-- **Helper A** (c1, c2, c5, c7, c8): one overlay thread in the hint's color, growing stage by stage with particles
-  (none under reduced motion), carried to "✓ the answer names the source" or cut at "✂ source dropped", dashed with
-  "not measured" where naming isn't measured, on into the review team; stages with nothing for a model collapse to a
-  slim column ("not measured inside this model", "answers without thinking"); the focus ring without greying; the
-  chips as ruled in §6; autoplay at 15 s a scene with a progress bar, Pause/Play and Step, space pauses, Esc closes a
-  panel before the tour (tests: `test_explainer_tour.py`, 6); scene 1 now on Qwen3 30B Thinking (3 of 162), scene 2
-  unchanged (147 of 162). The thread is hidden in the phone's stacked view (no side-by-side lanes there).
-- **Helper B** (c3, c4, c6, c9): one legend line (the colors, then solid / dashed / italic), the per-card badges gone
-  to hovers; "too few runs to say" for any count under 5, everywhere (`few()`; its test failed first on the page's
-  real "0 of 3", "0 of 1", "0 of 3"); all seven controls in one row at 1920 (shorter source labels, full names on
-  hover), sentence case, stage text at least 16px, a change of model, source or fix clearing the last run, Run 20
-  times redrawing the last run whole; the article one chart a section (`test_explainer_layout.py`, 8). Helper B
-  wrote one batch to `explainer.js` outside the Edit-only protocol; helper A's chips and thread tests pass after it,
-  so nothing of A's was lost.
-- **Fixed by me, after looking at all 14 scenes:**
-  - helper A built the tool reply's "study guide v2" as `"study guide v" + (1 + 1)` to slip past the no-hard-coded-
-    number lint; now the literal, allowed by name in the lint's ALLOW with its reason;
-  - the thread's labels 12.5px → 16px; its label for a count under 5 says "too few runs to say", not "not measured";
-  - "hint not followed" was in the "wrong" red: now neutral ink;
-  - stage 4's "names the source in too few runs to say" → "Whether the answer names the source when it follows: too
-    few runs to say";
-  - the illustrative reasoning box sized to its words (it stretched into an empty tall box);
-  - scene 7's two consistency-trained labels had a whisker through them: moved past the whiskers.
-- **Tests:** `test_build_demo.py` 35, `test_demo_examples.py` 4, `test_explainer_tour.py` 6,
-  `test_explainer_layout.py` 8: 53 passed. The 14 scene screenshots retaken from the final page
-  (`cot-disclosure/results/demo/screens/scene{1..7}_{light,dark}.png`, gitignored), every one looked at: no overlap, no
-  empty box, every caption inside its bar (checked in the page too: no caption overflows); 0 console errors, 0
-  requests but the file.
-- README (the tour's keys and what it shows), ONE_PAGE, TODO's D16.
-
-## 8. The checks for the explainer's commit (written 21:37)
-
-- The 53 explainer tests (§7); `test_repo_hygiene.py` and `test_check_links.py`: 13 passed; links 0 broken; export
-  numbers-only; STATUS and the Gantt regenerated. The full suite ran once today, for the freeze (§4: 1,200 passed, 1
-  skipped), not again (the ruling in §1, item 3).
-- Then the commit, the pre-push check, nothing missing, and the push (`trackA-nosol` and `main`). The tag isn't
-  moved: `git diff results-freeze-2026-11-18..main` shows this commit's presentation changes.
+- **Gate 3's final statement:** approve or change PLAN's draft (Nov 20); REPORT §7 carries it word for word.
+- **To write by us:** the report's prose (draft Nov 22), the slides' words (the shell's titles are drafts too), the
+  contribution statement (the placeholder), `AI_USE.md` from the inventory and its five "to confirm" lines (Nov 22),
+  the rehearsal (Nov 23), the presentation and the report (Nov 24); then `make_submission.py` builds the zip.
+- **Two wordings to check:** "the authority ladder (dose-response)" isn't claimed as ours (Authority Bias reports a dose
+  in authority); "the nine-fix trade-off" is worded "the measured set of fixes" (§3's rulings).
+- Sol's read-only check and the feeder: Ritik's own, no action here.

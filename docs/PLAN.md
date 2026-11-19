@@ -1,6 +1,6 @@
 # Plan: Oct 31 – Nov 24 (CSE 598, Group 10)
 
-Last updated: 2026-11-18 21:04 MST (the results freeze: tag `results-freeze-2026-11-18` on `main` at `7e1fdc0`; slides 2 and 7 after Track B's merge; earlier 2026-11-14 23:09: the demo is now the Hint Explainer, in the checklist; earlier 2026-11-14 20:14: Gate 3's final statement drafted for Ritik's approval, Gates; slide 5's figure made, `private_vs_final.png`; the demo and the submission folder in the checklist; the freeze procedure in CHECKIN §10; earlier 2026-11-13 11:14: the freeze-readiness page for Nov 18; B1R2 read, F38: "ignores tools" again; the slide map's rows 5, 10, 11 and 12 brought up to date; earlier 09:55: L6 read, F45: LoRA discloses more than the instruction, in hand labels; B1R2 complete Nov 9, Sol pulled Nov 13; the Nov 11 rule no effect; earlier 2026-11-08 15:11: Gate 2 marked: the gap met on every model, B20's three families included, the labels not; Arsha's B20 merged, FB1 in the story, §2–§4 and slide 2's row; L6 reduced and its sheet built; LoRA + note's acceptance cost beside its R2 reading; B1R2's 40 parts ended, 2 sweeps pending; earlier 2026-11-07 20:44: A39 read Nov 7, F44; the trade-off explored, post hoc; L6 pre-registered, not run; the scorecard in FINDINGS' story; B1R2 31 of 40 parts ended; earlier 13:46: A40, A41 and A42 complete and read Nov 7 by their rules, F41–F43; A39 complete, the 54 runs left a counting bug, fixed; the report's state and the writing plan for Nov 18–24; earlier Nov 6 23:19: Track C's four read and merged; Gate 2's statement ready to mark Nov 8; B1R2 revived; earlier 11:30: E2's and the 30's lines all ended; the nov6 rule said no cut; A40's data and its gated lines; A41 and A42 after A40's training; earlier, Nov 5 13:42: the pull done; A40's targets about 11 h; Arsha's setup Nov 6; 09:54: two Sol accounts from Nov 5: B20 on Arsha's own, the Sol order, B1R2 dropped for A40 and A40's row, the calendar's rows from Nov 5, slide 10 and the Sol risk; earlier, Nov 4 22:52: the calendar's Nov 5–7 row: that night's Sol state, the projections from ONE_PAGE, B20's stop fixed (T13); 21:31: Ritik's re-look of the 7 cells recorded: 4 changed, 3 kept, Gate 2's verdict unchanged; earlier, 18:22: Gate 2's statement with the descriptive sentence; 17:51: the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; L3, L4 and Gate 2 under the LLM-judge protocol; earlier, 16:38: Gate 2's statement; the presentation map and the submission checklist; the 30's Nov 6 and Nov 11 rules applied by the feeder, the A39 log's §16 and §17; earlier: B24 read: F40; B20's second amendment, §16; A39's parts at 2:00, its log's §14; earlier Nov 4: B20 amended after its first smokes, §15 of its log; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
+Last updated: 2026-11-19 10:35 MST (the last materials, no number changed: REPORT's bullets complete, nothing marked waiting, Gate 3's draft in §7; nine related papers checked on arXiv, the novelty claims reworded where they already show it; the slide shell `docs/presentation/deck.pptx` with TALK_MAP and QA_FACTS; the submission folder's checklist and one command for the zip; earlier 2026-11-18 21:04: the results freeze: tag `results-freeze-2026-11-18` on `main` at `7e1fdc0`; slides 2 and 7 after Track B's merge; earlier 2026-11-14 23:09: the demo is now the Hint Explainer, in the checklist; earlier 2026-11-14 20:14: Gate 3's final statement drafted for Ritik's approval, Gates; slide 5's figure made, `private_vs_final.png`; the demo and the submission folder in the checklist; the freeze procedure in CHECKIN §10; earlier 2026-11-13 11:14: the freeze-readiness page for Nov 18; B1R2 read, F38: "ignores tools" again; the slide map's rows 5, 10, 11 and 12 brought up to date; earlier 09:55: L6 read, F45: LoRA discloses more than the instruction, in hand labels; B1R2 complete Nov 9, Sol pulled Nov 13; the Nov 11 rule no effect; earlier 2026-11-08 15:11: Gate 2 marked: the gap met on every model, B20's three families included, the labels not; Arsha's B20 merged, FB1 in the story, §2–§4 and slide 2's row; L6 reduced and its sheet built; LoRA + note's acceptance cost beside its R2 reading; B1R2's 40 parts ended, 2 sweeps pending; earlier 2026-11-07 20:44: A39 read Nov 7, F44; the trade-off explored, post hoc; L6 pre-registered, not run; the scorecard in FINDINGS' story; B1R2 31 of 40 parts ended; earlier 13:46: A40, A41 and A42 complete and read Nov 7 by their rules, F41–F43; A39 complete, the 54 runs left a counting bug, fixed; the report's state and the writing plan for Nov 18–24; earlier Nov 6 23:19: Track C's four read and merged; Gate 2's statement ready to mark Nov 8; B1R2 revived; earlier 11:30: E2's and the 30's lines all ended; the nov6 rule said no cut; A40's data and its gated lines; A41 and A42 after A40's training; earlier, Nov 5 13:42: the pull done; A40's targets about 11 h; Arsha's setup Nov 6; 09:54: two Sol accounts from Nov 5: B20 on Arsha's own, the Sol order, B1R2 dropped for A40 and A40's row, the calendar's rows from Nov 5, slide 10 and the Sol risk; earlier, Nov 4 22:52: the calendar's Nov 5–7 row: that night's Sol state, the projections from ONE_PAGE, B20's stop fixed (T13); 21:31: Ritik's re-look of the 7 cells recorded: 4 changed, 3 kept, Gate 2's verdict unchanged; earlier, 18:22: Gate 2's statement with the descriptive sentence; 17:51: the second rater corrected: an AI model, ChatGPT 5 Astra High, not Shrey; L3, L4 and Gate 2 under the LLM-judge protocol; earlier, 16:38: Gate 2's statement; the presentation map and the submission checklist; the 30's Nov 6 and Nov 11 rules applied by the feeder, the A39 log's §16 and §17; earlier: B24 read: F40; B20's second amendment, §16; A39's parts at 2:00, its log's §14; earlier Nov 4: B20 amended after its first smokes, §15 of its log; the feeder's digest and health check; earlier Nov 4: Sol's real limit, the re-plan at 1:30 a job, B1R2 decided).
 **Edited by:** Ritik. History: `git log -- docs/PLAN.md`; the Oct 31 version and the per-track design notes that
 were below the gates, word for word, in [`archive/superseded/PLAN_2026-10-31.md`](../archive/superseded/PLAN_2026-10-31.md). Where things are:
 - progress: [`STATUS.md`](status/STATUS.md);
@@ -291,16 +291,25 @@ now: Ritik's Sol queue is empty (B1R2 ended Nov 9), and Arsha's B20 ended Nov 6.
 | 7 | `authority_ladder.png` (Arsha's, drawn Nov 15 in Track B's paths; placed Nov 18, 20:47) | B24's two arms beside B16's, made; `b16_authority.png` stays (REPORT §4's F35 figure) | Arsha: final Nov 20 |
 | 9 | `gate3_vs_base_slide.png`; A39's | made | Ritik: Gate 3's final statement, Nov 20 |
 | 10 | `readout_lora_vs_base.png` | made | Ritik: panel (b) takes `b1r2_vs_b1.png` (drawn Nov 13) |
-| 13 | none | Nov 21–22 | everyone |
+| 13 | none (the deck's "Limits and next steps" slide, short lines from FINDINGS) | Nov 19: the shell made | everyone: the words |
 
-**What teammates still owe.**
+**Nov 19 (10:35): the slide shell.** [`docs/presentation/deck.pptx`](presentation/deck.pptx), built by
+`tools/make_deck.py` from [`TALK_MAP.md`](presentation/TALK_MAP.md) (about 12 minutes, slide by slide: the point, the
+figure, the explainer scene, the time; the speaker column blank): a title slide, the 13 slides of the map below with
+their figures and short plain titles, and 4 backup slides (slides 9–12's second figures, full size). No paragraphs, no
+notes: the words are the team's. Facts for questions: [`QA_FACTS.md`](presentation/QA_FACTS.md). Every slide in the map
+has its figure; none was redrawn.
+
+**What teammates still owe** (Nov 19: Track B's report material is prepared from FINDINGS_B and B18's table, REPORT
+§4, marked so; Arsha's words for it and for slides 6–8 stay hers).
 - **Arsha:** B18's table with B20's rows and slide 7 with B24's arms: done, merged Nov 18; merge `origin/main` back
   after it; slides 6–8 final (Nov 20); Track B's report bullets (`docs/trackB/REPORT_B.md`, not yet started;
   Nov 20).
 - **Shrey:** merge `origin/main` back; slides 11–12 (Nov 18; the figures are placed). Track C's report bullets are in
   (REPORT §8–§9, Nov 6).
 
-**REPORT, still marked waiting** (each a figure, not a number): §4 F40 and FB1 have their figures since Nov 18
+**REPORT, Nov 19: nothing marked waiting.** Every section has its bullets, limits and figure or table; Gate 3's final
+statement is in §7 as PLAN's draft, for Ritik's approval by Nov 20. Before (Nov 18), **REPORT, still marked waiting** (each a figure, not a number): §4 F40 and FB1 have their figures since Nov 18
 (`authority_ladder.png`, `gate2.png` with B20's rows); §6 F40's words (slide 7, `authority_ladder.png`); §6 FB1's words (no figure planned:
 a table is enough); §7 Gate 3's final statement (Nov 20). §11 and §12 are bullets only until Nov 18–21.
 
@@ -395,6 +404,10 @@ outlines and [`docs/paper/CLAIMS.md`](paper/CLAIMS.md) the claims.
 
 ### The report's state (Nov 7, 13:46) and the writing plan, Nov 18–24
 
+**Nov 19 (10:35):** every section's material is complete (bullets with exact numbers, plain names, limits, its figure
+or table); §4 prepared from Track B's findings, §8–§9 Shrey's bullets as they are, §11 from the papers checked on arXiv
+([`RELATED_WORK.md`](paper/RELATED_WORK.md)). The prose is the team's.
+
 **Which sections are final.** "Final" means every number in the section's bullets is read and won't change before the
 Nov 18 freeze. REPORT holds bullets and figures only; the team writes the prose.
 
@@ -432,6 +445,10 @@ checklist already name. "Proposed" marks a date set nowhere else, for the team t
   presentation.
 
 ## Submission checklist, Nov 19–24
+
+**Nov 19 (10:35):** the checklist with each file's state (ready / to write by us), the contribution placeholder, the
+AI-use inventory's "to confirm" lines and one command for the zip are in
+[`docs/submission/README.md`](submission/README.md) (`tools/make_submission.py`).
 
 Added Nov 4, 16:20. What the course submission needs, who makes each and by when; everything reads only the results
 frozen on Nov 18. The course's exact requirements (formats, length and time limits, where and how to submit, the form

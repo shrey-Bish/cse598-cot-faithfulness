@@ -1,4 +1,4 @@
-## In plain words (Ritik's page, as of Nov 18, 21:04: the results frozen, tag `results-freeze-2026-11-18` at `7e1fdc0`; slides 2 and 7 after Track B's merge; earlier Nov 14, 23:09: the demo is now the Hint Explainer; plain names (the glossary, the README, the slide figures); earlier Nov 14, 20:14: the results demo; slide 5's figure; Gate 3's statement drafted; the freeze procedure; the submission folder; earlier Nov 13, 11:14: B1R2 read; the freeze page; the wording held after L6; earlier 09:56: L6 read, F45; Sol pulled; edited by hand in `docs/status/ONE_PAGE.md`)
+## In plain words (Ritik's page, as of Nov 19, 10:35: the last materials, no number changed: the report's bullets complete, the related work checked on arXiv, the slide shell and the presentation kit, the submission folder's checklist and zip command; earlier Nov 18, 21:04: the results frozen, tag `results-freeze-2026-11-18` at `7e1fdc0`; slides 2 and 7 after Track B's merge; earlier Nov 14, 23:09: the demo is now the Hint Explainer; plain names (the glossary, the README, the slide figures); earlier Nov 14, 20:14: the results demo; slide 5's figure; Gate 3's statement drafted; the freeze procedure; the submission folder; earlier Nov 13, 11:14: B1R2 read; the freeze page; the wording held after L6; earlier 09:56: L6 read, F45; Sol pulled; edited by hand in `docs/status/ONE_PAGE.md`)
 
 **Done. Every experiment is read; nothing runs.**
 - **45 findings** (F1–F45, in `docs/FINDINGS.md`) and Track B's **FB1**. **Gate 2 is marked** (Nov 8). **Gate 3 is
@@ -28,6 +28,14 @@
   (`private_vs_final.png`); **Gate 3's final statement drafted in PLAN for Ritik's approval** ("met; the stricter bar:
   not met"); the freeze procedure (CHECKIN §10); the submission folder (`docs/submission/`) with the AI-use facts.
 
+- **The last materials (Nov 19; no number changed):** the report's material is complete, every section with its
+  bullets, limits and figure, nothing marked waiting ([`REPORT.md`](../paper/REPORT.md); Track B's section prepared from
+  FINDINGS_B and B18's table); nine related papers checked on arXiv and the novelty claims reworded where they already
+  show it ([`RELATED_WORK.md`](../paper/RELATED_WORK.md)); the slide shell [`deck.pptx`](../presentation/deck.pptx)
+  (14 slides and 4 backups, built from [`TALK_MAP.md`](../presentation/TALK_MAP.md)) and
+  [`QA_FACTS.md`](../presentation/QA_FACTS.md); the submission folder's checklist and one command for the zip
+  ([`docs/submission/`](../submission/README.md)); the README's "Start here in five minutes".
+
 **Running.** Nothing. Ritik's Sol queue was empty at the last check (Nov 13); the feeder still ticks every 5 minutes (Ritik stops it himself).
 
 **Frozen Nov 18, 21:04.** The tag `results-freeze-2026-11-18` is on `main` at `7e1fdc0` (the freeze commit `85b3e32`; the supplement regenerated from it, `7e1fdc0`). Every check passed; the bundles' sha256s are in the Nov 18 log. A later change to a frozen number gets a dated note (CHECKIN §10). The full page is in PLAN, "Freeze readiness for Nov 18".
@@ -41,16 +49,18 @@
 | Slide 7 (B24's arms) | Arsha's `authority_ladder.png`, placed Nov 18 | Arsha, final Nov 20 |
 | Slide 10 (B1R2 in panel b) | figure drawn Nov 13 | Ritik places it |
 | Slides 11–12 | figures placed | Shrey, Nov 18 |
-| Track B's report bullets | not started | Arsha, Nov 20 |
-| The report's prose | bullets in | each section's owner, Nov 18–21; draft Nov 22 |
+| Track B's report material | prepared Nov 19 from FINDINGS_B and B18's table (REPORT §4) | Arsha's words, Nov 20 |
+| The report's material | complete Nov 19 | the prose: each section's owner; draft Nov 22 |
+| The slide shell and the kit | built Nov 19 (`deck.pptx`, TALK_MAP, QA_FACTS) | the words: each slide's owner; rehearsal Nov 23 |
+| The contribution statement | the placeholder, Nov 19 | Ritik, before submission |
 
 **Waiting on whom.**
-- **Ritik:** Nov 15, the check-ins and merges; Nov 16, stop the feeder (`touch /scratch/ragarw68/trackA/feeder.stop;
-  scrontab -r`); Nov 18, the freeze by CHECKIN §10 (its tag needs Ritik's go) and slide 5 placed with Shrey; Nov 20,
-  approve or change Gate 3's draft; Nov 22, confirm the AI-use inventory's "to confirm" lines.
-- **Arsha:** merge `origin/main` back and push; B18's table with B20's rows and slides 2 and 7 (Nov 18); slides 6–8 and
-  `docs/trackB/REPORT_B.md`'s bullets (Nov 20).
-- **Shrey:** merge `origin/main` back; slides 11–12 (Nov 18).
+- **Ritik:** Nov 20, approve or change Gate 3's draft (REPORT §7, PLAN's Gates); the contribution statement
+  (`docs/submission/CONTRIBUTIONS.md`, now the placeholder); Nov 22, the AI-use inventory's "to confirm" lines and the
+  report draft; the slides' words with the team; Nov 23, the rehearsal; Nov 24, the presentation and the report.
+- **Arsha:** merge `origin/main` back; her words for REPORT §4 (prepared Nov 19 from her findings) and slides 6–8
+  (Nov 20); her Track B AI-use lines.
+- **Shrey:** merge `origin/main` back; slides 11–12's words; his Track C AI-use lines.
 
 **The dates to Nov 24.**
 - **Nov 15:** check-ins and merges. **Nov 16:** the feeder stopped. **Nov 18:** the results freeze; check-ins and
