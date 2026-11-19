@@ -1,4 +1,4 @@
-## In plain words (Ritik's page, as of Nov 14, 23:09: the demo is now the Hint Explainer; plain names (the glossary, the README, the slide figures); earlier Nov 14, 20:14: the results demo; slide 5's figure; Gate 3's statement drafted; the freeze procedure; the submission folder; earlier Nov 13, 11:14: B1R2 read; the freeze page; the wording held after L6; earlier 09:56: L6 read, F45; Sol pulled; edited by hand in `docs/status/ONE_PAGE.md`)
+## In plain words (Ritik's page, as of Nov 18, 21:04: the results frozen, tag `results-freeze-2026-11-18` at `7e1fdc0`; slides 2 and 7 after Track B's merge; earlier Nov 14, 23:09: the demo is now the Hint Explainer; plain names (the glossary, the README, the slide figures); earlier Nov 14, 20:14: the results demo; slide 5's figure; Gate 3's statement drafted; the freeze procedure; the submission folder; earlier Nov 13, 11:14: B1R2 read; the freeze page; the wording held after L6; earlier 09:56: L6 read, F45; Sol pulled; edited by hand in `docs/status/ONE_PAGE.md`)
 
 **Done. Every experiment is read; nothing runs.**
 - **45 findings** (F1–F45, in `docs/FINDINGS.md`) and Track B's **FB1**. **Gate 2 is marked** (Nov 8). **Gate 3 is
@@ -27,9 +27,9 @@
   (`private_vs_final.png`); **Gate 3's final statement drafted in PLAN for Ritik's approval** ("met; the stricter bar:
   not met"); the freeze procedure (CHECKIN §10); the submission folder (`docs/submission/`) with the AI-use facts.
 
-**Running.** Nothing. Ritik's Sol queue is empty; the feeder still ticks every 5 minutes until Ritik stops it (Nov 16).
+**Running.** Nothing. Ritik's Sol queue was empty at the last check (Nov 13); the feeder still ticks every 5 minutes (Ritik stops it himself).
 
-**The freeze, Nov 18** (the full page is in PLAN, "Freeze readiness for Nov 18").
+**Frozen Nov 18, 21:04.** The tag `results-freeze-2026-11-18` is on `main` at `7e1fdc0` (the freeze commit `85b3e32`; the supplement regenerated from it, `7e1fdc0`). Every check passed; the bundles' sha256s are in the Nov 18 log. A later change to a frozen number gets a dated note (CHECKIN §10). The full page is in PLAN, "Freeze readiness for Nov 18".
 
 | item | state | on whom, by when |
 |---|---|---|

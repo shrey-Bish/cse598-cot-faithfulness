@@ -95,3 +95,22 @@ A pasted prompt, acted on as Ritik's. Its decisions:
 - STATUS and the Gantt regenerated (Arsha's TODO_B rows with them).
 - Then: the freeze commit and its push; the supplement regenerated from it, its own commit and push; then, every check
   having passed, the tag on `main` (recorded below and in PLAN, ONE_PAGE and the daily).
+- **Done:** the freeze commit `85b3e32` (21:03), pushed after the pre-push check (nothing produced, GPQA or over 50 MB;
+  every commit the team's, no AI attribution) and the missing-files check (nothing missing); the supplement regenerated
+  from it and checked, `7e1fdc0` (21:03; its headers clean), pushed the same way.
+- **The tag** (21:04, every check having passed, Ritik's go given in the prompt): `results-freeze-2026-11-18`, annotated,
+  tagger Ritik, on `main` at `7e1fdc0f5f204cca778c66428fa456c257ae0468` ("Results freeze (Ritik, Nov 18, 21:04): main at
+  7e1fdc0; no new runs after it"); pushed through the pre-push hook; `git ls-remote` shows it on GitHub (tag object
+  `837030c`). Recorded (written 21:04) in PLAN's freeze page and header, ONE_PAGE, TODO's D5 and the daily.
+- From here, a change to a frozen number, figure or verdict gets a dated note (CHECKIN §10). The explainer's work below
+  changes its presentation only, with one dated note in this log (§7).
+
+## 5. Needs Ritik
+
+- **Sol, read-only, when on ASU's network or VPN** (the freeze's "nothing runs", not made tonight):
+  `ssh login.sol.rc.asu.edu 'squeue -u $USER; scrontab -l'`. Expected: no job but the feeder's own scrontab entry
+  (pending), and the feeder's line in `scrontab -l` until Ritik stops it. Any other job: tell the session.
+- **Arsha:** "Merged `trackB-main` into `main` (`0c7467c`); please merge `origin/main` back and push." Slides 6–8
+  and Track B's report bullets, Nov 20. Her START_HERE draft: hers to adopt or decline.
+- **Shrey:** confirm no Track C run went on after Nov 7; slides 11–12; his START_HERE draft.
+- **Nov 20:** Gate 3's final statement (PLAN, Gates). **Nov 22:** the AI-use inventory's "to confirm" lines.
