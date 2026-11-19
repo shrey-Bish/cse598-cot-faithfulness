@@ -1,171 +1,97 @@
-# Session log: the Hint Explainer replaces the results demo; plain names (2026-11-14 22:15 MST)
+# Session log: the merges, the results freeze, and the explainer's presentation fixes (2026-11-18 20:44 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `4e9e1fe`. The day's second session (the first: the Nov 13
-[13:36](../2026-11-13/2026-11-13_1336_A_demo-freeze-submission.md) session, continued from 20:08; the daily
-[DAILY_2026-11-14](DAILY_2026-11-14.md)).
+**By:** Ritik. Branch `trackA-nosol`, from `55c01fb` (main and `trackA-nosol` level). The day's first session;
+the daily: [DAILY_2026-11-18](2026-11-18/DAILY_2026-11-18.md). The previous session: Nov 14,
+[22:15](2026-11-14/2026-11-14_2215_A_explainer.md). No session ran Nov 15–17.
 
 ## 0. Input
 
 A pasted prompt, acted on as Ritik's. Its decisions:
-- **The current demo is replaced by an explainer**, "Hint Explainer: where did that answer come from?", built by
-  `tools/build_demo.py` into `docs/demo/index.html`: one animated left-to-right diagram of the whole system (input,
-  inside the model, private reasoning, final answer, review team), a guided tour of 7 scenes (about 2 minutes), and an
-  explainer article below. Inspired by Transformer Explainer (poloclub), not a copy.
-- **Public-facing names everywhere**; internal codes (A40, B1R2, C18, F41, E2, L6, ...) only behind an IDs toggle.
-- **Honesty:** simulated runs, illustrative texts and exploratory items labelled; DATA = compact(the summaries'
-  object); no network request; real excerpts only in a local build, never in the tracked file.
-- **Helper B:** `docs/GLOSSARY.md`; the README and both START_HERE pages rewritten in plain names; the slide
-  figures' titles, legends and notes in plain names. FINDINGS, logs and pre-registrations keep their IDs.
-- **Limits:** at most 2 helpers (they don't commit); the full suite once, at the end.
+- **a. Merges first** (the Nov 15 check-in didn't happen): `trackB-main` and `trackC-main` where they have commits
+  main lacks, by CHECKIN §8; Ritik's docs updated from FINDINGS_B and FINDINGS_C without copying numbers they don't
+  give; a START_HERE draft adopted by its owner is deleted from `docs/drafts/` (MOVES.md).
+- **b. The freeze by CHECKIN §10, after the merges.** Ritik's go for the tag, on one condition: every check passes (the
+  full suite, links, the supplement's check, export, bundles, pre-push, nothing missing). Then tag `main`
+  `results-freeze-2026-11-18`, push the tag, record its commit in PLAN, ONE_PAGE and the daily. If a check fails,
+  no tag: report what failed.
+- **c. The explainer** (presentation work after the freeze; no result changes; one dated note in its log): c1 the
+  thread, c2 no empty boxes and the focus ring, c3 one legend line, c4 "too few runs to say" under 5, c5 the hint
+  chips as the model saw them, c6 one compact row of controls, sentence case, 16px stage text, the footer matching
+  the run, c7 autoplay and Esc's order, c8 scene 2 kept and the others on models with content, c9 the article
+  trimmed; then all 14 scene screenshots retaken and looked at.
+- **d. The feeder:** no action (Ritik stops it himself later); not on "needs Ritik".
+- **Limits:** at most 2 helpers (after the tag; they don't commit); the full suite once.
 
-## 1. Plan (22:15, before any helper starts)
+## 1. Plan (20:44, before any helper starts)
 
-1. **Not found:** `demo_source.zip` (with `compact_data.py` and its charts) is in neither Downloads nor anywhere
-   under the home folder (find, Spotlight). Ruling: `compact()` is written here, in `tools/build_demo.py`, and the
-   article's charts reuse the current demo's chart code (`tools/demo_page/demo.js`), restyled.
-2. **Me, first:** the plain names as one machine-readable table (`tools/explainer/names.json`: plain name → the
-   internal IDs) that both helpers use; the explainer's extra numbers in `collect()` (every model's following and
-   "names the source in its final answer" by hint source; Olmo 3 7B Think's fixes by hint source on the 120 fresh
-   questions; the attention dial), and `compact()`, each number still traced to its summary by the tests.
-3. **Helper A:** the explainer (the brief's A–F) in `tools/explainer/`, built by `tools/build_demo.py`, with its
-   tests; screenshots of each tour scene at 1920×1080, light and dark, looked at and fixed. No commit.
-4. **Helper B:** `docs/GLOSSARY.md` from the names table; the README in plain names; slide figures' titles, legends
-   and notes in plain names, regenerated and looked at. **Ruling on the START_HERE pages:** they are Track B's and
-   Track C's paths (CLAUDE.md: another track's path changes only with its owner's agreement), and Arsha's unmerged
-   688cf48 on `trackB-main` edits her START_HERE, so an in-place rewrite would conflict at the Nov 15 merge. The
-   plain rewrites go to `docs/drafts/` (Track B's from her branch's version) for Arsha and Shrey to adopt. Cost if
-   wrong: one copy each into place with `PATH_CHECK_ALLOW`.
-5. **Me, then:** the old demo template to `archive/` (MOVES.md); the explainer checked by eye scene by scene, and its
-   article's every claim against FINDINGS; the docs, logs, TODO and the Gantt; the checks; the full suite once; the push.
+1. **The merges (me):** `trackB-main` has 3 commits main lacks (688cf48 B18's table with B20's rows; 7e2805a her
+   merge of main; a0c5603 slide 7, `authority_ladder`); `trackC-main` has none: nothing to merge. Neither owner
+   adopted the START_HERE draft (Arsha's page has her own Nov 14 and 15 updates; Shrey's is unchanged), so
+   `docs/drafts/` stays. Then what her logs ask of Ritik: slide 7's figure placed; slide 2's legend and note (B20's
+   rows) in `slide_figures.py`. FINDINGS_B and FINDINGS_C are unchanged on both branches: no new FB or FC numbers.
+2. **The freeze (me), by §10:** Sol's "nothing runs" (read-only); the supplement and the explainer rebuilt; the checks
+   (§6 in full: the full suite, links, the supplement and its check, export, the Gantt, the bundles' dry runs); the
+   freeze commit and push; the bundles A, B, C with sha256s; the pre-push check and nothing missing; then the tag,
+   only if every check passed.
+3. **Ruling on the full suite:** Ritik's go needs the full suite before the tag, and the helpers start after the tag,
+   so the suite runs once, for the freeze. The explainer's work afterwards runs its own tests (`test_build_demo.py`,
+   `test_demo_examples.py`) and the repo checks (hygiene, links, export), not the full suite a second time. Cost if
+   wrong: an interaction with another test unseen until the next full run; the explainer touches only
+   `tools/explainer/`, `tools/build_demo.py`, its test and `docs/demo/`.
+4. **After the tag:** helper A (c1, c2, c5, c7, c8: the diagram, the thread, the tour) and helper B (c3, c4, c6, c9:
+   the legend, the small-n rule, layout and type, the article), on separate files where possible; then I review both
+   against all 14 screenshots, rebuild `docs/demo/index.html`, and write the explainer's dated post-freeze note.
 
-## 2. The plain names and the explainer's numbers (me; written 22:22, after the helpers started)
+## 2. The merges (written 20:51)
 
-- **The plain names:** `cot-disclosure/tools/explainer/names.json`, 6 groups (question sets; where the hint comes from;
-  the fixes; what we measured; review teams; the project), each plain name with its IDs and one line. Both helpers read
-  it; helper B writes `docs/GLOSSARY.md` from it; the explainer shows it behind its IDs toggle.
-- **The explainer's numbers** (`build_demo.explainer()`, `collect()`'s new `x`), each through `Sources`, so the
-  provenance test traces it:
-  - `x.settings`: the 13 settings of the 8 answering models; for each hint source, following the wrong hint, the final
-    answer naming the source when it follows (keyword counts) and the private reasoning mentioning it (after a call,
-    for the tool call), None where nothing was measured (n = 0: no thinking, or no run followed). User, pasted and
-    call from one run per setting (Gate 2's, B17's, B20's); classmate and manual from B24, the answer key from B16.
-    B24's `mention_source` counts all runs, not runs that followed, so those three sources have no "names" number.
-  - `x.fresh`: Olmo 3 7B Think on the 120 fresh questions, the nine trade-off systems by source (user, pasted, the
-    inserted tool turn) with the correct-hint acceptance; the attention dial (B1R2's alpha 0.25 on the tool turn, with
-    its own run's no-fix numbers). **Found:** the three label systems' user and pasted runs are their partner's runs
-    (`finetune/eval.SHARED`: the label only touches the tool turn; the trade-off file's `shared` 960 each), so
-    their identical numbers are one measurement, not two: the data marks it (`same_runs_as`) and the page says so.
-  - `compact()`: the page's DATA with each number's provenance dropped (56 KB against 381 KB sourced).
-- `tests/test_build_demo.py` unchanged: 13 passed with `x` (every one of its numbers traced to its summary).
-- **Helper A** (the explainer, A–F, its tests, the screenshots) and **helper B** (the glossary, the README, the
-  slide figures, the START_HERE drafts) started just before this section was written; neither commits.
+- **`trackC-main`:** `git log origin/main..origin/trackC-main` prints nothing (Shrey's last, `50f041c`, Nov 7, is in
+  main): nothing to merge. FINDINGS_C unchanged.
+- **`trackB-main`** (Arsha): 3 commits main lacked, all Arsha's identity, no AI line; `path_check.py --range` printed
+  nothing; only Track B's paths (13 files: `tools/trackb_final.py` and its test, B18's table, START_HERE, TRACK_B,
+  TODO_B, `docs/trackB/figures/authority_ladder.*`, two session logs). Read: her Nov 14 log (B18's table with B20's
+  rows; B16, B19, B17 and B24 re-read, every reading matching F35, F37 and F40; slide 2's legend and note left to
+  Ritik) and her Nov 15 log (slide 7 drawn; Sol on Nov 14, her own login: B20's feeder stopped, no crontab entry, no
+  job queued or run since Nov 7). Merged `--no-ff` (`0c7467c`), the hooks passing it; Track B's tests with the
+  slide tests on the merge: 142 passed, 1 skipped. FINDINGS_B unchanged, so no FB number to copy.
+- **The START_HERE drafts:** neither owner adopted one (Arsha's page carries her own Nov 14 and 15 updates; Shrey's is
+  unchanged since Nov 7), so `docs/drafts/` stays as it is.
+- **What Arsha's logs ask of Ritik, done** (`d325620`): slide 2 (`gate2.png`) redrawn with B20's five rows, 13
+  settings, its legend and note naming the newer families (Olmo, Gemma and Nemotron: an inserted tool turn;
+  temperature 1.0; Granite with thinking on only), looked at, every row against FINDINGS item 1's ranges (pasted
+  minus user +18 to +73 in the newer families; tool +24 to +91); slide 7: her `authority_ladder.png` placed in
+  `docs/paper/figures/` (looked at; its bars against F35 and F40), `b16_authority.png` kept for REPORT's F35. PLAN
+  (the freeze page, the slide map, the writing plan), REPORT (F40's and FB1's figures no longer waiting), WAITING and
+  ONE_PAGE. Slide tests: 18 passed.
+- **Tell Arsha:** "Merged `trackB-main` into `main`; please run `git fetch origin && git merge origin/main` on your
+  branch, then push it."
 
-## 3. Helper B's work, checked (written 22:37)
+## 3. The freeze, by CHECKIN §10 (written 20:51; finished in §4)
 
-- **The glossary:** `docs/GLOSSARY.md`, written by `tools/make_glossary.py` from `names.json` (test first:
-  `tests/test_make_glossary.py`, 4). Helper B's notes on the table, acted on: the source-tag versions split in three
-  (as Gate 3's figure needs them), the duplicate "Review teams" renamed "Downstream review", and five entries added
-  (the answer-key claim C19/FC1, handoff notes C25/FC2, a retrieved passage C26/FC4; not run: A38, B1R). 59 plain
-  names, all distinct; the glossary regenerated.
-- **The README,** rewritten in plain names (the glossary linked at the top; the demo section names the Hint Explainer).
-  Checked against FINDINGS' story, line by line. Corrected by me: "a checker that never sees the tool held every
-  time" (already in the old README) is now "stopped all 53 wrong tool answers on 100 fresh items (C15, F24; 73 of
-  75 in the first run, F18)"; line 3 again says the mechanism as a whole is tentative (FINDINGS item 3); the
-  trade-off's crossing keeps its interval (0.36 [0.22, 0.50], not "about 36%"). Helper B's own correction kept: the
-  old README's "the 70-question replication ... couldn't settle it" is now FINDINGS' wording (needs 107 to 245
-  questions; 35 GPU-hours fit 70; not run).
-- **The slide figures:** every title, key, axis label and note in plain names (IDs stay in the CSVs); a test that
-  no figure shows an internal code (seen failing first); all 14 regenerated and looked at by helper B (four layouts
-  fixed). Helper B's relabel of the reasoning-effort figure's panel (b) checked: it plots the bare answer after a
-  call (`fig_b17`'s series "bare final answer after a call"), so "bare answers (% of runs with a call)" is right.
-- **Slide 1 (three_levels) fixed by me:** its last line listed as "Open" four items read by Nov 7 (A18 and A41: F39,
-  F42; B17: F37; C25: FC2; C20: FC3). Test first (`test_slide_1_lists_nothing_as_open_that_has_been_read`, failed),
-  then the line became "Read since:" with each result in plain words, the CSV column `open` became `read_since`,
-  and the boxes grew to hold three lines (looked at: nothing clipped). Slide tests 18 passed.
-- **The START_HERE drafts** (`docs/drafts/`, with a README): Track B's from `origin/trackB-main`; the top of each
-  rewritten in plain sentences, the reference sections kept verbatim with plain names added; "left out as stale": 11
-  (Track B) and 10 (Track C). **Checked by me:** helper B left out Track B's queue-owner lines believing they held a
-  classmate's Sol username; they don't (`owner: ragarw68`, Ritik's own, and `owner: not ragarw68`), so the
-  draft's reason now says they belong to B20's runs, which ended Nov 6. Track C's draft replaces its stale runbook
-  (C19, C25, C20, C26 "ready to run") with their results: every number in that table found in `FINDINGS_C.md` as
-  written.
-- Tests after my edits: slide figures, glossary and links, 24 passed; `check_links.py`: 0 broken links.
+1. **Nothing runs.** Sol isn't reachable from this Mac tonight (`login.sol.rc.asu.edu` doesn't resolve: off ASU's
+   network or VPN), so the read-only check of Ritik's account wasn't made; Ritik's lines are in §5. Ritik's queue was
+   empty from Nov 13 (B1R2 done) and nothing was added to it; Arsha's account: nothing queued or run since Nov 7 (her
+   Nov 15 log, from her Nov 14 check); Shrey: no Track C commit since Nov 7, no word tonight. Ritik's go lists the
+   checks below, not this one.
+2. **The merges:** §2.
+3. **The supplement:** regenerated and `--check`ed: 42 rows, none unverified, no log outside the ledger; CLAIMS 10
+   mismatches (the check's known limit, as before), 12 source problems as before; all generated files numbers-only.
+   Its files' headers said the inputs had uncommitted changes (today's log, untracked), so it is restored and
+   regenerated again after the freeze commit, in a commit of its own (as on Nov 13 and 14). **The explainer rebuilt:**
+   one sentence changed, "How we worked"'s labels line, which Nov 14's session edited in the template but didn't
+   rebuild (`23fa3c3` carried the page one sentence behind its template); now level.
+4. **The checks:** links: 2 broken, both in `archive/sessions/LATEST.md` (a copy of Nov 14's log, whose relative
+   links point from its own folder; copied after that session's link check): fixed by writing today's LATEST with its
+   links rewritten for `archive/sessions/`, then 0 broken. Export: numbers-only. The Gantt's dry run passes. The
+   bundles' dry runs: A 1,706 files, 1,744.3 MB; B 51, 73.8 MB; C 43, 31.3 MB.
+5. **The bundles** (`results/handoff/`, gitignored; each verified: "bundle matches its manifest"):
+   - `trackA_20261118.tar.gz`, 1,704.3 MB: sha256 `12f3c5602eeea179e75b659e0c7a1219e4a67677d933c488831f5ddc89579155`
+   - `trackB_20261118.tar.gz`, 60.1 MB: sha256 `cc7be2d1e2b00dc9c6e538a9c8d8c1c4a115737af99bce809e149bee569585b4`
+   - `trackC_20261118.tar.gz`, 5.1 MB: sha256 `09ba152480b2982130ada6225b3867f5a0da97c83f2ae765ec45361a356b5d0c`
+   - The labels (`results/labels/`) are in no bundle; they stay on Ritik's Mac (L6's frozen sheet: `04a33719…`).
 
-## 4. Helper A's explainer, checked by eye and against FINDINGS (written 23:10)
+## 4. The full suite, the freeze commit and the tag (written 21:02)
 
-- **What helper A built:** `tools/explainer/` (template, CSS, JS, `tour.json`); `build_demo.py` reads it, embeds
-  `names.json` and `tour.json`, and writes DATA = `compact(collect())` (two more sourced numbers: Qwen3-8B's 36
-  per-layer drops, `s3.qwen`, and the 54 test questions); `tests/test_build_demo.py` rewritten (35; with
-  `test_demo_examples.py`, 39). Helper A says it wrote these tests after the page's first draft, so they weren't seen
-  failing first; recorded here as it is. 177 KB tracked, 190 KB local.
-- **Looked at by me:** all 7 tour scenes at 1920×1080, light and dark (helper A had opened 4 of 14); the 5 expanded
-  stages; the article, page by page and as text; 1366×768 and 1440×900 (no horizontal scroll); a run measured: no long
-  task during a run or 20 runs, 335 frames in 5.5 s, worst gap 33 ms; one 71 ms task at load; 0 console errors, 0
-  requests but the file. The hint wordings and the tool's name checked against the code (`experiments.py`'s CUE,
-  `lookup_answer_key`).
-- **Fixed by me, after looking:**
-  - Scene 6's run used a seed helper A picked from 8 to show a wrong answer reaching the review team. Ruling: kept, and
-    the scene now says so on screen ("a seed picked to show a wrong answer reaching the review team; the rates are as
-    measured"). Cost if wrong: one field in `tour.json`.
-  - Scene 7: the tour shows the trade-off and the slider only (the dial and candid-answer cells sat under the tour bar);
-    the scatter's labels collided, now placed in clear space with leaders; "No fix" was drawn in the "wrong" red, now
-    neutral; its caption said "Our reading, exploratory": FINDINGS' interpretation isn't an exploratory analysis, so
-    "Our reading: every fix we tried moves along one trade-off, not past it" (FINDINGS item 7's words).
-  - Stage 2 said "measured" for user-side hints, but every layer measurement used tool hints (F11: "all tool hints";
-    set A: pasted and inserted runs; Qwen3-8B: its own call): with a user-side hint it now says "measured with tool
-    hints; ... drawn to explain". Qwen3-8B's layer labels 21 and 22 overlapped: now on two rows.
-  - The controls bar changed height between scenes, so the diagram jumped: one height on wide screens.
-  - Stage 3's long model names ran out of their column: "Nemotron 3 Nano", "Gemma 4" in those charts (full names in
-    the controls and hovers).
-  - The fine-tuned model "behind at every p" is on point estimates (its pointwise intervals all include 0): said so.
-- **The article, sentence by sentence against FINDINGS; corrected:** "far more ... in every model" → "more" (item 1);
-  the manual "as much as a tool, or more, in all three models" → for every tool channel but one, the exception
-  Qwen3 30B Instruct's own call (F40); the fine-tuned weights pull "at least as hard" → "harder, not less" (F39);
-  consistency training "the first fix that acts before the readout" → "the first fix that acts on the readout ... in
-  the layers before the readout" (F42); "provenance labels alone don't help" marked as our reading, and the label's
-  null "alone on the tool turn" (F44); "no different from" → "shows no difference from" (F44); the thinking chart's
-  caption said the comparison for its first row was read after the fact, but that row is gpt-oss-20b's pre-registered
-  effort run: now Qwen3-8B's comparison is the one read after the fact; the dial's caption "so did its cost" → the
-  cost is real on the 120 questions (on the 30 its interval includes 0); "How we worked": the rule written before
-  its runs, and the AI rater and judges as a reliability check on Ritik's labels, Claude Code for code, tests,
-  analyses and documents (as `docs/submission/AI_USE_INVENTORY.md` says). The judge's agreement stays "98% of 84
-  rows" (82 of 84; the summary holds the rate and the rows, not the count).
-- Tests after my edits: 39 passed (the lint caught one hard-coded "120" of mine; it now comes from DATA). The 14
-  scene screenshots retaken from the final page: `cot-disclosure/results/demo/screens/scene{1..7}_{light,dark}.png`
-  (gitignored), with the stages, 1366, 1440 and the phone.
-- **Not done, and why:** the brief's 1–6 jump keys are 1–7 (seven scenes); helper A didn't open the reference page;
-  the article's charts reuse the old demo's chart code (`demo_source.zip` not on this Mac).
-
-## 5. The docs and the move (written 23:11)
-
-- **The README:** the explainer's section now has the keys (the tour; `r`, `t`, `i`, `?`), what it shows, and the
-  rebuild command; the folder map names the archived template and the Nov 14 move.
-- **PLAN** (the checklist's demo row; the header), **ONE_PAGE** (the presentation bullet, the freeze table's demo row),
-  **TODO** (D16, the Hint Explainer; D17, plain names; the header), `docs/submission/README.md` (the demo's row and
-  the folder layout), `AI_USE_INVENTORY.md` (this session's helpers, in the sub-agents row; facts only), the daily
-  (§2, and Nov 15's ask to Arsha and Shrey about the drafts). STATUS and the Gantt regenerated (`make_gantt.py`).
-- **The move:** `cot-disclosure/tools/demo_page/` (4 files) → `archive/superseded/demo_page_2026-11-13/`, unchanged;
-  `archive/MOVES.md`'s Nov 14 section. Committed on its own, after the work's commit, as MOVES.md asks.
-- FINDINGS, the pre-registrations and the earlier logs keep their IDs (the brief); not touched.
-
-## 6. Needs Ritik
-
-- **Nov 15:** the check-ins and merges (Arsha's 688cf48 on `trackB-main`; Shrey's); ask Arsha and Shrey about their
-  plain START_HERE drafts (`docs/drafts/`): adopt (they move it into place, or agree to `PATH_CHECK_ALLOW`), change
-  or decline.
-- **Nov 16:** stop the feeder (`touch /scratch/ragarw68/trackA/feeder.stop; scrontab -r`).
-- **Nov 18:** the freeze by CHECKIN §10 (the tag with Ritik's go); the explainer rebuilt there; slide 5 placed with
-  Shrey; slide 1's figure changed today ("Read since" in place of "Open"): check it suits the deck.
-- **Nov 20:** approve or change Gate 3's draft (PLAN, Gates). **Nov 22:** the AI-use inventory's "to confirm" lines.
-- **Before Nov 24:** open the explainer on the presenting laptop with Wi-Fi off and play the tour once; scene 6's
-  picked seed is said on screen (delete `seed` in `tour.json` to draw it like the others).
-
-## 7. The checks (written 23:22)
-
-- **The full suite, once** (23:11–23:22): 1,194 passed, 1 skipped; no pytest left running.
-- Links: 0 broken, 0 missing RUNBOOK scripts (`check_links.py`); the new docs' links checked by helper B with its link
-  function (seven links in the drafts to the owners' own files made plain paths). The summaries: numbers-only
-  (`export_summaries.py --check`). STATUS and the Gantt regenerated.
-- The commit identity: `Ritik`, the email's hash on Ritik Agarwal's line of `configs/team_identities.txt`.
-- To do after the commits: the pre-push check, the push (`trackA-nosol` and `main` only), and the supplement
-  regenerated from the work's commit, in its own commit.
+- **The full suite, once** (20:49–21:02): 1,200 passed, 1 skipped; no pytest left running.
+- STATUS and the Gantt regenerated (Arsha's TODO_B rows with them).
+- Then: the freeze commit and its push; the supplement regenerated from it, its own commit and push; then, every check
+  having passed, the tag on `main` (recorded below and in PLAN, ONE_PAGE and the daily).
