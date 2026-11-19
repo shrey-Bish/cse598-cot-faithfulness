@@ -26,9 +26,9 @@
 
 <section id="hero" aria-label="The explainer">
   <div class="controls" role="group" aria-label="Controls">
-    <div class="ctl"><label for="model">Model</label>
+    <div class="ctl"><label for="model">Model and setting</label>
       <div class="row"><select id="model"></select><div id="setting" class="seg" role="group" aria-label="Setting"></div></div></div>
-    <div class="ctl grow"><span class="lbl" id="srclbl">The hint comes from</span>
+    <div class="ctl grow"><span class="lbl" id="srclbl">Hint source</span>
       <div id="sources" class="seg" role="group" aria-labelledby="srclbl"></div></div>
     <div class="ctl"><label for="fix">Fix</label>
       <div class="row"><select id="fix"></select><button id="to-tradeoff" class="link" type="button">the trade-off</button></div></div>
@@ -66,6 +66,7 @@
         <div class="stage-body" id="b5"></div><div class="lane" id="lane5"></div>
       </section>
     </div>
+    <svg id="thread" class="thread" aria-hidden="true" focusable="false"></svg>
     <div id="expand" role="dialog" aria-modal="false" aria-labelledby="expand-title">
       <div class="expand-head"><h2 id="expand-title"></h2><span class="sim">drawn from the measured numbers; hover a mark for X of Y runs and its 95% interval</span>
         <button id="expand-close" class="btn" type="button" aria-label="Close (Esc)">&#10005; Esc</button></div>
@@ -79,15 +80,16 @@
 <div id="tour" role="region" aria-label="The story" data-scene="0" hidden>
   <div class="tour-dots" id="tour-dots"></div>
   <p id="tour-caption" aria-live="polite"></p>
-  <div class="tour-nav"><button id="tour-prev" class="btn" type="button" aria-label="Back (left arrow)">&#9664;</button>
-    <button id="tour-next" class="btn accent" type="button" aria-label="Next (space or right arrow)">&#9654;</button>
+  <div class="tour-nav"><button id="tour-prev" class="btn" type="button" aria-label="Back (left arrow)">&#9664; Back</button>
+    <button id="tour-play" class="btn accent" type="button" aria-label="Pause (space)">&#10074;&#10074; Pause</button>
+    <button id="tour-next" class="btn" type="button" aria-label="Step to the next scene (right arrow)">Step &#9654;</button>
     <button id="tour-stop" class="btn" type="button" aria-label="Leave the story (Esc)">&#10005;</button></div>
 </div>
 
 <div id="help" role="dialog" aria-label="Keys" hidden>
   <h2>Keys</h2>
-  <ul><li><kbd>Space</kbd> or <kbd>&rarr;</kbd> next scene, <kbd>&larr;</kbd> back, <kbd>1-7</kbd> jump to a scene (in the story)</li>
-  <li><kbd>r</kbd> run, <kbd>t</kbd> light or dark, <kbd>i</kbd> IDs, <kbd>Esc</kbd> closes a stage or leaves the story</li></ul>
+  <ul><li>In the story: <kbd>Space</kbd> pauses or resumes, <kbd>&rarr;</kbd> next scene, <kbd>&larr;</kbd> back, <kbd>1-7</kbd> jump to a scene</li>
+  <li><kbd>r</kbd> run, <kbd>t</kbd> light or dark, <kbd>i</kbd> IDs, <kbd>Esc</kbd> closes a stage first, then leaves the story</li></ul>
 </div>
 
 <article id="article" class="article">
@@ -150,7 +152,7 @@
 
   <section class="art" id="a-tradeoff">
     <h3 data-name="The trade-off">The fixes trade one error for another</h3>
-    <p>Every fix we trained, prompted or applied at inference moves along one trade-off, not past it (our reading). <q>The stricter bar, beating the one-line instruction on following at no cost to correct hints: met by no fix.</q> The slider is exploratory, post hoc: it asks how often the tool is right, and which fix then gives the most correct answers.</p>
+    <p>Every fix we trained, prompted or applied at inference moves along one trade-off, not past it (our reading). <q>The stricter bar, beating the one-line instruction on following at no cost to correct hints: met by no fix.</q> The slider in the trade-off panel (the link beside the fix) is exploratory, post hoc: it asks how often the tool is right, and which fix then gives the most correct answers.</p>
     <div class="chart" data-chart="tradeoff"></div>
   </section>
 

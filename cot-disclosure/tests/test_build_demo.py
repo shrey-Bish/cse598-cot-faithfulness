@@ -321,7 +321,8 @@ ALLOW = {"Run 20 times": "UI constant: the batch size of the tally (also its dot
          "1 to 7": "the key hint for the tour's scenes",
          "1-7": "the key hint for the tour's scenes",
          "(1 - p)": "the slider's formula: the complement of p, not a result",
-         "95%": "the interval level, a method constant stated once, not a result"}
+         "95%": "the interval level, a method constant stated once, not a result",
+         "study guide v2": "the tool reply's source string, a constant in tools/answer_key.py (SOURCE), not a result"}
 
 
 def test_no_hard_coded_result_number_in_visible_strings(built):

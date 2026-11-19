@@ -111,14 +111,17 @@ code appears in parentheses, it is what to search for there.
 ## The Hint Explainer (the demo)
 
 **Open [`docs/demo/index.html`](docs/demo/index.html) in any browser.** It works offline: one file, no network. It is
-a guided tour of seven scenes, which you move through with the arrow keys or the space bar, with an article below it.
+a guided tour of seven scenes that plays itself (about 15 seconds a scene), with an article below it.
 An IDs toggle shows the internal codes next to the plain names.
 
-- **Present:** "Play the story" starts the tour (about two minutes). Space or → steps, ← goes back, 1–7 jump to a scene,
-  Esc leaves. Outside the tour: `r` runs, `t` switches light and dark, `i` shows the IDs, `?` lists the keys; click a
+- **Present:** "Play the story" starts the tour, which plays itself (about two minutes, a progress bar per scene).
+  Space pauses and resumes, → or Step goes on, ← goes back, 1–7 jump to a scene; Esc closes an open chart first, then
+  leaves the tour. Outside the tour: `r` runs, `t` switches light and dark, `i` shows the IDs, `?` lists the keys; click a
   stage to open its real chart (Esc closes).
-- **What it shows:** a wrong hint traveling through one model, left to right: the input, inside the model (the readout
-  layers), the private reasoning, the final answer, and an optional review team. You pick the model, where the hint
+- **What it shows:** a wrong hint traveling through one model, left to right, as one thread: the input, inside the
+  model (the readout layers), the private reasoning, the final answer, and an optional review team; the thread breaks
+  where the final answer drops the source. Solid is measured, dashed is drawn to explain, italic is illustrative
+  wording; a count from fewer than 5 runs says "too few runs to say". You pick the model, where the hint
   comes from and, for Olmo 3 7B Think, a fix. Runs are simulated at our measured rates and say so; every number on
   hover is "X of Y runs" with its 95% interval.
 - **Rebuild:** `cd cot-disclosure && ../.venv/bin/python tools/build_demo.py` (from the numbers-only summaries; it fails

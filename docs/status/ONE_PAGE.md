@@ -21,7 +21,8 @@
   (Track C's checker, F24). FINDINGS' story item 7 is the scorecard.
 
 - **For the presentation (Nov 13–14):** the demo is now the **Hint Explainer**, [`docs/demo/index.html`](../demo/index.html)
-  (opens offline; "Play the story" for the 7-scene tour, about 2 minutes: space or → steps, ← back, 1–7 jump, Esc leaves;
+  (opens offline; "Play the story" plays the 7-scene tour by itself, about 2 minutes: space pauses, → steps, ← back, 1–7
+  jump, Esc closes a chart, then the tour; presentation fixes after the freeze, Nov 18, no number changed;
   `t` theme, `i` the IDs); everything in plain names, the IDs in [`docs/GLOSSARY.md`](../GLOSSARY.md); the slide
   figures relabelled in plain names (slide 1's stale "Open" line now "Read since"); slide 5's figure of F3
   (`private_vs_final.png`); **Gate 3's final statement drafted in PLAN for Ritik's approval** ("met; the stricter bar:

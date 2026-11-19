@@ -1,12 +1,12 @@
 [
  {
   "label": "User's guess",
-  "row": 1,
+  "row": 0,
   "source": "user",
   "fix": null,
   "review": false,
   "focus": 4,
-  "caption": "A user's guess barely moves the answer: {x.settings[1].model} followed it in {x.settings[1].sources.user.f.k} of {x.settings[1].sources.user.f.n} runs."
+  "caption": "A user's guess barely moves the answer: {x.settings[0].model}, which reasons before it answers, followed it in {x.settings[0].sources.user.f.k} of {x.settings[0].sources.user.f.n} runs."
  },
  {
   "label": "Tool's answer",
@@ -15,7 +15,7 @@
   "fix": null,
   "review": false,
   "focus": 4,
-  "caption": "A tool's answer moves it a lot: the same model, with no thinking, followed the tool call in {x.settings[1].sources.call.f.k} of {x.settings[1].sources.call.f.n} runs."
+  "caption": "A tool's answer moves it a lot: {x.settings[1].model}, with no thinking, followed the tool call in {x.settings[1].sources.call.f.k} of {x.settings[1].sources.call.f.n} runs."
  },
  {
   "label": "Authority",

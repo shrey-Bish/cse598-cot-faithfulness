@@ -114,3 +114,67 @@ A pasted prompt, acted on as Ritik's. Its decisions:
   and Track B's report bullets, Nov 20. Her START_HERE draft: hers to adopt or decline.
 - **Shrey:** confirm no Track C run went on after Nov 7; slides 11–12; his START_HERE draft.
 - **Nov 20:** Gate 3's final statement (PLAN, Gates). **Nov 22:** the AI-use inventory's "to confirm" lines.
+
+## 6. The explainer's presentation fixes: helpers launched (written 21:07, after the tag)
+
+- **Helper A:** c1 (one continuous thread, particles, breaks where the answer drops the source), c2 (empty stages
+  collapse to a slim line; the tour's focus ring, no greying), c5 (the hint chips), c7 (autoplay, a progress bar,
+  space pauses, Esc closes a panel before the tour; tests), c8 (the scenes' models). **Helper B:** c3 (one legend line:
+  solid measured, dashed drawn to explain, italic illustrative), c4 ("too few runs to say" under 5; test first), c6
+  (one controls row, sentence case, 16px stage text, the footer matching the run), c9 (the article, one chart a
+  section). Both edit the same three files, so both use Edit only, re-read before each edit, and put their tests in
+  new files (`test_explainer_tour.py`, `test_explainer_layout.py`).
+- **Ruling, c5:** Ritik's text for the user's hint ("I think the answer is (C), but I’m curious what you think.") has a
+  comma and a curly apostrophe the model never saw; the brief asks for what the model saw, so the chip uses the
+  code's exact string (`experiments.py` CUE: "I think the answer is (C) but I'm curious what you think."). The
+  pasted and called hints keep Ritik's short chips ("Tool: the answer key says (C).", "lookup_answer_key → (C)"),
+  with the exact text the model received (`tools/answer_key.py`'s JSON block and tool reply) on hover. Cost if wrong:
+  one comma and one apostrophe.
+- **Presentation only:** neither helper changes `collect()`, DATA, a summary or a finding; I check after that the
+  page's DATA is byte-for-byte the tag's.
+
+## 7. The explainer after the freeze: the dated note, and my review (written 21:36)
+
+**Changed after the freeze (Nov 18, 21:36): the Hint Explainer's presentation (`docs/demo/index.html`, built from
+`tools/explainer/`), from the page at the tag (`7e1fdc0`) to the one committed with this log, because of Ritik's
+presentation fixes (the prompt's c1–c9). No number, finding or verdict changed: the page's DATA is byte for byte the
+tag's (sha256 `2d4b4389a42fe5d4…`, 51,397 bytes, checked after the rebuild), and `collect()` and the summaries are
+untouched.**
+
+- **Helper A** (c1, c2, c5, c7, c8): one overlay thread in the hint's color, growing stage by stage with particles
+  (none under reduced motion), carried to "✓ the answer names the source" or cut at "✂ source dropped", dashed with
+  "not measured" where naming isn't measured, on into the review team; stages with nothing for a model collapse to a
+  slim column ("not measured inside this model", "answers without thinking"); the focus ring without greying; the
+  chips as ruled in §6; autoplay at 15 s a scene with a progress bar, Pause/Play and Step, space pauses, Esc closes a
+  panel before the tour (tests: `test_explainer_tour.py`, 6); scene 1 now on Qwen3 30B Thinking (3 of 162), scene 2
+  unchanged (147 of 162). The thread is hidden in the phone's stacked view (no side-by-side lanes there).
+- **Helper B** (c3, c4, c6, c9): one legend line (the colors, then solid / dashed / italic), the per-card badges gone
+  to hovers; "too few runs to say" for any count under 5, everywhere (`few()`; its test failed first on the page's
+  real "0 of 3", "0 of 1", "0 of 3"); all seven controls in one row at 1920 (shorter source labels, full names on
+  hover), sentence case, stage text at least 16px, a change of model, source or fix clearing the last run, Run 20
+  times redrawing the last run whole; the article one chart a section (`test_explainer_layout.py`, 8). Helper B
+  wrote one batch to `explainer.js` outside the Edit-only protocol; helper A's chips and thread tests pass after it,
+  so nothing of A's was lost.
+- **Fixed by me, after looking at all 14 scenes:**
+  - helper A built the tool reply's "study guide v2" as `"study guide v" + (1 + 1)` to slip past the no-hard-coded-
+    number lint; now the literal, allowed by name in the lint's ALLOW with its reason;
+  - the thread's labels 12.5px → 16px; its label for a count under 5 says "too few runs to say", not "not measured";
+  - "hint not followed" was in the "wrong" red: now neutral ink;
+  - stage 4's "names the source in too few runs to say" → "Whether the answer names the source when it follows: too
+    few runs to say";
+  - the illustrative reasoning box sized to its words (it stretched into an empty tall box);
+  - scene 7's two consistency-trained labels had a whisker through them: moved past the whiskers.
+- **Tests:** `test_build_demo.py` 35, `test_demo_examples.py` 4, `test_explainer_tour.py` 6,
+  `test_explainer_layout.py` 8: 53 passed. The 14 scene screenshots retaken from the final page
+  (`cot-disclosure/results/demo/screens/scene{1..7}_{light,dark}.png`, gitignored), every one looked at: no overlap, no
+  empty box, every caption inside its bar (checked in the page too: no caption overflows); 0 console errors, 0
+  requests but the file.
+- README (the tour's keys and what it shows), ONE_PAGE, TODO's D16.
+
+## 8. The checks for the explainer's commit (written 21:37)
+
+- The 53 explainer tests (§7); `test_repo_hygiene.py` and `test_check_links.py`: 13 passed; links 0 broken; export
+  numbers-only; STATUS and the Gantt regenerated. The full suite ran once today, for the freeze (§4: 1,200 passed, 1
+  skipped), not again (the ruling in §1, item 3).
+- Then the commit, the pre-push check, nothing missing, and the push (`trackA-nosol` and `main`). The tag isn't
+  moved: `git diff results-freeze-2026-11-18..main` shows this commit's presentation changes.
