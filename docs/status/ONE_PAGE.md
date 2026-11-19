@@ -35,9 +35,9 @@
 |---|---|---|
 | Gate 3's final statement | drafted Nov 13 in PLAN; waits on Ritik's approval | Ritik, Nov 20 |
 | The demo (`docs/demo/index.html`), the Hint Explainer | built and checked Nov 14 | rebuilt at the freeze (CHECKIN §10) |
-| Slide 2 (B20's rows) and B18's table | in progress | Arsha, Nov 18 |
+| Slide 2 (B20's rows) and B18's table | done: merged and redrawn Nov 18 | — |
 | Slide 5 (F3) | figure made Nov 13 (`private_vs_final.png`) | Ritik and Shrey place it, Nov 18 |
-| Slide 7 (B24's arms) | waiting | Arsha, Nov 18 (final Nov 20) |
+| Slide 7 (B24's arms) | Arsha's `authority_ladder.png`, placed Nov 18 | Arsha, final Nov 20 |
 | Slide 10 (B1R2 in panel b) | figure drawn Nov 13 | Ritik places it |
 | Slides 11–12 | figures placed | Shrey, Nov 18 |
 | Track B's report bullets | not started | Arsha, Nov 20 |

@@ -15,3 +15,13 @@ a,gpt-oss-20b,effort medium,pasted block minus user,46,162,0.2528947166628326,0.
 a,gpt-oss-20b,effort medium,its own call minus user,46,162,0.2528947166628326,0.16034046468829077,0.35185185185185186,"95% bootstrap clustered by question, paired",5,161,clear
 a,gpt-oss-20b,effort high,pasted block minus user,45,155,0.25742784380305606,0.16331212396658443,0.35706401766004414,"95% bootstrap clustered by question, paired",5,152,clear
 a,gpt-oss-20b,effort high,its own call minus user,48,158,0.2619770580296896,0.17066769919118913,0.3587229763700352,"95% bootstrap clustered by question, paired",5,152,clear
+a,Gemma 4 26B-A4B,thinking on,pasted block minus user,55,133,0.3943030653556969,0.27705431051887747,0.5096866096866097,"95% bootstrap clustered by question, paired",3,162,clear
+a,Gemma 4 26B-A4B,thinking on,"inserted tool turn, the fallback minus user",37,145,0.23665389527458494,0.13071404738071404,0.3469987228607918,"95% bootstrap clustered by question, paired",3,162,clear
+a,Gemma 4 26B-A4B,thinking off,pasted block minus user,126,162,0.7345679012345679,0.6419753086419753,0.8271604938271604,"95% bootstrap clustered by question, paired",7,162,clear
+a,Gemma 4 26B-A4B,thinking off,"inserted tool turn, the fallback minus user",60,162,0.3271604938271605,0.2222222222222222,0.4382716049382716,"95% bootstrap clustered by question, paired",7,162,clear
+a,Nemotron 3 Nano 30B-A3B,thinking on,pasted block minus user,82,153,0.5109477124183006,0.40921052631578947,0.6150985353883904,"95% bootstrap clustered by question, paired",4,160,clear
+a,Nemotron 3 Nano 30B-A3B,thinking on,"inserted tool turn, the fallback minus user",121,156,0.7506410256410256,0.6757563694267515,0.8226114649681529,"95% bootstrap clustered by question, paired",4,160,clear
+a,Nemotron 3 Nano 30B-A3B,thinking off,pasted block minus user,119,161,0.35024154589371975,0.268287037037037,0.43056514071006824,"95% bootstrap clustered by question, paired",63,162,clear
+a,Nemotron 3 Nano 30B-A3B,thinking off,"inserted tool turn, the fallback minus user",162,162,0.6111111111111112,0.537037037037037,0.6851851851851851,"95% bootstrap clustered by question, paired",63,162,clear
+a,Granite 4.2 8B,thinking on only,pasted block minus user,39,158,0.1806451612903226,0.09615384615384616,0.27564102564102566,"95% bootstrap clustered by question, paired",8,157,clear
+a,Granite 4.2 8B,thinking on only,its own call minus user,156,162,0.9113087369306574,0.8477261731978714,0.9622641509433962,"95% bootstrap clustered by question, paired",8,157,clear

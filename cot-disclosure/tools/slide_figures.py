@@ -888,13 +888,15 @@ def fig_gate2(out=OUT):
     rows_axis(ax)
     ax.set_xlabel("follows the wrong letter: tool channel minus the user's hint (points)")
     key(fig, [(marker(ROLE["cue"]), "the tool result pasted in"),
-              (marker(ROLE["damage"]), "the model's own call (Olmo: the inserted tool turn)")])
+              (marker(ROLE["damage"]), "the tool call: the model's own (Olmo, Gemma, Nemotron: an inserted tool turn)")])
     headline(fig, "Tools pull harder than users: the same wrong hint moves the answer more from a tool,",
              "in every model and setting tested (the tool-vs-user test).")
-    note(fig, "From the models-and-sources runs and the reasoning-effort run: 54 questions x 3 runs per model and setting; following = answered "
-         "runs ending on the wrong letter; lines: 95% bootstrap clustered by question, paired by question. Temperature "
-         "0.6 (gpt-oss-20b: 1.0, its recommended). gpt-oss-20b ran after its one-day window (pre-registration section "
-         "13). The table behind it: docs/paper/tables/trackB_final.md.")
+    # Nov 18, at Arsha's request (her Nov 14 log): the legend and note now cover the newer families' rows (B20, FB1)
+    note(fig, "From the models-and-sources runs, the reasoning-effort run and the newer families' runs: 54 questions x 3 "
+         "runs per model and setting; following = answered runs ending on the wrong letter; lines: 95% bootstrap "
+         "clustered by question, paired by question. Temperature 0.6 (gpt-oss-20b and the newer families: 1.0). Granite "
+         "4.2 ran with thinking on only. gpt-oss-20b ran after its one-day window (pre-registration section 13). The "
+         "table behind it: docs/paper/tables/trackB_final.md.")
     paths = save(fig, "gate2", rows, out)
     plt.close(fig)
     return paths

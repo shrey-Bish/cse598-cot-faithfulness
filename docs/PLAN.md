@@ -284,22 +284,22 @@ now: Ritik's Sol queue is empty (B1R2 ended Nov 9), and Arsha's B20 ended Nov 6.
 | # | figure | state | waits on |
 |---|---|---|---|
 | 1, 3, 4, 6, 8, 11, 12 | made | ready | — (slides 11–12 themselves: Shrey, Nov 18) |
-| 2 | `gate2.png` | made; B20's rows not in | Arsha: B20's rows with B18's table, by Nov 18 |
+| 2 | `gate2.png` | **B20's rows in, Nov 18 (20:47)**: 13 settings with Arsha's B18 rows (merged Nov 18); the legend and note name the newer families (inserted tool turn, temperature 1.0) | — |
 | 5 | `private_vs_final.png` | made Nov 13, 14:43 (F3 in keyword counts, L3's verdict in its note) | — (the slide itself: Ritik and Shrey, Nov 18) |
-| 7 | `b16_authority.png` | made; B24's arms not in | Arsha: B24's two arms beside B16's, by Nov 18 (final Nov 20) |
+| 7 | `authority_ladder.png` (Arsha's, drawn Nov 15 in Track B's paths; placed Nov 18, 20:47) | B24's two arms beside B16's, made; `b16_authority.png` stays (REPORT §4's F35 figure) | Arsha: final Nov 20 |
 | 9 | `gate3_vs_base_slide.png`; A39's | made | Ritik: Gate 3's final statement, Nov 20 |
 | 10 | `readout_lora_vs_base.png` | made | Ritik: panel (b) takes `b1r2_vs_b1.png` (drawn Nov 13) |
 | 13 | none | Nov 21–22 | everyone |
 
 **What teammates still owe.**
-- **Arsha:** merge `origin/main` back (sent); B18's table with B20's rows (Nov 18); slide 2 with B20's rows and slide 7
-  with B24's arms; slides 6–8 final (Nov 20); Track B's report bullets (`docs/trackB/REPORT_B.md`, not yet started;
+- **Arsha:** B18's table with B20's rows and slide 7 with B24's arms: done, merged Nov 18; merge `origin/main` back
+  after it; slides 6–8 final (Nov 20); Track B's report bullets (`docs/trackB/REPORT_B.md`, not yet started;
   Nov 20).
 - **Shrey:** merge `origin/main` back; slides 11–12 (Nov 18; the figures are placed). Track C's report bullets are in
   (REPORT §8–§9, Nov 6).
 
-**REPORT, still marked waiting** (each a figure, not a number): §4 F40 (slide 7's B24 arms, Arsha); §4 FB1 (`gate2.png`
-with B20, Arsha); §6 F40's words (slide 7); §6 FB1's words (no figure planned:
+**REPORT, still marked waiting** (each a figure, not a number): §4 F40 and FB1 have their figures since Nov 18
+(`authority_ladder.png`, `gate2.png` with B20's rows); §6 F40's words (slide 7, `authority_ladder.png`); §6 FB1's words (no figure planned:
 a table is enough); §7 Gate 3's final statement (Nov 20). §11 and §12 are bullets only until Nov 18–21.
 
 **CLAIMS' 10 mismatches: none is a wrong number.** 6 are C14's numbers in claim 2.6 (exploratory, no F-entry, so the
@@ -333,12 +333,12 @@ this style; `taught_loss` (F20) has no 16:9 version.
 | # | slide | figure (in `docs/paper/figures/`) | status | waits on | owner |
 |---|---|---|---|---|---|
 | 1 | **Where did that answer come from?** The question and the three levels | `three_levels.png` (a diagram, no data) | made Nov 1 | — | Ritik |
-| 2 | **Tools pull harder than users.** Gate 2 on five models (F15–F17, F29, F37) | `gate2.png` (B18's rows) | made Nov 3 | B20's rows (FB1, read Nov 7) with B18's table; final by Nov 20 | Arsha |
+| 2 | **Tools pull harder than users.** Gate 2 on five models (F15–F17, F29, F37) and three newer families (FB1) | `gate2.png` (B18's rows) | made Nov 3; B20's rows in Nov 18 | final by Nov 20 | Arsha |
 | 3 | **Level 1: three layers read the tool's letter.** F11, replicated on set A (F26); the heads (F12, F32) | `readout_by_layer_slide.png` (the report's `readout_by_layer` and the supplement's `readout_setA_vs_test2`) | made Nov 4 | — | Ritik |
 | 4 | **Level 1 on a second model.** Qwen3-8B (A37; F36: replicates) | `readout_qwen8b.png` | made Nov 1 | — | Ritik |
 | 5 | **Level 2: the private reasoning names it, the final answer doesn't** (F3, with L3's kappa) | `private_vs_final.png` (Test 1 per model and all three, Test 2; keyword counts) | **made Nov 13, 14:43** (`tools/slide_figures.py`). Before: the map listed `cue_experiments_slide.png`, which plots C16–C18, not F3 | — (L3 read Nov 4, not met: the figure's note says so; the slide itself by Nov 18) | Ritik and Shrey |
 | 6 | **Level 2: after a tool call, the answer goes bare.** F15, C4's control, F29; one instruction brings the source back without reducing deference (F25) | `bare_after_call.png` | made Nov 1 | — | Arsha |
-| 7 | **Tool or authority?** (B16, F35; the authority dose, B24, F40) | `b16_authority.png` | made Nov 1 | B24's two arms beside B16's (B24 read Nov 4, F40; spec in WAITING.md's additions); Arsha, from Nov 6; final by Nov 20 | Ritik, then Arsha |
+| 7 | **Tool or authority?** (B16, F35; the authority dose, B24, F40) | `authority_ladder.png` (Arsha's; `b16_authority.png` before) | made Nov 15, placed Nov 18 | B24's two arms beside B16's: done (B24 read Nov 4, F40; spec in WAITING.md's additions); Arsha, from Nov 6; final by Nov 20 | Ritik, then Arsha |
 | 8 | **Thinking dose** (B17, F37; labelled §13) | `b17_effort.png` | made Nov 3 | — | Arsha |
 | 9 | **The fix: training cuts following, but none beats one line** (F28, Gate 3; false disclosure from L4 part 1, read Nov 3) | `gate3_vs_base_slide.png` (`finetune/gate3.py`'s `gate3_vs_base`, the same rows) | made Nov 4 | A39 read Nov 7 (F44): its own figures `a39_e2_fixes.png` and `a39_e2_parts.png` are drawn; Gate 3's final statement Nov 20 | Ritik |
 | 10 | **Inside the fixed model: training acts in the reasoning** (A18, F39). And B1 at inference (A30, F38) | `readout_lora_vs_base.png` | made Nov 3; **A40's bars added Nov 7** (A41, F42) | — (B1R2 read Nov 13: panel (b) takes `b1r2_vs_b1.png`, B1 on the 30 and B1R2 on E2 side by side) | Ritik |
@@ -401,7 +401,7 @@ Nov 18 freeze. REPORT holds bullets and figures only; the team writes the prose.
 | §1 Introduction | bullets in | the contributions line can be written (A39 read Nov 7; the scorecard, FINDINGS' story item 7) |
 | §2 Setup | **final** (B20's three models in, Nov 8) | — |
 | §3 Methods | **final** (B20's readings in, Nov 8, from FB1) | Arsha checks B20's methods line (Nov 20) |
-| §4 The failure | **final for FB1** (merged Nov 8) | B18's final table and slide 7's B24 arms (Arsha, Nov 18) |
+| §4 The failure | **final for FB1** (merged Nov 8) | B18's final table and slide 7's B24 arms: merged Nov 18 |
 | §5 Level 1, inside | **final** | — |
 | §6 Level 2, in the words | **final** (L3 read Nov 4: not met) | — (slide 5's figure made Nov 13, `private_vs_final.png`) |
 | §7 Fixing it | **final for F20, F27, F28, F38, F39, F41–F45**; the exploratory trade-off bullet (post hoc, labelled) | Gate 3's final statement (Nov 20); B1R2 read Nov 13, in F38's bullet |

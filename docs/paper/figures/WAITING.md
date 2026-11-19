@@ -166,7 +166,7 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
 
 ## Additions to figures that exist (no new file)
 
-- **Slide 2:** made Nov 3 as `docs/paper/figures/gate2.png` (B18's rows, with B17's efforts); B20 was read Nov 7 (FB1, merged Nov 8), so its rows go in with B18's final table (Arsha, by Nov 18).
+- **Slide 2:** made Nov 3 as `docs/paper/figures/gate2.png` (B18's rows, with B17's efforts); B20 was read Nov 7 (FB1, merged Nov 8). **Done Nov 18 (20:47):** B20's five rows in with B18's final table (Arsha's, merged Nov 18), the legend and note naming the newer families.
   Owner: Arsha, from Nov 6.
 - **Slide 5: made Nov 13, 14:43** as `docs/paper/figures/private_vs_final.png` (`tools/slide_figures.py`, `fig_private_final`, from
   `docs/labeling/RESULTS_SUMMARY.json`): F3's Test 1 per model and all three (private 208 of 216, final 8 of 216), the
@@ -176,7 +176,8 @@ Made Nov 1 from `results/summaries/trackB/b16_report.json`: `docs/paper/figures/
   AI model (ChatGPT 5 Astra High), not Shrey; see the 17:42 log; no settling call or fresh batch.
 - **Slide 7** (`docs/paper/figures/b16_authority.png`): B24's two arms (the classmate, the official solution manual)
   beside B16's, from `results/summaries/trackB/b24_report.json` (read Nov 4, F40), with B24's readings (the gradient
-  same day; the rest cross-day, labelled). Owner: Arsha, from Nov 6.
+  same day; the rest cross-day, labelled). Owner: Arsha, from Nov 6. **Done:** Arsha's `authority_ladder.png`
+  (`tools/trackb_final.py --slide7`, Nov 15), placed in `docs/paper/figures/` Nov 18 (20:47).
 - **Slide 9** (`docs/paper/figures/gate3_vs_base_slide.png`, made Nov 4 from `finetune/gate3.py`'s rows): false
   disclosure from L4 part 1's hand labels (read Nov 3, F28); A39's powered replication on E2 (read Nov 7, F44) is in its
   own figures (above). The final statement is Nov 20. Owner: Ritik.

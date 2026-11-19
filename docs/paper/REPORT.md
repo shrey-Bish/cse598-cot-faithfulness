@@ -255,8 +255,7 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     B19, Nov 1, the same repeats); one sentence a level ("official" and "solution manual" not separated), all in the
     user's own turn; 54 questions ("no difference detected" is not a finding of no difference; Olmo's 16,000 cut
     leaves 28–45 questions); fifteen readings, not corrected for multiplicity; mentions are keyword counts.
-  - figure: waiting: slide 7's `docs/paper/figures/b16_authority.png` takes B24's two arms beside B16's (Arsha, from
-    Nov 6; PLAN's map, WAITING.md "Additions")
+  - figure: docs/paper/figures/authority_ladder.png (slide 7: B24's two arms beside B16's; Arsha's, placed Nov 18)
 
 - **FB1. B20 (Arsha's; read Nov 7 by its rule, all 4,860 runs in): a tool's hint moves all three new open-weight
   families more than the user's; whether the tool's form adds to the claim it carries depends on the family and the
@@ -276,8 +275,7 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
     family; keyword measures; 54 questions ("no difference detected" is not a finding of no difference); the 16,000
     cut leaves Gemma and Granite, thinking on, with as few as 22 questions; 27 readings, not corrected for
     multiplicity.
-  - figure: waiting (WAITING.md, slide 2: B20's rows go into docs/paper/figures/gate2.png with B18's table, Arsha, by
-    Nov 18)
+  - figure: docs/paper/figures/gate2.png (B20's rows in, Nov 18, with B18's table)
 
 ## 5. Level 1, inside the model (Ritik)
 
@@ -482,7 +480,7 @@ checker that re-solves without the tool; the no-tool team as the false-alarm flo
   classmate / manual: Thinking 116 / 141 of 162, Instruct 113 / 145 of 162, Olmo 34 of 160 / 76 of 159. Qwen3's final
   answer is never bare with a user's claim (0 of 162 in each arm), as F35 found for B16's wording; Olmo's is bare in 16
   and 19 of 162.
-  - figure: waiting (slide 7, as F40 in §4)
+  - figure: docs/paper/figures/authority_ladder.png (slide 7, as F40 in §4)
 - **F24 (the words), reported with no decision.** On C15's 100 fresh items the solver's final answer after a lookup is
   bare in 50 of 55 (bad) and 43 of 45 (good), against 0 of 100 without the tool; good − bad +5 [−5, +15].
 - **FB1 (the words). In B20, a call makes the answer barer in Granite and Nemotron, and Nemotron's bare answer falls
