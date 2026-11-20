@@ -1,72 +1,54 @@
-# Session log: the demo's three concepts, phase 1: plans and six mockups, then stop (2026-11-19 22:49 MST)
+# Session log: the demo rebuilt, phase 1: the inventory, then stop (2026-11-20 10:13 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `15601fb` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
-level). The day's third session; the daily: [DAILY_2026-11-19](2026-11-19/DAILY_2026-11-19.md). The previous session: Nov 19,
-[15:14](2026-11-19/2026-11-19_1514_ALL_final-check.md). The results are frozen: the tag `results-freeze-2026-11-18` on
-`7e1fdc0`. Presentation work after the freeze: no number, figure or verdict changes.
+**By:** Ritik. Branch `trackA-nosol`, from `55cb36c` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
+level). The day's first session; the daily: [DAILY_2026-11-20](2026-11-20/DAILY_2026-11-20.md). The previous session: Nov 19,
+[22:49](2026-11-19/2026-11-19_2249_ALL_demo-concepts.md). The results are frozen: the tag
+`results-freeze-2026-11-18` on `7e1fdc0`. Presentation work after the freeze: no number, figure or verdict changes.
 
 ## 0. Input
 
-A pasted prompt, acted on as Ritik's: a new demo for the 12-minute presentation and the repo, instantly
-understandable, interactive, animated and visually distinctive, not templated. Two earlier versions were rejected as
-generic (panels, pill chips and badges; a bold headline beside a dot chart on navy with pink and green). Ten beats,
-presenter-paced; every number from DATA (compact() of the frozen summaries). The Transformer Explainer is a reference
-for its interaction only. **Phase 1:** three concepts (the exam paper, the transit map, the evidence board, or better),
-each with a design plan, a check against the generic defaults, and two mockups (beats 2 and 7) at 1920×1080 in
-`docs/demo/concepts/` (local, not committed); then stop for Ritik's pick. At most 2 helpers. (The paste ends partway
-into phase 2; phase 2 waits for the pick.)
+A pasted prompt, acted on as Ritik's, with the brief pasted beside it: the demo rebuilt as one offline page in the
+answer-sheet look (concept A, carried on as a template, `~/Downloads/demo_template/`), three parts: how we did it (a
+map of the project, each step opening on its method), run it (a test bench replaying real recorded runs) and what we
+found (ten result sheets). **Phase 1 only:** `docs/demo/INVENTORY.md` (where every method fact and every set of
+recorded runs lives, what is only on Sol with its exact paths, what is missing), move the template in as
+`tools/demo_template/`, then stop. At most 2 helpers. Ritik paused the session partway ("stop it for now";
+both helpers stopped) and resumed it ("continue"; both resumed where they were).
 
-## 1. Plan (22:54)
+## 1. What was done (10:13–13:39)
 
-- `docs/demo/concepts/` gitignored (root `.gitignore`); in it: `make_data.py` writes `data.js` from the tag's page
-  (checks the current page's DATA equals the tag's: it does); `render.py` screenshots each mockup at 1920×1080 with
-  Playwright; `PLANS.md` holds the three plans.
-- Line colors validated with the dataviz palette check (the transit map's teal, ochre and violet pass; red left out of
-  the line set after a deutan clash with ochre, kept for buffer stops with a symbol and label).
-- Helper 1: concept B (the line map), mockups of beats 2 and 7. Helper 2: concept C (the case board), the same. Me:
-  concept A (the answer sheet), then review all six screenshots against the plans, the defaults and the numbers.
-  Helpers don't commit and write only in `docs/demo/concepts/`.
+- `~/Downloads/DEMO_SPEC.md` and `~/Downloads/demo_template/` are not on this Mac (Downloads, Desktop and Documents
+  searched). The brief was saved from the paste, word for word, as `docs/demo/DEMO_SPEC.md`; **the template was not
+  moved** (nothing to move). Phase 2 needs it.
+- Two helpers, read-only, no connection to any server: one found where each method fact lives (the map's steps
+  2–11), the other the recorded runs for the six bench tests (on this Mac and, from the repo's records, on Sol).
+  Their main claims checked here: LoRA's settings (`train.py:64–70`), the full-attention layers (`kit.py:182`), the
+  bootstrap (`common.py:232, 248, 261`), the training data counts (`examples_manifest.json`); no evaluation text for
+  the fixes on this Mac (0 `.jsonl.gz` in `results/trackA/gpu/a39/` and `eval/`); no Qwen3-8B text
+  (`sol_vllm.jsonl.gz` absent); all 486 tool-call runs in `voyager.jsonl.gz` carry their call.
+- One helper error corrected: the 120's pre-registration is the 11:30 log, not "13:30".
+- **The inventory:** `docs/demo/INVENTORY.md` (numbers, ids and paths only). In short:
+  - The map: steps 1–3, 5–10 rich on this Mac. Step 4 has no project-wide GPU-hour total (pieces only; `sacct` on
+    Sol would give one). Step 7 has real training pairs on the Mac but its loss only per epoch (per-step logs on Sol).
+    Step 11 has no contamination audit file (the 120's exclusion checks and the held-out leak checks exist).
+  - The bench: tests 2 (authority), 5 (review teams) and 6 (inside the model, per-question cut records, numbers)
+    complete; test 1 with text for 3 of 8 models; test 3 (thinking on/off) and test 4 (the fixes) have no text here:
+    their runs are on Ritik's Sol account (paths in its §4); Granite and Gemma's B20 runs on Arsha's.
+  - Proposal: a targeted copy (draw the questions on the Mac, fetch only those runs by run id with the read-only
+    stdin pattern), or tests 3 and 4 on numbers and hand-label final answers.
+- `docs/status/TODO.md`: D19 (the demo rebuilt), phase 1 done.
 
-## 2. What was made (22:56–23:07)
+**After the freeze (Nov 20, 13:39): presentation work only.** No number, figure or verdict changed; no frozen file
+changed. The tracked changes are the brief, the inventory, TODO's D19 and the logs.
 
-All in `docs/demo/concepts/` (gitignored; nothing there is committed): `PLANS.md` (the three plans, the check against
-the generic defaults, and what changed in each build), the six mockups as HTML and PNG at 1920×1080
-(`A_beat2`, `A_beat7`, `B_beat2`, `B_beat7`, `C_beat2`, `C_beat7`), `overview.png` (the six on one sheet), and the
-scripts (`make_data.py`, `render.py`, `overview.py`, `C_build.py`).
+## 2. Waiting for Ritik
 
-| concept | the world | signature animation | built by |
-|---|---|---|---|
-| A. The answer sheet | an optical answer sheet in dropout green; one bubble a run, filled in pencil; the hint a sticky note or a stapled tool slip; red-pen tallies; the checker a second grader's violet stamp | the pencil fill, run by run, then the red pen circles the tally | me |
-| B. The line map | a schematic transit map; each hint source a line, the layers stations, a dropped source a buffer stop; the statement a station name board | trains split at the answer junction; a dropped line retracts to its buffer stop | helper 1, my review |
-| C. The case board | a steel case board; each source an exhibit in an evidence bag with a chain-of-custody form; yellow evidence markers as the progress | threads pulled taut from exhibit to answer | helper 2, my review |
+- What to keep or drop on the map and the bench (INVENTORY §1).
+- Whether to copy from his Sol account (INVENTORY §4), all of it or only the drawn runs; Arsha's B20 runs are hers.
+- The template `demo_template/` with `TEMPLATE_GUIDE.md` saved on this Mac.
+- Then phase 2.
 
-**My review's corrections (each re-rendered and looked at again):**
-- B: the statement in a near-black box with bold white sans (it echoed the rejected version 2), made a station name
-  board on the paper; beat 7's statement said "a reviewer corrects 3 of 73" without naming the Olmo reviewer (only
-  the two Olmo reviewers defer), now the brief's statement plus "Only the two Olmo reviewers defer; the other four
-  keep checking."; beat 2's pasted-output line removed (beat 3's); the 100 read from DATA; "0 of 53" in ink.
-- C: in beat 2, 161 dark threads to "its own answer" made the person's hint look strongest; now only runs that ended
-  on (C) are taut (1 from the user, 147 from the tool) and the rest hang faint; beat 7's statement generalized to
-  "the reviewer", now the brief's plus the same note; the case number shrunk (it read as a hero); the handwriting's
-  "1" read as "I", font changed; its sources moved into the concepts folder.
-- A (mine): the model row ran off the screen, the red loops touched their captions, the checker's speckled stamps and
-  caption wrap were unreadable; fixed.
-
-**Checked on all six (by 23:07):** every number read from `data.js` in the page (three are n − k: 161 of 162,
-15 of 162, 70 of 73); no internal code in the visible text (a scan of the rendered text for F, FB, FC, A, B, C, L, R codes, E2,
-Gate, Track, judge and channel names: none); no script error; no page text under 20 px. The illustrative question is
-ours and marked as such.
-
-**After the freeze (Nov 19, 23:07):** presentation work only. No number, figure or verdict changed; the explainer
-page and its DATA are unchanged (`make_data.py` checks the page's DATA equals the tag's: equal). The only tracked
-change is `.gitignore`'s line for `docs/demo/concepts/`.
-
-## 3. Stopped here, for Ritik's pick
-
-Phase 1 ends here, as the prompt asks: Ritik picks A, B or C, or a mix. The pasted prompt ended partway into phase 2
-("each beat with ONE purposeful animation that shows the finding,"); the rest of phase 2 comes with the pick.
-
-## 4. Checks and push
+## 3. Checks and push
 
 `tests/test_repo_hygiene.py` and `tests/test_check_links.py`; `tools/check_links.py`; `tools/make_supplement.py
 --check`; `tools/export_summaries.py --check`; STATUS and the Gantt; the pre-push check; nothing on `origin/main`
