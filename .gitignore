@@ -32,3 +32,6 @@ archive/progress-round/presentation/*.pdf
 
 # regenerated on demand by cot-disclosure/progress/extract_slides.py
 docs/progress/SLIDE_POINTS.md
+
+# the demo's design concepts and mockups (Nov 19): local only, never committed
+docs/demo/concepts/
