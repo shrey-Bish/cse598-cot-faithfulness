@@ -81,10 +81,42 @@ def tool_of(r):
     return None
 
 
+def _u16(text, spans):
+    """Python code-point offsets -> JavaScript (UTF-16) offsets, so the page's slices are the same characters."""
+    if not text or all(ord(c) < 0x10000 for c in text):
+        return spans
+    pre = [0]
+    for c in text:
+        pre.append(pre[-1] + (2 if ord(c) >= 0x10000 else 1))
+    return [[pre[a], pre[b]] for a, b in spans]
+
+
+def spans_of(r):
+    """Where the analysis's own keyword matcher fires (detect.COMPILED, chosen as trackB_report.flags() and
+    finetune/eval.py flags() choose it: "cue" for a hint in the user's words, "cue_tool" for every other source; the
+    fixes' broad final adds eval.SOURCE_WORDS for the run's wording). Offsets in UTF-16 units. None without a hint."""
+    from detect import COMPILED
+    cond = r.get("condition") if r.get("condition") is not None else r.get("channel")
+    if cond in (None, "none"):
+        return None
+    pat = COMPILED["cue"] if cond == "user" else COMPILED["cue_tool"]
+    out = {}
+    for key, field in (("reasoning", "reasoning_text"), ("final", "final_text")):
+        t = r.get(field) or ""
+        sp = [[m.start(), m.end()] for m in pat.finditer(t) if m.end() > m.start()]
+        if key == "final" and r.get("wording") is not None and "channel" in r:
+            from finetune.eval import SOURCE_WORDS
+            extra = SOURCE_WORDS.get(r.get("wording"))
+            if extra:
+                sp = sorted(sp + [[m.start(), m.end()] for m in re.finditer(extra, t, re.IGNORECASE) if m.end() > m.start()])
+        out[key] = _u16(t, sp)
+    return out
+
+
 def text_of(r):
     pm = r.get("prompt_messages") or r.get("messages")
     return blob({"prompt": pm if pm else r.get("rendered_prompt"), "reasoning": r.get("reasoning_text"),
-                 "final": r.get("final_text"), "tool": tool_of(r)})
+                 "final": r.get("final_text"), "tool": tool_of(r), "spans": spans_of(r)})
 
 
 def date_of(r):
@@ -217,13 +249,13 @@ def fixes_runs(items):
         p = SOL / f"runs_{g}.jsonl"
         if p.exists():
             for _, o in jsonl(p):
-                sol[o["record"].get("run_id")] = o
+                sol[(o["record"].get("run_id"), o["record"].get("timestamp_utc"))] = o
     out = []
     for p, i, qset, r in idx:
         hc = r.get("hint_correct")
         w = None if r.get("channel") == "none" else (not hc)
         took = None if w is None else (r.get("parsed_letter") == r.get("hint_letter"))
-        o = sol.get(r["run_id"])
+        o = sol.get((r["run_id"], r.get("timestamp_utc")))     # by id and time: one run id names three runs on Sol
         out.append({"t": 4, "q": r["item_id"], "m": "Olmo 3 7B Think", "s": "thinking always", "fix": r.get("system"), "qset": qset,
                     "src": FIX_SRC.get(r.get("channel"), r.get("channel")), "wording": r.get("wording"), "w": w, "rep": r.get("repeat"),
                     "L": r.get("parsed_letter"), "H": r.get("hint_letter"), "R": r.get("correct_letter"),

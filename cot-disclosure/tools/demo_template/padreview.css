@@ -1,0 +1,22 @@
+/* The scratch pad's review-team flow (padreview.js): choices, four stations left to right, the recorded text panel.
+   Answer-sheet tokens only; nothing under 23px. */
+.prv { position: absolute; inset: 0; color: var(--ink); }
+.prv .prv-ctl { position: absolute; left: 0; right: 0; top: 0; display: flex; flex-direction: column; gap: 4px; }
+.prv .prv-row { display: flex; align-items: flex-start; gap: 0 8px; font-family: var(--print-font); font-size: 23px; color: var(--print); line-height: 1.15; }
+.prv .prv-row .lab { width: 130px; flex: none; }
+.prv .prv-opt { display: inline-flex; align-items: center; gap: 7px; border: 0; background: none; padding: 2px 8px 2px 2px; cursor: pointer; font-family: var(--print-font); font-size: 23px; color: var(--ink); }
+.prv .prv-opt .bub { width: 28px; height: 18px; border-radius: 10px; border: 1.5px solid var(--print); position: relative; flex: none; }
+.prv .prv-opt[aria-checked="true"] .bub::after { content: ""; position: absolute; inset: 1.5px; border-radius: 9px; background: var(--pencil); filter: url(#pencil); }
+.prv .prv-stage { position: absolute; left: 0; right: 0; }
+.prv .prv-st { position: absolute; top: 0; border: 1.5px solid var(--print); background: var(--paper); }
+.prv .prv-st > .t { padding: 6px 12px 5px; border-bottom: 1px solid var(--print); font-size: 25px; font-weight: 600; line-height: 1.1; }
+.prv .prv-st > .m { position: absolute; left: 12px; right: 10px; font-family: var(--print-font); font-size: 23px; line-height: 1.18; color: var(--ink); }
+.prv .prv-st .mu { color: var(--muted); }
+.prv .prv-st .xlink { font-size: 23px; position: absolute; left: 12px; }
+.prv .prv-st .stamp { font-size: 26px; }
+.prv .prv-note { position: absolute; left: 0; right: 0; font-family: var(--print-font); font-size: 23px; line-height: 1.2; color: var(--muted); }
+.prv .prv-text { position: absolute; left: 20px; right: 20px; top: 20px; bottom: 10px; z-index: 5; border: 2px solid var(--print); background: var(--paper); display: flex; flex-direction: column; box-shadow: 0 14px 30px -14px var(--shadow); }
+.prv .prv-text .h { display: flex; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--print); font-size: 25px; font-weight: 600; }
+.prv .prv-text .h .xlink { margin-left: auto; font-size: 23px; }
+.prv .prv-text pre { margin: 0; padding: 12px 16px; overflow: auto; flex: 1; white-space: pre-wrap; font-family: var(--text-font); font-size: 23px; line-height: 1.4; color: var(--ink); }
+.prv .prv-row .opts { display: flex; flex-wrap: wrap; flex: 1; gap: 0 6px; }

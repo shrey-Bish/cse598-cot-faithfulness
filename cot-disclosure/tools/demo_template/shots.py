@@ -2,7 +2,7 @@
 
   .venv/bin/python cot-disclosure/tools/demo_template/shots.py PAGE OUTDIR part:index[:theme][:js] ...
 
-part is map, bench or found; index the page within the part; theme light (default) or dark; js an optional snippet
+part is pad, map, bench or found (PAGE may also be an http://127.0.0.1 URL); index the page within the part; theme light (default) or dark; js an optional snippet
 run after the page is shown (e.g. a bench action), then the screenshot waits for the choreography (4.5 s; 0 with
 INSTANT). Fonts are awaited. Console errors are printed and make the exit code 1.
 """
@@ -14,7 +14,8 @@ from playwright.sync_api import sync_playwright
 
 
 def main(argv):
-    page_path, out, specs = Path(argv[0]).resolve(), Path(argv[1]), argv[2:]
+    page_arg, out, specs = argv[0], Path(argv[1]), argv[2:]
+    page_url = page_arg if page_arg.startswith("http://127.0.0.1") else Path(page_arg).resolve().as_uri()
     out.mkdir(parents=True, exist_ok=True)
     errors = []
     with sync_playwright() as p:
@@ -28,13 +29,15 @@ def main(argv):
             pg = ctx.new_page()
             pg.on("console", lambda m, s=spec: m.type == "error" and errors.append(f"{s}: {m.text}"))
             pg.on("pageerror", lambda e, s=spec: errors.append(f"{s}: {e}"))
-            pg.goto(page_path.as_uri() + "#" + part)
+            pg.goto(page_url + "#" + part)
             pg.evaluate("document.fonts.ready")
             pg.evaluate(f"go('{part}', {int(idx)})")
             if js:
                 pg.evaluate(js)
             pg.wait_for_timeout(4500)
             name = f"{part}_{int(idx):02d}_{theme}" + ("_" + hashlib.sha1(js.encode()).hexdigest()[:6] if js else "") + ".png"
+            if os.environ.get("DEMO_NAME"):
+                name = os.environ["DEMO_NAME"] + ".png"
             pg.screenshot(path=str(out / name))
             print(out / name)
             ctx.close()

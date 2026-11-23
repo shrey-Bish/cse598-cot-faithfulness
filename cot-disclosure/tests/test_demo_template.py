@@ -123,10 +123,11 @@ def test_every_page_loads_with_no_request_no_error_and_no_internal_code(browser,
     pg.on("pageerror", lambda e: errors.append(str(e)))
     pg.on("request", lambda r: requests.append(r.url))
     pg.goto(path.as_uri())
-    counts = pg.evaluate("PARTS.map((p) => p.pages.length)")
-    assert counts[1] == 6 and counts[2] == 10 and counts[0] >= 1
+    counts = dict(pg.evaluate("PARTS.map((p) => [p.id, p.pages.length])"))
+    assert counts["bench"] == 6 and counts["found"] == 10 and counts["map"] >= 1
+    assert ("pad" in counts) == (which == "local")       # the scratch pad: the local build's part 1 (Nov 23)
     seen = []
-    for part, n in zip(("map", "bench", "found"), counts):
+    for part, n in counts.items():
         for i in range(n):
             pg.evaluate(f"INSTANT = true; go('{part}', {i})")
             if part == "bench" and which == "local":

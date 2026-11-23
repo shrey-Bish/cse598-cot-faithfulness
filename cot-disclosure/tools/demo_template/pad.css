@@ -1,0 +1,88 @@
+/* ---- part 1, the scratch pad (local build only). Nothing under 23px in sheet units. ---- */
+#sheet[data-part="pad"] .ffoot { display: none; }
+.padroot { position: absolute; left: 30px; right: 30px; top: 8px; height: 726px; font-size: 23px; color: var(--ink); }
+.padroot * { min-height: 0; }
+.padroot .abs { position: absolute; }
+
+/* top row: four printed boxes */
+.padctl { position: absolute; top: 0; height: 68px; border: 1.5px solid var(--print); background: var(--paper); padding: 4px 14px 4px; text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.padctl:hover { border-color: var(--ink); }
+.padctl .padlab { font-family: var(--print-font); font-size: 23px; line-height: 26px; color: var(--print); }
+.padctl .padval { font-size: 23px; line-height: 30px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.padctl[disabled] { opacity: 0.4; cursor: default; }
+.padbtn { border: 1.5px solid var(--print); background: none; padding: 3px 14px 4px; cursor: pointer; font-family: var(--print-font); font-size: 23px; line-height: 30px; color: var(--ink); }
+.padbtn:hover { border-color: var(--ink); background: var(--print-soft); }
+.padbtn[disabled] { opacity: 0.4; cursor: default; }
+.padbtn.go { position: absolute; top: 0; height: 68px; font-weight: 600; }
+
+/* popups */
+.padpop { position: absolute; z-index: 30; background: var(--paper); border: 2px solid var(--print); box-shadow: 0 20px 40px -20px var(--shadow); padding: 10px 14px 12px; max-height: 600px; overflow: auto; }
+.padpop .padsec { font-family: var(--print-font); font-size: 23px; color: var(--print); margin: 6px 0 2px; }
+.padopt { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: none; padding: 3px 4px; cursor: pointer; text-align: left; font-size: 23px; line-height: 30px; color: var(--ink); }
+.padopt:hover { background: var(--print-soft); }
+.padopt .bub, .padver .bub { width: 22px; height: 14px; border-radius: 8px; border: 1.4px solid var(--print); position: relative; flex: none; }
+.padopt[aria-checked="true"] .bub::after, .padver[aria-checked="true"] .bub::after { content: ""; position: absolute; inset: 1px; border-radius: 7px; background: var(--pencil); filter: url(#pencil); }
+.padopt[disabled] { opacity: 0.4; cursor: default; }
+.padopt .padmute { color: var(--muted); font-size: 23px; }
+.padpop input { width: 100%; font: inherit; font-size: 23px; padding: 5px 8px; border: 1.5px solid var(--print); background: var(--paper); color: var(--ink); margin-bottom: 6px; }
+.padpop .padqi { display: block; }
+.padpop .padqi .t { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+.padpop .padqi .i { font-family: var(--print-font); color: var(--print); margin-right: 8px; }
+.padpop .padnote { font-family: var(--print-font); font-size: 23px; color: var(--muted); line-height: 1.25; margin-top: 6px; }
+
+/* left: the hint, the question, the buttons */
+.padhint { position: absolute; left: 0; top: 78px; width: 450px; height: 150px; }
+.padhint .sticky, .padhint .slip { z-index: 2; }
+.padhint .bigL { position: absolute; left: 300px; top: 4px; }
+.padhint .sub { position: absolute; left: 292px; top: 74px; width: 158px; margin: 0; font-family: var(--print-font); font-size: 23px; line-height: 1.2; color: var(--ink); max-width: none; }
+.padq { position: absolute; left: 0; top: 238px; width: 450px; height: 322px; border: 1.5px solid var(--print); overflow: auto; padding: 8px 12px; scrollbar-width: thin; }
+.padq .qt { font-size: 23px; line-height: 1.3; color: var(--ink); }
+.padq .qo { display: flex; gap: 8px; margin-top: 4px; font-size: 23px; line-height: 1.25; color: var(--ink); }
+.padq .qo b { font-family: var(--print-font); color: var(--print); font-weight: 600; min-width: 36px; }
+.padq .qo.hint mark { background: color-mix(in srgb, var(--canary) 85%, transparent); color: #2B2A1E; padding: 0 3px; }
+.padq .qo.right b::after { content: " \2713"; color: var(--red); }
+.padbtns { position: absolute; left: 0; top: 568px; width: 450px; display: flex; gap: 8px; }
+
+/* a pane: header, pad, answer row, info */
+.padpane { position: absolute; top: 78px; height: 534px; }
+.padhd { position: absolute; left: 0; top: 0; right: 0; height: 36px; display: flex; align-items: baseline; gap: 12px; white-space: nowrap; }
+.padhd b { font-weight: 600; font-size: 23px; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+.padhd span { font-family: var(--print-font); color: var(--print); font-size: 23px; }
+.padpad { position: absolute; left: 0; right: 0; border: 2px solid var(--print); background: var(--paper); overflow: auto; padding: 6px 12px; cursor: pointer; scrollbar-width: thin;
+  font-size: 23px; line-height: 1.32; white-space: pre-wrap; word-break: break-word; color: var(--ink); }
+.padpad mark { background: color-mix(in srgb, var(--canary) 85%, transparent); color: #2B2A1E; padding: 0 2px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--canary) 85%, transparent); }
+.padpad .padnote { color: var(--muted); font-family: var(--print-font); }
+.padans { position: absolute; left: 0; height: 100px; border: 2.5px solid var(--print); background: var(--paper); }
+.padans .lab { position: absolute; left: 10px; top: 2px; font-family: var(--print-font); font-size: 23px; color: var(--print); }
+.padchk { position: absolute; height: 33px; white-space: nowrap; font-family: var(--print-font); font-size: 23px; line-height: 33px; color: var(--ink); }
+.padfin { position: absolute; font-size: 23px; line-height: 1.25; color: var(--muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.padfin mark { background: color-mix(in srgb, var(--canary) 85%, transparent); color: #2B2A1E; }
+.padrec { position: absolute; left: 0; right: 0; font-size: 23px; line-height: 1.2; color: var(--muted); font-family: var(--print-font); }
+.padcount { position: absolute; left: 0; right: 0; font-size: 23px; line-height: 1.2; color: var(--ink); }
+.padcount .padk { font-family: var(--hand-font); color: var(--red); font-size: 34px; line-height: 1; }
+.padmsg { position: absolute; left: 0; right: 0; font-size: 23px; line-height: 1.35; color: var(--muted); }
+.padhost { position: absolute; z-index: 8; background: var(--paper); }
+
+/* versions */
+.padvers { position: absolute; left: 0; right: 0; top: 620px; height: 106px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 2px 16px; border-top: 1.5px solid var(--print-soft); padding-top: 6px; }
+.padver { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; padding: 1px 2px; cursor: pointer; font-family: var(--print-font); font-size: 23px; line-height: 30px; color: var(--ink); white-space: nowrap; }
+.padver[aria-checked="true"] { font-weight: 700; }
+.padver.off { opacity: 0.38; cursor: not-allowed; }
+.padvnote { font-family: var(--print-font); font-size: 23px; line-height: 30px; color: var(--muted); }
+
+/* the header with four parts */
+#sheet[data-pad] .parts { margin-left: 12px; gap: 3px; }
+#sheet[data-pad] .ptab { white-space: nowrap; padding: 7px 9px 8px 7px; gap: 5px; font-size: 16px; }
+#sheet[data-pad] .keys #keyhint { white-space: nowrap; }
+#sheet[data-pad] .itembox { display: none; }
+#sheet[data-pad] .fhead { gap: 12px; padding: 0 16px; }
+
+/* live: your own question */
+.padform { position: absolute; left: 0; top: 78px; width: 450px; height: 534px; overflow: auto; scrollbar-width: thin; display: flex; flex-direction: column; gap: 6px; }
+.padform textarea, .padform input, .padform select { font: inherit; font-size: 23px; line-height: 1.25; padding: 4px 8px; border: 1.5px solid var(--print); background: var(--paper); color: var(--ink); width: 100%; }
+.padform textarea { height: 150px; resize: none; }
+.padform .frow { display: flex; align-items: center; gap: 8px; font-family: var(--print-font); font-size: 23px; color: var(--print); }
+.padform .frow b { min-width: 40px; font-weight: 600; }
+.padform .frow span { min-width: 80px; }
+.padform .padbtn { align-self: flex-start; }

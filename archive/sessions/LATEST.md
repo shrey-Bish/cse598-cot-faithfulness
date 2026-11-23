@@ -1,134 +1,170 @@
-# Session log: the repo as a front door, the demo's final pass, the presentation kit (2026-11-23 09:10 MST)
+# Session log: the scratch pad, the demo's main screen (2026-11-23 13:24 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `914317f` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
-level). The day's first session; the daily: [DAILY_2026-11-23](2026-11-23/DAILY_2026-11-23.md). The previous session: Nov 22,
-[18:48](2026-11-22/2026-11-22_1848_ALL_demo-sol-copy.md). The results are frozen: the tag
-`results-freeze-2026-11-18` on `7e1fdc0`. Presentation and docs work only. Two helpers (the README and folder pages;
-the presentation kit and QA_FACTS); they did not commit.
+**By:** Ritik. Branch `trackA-nosol`, from `360acd1` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
+level). The day's second session; the daily: [DAILY_2026-11-23](2026-11-23/DAILY_2026-11-23.md). The previous session: Nov 23,
+[09:10](2026-11-23/2026-11-23_0910_ALL_front-door.md). The results are frozen: the tag `results-freeze-2026-11-18` on `7e1fdc0`.
+Presentation work only. Two helpers: the pad's page, then its live mode; the review team's flow and the local server.
+They did not commit.
 
 ## 0. Input
 
-Two pastes, acted on as Ritik's. The first is a review of the tracked page at 1920×1080, with seven demo fixes and a
-request to check the local bench (test 1 compare, test 4 no fix against consistency, test 5 with the checker on). The
-second is the day's plan, with "Prompt 1: send now":
-- **A.** The repo as a front door: README, folder READMEs, process material to `archive/` (MOVES.md), CITATION.cff
-  and REPRODUCE.md, hygiene, GitHub Pages.
-- **B.** The demo's final pass: both themes at 1920×1080 and 1440×900, every key, both builds offline; the seven fixes.
-- **C.** The presentation kit: TALK_MAP as a live run from the demo; QA_FACTS checked against FINDINGS.
-- **D.** The submission checklist.
+A pasted prompt, acted on as Ritik's: "THE SCRATCH PAD: rebuild the demo's main screen as one scratch pad". Keep every
+existing part working; the pad becomes part 1 and the default screen of the local build.
+- **Phase A:** a read-only script, `results/demo/sol/fetch_all.py`, fetching every evaluation run of the fixes, the dial,
+  Qwen3-8B, gpt-oss and Nemotron. First estimate its size, then give the one command for Ritik's Mac and the unpack
+  command.
+- **Phase B:** the pad: the top row; the question and the hint on the left; the streaming pad with highlights from the
+  analysis's own keyword matcher; the final answer and three red-pen checks; the version row and the split; the
+  review-team flow; "next run"; one JSON per question, served on localhost, with the drawn set embedded.
+- **Phase C (time-boxed):** "your own question", live through Ollama.
+- **Checks:** every dataset, two sizes, both themes, offline. Tests: the highlights are verbatim, every count is
+  DATA's, every run traces to its file and line. Screenshots.
 
-Also: **"Gate 3: I approve the statement as drafted (PLAN, REPORT §7)."** Prompt 2 (tonight's final check and the
-zip) and the Sol feeder stop are not part of this session.
+## 1. What was done (13:24–14:32)
 
-## 1. What was done (09:10–09:40)
+**Phase A, the full Sol copy** (`tools/demo_template/sol.py plan_all` writes `results/demo/sol/plan_all.json` and
+`fetch_all.py`, gitignored; `unpack_all` reads the stream):
+- Same pattern as the drawn copy (stdlib only, reads only, nothing written on Sol, paths printed as `<scratch>`), but
+  every evaluation run: kept by the run ids in this Mac's numbers-only indexes (the frozen sets).
+- Groups and the run ids in the Mac's indexes:
 
-**Gate 3:** recorded as approved by Ritik, as drafted (PLAN's Gates section and its status row; ONE_PAGE).
-`REPORT.md` was not touched: Ritik writes its prose today, and it has no line waiting on the approval.
+  | group | ids |
+  |---|---|
+  | the fixes on the 120 (nine systems) | 10,080 |
+  | the 30 (Gate 3's six and A39's on the 30) | 7,380 |
+  | the attention dial (B1R2 on the 120, B1 on the 30) | 2,024 |
+  | Qwen3-8B, thinking on and off | 1,620 |
+  | gpt-oss-20b | 2,430 |
+  | Nemotron (no index here: its whole file) | about 1,944 |
 
-**Moves** (`33be48e`, `git mv` only; [MOVES.md](../MOVES.md), Nov 23):
-- `docs/drafts/` → `archive/drafts/`.
-- `DEMO_SPEC.md` and `INVENTORY.md` → `archive/demo_build/`.
-- The Hint Explainer → `archive/superseded/explainer_2026-11-14/` (`build_demo.py` and its tour test point there).
+- Per run, the record minus the raw text and the prompt messages (the transcript keeps the tool call and reply).
+- The output is one gzip stream, with progress on stderr. A cut stream is reported, not hidden.
+- **Estimate:** about 25,500 runs and about 240 MB compressed (200–280 MB; per-run sizes measured on the drawn copy),
+  about 1.1 GB if fully expanded. It stays compressed on the Mac.
+- **Found before Ritik ran it:** one run id, `c43d897ec5a49dd1`, names three runs on Sol. The Mac's index keeps the
+  one in an unsplit file (`eval_base_a39_e2.jsonl.gz`), which the first globs missed. The unsplit files are added.
+  - Texts now match their index rows by run id **and** timestamp, in the pad and the bench (`runs.py`).
+  - Before, the bench showed one of the other two runs' text under that row; that row is now "outcome only" until the
+    full copy is in.
+- Tested on a fake tree, including a cut stream.
 
-Links updated in 22 files. `docs/demo/` now holds one demo. **Not moved:** `docs/status/`, because Track B's and C's
-pages link to it and `make_gantt.py` writes it; it gained a README saying a reader can skip it. The tracks' session
-folders are their owners' paths. In the zip, the demo goes in as `demo/index.html` (it was `explainer/`).
+**Phase B, the pad** (the local build's part 1 and default screen; the map, the bench and the sheets are parts 2–4,
+unchanged; the tracked page is unchanged and carries none of the pad's code):
+- **Data** (`tools/demo_template/pad.py`, mine): one JSON per question under `results/demo/pad/<dataset>/`, plus an
+  index. The question counts are in the table below.
+  - Each run carries its file and line, and its text gzipped with the spans where the analysis's own keyword matcher
+    fires.
+    - `runs.spans_of`: `detect.COMPILED`, chosen as `trackB_report.flags()` and `finetune/eval.py` choose it, plus
+      `SOURCE_WORDS` for the fixes' broad final.
+    - Offsets are in UTF-16, so the page slices the same characters.
+  - Outcomes are the analysis's own fields.
+  - Texts come from this Mac (the Voyager runs, the review logs) and the Sol copy (the full copy when unpacked, else the
+    drawn copy).
+  - Counts: `DATA.pad` (`pad.counts()`), every one with its path in the frozen data (the explainer's compact or a frozen
+    summary: `eval_report.json` for Gate 3, `a39_mmlupro_30.json`).
+  - The drawn questions are embedded (15.7 MB, the page now 34.5 MB), so a double-click still works.
 
-**The front door** (helper 1; checked here):
-- `README.md`: the question; the answer in one paragraph ("mixed"); five findings with `three_levels.png`; what's new
-  and what isn't; the demo; the folders; reproduce; the team; AI use; cite.
-- Two lines tightened to FINDINGS: F35's 68% and 71%, and F45's "without following fewer than the instruction".
-- `REPRODUCE.md` and `CITATION.cff`; the root `.gitignore` now admits both.
-- Short READMEs in `archive/`, `docs/`, `docs/demo/`, `docs/status/` and nine `cot-disclosure/` folders. None in
-  `agents/` (Track C's path); `cot-disclosure/README.md` describes it.
+  | dataset | questions |
+  |---|---|
+  | the 54 | 54 |
+  | the 30 | 30 |
+  | the 120 | 120 |
+  | the review team's items | 175 (the 73 graded wrong lookups' cases with two ungraded, and C15's 100) |
 
-**The demo** (the review's seven):
-1. The overview: the third bracket now reads "review teams" (it was clipped); "What it wrote" links to the bench's
-   test 3.
-2. Step 1: "↓ scroll the options" sits under the options. Its class lacked `plab`, so it was never positioned.
-3. Step 6 opens with layer 15 swapped (34% [27%, 42%]) and every layer's measured effect drawn faintly.
-4. Step 7: the loss chart is taller and zoomed to the data, with y values and the first and last step; "epoch N
-   kept" in red; the boxes shortened.
-5. Sheet 8: "Five fixes and no fix, on Olmo 3 7B Think".
-6. The explainer moved (above).
-7. The tracked bench shows each test's prompt in place of the empty area: the experiments' own template on a sample
-   question (`method.json`), the hint marked. Test 4 adds the instruction (end of the system turn) or the label
-   (the inserted tool turn only), and the right letter for right hints. Test 5 shows the reviewer's instruction and
-   what it is shown. Test 6 shows what is measured. The frozen result stays on the right.
+- **The page** (helper 1: `pad.js`, `pad.css`, `shell.js`, `shots.py`):
+  - The top row: Dataset, Question (search by id or words), Hint (source, wording, wrong or right) and Model.
+  - The question and the hint's sticky note or tool slip on the left.
+  - The pad streams the private reasoning with every recorded span highlighted: 3,000 characters a second, at most
+    20 s; Esc or a click finishes.
+  - The final answer and three red-pen checks from the run's fields.
+  - The version row: 13 versions, the untested ones greyed. Picking one splits the pad: no fix (the same experiment's)
+    beside it; for the dial, its own control at α 1.
+  - Under each half, the frozen count for that condition.
+  - "Next run" cycles the recorded repeats; every run is labelled, with its file and line on hover. Large type: nothing
+    under 23 px.
+  - Mine: the call hint opens on "a study guide", the wording every version, the dial too, was run with. On the 30,
+    Gate 3's runs come first. The 54 open on Qwen3 30B Thinking.
+- **The review team** (helper 2: `padreview.js`, `padreview.css`): solver → reviewer (choose the reviewer and what it
+  sees) → checker → you, left to right.
+  - Each step shows its recorded verdict and its file and line; the frozen counts sit beside it.
+  - What reaches the user follows the pipeline's rule (`agents/run_team.py` lines 31–32: a flag escalates and no answer
+    ships; otherwise the reviewer's letter).
+- **The server** (helper 2, `serve.py`): 127.0.0.1 only, GET and HEAD, no listings, nothing outside `results/demo/`.
+  Mine: `POST /live`.
+- **TALK_MAP's live run:** the part keys shifted by one (the pad is key 1), with a note on the pad.
+- **README:** `docs/demo/README.md` says how to start the pad.
 
-**Found on the local bench:**
-- Test 5's checker was always stamped "Agrees": `runs.py` read `checker_flag`, but the records' field is `flag`. Now
-  the stamp is the record's own flag; a new test checks it against the file and line.
-- In compare, the column headers ran into the result panel; now they name only what differs.
-- In the dark theme, marked text was light on yellow; now it uses the sticky's dark text, as the template does.
-- Test 4, no fix against consistency, read correctly.
+**Phase C, live** (`tools/demo_template/live.py`, mine; the page by helper 1):
+- "Your own question (live)" in the Dataset list, over the server only. Qwen3-8B (`qwen3:8b`; this Mac's Ollama has no
+  Olmo), thinking on, temperature 0.6.
+- It uses the experiments' own prompt builder (`tools/answer_key.build`), the answer parser, `trackB_report.flags` and
+  the spans.
+- The version row is greyed, "recorded runs only". No count is shown, nothing is saved, and the run is labelled "not a
+  recorded run, never counted".
+- **Times** on this Mac:
 
-**Checks of the page:**
-- Both builds walked offline at 1920×1080 and 1440×900, both themes: every page of the three parts; keys 1–3,
-  ← →, Esc, R, T, Shift+1–6; on the local bench Enter, N, M, C, P, L. No console error, no request but the file,
-  no text cut by its container, the sheet inside the window.
-- Screenshots (gitignored): `cot-disclosure/results/demo/screens_final/` (the fixed pages in both themes, the local
-  states) and `screens_final_1440/` (all 28 pages). Looked at: the fixed pages and four at 1440.
+  | question | hint | total | tokens | Ollama |
+  |---|---|---|---|---|
+  | planet | the user says it | 21.8 s | 323 | cold |
+  | 17 × 23 | pasted | 66.4 s | 1,569 | |
+  | prime | the user says it | 47.1 s | 1,140 | through the server |
+  | planet | | 14–16 s | | helper 1, through the page |
 
-**The presentation kit** (helper 2):
-- TALK_MAP gained "The live run: 12 minutes from the demo": per slide, the keys, the test or sheet, what to point
-  at, the time and the fallback slide. The deck's parser reads the same rows; `deck.pptx` is unchanged.
-- The "next steps" line on B1's replication was stale after B1R2; it now reads "The attention dial replicated on 120
-  questions; its cost to right hints is open (F38)".
-- QA_FACTS: 10 corrections against FINDINGS. For example: F25's "no change detected"; "layers only" for the
-  second-family replication (the heads are Olmo only); B1R2's replication; F29's +64 "on the real tool call"; the
-  system-level fix marked "our reading".
+**After the freeze (Nov 23, 13:24): presentation work only.** No number, figure or verdict changed. The pad shows
+recorded runs, labelled, and the frozen counts with their paths; a live run is never counted.
 
-**Ritik's five-line story against FINDINGS** (both helpers):
-1. Holds in every model tested; "much of the pull is authority" holds for pasted blocks (F35).
-2. Not general: Gemma names the tool in 127 of 162 with thinking off (FB1); Olmo is tentative (F17).
-3. Qwen3-8B replicates with its own layers (21, 22, 29) at 0.70 (F36), not the same three.
-4. Holds.
-5. "Without making them follow less" is false against base (LoRA −10). The candid result is LoRA against the
-   instruction, one model, 42 rows (F45).
+## 2. Waiting for Ritik
 
-**After the freeze (Nov 23, 09:40): presentation and docs work only.** No number, figure or verdict changed.
-QA_FACTS and the README now say what FINDINGS says where they had said more.
+1. **The full Sol copy** (Ritik's Mac, ASU VPN, one Duo push), from the repo root:
+   ```
+   cd ~/Documents/Projects/ODL/cse598-cot-faithfulness/cot-disclosure && ssh -o ConnectTimeout=30 login.sol.rc.asu.edu 'P=/scratch/$USER/envs/olmo/bin/python; [ -x $P ] || P=python3; $P -I -S -' < results/demo/sol/fetch_all.py > results/demo/sol/fetch_all.jsonl.gz
+   ```
+   Then, in `cot-disclosure/`:
+   - `python3 tools/demo_template/sol.py unpack_all`;
+   - `../.venv/bin/python tools/demo_template/pad.py`;
+   - `../.venv/bin/python tools/demo_template/build.py`.
 
-## 2. Hygiene (A.5)
+   The 30's and the 120's runs and the dial then show their text; until then they are outcome rows, marked "outcome
+   only".
+2. **Start the pad:** `../.venv/bin/python tools/demo_template/serve.py`, from `cot-disclosure/`. It needs the venv for
+   live mode, and Ollama running for live (`ollama serve`). It opens `http://127.0.0.1:8765/demo.html#pad`.
+   Double-clicking `results/demo/demo.html` works too, but with the drawn questions only.
+3. As before: publishing the seeded runs, a LICENSE, Pages (Shrey), the username in the logs, the four files; Prompt 2
+   tonight.
 
-- **Keys and tokens:** none in tracked files.
-- **Files over 5 MB:** none tracked.
-- **Produced data:** nothing under `results/track*/`, `labels/`, `handoff/`, `demo/`, `logs/`, `cache/` or
-  `finetune/data/` is tracked.
-- **AI attribution:** none in the full history (no Co-Authored-By, "Generated with", session lines or Anthropic
-  email). Authors and committers are the three team members only.
-- **Emails:** none written as an email. Ritik's own Sol account appears in ssh and rsync lines (user@host).
-- **Sol usernames:** only Ritik's own, in 79 tracked files: 50 session logs, frozen summaries' paths, the Sol tools'
-  tests and the run docs. No teammate's.
-- **Pages:** the page has no external or root-absolute path; served from `docs/` it works as is.
+## 3. Checks and push
 
-## 3. Waiting for Ritik
+**The walk** (Playwright; both builds):
+- Every dataset in 13 states: a wrong hint and a right hint; the user, pasted and call sources; another model on the 54;
+  the split with fine-tuned, 3 layers, consistency and the dial; the review flow on a C4 case and a C15 case.
+- At 1920×1080 and 1440×900, both themes, both file:// with the network off and served on 127.0.0.1: **104 states**.
+- **Results:**
+  - 0 console errors.
+  - 0 requests but the file or the local server.
+  - 0 text cut by its box (the top row's question is cut short with "…" on purpose).
+  - The sheet inside the window every time.
+  - Keys 1–4 switch parts.
+  - The tracked build: its three parts and keys 1–3, as before, with no pad.
+- **Screenshots:** `cot-disclosure/results/demo/screens_pad_final/` (104, gitignored); helper 1's in `screens_pad/`, the
+  live mode's included.
+- **Looked at:** two contact sheets of 13 (file:// 1920 light; served 1440 dark), the split's checks cropped, and helper
+  1's split, default and review shots.
+- **Found and fixed:**
+  - The dial greyed on the default wording.
+  - The 54 opening on a model with no reasoning.
+  - The run label breaking inside its date.
+  - A red check drawn half way in a screenshot was the animation, not a cut.
 
-1. **Publish the seeded runs in the tracked build?** `bench_runs.json` is 17.5 MB with the Sol copy (the page about
-   18 MB). It is model text, which the repo's rule keeps out of tracked files, so the team would change that rule
-   first. Before that: check the license of each source (MMLU-Pro; each model's terms for its outputs: Qwen3, Olmo,
-   gpt-oss, Nemotron, Mistral, Granite, Gemma; our puzzles are ours). Then one follow-up: "include bench_runs.json in
-   the tracked build".
-2. **LICENSE:** none added. A suggestion: MIT for the code, CC BY 4.0 for the docs and figures; the team decides.
-3. **GitHub Pages** needs the repo's owner, Shrey: Settings → Pages → "Deploy from a branch", `main`, folder `/docs`.
-   The demo would then be at `<owner>.github.io/cse598-cot-faithfulness/demo/`.
-4. **Your Sol username in 79 tracked files:** keep it (the repo's convention so far), or scrub the logs and docs. The
-   frozen summaries can't change after the freeze, and the history keeps it either way.
-5. **The story's wording** (above) for the talk, the report and the slides.
-6. **CLAIMS 1.4** says the heads replicate in a second family; only the layers did (F36). Changing it means
-   regenerating the supplement.
-7. **Your worded deck:** if it carries the old B1 "107 to 245" line, change it. `deck.pptx` was not rebuilt.
-8. **The course's rule on AI-drafted prose** before the report's text; the Sol feeder stop when next on the VPN.
-9. As before: the report's prose, the slides' words, `CONTRIBUTIONS.md`, `AI_USE.md` (the checklist's only open
-   rows).
-
-## 4. Checks and push
-
-- The demo's tests (with the new checker test), the method tests, the explainer's tour, hygiene and links, the deck,
-  the submission and the supplement tests.
-- The full suite once.
-- `tools/check_links.py`; `make_supplement.py --check`; `export_summaries.py --check`.
+**Tests:**
+- `tests/test_demo_pad.py` (new): the index covers the four datasets; the highlights are verbatim spans that agree with
+  each run's own recorded flag; every count resolves to the frozen data, and the page carries exactly those counts;
+  every run traces to its file and line; the full copy's script only reads and its stream unpacks; on the page, with the
+  network off, the marks are the recorded spans.
+  - 6 passed.
+  - 1 skipped: the full copy's completeness, until Ritik's fetch.
+- `tests/test_demo_template.py`: the browser test finds parts by id and walks the pad too.
+- The full suite once: **1,408 passed, 2 skipped** (15 min 46 s; the second skip is the full copy's completeness). pad.js
+  changed during it (the run label), so the demo's tests ran again on the final sources: 176 passed, 1 skipped.
+- `tools/check_links.py`: 0 broken links. `make_supplement.py --check` and `export_summaries.py --check`: pass.
 - STATUS and the Gantt; the pre-push check.
 - The push: `git push origin trackA-nosol:main trackA-nosol:trackA-nosol`.
-- **Results:** the full suite 1,402 passed, 1 skipped (11 min 15 s); the deck's tests 13 passed, its rows parsed as before; 0 broken links; the supplement and export checks pass.

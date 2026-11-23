@@ -9,6 +9,9 @@ const PARTS = [
   { id: "bench", tab: "Run it", unit: "Test", pages: typeof BENCH_TESTS !== "undefined" ? BENCH_TESTS : [], onKey: typeof BENCH_ONKEY !== "undefined" ? BENCH_ONKEY : null, leave: typeof BENCH_LEAVE !== "undefined" ? BENCH_LEAVE : null },
   { id: "found", tab: "What we found", unit: "Item", pages: BEATS },
 ];
+/* the local build adds the scratch pad as part 1 (and the default screen); the tracked build has none */
+if (typeof PAD_PAGES !== "undefined" && PAD_PAGES) PARTS.unshift({ id: "pad", tab: "Scratch pad", unit: "Scratch pad", pages: PAD_PAGES, pad: true, onKey: PAD_ONKEY, leave: PAD_LEAVE });
+const partById = (id) => PARTS.find((p) => p.id === id);
 /* each result sheet's test on the bench and its method on the map (page indexes) */
 const LINKS = [
   { test: 0, step: 1 }, { test: 0, step: 2 }, { test: 1, step: 2 }, { test: 2, step: 3 }, { test: 2, step: 3 },
@@ -50,15 +53,17 @@ function show(i, { instant = false } = {}) {
   $("#beat").innerHTML = ""; $("#rows").innerHTML = ""; $("#xlinks").innerHTML = "";
   $("#beat").dataset.part = P().id;
   const home = P().home && cur === 0;
-  $("#unit").textContent = home ? "The map" : P().unit;
-  $("#itemno").textContent = home ? "–" : cur + (P().home ? 0 : 1);
-  $("#ofn").textContent = `of ${pages.length - (P().home ? 1 : 0)}`;
+  $("#sheet").dataset.part = P().id; if (PARTS.length > 3) $("#sheet").dataset.pad = "1";
+  $("#keyhint").textContent = PARTS.length > 3 ? `1–${PARTS.length} part \u00a0 ${P().pad ? "Enter replay \u00a0 N next run \u00a0 Esc finish" : "← → step \u00a0 R replay"} \u00a0 T theme` : "1–3 part \u00a0 ← → step \u00a0 R replay \u00a0 T theme";
+  $("#unit").textContent = P().pad ? "Part" : home ? "The map" : P().unit;
+  $("#itemno").textContent = P().pad ? "1" : home ? "–" : cur + (P().home ? 0 : 1);
+  $("#ofn").textContent = P().pad ? "" : `of ${pages.length - (P().home ? 1 : 0)}`;
   [...timing.children].forEach((b, j) => { b.setAttribute("aria-current", j === cur ? "step" : "false"); b.classList.toggle("done", j < cur); });
   if (pages[cur]) pages[cur].run();
   if (P().id === "found" && LINKS[cur]) {
     const L = LINKS[cur], x = $("#xlinks");
-    if (L.test != null && PARTS[1].pages[L.test]) H("button", { type: "button", class: "xlink" }, x, "Run this test →").addEventListener("click", () => go("bench", L.test));
-    if (PARTS[0].pages[L.step]) H("button", { type: "button", class: "xlink" }, x, "How we did this →").addEventListener("click", () => go("map", L.step));
+    if (L.test != null && partById("bench").pages[L.test]) H("button", { type: "button", class: "xlink" }, x, "Run this test →").addEventListener("click", () => go("bench", L.test));
+    if (partById("map").pages[L.step]) H("button", { type: "button", class: "xlink" }, x, "How we did this →").addEventListener("click", () => go("map", L.step));
   }
   INSTANT = false;
 }
@@ -79,7 +84,7 @@ document.addEventListener("keydown", (e) => {
   if (/INPUT|TEXTAREA|SELECT/.test(tag) || e.metaKey || e.ctrlKey || e.altKey) return;
   if (P().onKey && P().onKey(e)) { e.preventDefault(); return; }
   const k = e.key;
-  if (!e.shiftKey && /^Digit[1-3]$/.test(e.code)) { e.preventDefault(); go(PARTS[+e.code.slice(5) - 1].id); }
+  if (!e.shiftKey && /^Digit[1-9]$/.test(e.code) && PARTS[+e.code.slice(5) - 1]) { e.preventDefault(); go(PARTS[+e.code.slice(5) - 1].id); }
   else if (k === "ArrowRight" || k === "PageDown") { e.preventDefault(); show(cur + 1); }
   else if (k === "ArrowLeft" || k === "PageUp") { e.preventDefault(); show(cur - 1); }
   else if (k === "Escape" && P().home && cur !== 0) { e.preventDefault(); show(0); }
@@ -91,5 +96,5 @@ window.addEventListener("hashchange", () => { const id = location.hash.slice(1);
 buildTabs();
 {
   const id = location.hash.slice(1);
-  go(PARTS.some((p) => p.id === id) ? id : "map");
+  go(PARTS.some((p) => p.id === id) ? id : PARTS[0].pad ? "pad" : "map");
 }

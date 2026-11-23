@@ -8,7 +8,8 @@
   python tools/demo_template/build.py --out X --local-out Y
 
 Three parts on one sheet: how we did it (map.js, METHOD), run it (bench.js, RUNS in the local build), what we found
-(sheets.js, the template's ten items). DATA is compact.template_data(): the frozen summaries mapped to the template's
+(sheets.js, the template's ten items). The local build adds the scratch pad as part 1 and its default screen (pad.js,
+padreview.js; PAD from results/demo/pad/, tools/demo_template/pad.py; its counts as DATA.pad, pad.counts()). DATA is compact.template_data(): the frozen summaries mapped to the template's
 keys (tests/test_demo_template.py checks it reproduces data.json). METHOD is method.json (method.py; every fact with its
 source). The fonts are embedded from fonts/*.woff2 (Latin subsets; SIL Open Font License, see fonts/README.md).
 """
@@ -26,8 +27,10 @@ OUT = ROOT / "docs" / "demo" / "index.html"
 LOCAL_OUT = CODE / "results" / "demo" / "demo.html"
 RUNS = CODE / "results" / "demo" / "bench_runs.json"
 METHOD_LOCAL = CODE / "results" / "demo" / "method_local.json"
-CSS = ["style.css", "map.css", "bench.css"]
-JS = ["marks.js", "sheets.js", "map.js", "bench.js", "shell.js"]
+PAD_DIR = CODE / "results" / "demo" / "pad"
+CSS = ["style.css", "map.css", "bench.css", "pad.css", "padreview.css"]
+JS = ["marks.js", "sheets.js", "map.js", "bench.js", "padreview.js", "pad.js", "shell.js"]
+PAD_FILES = {"pad.css", "padreview.css", "padreview.js", "pad.js"}
 FONTS = [("Archivo", "Archivo.woff2", "100 900", "62% 125%"), ("Archivo Narrow", "ArchivoNarrow.woff2", "400 700", None),
          ("Nanum Pen Script", "NanumPenScript.woff2", "400", None)]
 WEB = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
@@ -51,14 +54,32 @@ def font_css():
     return "\n".join(out)
 
 
-def page(data, method, runs=None, web_fonts=False):
-    css = "\n".join((HERE / f).read_text() for f in CSS if (HERE / f).exists())
-    js = "\n".join((HERE / f).read_text() for f in JS if (HERE / f).exists())
+def pad_payload(pad_dir=PAD_DIR):
+    """The scratch pad (local build only): its index (every question of the four datasets) and the drawn questions'
+    files embedded, so a page opened by double-click works without the server (tools/demo_template/serve.py)."""
+    ip = Path(pad_dir) / "index.json"
+    if not ip.exists():
+        return None
+    index = json.loads(ip.read_text())
+    embed = {}
+    for d in index["datasets"]:
+        drawn = set(d["drawn"])
+        for q in d["questions"]:
+            if q["id"] in drawn:
+                embed[q["file"]] = json.loads((Path(pad_dir) / q["file"]).read_text())
+    return {"index": index, "embed": embed}
+
+
+def page(data, method, runs=None, web_fonts=False, pad=None):
+    padf = set() if pad else PAD_FILES                 # the tracked page: no pad, so none of its code
+    css = "\n".join((HERE / f).read_text() for f in CSS if (HERE / f).exists() and f not in padf)
+    js = "\n".join((HERE / f).read_text() for f in JS if (HERE / f).exists() and f not in padf)
     body = (HERE / "body.html").read_text()
     fonts = WEB if web_fonts else ""
     if not web_fonts:
         css = font_css() + "\n" + css
-    consts = f"const DATA = {js_json(data)};\nconst METHOD = {js_json(method)};\nconst RUNS = {js_json(runs) if runs else 'null'};\n"
+    consts = (f"const DATA = {js_json(data)};\nconst METHOD = {js_json(method)};\nconst RUNS = {js_json(runs) if runs else 'null'};\n"
+              f"const PAD = {js_json(pad) if pad else 'null'};\n")
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -97,9 +118,13 @@ def build(out=OUT, local_out=LOCAL_OUT, runs_path=RUNS, web_fonts=False):
     if METHOD_LOCAL.exists():
         runs = dict(runs or {}, method_local=json.loads(METHOD_LOCAL.read_text()))
     if runs:
+        pad = pad_payload()
+        if pad:
+            import pad as padmod
+            data = dict(data, pad=padmod.counts())
         lo = Path(local_out)
         lo.parent.mkdir(parents=True, exist_ok=True)
-        lo.write_text(page(data, method, runs, web_fonts))
+        lo.write_text(page(data, method, runs, web_fonts, pad))
         written.append(lo)
     return written
 

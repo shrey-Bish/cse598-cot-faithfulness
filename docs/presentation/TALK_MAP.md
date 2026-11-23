@@ -80,9 +80,16 @@ bench are drawn by a stored seed (`draw.json`): the first question of each test 
 gives the next. If a run's text says "outcome only: this run's text is on Sol", the Sol copy is missing from this
 build; the frozen panel and the red marks still work, so go on.
 
+**The scratch pad (Nov 23).** The local build now opens on the scratch pad, part 1 (key **1**); the map, the bench and
+the sheets moved to keys **2**, **3** and **4**, and the keys below say so. Press **2** before slide 0. The pad shows
+one recorded run of a question streaming its private reasoning with the hint's mentions highlighted, and splits to
+compare a fix with no fix on the same question and hint; it can stand in for any bench moment on the 30 or the 120
+(slide 9) or the review team (slide 11). Its full runs load from `python3 cot-disclosure/tools/demo_template/serve.py`;
+opened by double-click it has the drawn questions only.
+
 **Keys.**
-- Anywhere: **1** the map, **2** the test bench, **3** the result sheets; **← →** step; **Esc** returns the map home;
-  **R** replays the page; **T** switches the theme.
+- Anywhere: **1** the scratch pad, **2** the map, **3** the test bench, **4** the result sheets; **← →** step;
+  **Esc** returns the map home; **R** replays the page; **T** switches the theme.
 - On the bench: **Shift+1 to Shift+6** choose a test; **Enter** runs; **N** the next question; **M** run 20 more; **C**
   compare; **P** the prompt; **L** a hand-labelled answer (test 4 only); **Esc** skips a run or closes a pane.
 - The tests: 1 Tool vs person, 2 Authority, 3 Thinking on and off, 4 The fixes, 5 Review teams, 6 Inside the model.
@@ -100,63 +107,63 @@ the overview and sheet 8 are being reworded.
 
 **The moments, in the table's order** (the time is the row's):
 
-- **Slide 0, title (0:20): live page.** Press **1**: the map home. Say the question and the team; point at the six
+- **Slide 0, title (0:20): live page.** Press **2**: the map home. Say the question and the team; point at the six
   stops and the three pencil brackets (models and sources, inside the model and the fixes, downstream review). If it
   fails: slide 0.
-- **Slide 1, where did that answer come from (1:00): live page.** Stay in part 1. **→** to step 2, the hint: point at
+- **Slide 1, where did that answer come from (1:00): live page.** Stay on the map. **→** to step 2, the hint: point at
   the switch of source and the exact prompt, "only who says it changes". Then **Esc** to the map home and point at the
   three places to look (inside the model, what it wrote, the review team): these are the three levels. If it fails:
   slide 1 (`three_levels.png`).
-- **Slide 2, tools pull harder than users (0:50): live run.** Press **2**, then **Shift+1** (Tool vs person). Pick
+- **Slide 2, tools pull harder than users (0:50): live run.** Press **3**, then **Shift+1** (Tool vs person). Pick
   Qwen3 30B Instruct (the default) with the tool call as the hint, **Enter**: point at the tool slip, then at the red
   mark on the hint's letter in the final answer. Press **C** to compare with the user's hint on the same
-  question, then point at the two frozen counts: the same wrong letter, a lower pull from the user. If it fails: **3**, then **→** once to
+  question, then point at the two frozen counts: the same wrong letter, a lower pull from the user. If it fails: **4**, then **→** once to
   sheet 2 (the same comparison, no run); if that fails too, slide 2 (`gate2.png`).
-- **Slide 3, Level 1: three layers read the tool's letter (0:50): live run.** **2**, **Shift+6** (Inside the model),
+- **Slide 3, Level 1: three layers read the tool's letter (0:50): live run.** **3**, **Shift+6** (Inside the model),
   **Enter**: for the drawn question, point at the layers lighting up one at a time and the total, then at the frozen
-  panel's share for layers 15, 19 and 23 on the 16 new questions. If it fails: **3** and **→** to sheet 6 (the three
+  panel's share for layers 15, 19 and 23 on the 16 new questions. If it fails: **4** and **→** to sheet 6 (the three
   layers and their total, no run); then slide 3 (`readout_by_layer_slide.png`).
 - **Slide 4, Level 1 on a second model (0:30): live page.** On sheet 6, point at the note beside the total: Qwen3 8B
-  has its own three layers, less concentrated. Or press **1** and open step 6 and choose its Qwen3 8B view. No run.
+  has its own three layers, less concentrated. Or press **2** and open step 6 and choose its Qwen3 8B view. No run.
   If it fails: slide 4 (`readout_qwen8b.png`).
-- **Slide 5, the reasoning names it, the answer doesn't (1:00): live run.** **2**, **Shift+3** (Thinking on and off),
+- **Slide 5, the reasoning names it, the answer doesn't (1:00): live run.** **3**, **Shift+3** (Thinking on and off),
   Qwen3 8B with thinking on, **Enter**: point at the scratch work naming the lookup tool, then at the final answer
   that doesn't, then the two marks. Point at the frozen panel's "named the tool in the scratch work" and "in the final
-  answer" lines. Say once that these are keyword counts. If it fails: **3**, **→** three times to sheet 4 (the quiet
+  answer" lines. Say once that these are keyword counts. If it fails: **4**, **→** three times to sheet 4 (the quiet
   answer); then slide 5 (`private_vs_final.png`).
-- **Slide 6, after a tool call the answer goes bare (1:00): live run.** **2**, **Shift+1**, Qwen3 30B Thinking with
+- **Slide 6, after a tool call the answer goes bare (1:00): live run.** **3**, **Shift+1**, Qwen3 30B Thinking with
   the tool call: **Enter**, point at the final answer, a bare letter. **N** for a second question: the same.
-  Optionally **P** to show the exact prompt, and **Esc** to close it. If it fails: sheet 4 (key **3**, **→**
+  Optionally **P** to show the exact prompt, and **Esc** to close it. If it fails: sheet 4 (key **4**, **→**
   three times); then slide 6 (`bare_after_call.png`).
-- **Slide 7, tool or authority (0:50): live run.** **2**, **Shift+2** (Authority), Qwen3 30B Instruct, the claim
+- **Slide 7, tool or authority (0:50): live run.** **3**, **Shift+2** (Authority), Qwen3 30B Instruct, the claim
   "the official manual", **Enter**; then **C** to compare with the plain user's guess. Point at the sticky note's
   wording: only the source changes. Then pick the pasted block and the tool call in the same row and point at the
-  frozen counts rising along the ladder. If it fails: sheet 3 (key **3**, **→** twice); then slide 7
+  frozen counts rising along the ladder. If it fails: sheet 3 (key **4**, **→** twice); then slide 7
   (`authority_ladder.png`).
-- **Slide 8, does more thinking help (0:50): live run.** **2**, **Shift+3**: gpt-oss 20B, effort low, **Enter**, then
+- **Slide 8, does more thinking help (0:50): live run.** **3**, **Shift+3**: gpt-oss 20B, effort low, **Enter**, then
   **C** (effort high): point at the frozen following counts, which barely move. Then Qwen3 8B, **C** between thinking
-  off and on: the call count jumps. Say "mixed". If it fails: sheet 5 (key **3**, **→** four times); then slide 8
+  off and on: the call count jumps. Say "mixed". If it fails: sheet 5 (key **4**, **→** four times); then slide 8
   (`b17_effort.png`).
-- **Slide 9, the fix: none beats one line (1:10): live run.** **2**, **Shift+4** (The fixes). Choose Fine-tuned (or
+- **Slide 9, the fix: none beats one line (1:10): live run.** **3**, **Shift+4** (The fixes). Choose Fine-tuned (or
   Consistency), the hint "tool turn, wrong", **Enter**; **C** to compare with the instruction; point at the frozen
   count of wrong hints followed. Then change the hint to "tool turn, right" and **Enter** again: point at what the fix
-  now refuses. **M** for twenty more if there is time. If it fails: sheet 8 (key **3**, **→** seven times; being
+  now refuses. **M** for twenty more if there is time. If it fails: sheet 8 (key **4**, **→** seven times; being
   reworded, so point at the dots, not at positions); then slide 9 (`gate3_vs_base_slide.png`, `a40_e2_fixes.png`).
   Keep **L** (a hand-labelled answer, test 4) for Q&A about candour (sheet 9), not for the talk.
-- **Slide 10, inside the fixed model (1:00): live page.** **1**, click step 8 (Training, inside): point at the two
+- **Slide 10, inside the fixed model (1:00): live page.** **2**, click step 8 (Training, inside): point at the two
   groups of layers swapped into the original, the reasoning for fine-tuning and the layers before the readout for
   consistency training. Then **→** to step 9 and turn the dial on the tool's turn: fewer wrong hints, at a cost to
   correct ones. If it fails: slide 10 (`readout_lora_vs_base.png`, `b1r2_vs_b1.png`).
-- **Slide 11, reviewers defer to the trace (1:00): live run.** **2**, **Shift+5** (Review teams), the reviewer Olmo
+- **Slide 11, reviewers defer to the trace (1:00): live run.** **3**, **Shift+5** (Review teams), the reviewer Olmo
   3.1 32B Instruct. Set "It sees" to the answer only and **Enter** (the solver is replayed, then the reviewer:
   "corrected it"); then set it to the tool log and **Enter** again ("let it through"). Point at the red words and the
-  frozen count. Then pick Qwen3 30B Instruct and point at its frozen count: it holds. If it fails: sheet 7 (key **3**, **→** six times); then slide 11 (`trackC_reviewers_slide.png`,
+  frozen count. Then pick Qwen3 30B Instruct and point at its frozen count: it holds. If it fails: sheet 7 (key **4**, **→** six times); then slide 11 (`trackC_reviewers_slide.png`,
   `reviewer_by_prompt_slide.png`).
 - **Slide 12, across agents and what holds (0:50): live page.** Stay on test 5, choose "checker on" and **Enter**: point at the checker's
   "Flagged" stamp, then at the frozen count of wrong tool answers stopped. The handoff note and the unverified tag have no page in the demo: say them
   from the slide's numbers, or, if that is too much to hold in the head, switch to slide 12 (`c25_hops.png`,
   `pipeline_vs_model.png`) for this moment only and come back. If it fails: sheet 7's checker panel, then slide 12.
-- **Slide 13, limits and next steps (0:50): live page.** **3**, then click the last mark in the strip of timing marks
+- **Slide 13, limits and next steps (0:50): live page.** **4**, then click the last mark in the strip of timing marks
   (sheet 10, what we learned). Read the limits and the next steps from the two lists above. If it fails: slide 13.
 
 **If the whole demo fails** (blank page, wrong file): keep talking from slide 1 on, in the same order and with the same
