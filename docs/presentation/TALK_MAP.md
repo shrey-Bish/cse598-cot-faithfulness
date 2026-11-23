@@ -16,8 +16,15 @@ Reading aloud: a point's number is for the speaker to know, not for the slide to
 (F-numbers), [`FINDINGS_B.md`](../trackB/FINDINGS_B.md) (FB1), [`FINDINGS_C.md`](../trackC/FINDINGS_C.md) (FC1–FC4);
 the Gate 3 draft in the plan; REPORT §10 for the limits. Results are frozen (tag `results-freeze-2026-11-18`): every
 number here is as FINDINGS reads it. Figures are in [`docs/paper/figures/`](../paper/figures/). Scenes are the
-[Hint Explainer's](../demo/index.html) seven tour scenes (`tools/explainer/tour.json`): 1 User's guess, 2 Tool's answer,
+[Hint Explainer's](../demo/explainer.html) seven tour scenes (`tools/explainer/tour.json`): 1 User's guess, 2 Tool's answer,
 3 Authority, 4 Inside the model, 5 The quiet answer, 6 Review team, 7 Fixes.
+
+**The demo (Nov 22).** [`docs/demo/index.html`](../demo/index.html), an answer sheet in three parts, driven by the
+presenter (no autoplay): key 1 the project map (← → through its 11 steps), key 2 the test bench (Shift+1–6 a test; the
+local build `cot-disclosure/results/demo/demo.html` replays recorded runs: Enter, N, M, C, P), key 3 the ten result
+sheets (← →), each with "Run this test" and "How we did this". The scene column above still names the Hint Explainer's
+scenes; the matching result sheets: user's guess and tool's answer, item 2; authority, 3; the quiet answer, 4;
+thinking, 5; inside the model, 6; review team, 7; fixes, 8 and 9.
 
 | # | Slide title | The point | Figure(s) | Explainer scene | Time | Owner | Speaker | Evidence (footer) |
 |---|---|---|---|---|---|---|---|---|

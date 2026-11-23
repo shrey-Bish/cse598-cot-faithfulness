@@ -20,7 +20,9 @@
   The fix belongs at the system level: provenance labels alone don't help (F44, FC3); independent verification does
   (Track C's checker, F24). FINDINGS' story item 7 is the scorecard.
 
-- **For the presentation (Nov 13–14):** the demo is now the **Hint Explainer**, [`docs/demo/index.html`](../demo/index.html)
+- **For the presentation (Nov 22):** the demo is now **an answer sheet in three parts** (how we did it, run it, what we
+  found), [`docs/demo/index.html`](../demo/index.html); the local build replays recorded runs. Earlier (Nov 13–14) the
+  **Hint Explainer**, now [`docs/demo/explainer.html`](../demo/explainer.html)
   (opens offline; "Play the story" plays the 7-scene tour by itself, about 2 minutes: space pauses, → steps, ← back, 1–7
   jump, Esc closes a chart, then the tour; presentation fixes after the freeze, Nov 18, no number changed;
   `t` theme, `i` the IDs); everything in plain names, the IDs in [`docs/GLOSSARY.md`](../GLOSSARY.md); the slide
@@ -43,7 +45,7 @@
 | item | state | on whom, by when |
 |---|---|---|
 | Gate 3's final statement | drafted Nov 13 in PLAN; waits on Ritik's approval | Ritik, Nov 20 |
-| The demo (`docs/demo/index.html`), the Hint Explainer | built and checked Nov 14 | rebuilt at the freeze (CHECKIN §10) |
+| The demo (`docs/demo/index.html`), the answer sheet | built Nov 22 (after the freeze; its DATA the tag's) | the Sol copy adds the runs' text (`tools/demo_template/sol.py`) |
 | Slide 2 (B20's rows) and B18's table | done: merged and redrawn Nov 18 | — |
 | Slide 5 (F3) | figure made Nov 13 (`private_vs_final.png`) | Ritik and Shrey place it, Nov 18 |
 | Slide 7 (B24's arms) | Arsha's `authority_ladder.png`, placed Nov 18 | Arsha, final Nov 20 |

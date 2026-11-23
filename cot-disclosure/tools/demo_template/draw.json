@@ -1,0 +1,92 @@
+{
+ "seed": "cse598-demo-bench-2026-11-22",
+ "how": "random.Random(seed + ':' + set).sample(sorted ids, k); never by outcome",
+ "sets": {
+  "test54": {
+   "what": "the 54 test questions",
+   "source": "cot-disclosure/results/trackB/steered_cases.jsonl",
+   "size": 54,
+   "k": 3,
+   "drawn": [
+    "mmlupro-1015",
+    "pilot-13",
+    "pilot-2"
+   ]
+  },
+  "fresh120": {
+   "what": "the 120 fresh questions",
+   "source": "cot-disclosure/data/progress/mmlupro_e2.jsonl",
+   "size": 120,
+   "k": 3,
+   "drawn": [
+    "mmlupro-12067",
+    "mmlupro-3881",
+    "mmlupro-4588"
+   ]
+  },
+  "held30": {
+   "what": "the 30 held-out questions",
+   "source": "cot-disclosure/data/progress/mmlupro_30.jsonl",
+   "size": 30,
+   "k": 2,
+   "drawn": [
+    "mmlupro-12100",
+    "mmlupro-1308"
+   ]
+  },
+  "c4_bad": {
+   "what": "review teams: the wrong tool answers the reviewers graded",
+   "source": "cot-disclosure/results/trackC/team_c4.jsonl",
+   "size": 73,
+   "k": 3,
+   "drawn": [
+    "pilot-21|tool|2",
+    "pilot-5|tool|0",
+    "pilot-5|tool|2"
+   ]
+  },
+  "c15": {
+   "what": "the checker's 100 fresh items",
+   "source": "cot-disclosure/results/trackC/c15_items.jsonl",
+   "size": 100,
+   "k": 2,
+   "drawn": [
+    "mmlupro-10902",
+    "mmlupro-6380"
+   ]
+  },
+  "patch16": {
+   "what": "the 16 new questions (patching)",
+   "source": "cot-disclosure/results/trackA/setA/step10_patching.json",
+   "size": 16,
+   "k": 3,
+   "drawn": [
+    "mmlupro-3473",
+    "mmlupro-4675",
+    "puzzle-2026h-112"
+   ]
+  }
+ },
+ "tests": {
+  "1": [
+   "test54"
+  ],
+  "2": [
+   "test54"
+  ],
+  "3": [
+   "test54"
+  ],
+  "4": [
+   "fresh120",
+   "held30"
+  ],
+  "5": [
+   "c4_bad",
+   "c15"
+  ],
+  "6": [
+   "patch16"
+  ]
+ }
+}

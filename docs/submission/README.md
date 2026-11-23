@@ -36,7 +36,7 @@ matched on Nov 19, 10:22). Stdlib only; tests in `cot-disclosure/tests/test_make
 | the slide shell | [`docs/presentation/deck.pptx`](../presentation/deck.pptx), built by `tools/make_deck.py` from [`TALK_MAP.md`](../presentation/TALK_MAP.md): a title slide, one slide a map entry (its figure and a short plain title), "Limits and next steps"; no paragraphs, no notes | ready | — | done Nov 19 |
 | **the slides** | `docs/submission/slides.pptx` or `slides.pdf`: the shell with our words; format and time limit (about 12 minutes planned): confirm | **to write by us** | each slide's owner (PLAN's map); Ritik assembles | rehearsal Nov 23; presented Nov 24 |
 | the presentation kit | [`TALK_MAP.md`](../presentation/TALK_MAP.md) (slide by slide: the point, the figure, the explainer scene, the time; the speaker column blank) and [`QA_FACTS.md`](../presentation/QA_FACTS.md) (likely questions and the facts to point to) | ready | — | done Nov 19 |
-| the explainer | [`docs/demo/index.html`](../demo/index.html), the Hint Explainer: one file, opens offline in any browser; rebuilt at the freeze, presentation fixes Nov 18 (its DATA the tag's) | ready | — | done Nov 18 |
+| the demo | [`docs/demo/index.html`](../demo/index.html), the answer sheet in three parts (how we did it, run it, what we found): one file, opens offline; its DATA the tag's (Nov 22). The earlier Hint Explainer: [`docs/demo/explainer.html`](../demo/explainer.html) | ready | — | done Nov 22 |
 | the code link | https://github.com/shrey-Bish/cse598-cot-faithfulness, the tag `results-freeze-2026-11-18` (`7e1fdc0`); the tool writes it into `CODE_LINK.txt`; the graders' access: confirm | ready | — | the tag Nov 18 |
 | the bundles' sha256s | [`BUNDLES.sha256`](BUNDLES.sha256): Track A 1,704.3 MB, Track B 60.1 MB, Track C 5.1 MB (built and verified Nov 18; the [freeze log](../../archive/sessions/2026-11-18/2026-11-18_2044_ALL_freeze.md)); the bundles stay local | ready | — | done Nov 18 |
 | **the contribution statement** | [`CONTRIBUTIONS.md`](CONTRIBUTIONS.md): the placeholder "Contributions: to be completed before submission"; the facts in PLAN's "Who runs what" and each track's TODO; form: confirm | **to write by us** | Ritik | before submission |
@@ -65,7 +65,7 @@ docs/submission/
   report.<pdf|docx>       the final report
   slides.<pptx|pdf>       the deck, from docs/presentation/deck.pptx
 docs/presentation/        the slide shell, TALK_MAP.md, QA_FACTS.md
-docs/demo/index.html      the Hint Explainer (linked, and copied into the zip)
+docs/demo/index.html      the demo (linked, and copied into the zip)
 ```
 
 A file over 50 MB doesn't go in git (the pre-push check refuses it): it goes where the course page says, and this

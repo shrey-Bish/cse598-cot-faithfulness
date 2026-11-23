@@ -5,7 +5,7 @@ with their codes), the limits that apply, and where to look. **No scripted answe
 Results are frozen (tag `results-freeze-2026-11-18`); every number is as [`FINDINGS.md`](../FINDINGS.md) (F),
 [`FINDINGS_B.md`](../trackB/FINDINGS_B.md) (FB1) and [`FINDINGS_C.md`](../trackC/FINDINGS_C.md) (FC1–FC4) read it, or
 as the Gate 3 draft in [`PLAN.md`](../PLAN.md). Figures are in [`docs/paper/figures/`](../paper/figures/); "scene" is a
-tour scene of the [Hint Explainer](../demo/index.html) (`docs/demo/index.html`). Slide numbers are
+tour scene of the [Hint Explainer](../demo/explainer.html) (`docs/demo/explainer.html`). Slide numbers are
 [`TALK_MAP.md`](TALK_MAP.md)'s. Related questions come from [`REVIEWER_QUESTIONS.md`](../paper/REVIEWER_QUESTIONS.md).
 
 ## 1. Why not just add the one-line instruction?

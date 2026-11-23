@@ -26,9 +26,9 @@ for in [`docs/FINDINGS.md`](docs/FINDINGS.md) and the [glossary](docs/GLOSSARY.m
    answer alone and 6 of 73 with the solver's private reasoning beside it (C4, F18), in one model family of the four tried (F22); a checker that never sees the
    tool stopped all 53 wrong tool answers on fresh items (C15, F24).
 
-**See it.** Open [`docs/demo/index.html`](docs/demo/index.html), the Hint Explainer, in any browser (it works offline:
-download the file and double-click it). Press "Play the story" for the 7-scene tour (about 15 s a scene; space
-pauses, → steps).
+**See it.** Open [`docs/demo/index.html`](docs/demo/index.html), the demo, in any browser (it works offline: download
+the file and double-click it). It is one answer sheet in three parts: how we did it, run it, what we found (keys 1–3;
+← → step). The earlier Hint Explainer is [`docs/demo/explainer.html`](docs/demo/explainer.html).
 
 **Where things are.**
 - **The report's material:** [`docs/paper/REPORT.md`](docs/paper/REPORT.md) (every section's bullets, numbers and
@@ -43,7 +43,7 @@ pauses, → steps).
   stays local, in three bundles whose sha256s are in
   [`docs/submission/BUNDLES.sha256`](docs/submission/BUNDLES.sha256).
 
-**New here?** Open the [Hint Explainer](docs/demo/index.html) first (details below), and keep the
+**New here?** Open the [demo](docs/demo/index.html) first (details below), and keep the
 [glossary](docs/GLOSSARY.md) beside you: the repo's logs and findings use short internal codes (A40, B1R2, F41), and the
 glossary turns each one into a plain name and back.
 
@@ -149,25 +149,27 @@ code appears in parentheses, it is what to search for there.
   output "unverified" has no effect alone (F44). Independent verification does: the independent checker in the review
   team, which re-solves without the tool, stopped all 53 wrong tool answers on fresh items (C15, F24).
 
-## The Hint Explainer (the demo)
+## The demo: an answer sheet in three parts
 
-**Open [`docs/demo/index.html`](docs/demo/index.html) in any browser.** It works offline: one file, no network. It is
-a guided tour of seven scenes that plays itself (about 15 seconds a scene), with an article below it.
-An IDs toggle shows the internal codes next to the plain names.
+**Open [`docs/demo/index.html`](docs/demo/index.html) in any browser.** It works offline: one file, its fonts embedded,
+no network. The whole screen is one exam answer sheet; everything on it is a mark (pencil fills a bubble per run, a red
+pen grades, a sticky note brings a user's hint, a stapled slip a tool's). Nothing plays by itself.
 
-- **Present:** "Play the story" starts the tour, which plays itself (about two minutes, a progress bar per scene).
-  Space pauses and resumes, → or Step goes on, ← goes back, 1–7 jump to a scene; Esc closes an open chart first, then
-  leaves the tour. Outside the tour: `r` runs, `t` switches light and dark, `i` shows the IDs, `?` lists the keys; click a
-  stage to open its real chart (Esc closes).
-- **What it shows:** a wrong hint traveling through one model, left to right, as one thread: the input, inside the
-  model (the readout layers), the private reasoning, the final answer, and an optional review team; the thread breaks
-  where the final answer drops the source. Solid is measured, dashed is drawn to explain, italic is illustrative
-  wording; a count from fewer than 5 runs says "too few runs to say". You pick the model, where the hint
-  comes from and, for Olmo 3 7B Think, a fix. Runs are simulated at our measured rates and say so; every number on
-  hover is "X of Y runs" with its 95% interval.
-- **Rebuild:** `cd cot-disclosure && ../.venv/bin/python tools/build_demo.py` (from the numbers-only summaries; it fails
-  if a number is missing). On a machine with the local runs it also writes a page with real excerpts,
-  `cot-disclosure/results/demo/index.html`, which never goes to GitHub.
+- **How we did it** (key 1): a map of the project, left to right as a run flows (questions, the hint, the models, inside
+  the model, what it wrote, how we checked; the fixes and the review team branching off). Click a step, or ← →, to open
+  its method with the real numbers and one thing to try; Esc goes back to the map.
+- **Run it** (key 2): the test bench, six tests (Shift+1–6). The tracked page shows each test's frozen result. The
+  local build, `cot-disclosure/results/demo/demo.html` (gitignored, never on GitHub), replays every recorded run of
+  questions drawn by a stored seed (`tools/demo_template/draw.json`), each with its file and line: Enter runs one, N the
+  next question, M draws 20 more runs of the condition, C compares two conditions, P shows the exact prompt.
+- **What we found** (key 3): the ten result sheets, stepped by hand (← →); each links to its test and its method.
+- **Rebuild:** `cd cot-disclosure && ../.venv/bin/python tools/demo_template/runs.py` (the local runs; optional), then
+  `../.venv/bin/python tools/demo_template/build.py` (both pages). Every number is the frozen one
+  (`tools/demo_template/compact.py`; `tests/test_demo_template.py`). The design guide is
+  [`TEMPLATE_GUIDE.md`](cot-disclosure/tools/demo_template/TEMPLATE_GUIDE.md); the brief is
+  [`docs/demo/DEMO_SPEC.md`](docs/demo/DEMO_SPEC.md).
+- **The Hint Explainer** (Nov 14), the earlier demo, is kept at [`docs/demo/explainer.html`](docs/demo/explainer.html)
+  (`tools/build_demo.py`).
 
 ## Read this first
 
@@ -176,7 +178,7 @@ An IDs toggle shows the internal codes next to the plain names.
 | Ritik (Track A, labels, the report) | [`docs/status/STATUS.md`](docs/status/STATUS.md), [`docs/status/TODO.md`](docs/status/TODO.md) | the newest daily in [`archive/sessions/`](archive/sessions/INDEX.md); [`docs/RUNBOOK.md`](docs/RUNBOOK.md) |
 | Shrey (Track C, from Oct 30) | [`docs/trackC/START_HERE.md`](docs/trackC/START_HERE.md) (its Quick start first) | [`docs/tracks/SOL_SETUP.md`](docs/tracks/SOL_SETUP.md), [`docs/labeling/RATER_GUIDE.md`](docs/labeling/RATER_GUIDE.md), the code map [`cot-disclosure/README.md`](cot-disclosure/README.md) |
 | Arsha (Track B, from Nov 6) | [`docs/trackB/START_HERE.md`](docs/trackB/START_HERE.md) (its Quick start first), then [`docs/tracks/TRACK_B.md`](docs/tracks/TRACK_B.md); B20 on her own Sol account from Nov 5: [`docs/trackB/SOL_ARSHA.md`](docs/trackB/SOL_ARSHA.md) | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) §18, the code map |
-| A grader | this page and the Hint Explainer (`docs/demo/index.html`), then FINDINGS' "story so far" | [`docs/paper/REPORT.md`](docs/paper/REPORT.md) (the report's skeleton), [`docs/PLAN.md`](docs/PLAN.md) (the calendar, the presentation map; the figures in `docs/paper/figures/`), [`docs/status/STATUS.md`](docs/status/STATUS.md) |
+| A grader | this page and the demo (`docs/demo/index.html`), then FINDINGS' "story so far" | [`docs/paper/REPORT.md`](docs/paper/REPORT.md) (the report's skeleton), [`docs/PLAN.md`](docs/PLAN.md) (the calendar, the presentation map; the figures in `docs/paper/figures/`), [`docs/status/STATUS.md`](docs/status/STATUS.md) |
 | A paper reviewer | [`docs/paper/CLAIMS.md`](docs/paper/CLAIMS.md) | [`docs/paper/supplement/EVIDENCE.md`](docs/paper/supplement/EVIDENCE.md) and [`PREREGISTRATIONS.md`](docs/paper/supplement/PREREGISTRATIONS.md) |
 
 ## The folders

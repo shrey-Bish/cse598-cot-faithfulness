@@ -13,7 +13,7 @@ try:
 except Exception:                                                        # noqa: BLE001
     sync_playwright = None
 
-PAGE = CODE.parent / "docs" / "demo" / "index.html"
+PAGE = CODE.parent / "docs" / "demo" / "explainer.html"   # moved from index.html on Nov 22
 
 
 @pytest.fixture(scope="module")

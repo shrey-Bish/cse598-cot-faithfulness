@@ -1,9 +1,10 @@
 """The Hint Explainer for the Nov 24 presentation (Nov 14): one self-contained HTML page, built from the tracked
 numbers-only summaries (results/summaries/) and FINDINGS' wording, that opens from file:// with no network request.
 
-  python tools/build_demo.py      # -> docs/demo/index.html (tracked: numbers, ids and paths only)
+  python tools/build_demo.py      # -> docs/demo/explainer.html (tracked: numbers, ids and paths only; moved from
+                                  #    index.html on Nov 22, when the answer-sheet demo took that path)
                                   #    and, when results/demo/examples.json exists (tools/demo_examples.py), also
-                                  #    results/demo/index.html (gitignored): the same page plus a "Show a real run" control
+                                  #    results/demo/explainer.html (gitignored): the same page plus a "Show a real run" control
 
 Two outputs, one ruling (Ritik's session, Nov 13): the build reads the local examples "if present" and no text field
 may reach the tracked page, so the examples go only into the local page.
@@ -34,9 +35,9 @@ sys.path.insert(0, str(CODE / "progress"))
 SUM = CODE / "results" / "summaries"
 SUM_REL = "results/summaries"
 FINDINGS = ROOT / "docs" / "FINDINGS.md"
-OUT = ROOT / "docs" / "demo" / "index.html"
+OUT = ROOT / "docs" / "demo" / "explainer.html"
 EXAMPLES = CODE / "results" / "demo" / "examples.json"
-LOCAL_OUT = CODE / "results" / "demo" / "index.html"
+LOCAL_OUT = CODE / "results" / "demo" / "explainer.html"
 PAGE = CODE / "tools" / "explainer"
 
 
