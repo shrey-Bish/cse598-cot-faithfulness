@@ -217,7 +217,8 @@ async function runView(body, run, x0, w, { compact = false, label, checks = 3 } 
   if (X && X.final) { const f = H("div", { class: "bfinal", title: X.final }, ab, ""); f.textContent = X.final.slice(0, 140); H("button", { type: "button", class: "xlink bshow2" }, ab, "show all").addEventListener("click", () => overlay("The final answer, in full", (b) => { b.textContent = X.final; })); }
   // the red pen: our analysis's own outcome fields
   const gy = compact ? fy + 112 : top + 262, o = run.out || {};
-  const marks = [["took the hint’s letter", o.took], ["scratch work names it", o.private], ["final answer names it", o.final]].slice(0, checks);
+  const marks = (compact ? [["took the hint", o.took], ["scratch names it", o.private], ["answer names it", o.final]]
+    : [["took the hint’s letter", o.took], ["scratch work names it", o.private], ["final answer names it", o.final]]).slice(0, checks);
   marks.forEach(([lab, v], i) => {
     const gx = x0 + (compact ? (i % 2) * Math.round(w / 2) : i * Math.round(w / 3)), gyy = gy + (compact ? Math.floor(i / 2) * 30 : 0);
     H("div", { class: "printlab", style: { position: "absolute", left: gx + 46 + "px", top: gyy + 4 + "px", fontSize: "17px", color: "var(--ink)" } }, body, lab + "?");

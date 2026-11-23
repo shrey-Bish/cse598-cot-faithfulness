@@ -1,109 +1,82 @@
-# Session log: the demo rebuilt, phase 2: the answer sheet in three parts (2026-11-22 16:44 MST)
+# Session log: the demo's Sol copy in: tests 3 and 4 replay, step 4's total, step 7's curves (2026-11-22 18:48 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `54d073a` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
-level). The day's first session (no session on Nov 21); the daily: [DAILY_2026-11-22](2026-11-22/DAILY_2026-11-22.md). The
-previous session: Nov 20, [10:13](2026-11-20/2026-11-20_1013_ALL_demo-inventory.md). The results are frozen: the
-tag `results-freeze-2026-11-18` on `7e1fdc0`. Presentation work after the freeze: no number, figure or verdict changes.
+**By:** Ritik. Branch `trackA-nosol`, from `69fff21` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
+level). Started Nov 22 at 18:48; stopped mid-screenshots that evening; finished Nov 23, 08:22–08:31 (the clock read
+each time). The daily: [DAILY_2026-11-22](2026-11-22/DAILY_2026-11-22.md). The previous session: [16:44](2026-11-22/2026-11-22_1644_ALL_demo-build.md).
+The results are frozen: the tag `results-freeze-2026-11-18` on `7e1fdc0`. Presentation work after the freeze.
 
 ## 0. Input
 
-A pasted prompt, acted on as Ritik's, with "added the demo template in demo folder": phase 2 of
-`docs/demo/DEMO_SPEC.md` with his decisions on `docs/demo/INVENTORY.md`.
-- **0.** The template in as `cot-disclosure/tools/demo_template/` (its guide first); `compact.py` mapping the frozen
-  DATA (s1..s6, x) to the template's keys, with a test that it reproduces `data.json` exactly.
-- **1. The Sol copy, targeted:** draw the questions now with a stored seed (bench tests 1, 3, 4); one read-only command
-  for Ritik (the stdin pattern; nothing written on Sol) fetching only the drawn runs (the fixes on the 120 and the 30;
-  Qwen3-8B on and off; gpt-oss; Nemotron), every `train_log.jsonl` and `chosen.json`, and a GPU-hour total from sacct
-  since Oct 1, saved under `results/demo/sol/`; then stop that part. Gemma and Granite: frozen numbers only.
-- **2. Build now:** the map's 11 steps (step 4's pieces now, the total later; step 7 per epoch now; step 11 without
-  "contamination audit"); the bench (tests 2, 5, 6 complete; test 1 with its three models; tests 3 and 4 reading
-  `results/demo/sol/` when present, otherwise outcome numbers, test 4 with L6's final answers); the template's ten
-  sheets; a new seeded curated-set builder, every run tracing to its file and line.
-- **3.** Two builds; screenshots of every map step, bench test (a run, a compare, after "Run 20 more") and sheet in
-  both themes; tests; push. At most 2 helpers.
+A pasted prompt, acted on as Ritik's, with his Terminal output: the Sol copy fetched from his Mac
+(`results/demo/sol/fetch.out`, 43 MB, Nov 22 18:38), unpacked and rebuilt. The training folders on Sol (his listing):
+`a40`, `lora`, `lora_attn3`, `lora_tags`, `tags` (and console logs). Asked: check the unpacked files are complete; wire
+the loss curves to those folders; confirm tests 3 and 4 replay recorded runs and step 4 shows the GPU-hour total; retake
+those screenshots; the demo's tests; push.
 
-## 1. What was done (16:44–17:26)
+## 1. What was done
 
-**The template.** It came as `docs/demo/demo_template.zip`, not in Downloads. Unzipped in the scratchpad, every file
-read (its `index.html` is byte for byte its `build.py`'s output); moved in as `cot-disclosure/tools/demo_template/`
-(the zip moved out of the repo). Its `app.js` split into `marks.js`, `sheets.js` and `shell.js` (concatenated, byte for
-byte the original) so three hands could work apart. `compact.py`: hint ← s1.gate2, dose ← s1.dose (its comparisons
-under `r`), newfam ← s1.r2, quiet ← s2, layers ← s3 (layers → effect), agents ← s4, fixes ← s5, floats to 4 places;
-reproduces `data.json` exactly.
+**The copy is complete** (`results/demo/sol/`, gitignored; checked against `plan.json`):
 
-**The draw** (`tools/demo_template/draw.py` → `draw.json`, tracked: ids and the seed `cse598-demo-bench-2026-11-22`;
-`random.Random(seed:set).sample(sorted ids, k)`, never by outcome):
+| group | planned | fetched | note |
+|---|---|---|---|
+| the fixes on the 120 | 252 run ids | 252 | one run on two lines (`c43d897ec5a49dd1`), kept once, as the Mac index does |
+| the fixes on the 30 | 492 | 492 | |
+| Qwen3-8B, thinking on and off | 90 | 90 | |
+| gpt-oss-20b | 135 | 135 | |
+| Nemotron 3 Nano | the 3 drawn questions | 108 | 36 a question |
+| training logs and `chosen.json` | every version | 5 and 5 | `a40`, `lora`, `lora_attn3`, `lora_tags`, `tags` |
+| sacct since Oct 1 | Ritik's account | 287 jobs | 271 used a GPU: 352.47 GPU-hours |
 
-| set | size | drawn |
-|---|---|---|
-| the 54 test questions (tests 1–3) | 54 | mmlupro-1015, pilot-13, pilot-2 |
-| the 120 fresh (test 4) | 120 | mmlupro-12067, mmlupro-3881, mmlupro-4588 |
-| the 30 held-out (test 4) | 30 | mmlupro-12100, mmlupro-1308 |
-| the wrong tool answers the reviewers graded (test 5) | 73 | pilot-21 (repeat 2), pilot-5 (repeats 0, 2) |
-| the checker's 100 fresh items (test 5) | 100 | mmlupro-10902, mmlupro-6380 |
-| the 16 new questions, patching (test 6) | 16 | mmlupro-3473, mmlupro-4675, puzzle-2026h-112 |
+No errors in the manifest; no file not in the index. **The logs agree with the frozen numbers:** `lora`'s epoch
+validation losses (0.18567, 0.18537) are `val_loss.json`'s; `a40` kept epoch 1 at 0.198727, as the A40 log reads.
 
-**The Sol copy** (`tools/demo_template/sol.py`): `plan` wrote `results/demo/sol/plan.json` and `fetch_remote.py`
-(stdlib only; reads and prints; paths printed as `<scratch>`, never the account name): the fixes on the 120 by 252 run
-ids and on the 30 by 492 (this Mac's indexes), Qwen3-8B 90, gpt-oss 135, Nemotron by its 3 drawn questions (no index
-here); `trackA/train/*/train_log.jsonl` and `chosen.json`; sacct since Oct 1 with GPU hours per job. `unpack` writes
-`runs_<group>.jsonl`, `train/<version>/`, `sacct.json` and a manifest. Tested on a fake tree in the scratchpad. **Not
-run:** it is Ritik's, from the ASU VPN (one Duo push); the command is in the handoff.
+**Wired:**
+- **Step 4** (`map.js`): "352 GPU-hours, 271 GPU jobs since Oct 1, on Ritik's account" (`method.py` adds `gpu_jobs`);
+  the three per-experiment pieces stay under it.
+- **Step 7:** training loss per optimizer step from the Sol logs, epoch 2's start marked, the kept epoch noted. The
+  fine-tuning view chooses among the four versions trained on its data (LoRA, + tags, 3 layers, tags only; each
+  button's tooltip names it in full); consistency training draws `a40`. `method.json` carries the five curves (222–260
+  points each, numbers only) and the total.
+- **Tests 3 and 4** replay recorded text: test 3 Qwen3-8B on and off, gpt-oss, Nemotron (333 runs); test 4 the fixes
+  (744). Test 1 gains the same three models (441 runs with text). Gemma and Granite stay frozen numbers only.
 
-**The page** (`tools/demo_template/build.py`): one offline file, its three fonts embedded (Latin woff2, OFL;
-`fonts/README.md`), no autoplay, three parts on one sheet with printed tabs (keys 1–3, `#map`, `#bench`, `#found`):
-- **How we did it** (helper 2): the map and its 11 steps, each with its method, the real numbers and one thing to try;
-  every method fact from `method.json` (`method.py`: each fact `{v, src, at, what}`, read from its source; 154 tests).
-  Step 4: the GPU pieces (34.3 h, 53.2 h, 2 h 44 min), the total waiting for sacct; step 7: per-epoch loss, the curves
-  waiting for the logs; step 11: the 120's exclusion checks and the held-out leak checks under those names. The
-  training pair's text only in the local build (`results/demo/method_local.json`).
-- **Run it** (mine, `bench.js`): six tests; the curated set `results/demo/bench_runs.json` (`runs.py`; 3.0 MB, texts
-  gzipped): text for test 1's three Voyager models (108 runs), test 2 (162), test 5 (77), test 6 (18, plus the
-  analysis's 12 per-question cut rows); outcome rows for Qwen3-8B and gpt-oss (225) and the fixes (744) until the copy;
-  84 L6 answers (key L); 87 seeded "20 more" samples. Enter, N, M, C, P, Esc, Shift+1–6.
-- **What we found** (helper 1): the template's four reference sheets and its six placeholders built (3, 5, 7, 8, 9,
-  10), stepped by hand; each links to its test and its method. Item 10's four counts from `method.json`.
-- **Builds:** `docs/demo/index.html` (tracked; 415 KB; the bench on frozen results with "Recorded runs appear in the
-  local build.") and `cot-disclosure/results/demo/demo.html` (gitignored; 3.5 MB).
-- The Hint Explainer moved to `docs/demo/explainer.html` (`tools/build_demo.py`'s output now; rebuilt byte for byte).
-  README (how to open each build), TALK_MAP (the demo's parts and the matching sheets), QA_FACTS's link, the
-  submission checklist, ONE_PAGE and PLAN updated.
+**Fixed on the way** (found in the screenshots and by the test):
+- Test 4's record line named the fix by its internal name: now its plain name (`runs.py` `FIX_NAME`).
+- Step 7's local build showed the training pair's seed name, an internal name: now "drawn by a stored seed", the seed in
+  the tooltip.
+- The test's check for internal names now also catches plain `lora`.
+- Step 4's total overlapped its label (box widened).
+- Step 7's "kept" note waited for every point's delay (capped).
+- In compare, "took the hint's letter?" ran into the next mark: shorter labels in the two-column view.
 
-**Rulings** (each a choice the brief left open):
-1. Keys 1–3 switch parts (the brief's navigation rule); the bench's tests are Shift+1–6, as plain 1–6 would clash.
-2. The curated set is `results/demo/bench_runs.json`: `examples.json` is the explainer's local file.
-3. Test 5 draws from the 73 cases the reviewers graded (wrong lookup and wrong solver); a first draw from all 75 wrong
-   lookups was replaced before any use. A reviewer "corrected" it when its letter is the right one, the rule of
-   `agents/c15.py` `corrects()` (the logs' `caught` counts the whole pipeline, checker included).
-4. Test 6 shows the analysis's per-question rows (`setA/step10_handoff.json` per_cut: drop and rise by layer), not a
-   restoration recomputed in the page.
-5. Compare mode names each column's hint in words (two marks overlapped the question).
+**Correction to the 16:44 log** (§1, the page): test 6 has **10** per-question cut rows, not 12. The 12 was the count
+before the switch to the analysis's `per_cut` rows, the same session; the page has had 10 since.
 
-**Review of the screenshots** (mine, after both helpers'): the bench's hint slip covered the question (text narrowed),
-the tool slip overflowed (call and reply parsed), ticks for "took the hint" read as praise (handwritten yes/no), the
-fixes' 705-run grid ran off the sheet (scaled grids), test 3's notes overlapped, compare's run lines ran into the
-footer; all fixed and reshot.
+**After the freeze (Nov 23, 08:31): presentation work only.** No number, figure or verdict changed. The new figures (the
+GPU total, the training curves) are records from Sol, shown as such; where they overlap a frozen number they agree.
 
-**After the freeze (Nov 22, 17:21): presentation work only.** No number, figure or verdict changed: the page's DATA is
-compact() of the frozen summaries (`compact.py`, reproduced exactly); every method fact traces to its source; the bench
-shows recorded runs, labelled, and the frozen totals.
+**Screenshots** (`cot-disclosure/results/demo/screens_sol/`, gitignored; 26 at 1920×1080, both themes, no console
+error):
+- the bench, tests 1, 3 and 4, each after a run, a compare and "Run 20 more";
+- step 4;
+- step 7 in three views: LoRA, 3 layers, consistency.
 
-**Screenshots** (`cot-disclosure/results/demo/screens_answer_sheet/`, gitignored; 72 at 1920×1080 with the embedded
-fonts, no console error): the map's 12 pages, the ten sheets, the bench's tests 1–4 each after a run, a compare and
-"Run 20 more", tests 5 and 6 after a run; each in both themes. Looked at: the bench's, all; the sheets and the map's,
-both helpers all of theirs and I on contact sheets (4 of the sheets, all 12 map pages).
+Looked at: tests 3 and 4 after a run; four bench states tiled; steps 4 and 7 cropped, all views.
 
 ## 2. Waiting for Ritik
 
-- **The Sol copy:** run the command in the handoff from the ASU VPN; then `../.venv/bin/python tools/demo_template/runs.py`,
-  `method.py` and `build.py` (tests 3 and 4 gain their text; step 4 its total; step 7 its curves). The training logs'
-  folders must be named `lora` and `a40` for step 7 (`method.py`).
-- Gemma and Granite stay frozen numbers only ("recorded runs not in this build").
-- Look at the page; the plain names of "No fix" and the six result-sheet defaults are ours.
+- Look at the page (`cot-disclosure/results/demo/demo.html`; the tracked `docs/demo/index.html` carries the total and
+  the curves, not run text).
+- As before: the four files and the final check; Gate 3's approval; the contributions; the AI-use lines and
+  `AI_USE.md`; the rehearsal today; the presentation and report Nov 24.
 
 ## 3. Checks and push
 
-The demo's tests (`test_demo_template.py`, `test_demo_method.py`), the full suite once; `tools/check_links.py`;
-`tools/make_supplement.py --check`; `tools/export_summaries.py --check`; STATUS and the Gantt; the pre-push check;
-nothing on `origin/main` missing here. **Results:** the full suite once, 1,394 passed, 6 failed, 1 skipped: the explainer's tour tests opened `docs/demo/index.html` (now the new page); pointed at `explainer.html`, all 6 pass (with the demo's 8, 14 passed). The demo's method tests 154 passed. 0 broken links; the supplement check passes; export numbers-only. The push: `git push origin trackA-nosol:main
-trackA-nosol:trackA-nosol`.
+- The demo's tests, the method tests, the explainer's tour, hygiene and links: **182 passed**. This includes the new
+  test that the Sol copy is complete and agrees with the frozen numbers. The internal-name check failed on the old
+  build and passed after the fixes.
+- `tools/check_links.py`: 0 broken links. `tools/make_supplement.py --check` and `tools/export_summaries.py --check`:
+  pass.
+- No account name, email or scratch path in the tracked files (grep).
+- STATUS and the Gantt regenerated; the pre-push check.
+- The push: `git push origin trackA-nosol:main trackA-nosol:trackA-nosol`.

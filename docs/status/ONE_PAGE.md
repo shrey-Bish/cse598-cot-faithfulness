@@ -45,7 +45,7 @@
 | item | state | on whom, by when |
 |---|---|---|
 | Gate 3's final statement | drafted Nov 13 in PLAN; waits on Ritik's approval | Ritik, Nov 20 |
-| The demo (`docs/demo/index.html`), the answer sheet | built Nov 22 (after the freeze; its DATA the tag's) | the Sol copy adds the runs' text (`tools/demo_template/sol.py`) |
+| The demo (`docs/demo/index.html`), the answer sheet | built Nov 22; the Sol copy in Nov 23 (tests 3 and 4 replay, step 4's GPU total, step 7's curves) | Ritik looks at it |
 | Slide 2 (B20's rows) and B18's table | done: merged and redrawn Nov 18 | — |
 | Slide 5 (F3) | figure made Nov 13 (`private_vs_final.png`) | Ritik and Shrey place it, Nov 18 |
 | Slide 7 (B24's arms) | Arsha's `authority_ladder.png`, placed Nov 18 | Arsha, final Nov 20 |

@@ -485,7 +485,7 @@ def running():
     sa = SOL / "sacct.json"
     if sa.exists():
         d = json.loads(sa.read_text())
-        out["gpu_total"] = F({"since": d["since"], "jobs": d["jobs"], "gpu_hours": d["gpu_hours"], "by_name": d.get("by_name", {})},
+        out["gpu_total"] = F({"since": d["since"], "jobs": d["jobs"], "gpu_jobs": d.get("gpu_jobs"), "gpu_hours": d["gpu_hours"], "by_name": d.get("by_name", {})},
                              sa, "json:(whole file)", "on Ritik's account only (Slurm sacct, read-only)")
     return out
 

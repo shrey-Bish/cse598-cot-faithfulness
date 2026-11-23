@@ -7,7 +7,7 @@ const MX = (typeof METHOD !== "undefined" && METHOD) || {};
 const mv = (f, d) => (f && f.v !== undefined ? f.v : d);
 const fmt = (n) => (typeof n === "number" ? n.toLocaleString("en-US") : String(n));
 const ML = typeof RUNS !== "undefined" && RUNS && RUNS.method_local;     // the local build's two real training pairs
-const MS = { page: -1, q: 0, hint: "user", hintMode: "wrong", model: 0, layer: 15, swapped: new Set(), view: "layer", fx: "lora", pair: 0, train: "lora",
+const MS = { page: -1, q: 0, hint: "user", hintMode: "wrong", model: 0, layer: 15, swapped: new Set(), view: "layer", fx: "lora", pair: 0, train: "lora", tv: "lora",
   dial: 1, rev: "plus_tool_log", boot: null, tl: null, sel: 0 };
 
 /* step names: the strip and the map's buttons */
@@ -257,7 +257,7 @@ function step4() {
   const pcs = R.gpu_pieces || [];
   const names = ["GPU-hours for the dial's first test", "GPU-hours planned for the 120's runs", "hours:minutes, consistency training"];
   const gt = R.gpu_total && R.gpu_total.v, py0 = gt ? 244 : 200;
-  if (gt) sbox(body, { x: 0, y: 156, w: 250, h: 76, n: fmt(Math.round(gt.gpu_hours)), label: `GPU-hours, ${fmt(gt.jobs)} jobs since ${gt.since}, on Ritik's account`, delay: 300 });
+  if (gt) sbox(body, { x: 0, y: 156, w: 470, h: 76, n: fmt(Math.round(gt.gpu_hours)), label: `GPU-hours, ${fmt(gt.gpu_jobs || gt.jobs)} GPU jobs since Oct 1, on Ritik's account`, delay: 300 });
   else plab(body, 0, 160, 470, "<b>GPU time</b>, by experiment: no project-wide total is on this machine.");
   pcs.forEach((p, k) => plab(body, 0, py0 + k * 26, 470, `<b style="font-size:20px;color:var(--ink)">${p.v}</b> ${names[k] || p.what}`, "plab", 17));
   // the timeline
@@ -381,10 +381,11 @@ function lossChart(parent, { x, y, w, h, pts, marks }) {
   const ys = pts.map((p) => p.y), lo = 0, hi = Math.max(...ys) * 1.08, xs = pts.map((p) => p.x), x0 = Math.min(...xs), x1 = Math.max(...xs);
   const px = (v) => 26 + ((v - x0) / (x1 - x0 || 1)) * (w - 80), py = (v) => 22 + (1 - (v - lo) / (hi - lo || 1)) * (h - 56);
   const P = pts.map((p) => [px(p.x), py(p.y)]);
+  (marks || []).forEach((m) => { H("div", { class: "mvline", style: { left: px(m.x) + "px", top: "8px", height: h - 20 + "px", opacity: .6 } }, g); if (m.label) H("div", { class: "plab", style: { left: px(m.x) + 4 + "px", top: "2px", fontSize: "13px" } }, g, m.label); });
   if (P.length > 1) penStroke(g, P.map((p) => [p[0].toFixed(1), p[1].toFixed(1)].map(Number)), { color: "--pencil", pencil: true, width: pts.length > 20 ? 1.6 : 1.4, delay: 200, dur: pts.length > 20 ? 1.2 : 0.5 });
   pts.forEach((p, i) => {
     if (pts.length <= 8) { S("svg", {}, g); const d = H("div", { style: { position: "absolute", left: P[i][0] - 5 + "px", top: P[i][1] - 5 + "px", width: "10px", height: "10px", borderRadius: "50%", background: "var(--pencil)", filter: "url(#pencil)" } }, g); }
-    if (p.label) writeText(g, { x: Math.min(P[i][0] - 30, w - 160), y: P[i][1] + 6, text: p.label, size: 26, delay: 500 + i * 200, dur: 0.4 });
+    if (p.label) writeText(g, { x: Math.min(P[i][0] - 30, w - 160), y: P[i][1] + 6, text: p.label, size: 26, delay: 500 + Math.min(i, 6) * 200, dur: 0.4 });
     if (p.ring) penLoop(g, { cx: P[i][0], cy: P[i][1], rx: 15, ry: 11, delay: 900, seed: 4 });
   });
   return g;
@@ -406,14 +407,24 @@ function step7() {
   // validation loss: the chosen epoch ringed; per-step curves replace the epoch points when the Sol logs are present
   const lp = isL ? [{ x: 0, y: mv(ll.base), label: `start ${mv(ll.base).toFixed(3)}` }, { x: 1, y: mv(ll.epoch1), label: `e1 ${mv(ll.epoch1).toFixed(3)}` }, { x: 2, y: mv(ll.epoch2), label: `e2 ${mv(ll.epoch2).toFixed(3)}` }]
     : [{ x: 1, y: mv(bc.epoch_loss && bc.epoch_loss.epoch1), label: `e1 ${mv(bc.epoch_loss.epoch1).toFixed(3)}`, ring: true }, { x: 2, y: mv(bc.epoch_loss && bc.epoch_loss.epoch2), label: `e2 ${mv(bc.epoch_loss.epoch2).toFixed(3)}` }];
-  const chosen = cu[isL ? "lora" : "a40"];
-  plab(body, 0, 384, 440, chosen ? "Training loss, step by step (from 0)" : (isL ? "Validation loss: start, e1, e2 (from 0)" : `Validation loss: e1, e2 (from 0); epoch ${mv(bc.chosen)}, the lower, kept`), "plab", 16);
-  if (chosen) lossChart(body, { x: 0, y: 404, w: 440, h: 78, pts: chosen.v.points.map((p) => ({ x: p[0], y: p[1] })) });
-  else lossChart(body, { x: 0, y: 404, w: 440, h: 78, pts: lp });
+  // the Sol training logs, one folder a version: LoRA's data trained four ways (lora, lora_tags, lora_attn3, tags), consistency training's (a40)
+  const LV = [["lora", "LoRA"], ["lora_tags", "+ tags"], ["lora_attn3", "3 layers"], ["tags", "tags only"]].filter(([k]) => cu[k]);
+  const tv = isL ? (cu[MS.tv] ? MS.tv : "lora") : "a40", chosen = cu[tv];
+  const LVT = { lora: "LoRA on every layer", lora_tags: "LoRA with source tags", lora_attn3: "LoRA on layers 15, 19 and 23 only", tags: "source tags only, the model frozen", a40: "consistency training" };
+  if (chosen && isL && LV.length > 1) {
+    plab(body, 0, 380, 120, "Loss per step:", "plab", 16);
+    LV.forEach(([k, l], j) => { const b = mbtn(body, { x: 112 + j * 82, y: 376, w: 78, text: l, fn: () => { MS.tv = k; show(cur, { instant: true }); } }); b.classList.add("msm"); if (k === tv) b.classList.add("on"); b.title = LVT[k]; });
+  } else plab(body, 0, 384, 440, chosen ? `Training loss, step by step (from 0): ${LVT[tv]}` : (isL ? "Validation loss: start, e1, e2 (from 0)" : `Validation loss: e1, e2 (from 0); epoch ${mv(bc.chosen)}, the lower, kept`), "plab", 16);
+  if (chosen) {
+    const cv = chosen.v, pts = cv.points.map((p) => ({ x: p[0], y: p[1] })), ch = cv.chosen;
+    if (ch) pts[pts.length - 1].label = `epoch ${ch.epoch} kept`;
+    lossChart(body, { x: 0, y: 404, w: 440, h: 78, pts, marks: (cv.epochs || []).slice(0, -1).map((e) => ({ x: e.step, label: `epoch ${e.epoch + 1}` })) });
+  } else lossChart(body, { x: 0, y: 404, w: 440, h: 78, pts: lp });
   // the pair
   const pr = ML && ML[isL ? "lora" : "bct"];
   const PX = 470, PW = 904;
-  H("div", { class: "illus", style: { position: "absolute", left: PX + "px", top: "0px" } }, body, pr ? `A real training example, drawn by seed ${pr.seed} (this build only).` : "A training example's structure.");
+  const ill = H("div", { class: "illus", style: { position: "absolute", left: PX + "px", top: "0px" } }, body, pr ? "A real training example, drawn by a stored seed (this build only)." : "A training example's structure.");
+  if (pr) ill.title = `seed ${pr.seed}`;
   const half = 438;
   const ip = H("div", { class: "ruledp", style: { left: PX + "px", top: "26px", width: half + "px", height: "372px" } }, body);
   H("div", { class: "lab" }, ip, "Input: what the model sees");

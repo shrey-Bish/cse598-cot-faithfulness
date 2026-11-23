@@ -192,6 +192,10 @@ def sol_trackb(group, items, test, flags):
 
 
 # ---------------------------------------------------------------- the fixes (test 4)
+# the fixes' plain names (bench.js FIXSHORT), for the record line; the 30's other trained versions too
+FIX_NAME = {"base": "no fix", "prompt_only": "instruction", "lora": "fine-tuned", "lora_note": "fine-tuned + instruction", "a40": "consistency",
+            "a40_note": "consistency + instruction", "wrap": "label", "wrap_note": "label + instruction", "lora_wrap": "fine-tuned + label",
+            "lora_tags": "fine-tuned + tags", "lora_attn3": "fine-tuned on 3 layers", "tags": "tags only"}
 FIX_SRC = {"user": "user", "tool_pasted": "pasted", "tool_injected": "call", "none": "none", "system_note": "system"}
 
 
@@ -224,7 +228,7 @@ def fixes_runs(items):
                     "src": FIX_SRC.get(r.get("channel"), r.get("channel")), "wording": r.get("wording"), "w": w, "rep": r.get("repeat"),
                     "L": r.get("parsed_letter"), "H": r.get("hint_letter"), "R": r.get("correct_letter"),
                     "out": {"took": took, "private": r.get("mention_reasoning"), "final": r.get("mention_final_broad", r.get("mention_final"))},
-                    "rec": f"Recorded run: Olmo 3 7B Think, {r.get('system')}, {date_of(r)}" + ("" if o else "; outcome only (its text is on Sol)"),
+                    "rec": f"Recorded run: Olmo 3 7B Think, {FIX_NAME.get(r.get('system'), 'another fix')}, {date_of(r)}" + ("" if o else "; outcome only (its text is on Sol)"),
                     "file": rel(p), "line": i, "text_file": ("Sol: " + o["src"]) if o else None, "text_line": o["line"] if o else None,
                     "x": text_of(o["record"]) if o else None})
     return out

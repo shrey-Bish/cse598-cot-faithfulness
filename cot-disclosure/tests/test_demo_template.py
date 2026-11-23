@@ -25,7 +25,7 @@ import draw as D  # noqa: E402
 import sol  # noqa: E402
 
 RUNS = CODE / "results" / "demo" / "bench_runs.json"
-CODES = re.compile(r"\b(A\d{2}|F\d{1,2}|FB\d|FC\d|B\d{1,2}(R2?)?|C\d{1,2}|E2|L[346]|Gate \d|Track [ABC]|J-(opus|qwen|olmo)|tool_(real|pasted|injected)|prompt_only|lora_\w+|a40\w*)\b")
+CODES = re.compile(r"\b(A\d{2}|F\d{1,2}|FB\d|FC\d|B\d{1,2}(R2?)?|C\d{1,2}|E2|L[346]|Gate \d|Track [ABC]|J-(opus|qwen|olmo)|tool_(real|pasted|injected)|prompt_only|lora(_\w+)?|a40\w*)\b")
 
 
 def page_data(html, name):
@@ -138,3 +138,23 @@ def test_every_page_loads_with_no_request_no_error_and_no_internal_code(browser,
     assert not errors, errors[:5]
     assert all(u.startswith(("file:", "data:", "blob:")) for u in requests), [u for u in requests if not u.startswith(("file:", "data:", "blob:"))][:5]
     assert not [s for s in seen if s[2]], [s for s in seen if s[2]]
+
+
+SOL = CODE / "results" / "demo" / "sol"
+
+
+@pytest.mark.skipif(not (SOL / "manifest.json").exists(), reason="the Sol copy is produced data, on this Mac only")
+def test_the_sol_copy_is_complete_and_agrees_with_the_frozen_numbers():
+    plan, man = json.loads((SOL / "plan.json").read_text()), json.loads((SOL / "manifest.json").read_text())
+    assert not man["errors"]
+    for g in plan["groups"]:
+        got = {json.loads(x)["record"]["run_id"] for x in open(SOL / f"runs_{g['group']}.jsonl")}
+        if g.get("run_ids"):
+            assert got == set(g["run_ids"]), g["group"]
+    assert set(man["train_logs"]) == set(man["chosen"]) == {"a40", "lora", "lora_attn3", "lora_tags", "tags"}
+    m = json.loads((TPL / "method.json").read_text())
+    ft, ch = m["finetune"], {v: json.loads((SOL / "train" / v / "chosen.json").read_text()) for v in man["chosen"]}
+    assert ch["lora"]["by_epoch"]["1"] == ft["lora_loss"]["epoch1"]["v"] and ch["lora"]["by_epoch"]["2"] == ft["lora_loss"]["epoch2"]["v"]
+    assert ch["a40"]["epoch"] == ft["bct"]["chosen"]["v"] and round(ch["a40"]["validation_loss"], 6) == ft["bct"]["epoch_loss"]["epoch1"]["v"]
+    assert set(ft["curves"]) == set(man["train_logs"])
+    assert m["running"]["gpu_total"]["v"]["gpu_hours"] == json.loads((SOL / "sacct.json").read_text())["gpu_hours"]
