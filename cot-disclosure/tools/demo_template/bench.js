@@ -230,6 +230,54 @@ async function runView(body, run, x0, w, { compact = false, label, checks = 3 } 
   return X;
 }
 
+/* ---------------- the tracked build: each test's prompt in place of the recorded runs ----------------
+   The experiments' own template on a sample question (method.json: hint.sources, fixes, review, patching), the hint marked. */
+function promptCard(body, T, c) {
+  const MXH = (typeof METHOD !== "undefined" && METHOD) || {}, hs = (MXH.hint && MXH.hint.sources) || [], v = (o, d) => (o && o.v !== undefined ? o.v : d);
+  const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const wrong = v(MXH.hint && MXH.hint.wrong_letter, "C"), right = v(MXH.hint && MXH.hint.right_letter, "D");
+  let id = c.src, letter = wrong, sys = null, label = null, after = "";
+  if (T.no === 2 && id === "plain") id = "user";
+  if (T.no === 3) id = "call";
+  if (T.no === 4) {
+    const [h, k] = String(c.h).split("|");
+    id = h === "call" ? "inserted" : h; if (k === "r") letter = right;
+    if (/note$|^prompt_only$/.test(c.fix)) sys = v(MXH.fixes && MXH.fixes.instruction, "");
+    if (/wrap/.test(c.fix) && id === "inserted") label = v(MXH.fixes && MXH.fixes.label, "");
+    if (/^(lora|a40)/.test(c.fix)) after = "A trained version: the same template, its weights changed (map, step 7).";
+  }
+  if (T.no === 6) { id = "inserted"; after = `What is measured, layer by layer: ${v(MXH.patching && MXH.patching.measure, "")}.`; }
+  const el = panel(body, { x: 230, y: 0, w: 740, h: 478, title: "The prompt this test sends", sub: "the experiments’ own template, on a sample question" });
+  const box = H("div", { class: "bprompt" }, el);
+  const turn = (who, html) => H("div", { class: "bturn" }, box, `<div class="who">${who}</div><div class="txt">${html}</div>`);
+  const swap = (t) => (letter === wrong ? t : t.split(`(${wrong})`).join(`(${letter})`).split(`"${wrong}"`).join(`"${letter}"`));
+  if (T.no === 5) {
+    const R = MXH.review || {};
+    turn("The reviewer’s instruction", esc(v(R.reviewer_system, "")));
+    const seen = ["[the question and its ten options]", "[the solver’s final answer]"];
+    if (c.v === "plus_private") seen.push(`${esc(v(R.private_header, ""))}\n[the solver’s private reasoning]`);
+    if (c.v === "plus_tool_log") seen.push(`${esc(v(R.log_header, ""))}\n<mark>[the tool’s call and its wrong reply]</mark>`);
+    turn("What it is shown", seen.join("\n\n"));
+    if (c.v === "chk") turn("The checker", esc(`It ${v(R.checker, "")}.`));
+  } else {
+    const S = hs.find((x) => x.id === (id === "none" ? "user" : id));
+    if (!S) { H("div", { class: "small" }, box, "No template for this condition."); return el; }
+    if (sys) turn("System, at its end", `<mark>${esc(sys)}</mark>`);
+    S.turns.forEach((t) => {
+      if (t.role === "user") {
+        const paras = t.text.split("\n\n"), last = paras.length - 1;
+        const inUser = ["user", "classmate", "key", "manual", "pasted", "none"].includes(id);
+        const html = paras.map((q, k) => (k === 0 ? esc(q.replace(/\n(?=\([A-J]\) )/g, "   ")) : k === last || !inUser ? esc(q) : id === "none" ? null : `<mark>${esc(swap(q))}</mark>`)).filter((x) => x !== null).join("\n\n");
+        turn("User", html);
+      } else if (t.role === "tool reply") turn("The tool replies", `<mark>${esc((label || "") + swap(t.text))}</mark>`);
+      else turn("The assistant calls a tool", esc(t.text));
+    });
+    if (S.call) { turn("The model calls the tool", esc(S.call)); turn("The tool replies", `<mark>${esc(swap(S.reply))}</mark>`); }
+  }
+  H("div", { class: "small bpfoot" }, el, (after ? after + " " : "") + (T.no === 1 && ["Gemma 4 26B-A4B", "Granite 4.2 8B"].includes(c.m) ? "This model’s recorded runs are on a teammate’s account. " : "") + "Recorded runs of seeded questions replay in the local build.");
+  return el;
+}
+
 /* ---------------- each test's page ---------------- */
 function benchPage(i) {
   return () => {
@@ -241,11 +289,7 @@ function benchPage(i) {
     testList(body);
     const fp = frozenPanel(body, T, c);
     T.rows().forEach((r) => choiceRow(r.label, r.opts, c[r.key], (v) => { c[r.key] = v; BS.last = null; show(i); }, r.note));
-    if (!RR) {
-      H("div", { class: "bnote" }, body, "Recorded runs appear in the local build.<br><span class='small'>This page has the frozen results only. The local build replays every recorded run of seeded questions, each with its file and line.</span>");
-      if (T.no === 1 && ["Gemma 4 26B-A4B", "Granite 4.2 8B"].includes(c.m)) H("div", { class: "small", style: { position: "absolute", left: "230px", top: "200px" } }, body, "Recorded runs not in this build: this model’s runs are on a teammate’s account.");
-      return;
-    }
+    if (!RR) return promptCard(body, T, c);
     yourRuns(fp, T, c);
     if (T.no === 6) return insidePage(body, T, c);
     if (T.no === 5) return reviewPage(body, T, c);
@@ -263,7 +307,7 @@ function benchPage(i) {
         const rs = runsFor(T, cc, q), r = rs[(pick && pick.idx) || 0];
         const hs = T.no === 4 ? cc.h.split("|")[0] : T.no === 3 ? "call" : cc.src === "plain" ? "user" : cc.src;
         const hint = !r || hs === "none" ? "no hint" : `${(SRCNAME[hs] || hs).toLowerCase()} says (${r.H})`;
-        if (r) runView(body, r, x, 355, { compact: true, label: `${j ? "Compare" : "This"}: ${condLabel(T, cc)}; ${hint}` });
+        if (r) runView(body, r, x, 355, { compact: true, label: `${j ? "Compare" : "This"}: ${T.no === 3 ? cc.s + "; " : T.no === 4 ? FIX[cc.fix] + "; " : ""}${hint}` });
         else H("div", { class: "small", style: { position: "absolute", left: x + "px", top: "180px", width: "340px" } }, body, `No recorded run of this question for ${condLabel(T, cc)}.`);
       });
       return;
@@ -303,7 +347,7 @@ function reviewPage(body, T, c) {
   const card = H("div", { class: "panel", style: { left: "720px", top: "165px", width: "250px", height: "300px" } }, body);
   H("div", { class: "ph" }, card, c.v === "chk" ? "<b>The checker</b><span>solves again, without the tool</span>" : `<b>The reviewer</b><span>${c.rv}; sees ${SEES[c.v]}</span>`);
   if (c.v === "chk") {
-    if (checker) { writeText(card, { x: 20, y: 80, text: `(${checker.L || "?"})`, size: 56, delay: 3400 }); stamp(card, { x: 18, y: 170, text: checker.flag ? "Flagged" : "Agrees", delay: 3900 });
+    if (checker) { writeText(card, { x: 20, y: 80, text: `(${checker.L || "?"})`, size: 56, delay: 3400 }); stamp(card, { x: 18, y: 170, text: checker.flag === true ? "Flagged" : checker.flag === false ? "Agrees" : "No flag recorded", delay: 3900 });
       H("div", { class: "illus", style: { position: "absolute", left: "14px", top: "250px", width: "220px" } }, card, `${checker.file}, line ${checker.line}`); }
     else H("div", { class: "small", style: { padding: "14px" } }, card, "No checker record for this case.");
   } else if (v) {

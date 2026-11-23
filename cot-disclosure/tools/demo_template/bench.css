@@ -23,3 +23,8 @@
 .bohead .xlink { margin-left: auto; }
 .bobody { padding: 14px 18px; overflow: auto; flex: 1; font-size: 18px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: var(--ink); }
 .brec.one { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bprompt { position: absolute; left: 18px; right: 14px; top: 72px; bottom: 40px; overflow: auto; scrollbar-width: thin; display: flex; flex-direction: column; gap: 10px; }
+.bturn .who { font-family: var(--print-font); font-size: 15px; color: var(--print); text-transform: uppercase; letter-spacing: .06em; }
+.bturn .txt { font-size: 17px; line-height: 1.4; color: var(--ink); white-space: pre-wrap; }
+.bturn mark { background: color-mix(in srgb, var(--canary) 80%, transparent); color: #2B2A1E; padding: 0 2px; }
+.bpfoot { position: absolute; left: 18px; right: 18px; bottom: 10px; }

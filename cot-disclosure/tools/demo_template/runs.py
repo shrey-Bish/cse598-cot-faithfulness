@@ -273,7 +273,7 @@ def review_cases(cases, c15_items):
                             "file": f"results/trackC/{log}", "line": i, "x": blob({"reasoning": r.get("reasoning_text"), "final": r.get("final_text"), "tool": tool_of(r)})})
             elif r.get("agent") == "checker":
                 out.append({"t": 5, "kind": "checker", "case": r["case_id"], "q": r["item_id"], "m": model_name(r.get("model")),
-                            "L": r.get("letter"), "flag": r.get("checker_flag"), "set": "c15" if "c15" in log else "c4",
+                            "L": r.get("letter"), "flag": r.get("flag", r.get("checker_flag")), "set": "c15" if "c15" in log else "c4",
                             "file": f"results/trackC/{log}", "line": i})
     for log in REVIEW_LOGS + ["team_c15.jsonl"]:
         for i, r in jsonl(RES / "trackC" / log):

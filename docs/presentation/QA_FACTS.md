@@ -5,7 +5,7 @@ with their codes), the limits that apply, and where to look. **No scripted answe
 Results are frozen (tag `results-freeze-2026-11-18`); every number is as [`FINDINGS.md`](../FINDINGS.md) (F),
 [`FINDINGS_B.md`](../trackB/FINDINGS_B.md) (FB1) and [`FINDINGS_C.md`](../trackC/FINDINGS_C.md) (FC1–FC4) read it, or
 as the Gate 3 draft in [`PLAN.md`](../PLAN.md). Figures are in [`docs/paper/figures/`](../paper/figures/); "scene" is a
-tour scene of the [Hint Explainer](../demo/explainer.html) (`docs/demo/explainer.html`). Slide numbers are
+tour scene of the [Hint Explainer](../../archive/superseded/explainer_2026-11-14/explainer.html) (`archive/superseded/explainer_2026-11-14/explainer.html`). Slide numbers are
 [`TALK_MAP.md`](TALK_MAP.md)'s. Related questions come from [`REVIEWER_QUESTIONS.md`](../paper/REVIEWER_QUESTIONS.md).
 
 ## 1. Why not just add the one-line instruction?
@@ -14,24 +14,24 @@ tour scene of the [Hint Explainer](../demo/explainer.html) (`docs/demo/explainer
   - On the held-out 30, the one-line instruction cuts following by −13 [−21, −6] (`prompt_only`); LoRA −10 [−16, −4];
     each trained version minus the instruction: LoRA +3 [−1, +8], tags +7 [+1, +14], LoRA + tags +6 [+1, +11], LoRA on
     layers 15/19/23 +6 [+0.4, +12] (F28).
-  - On E2's 120 fresh questions the instruction −9 [−14, −4]; LoRA against it: no difference detected, +2 [−2, +6] (F44).
+  - On E2's 120 fresh questions the instruction, against base, −9 [−14, −4]; LoRA against the instruction: no difference detected, +2 [−2, +6] (F44).
   - The instruction is the baseline the training fixes must beat: no fix beats it without a cost to correct hints
     (F41, F43, F44). Consistency training: 84 of 694 wrong hints followed against 237 of 713, but 347 of 459 correct
     hints taken against 431 of 476 (F41).
   - A different instruction (say what your answer is based on) brings the tool into the answer (Thinking bare 51 of 54 to
-    30 of 63) and the model still takes the wrong letter as often (+6 [−2, +14]) (F25).
+    30 of 63) and following doesn't change (no change detected: Thinking +6 [−2, +14], Instruct −1 [−7, +6]) (F25).
 - **Limits.** The comparisons with the instruction on the 30 were not pre-registered (on E2 they were, F44); one model.
 - **Where.** Slide 9; `gate3_vs_base_slide.png`, `a40_e2_fixes.png`; scene 7 (Fixes).
 
 ## 2. Is 42 rows enough?
 
 - **Facts.** L6 (F45): when LoRA follows a wrong hint on E2, its final answer says so in 37 of 42 hand-labelled runs
-  against the instruction's 18 of 42, +45 [+25, +64]; none claims to reject the hint it ends on. Ritik against J-opus
+  against the instruction's 18 of 42, +45 [+25, +64]; none of LoRA's 42 claims to reject the hint it ends on (the instruction's: 1 of 42). Ritik against J-opus
   kappa 0.96; the keyword agreed with the labels on 83 of 84 rows. By keyword on all followed runs: 225 of 248 against
   118 of 237 (exploratory, post hoc).
 - **Limits.** 42 rows a system, one model, E2 only, the final answer only; the sheet was not blind in practice (J-opus,
-  blind to systems, agrees on 82 of 84 rows); LoRA's trained opener names the hint (F28); it did not make LoRA follow
-  less (F44). The interval is the one stated; nothing more is claimed from it.
+  blind to systems, agrees on 82 of 84 rows); LoRA's trained opener names the hint (F28); LoRA follows no less than
+  the instruction (+2 [−2, +6], F44). The interval is the one stated; nothing more is claimed from it.
 - **Where.** FINDINGS F45; the story's item 6 and its scorecard (item 7).
 
 ## 3. Why only Olmo's reviewers?
@@ -77,7 +77,7 @@ tour scene of the [Hint Explainer](../demo/explainer.html) (`docs/demo/explainer
     right answers (When Tools Hurt, Zhao et al. 2025).
   - **Where ours differs or adds:** the private reasoning against the final answer (F3, F15: FACE-Eval judges the
     reasoning, and the final answer only for the side it takes); thinking on and off in the same weights (F29); the
-    model's own tool call (F15, F16); the readout layers and heads, replicated in a second family (F11, F26, F32, F36);
+    model's own tool call (F15, F16); the readout layers, replicated in a second family (F11, F26, F36; the heads, F12 and F32, are Olmo only);
     where training acts, fine-tuning in the reasoning (F39) and consistency training before the readout (F42); the cost
     to correct hints for every fix (F41, F43, F44, F38), which BCT's evaluation and Authority Bias's direction removal
     don't test; the review team (F18–F34, FC1–FC4).
@@ -99,10 +99,11 @@ tour scene of the [Hint Explainer](../demo/explainer.html) (`docs/demo/explainer
 
 ## 7. What next?
 
-- **Facts (the conclusion's bullets, REPORT §12; FINDINGS' scorecard).** The fix belongs at the system level: provenance
+- **Facts (the conclusion's bullets, REPORT §12; FINDINGS' scorecard).** Our reading (interpretation, not a tested result): the fix belongs at the system level: provenance
   labels alone don't help (A39 −1 [−7, +4], F44; FC3); independent verification does (the checker stopped all 53 wrong
-  tool answers on fresh items, false alarms on 7 of 45 good lookups, F24). A powered replication of B1 needs about 107 to
-  245 fresh questions (53 to 122 GPU-hours) (F38). Open: items the solver gets wrong without the tool (the checker's
+  tool answers on fresh items, false alarms on 7 of 45 good lookups, F24). B1's own 30 questions were underpowered (a replication that
+  resolves its limit needs about 107 to 245, F38); B1R2 on E2's 120 fresh questions replicated the cut (−13.8 [−20.0,
+  −7.5]) with acceptance down −5.8 [−10.8, −1.3]: "ignores tools" again; whether that cost passes the 5-point limit isn't resolved (F38). Open: items the solver gets wrong without the tool (the checker's
   hard case).
 - **Limits.** The checker was tested on fresh items of one tool format; Track C's solver is one model.
 - **Where.** Slide 13; REPORT §10 and §12; PLAN's Gate 3 draft.
@@ -110,10 +111,10 @@ tour scene of the [Hint Explainer](../demo/explainer.html) (`docs/demo/explainer
 ## 8. Did thinking make chain-of-thought more honest?
 
 - **Facts.** Answered mixed (the story's item 5). Qwen3-8B with thinking on names the tool in its private reasoning after
-  141 of 145 calls and in the final answer in 0 of 143 followed runs, and follows the wrong letter far more (+64 [+51,
+  141 of 145 calls and in the final answer in 0 of 143 followed runs, and follows the wrong letter far more on the real tool call (+64 [+51,
   +75]) (F29). gpt-oss-20b, effort low to high: following +7 [−1, +16], bare answer −5 [−10, 0], no change detected (F37).
   Nemotron 3 Nano's answer after the inserted turn is less bare with thinking on (−14 [−19, −9]) (FB1). Private reasoning
-  names the hint in 208 of 216 runs, the final answer 8 of 216 (F3).
+  names the hint in 208 of 216 runs, the final answer 8 of 216 (F3: the user's hint, 24 puzzles, three thinking models).
 - **Limits.** One model per comparison; Qwen3-8B's on-minus-off was read after the fact (no rule fixed for it); F37 ran
   past its one-day window; the keyword also fires with no hint (22 of 72 no-hint runs, so 208 is an upper bound, F3).
 - **Where.** Slides 5, 6, 8; `private_vs_final.png`, `b17_effort.png`; scene 5 (The quiet answer).
@@ -130,10 +131,11 @@ tour scene of the [Hint Explainer](../demo/explainer.html) (`docs/demo/explainer
 
 ## 10. Is it one model? Do the fixes generalize?
 
-- **Facts.** Gate 2 holds in five Track B models (F15–F17, F29, F37) and three more families, clear in all 10 readings
+- **Facts.** Gate 2 holds in five Track B models (F15–F17, F29; F37 reported with no decision) and three more families, clear in all 10 readings
   (FB1). The readout replicates in Qwen3-8B (layers 21, 22, 29: 0.70 [0.60, 0.83], F36). Reviewer deference is Olmo's
   family only (F22, F30). The fixes (Gate 3, A39, A40, A42, B1) are Olmo 3 7B Think only.
-- **Limits.** One model for every fix (Gate 3 draft's limits); the readout is *tentative* as a whole (the story's item 3).
+- **Limits.** One model for every fix (Gate 3 draft's limits); the readout is *tentative* as a whole (the story's item 3). In the three new families Granite ran with
+  thinking on only, and Gemma's and Nemotron's tool channel is the inserted turn, not a call (FB1).
 - **Where.** Slides 2, 4, 9; `gate2.png`, `readout_qwen8b.png`.
 
 ## 11. Is the tool format realistic?

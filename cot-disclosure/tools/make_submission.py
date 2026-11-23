@@ -9,7 +9,7 @@ The pieces (docs/submission/README.md lists them with their owners):
   - written by us: docs/submission/report.(pdf|docx), docs/submission/slides.(pptx|pdf) (from the shell
     docs/presentation/deck.pptx), docs/submission/CONTRIBUTIONS.md (not while it holds the placeholder),
     docs/submission/AI_USE.md (not while a line says "to confirm");
-  - made by the repo: the figures (docs/paper/figures/*.png, *.svg, *.csv), the explainer (docs/demo/index.html),
+  - made by the repo: the figures (docs/paper/figures/*.png, *.svg, *.csv), the demo (docs/demo/index.html, the answer sheet),
     the code link (origin's URL, the freeze tag and its commit, main's commit at the build), the bundles' sha256s
     (docs/submission/BUNDLES.sha256, from the Nov 18 freeze log).
 The zip goes to cot-disclosure/results/submission/ (gitignored), with MANIFEST.sha256 (every file's sha256). Its
@@ -95,8 +95,8 @@ def pieces(root=ROOT, with_supplement=False):
                      f"docs/paper/figures/: {len(figs)} files (png, svg, csv)",
                      [(p, f"figures/{p.name}") for p in figs]))
     page = root / "docs/demo/index.html"
-    out.append(Piece("explainer", READY if page.is_file() else PROBLEM, "docs/demo/index.html",
-                     [(page, "explainer/index.html")] if page.is_file() else []))
+    out.append(Piece("demo", READY if page.is_file() else PROBLEM, "docs/demo/index.html",
+                     [(page, "demo/index.html")] if page.is_file() else []))
     link = code_link(root)
     out.append(Piece("code link", READY if link else PROBLEM,
                      f"origin, the tag {TAG}" if link else f"no origin remote or no tag {TAG}",

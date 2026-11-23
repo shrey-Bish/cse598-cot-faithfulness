@@ -36,7 +36,7 @@
 .prompt .t { padding: 2px 16px 0; font-size: 21px; line-height: 1.28; color: var(--ink); }
 .prompt .opts { column-count: 2; column-gap: 22px; padding: 4px 16px 0; font-size: 21px; line-height: 1.28; color: var(--ink); }
 .prompt .opts div { break-inside: avoid; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.prompt mark { background: color-mix(in srgb, var(--canary) 80%, transparent); color: inherit; padding: 0 2px; }
+.prompt mark { background: color-mix(in srgb, var(--canary) 80%, transparent); color: #2B2A1E; padding: 0 2px; }
 .qpane { position: absolute; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--print-soft) transparent; }
 .qopt { display: flex; gap: 10px; align-items: flex-start; font-size: 21px; line-height: 1.28; color: var(--ink); margin: 0 0 8px; }
 .qopt .lt { flex: none; width: 30px; height: 20px; margin-top: 3px; border: 1.4px solid var(--print); border-radius: 10px; font-family: var(--print-font); font-size: 15px; color: var(--print); display: grid; place-items: center; }
@@ -47,6 +47,7 @@
 .mhit:hover { background: color-mix(in srgb, var(--canary) 30%, transparent); }
 .ruledp { position: absolute; border: 1.5px solid var(--print); background-image: repeating-linear-gradient(to bottom, transparent 0 33px, var(--print-soft) 33px 34px); overflow: auto; scrollbar-width: thin; scrollbar-color: var(--print-soft) transparent; padding: 30px 16px 6px; font-size: 21px; line-height: 34px; color: var(--ink); white-space: pre-wrap; }
 .ruledp .lab { position: absolute; left: 12px; top: 6px; font-family: var(--print-font); font-size: 17px; color: var(--print); line-height: 1; }
-.ruledp mark { background: color-mix(in srgb, var(--canary) 80%, transparent); color: inherit; }
+.ruledp mark { background: color-mix(in srgb, var(--canary) 80%, transparent); color: #2B2A1E; }
 .mbtn.msm { font-size: 14px; padding: 1px 4px 2px; }
 .mbtn.msm.on { background: var(--print); color: var(--paper); }
+.mfaint { position: absolute; pointer-events: none; background: var(--pencil); opacity: .18; border-radius: 1px; }

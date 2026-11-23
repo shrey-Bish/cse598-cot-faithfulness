@@ -2,6 +2,8 @@
 /*
 !/.gitignore
 !/README.md
+!/CITATION.cff
+!/REPRODUCE.md
 !/cot-disclosure/
 !/archive/
 !/docs/

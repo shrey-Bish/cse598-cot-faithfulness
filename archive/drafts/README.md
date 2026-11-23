@@ -9,7 +9,7 @@ These are plain rewrites of two track pages, written for a newcomer, for their o
 | [`trackB_START_HERE.md`](trackB_START_HERE.md) | `docs/trackB/START_HERE.md`, as on `origin/trackB-main` (commit 688cf48, Arsha's latest) | Arsha |
 | [`trackC_START_HERE.md`](trackC_START_HERE.md) | `docs/trackC/START_HERE.md`, as on `main` | Shrey |
 
-**What changed.** Plain names for the experiments (from [`docs/GLOSSARY.md`](../GLOSSARY.md)), with the internal codes kept in
+**What changed.** Plain names for the experiments (from [`docs/GLOSSARY.md`](../../docs/GLOSSARY.md)), with the internal codes kept in
 parentheses where a reader needs them to find a log or a finding; stale status text brought up to date. Every rule, command,
 path, date and number is as in the original. How much was reworded differs by section: the top of each page (what is done,
 what is left, how you work) is rewritten in plain sentences; the long reference sections (setup steps, paths, rules,

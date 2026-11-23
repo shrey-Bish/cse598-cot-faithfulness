@@ -65,11 +65,11 @@ def _states(root):
 
 def test_check_lists_every_piece_and_marks_the_teams_parts_to_write(repo):
     states = _states(repo)
-    assert set(states) == {"report", "slides", "contributions", "AI-use disclosure", "figures", "explainer",
+    assert set(states) == {"report", "slides", "contributions", "AI-use disclosure", "figures", "demo",
                            "code link", "bundles' sha256s"}
     for name in ("report", "slides", "contributions", "AI-use disclosure"):
         assert states[name] == ms.TO_WRITE, name
-    for name in ("figures", "explainer", "code link", "bundles' sha256s"):
+    for name in ("figures", "demo", "code link", "bundles' sha256s"):
         assert states[name] == ms.READY, name
 
 
@@ -119,7 +119,7 @@ def test_the_zip_has_every_piece_once_the_team_parts_are_written(repo):
         names = set(z.namelist())
         top = ms.TOP
         for rel in ("report.pdf", "slides.pptx", "CONTRIBUTIONS.md", "AI_USE.md", "figures/gate2.png",
-                    "figures/gate2.csv", "explainer/index.html", "CODE_LINK.txt", "BUNDLES.sha256", "MANIFEST.sha256"):
+                    "figures/gate2.csv", "demo/index.html", "CODE_LINK.txt", "BUNDLES.sha256", "MANIFEST.sha256"):
             assert f"{top}/{rel}" in names, rel
         assert f"{top}/figures/WAITING.md" not in names          # a spec for the team, not a figure
         assert not any("/supplement/" in n for n in names)        # only with --with-supplement

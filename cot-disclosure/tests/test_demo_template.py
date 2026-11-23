@@ -158,3 +158,13 @@ def test_the_sol_copy_is_complete_and_agrees_with_the_frozen_numbers():
     assert ch["a40"]["epoch"] == ft["bct"]["chosen"]["v"] and round(ch["a40"]["validation_loss"], 6) == ft["bct"]["epoch_loss"]["epoch1"]["v"]
     assert set(ft["curves"]) == set(man["train_logs"])
     assert m["running"]["gpu_total"]["v"]["gpu_hours"] == json.loads((SOL / "sacct.json").read_text())["gpu_hours"]
+
+
+@pytest.mark.skipif(not RUNS.exists(), reason="the recorded runs are produced data, on this Mac only")
+def test_the_checker_stamp_is_the_records_own_flag():
+    rows = [r for r in json.loads(RUNS.read_text())["runs"] if r.get("kind") == "checker"]
+    assert rows
+    for r in rows:
+        with open(CODE / r["file"]) as fh:
+            rec = next(json.loads(l) for i, l in enumerate(fh, 1) if i == r["line"])
+        assert rec["agent"] == "checker" and r["flag"] is rec["flag"], r["case"]

@@ -6,7 +6,7 @@
   python tools/demo_template/sol.py unpack DIR   # reads the stream on stdin, writes DIR/ (runs_*.jsonl, train/, sacct.json)
 
 The remote script is stdlib-only and only reads (the pattern of tools/l6_sheet.py --remote-script): it globs the paths in
-docs/demo/INVENTORY.md section 4 under /scratch/$USER, keeps the records of the drawn questions (draw.json) whose run id
+archive/demo_build/INVENTORY.md section 4 under /scratch/$USER, keeps the records of the drawn questions (draw.json) whose run id
 is in this Mac's numbers-only run index (Nemotron has no index here: its drawn questions' records are kept), and prints
 JSON lines: each kept record with its file and line, every train_log.jsonl and chosen.json under trackA/train/, and
 sacct's jobs since Oct 1 with their GPU hours. Paths in the output say <scratch>, never the account name. Nothing is

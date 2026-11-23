@@ -2,7 +2,7 @@
 
 > **Draft, not in force.** A plain rewrite of `docs/trackC/START_HERE.md` (from `main`), drafted Nov 14 at Ritik's request,
 > for Shrey to adopt or change. It becomes the real page only when Shrey moves it into `docs/trackC/`. Plain names come
-> from [`docs/GLOSSARY.md`](../GLOSSARY.md); the internal codes (C19, F31, FC1, ...) stay in parentheses where a reader
+> from [`docs/GLOSSARY.md`](../../docs/GLOSSARY.md); the internal codes (C19, F31, FC1, ...) stay in parentheses where a reader
 > needs them to find a log or a finding. Commands, paths, dates and numbers are as in the original. The Nov 3 page was
 > written before C19, C25, C20 and C26 ran, so its runbook for them is replaced by their results (section 3); everything
 > dropped is listed at the end, under "Left out as stale".
@@ -26,7 +26,7 @@
 downstream agent lose the fact that an answer came from a tool, and defer to it anyway? It is yours from Oct 30.
 
 **What is done**
-- Ritik's runs, in [`docs/FINDINGS.md`](../FINDINGS.md) (F18 to F24 and F30 to F34):
+- Ritik's runs, in [`docs/FINDINGS.md`](../../docs/FINDINGS.md) (F18 to F24 and F30 to F34):
   - a reviewer shown the solver's tool trace defers to it in one model family (Olmo 3 32B), not the other (Qwen3 30B);
   - a checker that never sees the tool held every time;
   - the solver citing the tool's letter as authority is the cue (C16 to C18).
@@ -99,7 +99,7 @@ repo, section 10 is how your branch stays out of conflict with `main`, and secti
 - **The vLLM port rule** (Nov 4, FINDINGS T12). Two jobs on one Sol node once shared one vLLM server through a fixed port.
   Since then, the label run's and the newer-families run's jobs take a port of their own (20000 + the job id mod 10000,
   checked free). **C13's job still uses the fixed port 8013:** if you run `c13` on Sol, follow
-  [SOL_SETUP.md](../tracks/SOL_SETUP.md)'s "Known traps" (check the node, `--exclude=<node>`). `agents/sol_c13.py` stays
+  [SOL_SETUP.md](../../docs/tracks/SOL_SETUP.md)'s "Known traps" (check the node, `--exclude=<node>`). `agents/sol_c13.py` stays
   Ritik's (every Sol vLLM job imports it).
 - **Claude Code** (section 11): a root `CLAUDE.md` and `.claude/settings.json`, and a third hook (commit-msg) from
   `path_check.py --install`. Your commits carry only your own name.
@@ -119,7 +119,7 @@ Arsha Jindal, Ritik Agarwal.
 - Models and sources (Track B): Arsha, from Nov 6.
 - Review teams (Track C, this track): you, from Oct 30.
 
-**The theme** ([`docs/PLAN.md`](../PLAN.md), "The story"): **"Where did that answer come from?"** A tool's influence
+**The theme** ([`docs/PLAN.md`](../../docs/PLAN.md), "The story"): **"Where did that answer come from?"** A tool's influence
 loses its source at three levels:
 
 | level | PLAN's headline | track |
@@ -128,7 +128,7 @@ loses its source at three levels:
 | 2. In the model's words | After a tool call, the answer stops naming its source. | Models and sources (B, and A) |
 | 3. Between agents | Downstream agents can't tell a tool's claim from a colleague's conclusion. | **Review teams (C): yours** |
 
-**Track C's question** ([`docs/tracks/TRACK_C.md`](../tracks/TRACK_C.md)). A solver agent looks something up with a
+**Track C's question** ([`docs/tracks/TRACK_C.md`](../../docs/tracks/TRACK_C.md)). A solver agent looks something up with a
 tool, and the tool returns a wrong answer.
 - Does the wrong answer reach the team's output?
 - Does a reviewer that sees more of the solver's work (its final answer, its private reasoning, the tool log) catch it?
@@ -148,7 +148,7 @@ tool, and the tool returns a wrong answer.
   Otherwise the reviewer's letter ships.
 - **No-tool team:** the same solver with no tool. Its run-to-run disagreement is the false-alarm floor.
 
-**The story's line 4 (between agents), in plain words** ([`docs/FINDINGS.md`](../FINDINGS.md), "The story so far", item 4):
+**The story's line 4 (between agents), in plain words** ([`docs/FINDINGS.md`](../../docs/FINDINGS.md), "The story so far", item 4):
 - A reviewer that can see where the solver's answer came from stops checking it, but only in one model family.
   Olmo 3.1 32B Instruct corrects 59 of 73 wrong tool answers from the answer alone, and 6 and 3 of 73 once it sees the
   solver's private reasoning or the tool log (F18). Qwen3 30B Instruct doesn't defer.
@@ -180,7 +180,7 @@ tool, and the tool returns a wrong answer.
 
 ## 2. Every Track C result so far
 
-All numbers below are copied from [`docs/FINDINGS.md`](../FINDINGS.md). F20 and F32 belong to Track A (inside the model and the fixes), not to this track.
+All numbers below are copied from [`docs/FINDINGS.md`](../../docs/FINDINGS.md). F20 and F32 belong to Track A (inside the model and the fixes), not to this track.
 
 **How they're reported** (FINDINGS' rules):
 - Rates: "X of Y [95% Wilson interval]".
@@ -415,7 +415,7 @@ The run commands, smoke check and per-experiment designs of the Nov 3 page are i
    - In F24 and F34 the Olmo line carries the reading. The Qwen3 lines print the rule's label, but FINDINGS draws no
      H23 or H33 reading from Qwen3 (it doesn't defer).
 8. **Sol, only if you need it.** The four experiments of section 3 ran on Voyager and need no Sol. If you add GPU work, use your own
-   Sol user and course account, following [`docs/tracks/SOL_SETUP.md`](../tracks/SOL_SETUP.md) (Duo, scratch space,
+   Sol user and course account, following [`docs/tracks/SOL_SETUP.md`](../../docs/tracks/SOL_SETUP.md) (Duo, scratch space,
    your accounts file, always `submit.sh`).
    - C13's reviewer server still uses a fixed port (8013), so two C13 jobs on one node, yours and another user's,
      would collide. A39's and B20's jobs take a port of their own since Nov 4 (section 0; SOL_SETUP.md's "Known traps").

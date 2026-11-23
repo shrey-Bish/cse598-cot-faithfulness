@@ -269,7 +269,7 @@ function beat8() {
   const NAME = { base: "No fix", prompt_only: "One-line instruction", lora: "Fine-tuned", lora_note: "Fine-tuned + instruction", a40: "Consistency-trained", a40_note: "Consistency-trained + instruction" };
   const OFF = { base: [18, -14], prompt_only: [14, -44], lora: [-6, 14], lora_note: [18, -14], a40: [18, -14], a40_note: [18, -36] };
   const body = statement(8, "Every fix is a trade-off.", "Fixes that resist wrong hints also distrust right ones.");
-  const el = panel(body, { x: 0, y: 0, w: 1374, h: 470, title: "Six fixes on Olmo 3 7B Think", sub: "each dot is one fix, tested on the same questions" });
+  const el = panel(body, { x: 0, y: 0, w: 1374, h: 470, title: "Five fixes and no fix, on Olmo 3 7B Think", sub: "each dot is one version, tested on the same questions" });
   const acc = (k) => rate(SY[k].acceptance), res = (k) => 1 - rate(SY[k].following);
   const lo = (f) => Math.floor(Math.min(...keys.map(f)) * 20) / 20, hi = (f) => Math.ceil(Math.max(...keys.map(f)) * 20) / 20;
   const ax0 = lo(acc), ax1 = hi(acc), ay0 = lo(res), ay1 = hi(res);

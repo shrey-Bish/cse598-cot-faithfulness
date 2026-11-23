@@ -2,7 +2,7 @@
 
 > **Draft, not in force.** A plain rewrite of `docs/trackB/START_HERE.md` (taken from `origin/trackB-main`, commit
 > 688cf48, Arsha's latest), drafted Nov 14 at Ritik's request, for Arsha to adopt or change. It becomes the real page
-> only when Arsha moves it into `docs/trackB/`. Plain names come from [`docs/GLOSSARY.md`](../GLOSSARY.md); the internal
+> only when Arsha moves it into `docs/trackB/`. Plain names come from [`docs/GLOSSARY.md`](../../docs/GLOSSARY.md); the internal
 > codes (B20, F35, ...) stay in parentheses where a reader needs them to find a log or a finding. Commands, paths,
 > dates and numbers are as in the original. What was dropped as stale is listed at the end.
 
@@ -30,9 +30,9 @@ F35, F37 and F40. Nothing of this track's runs on Sol any more.
 **What this track asks.** Does a wrong hint from a tool move thinking models more than the same hint from the user?
 We test this with thinking on and off in the same weights, with real tool calls, and with 3 runs per question. A second
 question: once the model has called a tool, does its final answer stop naming the tool? This track is the evidence for
-the first level of the story's map (the model's own words) and for the tool-vs-user line ([`PLAN.md`](../PLAN.md)).
+the first level of the story's map (the model's own words) and for the tool-vs-user line ([`PLAN.md`](../../docs/PLAN.md)).
 
-**What is done** (Ritik's runs and Arsha's; [`docs/FINDINGS.md`](../FINDINGS.md): F15 to F17, F25, F29, F35, F37, F40):
+**What is done** (Ritik's runs and Arsha's; [`docs/FINDINGS.md`](../../docs/FINDINGS.md): F15 to F17, F25, F29, F35, F37, F40):
 - Tools pull harder than users in all five models (the tool-vs-user test, Gate 2).
 - After a tool call the final answer goes bare (the quiet answer).
 - Most of the pull is the tool's claim to be the answer key (the authority ladder, B16; confirmed the same day in B19).
@@ -40,7 +40,7 @@ the first level of the story's map (the model's own words) and for the tool-vs-u
 - The pull grows from a classmate to the official solution manual in all three models (B24, F40), read Nov 4.
 - The newer families (B20): a tool's hint moves all three more than the user's, clear in all 10 readings (FB1 in
   `FINDINGS_B.md`; merged Nov 8).
-- The final table (B18) and slide 2 are started ([`TRACK_B.md`](../tracks/TRACK_B.md) section 1a); the table is checked
+- The final table (B18) and slide 2 are started ([`TRACK_B.md`](../../docs/tracks/TRACK_B.md) section 1a); the table is checked
   and has B20's rows (Nov 14, section 5).
 
 **What is left**
@@ -170,7 +170,7 @@ session. Section 9 maps the repo, section 10 is git without conflicts, section 1
    ../.venv/bin/python progress/run_b24.py --report       # classmate versus manual: F40
    ../.venv/bin/python tools/trackb_final.py              # the final table (B18): docs/paper/tables/trackB_final.md
    ```
-7. **Read:** this page, [`TRACK_B.md`](../tracks/TRACK_B.md) (results, how to run each step, known traps, decisions you
+7. **Read:** this page, [`TRACK_B.md`](../../docs/tracks/TRACK_B.md) (results, how to run each step, known traps, decisions you
    inherit), then FINDINGS F15 to F17, F25, F29, F35, F37, F40 and traps T1 to T13.
 
 Your Sol clone is for running jobs only: you never commit in it. Your commits come from your machine's clone. (The Sol

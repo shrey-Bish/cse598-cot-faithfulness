@@ -7,6 +7,7 @@ run after the page is shown (e.g. a bench action), then the screenshot waits for
 INSTANT). Fonts are awaited. Console errors are printed and make the exit code 1.
 """
 import hashlib
+import os
 import sys
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -22,7 +23,8 @@ def main(argv):
             part, idx, *rest = spec.split(":", 3)
             theme = rest[0] if rest and rest[0] in ("light", "dark") else "light"
             js = rest[1] if len(rest) > 1 else (rest[0] if rest and rest[0] not in ("light", "dark") else "")
-            ctx = b.new_context(viewport={"width": 1920, "height": 1080}, color_scheme=theme)
+            vw, vh = (int(x) for x in os.environ.get("DEMO_VIEWPORT", "1920x1080").split("x"))
+            ctx = b.new_context(viewport={"width": vw, "height": vh}, color_scheme=theme)
             pg = ctx.new_page()
             pg.on("console", lambda m, s=spec: m.type == "error" and errors.append(f"{s}: {m.text}"))
             pg.on("pageerror", lambda e, s=spec: errors.append(f"{s}: {e}"))

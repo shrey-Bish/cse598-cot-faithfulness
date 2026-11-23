@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite it as below."
+title: "Do thinking modes make chain-of-thought more honest?"
+type: software
+authors:
+  - given-names: "Ritik"
+    family-names: "Agarwal"
+  - given-names: "Arsha"
+    family-names: "Jindal"
+  - given-names: "Shrey"
+    family-names: "Bishnoi"
+repository-code: "https://github.com/shrey-Bish/cse598-cot-faithfulness"
+date-released: "2026-11-24"
+notes: "CSE 598, Arizona State University, Fall 2026"

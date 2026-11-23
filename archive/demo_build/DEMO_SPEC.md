@@ -18,7 +18,7 @@
 
 ## Phase 1: inventory, then stop
 
-Before building, write `docs/demo/INVENTORY.md` and stop for Ritik:
+Before building, write `archive/demo_build/INVENTORY.md` and stop for Ritik:
 
 - **Method facts:** for each step of the map below, where its facts live in the repo (pre-registrations, configs, PLAN, FINDINGS, logs, summaries): the models and settings, the question sets and seeds, the hint templates, the run counts, the compute (jobs, GPU time), the architecture of Olmo 3 7B Think (layers, which ones see the whole prompt), the patching method and its per-layer and per-head results, the fine-tuning configs (LoRA: rank, alpha, learning rate, steps, target modules, data counts; consistency training: data construction, counts kept and dropped, epochs, steps, how the epoch was chosen), training logs (loss curves) if they're on this Mac, the attention-dial setup, the review-team setup, the labelling and judge protocols, the statistics, the freeze.
 - **Recorded runs:** for each of the six bench tests, which raw run records are on this Mac (results/, finetune/, the newer-families outputs, Track C outputs; all gitignored) and which are only on Sol (exact paths, for Ritik to copy from his own account when he's on the ASU network). Never use anyone else's login.

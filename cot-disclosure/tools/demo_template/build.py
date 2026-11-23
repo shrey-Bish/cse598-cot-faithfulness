@@ -1,4 +1,4 @@
-"""The demo, one offline page in the answer-sheet look (Nov 22; brief docs/demo/DEMO_SPEC.md, design TEMPLATE_GUIDE.md).
+"""The demo, one offline page in the answer-sheet look (Nov 22; brief archive/demo_build/DEMO_SPEC.md, design TEMPLATE_GUIDE.md).
 
   python tools/demo_template/build.py               # -> docs/demo/index.html (tracked: numbers, ids, paths and our own
                                                     #    templates only) and, when results/demo/bench_runs.json exists,

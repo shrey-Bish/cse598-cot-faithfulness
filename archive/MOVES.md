@@ -1,7 +1,24 @@
 # Moves: every file moved, and why
 
-Two reorganizations: Nov 1, 2026 (below) and Oct 30, 2026 (further down); on Nov 4, 2026, one daily folded into the day before; and on Nov 14, 2026, the old demo's template archived (first below). Every move was a `git mv` in a commit of
+Two reorganizations: Nov 1, 2026 (below) and Oct 30, 2026 (further down); on Nov 23, 2026, process material moved to the archive (first below); on Nov 4, 2026, one daily folded into the day before; and on Nov 14, 2026, the old demo's template archived (first below). Every move was a `git mv` in a commit of
 its own with the content unchanged, so `git log --follow <new path>` shows a file's whole history.
+
+## Nov 23, 2026: process material out of a reader's way
+
+By: Ritik; session log [`2026-11-23_0910_ALL_front-door.md`](sessions/2026-11-23/2026-11-23_0910_ALL_front-door.md). The repo's
+last working day: `docs/` keeps what a reader opens; drafts and the demo's build notes go to the archive. Moved in a
+commit of its own (`33be48e`), the content unchanged; links updated in the next commit. **Not moved:** `docs/status/`
+(Track B's and Track C's pages link to it, and `tools/make_gantt.py` writes it; it gained a README saying a reader can
+skip it); the tracks' own session folders (`docs/trackB/sessions/`, `docs/trackC/sessions/`: their owners' paths).
+
+| # | old path | new path | why |
+|---|---|---|---|
+| 1 | `docs/drafts/README.md` | `archive/drafts/README.md` | drafts for the track owners (Nov 14), never in force |
+| 2 | `docs/drafts/trackB_START_HERE.md` | `archive/drafts/trackB_START_HERE.md` | the same |
+| 3 | `docs/drafts/trackC_START_HERE.md` | `archive/drafts/trackC_START_HERE.md` | the same |
+| 4 | `docs/demo/DEMO_SPEC.md` | `archive/demo_build/DEMO_SPEC.md` | the demo's brief (Nov 20), build material |
+| 5 | `docs/demo/INVENTORY.md` | `archive/demo_build/INVENTORY.md` | the demo's inventory (Nov 20), build material |
+| 6 | `docs/demo/explainer.html` | `archive/superseded/explainer_2026-11-14/explainer.html` | the Hint Explainer, superseded by the answer sheet (Nov 22); `tools/build_demo.py` writes here now |
 
 ## Nov 14, 2026: the old demo's template archived
 

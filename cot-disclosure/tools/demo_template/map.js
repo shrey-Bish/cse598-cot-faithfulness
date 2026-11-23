@@ -86,17 +86,18 @@ function mapPage() {
     { t: "The hint", c: "one wrong letter", steps: [2] },
     { t: "The models", c: `${mv(MX.counts && MX.counts.models, "")} of them`, steps: [3, 4] },
     { t: "Inside the model", c: `${mv(MX.arch && MX.arch.layers, "")} layers`, steps: [5, 6] },
-    { t: "What it wrote", c: "reasoning, then an answer", steps: [] },
+    { t: "What it wrote", c: "reasoning, then an answer", steps: [], bench: 2 },
     { t: "How we checked", c: "labels and statistics", steps: [11] },
   ];
   const X = (k) => k * (W + GAP);
   nodes.forEach((n, k) => {
-    const box = H("div", { class: "mnode" + (n.steps.length ? "" : " plain"), style: { left: X(k) + "px", top: Y + "px", width: W + "px", height: NH + "px" } }, body, `<h3>${n.t}</h3><div class="cap">${n.c}</div>`);
+    const box = H("div", { class: "mnode" + (n.steps.length || n.bench != null ? "" : " plain"), style: { left: X(k) + "px", top: Y + "px", width: W + "px", height: NH + "px" } }, body, `<h3>${n.t}</h3><div class="cap">${n.c}</div>`);
     const rows = H("div", { class: "rows", style: { top: "112px" } }, box);
     n.steps.forEach((s) => {
       const b = H("button", { type: "button", class: "mstep", "aria-pressed": "false" }, rows, `<span class="mnum">${s}</span><span class="lab">${STEPNAME[s].s}</span>`);
       b.addEventListener("click", () => show(s));
     });
+    if (n.bench != null) H("button", { type: "button", class: "mstep" }, rows, `<span class="mnum">▸</span><span class="lab">Bench, test ${n.bench + 1}</span>`).addEventListener("click", () => go("bench", n.bench));
     if (k < 5) line(body, X(k) + W + 4, Y + 38, X(k + 1) - 4, Y + 38);
   });
   // branches
@@ -113,7 +114,7 @@ function mapPage() {
   const tracks = [
     { x1: X(1), x2: X(2) + W, label: "models and sources" },
     { x1: X(3) - 40, x2: X(3) + 230, label: "inside the model and the fixes" },
-    { x1: X(5) - 80, x2: X(5) + 190, label: "downstream review" },
+    { x1: X(5) - 80, x2: X(5) + 190, label: "review teams" },
   ];
   tracks.forEach((t, j) => {
     penStroke(body, [[t.x1, 448], [t.x1 + 8, 457], [t.x2 - 8, 456], [t.x2, 448]], { delay: 500 + j * 500, color: "--pencil", pencil: true, width: 2.6 });
@@ -141,9 +142,9 @@ function step1() {
     const qp = H("div", { class: "qpane", style: { left: "16px", top: "40px", width: "400px", height: "430px" } }, pn);
     H("div", { style: { fontSize: "21px", lineHeight: 1.36, color: "var(--ink)" } }, qp, r.question);
     H("div", { class: "pmuted", style: { position: "static", marginTop: "10px" } }, qp, `${r.category}, id ${r.id}`);
-    const op = H("div", { class: "qpane", style: { left: "440px", top: "40px", width: "448px", height: "430px", paddingRight: "8px" } }, pn);
+    const op = H("div", { class: "qpane", style: { left: "440px", top: "40px", width: "448px", height: "404px", paddingRight: "8px" } }, pn);
     r.options.forEach((o, k) => H("div", { class: "qopt" }, op, `<span class="lt">${"ABCDEFGHIJ"[k]}</span><span>${o.replace(/</g, "&lt;")}</span>`));
-    at(0, () => { if (op.scrollHeight > op.clientHeight + 4) plab(pn, 700, 10, 190, "↓ scroll the options", "illus"); });
+    at(0, () => { if (op.scrollHeight > op.clientHeight + 4) plab(pn, 440, 450, 300, "↓ scroll the options", "plab illus"); });
   }
   choiceRow("Question", flip.map((q, k) => ({ id: k, label: String(k + 1) })), MS.q, (k) => { MS.q = k; show(cur); }, "flip through six drawn at random with our seed");
 }
@@ -336,8 +337,10 @@ function step6() {
     if (m > 0.004) pbar(body, { x: X0 + 70, y: yc - (pitch - 3) / 2, w: lenb * m / maxm, h: pitch - 3 });
     writeText(body, { x: X0 + 70 + Math.max(0, lenb * m / maxm) + 12, y: yc - 17, text: m > 0.004 ? pct(m) : "none", size: 32, red: true, delay: 250, dur: 0.3 });
   };
+  if (!MS.swapped.size) { MS.swapped.add(MS.layer); MS.last = MS.layer; }
   const lc = layerColumn(body, { x: X0, y: 14, pitch, len: lenb, sel: -1, fullHl: false, onPick: (i, b) => { if (MS.swapped.has(i)) return; MS.swapped.add(i); MS.view = "layer"; MS.last = i; draw(i); side(); } });
-  H("div", { class: "small", style: { position: "absolute", left: X0 + 70 + "px", top: "-6px" } }, body, "Click a layer to swap it.");
+  L.effect.forEach((e, i) => { if (e.m > 0.004) H("div", { class: "mfaint", style: { left: X0 + 70 + "px", top: 14 + i * pitch + 1.5 + "px", width: lenb * e.m / maxm + "px", height: pitch - 3 + "px" } }, body); });
+  H("div", { class: "small", style: { position: "absolute", left: X0 + 70 + "px", top: "-6px" } }, body, "Faint: every layer's measured effect. Click a layer to swap it.");
   [...MS.swapped].forEach(draw);
   const sd = H("div", { class: "panel", style: { left: "900px", top: "0px", width: "474px", height: "482px" } }, body);
   const inner = H("div", { style: { position: "absolute", left: "18px", right: "18px", top: "14px", bottom: "12px" } }, sd);
@@ -375,14 +378,21 @@ function step6() {
 }
 
 /* ------------------------------------------------------------------ step 7: fine-tuning */
-function lossChart(parent, { x, y, w, h, pts, marks }) {
+function lossChart(parent, { x, y, w, h, pts, marks, zoom = false, note = null }) {
   // graph paper, pencil points joined by a faint pencil line; pts: [{x, y, label, ring}]
   const g = H("div", { style: { position: "absolute", left: x + "px", top: y + "px", width: w + "px", height: h + "px", border: "1.5px solid var(--print)", backgroundImage: "linear-gradient(var(--print-soft) 1px, transparent 1px), linear-gradient(90deg, var(--print-soft) 1px, transparent 1px)", backgroundSize: "24px 24px" } }, parent);
-  const ys = pts.map((p) => p.y), lo = 0, hi = Math.max(...ys) * 1.08, xs = pts.map((p) => p.x), x0 = Math.min(...xs), x1 = Math.max(...xs);
-  const px = (v) => 26 + ((v - x0) / (x1 - x0 || 1)) * (w - 80), py = (v) => 22 + (1 - (v - lo) / (hi - lo || 1)) * (h - 56);
+  const ys = pts.map((p) => p.y), xs = pts.map((p) => p.x), x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const span = Math.max(...ys) - Math.min(...ys), lo = zoom ? Math.max(0, Math.min(...ys) - span * 0.06) : 0, hi = zoom ? Math.max(...ys) + span * 0.06 : Math.max(...ys) * 1.08;
+  const L0 = zoom ? 62 : 26, px = (v) => L0 + ((v - x0) / (x1 - x0 || 1)) * (w - L0 - 54), py = (v) => (zoom ? 12 : 22) + (1 - (v - lo) / (hi - lo || 1)) * (h - (zoom ? 40 : 56));
+  if (zoom) {
+    [hi, (lo + hi) / 2, lo].forEach((t) => H("div", { class: "plab", style: { left: "4px", top: py(t) - 9 + "px", fontSize: "13px", width: "52px", textAlign: "right" } }, g, t.toFixed(2)));
+    H("div", { class: "plab", style: { left: L0 + "px", top: h - 22 + "px", fontSize: "13px" } }, g, `step ${x0}`);
+    H("div", { class: "plab", style: { right: "6px", top: h - 22 + "px", fontSize: "13px" } }, g, `step ${x1}`);
+  }
   const P = pts.map((p) => [px(p.x), py(p.y)]);
   (marks || []).forEach((m) => { H("div", { class: "mvline", style: { left: px(m.x) + "px", top: "8px", height: h - 20 + "px", opacity: .6 } }, g); if (m.label) H("div", { class: "plab", style: { left: px(m.x) + 4 + "px", top: "2px", fontSize: "13px" } }, g, m.label); });
   if (P.length > 1) penStroke(g, P.map((p) => [p[0].toFixed(1), p[1].toFixed(1)].map(Number)), { color: "--pencil", pencil: true, width: pts.length > 20 ? 1.6 : 1.4, delay: 200, dur: pts.length > 20 ? 1.2 : 0.5 });
+  if (note) H("div", { class: "plab", style: { right: "8px", top: "2px", fontSize: "14px", fontWeight: 600, color: "var(--red)" } }, g, note);
   pts.forEach((p, i) => {
     if (pts.length <= 8) { S("svg", {}, g); const d = H("div", { style: { position: "absolute", left: P[i][0] - 5 + "px", top: P[i][1] - 5 + "px", width: "10px", height: "10px", borderRadius: "50%", background: "var(--pencil)", filter: "url(#pencil)" } }, g); }
     if (p.label) writeText(g, { x: Math.min(P[i][0] - 30, w - 160), y: P[i][1] + 6, text: p.label, size: 26, delay: 500 + Math.min(i, 6) * 200, dur: 0.4 });
@@ -396,13 +406,13 @@ function step7() {
   const body = mpage(7, "Two ways to train it not to follow the hint.", isL ? "Fine-tuning shows it hinted prompts and a target that names the hint's source, then decides." : "Consistency training shows it hinted prompts and its own reasoning from the same question with no hint.");
   if (isL) {
     ptext(body, 0, 0, 440, `<b>LoRA</b> trains small add-on weights, not the whole model. Each example is a hinted prompt; its target opens by saying where the hint came from, then reasons to a decision.`, 21);
-    [[mv(lo.rank), "LoRA rank"], [mv(lo.alpha), "alpha"], [fmt(mv(lo.steps)), `steps, ${mv(lo.epochs)} epochs of ${mv(lo.per_step)} examples`], [mv(lo.lr), "learning rate"]].forEach(([n, l], k) => sbox(body, { x: (k % 2) * 220, y: 128 + Math.floor(k / 2) * 90, w: 206, h: 82, n: String(n), label: l, delay: 300 + k * 150 }));
-    plab(body, 0, 312, 440, `<b>${fmt(mv(ld.examples))}</b> examples = ${fmt(mv(ld.train))} to train on + ${fmt(mv(ld.validation))} held back to choose the epoch, from ${fmt(mv(ld.kept))} of ${fmt(mv(ld.questions_run))} questions the model already got right. ${mv(ld.neither)} were dropped: the reasoning neither followed nor rejected the hint.`, "plab", 16);
+    [[mv(lo.rank), "LoRA rank"], [mv(lo.alpha), "alpha"], [fmt(mv(lo.steps)), `steps, ${mv(lo.epochs)} epochs of ${mv(lo.per_step)} examples`], [mv(lo.lr), "learning rate"]].forEach(([n, l], k) => sbox(body, { x: (k % 2) * 220, y: 120 + Math.floor(k / 2) * 72, w: 206, h: 66, n: String(n), label: l, delay: 300 + k * 150 }));
+    plab(body, 0, 266, 440, `<b>${fmt(mv(ld.examples))}</b> examples = ${fmt(mv(ld.train))} to train on + ${fmt(mv(ld.validation))} held back to choose the epoch, from ${fmt(mv(ld.kept))} of ${fmt(mv(ld.questions_run))} questions the model already got right. ${mv(ld.neither)} were dropped: the reasoning neither followed nor rejected the hint.`, "plab", 16);
   } else {
     ptext(body, 0, 0, 440, `<b>Consistency training</b>: for each hinted prompt, the target is the model's own reasoning on the <b>same question with no hint</b>, so it learns to reason as if the hint were absent, and to say the hint was there.`, 21);
-    [[fmt(mv(bc.examples)), "examples in all"], [fmt(mv(bc.train)), "to train on"], [fmt(mv(bc.validation)), "held back to choose the epoch"], [fmt(mv(bc.hinted)), "of them with a hint (the rest, none)"]].forEach(([n, l], k) => sbox(body, { x: (k % 2) * 220, y: 156 + Math.floor(k / 2) * 90, w: 206, h: 82, n, label: l, delay: 300 + k * 150 }));
+    [[fmt(mv(bc.examples)), "examples in all"], [fmt(mv(bc.train)), "to train on"], [fmt(mv(bc.validation)), "held back to choose the epoch"], [fmt(mv(bc.hinted)), "with a hint"]].forEach(([n, l], k) => sbox(body, { x: (k % 2) * 220, y: 148 + Math.floor(k / 2) * 72, w: 206, h: 66, n, label: l, delay: 300 + k * 150 }));
     const dr = mv(bc.dropped, {});
-    plab(body, 0, 340, 440, `${mv(bc.dropped_total)} prompts dropped: ${Object.entries(dr).map(([k, v]) => `${v}, ${k}`).join("; ")}. ${mv(bc.steps)} steps over 2 epochs.`, "plab", 16);
+    plab(body, 0, 294, 440, `${mv(bc.dropped_total)} prompts dropped: ${Object.entries(dr).map(([k, v]) => `${v}, ${k}`).join("; ")}. ${mv(bc.steps)} steps over 2 epochs.`, "plab", 16);
   }
   // validation loss: the chosen epoch ringed; per-step curves replace the epoch points when the Sol logs are present
   const lp = isL ? [{ x: 0, y: mv(ll.base), label: `start ${mv(ll.base).toFixed(3)}` }, { x: 1, y: mv(ll.epoch1), label: `e1 ${mv(ll.epoch1).toFixed(3)}` }, { x: 2, y: mv(ll.epoch2), label: `e2 ${mv(ll.epoch2).toFixed(3)}` }]
@@ -412,14 +422,13 @@ function step7() {
   const tv = isL ? (cu[MS.tv] ? MS.tv : "lora") : "a40", chosen = cu[tv];
   const LVT = { lora: "LoRA on every layer", lora_tags: "LoRA with source tags", lora_attn3: "LoRA on layers 15, 19 and 23 only", tags: "source tags only, the model frozen", a40: "consistency training" };
   if (chosen && isL && LV.length > 1) {
-    plab(body, 0, 380, 120, "Loss per step:", "plab", 16);
-    LV.forEach(([k, l], j) => { const b = mbtn(body, { x: 112 + j * 82, y: 376, w: 78, text: l, fn: () => { MS.tv = k; show(cur, { instant: true }); } }); b.classList.add("msm"); if (k === tv) b.classList.add("on"); b.title = LVT[k]; });
-  } else plab(body, 0, 384, 440, chosen ? `Training loss, step by step (from 0): ${LVT[tv]}` : (isL ? "Validation loss: start, e1, e2 (from 0)" : `Validation loss: e1, e2 (from 0); epoch ${mv(bc.chosen)}, the lower, kept`), "plab", 16);
+    plab(body, 0, 336, 120, "Loss per step:", "plab", 16);
+    LV.forEach(([k, l], j) => { const b = mbtn(body, { x: 112 + j * 82, y: 332, w: 78, text: l, fn: () => { MS.tv = k; show(cur, { instant: true }); } }); b.classList.add("msm"); if (k === tv) b.classList.add("on"); b.title = LVT[k]; });
+  } else plab(body, 0, 340, 440, chosen ? `Training loss per step: ${LVT[tv]}` : (isL ? "Validation loss: start, e1, e2 (from 0)" : `Validation loss: e1, e2 (from 0); epoch ${mv(bc.chosen)}, the lower, kept`), "plab", 16);
   if (chosen) {
     const cv = chosen.v, pts = cv.points.map((p) => ({ x: p[0], y: p[1] })), ch = cv.chosen;
-    if (ch) pts[pts.length - 1].label = `epoch ${ch.epoch} kept`;
-    lossChart(body, { x: 0, y: 404, w: 440, h: 78, pts, marks: (cv.epochs || []).slice(0, -1).map((e) => ({ x: e.step, label: `epoch ${e.epoch + 1}` })) });
-  } else lossChart(body, { x: 0, y: 404, w: 440, h: 78, pts: lp });
+    lossChart(body, { x: 0, y: 362, w: 440, h: 120, pts, zoom: true, note: ch ? `epoch ${ch.epoch} kept` : null, marks: (cv.epochs || []).slice(0, -1).map((e) => ({ x: e.step, label: `epoch ${e.epoch + 1}` })) });
+  } else lossChart(body, { x: 0, y: 362, w: 440, h: 120, pts: lp });
   // the pair
   const pr = ML && ML[isL ? "lora" : "bct"];
   const PX = 470, PW = 904;

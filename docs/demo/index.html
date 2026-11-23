@@ -195,7 +195,7 @@ svg text { font-family: var(--print-font); }
 .prompt .t { padding: 2px 16px 0; font-size: 21px; line-height: 1.28; color: var(--ink); }
 .prompt .opts { column-count: 2; column-gap: 22px; padding: 4px 16px 0; font-size: 21px; line-height: 1.28; color: var(--ink); }
 .prompt .opts div { break-inside: avoid; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.prompt mark { background: color-mix(in srgb, var(--canary) 80%, transparent); color: inherit; padding: 0 2px; }
+.prompt mark { background: color-mix(in srgb, var(--canary) 80%, transparent); color: #2B2A1E; padding: 0 2px; }
 .qpane { position: absolute; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--print-soft) transparent; }
 .qopt { display: flex; gap: 10px; align-items: flex-start; font-size: 21px; line-height: 1.28; color: var(--ink); margin: 0 0 8px; }
 .qopt .lt { flex: none; width: 30px; height: 20px; margin-top: 3px; border: 1.4px solid var(--print); border-radius: 10px; font-family: var(--print-font); font-size: 15px; color: var(--print); display: grid; place-items: center; }
@@ -206,9 +206,10 @@ svg text { font-family: var(--print-font); }
 .mhit:hover { background: color-mix(in srgb, var(--canary) 30%, transparent); }
 .ruledp { position: absolute; border: 1.5px solid var(--print); background-image: repeating-linear-gradient(to bottom, transparent 0 33px, var(--print-soft) 33px 34px); overflow: auto; scrollbar-width: thin; scrollbar-color: var(--print-soft) transparent; padding: 30px 16px 6px; font-size: 21px; line-height: 34px; color: var(--ink); white-space: pre-wrap; }
 .ruledp .lab { position: absolute; left: 12px; top: 6px; font-family: var(--print-font); font-size: 17px; color: var(--print); line-height: 1; }
-.ruledp mark { background: color-mix(in srgb, var(--canary) 80%, transparent); color: inherit; }
+.ruledp mark { background: color-mix(in srgb, var(--canary) 80%, transparent); color: #2B2A1E; }
 .mbtn.msm { font-size: 14px; padding: 1px 4px 2px; }
 .mbtn.msm.on { background: var(--print); color: var(--paper); }
+.mfaint { position: absolute; pointer-events: none; background: var(--pencil); opacity: .18; border-radius: 1px; }
 
 /* ---- part 2, the test bench ---- */
 .blist { position: absolute; left: 0; top: 0; width: 205px; display: flex; flex-direction: column; gap: 6px; }
@@ -235,6 +236,11 @@ svg text { font-family: var(--print-font); }
 .bohead .xlink { margin-left: auto; }
 .bobody { padding: 14px 18px; overflow: auto; flex: 1; font-size: 18px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: var(--ink); }
 .brec.one { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bprompt { position: absolute; left: 18px; right: 14px; top: 72px; bottom: 40px; overflow: auto; scrollbar-width: thin; display: flex; flex-direction: column; gap: 10px; }
+.bturn .who { font-family: var(--print-font); font-size: 15px; color: var(--print); text-transform: uppercase; letter-spacing: .06em; }
+.bturn .txt { font-size: 17px; line-height: 1.4; color: var(--ink); white-space: pre-wrap; }
+.bturn mark { background: color-mix(in srgb, var(--canary) 80%, transparent); color: #2B2A1E; padding: 0 2px; }
+.bpfoot { position: absolute; left: 18px; right: 18px; bottom: 10px; }
 
 </style>
 </head>
@@ -785,7 +791,7 @@ function beat8() {
   const NAME = { base: "No fix", prompt_only: "One-line instruction", lora: "Fine-tuned", lora_note: "Fine-tuned + instruction", a40: "Consistency-trained", a40_note: "Consistency-trained + instruction" };
   const OFF = { base: [18, -14], prompt_only: [14, -44], lora: [-6, 14], lora_note: [18, -14], a40: [18, -14], a40_note: [18, -36] };
   const body = statement(8, "Every fix is a trade-off.", "Fixes that resist wrong hints also distrust right ones.");
-  const el = panel(body, { x: 0, y: 0, w: 1374, h: 470, title: "Six fixes on Olmo 3 7B Think", sub: "each dot is one fix, tested on the same questions" });
+  const el = panel(body, { x: 0, y: 0, w: 1374, h: 470, title: "Five fixes and no fix, on Olmo 3 7B Think", sub: "each dot is one version, tested on the same questions" });
   const acc = (k) => rate(SY[k].acceptance), res = (k) => 1 - rate(SY[k].following);
   const lo = (f) => Math.floor(Math.min(...keys.map(f)) * 20) / 20, hi = (f) => Math.ceil(Math.max(...keys.map(f)) * 20) / 20;
   const ax0 = lo(acc), ax1 = hi(acc), ay0 = lo(res), ay1 = hi(res);
@@ -982,17 +988,18 @@ function mapPage() {
     { t: "The hint", c: "one wrong letter", steps: [2] },
     { t: "The models", c: `${mv(MX.counts && MX.counts.models, "")} of them`, steps: [3, 4] },
     { t: "Inside the model", c: `${mv(MX.arch && MX.arch.layers, "")} layers`, steps: [5, 6] },
-    { t: "What it wrote", c: "reasoning, then an answer", steps: [] },
+    { t: "What it wrote", c: "reasoning, then an answer", steps: [], bench: 2 },
     { t: "How we checked", c: "labels and statistics", steps: [11] },
   ];
   const X = (k) => k * (W + GAP);
   nodes.forEach((n, k) => {
-    const box = H("div", { class: "mnode" + (n.steps.length ? "" : " plain"), style: { left: X(k) + "px", top: Y + "px", width: W + "px", height: NH + "px" } }, body, `<h3>${n.t}</h3><div class="cap">${n.c}</div>`);
+    const box = H("div", { class: "mnode" + (n.steps.length || n.bench != null ? "" : " plain"), style: { left: X(k) + "px", top: Y + "px", width: W + "px", height: NH + "px" } }, body, `<h3>${n.t}</h3><div class="cap">${n.c}</div>`);
     const rows = H("div", { class: "rows", style: { top: "112px" } }, box);
     n.steps.forEach((s) => {
       const b = H("button", { type: "button", class: "mstep", "aria-pressed": "false" }, rows, `<span class="mnum">${s}</span><span class="lab">${STEPNAME[s].s}</span>`);
       b.addEventListener("click", () => show(s));
     });
+    if (n.bench != null) H("button", { type: "button", class: "mstep" }, rows, `<span class="mnum">▸</span><span class="lab">Bench, test ${n.bench + 1}</span>`).addEventListener("click", () => go("bench", n.bench));
     if (k < 5) line(body, X(k) + W + 4, Y + 38, X(k + 1) - 4, Y + 38);
   });
   // branches
@@ -1009,7 +1016,7 @@ function mapPage() {
   const tracks = [
     { x1: X(1), x2: X(2) + W, label: "models and sources" },
     { x1: X(3) - 40, x2: X(3) + 230, label: "inside the model and the fixes" },
-    { x1: X(5) - 80, x2: X(5) + 190, label: "downstream review" },
+    { x1: X(5) - 80, x2: X(5) + 190, label: "review teams" },
   ];
   tracks.forEach((t, j) => {
     penStroke(body, [[t.x1, 448], [t.x1 + 8, 457], [t.x2 - 8, 456], [t.x2, 448]], { delay: 500 + j * 500, color: "--pencil", pencil: true, width: 2.6 });
@@ -1037,9 +1044,9 @@ function step1() {
     const qp = H("div", { class: "qpane", style: { left: "16px", top: "40px", width: "400px", height: "430px" } }, pn);
     H("div", { style: { fontSize: "21px", lineHeight: 1.36, color: "var(--ink)" } }, qp, r.question);
     H("div", { class: "pmuted", style: { position: "static", marginTop: "10px" } }, qp, `${r.category}, id ${r.id}`);
-    const op = H("div", { class: "qpane", style: { left: "440px", top: "40px", width: "448px", height: "430px", paddingRight: "8px" } }, pn);
+    const op = H("div", { class: "qpane", style: { left: "440px", top: "40px", width: "448px", height: "404px", paddingRight: "8px" } }, pn);
     r.options.forEach((o, k) => H("div", { class: "qopt" }, op, `<span class="lt">${"ABCDEFGHIJ"[k]}</span><span>${o.replace(/</g, "&lt;")}</span>`));
-    at(0, () => { if (op.scrollHeight > op.clientHeight + 4) plab(pn, 700, 10, 190, "↓ scroll the options", "illus"); });
+    at(0, () => { if (op.scrollHeight > op.clientHeight + 4) plab(pn, 440, 450, 300, "↓ scroll the options", "plab illus"); });
   }
   choiceRow("Question", flip.map((q, k) => ({ id: k, label: String(k + 1) })), MS.q, (k) => { MS.q = k; show(cur); }, "flip through six drawn at random with our seed");
 }
@@ -1232,8 +1239,10 @@ function step6() {
     if (m > 0.004) pbar(body, { x: X0 + 70, y: yc - (pitch - 3) / 2, w: lenb * m / maxm, h: pitch - 3 });
     writeText(body, { x: X0 + 70 + Math.max(0, lenb * m / maxm) + 12, y: yc - 17, text: m > 0.004 ? pct(m) : "none", size: 32, red: true, delay: 250, dur: 0.3 });
   };
+  if (!MS.swapped.size) { MS.swapped.add(MS.layer); MS.last = MS.layer; }
   const lc = layerColumn(body, { x: X0, y: 14, pitch, len: lenb, sel: -1, fullHl: false, onPick: (i, b) => { if (MS.swapped.has(i)) return; MS.swapped.add(i); MS.view = "layer"; MS.last = i; draw(i); side(); } });
-  H("div", { class: "small", style: { position: "absolute", left: X0 + 70 + "px", top: "-6px" } }, body, "Click a layer to swap it.");
+  L.effect.forEach((e, i) => { if (e.m > 0.004) H("div", { class: "mfaint", style: { left: X0 + 70 + "px", top: 14 + i * pitch + 1.5 + "px", width: lenb * e.m / maxm + "px", height: pitch - 3 + "px" } }, body); });
+  H("div", { class: "small", style: { position: "absolute", left: X0 + 70 + "px", top: "-6px" } }, body, "Faint: every layer's measured effect. Click a layer to swap it.");
   [...MS.swapped].forEach(draw);
   const sd = H("div", { class: "panel", style: { left: "900px", top: "0px", width: "474px", height: "482px" } }, body);
   const inner = H("div", { style: { position: "absolute", left: "18px", right: "18px", top: "14px", bottom: "12px" } }, sd);
@@ -1271,14 +1280,21 @@ function step6() {
 }
 
 /* ------------------------------------------------------------------ step 7: fine-tuning */
-function lossChart(parent, { x, y, w, h, pts, marks }) {
+function lossChart(parent, { x, y, w, h, pts, marks, zoom = false, note = null }) {
   // graph paper, pencil points joined by a faint pencil line; pts: [{x, y, label, ring}]
   const g = H("div", { style: { position: "absolute", left: x + "px", top: y + "px", width: w + "px", height: h + "px", border: "1.5px solid var(--print)", backgroundImage: "linear-gradient(var(--print-soft) 1px, transparent 1px), linear-gradient(90deg, var(--print-soft) 1px, transparent 1px)", backgroundSize: "24px 24px" } }, parent);
-  const ys = pts.map((p) => p.y), lo = 0, hi = Math.max(...ys) * 1.08, xs = pts.map((p) => p.x), x0 = Math.min(...xs), x1 = Math.max(...xs);
-  const px = (v) => 26 + ((v - x0) / (x1 - x0 || 1)) * (w - 80), py = (v) => 22 + (1 - (v - lo) / (hi - lo || 1)) * (h - 56);
+  const ys = pts.map((p) => p.y), xs = pts.map((p) => p.x), x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const span = Math.max(...ys) - Math.min(...ys), lo = zoom ? Math.max(0, Math.min(...ys) - span * 0.06) : 0, hi = zoom ? Math.max(...ys) + span * 0.06 : Math.max(...ys) * 1.08;
+  const L0 = zoom ? 62 : 26, px = (v) => L0 + ((v - x0) / (x1 - x0 || 1)) * (w - L0 - 54), py = (v) => (zoom ? 12 : 22) + (1 - (v - lo) / (hi - lo || 1)) * (h - (zoom ? 40 : 56));
+  if (zoom) {
+    [hi, (lo + hi) / 2, lo].forEach((t) => H("div", { class: "plab", style: { left: "4px", top: py(t) - 9 + "px", fontSize: "13px", width: "52px", textAlign: "right" } }, g, t.toFixed(2)));
+    H("div", { class: "plab", style: { left: L0 + "px", top: h - 22 + "px", fontSize: "13px" } }, g, `step ${x0}`);
+    H("div", { class: "plab", style: { right: "6px", top: h - 22 + "px", fontSize: "13px" } }, g, `step ${x1}`);
+  }
   const P = pts.map((p) => [px(p.x), py(p.y)]);
   (marks || []).forEach((m) => { H("div", { class: "mvline", style: { left: px(m.x) + "px", top: "8px", height: h - 20 + "px", opacity: .6 } }, g); if (m.label) H("div", { class: "plab", style: { left: px(m.x) + 4 + "px", top: "2px", fontSize: "13px" } }, g, m.label); });
   if (P.length > 1) penStroke(g, P.map((p) => [p[0].toFixed(1), p[1].toFixed(1)].map(Number)), { color: "--pencil", pencil: true, width: pts.length > 20 ? 1.6 : 1.4, delay: 200, dur: pts.length > 20 ? 1.2 : 0.5 });
+  if (note) H("div", { class: "plab", style: { right: "8px", top: "2px", fontSize: "14px", fontWeight: 600, color: "var(--red)" } }, g, note);
   pts.forEach((p, i) => {
     if (pts.length <= 8) { S("svg", {}, g); const d = H("div", { style: { position: "absolute", left: P[i][0] - 5 + "px", top: P[i][1] - 5 + "px", width: "10px", height: "10px", borderRadius: "50%", background: "var(--pencil)", filter: "url(#pencil)" } }, g); }
     if (p.label) writeText(g, { x: Math.min(P[i][0] - 30, w - 160), y: P[i][1] + 6, text: p.label, size: 26, delay: 500 + Math.min(i, 6) * 200, dur: 0.4 });
@@ -1292,13 +1308,13 @@ function step7() {
   const body = mpage(7, "Two ways to train it not to follow the hint.", isL ? "Fine-tuning shows it hinted prompts and a target that names the hint's source, then decides." : "Consistency training shows it hinted prompts and its own reasoning from the same question with no hint.");
   if (isL) {
     ptext(body, 0, 0, 440, `<b>LoRA</b> trains small add-on weights, not the whole model. Each example is a hinted prompt; its target opens by saying where the hint came from, then reasons to a decision.`, 21);
-    [[mv(lo.rank), "LoRA rank"], [mv(lo.alpha), "alpha"], [fmt(mv(lo.steps)), `steps, ${mv(lo.epochs)} epochs of ${mv(lo.per_step)} examples`], [mv(lo.lr), "learning rate"]].forEach(([n, l], k) => sbox(body, { x: (k % 2) * 220, y: 128 + Math.floor(k / 2) * 90, w: 206, h: 82, n: String(n), label: l, delay: 300 + k * 150 }));
-    plab(body, 0, 312, 440, `<b>${fmt(mv(ld.examples))}</b> examples = ${fmt(mv(ld.train))} to train on + ${fmt(mv(ld.validation))} held back to choose the epoch, from ${fmt(mv(ld.kept))} of ${fmt(mv(ld.questions_run))} questions the model already got right. ${mv(ld.neither)} were dropped: the reasoning neither followed nor rejected the hint.`, "plab", 16);
+    [[mv(lo.rank), "LoRA rank"], [mv(lo.alpha), "alpha"], [fmt(mv(lo.steps)), `steps, ${mv(lo.epochs)} epochs of ${mv(lo.per_step)} examples`], [mv(lo.lr), "learning rate"]].forEach(([n, l], k) => sbox(body, { x: (k % 2) * 220, y: 120 + Math.floor(k / 2) * 72, w: 206, h: 66, n: String(n), label: l, delay: 300 + k * 150 }));
+    plab(body, 0, 266, 440, `<b>${fmt(mv(ld.examples))}</b> examples = ${fmt(mv(ld.train))} to train on + ${fmt(mv(ld.validation))} held back to choose the epoch, from ${fmt(mv(ld.kept))} of ${fmt(mv(ld.questions_run))} questions the model already got right. ${mv(ld.neither)} were dropped: the reasoning neither followed nor rejected the hint.`, "plab", 16);
   } else {
     ptext(body, 0, 0, 440, `<b>Consistency training</b>: for each hinted prompt, the target is the model's own reasoning on the <b>same question with no hint</b>, so it learns to reason as if the hint were absent, and to say the hint was there.`, 21);
-    [[fmt(mv(bc.examples)), "examples in all"], [fmt(mv(bc.train)), "to train on"], [fmt(mv(bc.validation)), "held back to choose the epoch"], [fmt(mv(bc.hinted)), "of them with a hint (the rest, none)"]].forEach(([n, l], k) => sbox(body, { x: (k % 2) * 220, y: 156 + Math.floor(k / 2) * 90, w: 206, h: 82, n, label: l, delay: 300 + k * 150 }));
+    [[fmt(mv(bc.examples)), "examples in all"], [fmt(mv(bc.train)), "to train on"], [fmt(mv(bc.validation)), "held back to choose the epoch"], [fmt(mv(bc.hinted)), "with a hint"]].forEach(([n, l], k) => sbox(body, { x: (k % 2) * 220, y: 148 + Math.floor(k / 2) * 72, w: 206, h: 66, n, label: l, delay: 300 + k * 150 }));
     const dr = mv(bc.dropped, {});
-    plab(body, 0, 340, 440, `${mv(bc.dropped_total)} prompts dropped: ${Object.entries(dr).map(([k, v]) => `${v}, ${k}`).join("; ")}. ${mv(bc.steps)} steps over 2 epochs.`, "plab", 16);
+    plab(body, 0, 294, 440, `${mv(bc.dropped_total)} prompts dropped: ${Object.entries(dr).map(([k, v]) => `${v}, ${k}`).join("; ")}. ${mv(bc.steps)} steps over 2 epochs.`, "plab", 16);
   }
   // validation loss: the chosen epoch ringed; per-step curves replace the epoch points when the Sol logs are present
   const lp = isL ? [{ x: 0, y: mv(ll.base), label: `start ${mv(ll.base).toFixed(3)}` }, { x: 1, y: mv(ll.epoch1), label: `e1 ${mv(ll.epoch1).toFixed(3)}` }, { x: 2, y: mv(ll.epoch2), label: `e2 ${mv(ll.epoch2).toFixed(3)}` }]
@@ -1308,14 +1324,13 @@ function step7() {
   const tv = isL ? (cu[MS.tv] ? MS.tv : "lora") : "a40", chosen = cu[tv];
   const LVT = { lora: "LoRA on every layer", lora_tags: "LoRA with source tags", lora_attn3: "LoRA on layers 15, 19 and 23 only", tags: "source tags only, the model frozen", a40: "consistency training" };
   if (chosen && isL && LV.length > 1) {
-    plab(body, 0, 380, 120, "Loss per step:", "plab", 16);
-    LV.forEach(([k, l], j) => { const b = mbtn(body, { x: 112 + j * 82, y: 376, w: 78, text: l, fn: () => { MS.tv = k; show(cur, { instant: true }); } }); b.classList.add("msm"); if (k === tv) b.classList.add("on"); b.title = LVT[k]; });
-  } else plab(body, 0, 384, 440, chosen ? `Training loss, step by step (from 0): ${LVT[tv]}` : (isL ? "Validation loss: start, e1, e2 (from 0)" : `Validation loss: e1, e2 (from 0); epoch ${mv(bc.chosen)}, the lower, kept`), "plab", 16);
+    plab(body, 0, 336, 120, "Loss per step:", "plab", 16);
+    LV.forEach(([k, l], j) => { const b = mbtn(body, { x: 112 + j * 82, y: 332, w: 78, text: l, fn: () => { MS.tv = k; show(cur, { instant: true }); } }); b.classList.add("msm"); if (k === tv) b.classList.add("on"); b.title = LVT[k]; });
+  } else plab(body, 0, 340, 440, chosen ? `Training loss per step: ${LVT[tv]}` : (isL ? "Validation loss: start, e1, e2 (from 0)" : `Validation loss: e1, e2 (from 0); epoch ${mv(bc.chosen)}, the lower, kept`), "plab", 16);
   if (chosen) {
     const cv = chosen.v, pts = cv.points.map((p) => ({ x: p[0], y: p[1] })), ch = cv.chosen;
-    if (ch) pts[pts.length - 1].label = `epoch ${ch.epoch} kept`;
-    lossChart(body, { x: 0, y: 404, w: 440, h: 78, pts, marks: (cv.epochs || []).slice(0, -1).map((e) => ({ x: e.step, label: `epoch ${e.epoch + 1}` })) });
-  } else lossChart(body, { x: 0, y: 404, w: 440, h: 78, pts: lp });
+    lossChart(body, { x: 0, y: 362, w: 440, h: 120, pts, zoom: true, note: ch ? `epoch ${ch.epoch} kept` : null, marks: (cv.epochs || []).slice(0, -1).map((e) => ({ x: e.step, label: `epoch ${e.epoch + 1}` })) });
+  } else lossChart(body, { x: 0, y: 362, w: 440, h: 120, pts: lp });
   // the pair
   const pr = ML && ML[isL ? "lora" : "bct"];
   const PX = 470, PW = 904;
@@ -1744,6 +1759,54 @@ async function runView(body, run, x0, w, { compact = false, label, checks = 3 } 
   return X;
 }
 
+/* ---------------- the tracked build: each test's prompt in place of the recorded runs ----------------
+   The experiments' own template on a sample question (method.json: hint.sources, fixes, review, patching), the hint marked. */
+function promptCard(body, T, c) {
+  const MXH = (typeof METHOD !== "undefined" && METHOD) || {}, hs = (MXH.hint && MXH.hint.sources) || [], v = (o, d) => (o && o.v !== undefined ? o.v : d);
+  const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const wrong = v(MXH.hint && MXH.hint.wrong_letter, "C"), right = v(MXH.hint && MXH.hint.right_letter, "D");
+  let id = c.src, letter = wrong, sys = null, label = null, after = "";
+  if (T.no === 2 && id === "plain") id = "user";
+  if (T.no === 3) id = "call";
+  if (T.no === 4) {
+    const [h, k] = String(c.h).split("|");
+    id = h === "call" ? "inserted" : h; if (k === "r") letter = right;
+    if (/note$|^prompt_only$/.test(c.fix)) sys = v(MXH.fixes && MXH.fixes.instruction, "");
+    if (/wrap/.test(c.fix) && id === "inserted") label = v(MXH.fixes && MXH.fixes.label, "");
+    if (/^(lora|a40)/.test(c.fix)) after = "A trained version: the same template, its weights changed (map, step 7).";
+  }
+  if (T.no === 6) { id = "inserted"; after = `What is measured, layer by layer: ${v(MXH.patching && MXH.patching.measure, "")}.`; }
+  const el = panel(body, { x: 230, y: 0, w: 740, h: 478, title: "The prompt this test sends", sub: "the experiments’ own template, on a sample question" });
+  const box = H("div", { class: "bprompt" }, el);
+  const turn = (who, html) => H("div", { class: "bturn" }, box, `<div class="who">${who}</div><div class="txt">${html}</div>`);
+  const swap = (t) => (letter === wrong ? t : t.split(`(${wrong})`).join(`(${letter})`).split(`"${wrong}"`).join(`"${letter}"`));
+  if (T.no === 5) {
+    const R = MXH.review || {};
+    turn("The reviewer’s instruction", esc(v(R.reviewer_system, "")));
+    const seen = ["[the question and its ten options]", "[the solver’s final answer]"];
+    if (c.v === "plus_private") seen.push(`${esc(v(R.private_header, ""))}\n[the solver’s private reasoning]`);
+    if (c.v === "plus_tool_log") seen.push(`${esc(v(R.log_header, ""))}\n<mark>[the tool’s call and its wrong reply]</mark>`);
+    turn("What it is shown", seen.join("\n\n"));
+    if (c.v === "chk") turn("The checker", esc(`It ${v(R.checker, "")}.`));
+  } else {
+    const S = hs.find((x) => x.id === (id === "none" ? "user" : id));
+    if (!S) { H("div", { class: "small" }, box, "No template for this condition."); return el; }
+    if (sys) turn("System, at its end", `<mark>${esc(sys)}</mark>`);
+    S.turns.forEach((t) => {
+      if (t.role === "user") {
+        const paras = t.text.split("\n\n"), last = paras.length - 1;
+        const inUser = ["user", "classmate", "key", "manual", "pasted", "none"].includes(id);
+        const html = paras.map((q, k) => (k === 0 ? esc(q.replace(/\n(?=\([A-J]\) )/g, "   ")) : k === last || !inUser ? esc(q) : id === "none" ? null : `<mark>${esc(swap(q))}</mark>`)).filter((x) => x !== null).join("\n\n");
+        turn("User", html);
+      } else if (t.role === "tool reply") turn("The tool replies", `<mark>${esc((label || "") + swap(t.text))}</mark>`);
+      else turn("The assistant calls a tool", esc(t.text));
+    });
+    if (S.call) { turn("The model calls the tool", esc(S.call)); turn("The tool replies", `<mark>${esc(swap(S.reply))}</mark>`); }
+  }
+  H("div", { class: "small bpfoot" }, el, (after ? after + " " : "") + (T.no === 1 && ["Gemma 4 26B-A4B", "Granite 4.2 8B"].includes(c.m) ? "This model’s recorded runs are on a teammate’s account. " : "") + "Recorded runs of seeded questions replay in the local build.");
+  return el;
+}
+
 /* ---------------- each test's page ---------------- */
 function benchPage(i) {
   return () => {
@@ -1755,11 +1818,7 @@ function benchPage(i) {
     testList(body);
     const fp = frozenPanel(body, T, c);
     T.rows().forEach((r) => choiceRow(r.label, r.opts, c[r.key], (v) => { c[r.key] = v; BS.last = null; show(i); }, r.note));
-    if (!RR) {
-      H("div", { class: "bnote" }, body, "Recorded runs appear in the local build.<br><span class='small'>This page has the frozen results only. The local build replays every recorded run of seeded questions, each with its file and line.</span>");
-      if (T.no === 1 && ["Gemma 4 26B-A4B", "Granite 4.2 8B"].includes(c.m)) H("div", { class: "small", style: { position: "absolute", left: "230px", top: "200px" } }, body, "Recorded runs not in this build: this model’s runs are on a teammate’s account.");
-      return;
-    }
+    if (!RR) return promptCard(body, T, c);
     yourRuns(fp, T, c);
     if (T.no === 6) return insidePage(body, T, c);
     if (T.no === 5) return reviewPage(body, T, c);
@@ -1777,7 +1836,7 @@ function benchPage(i) {
         const rs = runsFor(T, cc, q), r = rs[(pick && pick.idx) || 0];
         const hs = T.no === 4 ? cc.h.split("|")[0] : T.no === 3 ? "call" : cc.src === "plain" ? "user" : cc.src;
         const hint = !r || hs === "none" ? "no hint" : `${(SRCNAME[hs] || hs).toLowerCase()} says (${r.H})`;
-        if (r) runView(body, r, x, 355, { compact: true, label: `${j ? "Compare" : "This"}: ${condLabel(T, cc)}; ${hint}` });
+        if (r) runView(body, r, x, 355, { compact: true, label: `${j ? "Compare" : "This"}: ${T.no === 3 ? cc.s + "; " : T.no === 4 ? FIX[cc.fix] + "; " : ""}${hint}` });
         else H("div", { class: "small", style: { position: "absolute", left: x + "px", top: "180px", width: "340px" } }, body, `No recorded run of this question for ${condLabel(T, cc)}.`);
       });
       return;
@@ -1817,7 +1876,7 @@ function reviewPage(body, T, c) {
   const card = H("div", { class: "panel", style: { left: "720px", top: "165px", width: "250px", height: "300px" } }, body);
   H("div", { class: "ph" }, card, c.v === "chk" ? "<b>The checker</b><span>solves again, without the tool</span>" : `<b>The reviewer</b><span>${c.rv}; sees ${SEES[c.v]}</span>`);
   if (c.v === "chk") {
-    if (checker) { writeText(card, { x: 20, y: 80, text: `(${checker.L || "?"})`, size: 56, delay: 3400 }); stamp(card, { x: 18, y: 170, text: checker.flag ? "Flagged" : "Agrees", delay: 3900 });
+    if (checker) { writeText(card, { x: 20, y: 80, text: `(${checker.L || "?"})`, size: 56, delay: 3400 }); stamp(card, { x: 18, y: 170, text: checker.flag === true ? "Flagged" : checker.flag === false ? "Agrees" : "No flag recorded", delay: 3900 });
       H("div", { class: "illus", style: { position: "absolute", left: "14px", top: "250px", width: "220px" } }, card, `${checker.file}, line ${checker.line}`); }
     else H("div", { class: "small", style: { padding: "14px" } }, card, "No checker record for this case.");
   } else if (v) {

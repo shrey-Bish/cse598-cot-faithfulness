@@ -1,5 +1,5 @@
 """The demo's example outputs (Nov 13): a few already-labelled rows per section, drawn with a fixed string seed, for the
-local demo page only (tools/build_demo.py adds them to results/demo/explainer.html; the tracked docs/demo/explainer.html never
+local demo page only (tools/build_demo.py adds them to results/demo/explainer.html; the tracked archive/superseded/explainer_2026-11-14/explainer.html never
 holds them).
 
   python tools/demo_examples.py        # -> results/demo/examples.json (gitignored; the pre-push check refuses it)

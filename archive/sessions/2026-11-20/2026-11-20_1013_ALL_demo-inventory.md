@@ -10,7 +10,7 @@ level). The day's first session; the daily: [DAILY_2026-11-20](DAILY_2026-11-20.
 A pasted prompt, acted on as Ritik's, with the brief pasted beside it: the demo rebuilt as one offline page in the
 answer-sheet look (concept A, carried on as a template, `~/Downloads/demo_template/`), three parts: how we did it (a
 map of the project, each step opening on its method), run it (a test bench replaying real recorded runs) and what we
-found (ten result sheets). **Phase 1 only:** `docs/demo/INVENTORY.md` (where every method fact and every set of
+found (ten result sheets). **Phase 1 only:** `archive/demo_build/INVENTORY.md` (where every method fact and every set of
 recorded runs lives, what is only on Sol with its exact paths, what is missing), move the template in as
 `tools/demo_template/`, then stop. At most 2 helpers. Ritik paused the session partway ("stop it for now";
 both helpers stopped) and resumed it ("continue"; both resumed where they were).
@@ -18,7 +18,7 @@ both helpers stopped) and resumed it ("continue"; both resumed where they were).
 ## 1. What was done (10:13–13:39)
 
 - `~/Downloads/DEMO_SPEC.md` and `~/Downloads/demo_template/` are not on this Mac (Downloads, Desktop and Documents
-  searched). The brief was saved from the paste, word for word, as `docs/demo/DEMO_SPEC.md`; **the template was not
+  searched). The brief was saved from the paste, word for word, as `archive/demo_build/DEMO_SPEC.md`; **the template was not
   moved** (nothing to move). Phase 2 needs it.
 - Two helpers, read-only, no connection to any server: one found where each method fact lives (the map's steps
   2–11), the other the recorded runs for the six bench tests (on this Mac and, from the repo's records, on Sol).
@@ -27,7 +27,7 @@ both helpers stopped) and resumed it ("continue"; both resumed where they were).
   the fixes on this Mac (0 `.jsonl.gz` in `results/trackA/gpu/a39/` and `eval/`); no Qwen3-8B text
   (`sol_vllm.jsonl.gz` absent); all 486 tool-call runs in `voyager.jsonl.gz` carry their call.
 - One helper error corrected: the 120's pre-registration is the 11:30 log, not "13:30".
-- **The inventory:** `docs/demo/INVENTORY.md` (numbers, ids and paths only). In short:
+- **The inventory:** `archive/demo_build/INVENTORY.md` (numbers, ids and paths only). In short:
   - The map: steps 1–3, 5–10 rich on this Mac. Step 4 has no project-wide GPU-hour total (pieces only; `sacct` on
     Sol would give one). Step 7 has real training pairs on the Mac but its loss only per epoch (per-step logs on Sol).
     Step 11 has no contamination audit file (the 120's exclusion checks and the held-out leak checks exist).

@@ -17,8 +17,8 @@ python3 cot-disclosure/tools/make_submission.py             # the zip, once ever
 The second refuses, naming what isn't ready, while a part we write is missing (or `CONTRIBUTIONS.md` still holds its
 placeholder, or `AI_USE.md` still says "to confirm"). Once all are in, it writes
 `cot-disclosure/results/submission/cse598_group10_submission.zip` (gitignored): the report, the slides, the
-contributions, the AI-use disclosure, every figure (`docs/paper/figures/`: PNG, SVG and CSV), the explainer
-(`explainer/index.html`), `CODE_LINK.txt` (the repository, the freeze tag and its commit, main's commit at the build),
+contributions, the AI-use disclosure, every figure (`docs/paper/figures/`: PNG, SVG and CSV), the demo
+(`demo/index.html`), `CODE_LINK.txt` (the repository, the freeze tag and its commit, main's commit at the build),
 `BUNDLES.sha256` and a `MANIFEST.sha256` of every file. `--with-supplement` adds `docs/paper/supplement/` (whether it
 goes in as an appendix: confirm). `--verify-bundles` checks the bundles on this Mac against `BUNDLES.sha256` (all three
 matched on Nov 19, 10:22). Stdlib only; tests in `cot-disclosure/tests/test_make_submission.py`.
@@ -27,7 +27,7 @@ matched on Nov 19, 10:22). Stdlib only; tests in `cot-disclosure/tests/test_make
 
 "Ready" means made and checked; "to write by us" means the team's own words, which no tool writes.
 
-| piece | file | state (Nov 19) | who | by when |
+| piece | file | state (Nov 23) | who | by when |
 |---|---|---|---|---|
 | the report's material | [`docs/paper/REPORT.md`](../paper/REPORT.md): every section's bullets with exact numbers, plain names (codes in parentheses), limits and its figure or table; [`RELATED_WORK.md`](../paper/RELATED_WORK.md); [`CLAIMS.md`](../paper/CLAIMS.md) | ready | — | done Nov 19 |
 | **the report** | `docs/submission/report.pdf` or `report.docx`: the prose, from REPORT's bullets (numbers only from FINDINGS, FINDINGS_B, FINDINGS_C); format and length: confirm | **to write by us** | each section's owner (PLAN's writing plan); Ritik merges | draft Nov 22; final Nov 24 |
@@ -35,8 +35,9 @@ matched on Nov 19, 10:22). Stdlib only; tests in `cot-disclosure/tests/test_make
 | the figures | [`docs/paper/figures/`](../paper/figures/): each slide's and each report section's figure, with a CSV of every plotted number | ready | — | done |
 | the slide shell | [`docs/presentation/deck.pptx`](../presentation/deck.pptx), built by `tools/make_deck.py` from [`TALK_MAP.md`](../presentation/TALK_MAP.md): a title slide, one slide a map entry (its figure and a short plain title), "Limits and next steps"; no paragraphs, no notes | ready | — | done Nov 19 |
 | **the slides** | `docs/submission/slides.pptx` or `slides.pdf`: the shell with our words; format and time limit (about 12 minutes planned): confirm | **to write by us** | each slide's owner (PLAN's map); Ritik assembles | rehearsal Nov 23; presented Nov 24 |
-| the presentation kit | [`TALK_MAP.md`](../presentation/TALK_MAP.md) (slide by slide: the point, the figure, the explainer scene, the time; the speaker column blank) and [`QA_FACTS.md`](../presentation/QA_FACTS.md) (likely questions and the facts to point to) | ready | — | done Nov 19 |
-| the demo | [`docs/demo/index.html`](../demo/index.html), the answer sheet in three parts (how we did it, run it, what we found): one file, opens offline; its DATA the tag's (Nov 22). The earlier Hint Explainer: [`docs/demo/explainer.html`](../demo/explainer.html) | ready | — | done Nov 22 |
+| the presentation kit | [`TALK_MAP.md`](../presentation/TALK_MAP.md) (slide by slide: the point, the figure, the time, the speaker column blank; and "The live run", 12 minutes from the demo, each live moment with its keys and its fallback slide) and [`QA_FACTS.md`](../presentation/QA_FACTS.md) (likely questions and the facts to point to) | ready | — | done Nov 19 |
+| the demo | [`docs/demo/index.html`](../demo/index.html), the answer sheet in three parts (how we did it, run it, what we found): one file, opens offline; its DATA the tag's (Nov 22). The earlier Hint Explainer: [`archive/superseded/explainer_2026-11-14/explainer.html`](../../archive/superseded/explainer_2026-11-14/explainer.html) | ready | — | done Nov 22 |
+| the front door | [`README.md`](../../README.md) (the question, the answer, the five findings, the demo, the folders), [`REPRODUCE.md`](../../REPRODUCE.md), [`CITATION.cff`](../../CITATION.cff) and a short README in each main folder (Nov 23) | ready | — | done Nov 23 |
 | the code link | https://github.com/shrey-Bish/cse598-cot-faithfulness, the tag `results-freeze-2026-11-18` (`7e1fdc0`); the tool writes it into `CODE_LINK.txt`; the graders' access: confirm | ready | — | the tag Nov 18 |
 | the bundles' sha256s | [`BUNDLES.sha256`](BUNDLES.sha256): Track A 1,704.3 MB, Track B 60.1 MB, Track C 5.1 MB (built and verified Nov 18; the [freeze log](../../archive/sessions/2026-11-18/2026-11-18_2044_ALL_freeze.md)); the bundles stay local | ready | — | done Nov 18 |
 | **the contribution statement** | [`CONTRIBUTIONS.md`](CONTRIBUTIONS.md): the placeholder "Contributions: to be completed before submission"; the facts in PLAN's "Who runs what" and each track's TODO; form: confirm | **to write by us** | Ritik | before submission |
