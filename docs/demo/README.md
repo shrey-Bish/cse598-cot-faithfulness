@@ -15,7 +15,9 @@ The file is generated, so do not edit it by hand. Its source is `cot-disclosure/
 
 A local build with recorded runs, `cot-disclosure/results/demo/demo.html`, is produced data and is not in the repo.
 It opens on the scratch pad (Nov 23): one recorded run of a question streams its private reasoning with the hint's
-mentions highlighted, and a fix can be compared with no fix on the same question and hint. Its runs are built by
+mentions highlighted, and a fix can be compared with no fix on the same question and hint. Show me (Nov 23–24)
+finds a question where something happens (no fix took a wrong hint, a fix held, a fix refused a right hint) and says on
+how many questions it does, counted from each run's own outcome; the pad opens on the first one. Its runs are built by
 `tools/demo_template/pad.py` into `results/demo/pad/` and served on this machine only by
 `../.venv/bin/python tools/demo_template/serve.py` (from `cot-disclosure/`); opened by double-click, it has the drawn
 questions only.

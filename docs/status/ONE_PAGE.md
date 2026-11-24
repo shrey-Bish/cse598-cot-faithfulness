@@ -45,7 +45,7 @@
 | item | state | on whom, by when |
 |---|---|---|
 | Gate 3's final statement | approved by Ritik as drafted, Nov 23 (PLAN) | — |
-| The demo (`docs/demo/index.html`), the answer sheet | built Nov 22; the Sol copy in Nov 23; the final pass Nov 23 (the review's seven fixes, both builds offline at 1920×1080 and 1440×900); the scratch pad Nov 23 (the local build's first screen) | the full Sol copy (Ritik's command); publish the seeded runs? (Ritik and the team) |
+| The demo (`docs/demo/index.html`), the answer sheet | built Nov 22; the Sol copy in Nov 23; the final pass Nov 23 (the review's seven fixes, both builds offline at 1920×1080 and 1440×900); the scratch pad Nov 23 (the local build's first screen); the full Sol copy in Nov 23 (25,627 runs); Show me, the case finder, Nov 23–24 | publish the seeded runs? (Ritik and the team) |
 | Slide 2 (B20's rows) and B18's table | done: merged and redrawn Nov 18 | — |
 | Slide 5 (F3) | figure made Nov 13 (`private_vs_final.png`) | Ritik and Shrey place it, Nov 18 |
 | Slide 7 (B24's arms) | Arsha's `authority_ladder.png`, placed Nov 18 | Arsha, final Nov 20 |

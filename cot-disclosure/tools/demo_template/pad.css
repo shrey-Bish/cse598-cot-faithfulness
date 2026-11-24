@@ -61,6 +61,15 @@
 .padrec { position: absolute; left: 0; right: 0; font-size: 23px; line-height: 1.2; color: var(--muted); font-family: var(--print-font); }
 .padcount { position: absolute; left: 0; right: 0; font-size: 23px; line-height: 1.2; color: var(--ink); }
 .padcount .padk { font-family: var(--hand-font); color: var(--red); font-size: 34px; line-height: 1; }
+/* the case finder's line, between the hint and the question; the verdict line across a split */
+.padfind { position: absolute; left: 0; top: 236px; width: 450px; height: 136px; display: flex; flex-direction: column; gap: 2px;
+  font-family: var(--print-font); font-size: 23px; line-height: 1.2; color: var(--ink); }
+.padfind .padk { font-family: var(--hand-font); color: var(--red); font-size: 32px; line-height: 1; white-space: nowrap; }
+.padfind .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.padfind .mut { color: var(--muted); }
+.padfind .padnext { padding: 0 10px 1px; line-height: 26px; }
+.padroot.hasfind .padq { top: 380px; height: 180px; }
+.padverdict { position: absolute; left: 480px; top: 78px; width: 944px; height: 76px; }
 .padmsg { position: absolute; left: 0; right: 0; font-size: 23px; line-height: 1.35; color: var(--muted); }
 .padhost { position: absolute; z-index: 8; background: var(--paper); }
 

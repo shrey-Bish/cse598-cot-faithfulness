@@ -1,11 +1,13 @@
 /* ==================================================================
    Part 1 (local build only): the scratch pad. One screen: pick a dataset, a question, a hint and a model, and
    watch a recorded run's private reasoning stream onto the pad, the hint highlighted; pick a fix and the pad
-   splits against No fix. Every count is a frozen number (DATA.pad), never computed here. Keys: Enter replay,
-   N next run, Esc finish. The review dataset hands its rows to PAD_REVIEW (padreview.js).
+   splits against No fix. Every count beside a run is a frozen number (DATA.pad), never computed here. The case
+   finder ("Show me", Nov 23) counts questions from each run's own outcome fields (the index's copy, pad.py
+   finder_rows) and says so. Keys: Enter replay, N next run, F next question found, Esc finish. The review dataset
+   hands its rows to PAD_REVIEW (padreview.js).
    ================================================================== */
 const PAD_ON = typeof PAD !== "undefined" && PAD && PAD.index;
-const PS = { ds: null, q: null, src: null, wd: null, w: "wrong", mi: 0, ver: "base", idx: 0, Q: null, state: "idle", ticket: 0, rt: 0, pop: null, popOff: null, review: false };
+const PS = { ds: null, q: null, src: null, wd: null, w: "wrong", mi: 0, ver: "base", idx: 0, Q: null, state: "idle", ticket: 0, rt: 0, pop: null, popOff: null, review: false, find: null, fi: 0, pin: null };
 const PCACHE = {};
 let PSTREAMS = [];
 const PN = {
@@ -76,6 +78,117 @@ function pPanes() {
   const Rr = exp === undefined ? R : R.filter((r) => r.exp === exp), L = pRows(ctrl).filter((r) => exp === undefined || r.exp === exp);
   return [{ v: ctrl, title: PS.ver === "dial" ? "The dial at 1, its control" : "No fix", rows: L }, { v: PS.ver, title: pVName(PS.ver), rows: Rr }];
 }
+/* the run a pane shows: the finder's pinned run (when it pinned one), then N steps through the repeats */
+function pAt(pane) {
+  const n = pane.rows.length;
+  if (!n) return { run: null, i: 0, n };
+  const p = PS.pin && PS.pin[pane.v], j = p != null && PS.Q ? pane.rows.indexOf(PS.Q.runs[p]) : -1;
+  const i = (Math.max(0, j) + PS.idx) % n;
+  return { run: pane.rows[i], i, n };
+}
+
+/* ---------------- the case finder ("Show me") ----------------
+   A pattern picks the questions whose recorded runs fit it, read from each run's own outcome fields (took the hint,
+   said so in the answer). The count is every question of this dataset with runs for this hint and model (and, for a
+   pattern with a version, that version and its control, compared as the split compares them), counting only runs with
+   an outcome, as the frozen counts do (so on the 120, where a question has one run per wording, as with a tool call's
+   reply, k and n summed over the wordings are DATA's). A question counts when
+   one of its recorded runs fits (one of each side's, for a pair). Matches are ordered by fnv1a-32 of the seed and the
+   question id (PAD.index.finder), never by outcome. */
+const PFIND = [
+  { key: "took", short: "No fix took it", w: "wrong", text: "No fix took the wrong hint", b: (o) => o.took === true },
+  { key: "hid", short: "took it, hid it", w: "wrong", text: "No fix took the wrong hint and hid it in the answer", b: (o) => o.took === true && o.final === false },
+  { key: "named", short: "took it, named it", w: "wrong", text: "No fix took the wrong hint and named it in the answer", b: (o) => o.took === true && o.final === true },
+  { key: "fixed", short: "the fix held", w: "wrong", needV: true, text: "{C} took the wrong hint and {V} didn’t", b: (o) => o.took === true, x: (o) => o.took === false },
+  { key: "both", short: "both took it", w: "wrong", needV: true, text: "{C} and {V} both took the wrong hint", b: (o) => o.took === true, x: (o) => o.took === true },
+  { key: "cost", short: "the cost", w: "right", needV: true, text: "{V} refused a right hint that {C} accepted", b: (o) => o.took === true, x: (o) => o.took === false },
+];
+const pPat = (k) => PFIND.find((p) => p.key === k);
+const pCtrlName = (V) => (V === "dial" ? "The dial at 1" : "No fix");
+const pOut = (r) => r.out || r;
+function pFindText(P, V = PS.ver) {
+  const v = P.needV && V !== "base" ? V : null;
+  return P.text.replace("{C}", v ? pCtrlName(v) : "No fix").replace("{V}", v ? pVName(v) : "a version");
+}
+function pFnv(str) { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h >>> 0; }
+function pFindWhy(P, d) {
+  if (!PS.src || PS.src === "none") return "pick a hint first";
+  if (P.w === "right" && !pHasRight(d)) return "no right hints in this set";
+  if (P.needV && !(d.versions || []).some((v) => v !== "base")) return "no fix was run on this set";
+  if (P.needV && PS.ver === "base") return "pick a version first";
+  return "";
+}
+const pTri = (x) => (x == null ? null : !!x);
+function pRowsOf(d, e) {
+  if (e._o) return e._o;
+  const keys = (PAD.index.finder || {}).key || [];
+  if (!d._fk) d._fk = (d.fk || []).map((k) => Object.fromEntries(keys.map((f, i) => [f, k[i]])));
+  return (e._o = (e.o || []).map(([ki, t, f]) => ({ ...d._fk[ki], took: pTri(t), final: pTri(f) })));
+}
+/* one question against a pattern, on its rows (the index's copy or the loaded runs), as pPanes compares them */
+function pFit(rows, P, st, d) {
+  /* only runs with an outcome, as the frozen counts take them (a run with no answer is out of Gate 3's and A39's) */
+  const of = (v) => rows.filter((r) => pMatch(r, st, d, v) && pOut(r).took != null).sort(pSort);
+  if (!P.needV) {
+    const B = of("base");
+    if (!B.length) return null;
+    const b = B.find((r) => P.b(pOut(r)));
+    return { pin: b ? { base: b } : null, multi: B.length > 1 };
+  }
+  const V = st.ver, ctrl = V === "dial" ? "dial_off" : "base", X0 = of(V);
+  if (!X0.length) return null;
+  const exp = X0[0].exp, X = X0.filter((r) => r.exp === exp), B = of(ctrl).filter((r) => r.exp === exp);
+  if (!B.length) return null;
+  const b = B.find((r) => P.b(pOut(r))), x = X.find((r) => P.x(pOut(r)));
+  return { pin: b && x ? { [ctrl]: b, [V]: x } : null, multi: B.length > 1 || X.length > 1 };
+}
+function pMatches(key, st0 = PS) {
+  const d = pds(), P = pPat(key), st = { ...st0, w: P.w };
+  const none = { k: 0, n: 0, multi: false, order: [], show: [] };
+  if (!d || !d.questions || !st.src || st.src === "none") return none;
+  if ((P.w === "right" && !pHasRight(d)) || (P.needV && st.ver === "base")) return none;
+  let n = 0, multi = false;
+  const hits = [];
+  d.questions.forEach((e) => {
+    const f = pFit(pRowsOf(d, e), P, st, d);
+    if (!f) return;
+    n++;
+    if (f.multi) multi = true;
+    if (f.pin) hits.push(e);
+  });
+  const seed = (PAD.index.finder || {}).seed || "";
+  const order = hits.map((e) => [pFnv(seed + ":" + e.id), e.id, e.file]).sort((a, b) => a[0] - b[0] || (a[1] < b[1] ? -1 : 1));
+  const show = order.filter((x) => !pFile() || (PAD.embed && PAD.embed[x[2]])).map((x) => x[1]);
+  return { k: order.length, n, multi, order: order.map((x) => x[1]), show };
+}
+/* jump to the fi-th question that fits (seeded order); the hint's letter follows the pattern */
+async function pFind(key, fi = 0) {
+  const P = pPat(key);
+  PS.w = P.w;
+  if (!P.needV) PS.ver = "base";
+  PS.find = key; PS.pin = null; PS.idx = 0;
+  const M = pMatches(key);
+  pReviewClose();
+  if (M.show.length) { PS.fi = ((fi % M.show.length) + M.show.length) % M.show.length; PS.q = M.show[PS.fi]; }
+  else PS.fi = 0;
+  await pLoad();
+}
+/* pin each pane to its first run (display order) that fits the pattern */
+function pPin() {
+  PS.pin = null;
+  if (!PS.find || !PS.Q || PS.review) return;
+  const P = pPat(PS.find), ctrl = PS.ver === "dial" ? "dial_off" : "base", pin = {};
+  pPanes().forEach((pane) => {
+    let f = null;
+    if (pane.v === PS.ver && PS.ver !== "base") f = P.needV ? P.x : null;
+    else if (P.needV ? pane.v === ctrl : pane.v === "base") f = P.b;
+    const r = f && pane.rows.find((x) => f(pOut(x)));
+    if (r) pin[pane.v] = PS.Q.runs.indexOf(r);
+  });
+  PS.pin = pin;
+}
+function pFindOff() { PS.find = null; PS.pin = null; PS.fi = 0; }
+
 /* the frozen count for a pane's condition */
 function pCount(pane, run) {
   const d = pds(), P = (typeof DATA !== "undefined" && DATA.pad) || {}, wrong = PS.w === "wrong";
@@ -103,10 +216,11 @@ async function pLoad() {
   if (!pFile()) { try { const r = await fetch("pad/" + e.file); if (r.ok) data = await r.json(); } catch (x) { /* fall back to the embedded copy */ } }
   if (!data && PAD.embed && PAD.embed[e.file]) data = PAD.embed[e.file];
   if (t !== PS.ticket) return;
-  if (data) { PS.Q = data; PS.state = "ok"; pEnsure(); } else PS.state = "missing";
+  if (data) { PS.Q = data; PS.state = "ok"; pEnsure(); pPin(); } else PS.state = "missing";
   pRender();
 }
-function pSetDataset(id) {
+function pSetDataset(id, noLoad) {
+  pFindOff();
   if (id === "live") {
     if (pFile()) return Promise.resolve();
     PS.ds = "live"; PS.q = "live"; PS.review = false; PS.Q = null; PS.state = "ok"; PS.ver = "base"; PS.idx = 0; pReviewClose(); PS.ticket++;
@@ -119,11 +233,12 @@ function pSetDataset(id) {
   PS.wd = PS.src ? pDefWord(d, PS.src) : null; PS.w = "wrong"; PS.ver = "base";
   PS.mi = Math.max(0, d.models.findIndex((m) => m[0] === "Qwen3 30B Thinking"));   /* the 54 open on the main finding's model (it thinks) */
   pReviewClose();
-  return pLoad();
+  return noLoad ? Promise.resolve() : pLoad();
 }
-function pSetQuestion(id) { PS.q = id; PS.ver = PS.ver; pReviewClose(); pLoad(); }
+function pSetQuestion(id) { PS.q = id; pFindOff(); pReviewClose(); pLoad(); }
 function pSetHint(patch) {
   const d = pds();
+  pFindOff();
   Object.assign(PS, patch);
   if (patch.src !== undefined && patch.wd === undefined) PS.wd = patch.src === "none" ? null : pDefWord(d, patch.src);
   if (PS.src === "none") PS.w = "wrong";
@@ -158,10 +273,12 @@ function pRender() {
   root.innerHTML = "";
   const d = pds(), e = pEntry(), ready = PS.state === "ok";
   const rt = ++PS.rt, inst = INSTANT || REDUCE;
+  root.classList.toggle("hasfind", PS.ds !== "live" && !PS.review);
   if (PS.ds === "live") { pLiveRender(root, inst, rt); return; }
   pControls(root, d, e);
   const panes = ready && !PS.review ? pPanes() : [];
   pLeft(root, d, e, panes);
+  if (!PS.review) pFindBox(root, d);
   if (PS.state === "loading") H("div", { class: "padmsg", style: { left: "480px", top: "90px", width: "900px" } }, root, "Loading this question’s recorded runs…");
   else if (PS.state === "missing") H("div", { class: "padmsg", style: { left: "480px", top: "90px", width: "900px" } }, root, "This question’s recorded runs load from the local server: python3 tools/demo_template/serve.py");
   else if (PS.review) pReviewMain(root, e, inst, rt);
@@ -170,8 +287,13 @@ function pRender() {
     if (panes.length > 1 && panes[0].rows.length) pPane(root, panes[0], 480, 462, true, inst, rt);
     else if (panes.length === 1) { /* nothing to draw */ }
   } else {
-    const split = panes.length > 1;
-    panes.forEach((p, i) => pPane(root, p, split ? 480 + i * 482 : 480, split ? 462 : 944, split, inst, rt));
+    if (panes.length > 1) {
+      /* the verdict line across the split, written once both runs have finished */
+      const vb = H("div", { class: "padverdict" }, root);
+      let left = panes.length;
+      const done = () => { if (--left === 0) pVerdict(vb, panes, rt); };
+      panes.forEach((p, i) => pPane(root, p, 480 + i * 482, 462, true, inst, rt, { top: 156, h: 456, onReveal: done }));
+    } else pPane(root, panes[0], 480, 944, false, inst, rt);
   }
   if (!PS.review) pVersions(root, d, ready);
 }
@@ -182,18 +304,19 @@ function pControls(root, d, e) {
     b.addEventListener("click", () => (PS.pop && PS.popFor === lab ? PSclose() : (onclick(b), (PS.popFor = lab))));
     return b;
   };
-  ctl(0, 270, "Dataset", pEsc(d.label.replace(/^The /, "").replace(/^./, (c) => c.toUpperCase())), (b) => pPopup(b, 520, (p) => {
+  const X = PS.review ? { d: [0, 270], q: [282, 700] } : { d: [0, 262], q: [274, 290], f: [576, 250], h: [838, 316], m: [1166, 258] };
+  ctl(X.d[0], X.d[1], "Dataset", pEsc(d.label.replace(/^The /, "").replace(/^./, (c) => c.toUpperCase())), (b) => pPopup(b, 520, (p) => {
     PAD.index.datasets.forEach((x) => pOpt(p, pEsc(x.label), x.id === PS.ds, () => pSetDataset(x.id)));
     pOpt(p, "Your own question (live)", PS.ds === "live", () => pSetDataset("live"), { off: pFile(), title: pFile() ? "live runs need the local server" : "", mute: pFile() ? "live runs need the local server" : "" });
   }));
-  const qw = PS.review ? 700 : 380;
-  ctl(282, qw, "Question", `${pEsc(e.item || e.id)}<span style="font-weight:400;color:var(--muted)"> ${pEsc((e.text || "").slice(0, 60))}</span>`, (b) => pQuestionPop(b, d), "The full question is on the left");
+  ctl(X.q[0], X.q[1], "Question", `${pEsc(e.item || e.id)}<span style="font-weight:400;color:var(--muted)"> ${pEsc((e.text || "").slice(0, 60))}</span>`, (b) => pQuestionPop(b, d), "The full question is on the left");
   if (!PS.review) {
     const hv = PS.src === "none" ? "no hint" : `${pEsc(pSrcName(PS.src))}${pHasRight(d) ? " · " + PS.w : ""}`;
     const wd = PS.src && PS.src !== "none" && pWords(d, PS.src).length > 1 ? wordName(PS.wd) : "";
-    ctl(674, 400, "Hint", hv, (b) => pHintPop(b, d), wd ? `${pSrcName(PS.src)}: ${wd}` : "");
-    if (d.models.length > 1) ctl(1086, 338, "Model", pEsc(pModelName(pModel(d))), (b) => pModelPop(b, d));
-    else H("div", { class: "padctl", style: { left: "1086px", width: "338px", cursor: "default" }, title: "This dataset has one model" }, root, `<span class="padlab">Model</span><span class="padval">${pEsc(pModelName(pModel(d)))}</span>`);
+    ctl(X.f[0], X.f[1], "Show me", pEsc(PS.find ? pPat(PS.find).short : "pick a pattern"), (b) => pFindPop(b, d), "Find a question where something happens, and how often it does");
+    ctl(X.h[0], X.h[1], "Hint", hv, (b) => pHintPop(b, d), (wd ? `${pSrcName(PS.src)}: ${wd}` : `${pSrcName(PS.src)}`) + (pHasRight(d) && PS.src !== "none" ? `, ${PS.w}` : ""));
+    if (d.models.length > 1) ctl(X.m[0], X.m[1], "Model", pEsc(pModelName(pModel(d))), (b) => pModelPop(b, d), pModelName(pModel(d)));
+    else H("div", { class: "padctl", style: { left: X.m[0] + "px", width: X.m[1] + "px", cursor: "default" }, title: "This dataset has one model: " + pModelName(pModel(d)) }, root, `<span class="padlab">Model</span><span class="padval">${pEsc(pModelName(pModel(d)))}</span>`);
   } else {
     const hasR = typeof PAD_REVIEW !== "undefined";
     const b = H("button", { type: "button", class: "padbtn go", style: { left: "994px", width: "430px" }, title: hasR ? "Hand this item to the review team" : "The review flow is not in this build" }, root, "Send to the review team");
@@ -225,6 +348,44 @@ function pQuestionPop(b, d) {
     draw(); setTimeout(() => inp.focus(), 0);
   });
 }
+function pFindPop(b, d) {
+  pPopup(b, 800, (p) => {
+    H("div", { class: "padsec" }, p, "Show me a question where…");
+    PFIND.forEach((P) => {
+      let why = pFindWhy(P, d), mute = why;
+      if (!why) { const M = pMatches(P.key); mute = M.n ? `${M.k} of ${M.n} questions` : "not run with this hint"; if (!M.n) why = mute; }
+      pOpt(p, pEsc(pFindText(P)), PS.find === P.key, () => { PSclose(); pFind(P.key); }, { off: !!why, mute: "· " + mute });
+    });
+    pOpt(p, "No pattern: pick questions yourself", !PS.find, () => { PSclose(); pFindOff(); pRender(); });
+    H("div", { class: "padnote" }, p, "Read from each run’s own outcome fields. The count is every question in this set with a counted run for this hint and model, counted as the frozen numbers count runs; matches come in a seeded order, never by outcome.");
+  });
+}
+function pFindBox(root, d) {
+  const box = H("div", { class: "padfind", "aria-live": "polite" }, root);
+  if (!PS.find) { H("div", { class: "mut" }, box, "Show me (above) finds a question where something happens, and says on how many questions it does."); return; }
+  const P = pPat(PS.find), M = pMatches(PS.find);
+  H("div", {}, box, `${pEsc(pFindText(P))} on <span class="padk">${M.k} of ${M.n}</span> questions.`);
+  const l2 = H("div", { class: "row" }, box);
+  if (M.show.length) {
+    l2.appendChild(document.createTextNode(`Showing ${PS.fi + 1} of ${M.show.length}${M.show.length < M.k ? " in this file" : ""} (seeded)`));
+    const nb = H("button", { type: "button", class: "padbtn padnext", title: "The next question that fits (key F)" }, l2, "next →");
+    nb.addEventListener("click", () => pFind(PS.find, PS.fi + 1));
+  } else l2.textContent = M.k ? "None of them is in this file: they load from the local server." : "No question fits.";
+  H("div", { class: "mut" }, box, "Found by pattern; the count is every question" + (M.multi ? "; one fitting run is enough" : "") + ".");
+}
+function pVerdict(vb, panes, rt) {
+  if (rt !== PS.rt || !vb.isConnected) return;
+  const [a, b] = panes.map((p) => pAt(p).run);
+  if (!a || !b) return;
+  const say = (name, r) => {
+    const L = `(${r.L})`, t = pOut(r).took;
+    if (!r.L) return `${name} gave no answer.`;
+    return PS.src === "none" || t == null ? `${name} answered ${L}.` : t ? `${name} took it ${L}.` : `${name} didn’t ${L}.`;
+  };
+  const txt = `Same question, ${PS.src === "none" ? "no hint" : `same ${PS.w} hint`}: ${say(pCtrlName(PS.ver), a)} ${say(pVName(PS.ver), b)}`;
+  vb.setAttribute("aria-label", txt);
+  writeText(vb, { x: 0, y: 2, text: txt, size: 36, red: true, width: 944, delay: 0, dur: 0.6 });
+}
 function pHintPop(b, d) {
   pPopup(b, 520, (p) => {
     H("div", { class: "padsec" }, p, "Who gives the hint");
@@ -244,7 +405,7 @@ function pModelPop(b, d) {
 
 /* ---------------- left: the hint, the question, the buttons ---------------- */
 function pLeft(root, d, e, panes) {
-  const run0 = panes[0] && panes[0].rows[0] ? panes[panes.length - 1].rows[0] || panes[0].rows[0] : null;
+  const run0 = panes[0] && panes[0].rows[0] ? pAt(panes[panes.length - 1]).run || pAt(panes[0]).run : null;
   let letter, kind = PS.src, wrong = PS.w === "wrong", wd = PS.wd;
   if (PS.review) {
     const sv = PS.Q && PS.Q.runs.find((r) => r.kind === "solver");
@@ -285,6 +446,8 @@ function pSegs(text, spans) {
   if (p < text.length) segs.push([text.slice(p), 0]);
   return segs;
 }
+/* scroll a finished pad to its first highlighted mention of the hint, a quarter of the way down */
+function pToMark(box) { const mk = box.querySelector("mark"); if (mk) box.scrollTop = Math.max(0, mk.offsetTop - Math.round(box.clientHeight / 4)); }
 function pStop() { PSTREAMS.forEach((s) => s.stop()); PSTREAMS = []; }
 function pFinish() { PSTREAMS.forEach((s) => s.finish()); }
 function pReplay() { pRender(); }
@@ -304,7 +467,7 @@ function pStream(box, text, spans, instant, onDone) {
     }
     if (follow) box.scrollTop = box.scrollHeight;
   };
-  const end = () => { if (done) return; done = true; cancelAnimationFrame(raf); adv(total); onDone(); };
+  const end = () => { if (done) return; done = true; cancelAnimationFrame(raf); adv(total); pToMark(box); onDone(); };
   const tick = (now) => { if (done) return; if (!t0) t0 = now; const f = Math.min(1, (now - t0) / dur); adv(Math.round(total * f)); if (f >= 1) end(); else raf = requestAnimationFrame(tick); };
   box.addEventListener("wheel", () => { follow = false; }, { passive: true });
   box.addEventListener("click", end);
@@ -313,11 +476,11 @@ function pStream(box, text, spans, instant, onDone) {
   return s;
 }
 async function pPane(root, pane, x, w, split, inst, rt, opts = {}) {
-  const n = pane.rows.length, run = pane.rows[PS.idx % n], d = pds();
-  const IH = split ? 116 : 72, AH = 104, PH = 534 - 36 - AH - IH - 18;
-  const el = H("div", { class: "padpane", style: { left: x + "px", width: w + "px" } }, root);
+  const at = pAt(pane), n = at.n, run = at.run, d = pds(), top = opts.top ?? 78, ph = opts.h ?? 534;
+  const IH = split ? 94 : 72, AH = 104, PH = ph - 36 - AH - IH - 18;
+  const el = H("div", { class: "padpane", style: { left: x + "px", width: w + "px", top: top + "px", height: ph + "px" } }, root);
   const label = opts.title || (split ? pane.title : `${pane.title}: the private reasoning`);
-  H("div", { class: "padhd" }, el, `<b>${pEsc(label)}</b><span>run ${PS.idx % n + 1} of ${n}</span>`);
+  H("div", { class: "padhd" }, el, `<b>${pEsc(label)}</b><span>run ${at.i + 1} of ${n}</span>`);
   const tip = `${run.rec || ""}` + (run.file ? `. ${run.file}, line ${run.line}` : "") + (run.text_file ? `. Text: ${run.text_file}, line ${run.text_line}` : "");
   const box = H("div", { class: "padpad", style: { top: "40px", height: PH + "px" }, title: tip, tabindex: "0", "aria-label": "The scratch pad" }, el);
   const X = run.x ? (typeof run.x === "string" ? await unpack(run.x) : run.x) : null;
@@ -341,6 +504,7 @@ async function pPane(root, pane, x, w, split, inst, rt, opts = {}) {
       const f = H("div", { class: "padfin", style: { left: cx + 300 + "px", top: aTop + 34 + "px", width: w - cx - 300 + "px", maxHeight: "60px" }, title: X.final }, el);
       pSegs(X.final.slice(0, 400), (X.spans && X.spans.final) || []).forEach(([t, m]) => { if (m) H("mark", {}, f).textContent = t; else f.appendChild(document.createTextNode(t)); });
     }
+    if (opts.onReveal) opts.onReveal();
   };
   if (X) {
     const R = X.reasoning;
@@ -353,8 +517,9 @@ async function pPane(root, pane, x, w, split, inst, rt, opts = {}) {
     const c = pCount(pane, run), ct = H("div", { class: "padcount", style: { top: iTop + (split ? 58 : 32) + "px" } }, el);
     if (c) {
       const wr = PS.w === "wrong" ? "wrong" : "right";
-      ct.title = c.o.path || "";
-      ct.innerHTML = `took the ${wr} hint: <span class="padk">${c.o.k} of ${c.o.n}</span>, ${pEsc(d.short)}, ${c.all ? "all sources" : pEsc(pSrcName(PS.src) + (PS.src === "call" && /_undeclared$/.test(run.wd || "") ? ", the tool not declared" : ""))}`;
+      const where = `${d.short}, ${c.all ? "all sources" : pSrcName(PS.src) + (PS.src === "call" && /_undeclared$/.test(run.wd || "") ? ", the tool not declared" : "")}`;
+      ct.title = `took the ${wr} hint: ${c.o.k} of ${c.o.n} runs, ${where}. ${c.o.path || ""}`;
+      ct.innerHTML = `took the ${wr} hint: <span class="padk">${c.o.k} of ${c.o.n}</span>` + (split ? "" : `, ${pEsc(where)}`);
     } else ct.textContent = PS.src === "none" ? "No hint, so nothing to count." : "No frozen count for this condition.";
   }
 }
@@ -418,7 +583,12 @@ function pVersions(root, d, ready) {
     const b = H("button", { type: "button", class: "padver" + (act ? "" : " off"), role: "radio", "aria-checked": String(on) }, vs, `<span class="bub"></span>${pEsc(name)}`);
     b.title = act ? (on && key !== "base" ? "Click again to undo the split" : key === "base" ? "No fix alone" : `${name} against No fix, same question, same hint`) : inSet ? "not run on this question and hint" : "not run on this set";
     if (!act) b.setAttribute("aria-disabled", "true");
-    b.addEventListener("click", () => { if (!act) return; PS.ver = on ? "base" : key; PS.idx = 0; pRender(); });
+    b.addEventListener("click", () => {
+      if (!act) return;
+      PS.ver = on ? "base" : key; PS.idx = 0;
+      if (PS.find && pPat(PS.find).needV) pFindOff(); else pPin();
+      pRender();
+    });
   });
   H("span", { class: "padvnote" }, vs, "Greyed: not run on this set, or not with this hint.");
 }
@@ -443,7 +613,8 @@ function PAD_RUN() {
   const beat = $("#beat");
   PSclose();
   H("div", { class: "padroot" }, beat);
-  if (!PS.ds) pSetDataset("fresh120"); else pRender();
+  /* the first screen shows the problem: the finder on "No fix took the wrong hint", the 120, a tool call's reply */
+  if (!PS.ds) { pSetDataset("fresh120", true); pFind("took"); } else pRender();
 }
 function PAD_ONKEY(e) {
   const k = e.key;
@@ -451,6 +622,7 @@ function PAD_ONKEY(e) {
   if (e.shiftKey) return false;
   if (k === "Enter") { pReplay(); return true; }
   if (k === "n" || k === "N") { pNext(); return true; }
+  if ((k === "f" || k === "F") && PS.find && !PS.review && PS.ds !== "live") { pFind(PS.find, PS.fi + 1); return true; }
   if (k === "r" || k === "R") { pReplay(); return true; }
   return false;
 }
@@ -458,13 +630,15 @@ function PAD_LEAVE() { pStop(); PSclose(); pReviewClose(); }
 const PAD_PAGES = PAD_ON ? [{ title: "Scratch pad", run: PAD_RUN }] : null;
 /* a handle for the screenshot script and for tests */
 const PAD_API = PAD_ON ? {
-  state: PS, finish: pFinish, next: pNext, replay: pReplay,
+  state: PS, finish: pFinish, next: pNext, replay: pReplay, find: pFind, matches: pMatches, at: pAt, panes: pPanes, pattern: pPat,
   async set(o) {
     if (o.ds && o.ds !== PS.ds) await pSetDataset(o.ds);
-    if (o.q && o.q !== PS.q) { PS.q = o.q; await pLoad(); }
-    const x = { ...o }; delete x.ds; delete x.q;
+    if (o.q && o.q !== PS.q) { PS.q = o.q; pFindOff(); await pLoad(); }
+    const x = { ...o }; delete x.ds; delete x.q; delete x.find; delete x.fi;
     Object.assign(PS, x);
     if (x.src && x.wd === undefined) PS.wd = x.src === "none" ? null : pDefWord(pds(), x.src);
-    PS.idx = x.idx || 0; pEnsure(); pRender();
+    PS.idx = x.idx || 0;
+    if (o.find) { await pFind(o.find, o.fi || 0); return; }
+    pEnsure(); pPin(); pRender();
   },
 } : null;

@@ -8,8 +8,14 @@ holds every recorded run of it (the bench's row shape, runs.py), each with its f
 fires: runs.spans_of, detect.COMPILED). Texts come from this Mac (the Voyager runs, the review logs) and from the Sol
 copy: results/demo/sol/all/ (sol.py unpack_all, every run) when it exists, else the drawn copy (results/demo/sol/runs_*).
 A run whose text is not here is kept as its outcome row, marked "outcome only". Outcomes are the analysis's own fields
-(trackB_report.flags for the models-and-sources runs, the run index's fields for the fixes and the dial). Counts are
+(trackB_report.flags for the models-and-sources runs, the run index's fields for the fixes and the dial), with each
+analysis's own rule for a run with no answer: Gate 3's, A39's and the 54's counts leave it out (took is null, Nov 24),
+the dial's counts it as not taking the hint. On the 54 a tool call's reply is one channel per model and setting, as the
+frozen counts take it: Nemotron's two own-call smoke runs (pilot-0, Nov 4) beside its 162 inserted turns are left out. Counts are
 not computed here: the page reads them from DATA.pad (counts(), the frozen summaries, each with its path).
+The case finder (Nov 23, "Show me"): each question's entry in the index also carries its runs' own outcome fields, compact
+(finder_rows: a key table per dataset, then per run [key, took, said so in the answer]); the page counts the questions
+that fit a pattern from these and orders the matches by FINDER_SEED (fnv1a of seed:id), never by outcome.
 Read-only on every source.
 """
 import glob
@@ -39,6 +45,8 @@ VERSIONS = [("base", "No fix"), ("prompt_only", "One-line instruction"), ("lora"
             ("tags", "Tags only"), ("lora_attn3", "Fine-tuned on 3 layers"), ("a40", "Consistency-trained"),
             ("a40_note", "Consistency-trained + instruction"), ("lora_note", "Fine-tuned + instruction"), ("wrap", "Label"),
             ("wrap_note", "Label + instruction"), ("lora_wrap", "Fine-tuned + label"), ("dial", "Attention dial")]
+FINDER_SEED = "cse598-demo-finder-2026-11-23"
+FINDER_KEY = ("m", "s", "v", "exp", "src", "wd", "w")      # a run's condition, as the page's pMatch reads it
 DIAL = {"prov-deployable-a0.25-v2": "dial", "prov-a1-v2": "dial_off"}   # the dial at 0.25, and at 1 (its own control)
 SRC = {"user": "user", "tool_pasted": "pasted", "tool_real": "call", "tool_injected": "call", "tool_injected_undeclared": "call",
        "system": "system", "system_note": "system", "none": "none", "user_classmate": "classmate", "user_authority": "key",
@@ -132,7 +140,8 @@ def olmo_rows(texts):
                 "id": r["run_id"], "q": r["item_id"], "m": "Olmo 3 7B Think", "s": "thinking always", "v": v, "exp": exp,
                 "src": SRC.get(r.get("channel"), r.get("channel")), "wd": r.get("wording"), "w": w, "rep": r.get("repeat"),
                 "L": r.get("parsed_letter"), "H": r.get("hint_letter"), "R": r.get("correct_letter"), "date": R.date_of(r),
-                "out": {"took": None if w is None else (r.get("parsed_letter") == r.get("hint_letter")),
+                # a run with no answer: out of Gate 3's and A39's counts (their n is the answered runs), not taken in the dial's
+                "out": {"took": None if w is None or (exp != "dial" and not r.get("parsed_letter")) else (r.get("parsed_letter") == r.get("hint_letter")),
                         "private": None if w is None else r.get("mention_reasoning"),
                         "final": None if w is None else r.get("mention_final_broad", r.get("mention_final"))},
                 "rec": f"Recorded run: Olmo 3 7B Think, {name}, {R.date_of(r)}" + ("" if t else "; outcome only (its text is on Sol)"),
@@ -145,26 +154,42 @@ def trackb_rows(items):
     from trackB_report import flags
     out = []
 
+    def answered(r):      # a run with no answer is out of the 54's counts (their n is the answered runs)
+        return dict(r, out=dict(r["out"], took=None)) if not r.get("L") and (r.get("out") or {}).get("took") is not None else r
+
     def add(rows, exp):
         for r in rows:
-            out.append(dict(r, v="base", exp=exp, id=None, date=r["rec"].rsplit(", ", 1)[-1], src=r["src"] if r["src"] != "answer_key" else "key"))
+            out.append(answered(dict(r, v="base", exp=exp, id=None, date=r["rec"].rsplit(", ", 1)[-1], src=r["src"] if r["src"] != "answer_key" else "key")))
     add(R.trackb_runs(RES / "trackB/voyager.jsonl.gz", items, ("none", "user", "tool_pasted", "tool_real", "tool_injected", "system"), flags, 1), "voyager")
     add(R.trackb_runs(RES / "trackB/b24_voyager.jsonl.gz", items, ("user_classmate", "user_manual"), flags, 1), "b24")
     add(R.trackb_runs(RES / "trackB/b16_voyager.jsonl.gz", items, ("user_authority",), flags, 1), "b16")
-    state = {}
+    state, sol = {}, []
     for g in ("qwen8b", "gptoss", "nemotron"):
         state[g], it = sol_records(g)
         for src, line, r in it:
             if r.get("item_id") not in items or r.get("status") != "ok":
                 continue
-            f = flags(r)
-            m = R.model_name(r.get("model"))
-            hinted = r["condition"] != "none"
-            out.append({"t": 1, "q": r["item_id"], "m": m, "s": R.setting_of(r, m), "v": "base", "exp": "sol", "id": r.get("run_id"),
-                        "src": SRC.get(r["condition"], r["condition"]), "w": True if hinted else None, "rep": r.get("repeat"),
-                        "L": r.get("parsed_letter"), "H": r.get("hint_letter"), "R": r.get("correct_letter"), "date": R.date_of(r),
-                        "out": {"took": f["followed"] if hinted else None, "private": f["mention_private"], "final": f["mention_final"]},
-                        "rec": f"Recorded run: {m}, {R.setting_of(r, m)}, {R.date_of(r)}", "file": src, "line": line, "x": R.text_of(r)})
+            sol.append((src, line, r))
+    # a tool call's reply: one channel per model and setting, the one with the full set (the frozen counts' channel)
+    chan = {}
+    for _, _, r in sol:
+        if r["condition"] in ("tool_real", "tool_injected"):
+            k = (r.get("model"), str(r.get("thinking")), r.get("reasoning_effort"))
+            chan.setdefault(k, {}).setdefault(r["condition"], 0)
+            chan[k][r["condition"]] += 1
+    for src, line, r in sol:
+        if r["condition"] in ("tool_real", "tool_injected"):
+            c = chan[(r.get("model"), str(r.get("thinking")), r.get("reasoning_effort"))]
+            if c[r["condition"]] < max(c.values()):
+                continue
+        f = flags(r)
+        m = R.model_name(r.get("model"))
+        hinted = r["condition"] != "none"
+        out.append({"t": 1, "q": r["item_id"], "m": m, "s": R.setting_of(r, m), "v": "base", "exp": "sol", "id": r.get("run_id"),
+                    "src": SRC.get(r["condition"], r["condition"]), "w": True if hinted else None, "rep": r.get("repeat"),
+                    "L": r.get("parsed_letter"), "H": r.get("hint_letter"), "R": r.get("correct_letter"), "date": R.date_of(r),
+                    "out": {"took": f["followed"] if hinted and f["answered"] else None, "private": f["mention_private"], "final": f["mention_final"]},
+                    "rec": f"Recorded run: {m}, {R.setting_of(r, m)}, {R.date_of(r)}", "file": src, "line": line, "x": R.text_of(r)})
     return out, state
 
 
@@ -258,6 +283,24 @@ def _row_versions(rows):
     return nv
 
 
+def _tri(v):
+    return None if v is None else int(bool(v))
+
+
+def finder_rows(rows, keys, kix):
+    """A question's runs for the case finder, in file order: [key index, took the hint, said so in the answer]
+    (1, 0, or null when the run has no such outcome); keys/kix: the dataset's key table, filled as it goes."""
+    out = []
+    for r in rows:
+        k = tuple(r.get(f) for f in FINDER_KEY)
+        if k not in kix:
+            kix[k] = len(keys)
+            keys.append(list(k))
+        o = r.get("out") or {}
+        out.append([kix[k], _tri(o.get("took")), _tri(o.get("final"))])
+    return out
+
+
 def build(out=OUT, quiet=False):
     out = Path(out)
     draw = json.loads((HERE / "draw.json").read_text())["sets"]
@@ -275,14 +318,16 @@ def build(out=OUT, quiet=False):
             per[ds].setdefault(r["q"], []).append(r)
     per["review"] = rrows
     index = {"datasets": [], "versions": VERSIONS, "sources": SOURCE_NAME,
-             "sol": {**olmo_state, **sol_state}, "not_here": ["Gemma 4 26B-A4B", "Granite 4.2 8B"]}
+             "sol": {**olmo_state, **sol_state}, "not_here": ["Gemma 4 26B-A4B", "Granite 4.2 8B"],
+             "finder": {"seed": FINDER_SEED, "key": list(FINDER_KEY),
+                        "how": "matches ordered by fnv1a-32 of seed + ':' + question id, never by outcome"}}
     drawn = {"test54": draw["test54"]["drawn"], "held30": draw["held30"]["drawn"], "fresh120": draw["fresh120"]["drawn"],
              "review": draw["c4_bad"]["drawn"] + sorted(c for c, q in rq.items() if q["item"] in set(draw["c15"]["drawn"]) and q.get("set") == "c15")}
     total = {}
     for d in DATASETS:
         ds = d["id"]
         (out / ds).mkdir(parents=True, exist_ok=True)
-        entries = []
+        entries, keys, kix = [], [], {}
         for qid, q in sorted(qs[ds].items()):
             rows = per[ds].get(qid, [])
             if not rows:
@@ -291,7 +336,8 @@ def build(out=OUT, quiet=False):
             (out / f).write_text(json.dumps({"dataset": ds, "q": q, "runs": rows}, ensure_ascii=False, separators=(",", ":")))
             entries.append({"id": qid, "item": q.get("item", qid), "file": f, "text": q["text"], "options": q["options"], "right": q["right"],
                             "hint": q.get("hint"), "subject": q.get("subject"), "src": q.get("src"), "line": q.get("line"),
-                            "nv": _row_versions(rows), "texts": sum(1 for r in rows if r.get("x")), "runs": len(rows)})
+                            "nv": _row_versions(rows), "texts": sum(1 for r in rows if r.get("x")), "runs": len(rows),
+                            **({"o": finder_rows(rows, keys, kix)} if ds != "review" else {})})
         vs = sorted({r.get("v") for rows in per[ds].values() for r in rows if r.get("v")})
         models = sorted({(r["m"], r["s"]) for rows in per[ds].values() for r in rows if r.get("m") and r.get("kind") is None})
         srcs = {}
@@ -300,7 +346,8 @@ def build(out=OUT, quiet=False):
                 if r.get("src"):
                     srcs.setdefault(r["src"], set()).add(r.get("wd") or "")
         index["datasets"].append({**d, "questions": entries, "versions": vs, "models": [list(m) for m in models],
-                                  "sources": {k: sorted(v) for k, v in srcs.items()}, "drawn": drawn[ds]})
+                                  "sources": {k: sorted(v) for k, v in srcs.items()}, "drawn": drawn[ds],
+                                  **({"fk": keys} if ds != "review" else {})})
         total[ds] = (len(entries), sum(e["runs"] for e in entries), sum(e["texts"] for e in entries))
     (out / "index.json").write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")))
     if not quiet:

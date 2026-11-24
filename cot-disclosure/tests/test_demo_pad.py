@@ -7,6 +7,11 @@
   compact(collect()) or the frozen summary named in the path).
 - Every run traces to its file and line: the index or log line holds that run.
 - The full Sol copy's remote script only reads, and its stream unpacks (sol.py plan_all / unpack_all).
+- The case finder ("Show me", Nov 23): the index's compact rows are each run's own outcome fields; for every dataset,
+  hint, model, version and pattern, the page's count (k of n questions) and its seeded order equal a count made here
+  from the per-question files; each run it pins fits the pattern; the verdict line says what the shown runs did; a
+  finished pad is scrolled to its first highlighted mention; the page lands on "No fix took the wrong hint", the 120,
+  a tool call's reply.
 These read results/demo/pad/ (gitignored) and skip when it has not been built.
 """
 import base64
@@ -250,7 +255,7 @@ def test_the_pads_marks_are_the_recorded_spans_offline(browser):
             await new Promise((r) => setTimeout(r, 600)); pFinish(); await new Promise((r) => setTimeout(r, 200));
             const panes = pPanes(), boxes = [...document.querySelectorAll(".padpad")];
             for (let i = 0; i < panes.length; i++) {
-              const run = panes[i].rows[PS.idx % panes[i].rows.length];
+              const run = pAt(panes[i]).run;
               if (!run || !run.x) continue;
               const X = await unpack(run.x), t = X.reasoning || "";
               const want = ((X.spans && X.spans.reasoning) || []).map(([s, e]) => t.slice(s, e));
@@ -267,3 +272,263 @@ def test_the_pads_marks_are_the_recorded_spans_offline(browser):
     assert sum(c[5] for c in checked) > 0          # some pads do highlight
     assert not errors, errors[:5]
     assert all(u.startswith(("file:", "data:", "blob:")) for u in requests)
+
+
+# ---------------- the case finder ----------------
+PEXP = {"g3": 0, "a39": 1, "dial": 2}
+PATTERNS = {   # key: (the hint's letter, needs a version, the control's test, the version's test) on a run's own outcome
+    "took": ("wrong", False, lambda o: o.get("took") is True, None),
+    "hid": ("wrong", False, lambda o: o.get("took") is True and o.get("final") is False, None),
+    "named": ("wrong", False, lambda o: o.get("took") is True and o.get("final") is True, None),
+    "fixed": ("wrong", True, lambda o: o.get("took") is True, lambda o: o.get("took") is False),
+    "both": ("wrong", True, lambda o: o.get("took") is True, lambda o: o.get("took") is True),
+    "cost": ("right", True, lambda o: o.get("took") is True, lambda o: o.get("took") is False),
+}
+
+
+def fnv(s):
+    h = 0x811c9dc5
+    for ch in s.encode():
+        h = ((h ^ ch) * 0x01000193) & 0xffffffff
+    return h
+
+
+@pytest.fixture(scope="module")
+def files(index):
+    """Every question's runs (texts dropped), read from the per-question files."""
+    out = {}
+    for d in index["datasets"]:
+        if d["id"] == "review":
+            continue
+        out[d["id"]] = {e["id"]: [{k: v for k, v in r.items() if k != "x"} for r in json.loads((PAD / e["file"]).read_text())["runs"]]
+                        for e in d["questions"]}
+    return out
+
+
+def test_each_runs_outcome_sums_to_the_frozen_counts(files):
+    """Every frozen count on the 54, the 30 and the 120 (DATA.pad) is the sum of its runs' own outcomes: k the runs that
+    took the hint, n the runs with an outcome (a run with no answer is out of Gate 3's, A39's and the 54's counts, not
+    taken in the dial's)."""
+    C, n = pad.counts(), 0
+    for ds in ("held30", "fresh120"):
+        agg = {}
+        for rows in files[ds].values():
+            for r in rows:
+                if r.get("src") in (None, "none"):
+                    continue
+                src = "call_undeclared" if r["src"] == "call" and (r.get("wd") or "").endswith("_undeclared") else r["src"]
+                a = agg.setdefault((r.get("exp"), r["v"], "wrong" if r["w"] else "right", src), [0, 0])
+                t = (r.get("out") or {}).get("took")
+                a[0] += t is True
+                a[1] += t is not None
+        for ck, e in C[ds].items():
+            exp, v = ck.split(":") if ds == "held30" else ("dial" if ck in ("dial", "dial_off") else "a39", ck)
+            for w in ("wrong", "right"):
+                for src, o in (e.get(w) or {}).items():
+                    if isinstance(o, dict) and "k" in o and (exp, v, w, src) in agg:
+                        assert agg[(exp, v, w, src)] == [o["k"], o["n"]], (ds, ck, w, src, agg[(exp, v, w, src)], o)
+                        n += 1
+    # the 54: per model and setting, the wrong hint's count by source (models with no runs in this build are skipped)
+    agg = {}
+    for rows in files["test54"].values():
+        for r in rows:
+            if r.get("w") is True:
+                a = agg.setdefault((f"{r['m']}|{r['s']}", r["src"]), [0, 0])
+                t = (r.get("out") or {}).get("took")
+                a[0] += t is True
+                a[1] += t is not None
+    for mk, row in C["test54"].items():
+        for src, o in row.items():
+            if isinstance(o, dict) and "k" in o and (mk, src) in agg:
+                assert agg[(mk, src)] == [o["k"], o["n"]], (mk, src, agg[(mk, src)], o)
+                n += 1
+    assert n > 130
+
+
+def test_the_finders_rows_are_each_runs_own_outcome_fields(index, files):
+    def tri(v):
+        return None if v is None else int(bool(v))
+    n = 0
+    for d in index["datasets"]:
+        if d["id"] == "review":
+            assert "fk" not in d
+            continue
+        fk = [tuple(k) for k in d["fk"]]
+        for e in d["questions"]:
+            runs = files[d["id"]][e["id"]]
+            assert len(e["o"]) == len(runs), e["id"]
+            for (ki, took, final), r in zip(e["o"], runs):
+                o = r.get("out") or {}
+                assert fk[ki] == tuple(r.get(f) for f in index["finder"]["key"]) and (took, final) == (tri(o.get("took")), tri(o.get("final")))
+                n += 1
+    assert n > 25000
+
+
+def _count(d, runs_by_q, st, key, seed):
+    """The finder's count, made here from the per-question files: k questions fit of n with runs, and their order."""
+    w, need_v, fb, fx = PATTERNS[key]
+    multi_model = len(d["models"]) > 1
+
+    def match(r, v):
+        if r.get("v") != v or r.get("kind") is not None:
+            return False
+        if multi_model and [r.get("m"), r.get("s")] != st["model"]:
+            return False
+        return r.get("src") == st["src"] and r.get("w") == (w == "wrong") and (not st["wd"] or r.get("wd") == st["wd"])
+
+    def of(rows, v):
+        rows = [r for r in rows if match(r, v) and (r.get("out") or {}).get("took") is not None]
+        return sorted(rows, key=lambda r: (PEXP.get(r.get("exp"), 0), str(r.get("exp"))))
+    n, hits = 0, []
+    for qid, rows in runs_by_q.items():
+        if not need_v:
+            B = of(rows, "base")
+            if not B:
+                continue
+            n += 1
+            if any(fb(r.get("out") or {}) for r in B):
+                hits.append(qid)
+            continue
+        V = st["ver"]
+        ctrl = "dial_off" if V == "dial" else "base"
+        X0 = of(rows, V)
+        if not X0:
+            continue
+        exp = X0[0].get("exp")
+        X, B = [r for r in X0 if r.get("exp") == exp], [r for r in of(rows, ctrl) if r.get("exp") == exp]
+        if not B:
+            continue
+        n += 1
+        if any(fb(r.get("out") or {}) for r in B) and any(fx(r.get("out") or {}) for r in X):
+            hits.append(qid)
+    return len(hits), n, sorted(hits, key=lambda q: (fnv(f"{seed}:{q}"), q))
+
+
+def _combos(index):
+    vers = {k for k, _ in pad.VERSIONS} - {"base"}
+    for d in index["datasets"]:
+        if d["id"] == "review":
+            continue
+        right = d["id"] in ("held30", "fresh120")
+        for mi, m in enumerate(d["models"]):
+            for src, wds in d["sources"].items():
+                if src == "none":
+                    continue
+                for wd in [w for w in wds if w] or [None]:
+                    st = {"ds": d["id"], "mi": mi, "model": m, "src": src, "wd": wd, "ver": "base"}
+                    for key in ("took", "hid", "named"):
+                        yield d, st, key
+                    for v in sorted(vers & set(d["versions"])):
+                        for key in ("fixed", "both") + (("cost",) if right else ()):
+                            yield d, {**st, "ver": v}, key
+
+
+@pytest.mark.skipif(not HTML.exists(), reason="the local build is produced data")
+def test_the_finders_counts_equal_the_per_question_outcome_fields(browser, index, files):
+    """Every dataset, hint, wording, model, version and pattern: the page's k of n and its seeded order are the ones
+    counted here from the per-question files."""
+    combos = list(_combos(index))
+    want = [_count(d, files[d["id"]], st, key, index["finder"]["seed"]) for d, st, key in combos]
+    ctx = browser.new_context(offline=True)
+    pg = ctx.new_page()
+    pg.goto(HTML.as_uri() + "#pad")
+    pg.wait_for_function("typeof PAD_API !== 'undefined' && PAD_API && PS.ds")
+    got = pg.evaluate("""(cs) => cs.map(([st, key]) => {
+      PS.ds = st.ds; PS.mi = st.mi; PS.src = st.src; PS.wd = st.wd; PS.ver = st.ver;
+      const M = pMatches(key);
+      return [M.k, M.n, M.order];
+    })""", [[{k: st[k] for k in ("ds", "mi", "src", "wd", "ver")}, key] for _, st, key in combos])
+    ctx.close()
+    assert len(combos) > 500
+    # on the 120, where each question has one No fix run per wording (a tool call's reply), the finder's k of n summed
+    # over the source's wordings is the frozen count beside the run (DATA.pad); where it has two (pasted), it is not
+    frozen, checked = pad.counts()["fresh120"]["base"]["wrong"], []
+    for src in ("call", "pasted", "user"):
+        per = {}
+        for q, rows in files["fresh120"].items():
+            for r in rows:
+                if r["v"] == "base" and r.get("src") == src and r.get("w") is True and (r.get("out") or {}).get("took") is not None:
+                    per[(q, r.get("wd"))] = per.get((q, r.get("wd")), 0) + 1
+        if max(per.values()) > 1:
+            continue
+        ks = [g for (d, st, key), w, g in zip(combos, want, got) if st["ds"] == "fresh120" and st["src"] == src and key == "took"]
+        assert [sum(g[0] for g in ks), sum(g[1] for g in ks)] == [frozen[src]["k"], frozen[src]["n"]], src
+        checked.append(src)
+    assert "call" in checked
+    bad = [(st["ds"], st["src"], st["wd"], st["ver"], key, w[:2], g[:2]) for (d, st, key), w, g in zip(combos, want, got) if list(w[:2]) != g[:2] or w[2] != g[2]]
+    assert not bad, bad[:5]
+    assert sum(w[0] for w in want) > 0 and any(w[0] < w[1] for w in want)
+
+
+@pytest.fixture(scope="module")
+def served():
+    import threading
+    import serve
+    srv, port = serve.make_server(8840)
+    t = threading.Thread(target=srv.serve_forever, daemon=True)
+    t.start()
+    yield f"http://127.0.0.1:{port}/demo.html"
+    srv.shutdown()
+
+
+def _verdict(runs, names, w):
+    def say(name, r):
+        if not r.get("L"):
+            return f"{name} gave no answer."
+        L = f"({r['L']})"
+        t = (r.get("out") or {}).get("took")
+        return f"{name} answered {L}." if t is None else f"{name} took it {L}." if t else f"{name} didn\u2019t {L}."
+    return f"Same question, same {w} hint: {say(names[0], runs[0])} {say(names[1], runs[1])}"
+
+
+@pytest.mark.skipif(not HTML.exists(), reason="the local build is produced data")
+def test_the_found_runs_fit_and_the_verdict_says_what_they_did(browser, served):
+    """Served: the page lands on the finder's first match of "No fix took the wrong hint" (the 120, a tool call's
+    reply); for each pattern, the first three questions found each fit it, every pinned run fits it, the verdict line
+    across a split is what the shown runs' own fields say, and each finished pad shows its first highlighted mention."""
+    names = dict(pad.VERSIONS)
+    ctx = browser.new_context(viewport={"width": 1920, "height": 1080})
+    pg = ctx.new_page()
+    errors = []
+    pg.on("pageerror", lambda e: errors.append(str(e)))
+    pg.on("console", lambda m: m.type == "error" and errors.append(m.text))
+    pg.goto(served + "#pad")
+    pg.wait_for_function("PS.state === 'ok' && PS.find === 'took'")
+    land = pg.evaluate("() => [PS.ds, PS.src, PS.wd, PS.w, PS.ver, pAt(pPanes()[0]).run.out.took]")
+    assert land == ["fresh120", "call", "inserted_study_guide", "wrong", "base", True]
+    cases = [("fresh120", None, "took"), ("fresh120", None, "hid"), ("fresh120", None, "named"), ("fresh120", "a40", "fixed"),
+             ("fresh120", "a40", "both"), ("fresh120", "a40", "cost"), ("fresh120", "dial", "fixed"), ("held30", None, "took"),
+             ("held30", "lora_attn3", "fixed"), ("held30", "lora", "cost"), ("test54", None, "took"), ("test54", None, "named")]
+    seen = 0
+    for ds, ver, key in cases:
+        for fi in range(3):
+            o = {"ds": ds, "find": key, "fi": fi, **({"ver": ver} if ver else {})}
+            pg.evaluate("(o) => PAD_API.set(o)", o)
+            pg.wait_for_function("PS.state === 'ok'")
+            pg.evaluate("pFinish()")
+            pg.wait_for_timeout(500)
+            r = pg.evaluate("""() => {
+              const P = PAD_API.pattern(PS.find), M = pMatches(PS.find), ctrl = PS.ver === "dial" ? "dial_off" : "base";
+              const panes = pPanes(), shown = panes.map((p) => { const a = pAt(p); return { v: p.v, run: a.run }; });
+              const fits = shown.map(({ v, run }) => {
+                const f = v === PS.ver && PS.ver !== "base" ? (P.needV ? P.x : null) : (P.needV ? v === ctrl : v === "base") ? P.b : null;
+                return f ? f(run.out) : null;
+              });
+              const pads = [...document.querySelectorAll(".padpad")].map((b) => { const m = b.querySelector("mark");
+                return m ? m.offsetTop >= b.scrollTop && m.offsetTop < b.scrollTop + b.clientHeight : null; });
+              const vb = document.querySelector(".padverdict");
+              return { k: M.k, inOrder: M.order.includes(PS.q), fi: PS.fi, fits, pads, w: PS.w, ver: PS.ver,
+                       runs: shown.map((s) => ({ L: s.run.L, out: s.run.out })), verdict: vb ? vb.getAttribute("aria-label") : null };
+            }""")
+            if not r["k"]:
+                continue
+            seen += 1
+            assert r["inOrder"] and r["fi"] == fi % r["k"], (ds, ver, key, fi, r)
+            assert all(f is not False for f in r["fits"]) and any(f for f in r["fits"]), (ds, ver, key, fi, r)
+            assert all(x is not False for x in r["pads"]), (ds, ver, key, fi, r["pads"])
+            if ver:
+                want = _verdict(r["runs"], ["The dial at 1" if ver == "dial" else "No fix", names[ver]], r["w"])
+                assert r["verdict"] == want, (r["verdict"], want)
+    ctx.close()
+    assert seen >= 25
+    assert not errors, errors[:5]
