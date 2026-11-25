@@ -40,3 +40,12 @@ docs/demo/concepts/
 
 # the presentation pack's demo screenshots (Nov 24): they show recorded model text, so local only
 docs/presentation/pack/demo_shots/
+
+# the ASU slide templates (Nov 25): over 5 MB and not ours to publish, so local only
+docs/presentation/final/templates/
+
+# the deck's video beats, clips and stills (Nov 25): they show recorded model text, so local only
+docs/presentation/final/storyboard/video_beats/
+docs/presentation/final/video/
+# a draft deck built on the ASU template (over 5 MB: its masters carry images): local only
+docs/presentation/final/storyboard/*.pptx

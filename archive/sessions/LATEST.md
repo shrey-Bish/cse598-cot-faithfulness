@@ -1,108 +1,84 @@
-# Session log: the presentation pack (2026-11-24 14:20 MST)
+# Session log: the final deck, Phase A (the storyboard) (2026-11-25 09:20 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `7f53c2f` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
-level). The day's first session log; the morning finished the Nov 23 15:55 session (Show me, pushed at 08:48). The
-daily: [DAILY_2026-11-24](2026-11-24/DAILY_2026-11-24.md). The previous session: Nov 23,
-[15:55](2026-11-23/2026-11-23_1555_ALL_case-finder.md). The results are frozen: the tag
-`results-freeze-2026-11-18` on `7e1fdc0`. Two helpers: methods and the study guide; figures, team and requirements.
+**By:** Ritik. Branch `trackA-nosol`, from `5b9956e` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
+level). The day's first session. The daily: [DAILY_2026-11-25](2026-11-25/DAILY_2026-11-25.md). The previous session: Nov 24,
+[14:20](2026-11-24/2026-11-24_1420_ALL_presentation-pack.md). The results are frozen: the tag
+`results-freeze-2026-11-18` on `7e1fdc0`. Two helpers: the template map and the design diagram; the figure drafts.
 They did not commit.
 
 ## 0. Input
 
-A pasted prompt, acted on as Ritik's: "THE PRESENTATION PACK: gather everything I need to build the slides, write the
-report and prepare for the presentation, in one place."
-- **Scope:** gathering and explaining only. No new analysis, no frozen number changes, and no report prose or speaker
-  scripts (outlines, facts and explanations only). A dated note goes in today's log; at most 2 helpers.
-- **The files:** `docs/presentation/pack/` 00–11:
-  - index, story, numbers, methods, figures (slide copies at 1920 px, demo screenshots);
-  - slide outline, report outline, related work, prep guide, Q&A bank, team and process, requirements;
-  - `PACK.pdf`.
-- **The rules:**
-  - Every number with "k of n" (and its interval), its finding and its source.
-  - Plain names first; exploratory marked.
-  - FINDINGS' wording, with the corrected story of the Nov 23 log.
-- **Checks:** every number against its source (a test), and the links. Push both branches.
+A pasted note with a prompt, acted on as Ritik's:
+- "Read ~/Downloads/DECK_BRIEF.md in full: it's the brief for the final presentation".
+- Copy the two ASU templates into `docs/presentation/final/templates/`.
+- "Do PHASE A only (the storyboard, with draft renders of the figures, the diagram and the video beats), then stop
+  and show me."
+- Presentation work after the freeze: no number changes; a dated note in today's log; at most 2 helpers.
 
-## 1. What was done (14:20–15:47)
+The note's deck shape: eight slides in 6:00, on the course's split (the question 1:00; how we tested 1:00; the
+strongest finding with the video 2:00; four recommendations and the limits 2:00).
 
-**The pack** (`docs/presentation/pack/`, 12 files, 1,990 lines):
+**The brief** (Canvas, Nov 24):
+- one .pptx, uploaded by Mon Nov 30;
+- the talk Thu Dec 3, Group 10 first: 6 minutes plus 2 of Q&A;
+- the rubric: soundness 7, results 5, deployment 4, clarity 2;
+- embedded demo videos and the ASU 2026 template;
+- Phases A to D, stopping after A.
 
-| file | by | what |
-|---|---|---|
-| 00_INDEX | me | the order to read; how the numbers are checked; where a number and its source differ |
-| 01_STORY | me | the question; the answer ("mixed"); the five findings with evidence; what's new; limits; a "don't say" table (21 rows) |
-| 02_NUMBERS | me | 131 rows: 81 slide numbers in six groups, then every finding at a glance; claim, numbers, interval, finding, source, status |
-| 03_METHODS | helper 1 | question sets, hint wordings, the 12 models, compute, Olmo's architecture, patching, both fine-tuning methods, the other fixes, the review pipeline, statistics, pre-registration, labels, judges, the freeze |
-| 04_FIGURES | helper 2 | every figure (29 in `docs/paper/figures/`, 7 in the supplement, the deck's 18 slides): what it shows, caption, data source, slide, report section |
-| 05_SLIDE_OUTLINE | me | 13 slides in 12:00 (S1–S13), the demo's four moves with keys and fallback shots, 6 backups (B1–B6), what to cut |
-| 06_REPORT_OUTLINE | me | abstract to contributions: facts, figures, tables, suggested lengths |
-| 07_RELATED_WORK | me | 33 papers in a table and as entries, condensed from RELATED_WORK, with nothing added |
-| 08_PREP_GUIDE | helper 1 | 13 concepts (plain words, analogy, how we used it, number, check-yourself); the four moves; fallbacks; rehearsal |
-| 09_QA_BANK | me | 28 questions in 7 groups, the hard ones marked |
-| 10_TEAM_AND_PROCESS | helper 2 | the tracks, report owners, commit counts, the timeline, labels, AI-use facts |
-| 11_REQUIREMENTS | helper 2 | none in the repo: check Canvas |
+The files were in `~/Downloads/` under slightly different names (spaces and an em dash): the same files.
 
-**Figures and screenshots:**
-- `figures/`: 15 PNGs at 1920 × 1080, rendered from the tracked SVGs. These are helper 2's 14 plus `channels.png`
-  (mine, for S3).
-- `demo_shots/`: 6 screenshots of the four moves. They are gitignored: they show recorded model text.
+## 1. What was done (09:20–09:29)
 
-**PACK.pdf:** files 00–11 then the slide figures; 92 phone-sized pages, 1.9 MB. The figures are recompressed for the
-PDF, and the demo shots are left out.
+- **The brief copied** to `docs/presentation/final/DECK_BRIEF.md` (as the brief asks).
+- **The templates copied** to `templates/`, local only (gitignored): 11 MB and 6.8 MB, over the 5 MB limit, and the
+  second is not ours to publish.
+- **[`STORYBOARD.md`](../../docs/presentation/final/STORYBOARD.md)** (226 lines):
+  - the eight slides with exact claim titles, times (6:00), speakers and rubric criteria;
+  - the backups B1–B8;
+  - each main-slide result with its n, interval, comparison, limit and source (the brief's checklist);
+  - the figures, the diagram, the template use, the video storyboard;
+  - seven decisions for Ritik.
+- **Figure drafts** (helper 2; `cot-disclosure/tools/deck/figures.py`): tool vs user (10 model settings), reasoning vs
+  answer, the trade-off (marked exploratory), the checker. The ASU palette, an n on every mark, 95% intervals equal to
+  the summaries' stored Wilson bounds (asserted).
+- **The design diagram** (helper 1; `cot-disclosure/tools/deck/diagram.py`): native PowerPoint shapes on a copy of the
+  template, simple (slide 3) and full (B7), rendered by LibreOffice.
+- **The template map** (`storyboard/TEMPLATE_MAP.md`): layouts, the safe-zone strip (the bottom 0.845 in), the
+  theme's colors, the preheader style.
+- **The video storyboard:**
+  - Clip A, about 48 s, six beats.
+  - Clip B, about 28 s, three beats.
+  - Each beat has its state, zoom target and caption.
+  - Draft stills with the zoom boxes and captions drawn in are local only (`storyboard/video_beats/`): they show
+    model text.
+- **The question, by pattern:**
+  - On the 120 fresh questions with the tool call's reply, No fix took the wrong hint, its reasoning named the tool
+    and its answer didn't, on 28 of 114 questions.
+  - The first in the finder's seeded order is mmlupro-11784. It is also the first match of "No fix took it and
+    consistency training didn't", so clip B shares it with no choosing.
+  - The review team's first drawn item shows the reviewer deferring and the checker flagging.
 
-**The number check** (`cot-disclosure/tests/test_presentation_pack.py`, new, 7 tests):
-- Each 02 row is checked three ways:
-  - its "k of n" and intervals are in its finding's section of FINDINGS (or the summary at the top);
-  - its source exists;
-  - in a JSON source, each "k of n" is a k and n in one record, and each interval bound is in the file within
-    rounding.
-- Every "k of n" and interval anywhere in the pack is in 02, FINDINGS or (the finder's counts) TALK_MAP.
-- The links resolve; the figures are 1920 wide; the PDF is there and under 5 MB.
+**Numbers checked against FINDINGS:**
+- The brief's: 1 of 162 [0, 3%] and 147 of 162 [85, 94%] (F16); 54 of 54 and 3 of 54 (F15); 53 of 53 (F24).
+- Five slide intervals aren't printed in FINDINGS but are stored in the frozen summaries:
+  - 141 of 145 [93, 99] and 0 of 143 [0, 3] (`trackB_report.json`);
+  - 127 of 162 [71, 84] (`b20_report.json`);
+  - 53 of 53 [93, 100] and 7 of 45 [8, 29] (`c15_summary.json`).
+  - Phase B adds them to 02_NUMBERS with their paths.
+- Not in FINDINGS verbatim (decision 4): Gemma's thinking-on reasoning bar, 138 of 145; the trade-off's end points.
+- The clip's 28 of 114 is a presentation count from recorded runs (decision 1).
 
-**What the check found** (all now stated in the test and in 00_INDEX):
-- **One number differs from its source:** F42's "s(0–14) 1.89 [1.39, 4.82]". `a41_readout.json` holds 4.8148, which
-  is 4.81: one off in the last place. FINDINGS is frozen, so the number is kept as written and noted in 02.
-- **Recounted from their sources:**
-  - L6's 82 of 84 (agreement × rows) and 83 of 84 (42 + 41);
-  - B20's "5 of 10" readings.
-- **Per-run, against FINDINGS only:** F16's 111 of 147; F1's [−2, +40]; F13's 7 of 19.
-- **Only in FINDINGS' own tables** (hand labels; the sheets are local): L4's 97 of 147 and 1 to 2 of 147; FC2's spot
-  check, 15 of 20.
-- **Three glance rows reworded to FINDINGS' own words,** same numbers: F4 ("26 of the 43"), FC2 ("0 [0, 0]"), FC4
-  ("[−29, 0]").
-- **Sources added after the first pass:** F28 (gate3_table.md, eval_report.json, FINDINGS' L4 table); F32
-  (step9_followup.json); F34 (team_c18_unchanged_summary.json); F45 (tradeoff_e2.json).
-
-**Corrected on the way** (my review of the helpers' files):
-- 08's rehearsal timed TALK_MAP's older 14 slides; it now follows 05's S1–S13.
-- 09's AI-use answer now follows the inventory's own lines.
-- 09's "why one model" answer now cites the compute fact in FINDINGS' story (item 6), not an unsourced reason.
-
-**Not found in the repo** (said in the files):
-- The course's requirements (page limit, format, rubric, deadlines);
-- the reviewer models' temperature;
-- LoRA's per-channel data split;
-- Gate 3's pass rule restated in full;
-- Arsha's and Shrey's own AI use (the inventory's "to confirm" lines);
-- the AI uses since Nov 19.
-
-**After the freeze (Nov 24, 14:20): presentation and docs work only.** No number, figure or verdict changed. The pack
-copies FINDINGS' numbers with their sources, and reports the one that differs from its source rather than changing
-it.
+**After the freeze (Nov 25, 09:20): presentation work only.** No number, figure or verdict changed. The drafts plot
+frozen summary numbers; the ones not printed in FINDINGS are listed above for Phase B to add with their sources.
 
 ## 2. Waiting for Ritik
 
-1. **Check Canvas** for the requirements (11_REQUIREMENTS lists what to look for).
-2. Build the slides from 05; write the report from 06; CONTRIBUTIONS.md from 10; AI_USE.md from the inventory.
-3. Decide on the existing deck: rebuild it from TALK_MAP (its order) or follow 05 (new order).
-4. The demo screenshots are in `docs/presentation/pack/demo_shots/` (local only).
-5. As before: Prompt 2 (the final check, the zip, the tag); publish the seeded runs? a LICENSE? the username in the
-   logs?
+1. Read `docs/presentation/final/STORYBOARD.md` and answer its §8 (seven decisions), then say "Phase B".
+2. Settle the speakers with Arsha and Shrey.
+3. As before: the report (Dec 10, NeurIPS format, 1–3 pages), CONTRIBUTIONS.md, AI_USE.md, Prompt 2.
 
 ## 3. Checks and push
 
-- `tests/test_presentation_pack.py`: 7 passed; with the repo's hygiene, link, Gantt and submission tests, 83 passed.
-  The full suite was not rerun: no code changed but the new test (it ran last on Nov 24 at 08:47, 1,413 passed).
-- `tools/check_links.py`: 0 broken links. `make_supplement.py --check` and `export_summaries.py --check`: pass.
-- Privacy: no email, Sol username, key or model text in the tracked pack; `demo_shots/` ignored.
+- `tools/check_links.py`: 0 broken links. A privacy sweep of the new files: no email, username, key or model text.
+- `.gitignore`: the templates, the video beats, `final/video/` and the draft .pptx, all local only.
 - STATUS and the Gantt; the pre-push check; the push: `git push origin trackA-nosol:main trackA-nosol:trackA-nosol`.
