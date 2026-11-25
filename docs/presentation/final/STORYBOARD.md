@@ -226,3 +226,34 @@ From [`storyboard/TEMPLATE_MAP.md`](storyboard/TEMPLATE_MAP.md) (helper 1; the t
   - the .pptx validated;
   - a timing estimate from the notes.
 - **Then stop for Ritik,** who checks video playback in PowerPoint.
+
+## 10. Phase B: what was built (Nov 25), with Ritik's answers to §8
+
+The decisions, as answered:
+1. **The narrower pattern was added to Show me** ("named in reasoning only": 28 of 114, mmlupro-11784 first). It is
+   tested like the others and recorded in TALK_MAP.
+2. **The clips stay private.** `local/Group10_final_with_video.pptx` (gitignored) embeds them and goes to Canvas. The
+   tracked `Group10_final.pptx` shows "Demo video in the submitted deck", with no model text and no stills.
+3. **Slide 4** shows big numbers for both parts (1 of 162 against 147 of 162; 141 of 145 against 0 of 143), each with
+   its interval, and a seven-row "across models" strip. The full 10-row figure is a backup.
+4. **Numbers:** the five intervals, the 85 of 233 and the strip's rows were added to 02_NUMBERS (N132–N149, read from
+   the summaries). Gemma's thinking-on bar and the trade-off's end points were dropped.
+5. **Clip B** is a backup. Slide 6's visual is a native solver → reviewer → checker diagram.
+6. **Otherwise the option with less on the slide:** no trade-off figure on slide 6 (it is a backup); claim titles at
+   22 pt.
+
+**The deck:** 8 main slides (6:00 in the notes), a divider and 12 backups:
+- the layers;
+- authority;
+- every fix in one table;
+- the trade-off (exploratory);
+- reviewers by family;
+- what's new;
+- pre-registration with dates;
+- the full design;
+- the demo in stills;
+- the 10-row figure;
+- reasoning against answer;
+- clip B.
+
+The full design diagram is also at `docs/figures/architecture.svg` and `.png`.

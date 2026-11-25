@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="590.4pt" height="345.6pt" viewBox="0 0 590.4 345.6" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-11-25T10:22:13.524627</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 345.6 
+L 590.4 345.6 
+L 590.4 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 159.408 228.096 
+L 425.088 228.096 
+L 425.088 10.368 
+L 159.408 10.368 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 159.408 228.096 
+L 159.408 10.368 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #e8e8e8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2"/>
+     <g id="text_1">
+      <text style="font-size: 14px; font-family: 'Arial'; text-anchor: middle; fill: #191919" x="159.408" y="241.788383" transform="rotate(-0 159.408 241.788383)">0%</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 292.248 228.096 
+L 292.248 10.368 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #e8e8e8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4"/>
+     <g id="text_2">
+      <text style="font-size: 14px; font-family: 'Arial'; text-anchor: middle; fill: #191919" x="292.248" y="241.788383" transform="rotate(-0 292.248 241.788383)">50%</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 425.088 228.096 
+L 425.088 10.368 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #e8e8e8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6"/>
+     <g id="text_3">
+      <text style="font-size: 14px; font-family: 'Arial'; text-anchor: middle; fill: #191919" x="425.088" y="241.788383" transform="rotate(-0 425.088 241.788383)">100%</text>
+     </g>
+    </g>
+    <g id="text_4">
+     <text style="font-size: 14px; font-family: 'Arial'; text-anchor: middle; fill: #191919" x="292.248" y="258.927055" transform="rotate(-0 292.248 258.927055)">Runs that name the tool as the source</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_7"/>
+     <g id="text_5">
+      <text style="font-size: 14px; font-family: 'Arial'; text-anchor: end; fill: #191919" x="155.908" y="56.292156" transform="rotate(-0 155.908 56.292156)">Qwen3-8B, thinking on</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_8"/>
+     <g id="text_6">
+      <text style="font-size: 14px; font-family: 'Arial'; text-anchor: end; fill: #191919" x="155.908" y="124.332156" transform="rotate(-0 155.908 124.332156)">Qwen3 30B Thinking</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_9"/>
+     <g id="text_7">
+      <text style="font-size: 14px; font-family: 'Arial'; text-anchor: end; fill: #191919" x="155.908" y="192.368191" transform="rotate(-0 155.908 192.368191)">Gemma 4, thinking off</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 158.34528 187.272 
+L 160.47072 187.272 
+L 160.47072 187.272 
+L 158.34528 187.272 
+z
+" clip-path="url(#pdf72dc1f2d)" style="fill: #8c1d40"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 158.34528 187.272 
+L 160.47072 187.272 
+L 160.47072 187.272 
+L 158.34528 187.272 
+z
+" clip-path="url(#pdf72dc1f2d)" style="fill: #ffc627; stroke: #191919; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 159.408 49.55904 
+L 417.758897 49.55904 
+L 417.758897 31.05216 
+L 159.408 31.05216 
+z
+" clip-path="url(#pdf72dc1f2d)" style="fill: #8c1d40; stroke: #8c1d40; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 159.408 71.33184 
+L 159.408 71.33184 
+L 159.408 52.82496 
+L 159.408 52.82496 
+z
+" clip-path="url(#pdf72dc1f2d)" style="fill: #ffc627; stroke: #191919; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 159.408 117.59904 
+L 425.088 117.59904 
+L 425.088 99.09216 
+L 159.408 99.09216 
+z
+" clip-path="url(#pdf72dc1f2d)" style="fill: #8c1d40; stroke: #8c1d40; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 159.408 139.37184 
+L 174.168 139.37184 
+L 174.168 120.86496 
+L 159.408 120.86496 
+z
+" clip-path="url(#pdf72dc1f2d)" style="fill: #ffc627; stroke: #191919; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 159.408 207.41184 
+L 367.688 207.41184 
+L 367.688 188.90496 
+L 159.408 188.90496 
+z
+" clip-path="url(#pdf72dc1f2d)" style="fill: #ffc627; stroke: #191919; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 159.408 228.096 
+L 425.088 228.096 
+" style="fill: none; stroke: #191919; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_10">
+    <path d="M 406.814894 40.3056 
+L 422.224261 40.3056 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_11">
+    <path d="M 406.814894 44.11584 
+L 406.814894 36.49536 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_12">
+    <path d="M 422.224261 44.11584 
+L 422.224261 36.49536 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'Arial'; text-anchor: start; fill: #8c1d40" x="438.372" y="43.928647" transform="rotate(-0 438.372 43.928647)">141 of 145</text>
+   </g>
+   <g id="line2d_13">
+    <path d="M 159.408 62.0784 
+L 166.358345 62.0784 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_14">
+    <path d="M 159.408 65.88864 
+L 159.408 58.26816 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_15">
+    <path d="M 166.358345 65.88864 
+L 166.358345 58.26816 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'Arial'; text-anchor: start; fill: #191919" x="438.372" y="65.701447" transform="rotate(-0 438.372 65.701447)">0 of 143</text>
+   </g>
+   <g id="line2d_16">
+    <path d="M 407.443238 108.3456 
+L 425.088 108.3456 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_17">
+    <path d="M 407.443238 112.15584 
+L 407.443238 104.53536 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_18">
+    <path d="M 425.088 112.15584 
+L 425.088 104.53536 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'Arial'; text-anchor: start; fill: #8c1d40" x="438.372" y="111.968647" transform="rotate(-0 438.372 111.968647)">54 of 54</text>
+   </g>
+   <g id="line2d_19">
+    <path d="M 164.475386 130.1184 
+L 199.544847 130.1184 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_20">
+    <path d="M 164.475386 133.92864 
+L 164.475386 126.30816 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_21">
+    <path d="M 199.544847 133.92864 
+L 199.544847 126.30816 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'Arial'; text-anchor: start; fill: #191919" x="438.372" y="133.741447" transform="rotate(-0 438.372 133.741447)">3 of 54</text>
+   </g>
+   <g id="text_12">
+    <text style="font-style: italic; font-size: 14px; font-family: 'Arial'; fill: #6b6b6b" transform="translate(164.7216 161.523966)">no private reasoning</text>
+    <text style="font-style: italic; font-size: 14px; font-family: 'Arial'; fill: #6b6b6b" transform="translate(164.7216 176.720255)">(thinking off)</text>
+   </g>
+   <g id="line2d_22">
+    <path d="M 349.207982 198.1584 
+L 382.673118 198.1584 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_23">
+    <path d="M 349.207982 201.96864 
+L 349.207982 194.34816 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_24">
+    <path d="M 382.673118 201.96864 
+L 382.673118 194.34816 
+" clip-path="url(#pdf72dc1f2d)" style="fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'Arial'; text-anchor: start; fill: #191919" x="438.372" y="201.781447" transform="rotate(-0 438.372 201.781447)">127 of 162</text>
+   </g>
+  </g>
+  <g id="text_14">
+   <text style="font-size: 11px; font-family: 'Arial'; fill: #6b6b6b" transform="translate(11.808 325.303998)">Reasoning: of the runs that called the tool.  Answer: of the runs that followed it</text>
+   <text style="font-size: 11px; font-family: 'Arial'; fill: #6b6b6b" transform="translate(11.808 337.276381)">(Gemma 4: all answered runs).</text>
+  </g>
+  <g id="legend_1">
+   <g id="patch_11">
+    <path d="M 24.408 297.221437 
+L 41.208 297.221437 
+L 41.208 287.421437 
+L 24.408 287.421437 
+z
+" style="fill: #8c1d40"/>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 14px; font-family: 'Arial'; text-anchor: start; fill: #191919" x="52.408" y="297.221437" transform="rotate(-0 52.408 297.221437)">private reasoning</text>
+   </g>
+   <g id="patch_12">
+    <path d="M 176.598938 297.221437 
+L 193.398938 297.221437 
+L 193.398938 287.421437 
+L 176.598938 287.421437 
+z
+" style="fill: #ffc627; stroke: #191919; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 14px; font-family: 'Arial'; text-anchor: start; fill: #191919" x="204.598938" y="297.221437" transform="rotate(-0 204.598938 297.221437)">final answer</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pdf72dc1f2d">
+   <rect x="159.408" y="10.368" width="265.68" height="217.728"/>
+  </clipPath>
+ </defs>
+</svg>

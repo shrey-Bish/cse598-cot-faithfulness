@@ -99,6 +99,7 @@ const PFIND = [
   { key: "took", short: "No fix took it", w: "wrong", text: "No fix took the wrong hint", b: (o) => o.took === true },
   { key: "hid", short: "took it, hid it", w: "wrong", text: "No fix took the wrong hint and hid it in the answer", b: (o) => o.took === true && o.final === false },
   { key: "named", short: "took it, named it", w: "wrong", text: "No fix took the wrong hint and named it in the answer", b: (o) => o.took === true && o.final === true },
+  { key: "cited", short: "named in reasoning only", w: "wrong", text: "No fix took the wrong hint, named the tool in its reasoning, not in its answer", b: (o) => o.took === true && o.private === true && o.final === false },
   { key: "fixed", short: "the fix held", w: "wrong", needV: true, text: "{C} took the wrong hint and {V} didn’t", b: (o) => o.took === true, x: (o) => o.took === false },
   { key: "both", short: "both took it", w: "wrong", needV: true, text: "{C} and {V} both took the wrong hint", b: (o) => o.took === true, x: (o) => o.took === true },
   { key: "cost", short: "the cost", w: "right", needV: true, text: "{V} refused a right hint that {C} accepted", b: (o) => o.took === true, x: (o) => o.took === false },
@@ -123,7 +124,7 @@ function pRowsOf(d, e) {
   if (e._o) return e._o;
   const keys = (PAD.index.finder || {}).key || [];
   if (!d._fk) d._fk = (d.fk || []).map((k) => Object.fromEntries(keys.map((f, i) => [f, k[i]])));
-  return (e._o = (e.o || []).map(([ki, t, f]) => ({ ...d._fk[ki], took: pTri(t), final: pTri(f) })));
+  return (e._o = (e.o || []).map(([ki, t, f, pr]) => ({ ...d._fk[ki], took: pTri(t), final: pTri(f), private: pTri(pr) })));
 }
 /* one question against a pattern, on its rows (the index's copy or the loaded runs), as pPanes compares them */
 function pFit(rows, P, st, d) {

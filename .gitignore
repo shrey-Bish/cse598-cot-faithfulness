@@ -49,3 +49,5 @@ docs/presentation/final/storyboard/video_beats/
 docs/presentation/final/video/
 # a draft deck built on the ASU template (over 5 MB: its masters carry images): local only
 docs/presentation/final/storyboard/*.pptx
+# the deck with the demo clips embedded (Nov 25): recorded model text, so local only; uploaded to Canvas from here
+docs/presentation/final/local/

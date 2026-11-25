@@ -1,0 +1,126 @@
+"""The final deck (docs/presentation/final/Group10_final.pptx, Nov 25): built by tools/deck/build_deck.py.
+
+- Every "k of n", interval and decimal on a slide is in docs/presentation/pack/02_NUMBERS.md, FINDINGS or (the demo's
+  finder counts) TALK_MAP.
+- No internal codes on the slides (the notes may carry them).
+- Every picture, video and video placeholder has alt text.
+- Nothing the deck adds sits in the template's reserved strip (below 4.78 in) on the eight main slides.
+- The main slides' notes carry their times, which add up to 6:00; every slide has notes.
+- The tracked deck holds no video and no still of one (they show recorded model text) and stays under 5 MB; the local
+  deck with the clips (gitignored) embeds two videos and stays under 50 MB.
+"""
+import re
+import zipfile
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[2]
+FINAL = ROOT / "docs" / "presentation" / "final"
+DECK = FINAL / "Group10_final.pptx"
+LOCAL = FINAL / "local" / "Group10_final_with_video.pptx"
+pytestmark = pytest.mark.skipif(not DECK.exists(), reason="the deck isn't built yet")
+
+KN = re.compile(r"(\d{1,3}(?:,\d{3})+|\d+) of (\d{1,3}(?:,\d{3})+|\d+)")
+_B = r"[+\-]?\d+(?:\.\d+)?%?"
+IV = re.compile(r"\[\s*" + _B + r"\s*,\s*" + _B + r"\s*\]")
+DEC = re.compile(r"[+\-]?\d+\.\d+")
+CODES = re.compile(r"\b(?:F\d{1,2}|FB\d|FC\d|A\d{2}|B\d{1,2}(?:R\d)?|C\d{1,2}|E2|L[346]|T\d{1,2}|Gate \d)\b")
+
+
+def norm(s):
+    return re.sub(r"\s+", " ", s.replace("−", "-").replace("–", "-").replace(" ", " ").replace("**", ""))
+
+
+def deck(path=DECK):
+    from pptx import Presentation
+    return Presentation(str(path))
+
+
+def slide_text(slide):
+    out = []
+    for sh in slide.shapes:
+        if sh.has_text_frame:
+            out.append(sh.text_frame.text)
+        if getattr(sh, "has_table", False) and sh.has_table:
+            out += [c.text for row in sh.table.rows for c in row.cells]
+    return norm(" ".join(out))
+
+
+ALLOWED = norm("\n".join((ROOT / p).read_text() for p in (
+    "docs/presentation/pack/02_NUMBERS.md", "docs/FINDINGS.md", "docs/trackB/FINDINGS_B.md", "docs/trackC/FINDINGS_C.md",
+    "docs/presentation/TALK_MAP.md")))
+
+
+def test_every_number_on_a_slide_is_in_the_numbers_file_findings_or_talk_map():
+    bad = []
+    for i, s in enumerate(deck().slides, 1):
+        t = slide_text(s)
+        # the illustrative question's own numbers (ours, the demo's illustration: g = 9.8, options 14.7 m and 19.6 m)
+        toks = [m.group(0) for m in KN.finditer(t)] + IV.findall(t) + [d for d in DEC.findall(t) if d not in ("9.8", "14.7", "19.6")]
+        bad += [(i, x) for x in toks if x not in ALLOWED]
+    assert not bad, bad
+
+
+def test_no_internal_codes_on_the_slides():
+    bad = [(i, m.group(0)) for i, s in enumerate(deck().slides, 1) for m in CODES.finditer(slide_text(s))]
+    assert not bad, bad
+
+
+def test_every_picture_and_video_has_alt_text():
+    bad = []
+    for i, s in enumerate(deck().slides, 1):
+        for sh in s.shapes:
+            el = sh._element
+            pic = el.tag.endswith("}pic")
+            placeholder = sh.name == "deck video placeholder"
+            if pic or placeholder:
+                cnv = el.xpath(".//p:cNvPr")[0]
+                if not (cnv.get("descr") or "").strip():
+                    bad.append((i, sh.name))
+    assert not bad, bad
+
+
+def test_nothing_the_deck_adds_sits_in_the_reserved_strip():
+    bad = []
+    for i, s in enumerate(list(deck().slides)[:8], 1):
+        for sh in s.shapes:
+            if sh.name.startswith("deck") and (sh.top + sh.height) / 914400 > 4.80:
+                bad.append((i, sh.name, round((sh.top + sh.height) / 914400, 2)))
+    assert not bad, bad
+
+
+def test_the_notes_time_the_main_slides_to_six_minutes():
+    slides = list(deck().slides)
+    total = 0
+    for s in slides[:8]:
+        m = re.search(r"Time: (\d+):(\d\d)", s.notes_slide.notes_text_frame.text)
+        assert m, s.notes_slide.notes_text_frame.text[:80]
+        total += int(m.group(1)) * 60 + int(m.group(2))
+    assert total == 360
+    assert all(s.has_notes_slide and s.notes_slide.notes_text_frame.text.strip() for s in slides)
+
+
+def test_the_tracked_deck_holds_no_video_and_stays_small():
+    names = zipfile.ZipFile(DECK).namelist()
+    assert not [n for n in names if re.search(r"\.(mp4|mov|m4v|webm)$", n, re.I)]
+    stills = list((FINAL / "video").glob("**/*.png"))
+    if stills:
+        import hashlib
+        h = {hashlib.sha256(p.read_bytes()).hexdigest() for p in stills}
+        z = zipfile.ZipFile(DECK)
+        media = [n for n in names if n.startswith("ppt/media/")]
+        assert not [n for n in media if hashlib.sha256(z.read(n)).hexdigest() in h]
+    assert DECK.stat().st_size < 5_000_000
+    assert (FINAL / "Group10_final.pdf").exists()
+
+
+@pytest.mark.skipif(not LOCAL.exists(), reason="the local deck with the clips is gitignored")
+def test_the_local_deck_embeds_both_clips():
+    names = zipfile.ZipFile(LOCAL).namelist()
+    assert len([n for n in names if n.endswith(".mp4")]) == 2
+    assert LOCAL.stat().st_size < 50_000_000
+    a, b = deck(), deck(LOCAL)
+    assert len(a.slides) == len(b.slides)
+    assert [s.shapes.title.text if s.shapes.title else "" for s in a.slides] == \
+           [s.shapes.title.text if s.shapes.title else "" for s in b.slides]

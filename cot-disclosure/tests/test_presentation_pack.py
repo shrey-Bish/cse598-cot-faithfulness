@@ -51,7 +51,8 @@ def rows():
         if re.match(r"\| N\d+ \|", line):
             c = [x.strip() for x in line.strip().strip("|").split(" | ")]
             out.append({"id": c[0], "claim": c[1], "numbers": c[2], "interval": c[3], "finding": c[4],
-                        "sources": re.findall(r"`([^`]+)`", c[5]), "status": c[6]})
+                        "sources": [x for x in re.findall(r"`([^`]+)`", c[5]) if re.search(r"\.(json|jsonl|md|csv)$", x)],
+                        "status": c[6]})
     return out
 
 
@@ -93,6 +94,8 @@ def test_the_numbers_file_has_rows_for_every_finding():
 def test_every_number_is_in_its_findings_section():
     bad = []
     for r in ROWS:
+        if r["status"].startswith("summary"):     # the deck's rows read from a frozen summary: checked against the JSON
+            continue
         text = SEC.get(r["finding"], "") + " " + SEC["STORY"]
         kn, iv = tokens(" ".join((r["claim"], r["numbers"], r["interval"])))
         for t in kn + iv:
@@ -163,6 +166,29 @@ def source_check(r):
             if not near(b, nums) and t not in text:
                 bad.append(f"{t} ({b})")
     return bad, True
+
+
+def test_the_decks_summary_rows_match_their_json_exactly():
+    """The rows read from the frozen summaries for the final deck: each k of n is one record's k and n, and each
+    interval is that record's stored Wilson bounds, rounded (Nov 25)."""
+    rows = [r for r in ROWS if r["status"].startswith("summary")]
+    assert len(rows) >= 13
+    for r in rows:
+        line = [l for l in (PACK / "02_NUMBERS.md").read_text().splitlines() if l.startswith(f"| {r['id']} |")][0]
+        src, key = re.search(r"`([^`]+\.json)` \(key `([^`]+)`\)", line).groups()
+        o = json.loads((ROOT / src).read_text())
+        for k in key.replace("\\|", "|").split("/"):
+            o = o[k]
+        kn = KN.findall(norm(r["numbers"]))
+        ivs = [[float(x) for x in NUM.findall(t)] for t in tokens(r["interval"])[1]]
+        if r["claim"].startswith("Across models"):   # the strip: the user's channel, then the tool's
+            recs = [o[c]["following"] for c in ("user", "tool_real" if "own tool call" in r["claim"] else "tool_injected")]
+        else:                                        # one record
+            recs = [o]
+        assert len(recs) == len(kn) == len(ivs), r["id"]
+        for rec, (k, n), (lo, hi) in zip(recs, kn, ivs):
+            assert (rec["k"], rec["n"]) == (int(k), int(n)), r["id"]
+            assert [round(100 * x) for x in rec["wilson"]] == [lo, hi], r["id"]
 
 
 def test_every_number_matches_its_source_file():

@@ -14,7 +14,7 @@ the dial's counts it as not taking the hint. On the 54 a tool call's reply is on
 frozen counts take it: Nemotron's two own-call smoke runs (pilot-0, Nov 4) beside its 162 inserted turns are left out. Counts are
 not computed here: the page reads them from DATA.pad (counts(), the frozen summaries, each with its path).
 The case finder (Nov 23, "Show me"): each question's entry in the index also carries its runs' own outcome fields, compact
-(finder_rows: a key table per dataset, then per run [key, took, said so in the answer]); the page counts the questions
+(finder_rows: a key table per dataset, then per run [key, took, said so in the answer, in the reasoning]); the page counts the questions
 that fit a pattern from these and orders the matches by FINDER_SEED (fnv1a of seed:id), never by outcome.
 Read-only on every source.
 """
@@ -288,8 +288,9 @@ def _tri(v):
 
 
 def finder_rows(rows, keys, kix):
-    """A question's runs for the case finder, in file order: [key index, took the hint, said so in the answer]
-    (1, 0, or null when the run has no such outcome); keys/kix: the dataset's key table, filled as it goes."""
+    """A question's runs for the case finder, in file order: [key index, took the hint, said so in the answer, said so
+    in the private reasoning] (1, 0, or null when the run has no such outcome); keys/kix: the dataset's key table,
+    filled as it goes."""
     out = []
     for r in rows:
         k = tuple(r.get(f) for f in FINDER_KEY)
@@ -297,7 +298,7 @@ def finder_rows(rows, keys, kix):
             kix[k] = len(keys)
             keys.append(list(k))
         o = r.get("out") or {}
-        out.append([kix[k], _tri(o.get("took")), _tri(o.get("final"))])
+        out.append([kix[k], _tri(o.get("took")), _tri(o.get("final")), _tri(o.get("private"))])
     return out
 
 

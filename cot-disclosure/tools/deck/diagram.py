@@ -155,7 +155,7 @@ def draw_full(slide, x=0.37, y=1.1, w=9.26):
     heads = [
         ("Inside the model", "Olmo 3 7B Think, 32 layers: three layers carry 0.90 [0.85, 0.96] of the hint's effect"),
         ("The fixes", "tested on the 30 held-out and the 120 fresh questions, with wrong and right hints"),
-        ("The review team", "tested on 100 fresh items"),
+        ("The review team", "tested on 53 items, then 100 fresh"),
     ]
     for i, (head, note) in enumerate(heads):
         cx = x + i * (cw + cgap)

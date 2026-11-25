@@ -1,84 +1,116 @@
-# Session log: the final deck, Phase A (the storyboard) (2026-11-25 09:20 MST)
+# Session log: the final deck, Phase B (the build) (2026-11-25 10:13 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `5b9956e` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
-level). The day's first session. The daily: [DAILY_2026-11-25](2026-11-25/DAILY_2026-11-25.md). The previous session: Nov 24,
-[14:20](2026-11-24/2026-11-24_1420_ALL_presentation-pack.md). The results are frozen: the tag
-`results-freeze-2026-11-18` on `7e1fdc0`. Two helpers: the template map and the design diagram; the figure drafts.
-They did not commit.
+**By:** Ritik. Branch `trackA-nosol`, from `61b5f46` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
+level). The day's second session. The daily: [DAILY_2026-11-25](2026-11-25/DAILY_2026-11-25.md). The previous session: Nov 25,
+[09:20](2026-11-25/2026-11-25_0920_ALL_deck-storyboard.md). The results are frozen: the tag `results-freeze-2026-11-18` on
+`7e1fdc0`. Two helpers: the demo clips; the final figures and their test. They did not commit.
 
 ## 0. Input
 
-A pasted note with a prompt, acted on as Ritik's:
-- "Read ~/Downloads/DECK_BRIEF.md in full: it's the brief for the final presentation".
-- Copy the two ASU templates into `docs/presentation/final/templates/`.
-- "Do PHASE A only (the storyboard, with draft renders of the figures, the diagram and the video beats), then stop
-  and show me."
-- Presentation work after the freeze: no number changes; a dated note in today's log; at most 2 helpers.
+A pasted note with a prompt, acted on as Ritik's: "Phase B, with my answers to STORYBOARD §8".
+1. Add the narrower finder pattern; clip A's caption uses its count (28 of 114) with the frozen run count beside it.
+2. The clips stay private: the deck with clips in `final/local/` (gitignored); the committed deck shows a placeholder.
+3. Slide 4: big numbers for both parts, with n and interval, plus one compact "across models" strip; the full
+   10-row figure to a backup.
+4. Slides show only numbers in FINDINGS or in 02_NUMBERS with their source. Add the five intervals to 02. Drop
+   Gemma's thinking-on bar. The trade-off figure labels only FINDINGS numbers.
+5. Clip B to the backups; slide 6's visual is a native solver → reviewer → checker diagram.
+6. Elsewhere, the option with less on the slide.
 
-The note's deck shape: eight slides in 6:00, on the course's split (the question 1:00; how we tested 1:00; the
-strongest finding with the video 2:00; four recommendations and the limits 2:00).
+"Then Phase B as in the brief. Stop after the build for my playback check in PowerPoint."
 
-**The brief** (Canvas, Nov 24):
-- one .pptx, uploaded by Mon Nov 30;
-- the talk Thu Dec 3, Group 10 first: 6 minutes plus 2 of Q&A;
-- the rubric: soundness 7, results 5, deployment 4, clarity 2;
-- embedded demo videos and the ASU 2026 template;
-- Phases A to D, stopping after A.
+## 1. What was done (10:13–10:33)
 
-The files were in `~/Downloads/` under slightly different names (spaces and an em dash): the same files.
+**Show me's narrower pattern** ("named in reasoning only", `pad.js`, `pad.py`):
+- The finder's index rows now carry each run's private mention too.
+- "No fix took the wrong hint, named the tool in its reasoning, not in its answer": 28 of 114 questions on the 120
+  with the tool call's reply. The first in the seeded order is mmlupro-11784.
+- Tested with the other patterns (`tests/test_demo_pad.py`: counts equal the per-question outcome fields; the served
+  run fits).
+- Recorded in TALK_MAP.
 
-## 1. What was done (09:20–09:29)
+**02_NUMBERS: the deck's rows,** appended as N132–N149, so N01–N131 keep their ids. The generator is now in the repo:
+`cot-disclosure/tools/make_pack_numbers.py`.
+- Two FINDINGS rows (1 of 162 and 147 of 162; 54 of 54 and 3 of 54).
+- Six rows read from the frozen summaries with their key paths:
+  - 141 of 145 [93, 99%];
+  - 0 of 143 [0, 3%];
+  - 127 of 162 [71, 84%];
+  - 53 of 53 [93, 100%];
+  - 7 of 45 [8, 29%];
+  - 85 of 233 [31, 43%].
+- Ten strip rows: user against tool, per model.
+- A new test checks each summary row's k, n and stored Wilson bounds exactly against its JSON.
 
-- **The brief copied** to `docs/presentation/final/DECK_BRIEF.md` (as the brief asks).
-- **The templates copied** to `templates/`, local only (gitignored): 11 MB and 6.8 MB, over the 5 MB limit, and the
-  second is not ours to publish.
-- **[`STORYBOARD.md`](../../docs/presentation/final/STORYBOARD.md)** (226 lines):
-  - the eight slides with exact claim titles, times (6:00), speakers and rubric criteria;
-  - the backups B1–B8;
-  - each main-slide result with its n, interval, comparison, limit and source (the brief's checklist);
-  - the figures, the diagram, the template use, the video storyboard;
-  - seven decisions for Ritik.
-- **Figure drafts** (helper 2; `cot-disclosure/tools/deck/figures.py`): tool vs user (10 model settings), reasoning vs
-  answer, the trade-off (marked exploratory), the checker. The ASU palette, an n on every mark, 95% intervals equal to
-  the summaries' stored Wilson bounds (asserted).
-- **The design diagram** (helper 1; `cot-disclosure/tools/deck/diagram.py`): native PowerPoint shapes on a copy of the
-  template, simple (slide 3) and full (B7), rendered by LibreOffice.
-- **The template map** (`storyboard/TEMPLATE_MAP.md`): layouts, the safe-zone strip (the bottom 0.845 in), the
-  theme's colors, the preheader style.
-- **The video storyboard:**
-  - Clip A, about 48 s, six beats.
-  - Clip B, about 28 s, three beats.
-  - Each beat has its state, zoom target and caption.
-  - Draft stills with the zoom boxes and captions drawn in are local only (`storyboard/video_beats/`): they show
-    model text.
-- **The question, by pattern:**
-  - On the 120 fresh questions with the tool call's reply, No fix took the wrong hint, its reasoning named the tool
-    and its answer didn't, on 28 of 114 questions.
-  - The first in the finder's seeded order is mmlupro-11784. It is also the first match of "No fix took it and
-    consistency training didn't", so clip B shares it with no choosing.
-  - The review team's first drawn item shows the reviewer deferring and the checker flagging.
+**The figures** (helper 2; `tools/deck/figures.py`, `docs/presentation/final/figures/`, PNG and SVG):
+- the across-models strip (seven models, main setting);
+- the full figure (ten settings, after three thinking-off rows were added to 02);
+- reasoning against answer (Gemma's thinking-on row dropped);
+- the trade-off: labels only FINDINGS numbers, "Exploratory (post hoc)" on it, the end points unlabelled;
+- the checker.
 
-**Numbers checked against FINDINGS:**
-- The brief's: 1 of 162 [0, 3%] and 147 of 162 [85, 94%] (F16); 54 of 54 and 3 of 54 (F15); 53 of 53 (F24).
-- Five slide intervals aren't printed in FINDINGS but are stored in the frozen summaries:
-  - 141 of 145 [93, 99] and 0 of 143 [0, 3] (`trackB_report.json`);
-  - 127 of 162 [71, 84] (`b20_report.json`);
-  - 53 of 53 [93, 100] and 7 of 45 [8, 29] (`c15_summary.json`).
-  - Phase B adds them to 02_NUMBERS with their paths.
-- Not in FINDINGS verbatim (decision 4): Gemma's thinking-on reasoning bar, 138 of 145; the trade-off's end points.
-- The clip's 28 of 114 is a presentation count from recorded runs (decision 1).
+`tests/test_deck_figures.py` checks every plotted and labelled number against its 02 row.
 
-**After the freeze (Nov 25, 09:20): presentation work only.** No number, figure or verdict changed. The drafts plot
-frozen summary numbers; the ones not printed in FINDINGS are listed above for Phase B to add with their sources.
+**The clips** (helper 1; `tools/demo_video/record.py`, `compose.py`, README; outputs in `final/video/`, gitignored):
+- **Clip A:** 49 s, 11.5 MB, H.264, 1920×1080, 30 fps. Six beats on mmlupro-11784: the slip; the first highlighted
+  mention; the bare answer; the three checks; the finder's 28 of 114 and the count 85 of 233; the whole pad. Eased
+  zooms, captions above the reserved strip.
+- **Clip B:** 28 s, 4.9 MB. Consistency training on the same question; the cost (mmlupro-4353, 16 of 118); the
+  review team's first drawn item (the reviewer defers; the checker flags).
+- Posters and per-beat stills alongside.
+- Looked at on contact sheets: every zoom lands on its target.
+
+**The deck** (`tools/deck/build_deck.py`, from a copy of the ASU template):
+- **Main slides:** 8 claim titles at 22 pt, timed to 6:00 in the notes (cues, not a script).
+- **The divider and 12 backups:** the layers; authority; every fix in one table; the trade-off (exploratory);
+  reviewers by family; what's new; pre-registration with dates (31 rules, Oct 29–Nov 7; the freeze Nov 18); the full
+  design; the demo in stills; the 10-row figure; reasoning against answer; clip B.
+- **`Group10_final.pptx`** (tracked, 4.55 MB): unused layouts dropped; the video slides are placeholders. Its PDF:
+  `Group10_final.pdf`.
+- **`local/Group10_final_with_video.pptx`** (gitignored, 30 MB): both clips embedded with posters (play on click),
+  and the stills on the backup.
+- **The design diagram as native shapes:** slide 3, backup B7, and exported to `docs/figures/architecture.svg` and
+  `.png`. Its review-team line now reads "tested on 53 items, then 100 fresh".
+
+**QA:**
+- **`tests/test_final_deck.py`** (7 tests), checking that:
+  - every k of n, interval and decimal on a slide is in 02, FINDINGS or TALK_MAP;
+  - no internal codes are on the slides;
+  - every picture and video has alt text;
+  - nothing the deck adds is below 4.80 in on the main slides;
+  - the notes time the main slides to 6:00;
+  - the tracked deck has no video, no still and is under 5 MB;
+  - the local deck embeds both clips and is under 50 MB.
+- **Every slide rendered (LibreOffice) and looked at.** Fixed:
+  - the title's hyphen break and the presenter line LibreOffice didn't draw;
+  - slide 3's overflowing box;
+  - slide 4's footnote;
+  - slide 6's last recommendation in the strip;
+  - the missing thank-you photo;
+  - a two-line backup title.
+- **Validated:** both decks open in python-pptx and LibreOffice; zip intact; every XML part well-formed; every
+  relationship target present; the video type registered in the local deck only.
+- **Timing estimate:** 6:00 from the notes. Clip A plays 49 s within slide 5's 1:05.
+
+**After the freeze (Nov 25, 10:13): presentation work only.** No frozen number changed. The deck's new 02 rows copy k
+and n from FINDINGS, with intervals read from the summaries (tested exactly). The only new count is the demo pattern's
+28 of 114, from the recorded runs' outcome fields (tested).
 
 ## 2. Waiting for Ritik
 
-1. Read `docs/presentation/final/STORYBOARD.md` and answer its §8 (seven decisions), then say "Phase B".
-2. Settle the speakers with Arsha and Shrey.
-3. As before: the report (Dec 10, NeurIPS format, 1–3 pages), CONTRIBUTIONS.md, AI_USE.md, Prompt 2.
+1. **Open `docs/presentation/final/local/Group10_final_with_video.pptx` in PowerPoint** (Mac; Windows if possible).
+   Check that both videos play on click (slide 5; the last backup), the posters show, and the fonts and layout match
+   the renders. LibreOffice can't verify playback.
+2. **Look at clip A's second beat:** the first highlighted mention is the word "expected", in a sentence about the
+   tool's reply. It is the matcher's first span, but subtle.
+3. **The caption band** sits over the lower page in some beats (never over a zoom target). Say if it should move.
+4. Then Phase C (the prep guide). The deck goes to Canvas from `local/` by Nov 30.
 
 ## 3. Checks and push
 
-- `tools/check_links.py`: 0 broken links. A privacy sweep of the new files: no email, username, key or model text.
-- `.gitignore`: the templates, the video beats, `final/video/` and the draft .pptx, all local only.
+- `tests/test_demo_pad.py` and `test_demo_template.py`: 21 passed (with the new pattern).
+- The deck's tests with hygiene, links, the pack and the Gantt: 133 passed (`test_final_deck.py` 7,
+  `test_deck_figures.py`, `test_presentation_pack.py` 8).
+- `tools/check_links.py`: 0 broken links. `make_supplement.py --check` and `export_summaries.py --check`: pass.
+- Staged: no clip, still, local deck or template. The tracked deck is 4.55 MB and its PDF 3.45 MB.
 - STATUS and the Gantt; the pre-push check; the push: `git push origin trackA-nosol:main trackA-nosol:trackA-nosol`.

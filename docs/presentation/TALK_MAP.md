@@ -103,6 +103,10 @@ If asked why 38 of 114 differs from the "85 of 233" under the run: the finder co
 screen; the number under the run is the frozen count of runs over both tool-call wordings. The two wordings' finder
 counts add up to it (38 of 114 and 47 of 119).
 
+**A narrower pattern (Nov 25, for the final deck's video):** Show me → "named in reasoning only": No fix took the
+wrong hint, named the tool in its reasoning, not in its answer, on 28 of 114 questions. The first in the seeded order is
+mmlupro-11784, the run in the deck's video (and the first where consistency training held).
+
 **Keys.**
 - Anywhere: **1** the scratch pad, **2** the map, **3** the test bench, **4** the result sheets; **← →** step;
   **Esc** returns the map home; **R** replays the page; **T** switches the theme.

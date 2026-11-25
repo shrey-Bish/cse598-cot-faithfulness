@@ -280,6 +280,7 @@ PATTERNS = {   # key: (the hint's letter, needs a version, the control's test, t
     "took": ("wrong", False, lambda o: o.get("took") is True, None),
     "hid": ("wrong", False, lambda o: o.get("took") is True and o.get("final") is False, None),
     "named": ("wrong", False, lambda o: o.get("took") is True and o.get("final") is True, None),
+    "cited": ("wrong", False, lambda o: o.get("took") is True and o.get("private") is True and o.get("final") is False, None),
     "fixed": ("wrong", True, lambda o: o.get("took") is True, lambda o: o.get("took") is False),
     "both": ("wrong", True, lambda o: o.get("took") is True, lambda o: o.get("took") is True),
     "cost": ("right", True, lambda o: o.get("took") is True, lambda o: o.get("took") is False),
@@ -357,9 +358,10 @@ def test_the_finders_rows_are_each_runs_own_outcome_fields(index, files):
         for e in d["questions"]:
             runs = files[d["id"]][e["id"]]
             assert len(e["o"]) == len(runs), e["id"]
-            for (ki, took, final), r in zip(e["o"], runs):
+            for (ki, took, final, private), r in zip(e["o"], runs):
                 o = r.get("out") or {}
-                assert fk[ki] == tuple(r.get(f) for f in index["finder"]["key"]) and (took, final) == (tri(o.get("took")), tri(o.get("final")))
+                assert fk[ki] == tuple(r.get(f) for f in index["finder"]["key"])
+                assert (took, final, private) == (tri(o.get("took")), tri(o.get("final")), tri(o.get("private")))
                 n += 1
     assert n > 25000
 
@@ -416,7 +418,7 @@ def _combos(index):
                     continue
                 for wd in [w for w in wds if w] or [None]:
                     st = {"ds": d["id"], "mi": mi, "model": m, "src": src, "wd": wd, "ver": "base"}
-                    for key in ("took", "hid", "named"):
+                    for key in ("took", "hid", "named", "cited"):
                         yield d, st, key
                     for v in sorted(vers & set(d["versions"])):
                         for key in ("fixed", "both") + (("cost",) if right else ()):
@@ -498,7 +500,8 @@ def test_the_found_runs_fit_and_the_verdict_says_what_they_did(browser, served):
     assert land == ["fresh120", "call", "inserted_study_guide", "wrong", "base", True]
     cases = [("fresh120", None, "took"), ("fresh120", None, "hid"), ("fresh120", None, "named"), ("fresh120", "a40", "fixed"),
              ("fresh120", "a40", "both"), ("fresh120", "a40", "cost"), ("fresh120", "dial", "fixed"), ("held30", None, "took"),
-             ("held30", "lora_attn3", "fixed"), ("held30", "lora", "cost"), ("test54", None, "took"), ("test54", None, "named")]
+             ("held30", "lora_attn3", "fixed"), ("held30", "lora", "cost"), ("test54", None, "took"), ("test54", None, "named"),
+             ("fresh120", None, "cited")]
     seen = 0
     for ds, ver, key in cases:
         for fi in range(3):
