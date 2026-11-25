@@ -209,13 +209,16 @@ def build(with_video, out):
 
     # 3. How we tested (1:00)
     s = white(prs, "Same question, same wrong letter: only the source changes")
-    D.draw_simple(s, x=0.37, y=0.98, w=9.26, h=2.32)
+    D.draw_simple(s, x=0.37, y=0.95, w=9.26, h=2.12)
     whys = [("Paired by question", "Only the source changes, so question difficulty cancels."),
-            ("Multiple choice", "Following is unambiguous; the fixes are tested on fresh questions."),
+            ("Multiple choice", "Following is unambiguous; fixes tested on fresh questions."),
             ("Right hints too", "Wrong hints taken and right ones refused: over-correction shows."),
             ("Rules written first", "95% intervals, paired bootstrap by question; rules fixed before the data.")]
     for i, (h, b) in enumerate(whys):
-        text(s, 0.37 + i * 2.36, 3.47, 2.2, 1.25, [([R(h, 14, True, MAROON)], 3), ([R(b, 12)], 0)], name="deck why")
+        text(s, 0.37 + i * 2.36, 3.17, 2.2, 0.85, [([R(h, 13, True, MAROON)], 2), ([R(b, 12)], 0)], name="deck why")
+    text(s, 0.37, 4.05, 9.26, 0.68, [([R("Three levels: ", 13, True), R("behavior across 12 models; inside the model, by swapping layers' "
+                                       "activations; downstream, solver → reviewer → checker. The fixes were re-tested on 120 fresh "
+                                       "questions with wrong and right hints. 352 GPU-hours on ASU's Sol.", 13)], 0)], name="deck levels")
     notes(s, "Speaker: Ritik. Time: 1:00 (1:00-2:00).\n- The design: same question, same wrong letter; only who gives it changes "
              "(the user's guess, a stronger claim, pasted tool output, the model's own tool call).\n"
              "- Why each choice: paired by question; multiple choice so following is unambiguous; fresh questions (the 120) for the fixes; "
@@ -241,29 +244,31 @@ def build(with_video, out):
     text(s, 5.2, 2.35, 4.43, 2.4, [
         ([R("Qwen3 8B, thinking on; keyword counts.", 11, False, MID)], 6),
         ([R("Not universal: ", 13, True), R("Gemma 4 names the tool in its answer in 127 of 162 [71, 84%] (thinking off).", 13)], 6),
-        ([R("Did thinking make it more honest? Mixed. ", 13, True),
-          R("Thinking on moved the tool into Qwen3 8B's reasoning, not its answer, and it followed the tool more (+64 [+51, +75] points). "
-            "gpt-oss: more effort, no change detected. Nemotron: a little less bare (−14 [−19, −9]).", 12)], 0)], name="deck part 2")
+        ([R("Did thinking make it more honest? Mixed.", 17, True, MAROON)], 3),
+        ([R("Qwen3 8B: the tool moved into its reasoning, not its answer. gpt-oss: more effort, no change detected. "
+            "Nemotron: a little less bare.", 13)], 0)], name="deck part 2")
     notes(s, "Speaker: Arsha. Time: 0:55 (2:00-2:55).\n- Part 1 (F16): the same wrong letter; Qwen3 30B Instruct follows the user's guess 1 of 162, its own tool call 147 of 162.\n"
              "- The strip: every model we decided on, user vs tool (the five Track B models decided at Gate 2; three newer families clear in all 10 readings, FB1; "
              "gpt-oss reported without a decision, F37). Limit: one model's sharpest case on top.\n"
              "- For pasted tool output, much of the pull is the claimed authority (F35, backup).\n"
              "- Part 2 (F29): after a call, Qwen3 8B's reasoning names the tool 141 of 145, its answer 0 of 143. Limit: keyword counts.\n"
-             "- Exception: Gemma 127 of 162 (FB1). Title question: mixed (+64 on the real call, after the fact; gpt-oss no change; Nemotron -14).\n"
+             "- Exception: Gemma 127 of 162 (FB1).\n- Title question, mixed: Qwen3 8B thinking on follows the real tool call more, +64 [+51, +75] points "
+             "(on - off, read after the fact, F29); gpt-oss more effort: following +7 [-1, +16], bare answer -5 [-10, 0], no change detected (F37); "
+             "Nemotron: the answer after the inserted turn less bare with thinking on, -14 [-19, -9] (FB1).\n"
              "- Hand-off: 'Here is one real run.'")
 
     # 5. See it happen (1:05)
     s = white(prs, "See it happen: one real run, and how often it happens")
-    video_slot(s, 0.37, 1.0, 5.85, 3.29, VIDEO / "clip_a.mp4", VIDEO / "poster_a.png",
+    video_slot(s, 0.37, 0.92, 7.5, 4.22, VIDEO / "clip_a.mp4", VIDEO / "poster_a.png",
                "Demo video: a real recorded run of Olmo 3 7B Think with a tool's wrong answer: its private reasoning cites the tool, its final answer is the bare letter.",
                with_video, "A real recorded run: the tool's wrong answer, the reasoning citing it, the bare answer")
-    text(s, 6.45, 1.0, 3.18, 3.7, [
-        ([R("A real recorded run", 15, True, MAROON)], 4),
-        ([R("Olmo 3 7B Think, no fix, a tool's wrong answer key. Found by pattern; the count is every question.", 13)], 10),
-        ([R("28 of 114", 26, True, INK, True)], 2),
-        ([R("questions look like this: the model took the wrong hint, named the tool in its reasoning, not in its answer", 12)], 10),
-        ([R("85 of 233", 22, True, INK, True)], 2),
-        ([R("runs took this wrong tool hint [31, 43%]", 12)], 0)], name="deck video caption")
+    text(s, 8.02, 0.92, 1.61, 3.8, [
+        ([R("A real recorded run", 12, True, MAROON)], 6),
+        ([R("28 of 114", 20, True, INK, True)], 2),
+        ([R("questions look like this: took the wrong hint, named the tool in its reasoning, not its answer", 11)], 10),
+        ([R("85 of 233", 20, True, INK, True)], 2),
+        ([R("runs took this wrong tool hint [31, 43%]", 11)], 10),
+        ([R("Olmo 3 7B Think, no fix. Found by pattern; the count is every question.", 10, False, MID)], 0)], name="deck video caption")
     notes(s, "Speaker: Arsha. Time: 1:05 (2:55-4:00). Click the video to play (about 50 s); narrate over it.\n"
              "- The tool's wrong reply lands; the reasoning cites it (the highlight); the answer is the bare letter; the three checks.\n"
              "- Not cherry-picked: the question is the first match, in a fixed seeded order, of the pattern; 28 of 114 questions fit it (TALK_MAP, Show me).\n"
@@ -273,22 +278,27 @@ def build(with_video, out):
     # 6. What we'd tell a team (1:15)
     s = white(prs, "Verify the tool; don't trust the answer to explain itself")
     recs = [("Don't read the final answer as a record of why",
-             "It named the tool in 0 of 143 answers; the private reasoning did in 141 of 145. Not in every model (Gemma 4: 127 of 162)."),
+             [R("It named the tool in 0 of 143 answers; the reasoning did in 141 of 145.", 14)]),
             ("A label or a prompt line won't fix it",
-             "An \"unverified\" label: −1 [−7, +4] points. Asking for sources: the answer names the tool more (+47 [+30, +64]), follows it no less (+6 [−2, +14])."),
+             [R("The \"unverified\" label: no effect. Asking for sources: names it more, follows it no less.", 14)]),
             ("Put an independent check before acting",
-             "A checker that re-solves without the tool stopped 53 of 53 wrong answers [93, 100%], with 7 of 45 false alarms [8, 29%] and one more model call."),
+             [R("It stopped 53 of 53 wrong answers; 7 of 45 false alarms; one more model call.", 14)]),
             ("Fine-tune only if your tool is often wrong",
-             "Consistency training: wrong hints 84 of 694 (the instruction 237 of 713), right hints 347 of 459 (431 of 476). "
-             "Exploratory: more correct answers only if the tool is right under 0.36 [0.22, 0.50] of the time.")]
-    for i, (h, b) in enumerate(recs):
-        y = 0.98 + i * 0.9
+             [R("Consistency training vs the instruction: wrong hints followed 12% vs 33%; right hints taken 76% vs 91%.", 14)])]
+    y = 0.95
+    for i, (h, body) in enumerate(recs):
         c = rect(s, 0.37, y + 0.02, 0.36, 0.36, fill=MAROON, shape=MSO_SHAPE.OVAL, name="deck rec number")
         c.text_frame.text = str(i + 1)
         p = c.text_frame.paragraphs[0]
         p.alignment = PP_ALIGN.CENTER
         p.runs[0].font.size, p.runs[0].font.bold, p.runs[0].font.color.rgb, p.runs[0].font.name = Pt(14), True, WHITE, D.FONT
-        text(s, 0.85, y, 5.0, 0.88, [([R(h, 14, True)], 1), ([R(b, 11)], 0)], name="deck rec")
+        paras = [([R(h, 15, True)], 1), (body, 0)]
+        hgt = 0.8
+        if i == 3:
+            paras.append(([R("Exploratory: more correct answers only if the tool is right under 0.36 [0.22, 0.50] of the time.", 12, False, MID)], 0))
+            hgt = 1.12
+        text(s, 0.85, y, 5.0, hgt, paras, name="deck rec")
+        y += hgt + 0.06
     # the review pipeline, native
     sx, w_ = 6.05, 3.58
     sol = rect(s, sx, 1.0, w_, 0.62, fill=GRAY, shape=MSO_SHAPE.ROUNDED_RECTANGLE, name="deck solver")
@@ -304,7 +314,10 @@ def build(with_video, out):
     D.arrow(s, sol, rev, 2, 0)
     D.arrow(s, rev, chk, 2, 0)
     text(s, sx, 4.32, w_, 0.4, [([R("Limit: tested where the solver can solve the question without the tool.", 10, False, MID)], 0)])
-    notes(s, "Speaker: Shrey. Time: 1:15 (4:00-5:15).\n- 1: the answer isn't a record of why (0 of 143 vs 141 of 145; Gemma the exception). Log provenance outside the model.\n"
+    notes(s, "Speaker: Shrey. Time: 1:15 (4:00-5:15).\n- 1: the answer isn't a record of why: 0 of 143 [0, 3%] vs 141 of 145 [93, 99%] (Qwen3 8B, F29); not universal, Gemma 4 127 of 162 [71, 84%] (FB1). Log provenance outside the model.\n"
+             "- 2 in numbers: the 'unverified' label -1 [-7, +4] points (A39, F44); asking for sources names the tool more, +47 [+30, +64], follows no less, +6 [-2, +14] (B15, F25).\n"
+             "- 3 in numbers: 53 of 53 [93, 100%] stopped on 100 fresh items; 7 of 45 false alarms [8, 29%] (F24).\n"
+             "- 4 in numbers: wrong hints 84 of 694 vs 237 of 713, -21 [-26, -16]; right hints 347 of 459 vs 431 of 476, -15 [-20, -10] (F41).\n"
              "- 2: a label (A39: -1 [-7, +4]) or an instruction to cite sources (B15: names it more, follows no less) doesn't fix it.\n"
              "- 3: the checker (F24): 53 of 53 on 100 fresh items, 7 of 45 false alarms, a second call; reviewers aren't enough (F18: 3 of 73 with the log).\n"
              "- 4: consistency training trades (F41): fewer wrong hints, fewer right ones; exploratory crossover 0.36 [0.22, 0.50].\n"

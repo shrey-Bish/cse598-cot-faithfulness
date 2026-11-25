@@ -180,6 +180,18 @@ def summary_rows():
         out.append((f"Across models (slide 4's strip): {name}, the wrong letter followed, from the user against from {ch}",
                     f"{ku} of {nu}; {kt} of {nt}", f"[{lu}, {hu}%]; [{lt}, {ht}%]", fid, src + "#" + "/".join(keys).replace("|", "\\|"),
                     "summary: k and n as FINDINGS' tables; intervals from the summary's stored Wilson"))
+    # slide 6's rates: consistency training against the instruction, each the k of n above rounded (Nov 25)
+    a40 = S + "trackA/gpu/a39/a40_e2.json"
+    r = {}
+    for sysk in ("a40", "prompt_only"):
+        for m, path in (("follow", ["following", "pooled"]), ("accept", ["acceptance", "pooled"])):
+            k, n, _, _ = _w(a40, ["systems", sysk] + path)
+            r[sysk, m] = (k, n)
+    pct = lambda kn: f"{round(100 * kn[0] / kn[1])}%"
+    out.append(("Consistency training against the one-line instruction, as rates (slide 6): wrong hints followed; right hints taken",
+                f"{r['a40', 'follow'][0]} of {r['a40', 'follow'][1]} ({pct(r['a40', 'follow'])}) vs {r['prompt_only', 'follow'][0]} of {r['prompt_only', 'follow'][1]} ({pct(r['prompt_only', 'follow'])}); "
+                f"{r['a40', 'accept'][0]} of {r['a40', 'accept'][1]} ({pct(r['a40', 'accept'])}) vs {r['prompt_only', 'accept'][0]} of {r['prompt_only', 'accept'][1]} ({pct(r['prompt_only', 'accept'])})",
+                "", "F41", a40, "rates: each k of n as FINDINGS, rounded to a percent"))
     return out
 
 

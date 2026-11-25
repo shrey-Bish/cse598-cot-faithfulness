@@ -1,6 +1,6 @@
 """Compose clip_a.mp4 / clip_b.mp4 (1920x1080, 30 fps, no audio) from record.py's raw frames.
 
-Eased crops of the 2x screenshots, gold/red boxes, burned-in captions, 0.3 s dips between beats, ffmpeg encode.
+Eased crops of the 2x screenshots, gold/red boxes, burned-in captions, 0.3 s crossfades between beats, ffmpeg encode.
 Usage: compose.py [--raw DIR] [--out DIR] [--only a|b] [--crf 20]
 Captions are the plan's own words (about the beats), not recorded text.
 """
@@ -107,9 +107,9 @@ def render(beat, t, start, raw, with_caps=True, with_boxes=True):
     out = im.resize((W, H), Image.BICUBIC, box=(x * S, y * S, (x + w) * S, (y + h) * S))
     if with_boxes:
         d = ImageDraw.Draw(out)
-        for (t0, bx, col) in beat.boxes:
+        for (t0, bx, col, *mg) in beat.boxes:
             if t >= t0:
-                k = ease((t - t0) / 0.25); bx = grow(bx, 5)
+                k = ease((t - t0) / 0.25); bx = grow(bx, mg[0] if mg else 5)
                 sx, sy = W / w, H / h
                 r = ((bx[0] - x) * sx, (bx[1] - y) * sy, (bx[0] + bx[2] - x) * sx, (bx[1] + bx[3] - y) * sy)
                 d.rounded_rectangle(r, 8, outline=col, width=max(1, int(6 * k)))
@@ -122,18 +122,21 @@ def render(beat, t, start, raw, with_caps=True, with_boxes=True):
 
 def build(name, beats, raw, out, posters, only_stills):
     fr = out / f"_frames_{name}"; shutil.rmtree(fr, ignore_errors=True); fr.mkdir(parents=True)
-    n = 0; start = PAGE; DIP = 0.15; keep = {}
-    for b in beats:
-        frames = int(round(b.dur * FPS))
-        for i in range(frames):
+    n = 0; start = PAGE; XF = int(round(0.3 * FPS)); keep = {}
+    starts = []; st = PAGE
+    for b in beats: starts.append(st); st = cam_end(b, st)
+    for bi, b in enumerate(beats):
+        frames = int(round(b.dur * FPS)); start = starts[bi]
+        nxt = beats[bi + 1] if bi + 1 < len(beats) else None
+        for i in range(XF if bi else 0, frames):
             t = i / FPS; im = render(b, t, start, raw)
-            d = min(t / DIP, (b.dur - t) / DIP, 1.0)       # 0.15 s down + 0.15 s up = a 0.3 s dip
-            if d < 1: im = Image.blend(Image.new("RGB", (W, H), DARK), im, max(d, 0))
+            if nxt is not None and i >= frames - XF:     # 0.3 s crossfade into the next beat (it skips its first XF frames)
+                k = ease((i - (frames - XF) + 1) / (XF + 1))
+                im = Image.blend(im, render(nxt, (i - (frames - XF)) / FPS, starts[bi + 1], raw), k)
             im.save(fr / f"{n:05d}.png"); n += 1
         # stills: the beat's last settled frame (captioned), plus a bare one for the poster
         lt = min(b.dur - 1 / FPS, max(c[1] for c in b.caps) - 0.3)   # inside the last caption, fully faded in
         keep[b.name] = (render(b, lt, start, raw), render(b, lt, start, raw, with_caps=False))
-        start = cam_end(b, start)
     mp4 = out / f"clip_{name}.mp4"
     subprocess.run(["/opt/homebrew/bin/ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", str(fr / "%05d.png"),
                     "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", str(ARGS.crf), "-preset", "slow",
@@ -149,16 +152,19 @@ def build(name, beats, raw, out, posters, only_stills):
 
 def clip_a(m, raw):
     A1, A2, A4 = m["A1"]["boxes"], m["A2"]["boxes"], m["A4"]["boxes"]
-    hint = grow(A1["hint"], 8); mark = grow(A2["mark"], 6); pad = A2["pad"]; ans = A2["ans"]
+    hint = grow(A1["hint"], 8); mark = grow(A2["mark"], 6)
+    lines = m["A2"]["sentence"]["lines"]; sent = union(*lines)     # the sentence holding the first mark, by punctuation
+    pad = A2["pad"]; ans = A2["ans"]
     chk = union(A4["ans"], A4["chk"]); find, count = A2["find"], A2["count"]
     stream = m["A2_stream"]; fin = m["A2_finish"]; pen = m["A4_pen"]
     seq = [[t, f] for t, f in stream] + [[stream[-1][0] + 0.07 + t, f] for t, f in fin]
     cut = stream[-1][0] + 0.07   # when pFinish() was called
+    sent_boxes = [(cut + 1.5, ln, GOLD, 4) for ln in lines]
     return [
         Beat("A1", 7.0, m["A1"]["img"], [(0.3, 1.0, fit(hint, minw=900))], [(1.2, hint, GOLD)],
              [(0.3, 6.7, "A real recorded run. The tool’s answer key says (G); the right answer is (I).")]),
-        Beat("A2", 11.0, (seq, "A2.png", 0.0), [(0.0, 0.7, fit(pad, minw=1100)), (cut + 0.4, cut + 1.2, fit(mark, minw=1000))],
-             [(cut + 1.5, mark, GOLD)], [(0.3, 10.7, "In its private reasoning, the model cites the tool.")]),
+        Beat("A2", 12.0, (seq, "A2.png", 0.0), [(0.0, 0.7, fit(pad, minw=1100)), (cut + 0.4, cut + 1.2, fit(sent, minw=1300))],
+             sent_boxes, [(0.3, 11.7, "In its private reasoning, the model cites the tool.")]),
         Beat("A3", 7.0, "A2.png", [(0.0, 0.8, fit(ans, minw=1000))], [(0.9, grow(ans, 4), GOLD)],
              [(0.3, 6.7, "The answer the user sees: (G). No word about the tool.")]),
         Beat("A4", 8.0, (pen, "A4.png", 0.0), [(0.0, 0.7, fit(chk, minw=1100))], [(1.4, grow(chk, 4), RED)],

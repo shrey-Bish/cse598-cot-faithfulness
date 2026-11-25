@@ -19,6 +19,24 @@ BOXES_JS = """(sels) => { const o = {}; for (const [k, s] of Object.entries(sels
      x1 = Math.max(...rs.map(r => r.right)), y1 = Math.max(...rs.map(r => r.bottom)); o[k] = [x0, y0, x1 - x0, y1 - y0]; }
   else { const r = rs[0]; o[k] = [r.left, r.top, r.width, r.height]; } } return o; }"""
 
+SENT_JS = """() => { const pad = document.querySelector('.padpad'); const mk = pad && pad.querySelector('mark');
+  if (!mk) return null;
+  const tw = document.createTreeWalker(pad, NodeFilter.SHOW_TEXT); const nodes = []; let text = '', n;
+  while ((n = tw.nextNode())) { nodes.push([n, text.length]); text += n.nodeValue; }
+  const first = nodes.find(([nd]) => mk.contains(nd)); if (!first) return null;
+  const ms = first[1], me = ms + first[0].nodeValue.length;
+  let s = ms; while (s > 0) { const c = text[s - 1];
+    if (c === '\\n') break; if (/\\s/.test(c) && s >= 2 && '.?!'.includes(text[s - 2])) break; s--; }
+  while (s < me && /\\s/.test(text[s])) s++;
+  let e = me; while (e < text.length) { const c = text[e]; if ('.?!'.includes(c) && (e + 1 >= text.length || /\\s/.test(text[e + 1]))) { e++; break; } if (c === '\\n') break; e++; }
+  const at = (off, end) => { for (const [nd, st] of nodes) { const len = nd.nodeValue.length;
+    if (off >= st && (off < st + len || (end && off <= st + len))) return [nd, off - st]; } const l = nodes[nodes.length - 1]; return [l[0], l[0].nodeValue.length]; };
+  const r = document.createRange(); const a = at(s, false), b = at(e, true); r.setStart(a[0], a[1]); r.setEnd(b[0], b[1]);
+  const lines = {}; for (const q of r.getClientRects()) { if (q.width < 2) continue; const k = Math.round(q.top / 4);
+    const o = lines[k] || (lines[k] = [q.left, q.top, q.right, q.bottom]);
+    o[0] = Math.min(o[0], q.left); o[1] = Math.min(o[1], q.top); o[2] = Math.max(o[2], q.right); o[3] = Math.max(o[3], q.bottom); }
+  return {lines: Object.values(lines).map(o => [o[0], o[1], o[2] - o[0], o[3] - o[1]]), chars: e - s}; }"""
+
 
 async def main():
     ap = argparse.ArgumentParser()
@@ -66,6 +84,7 @@ async def main():
         man["A2_finish"] = await frames("A2f", 1.4)
         await pg.wait_for_timeout(600)
         man["A2"] = await still("A2")
+        man["A2"]["sentence"] = await pg.evaluate(SENT_JS)   # line rects (CSS px) of the sentence holding the first mark
         await pg.evaluate("pReplay()"); await pg.wait_for_timeout(150)
         await pg.evaluate("pFinish()")
         man["A4_pen"] = await frames("A4p", 1.3)
@@ -99,6 +118,7 @@ async def main():
     (out / "manifest.json").write_text(json.dumps(man, indent=1))
     print("question", man["A_q"], "| find:", man["A_find_text"][:120].replace("\n", " "), "| count:", man["A_count_text"])
     print("B2 question", man["B2_q"], "| find:", (man["B2_find_text"] or "")[:120].replace("\n", " "))
+    print("A2 sentence lines", [[round(v) for v in r] for r in (man["A2"]["sentence"] or {}).get("lines", [])], "chars", (man["A2"]["sentence"] or {}).get("chars"))
     for k in ("A2", "A4", "B1", "B2", "B3"):
         print(k, sorted(man[k]["boxes"]))
     for k in ("A2_stream", "A2_finish", "A4_pen", "B1_stream", "B1_finish", "B2_finish", "B3_anim"):

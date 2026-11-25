@@ -85,6 +85,10 @@ def test_nothing_the_deck_adds_sits_in_the_reserved_strip():
     bad = []
     for i, s in enumerate(list(deck().slides)[:8], 1):
         for sh in s.shapes:
+            # slide 5's video runs full height under the title (Ritik, Nov 25); inside the frame its captions and zoom
+            # targets stay above the strip (captions end at y 880 of 1080 px, 0.92 + 4.22 x 880/1080 = 4.36 in)
+            if sh.name in ("deck video", "deck video placeholder"):
+                continue
             if sh.name.startswith("deck") and (sh.top + sh.height) / 914400 > 4.80:
                 bad.append((i, sh.name, round((sh.top + sh.height) / 914400, 2)))
     assert not bad, bad
@@ -124,3 +128,16 @@ def test_the_local_deck_embeds_both_clips():
     assert len(a.slides) == len(b.slides)
     assert [s.shapes.title.text if s.shapes.title else "" for s in a.slides] == \
            [s.shapes.title.text if s.shapes.title else "" for s in b.slides]
+
+
+GUIDE = FINAL / "PREP_GUIDE.md"
+
+
+@pytest.mark.skipif(not GUIDE.exists(), reason="the prep guide isn't written yet")
+def test_every_number_in_the_prep_guide_is_in_the_numbers_file_findings_or_talk_map():
+    """The 6-minute prep guide (Phase C, Nov 25): every k of n, interval and decimal traces like the slides'."""
+    t = norm(GUIDE.read_text())
+    toks = [m.group(0) for m in KN.finditer(t)] + IV.findall(t) + [d for d in DEC.findall(t) if d not in ("9.8", "14.7", "19.6")]
+    bad = [x for x in toks if x not in ALLOWED]
+    assert not bad, bad
+    assert (FINAL / "PREP_GUIDE.pdf").exists()

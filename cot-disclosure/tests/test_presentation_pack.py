@@ -191,6 +191,16 @@ def test_the_decks_summary_rows_match_their_json_exactly():
             assert [round(100 * x) for x in rec["wilson"]] == [lo, hi], r["id"]
 
 
+def test_the_decks_rates_are_their_k_of_n_rounded():
+    """Slide 6 shows consistency training's rates as percents: each is its k of n (FINDINGS'), rounded (Nov 25)."""
+    rows = [r for r in ROWS if r["status"].startswith("rates")]
+    assert rows
+    for r in rows:
+        pairs = re.findall(r"(\d+) of (\d+) \((\d+)%\)", r["numbers"])
+        assert len(pairs) == 4, r["id"]
+        assert all(round(100 * int(k) / int(n)) == int(p) for k, n, p in pairs), r["id"]
+
+
 def test_every_number_matches_its_source_file():
     bad, checked, per_run, known = [], 0, set(), set()
     for r in ROWS:

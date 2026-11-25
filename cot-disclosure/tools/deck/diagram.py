@@ -115,7 +115,7 @@ def draw_simple(slide, x=0.37, y=1.4, w=9.26, h=2.6):
         ("The hint", ["Same wrong letter", "Source swapped", "Wrong or right"], GOLD),
         ("The model", ["12 open models", "Thinking on or off"], MAROON),
         ("What it wrote", ["Private reasoning", "Final answer"], MAROON),
-        ("Three measures", ["Took the wrong hint?", "Reasoning names the source?", "Answer names it?"], MAROON),
+        ("Three measures", ["Took the wrong hint?", "Reasoning names it?", "Answer names it?"], MAROON),
         ("Statistics", ["95% intervals", "Paired by question", "Rules written first"], MAROON),
     ]
     shapes = []
