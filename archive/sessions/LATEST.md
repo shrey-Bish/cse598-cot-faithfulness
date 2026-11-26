@@ -1,81 +1,93 @@
-# Session log: the deck's fixes and Phase C (the prep guide) (2026-11-25 10:56 MST)
+# Session log: the final deck, version 3, Phase A (the storyboard) (2026-11-26 13:33 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `898cb9c` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
-level). The day's third session. The time in the name is the session's first clock reading (the prompt arrived a few
-minutes before it). The daily: [DAILY_2026-11-25](2026-11-25/DAILY_2026-11-25.md). The previous session: Nov 25,
-[10:13](2026-11-25/2026-11-25_1013_ALL_deck-build.md). The results are frozen: the tag `results-freeze-2026-11-18` on `7e1fdc0`.
-Two helpers: clip A's fixes; the prep guide. They did not commit.
+**By:** Ritik. Branch `trackA-nosol`, from `c1e7734` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
+level). The day's first session. The daily: [DAILY_2026-11-26](2026-11-26/DAILY_2026-11-26.md). The previous session: Nov 25,
+[10:56](2026-11-25/2026-11-25_1056_ALL_deck-fixes-prep.md). The results are frozen: the tag
+`results-freeze-2026-11-18` on `7e1fdc0`. Two helpers: the number check (read-only); clip C's stills. They did not
+commit.
 
 ## 0. Input
 
-A pasted review of both decks, with a prompt, acted on as Ritik's: "Phase B fixes, then Phase C."
-1. **Slide 5:** the video at about 75% of the width and the full height under the title, with the two counts in a
-   narrow column.
-2. **Slide 6:** each recommendation is its headline plus one deciding number, at 14 pt or more; the intervals move to
-   the notes.
-3. **Slide 4:** "Did thinking make it more honest? Mixed." as one bold line, with short clauses; the numbers move to
-   the notes; larger strip labels.
-4. **Slide 3:** one line with the three levels, the fixes re-tested on 120 fresh questions, and 352 GPU-hours.
-5. **Clip A:** box the whole sentence around the tool mention and hold it longer; replace the dip to black near 7 s
-   with a crossfade; rebuild the poster.
+A pasted note, acted on as Ritik's. The current deck tells a measurement study. Version 3 leads with what we built
+(inside the model, trained fixes, the multi-agent check), gives the cross-model testing one slide, and adds a video of
+training and the layers.
+- **The brief:** `~/Downloads/DECK_V3.md`, read in full. Its rules are DECK_BRIEF's, plus "lead with what we built".
+- **The deck:** Ritik's latest, `~/Downloads/Group10_final_with_video.pptx`, becomes the local deck first.
+- **Scope:** Phase A only: the storyboard, draft renders of slides 3–6 and 8, and clip C's stills. Then stop.
+- **Rules:** presentation work after the freeze; no number changes; a dated note in today's log; at most 2 helpers.
 
-Then re-render, re-test, rebuild both decks, push, and write Phase C (the prep guide).
+## 1. What was done (13:33–13:50)
 
-## 1. What was done (10:56–11:01)
+**Dated note (Nov 26, 13:33): presentation work after the freeze. No frozen number, figure or verdict changed.** The
+drafts plot numbers read from tracked summaries or FINDINGS' own k of n. Where the brief's wording didn't match its
+source, the drafts follow the source, and the storyboard lists each case.
 
-**The slides** (`tools/deck/build_deck.py`, mine):
-- **Slide 3:** the diagram is shorter ("Reasoning names it?"), and under it one line: "Three levels: behavior across
-  12 models; inside the model, by swapping layers' activations; downstream, solver → reviewer → checker. The fixes were
-  re-tested on 120 fresh questions with wrong and right hints. 352 GPU-hours on ASU's Sol."
-- **Slide 4:** "Did thinking make it more honest? Mixed." in 17 pt bold, then one clause each for Qwen3 8B, gpt-oss
-  and Nemotron. The numbers (+64 [+51, +75]; +7 [−1, +16] and −5 [−10, 0]; −14 [−19, −9]) are in the notes. The strip's
-  model names are 11.5 pt, with the axes moved so none is clipped.
-- **Slide 5:** the video (or the placeholder) is 7.5 × 4.22 in under the title. The column beside it holds 28 of 114
-  and 85 of 233 [31, 43%]. The safe-zone test excepts the video: its captions and targets end above the strip.
-- **Slide 6:** each recommendation is a 15 pt headline and one 14 pt line. Recommendation 4 is "wrong hints followed
-  12% vs 33%; right hints taken 76% vs 91%", plus its exploratory crossover. Every interval is in the notes.
-- **The percentages are documented:** in 02_NUMBERS as N150 (84 of 694 (12%), 237 of 713 (33%), 347 of 459 (76%),
-  431 of 476 (91%); F41). A test checks that each is its k of n rounded.
+**The local deck:**
+- Ritik's Nov 26 deck is now `docs/presentation/final/local/Group10_final_with_video.pptx`. It is gitignored; its
+  sha256 starts `412922c9892f019f`, the same as the copy in Downloads.
+- Ours from Nov 25 stays beside it as `Group10_final_with_video_v2_2026-11-25.pptx`.
+- What Ritik changed: native charts with Wilson error bars (tool vs user, reasoning vs answer, the trade-off, the
+  review team), ten main slides and twelve backups. Their style is kept.
 
-**Clip A** (helper 1; `tools/demo_video/`):
-- The sentence that holds the first highlighted mention is found by punctuation, with no model words in any script,
-  and boxed line by line (three lines, from its start: "Wait but …" to "… expected value.").
-- That beat is held 1 s longer; 0.3 s crossfades replace the dips. Clip A is 48.5 s and 12.2 MB, clip B 27.4 s and
-  5.0 MB.
-- A luma scan found no dark frame (the lowest mean is 195 of 255). I looked at the sentence frame and at clip B's
-  three beats.
+**The drafts** (`cot-disclosure/tools/deck/`, mine):
+- **`charts.py`:** native bar charts with custom error bars from absolute bounds, and per-bar colours.
+  - A fixed plot area, so rows and columns sit where the slide expects; names and counts are drawn as text beside
+    the rows, because LibreOffice drops crowded category labels.
+  - Helpers that give each row's or column's position.
+- **`draft_v3.py`:** slides 3, 4, 5, 6 (two versions) and 8 on the ASU template. Every count is read from a
+  summary; each Wilson interval is computed and checked against the stored or printed bounds.
+  - The .pptx is local (`storyboard/draft_v3.pptx`).
+  - Renders: `docs/presentation/final/storyboard/v3/` (numbers only).
+  - Every render was looked at; fixes were made for crowded labels, a title wrapping into the next line, a block
+    overflowing, and one bottom line reaching the reserved strip.
 
-**Phase C, the prep guide** (helper 2): `docs/presentation/final/PREP_GUIDE.md` (369 lines) and `PREP_GUIDE.pdf` (12
-phone-sized pages).
-- The run of show; the timing plan (about 130 words a minute, about 260 words a speaker, each section timed
-  separately; a 6:00 deck usually runs 6:30–7:00 with hand-offs).
-- The cut order:
-  1. clip B (a backup already);
-  2. slide 4's gpt-oss and Nemotron clause;
-  3. slide 3's whys down to two;
-  4. slide 6's crossover line;
-  5. last, slide 7's "Applies to" column.
-- 13 concepts; 30 questions, each with a direct answer, evidence, what's unknown and the backup slide; a rubric
-  self-check; what to say if the video won't play; a rehearsal plan.
-- Mine: Q7 now says why 38 of 114 and 85 of 233 share units (one run per question per wording on the 120).
-- `tests/test_final_deck.py` checks every number in the guide like the slides'.
+**The number check** (helper 1, read-only): about 60 numbers, about 50 exact matches. Six items differ from the
+brief, and the drafts follow the sources:
+- the 42% → 12% pools the user's guess with both tool channels (82 + 130 + 85 = 297 of 703; checked in `a40_e2.json`);
+- "within 4 points" fails for consistency + instruction (−4.3);
+- "no less than the instruction" should be "no difference detected";
+- +0.68 and "layers 0–14" are two results;
+- only two reviewers had all four views;
+- only the two Olmo reviewers defer.
 
-**After the freeze (Nov 25, 10:56): presentation work only.** No frozen number changed. The only new figures are
-slide 6's four percentages: FINDINGS' k of n, rounded, and tested.
+The effort band's sources were found and checked here: `method.json` 352.47 GPU-hours, 271 GPU jobs, 479 labels and
+12 models; the ledger, 31 pre-registered; the tag dated Nov 18, 21:03.
 
-## 2. Waiting for Ritik
+**Clip C** (helper 2; `tools/demo_video/record_c.py`, no model text):
+- **The question,** chosen by the page: Show me → "the fix held" with Consistency-trained selected, first in the
+  seeded order. That is mmlupro-11784, and the page shows 26 of 112.
+- **The stills:** 8, plus a contact sheet and a manifest, in `storyboard/video_beats/clipC/` (gitignored).
+- **C3** is a hand-labelled Fine-tuned run on another question (mmlupro-4588, pasted tool output; in F45's sample).
 
-1. **Play both videos once in PowerPoint,** in Slide Show mode (`final/local/Group10_final_with_video.pptx`), on
-   Windows too if possible.
-2. **A timed rehearsal:** each speaker's two minutes separately; agree each person's cuts in advance (PREP_GUIDE §2).
-3. Upload the local deck to Canvas by Nov 30. Then Phase D (the repo) for Dec 10.
+**The storyboard:** `docs/presentation/final/STORYBOARD_V3.md`:
+- the 11 titles in 6:00;
+- the renders;
+- what the check changed;
+- the effort band's sources;
+- clip C's beats with zoom targets and captions;
+- what Phase B must fix on the stills;
+- six decisions.
+
+## 2. Waiting for Ritik (STORYBOARD_V3 §6)
+
+1. Slide 6's measure: "wrong-hint" (pooled, recommended) or the two tool channels charted separately.
+2. Slide 6's chart: A (as briefed) or B (two panels, recommended).
+3. Slide 8's title: "Two of six reviewers defer to the tool; a checker doesn't".
+4. Clip C's beat 3: keep it on another question, captioned so, or cut it.
+5. The speakers: the brief's split (2:55, 1:15, 1:50) or contiguous (1:35, 2:35, 1:50).
+6. The effort band: keep 479 and 5 as worded.
+
+Then Phase B: the deck from Ritik's local version, clip C, the checks, and TALK_MAP and PREP_GUIDE.
 
 ## 3. Checks and push
 
-- `tests/test_final_deck.py` (8, the prep guide's numbers now included), `test_deck_figures.py`,
-  `test_presentation_pack.py` (with N150's rounding), hygiene, links and the Gantt: 135 passed.
+- Tests (the deck, figures, pack, hygiene, links, Gantt, make_deck, submission): 158 passed, **1 failed, expected**.
+  - The failure is `test_the_local_deck_embeds_both_clips`: the local deck is now Ritik's (23 slides), and the
+    tracked deck is still ours from Nov 25 (21 slides).
+  - The test is unchanged. Phase B rebuilds both decks from the local version, and it passes again then.
+  - It runs only where the gitignored local deck exists.
+- `make_supplement.py --check` and `export_summaries.py --check`: pass.
 - `tools/check_links.py`: 0 broken links.
-- Slides 3–6 re-rendered and looked at; the strip's labels at slide size; both decks rebuilt (the tracked one 4.57 MB,
-  its PDF 3.46 MB; the local one 31 MB, both clips).
-- Staged: no clip, still, local deck or template.
+- Privacy: no email, Sol username, key or model text in tracked files. The stills, the draft .pptx and both local
+  decks are gitignored.
 - STATUS and the Gantt; the pre-push check; the push: `git push origin trackA-nosol:main trackA-nosol:trackA-nosol`.
