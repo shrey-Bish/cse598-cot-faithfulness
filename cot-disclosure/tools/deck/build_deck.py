@@ -1,4 +1,6 @@
-"""The final deck (Nov 25): docs/presentation/final/Group10_final.pptx from a copy of the ASU 2026 template.
+"""The final deck (Nov 25; version 3 Nov 26, DECK_V3): docs/presentation/final/Group10_final.pptx from a copy of the
+ASU 2026 template. Version 3 leads with what we built: 11 main slides in 6:00 (slides 3-9 from tools/deck/slides_v3.py,
+with native charts from tools/deck/charts.py), a divider and 14 backups.
 
   ../.venv/bin/python tools/deck/build_deck.py            # from cot-disclosure/; writes both decks
 
@@ -8,7 +10,7 @@ Two decks, one source:
   this one goes to Canvas.
 Plain names on the slides, no internal codes (the notes may carry them). Every number on a slide is in
 docs/presentation/pack/02_NUMBERS.md or FINDINGS (tests/test_final_deck.py). The figures come from tools/deck/figures.py,
-the design diagram from tools/deck/diagram.py. Nothing in the template's reserved strip (below 4.78 in).
+the design diagram from tools/deck/diagram.py. Clips: A and B (backups), C (slide 7). Nothing in the template's reserved strip (below 4.78 in).
 """
 import copy
 import io
@@ -167,6 +169,7 @@ def video_slot(s, x, y, w, h, clip, poster, alt, with_video, label):
 
 
 def build(with_video, out):
+    import slides_v3 as V  # noqa: E402 (imports this module's helpers; loaded here to avoid a cycle)
     prs = D.open_template_copy(TEMPLATE)
 
     # 1. Title (0:10)
@@ -183,7 +186,7 @@ def build(with_video, out):
                                    ([R("December 3, 2026", 12)], 0)], name="deck presenters")
     notes(s, "Speaker: Ritik. Time: 0:10 (0:00-0:10).\n- Who we are; the title question.\n- Hand-off: 'Here is the situation we care about.'")
 
-    # 2. The question and why it matters (0:50)
+    # 2. The question and why it matters (0:30)
     s = white(prs, "Tools steer answers, and the user sees only the result")
     text(s, 0.37, 0.98, 6.0, 0.3, [([R("Illustrative example (our own question)", 12, True, INK, True)], 0)])
     q = rect(s, 0.37, 1.35, 3.1, 2.3, fill=WHITE, line=MAROON, shape=MSO_SHAPE.ROUNDED_RECTANGLE, name="deck question")
@@ -200,130 +203,26 @@ def build(with_video, out):
                                     ([R("No word about the tool.", 13, False, WHITE)], 0)])
     D.arrow(s, q, t, 3, 1)
     D.arrow(s, t, a, 3, 1)
-    text(s, 0.37, 3.85, 9.26, 0.85, [([R("Tool-using AI systems search, look up and retrieve before they answer, more and more in a "
-                                         "\"thinking\" mode. ", 15), R("When the tool is wrong, does the model follow it, and does "
-                                         "its reasoning or its answer tell you? Do thinking modes make that reasoning more honest?", 15, True)], 0)])
-    notes(s, "Speaker: Ritik. Time: 0:50 (0:10-1:00).\n- Tool-using systems act on answers like this; the tool can be wrong.\n"
+    text(s, 0.37, 3.85, 9.26, 0.85, [([R("Why it matters: ", 14, True, MAROON),
+                                       R("tool-using assistants act on tool output, the user sees only the final answer, "
+                                         "and other models are more and more used to check it.", 14)], 4),
+                                     ([R("When the tool is wrong, does the model follow it, and does it tell you?", 15, True)], 0)],
+         name="deck why")
+    notes(s, "Speaker: Ritik. Time: 0:30 (0:10-0:40).\n- Tool-using systems act on answers like this; the tool can be wrong.\n"
              "- What does the model do, and what does the user see: only '(C)'.\n- Our question: does a thinking mode make the reasoning more honest about the source?\n"
-             "- The example is illustrative (our own question), not a recorded run.\n- Hand-off: 'Here is how we tested it.'")
+             "- The example is illustrative (our own question), not a recorded run.\n- Hand-off: 'Here is what we built to answer it.'")
 
-    # 3. How we tested (1:00)
-    s = white(prs, "Same question, same wrong letter: only the source changes")
-    D.draw_simple(s, x=0.37, y=0.95, w=9.26, h=2.12)
-    whys = [("Paired by question", "Only the source changes, so question difficulty cancels."),
-            ("Multiple choice", "Following is unambiguous; fixes tested on fresh questions."),
-            ("Right hints too", "Wrong hints taken and right ones refused: over-correction shows."),
-            ("Rules written first", "95% intervals, paired bootstrap by question; rules fixed before the data.")]
-    for i, (h, b) in enumerate(whys):
-        text(s, 0.37 + i * 2.36, 3.17, 2.2, 0.85, [([R(h, 13, True, MAROON)], 2), ([R(b, 12)], 0)], name="deck why")
-    text(s, 0.37, 4.05, 9.26, 0.68, [([R("Three levels: ", 13, True), R("behavior across 12 models; inside the model, by swapping layers' "
-                                       "activations; downstream, solver → reviewer → checker. The fixes were re-tested on 120 fresh "
-                                       "questions with wrong and right hints. 352 GPU-hours on ASU's Sol.", 13)], 0)], name="deck levels")
-    notes(s, "Speaker: Ritik. Time: 1:00 (1:00-2:00).\n- The design: same question, same wrong letter; only who gives it changes "
-             "(the user's guess, a stronger claim, pasted tool output, the model's own tool call).\n"
-             "- Why each choice: paired by question; multiple choice so following is unambiguous; fresh questions (the 120) for the fixes; "
-             "right hints to see the cost; keyword measure checked against hand labels.\n"
-             "- 12 open models, thinking on and off, on ASU's Sol GPUs (352 GPU-hours); three levels: behavior, inside the model, a review team.\n"
-             "- Statistics: Wilson intervals; paired bootstrap clustered by question, 20,000 resamples; 31 rules pre-registered.\n"
-             "- Hand-off to Arsha: 'What did we find?'")
+    # 3-9. Version 3 (DECK_V3, Nov 26): what we built, the failure, inside the model, training, clip C, the check,
+    # what we'd tell a team (tools/deck/slides_v3.py)
+    V.slide3(prs)
+    V.slide4(prs)
+    V.slide5(prs)
+    V.slide6b(prs)
+    V.slide7(prs, with_video)
+    V.slide8(prs)
+    V.slide9(prs)
 
-    # 4. The finding (0:55)
-    s = white(prs, "Tools pull harder than people, and the answer goes quiet")
-    text(s, 0.37, 0.95, 4.6, 0.3, [([R("1  The same wrong letter, who gives it", 13, True, INK, True)], 0)])
-    big_number(s, 0.37, 1.3, 2.2, "1 of 162", "from the user's guess", "[0, 3%]")
-    big_number(s, 2.65, 1.3, 2.3, "147 of 162", "from its own tool call", "[85, 94%]")
-    text(s, 0.37, 2.35, 4.6, 0.25, [([R("Qwen3 30B Instruct, following the wrong letter. Across models:", 11, False, MID)], 0)])
-    picture(s, FIGS / "fig_across_models.png", 0.37, 2.58, w=4.3,
-            alt="Dot plot: for seven models, the share of runs following a wrong letter when the user gives it (gold) and when a tool gives it (maroon), each with a 95% interval; the tool's is higher in every row.",
-            name="deck strip")
-    text(s, 0.37, 4.54, 4.6, 0.2, [([R("Circle: own tool call. Diamond: inserted turn. gpt-oss-20b: no decision.", 9, False, MID)], 0)],
-         name="deck strip note")
-    text(s, 5.2, 0.95, 4.43, 0.3, [([R("2  After a tool call, who names the tool", 13, True, INK, True)], 0)])
-    big_number(s, 5.2, 1.3, 2.25, "141 of 145", "its private reasoning", "[93, 99%]")
-    big_number(s, 7.45, 1.3, 2.2, "0 of 143", "its final answer", "[0, 3%]")
-    text(s, 5.2, 2.35, 4.43, 2.4, [
-        ([R("Qwen3 8B, thinking on; keyword counts.", 11, False, MID)], 6),
-        ([R("Not universal: ", 13, True), R("Gemma 4 names the tool in its answer in 127 of 162 [71, 84%] (thinking off).", 13)], 6),
-        ([R("Did thinking make it more honest? Mixed.", 17, True, MAROON)], 3),
-        ([R("Qwen3 8B: the tool moved into its reasoning, not its answer. gpt-oss: more effort, no change detected. "
-            "Nemotron: a little less bare.", 13)], 0)], name="deck part 2")
-    notes(s, "Speaker: Arsha. Time: 0:55 (2:00-2:55).\n- Part 1 (F16): the same wrong letter; Qwen3 30B Instruct follows the user's guess 1 of 162, its own tool call 147 of 162.\n"
-             "- The strip: every model we decided on, user vs tool (the five Track B models decided at Gate 2; three newer families clear in all 10 readings, FB1; "
-             "gpt-oss reported without a decision, F37). Limit: one model's sharpest case on top.\n"
-             "- For pasted tool output, much of the pull is the claimed authority (F35, backup).\n"
-             "- Part 2 (F29): after a call, Qwen3 8B's reasoning names the tool 141 of 145, its answer 0 of 143. Limit: keyword counts.\n"
-             "- Exception: Gemma 127 of 162 (FB1).\n- Title question, mixed: Qwen3 8B thinking on follows the real tool call more, +64 [+51, +75] points "
-             "(on - off, read after the fact, F29); gpt-oss more effort: following +7 [-1, +16], bare answer -5 [-10, 0], no change detected (F37); "
-             "Nemotron: the answer after the inserted turn less bare with thinking on, -14 [-19, -9] (FB1).\n"
-             "- Hand-off: 'Here is one real run.'")
-
-    # 5. See it happen (1:05)
-    s = white(prs, "See it happen: one real run, and how often it happens")
-    video_slot(s, 0.37, 0.92, 7.5, 4.22, VIDEO / "clip_a.mp4", VIDEO / "poster_a.png",
-               "Demo video: a real recorded run of Olmo 3 7B Think with a tool's wrong answer: its private reasoning cites the tool, its final answer is the bare letter.",
-               with_video, "A real recorded run: the tool's wrong answer, the reasoning citing it, the bare answer")
-    text(s, 8.02, 0.92, 1.61, 3.8, [
-        ([R("A real recorded run", 12, True, MAROON)], 6),
-        ([R("28 of 114", 20, True, INK, True)], 2),
-        ([R("questions look like this: took the wrong hint, named the tool in its reasoning, not its answer", 11)], 10),
-        ([R("85 of 233", 20, True, INK, True)], 2),
-        ([R("runs took this wrong tool hint [31, 43%]", 11)], 10),
-        ([R("Olmo 3 7B Think, no fix. Found by pattern; the count is every question.", 10, False, MID)], 0)], name="deck video caption")
-    notes(s, "Speaker: Arsha. Time: 1:05 (2:55-4:00). Click the video to play (about 50 s); narrate over it.\n"
-             "- The tool's wrong reply lands; the reasoning cites it (the highlight); the answer is the bare letter; the three checks.\n"
-             "- Not cherry-picked: the question is the first match, in a fixed seeded order, of the pattern; 28 of 114 questions fit it (TALK_MAP, Show me).\n"
-             "- 85 of 233 runs: no fix took this wrong tool hint (the frozen count; both wordings, the 120).\n"
-             "- If the video won't play: the poster frame and the stills (backup) carry it.\n- Hand-off to Shrey: 'So what should a team do?'")
-
-    # 6. What we'd tell a team (1:15)
-    s = white(prs, "Verify the tool; don't trust the answer to explain itself")
-    recs = [("Don't read the final answer as a record of why",
-             [R("It named the tool in 0 of 143 answers; the reasoning did in 141 of 145.", 14)]),
-            ("A label or a prompt line won't fix it",
-             [R("The \"unverified\" label: no effect. Asking for sources: names it more, follows it no less.", 14)]),
-            ("Put an independent check before acting",
-             [R("It stopped 53 of 53 wrong answers; 7 of 45 false alarms; one more model call.", 14)]),
-            ("Fine-tune only if your tool is often wrong",
-             [R("Consistency training vs the instruction: wrong hints followed 12% vs 33%; right hints taken 76% vs 91%.", 14)])]
-    y = 0.95
-    for i, (h, body) in enumerate(recs):
-        c = rect(s, 0.37, y + 0.02, 0.36, 0.36, fill=MAROON, shape=MSO_SHAPE.OVAL, name="deck rec number")
-        c.text_frame.text = str(i + 1)
-        p = c.text_frame.paragraphs[0]
-        p.alignment = PP_ALIGN.CENTER
-        p.runs[0].font.size, p.runs[0].font.bold, p.runs[0].font.color.rgb, p.runs[0].font.name = Pt(14), True, WHITE, D.FONT
-        paras = [([R(h, 15, True)], 1), (body, 0)]
-        hgt = 0.8
-        if i == 3:
-            paras.append(([R("Exploratory: more correct answers only if the tool is right under 0.36 [0.22, 0.50] of the time.", 12, False, MID)], 0))
-            hgt = 1.12
-        text(s, 0.85, y, 5.0, hgt, paras, name="deck rec")
-        y += hgt + 0.06
-    # the review pipeline, native
-    sx, w_ = 6.05, 3.58
-    sol = rect(s, sx, 1.0, w_, 0.62, fill=GRAY, shape=MSO_SHAPE.ROUNDED_RECTANGLE, name="deck solver")
-    text(s, sx + 0.12, 1.05, w_ - 0.24, 0.55, [([R("Solver", 13, True, MAROON)], 0), ([R("uses the tool; takes its wrong letter", 11)], 0)])
-    rev = rect(s, sx, 1.92, w_, 0.95, fill=WHITE, line=MAROON, shape=MSO_SHAPE.ROUNDED_RECTANGLE, name="deck reviewer")
-    text(s, sx + 0.12, 1.97, w_ - 0.24, 0.9, [([R("Reviewer (Olmo 3.1 32B)", 13, True, MAROON)], 0),
-                                              ([R("shown the tool's log, corrected ", 11), R("3 of 73", 13, True, INK, True),
-                                                R(" wrong answers (59 of 73 from the answer alone)", 11)], 0)])
-    chk = rect(s, sx, 3.17, w_, 1.05, fill=MAROON, shape=MSO_SHAPE.ROUNDED_RECTANGLE, name="deck checker")
-    text(s, sx + 0.12, 3.22, w_ - 0.24, 1.0, [([R("Checker", 13, True, GOLD)], 0),
-                                              ([R("re-solves without the tool; flags a disagreement, so nothing ships: stopped ", 11, False, WHITE),
-                                                R("53 of 53", 13, True, INK, True), R(" (a separate set of 100 items)", 11, False, WHITE)], 0)])
-    D.arrow(s, sol, rev, 2, 0)
-    D.arrow(s, rev, chk, 2, 0)
-    text(s, sx, 4.32, w_, 0.4, [([R("Limit: tested where the solver can solve the question without the tool.", 10, False, MID)], 0)])
-    notes(s, "Speaker: Shrey. Time: 1:15 (4:00-5:15).\n- 1: the answer isn't a record of why: 0 of 143 [0, 3%] vs 141 of 145 [93, 99%] (Qwen3 8B, F29); not universal, Gemma 4 127 of 162 [71, 84%] (FB1). Log provenance outside the model.\n"
-             "- 2 in numbers: the 'unverified' label -1 [-7, +4] points (A39, F44); asking for sources names the tool more, +47 [+30, +64], follows no less, +6 [-2, +14] (B15, F25).\n"
-             "- 3 in numbers: 53 of 53 [93, 100%] stopped on 100 fresh items; 7 of 45 false alarms [8, 29%] (F24).\n"
-             "- 4 in numbers: wrong hints 84 of 694 vs 237 of 713, -21 [-26, -16]; right hints 347 of 459 vs 431 of 476, -15 [-20, -10] (F41).\n"
-             "- 2: a label (A39: -1 [-7, +4]) or an instruction to cite sources (B15: names it more, follows no less) doesn't fix it.\n"
-             "- 3: the checker (F24): 53 of 53 on 100 fresh items, 7 of 45 false alarms, a second call; reviewers aren't enough (F18: 3 of 73 with the log).\n"
-             "- 4: consistency training trades (F41): fewer wrong hints, fewer right ones; exploratory crossover 0.36 [0.22, 0.50].\n"
-             "- Hand-off: 'Where this holds, and what we don't know.'")
-
-    # 7. Where this holds (0:40)
+    # 10. Where this holds (0:20)
     s = slide(prs, "two")
     fill_ph(s, 0, ["Where this holds, and what we don't know"], 22)
     for idx in (1, 2, 3):
@@ -346,10 +245,11 @@ def build(with_video, out):
         p.runs[0].font.size, p.runs[0].font.bold, p.runs[0].font.color.rgb = Pt(13), True, WHITE
         text(s, x + 0.48, 1.06, 4.0, 0.35, [([R(h, 18, True, col)], 0)])
         text(s, x, 1.55, 4.45, 3.15, [([R("•  " + it, 15)], 8) for it in items], name="deck limits")
-    notes(s, "Speaker: Shrey. Time: 0:40 (5:15-5:55).\n- Applies to: multiple choice; one tool format; open models up to about 32B; every fix on one model, one run each; "
-             "42 labels a system (F45); the checker on solvable items.\n- Unknown: free-form agent tasks; larger and closed models; transfer of the fixes.\n- Hand-off: 'Thank you.'")
+    notes(s, "Speaker: Shrey. Time: 0:20 (5:35-5:55).\n- Unknown: free-form, multi-step agent tasks; larger and closed "
+             "models; whether the fixes transfer to other models; the checker where the solver can't solve the question "
+             "alone.\n- Hand-off: 'Thank you.'")
 
-    # 8. Thank you (0:05)
+    # 11. Thank you (0:05)
     s = slide(prs, "thanks")
     tpl = Presentation(TEMPLATE)
     photo = next((sh for sh in tpl.slides[17].shapes if getattr(sh, "is_placeholder", False) and sh.placeholder_format.idx == 2), None)
@@ -490,6 +390,24 @@ def build(with_video, out):
                "Demo video: consistency training resists the wrong answer on the same question; it also refuses a right one; the review team: the reviewer defers, the checker flags it.",
                with_video, "Consistency training, its cost, and the review team")
     notes(s, "Backup: clip B (about 28 s).")
+
+    # backup: clip A, the base model only (the old slide 5)
+    s = white(prs, "See it happen: one real run, and how often it happens")
+    video_slot(s, 0.37, 0.92, 7.5, 4.22, VIDEO / "clip_a.mp4", VIDEO / "poster_a.png",
+               "Demo video: a real recorded run of Olmo 3 7B Think with a tool's wrong answer: its private reasoning cites the tool, its final answer is the bare letter.",
+               with_video, "A real recorded run: the tool's wrong answer, the reasoning citing it, the bare answer")
+    text(s, 8.02, 0.92, 1.61, 3.8, [
+        ([R("A real recorded run", 12, True, MAROON)], 6),
+        ([R("28 of 114", 20, True, INK, True)], 2),
+        ([R("questions look like this: took the wrong hint, named the tool in its reasoning, not its answer", 11)], 10),
+        ([R("85 of 233", 20, True, INK, True)], 2),
+        ([R("runs took this wrong tool hint [31, 43%]", 11)], 10),
+        ([R("Olmo 3 7B Think, no fix. Found by pattern; the count is every question.", 10, False, MID)], 0)], name="deck video caption")
+    notes(s, "Backup: clip A (about 49 s), the base model only. The question is the first match, in a fixed seeded "
+             "order, of 'named in reasoning only': 28 of 114 questions (TALK_MAP, Show me); 85 of 233 runs took this wrong "
+             "tool hint (F41's inserted channel).")
+
+    V.fix_table(prs)
 
     if not with_video:
         _strip_unused_layouts(prs)

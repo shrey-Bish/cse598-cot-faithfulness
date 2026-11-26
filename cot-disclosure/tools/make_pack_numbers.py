@@ -192,6 +192,30 @@ def summary_rows():
                 f"{r['a40', 'follow'][0]} of {r['a40', 'follow'][1]} ({pct(r['a40', 'follow'])}) vs {r['prompt_only', 'follow'][0]} of {r['prompt_only', 'follow'][1]} ({pct(r['prompt_only', 'follow'])}); "
                 f"{r['a40', 'accept'][0]} of {r['a40', 'accept'][1]} ({pct(r['a40', 'accept'])}) vs {r['prompt_only', 'accept'][0]} of {r['prompt_only', 'accept'][1]} ({pct(r['prompt_only', 'accept'])})",
                 "", "F41", a40, "rates: each k of n as FINDINGS, rounded to a percent"))
+    # version 3 (Nov 26). Slide 6 and 9's rates: consistency training against no fix (wrong hints followed, pooled over
+    # the user's, pasted and inserted channels; right tool hints taken, pasted and inserted)
+    for sysk in ("base",):
+        for m, path in (("follow", ["following", "pooled"]), ("accept", ["acceptance", "pooled"])):
+            k, n, _, _ = _w(a40, ["systems", sysk] + path)
+            r[sysk, m] = (k, n)
+    out.append(("No fix against consistency training, as rates (slides 6 and 9): wrong hints followed (from the user or a tool); right tool hints taken",
+                f"{r['base', 'follow'][0]} of {r['base', 'follow'][1]} ({pct(r['base', 'follow'])}) vs {r['a40', 'follow'][0]} of {r['a40', 'follow'][1]} ({pct(r['a40', 'follow'])}); "
+                f"{r['base', 'accept'][0]} of {r['base', 'accept'][1]} ({pct(r['base', 'accept'])}) vs {r['a40', 'accept'][0]} of {r['a40', 'accept'][1]} ({pct(r['a40', 'accept'])})",
+                "", "F41", a40, "rates: each k of n as FINDINGS, rounded to a percent"))
+    # slide 8: the six reviewers, the same 73 wrong tool answers, seeing the answer only and the tool's log
+    reviewers = [("Olmo 3.1 32B", "trackC/team_c4_summary.json", "olmo3-32b-instruct", "F18"),
+                 ("Olmo 3 7B", "trackC/team_c11_summary.json", "olmo3-7b-instruct", "F22"),
+                 ("Qwen3 30B Instruct", "trackC/team_c4_summary.json", "qwen3-30b-a3b-instruct-2507", "F18"),
+                 ("Qwen3 30B Thinking", "trackC/team_c11_summary.json", "qwen3-30b-a3b-thinking-2507", "F22"),
+                 ("Granite 4.1 30B", "trackC/team_c13_granite_summary.json", "granite-4.1-30b", "F30"),
+                 ("Mistral Small 3.2 24B", "trackC/team_c13_mistral_summary.json", "mistral-small-3.2-24b", "F30")]
+    for name, src, rid, fid in reviewers:
+        for v, view in (("answer_only", "the answer only"), ("plus_tool_log", "the tool's log too")):
+            keys = ["by_team_model_variant", f"tool | {rid} | {v}", "reviewer_alone", "corrects_wrong_solver"]
+            k, n, lo, hi = _w(S + src, keys)
+            out.append((f"The review team (slide 8): the {name} reviewer corrected the solver's wrong tool answers, seeing {view}",
+                        f"{k} of {n}", f"[{lo}, {hi}%]", fid, S + src + "#" + "/".join(keys).replace("|", "\\|"),
+                        "summary: k and n from the summary; interval from its stored Wilson"))
     return out
 
 

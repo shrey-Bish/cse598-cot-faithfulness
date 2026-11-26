@@ -1,7 +1,8 @@
-"""Phase A drafts of the final deck, version 3 (DECK_V3, Nov 26): slides 3, 4, 5, 6 and 8 on the ASU template, with
-native (editable) charts from tools/deck/charts.py.
+"""The final deck's version 3 main slides (DECK_V3, Nov 26): slides 3-9 on the ASU template, with native (editable)
+charts from tools/deck/charts.py, and the full fix table (a backup). build_deck.py calls these; run alone, this file
+renders the Phase A drafts (slides 3, 4, 5, 6 in two versions, and 8):
 
-    python tools/deck/draft_v3.py      # -> docs/presentation/final/storyboard/draft_v3.pptx (gitignored) and
+    python tools/deck/slides_v3.py     # -> docs/presentation/final/storyboard/draft_v3.pptx (gitignored) and
                                        #    docs/presentation/final/storyboard/v3/slide_*.png (numbers only)
 
 Every plotted number is read from a tracked summary or is a FINDINGS k of n (the Wilson interval computed from it and
@@ -111,10 +112,17 @@ def slide3(prs, effort=EFFORT):
         text(s, 0.37 + i * cw + 0.05, yb + 0.6, cw - 0.1, 0.48, [([R(ln, 12, False, WHITE)], 0) for ln in lab.split("\n")],
              align=PP_ALIGN.CENTER, name="deck effort label")
     notes(s, "Speaker: Ritik. Time: 0:55 (0:40-1:35).\n"
-             "- Four things we built, left to right; the effort under them.\n"
-             "- Why each design choice: paired by question; multiple choice; right hints too; rules written first "
-             "(the four whys of the old slide 3).\n"
-             "- Hand-off: 'First, the failure itself.'")
+             "- Four things we built, left to right: the test harness (only the source of the same wrong letter changes); "
+             "inside the model (activation patching, Olmo 3 7B Think, then Qwen3 8B); training the fixes (LoRA, "
+             "consistency training; tested on the 120 fresh questions); the multi-agent check (solver, reviewer, checker).\n"
+             "- Why: paired by question, so difficulty cancels; multiple choice, so following is unambiguous; right hints "
+             "too, so over-correction shows; rules written before the data.\n"
+             "- The band: 352.47 GPU-hours, 271 GPU jobs on Sol since Oct 1 (Ritik's account; Arsha's B20 runs not in "
+             "it); 5 trained versions (LoRA, tags, LoRA + tags, LoRA on layers 15/19/23, consistency); 31 of the "
+             "ledger's 42 rows pre-registered; 479 rows labelled by hand (101 + 294 + 84; the first sheet's agreement "
+             "was below the bar, F3); 1,413 tests in the last full run; frozen Nov 18. 1,196 examples = 1,040 to train "
+             "+ 156 to validate; 981 = 881 + 100. 12 models = 8 that answer + 4 reviewers.\n"
+             "- Hand-off to Arsha: 'First, the failure itself.'")
     return s
 
 
@@ -212,7 +220,7 @@ def training_side(s, x, y, w):
 
 
 def training_notes(s):
-    notes(s, "Speaker: Ritik. Time: 0:50 (2:40-3:30).\n"
+    notes(s, "Speaker: Arsha. Time: 0:50 (2:40-3:30).\n"
              "- Against no fix (F43, R1 Gate 3's rule): consistency training -30 [-35, -26] wrong hints followed; right "
              "hints taken 439 of 476 -> 347 of 459 (-17 [-22, -12]).\n"
              "- Against the instruction (F43): -21 [-26, -16] following, -15 [-20, -10] acceptance: 'fewer, but costs "
@@ -337,7 +345,7 @@ def slide5(prs):
     text(s, 0.37, 4.3, 9.26, 0.42, [([R("This told us where to intervene: ", 13, True, MAROON),
                                       R("the attention dial targets these layers; one fine-tuned version trains only "
                                         "them.", 13)], 0)], name="deck bottom line")
-    notes(s, "Speaker: Ritik. Time: 0:30 (2:10-2:40).\n"
+    notes(s, "Speaker: Arsha. Time: 0:30 (2:10-2:40).\n"
              "- Activation patching (F11): copy one layer's output from the run without the hint into the hinted run, "
              "at the hint's tokens; each bar is that layer's share of the drop. 9 questions, 19 cut points.\n"
              "- 15, 19, 23 together 0.90 [0.85, 0.96]; on 16 new questions 0.90 [0.76, 1.06] (F26). Qwen3 8B (F36): "
@@ -444,6 +452,100 @@ def slide8(prs):
              "[8, 29%]; one more model call.\n"
              "- Follow-ups: F34 +47 [+29, +65]; FC2 5 of 55 -> 35 of 55; FC4 5 vs 15 of 21 (-48 [-67, -29]).\n"
              "- Hand-off: 'So what should a team do?'")
+    return s
+
+
+
+# ---------------------------------------------------------------- slide 7: clip C
+def slide7(prs, with_video):
+    s = B.white(prs, "See it: the same question, before and after training")
+    B.video_slot(s, 0.37, 0.92, 7.5, 4.22, B.VIDEO / "clip_c.mp4", B.VIDEO / "poster_c.png",
+                 "Demo video: on the same question and the same wrong tool answer, Olmo 3 7B Think with no fix follows "
+                 "it and doesn't say so, the consistency-trained version doesn't follow it; a fine-tuned answer names "
+                 "the hint; the three layers and where training changed them. Real recorded runs.",
+                 with_video, "Clip C: no fix against consistency training, the fine-tuned answer, the layers")
+    text(s, 8.02, 0.92, 1.61, 3.8, [
+        ([R("Real recorded runs", 12, True, MAROON)], 6),
+        ([R("26 of 112", 20, True, INK, True)], 2),
+        ([R("questions where no fix took the wrong hint and consistency training didn't", 11)], 10),
+        ([R("37 of 42", 20, True, INK, True)], 2),
+        ([R("fine-tuned answers that followed said so; the instruction's 18 of 42 (hand labels)", 11)], 10),
+        ([R("Found by pattern, first in a fixed seeded order; the count is every question.", 10, False, MUTED)], 0)],
+         name="deck video caption")
+    notes(s, "Speaker: Arsha. Time: 0:40 (3:30-4:10). Click the video to play (36 s); narrate over it. Beats: no fix "
+             "0-8 s; the split 8-16 s; fine-tuned, another question 15-21 s; the layers 21-31 s; the end card 31-36 s.\n"
+             "- No fix follows the tool's wrong answer; its reasoning cites it; the answer doesn't say so.\n"
+             "- The same question with consistency training: it didn't follow. Not cherry-picked: the first match in a "
+             "fixed seeded order of 'the fix held', 26 of 112 questions (TALK_MAP).\n"
+             "- Fine-tuned, another question: its answer names the hint (F45: 37 of 42 vs 18 of 42, hand labels).\n"
+             "- The map: layers 15, 19, 23 together 0.90 (F11); where training changed it (F39, F42).\n"
+             "- If the video won't play: the poster and these beats; backup 21 has stills.\n"
+             "- Hand-off to Shrey: 'And what if a second model checks the first?'")
+    return s
+
+
+# ---------------------------------------------------------------- slide 9: what we'd tell a team
+def slide9(prs):
+    s = B.white(prs, "What we'd tell a team deploying a tool-using model")
+    recs = [("Don't read the final answer as a record of why",
+             "Log the tool's provenance outside the model: after a tool call, Qwen3 8B's answer named the tool in 0 of "
+             "143 runs; its reasoning, in 141 of 145."),
+            ("A label or a prompt line won't fix it",
+             "An \"unverified\" label on the tool's turn: −1 [−7, +4] points, no effect."),
+            ("If you train, pick by how often your tool is right",
+             "Consistency training: wrong hints followed 42% → 12%; right tool hints taken 92% → 76%."),
+            ("Put an independent check before acting",
+             "A checker that re-solves without the tool stopped 53 of 53 wrong answers, for one more model call.")]
+    y = 0.98
+    for i, (h, body) in enumerate(recs):
+        badge(s, 0.37, y + 0.04, str(i + 1), size=0.42)
+        text(s, 0.98, y, 8.6, 0.88, [([R(h, 16, True)], 2), ([R(body, 14)], 0)], name="deck rec")
+        y += 0.94
+    notes(s, "Speaker: Shrey. Time: 0:40 (4:55-5:35).\n"
+             "- 1 (F29): 0 of 143 [0, 3%] vs 141 of 145 [93, 99%], keyword counts; not universal, Gemma 4 127 of 162 (FB1).\n"
+             "- 2 (F44): the 'unverified' label alone, -1 [-7, +4] on the inserted tool turn; asking for sources names the "
+             "tool more (+47 [+30, +64]), follows no less (+6 [-2, +14]) (F25).\n"
+             "- 3 (F41): pooled wrong hints 297 of 703 -> 84 of 694; right tool hints 439 of 476 -> 347 of 459; against "
+             "the instruction -21 [-26, -16] and -15 [-20, -10]; exploratory crossover 0.36 [0.22, 0.50].\n"
+             "- 4 (F24): 53 of 53 [93, 100%] on 100 fresh items; 7 of 45 false alarms [8, 29%]; tested where the solver "
+             "can solve the question alone.\n"
+             "- Hand-off: 'Where this holds, and what we don't know.'")
+    return s
+
+
+# ---------------------------------------------------------------- backup: every fix with its intervals
+FIX_TABLE = [  # FINDINGS F41's table and F43's (A42; LoRA + note): k of n [Wilson]
+    ("No fix", "297 of 703 [39, 46%]", "439 of 476 [89, 94%]", "156 of 236 [60, 72%]", "—"),
+    ("One-line instruction", "237 of 713 [30, 37%]", "431 of 476 [88, 93%]", "154 of 235 [59, 71%]", "the bar to beat"),
+    ("Fine-tuned (LoRA)", "248 of 705 [32, 39%]", "421 of 477 [85, 91%]", "155 of 235 [60, 72%]", "no difference detected"),
+    ("LoRA + instruction", "179 of 710 [22, 29%]", "384 of 470 [78, 85%]", "151 of 236 [58, 70%]", "fewer, at an acceptance cost"),
+    ("Consistency-trained", "84 of 694 [10, 15%]", "347 of 459 [71, 79%]", "146 of 229 [57, 70%]", "fewer, but costs acceptance"),
+    ("Consistency + instruction", "64 of 706 [7, 11%]", "334 of 472 [67, 75%]", "147 of 238 [55, 68%]", "fewer, but costs acceptance"),
+]
+
+
+def fix_table(prs):
+    s = B.white(prs, "Every fix on the 120 fresh questions, with its intervals")
+    rows = [("Olmo 3 7B Think", "Wrong hints followed (user or tool)", "Right tool hints taken", "No-hint accuracy",
+             "Against the instruction")] + FIX_TABLE
+    tbl = s.shapes.add_table(len(rows), 5, Inches(0.37), Inches(0.98), Inches(9.26), Inches(2.9)).table
+    for j, wd in enumerate((1.95, 1.95, 1.8, 1.7, 1.86)):
+        tbl.columns[j].width = Inches(wd)
+    for i, r_ in enumerate(rows):
+        for j, v in enumerate(r_):
+            cell = tbl.cell(i, j)
+            cell.text = v
+            pr = cell.text_frame.paragraphs[0].runs[0]
+            pr.font.size, pr.font.name, pr.font.bold = Pt(11), D.FONT, i == 0 or j == 0
+            pr.font.color.rgb = WHITE if i == 0 else (MAROON if r_[0] == "Consistency-trained" and j == 0 else INK)
+            cell.fill.solid()
+            cell.fill.fore_color.rgb = MAROON if i == 0 else (B.GRAY if i % 2 else WHITE)
+    text(s, 0.37, 4.42, 9.26, 0.5, [([R("Against no fix, consistency training: −30 [−35, −26] wrong hints, −17 [−22, −12] "
+                                         "right tool hints. Against the instruction: −21 [−26, −16] and −15 [−20, −10]. "
+                                         "Beating the instruction at no cost to right hints: met by no fix.", 11, False, MUTED)], 0)],
+         name="deck table note")
+    notes(s, "Backup (F41, F43, F44). Rates with 95% Wilson intervals; differences in points, paired by question, 95% "
+             "bootstrap clustered by question. The last column is the pre-registered rule's reading against the instruction.")
     return s
 
 

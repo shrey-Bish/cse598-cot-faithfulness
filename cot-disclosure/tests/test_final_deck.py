@@ -4,10 +4,13 @@
   finder counts) TALK_MAP.
 - No internal codes on the slides (the notes may carry them).
 - Every picture, video and video placeholder has alt text.
-- Nothing the deck adds sits in the template's reserved strip (below 4.78 in) on the eight main slides.
+- Nothing the deck adds sits in the template's reserved strip (below 4.78 in) on the main slides (those before the
+  "Backup" divider: 11 in version 3, Nov 26).
 - The main slides' notes carry their times, which add up to 6:00; every slide has notes.
 - The tracked deck holds no video and no still of one (they show recorded model text) and stays under 5 MB; the local
-  deck with the clips (gitignored) embeds two videos and stays under 50 MB.
+  deck with the clips (gitignored) embeds three videos (A, B, C) and stays under 50 MB.
+- Version 3 (Nov 26): counts written "k/n" (row labels, chart categories) are checked as "k of n"; every percent on a
+  main slide is in 02_NUMBERS or FINDINGS; slide 3's effort band matches its sources (method.json, the ledger).
 """
 import re
 import zipfile
@@ -25,6 +28,8 @@ KN = re.compile(r"(\d{1,3}(?:,\d{3})+|\d+) of (\d{1,3}(?:,\d{3})+|\d+)")
 _B = r"[+\-]?\d+(?:\.\d+)?%?"
 IV = re.compile(r"\[\s*" + _B + r"\s*,\s*" + _B + r"\s*\]")
 DEC = re.compile(r"[+\-]?\d+\.\d+")
+SLASH = re.compile(r"(?<![\d.])(\d{1,3}(?:,\d{3})+|\d+)/(\d{1,3}(?:,\d{3})+|\d+)(?![\d.])")
+PCT = re.compile(r"(?<![\d.\[,])\d{1,3}%")
 CODES = re.compile(r"\b(?:F\d{1,2}|FB\d|FC\d|A\d{2}|B\d{1,2}(?:R\d)?|C\d{1,2}|E2|L[346]|T\d{1,2}|Gate \d)\b")
 
 
@@ -44,7 +49,16 @@ def slide_text(slide):
             out.append(sh.text_frame.text)
         if getattr(sh, "has_table", False) and sh.has_table:
             out += [c.text for row in sh.table.rows for c in row.cells]
+        if getattr(sh, "has_chart", False) and sh.has_chart:
+            out += [str(c) for c in sh.chart.plots[0].categories]
     return norm(" ".join(out))
+
+
+def main_slides(d=None):
+    """The slides before the "Backup" divider."""
+    slides = list((d or deck()).slides)
+    i = next(i for i, s in enumerate(slides) if s.shapes.title is not None and s.shapes.title.text.startswith("Backup"))
+    return slides[:i]
 
 
 ALLOWED = norm("\n".join((ROOT / p).read_text() for p in (
@@ -58,7 +72,15 @@ def test_every_number_on_a_slide_is_in_the_numbers_file_findings_or_talk_map():
         t = slide_text(s)
         # the illustrative question's own numbers (ours, the demo's illustration: g = 9.8, options 14.7 m and 19.6 m)
         toks = [m.group(0) for m in KN.finditer(t)] + IV.findall(t) + [d for d in DEC.findall(t) if d not in ("9.8", "14.7", "19.6")]
+        toks += [f"{m.group(1)} of {m.group(2)}" for m in SLASH.finditer(t)]
         bad += [(i, x) for x in toks if x not in ALLOWED]
+    assert not bad, bad
+
+
+def test_every_percent_on_a_main_slide_is_in_the_numbers_file_or_findings():
+    """Version 3 writes rates as percents (42% -> 12%): each is in 02_NUMBERS (its k of n, rounded: N150, N151) or
+    FINDINGS. Interval bounds are checked as intervals above."""
+    bad = [(i, p) for i, s in enumerate(main_slides(), 1) for p in PCT.findall(slide_text(s)) if p not in ALLOWED]
     assert not bad, bad
 
 
@@ -83,7 +105,7 @@ def test_every_picture_and_video_has_alt_text():
 
 def test_nothing_the_deck_adds_sits_in_the_reserved_strip():
     bad = []
-    for i, s in enumerate(list(deck().slides)[:8], 1):
+    for i, s in enumerate(main_slides(), 1):
         for sh in s.shapes:
             # slide 5's video runs full height under the title (Ritik, Nov 25); inside the frame its captions and zoom
             # targets stay above the strip (captions end at y 880 of 1080 px, 0.92 + 4.22 x 880/1080 = 4.36 in)
@@ -97,7 +119,7 @@ def test_nothing_the_deck_adds_sits_in_the_reserved_strip():
 def test_the_notes_time_the_main_slides_to_six_minutes():
     slides = list(deck().slides)
     total = 0
-    for s in slides[:8]:
+    for s in main_slides():
         m = re.search(r"Time: (\d+):(\d\d)", s.notes_slide.notes_text_frame.text)
         assert m, s.notes_slide.notes_text_frame.text[:80]
         total += int(m.group(1)) * 60 + int(m.group(2))
@@ -120,9 +142,9 @@ def test_the_tracked_deck_holds_no_video_and_stays_small():
 
 
 @pytest.mark.skipif(not LOCAL.exists(), reason="the local deck with the clips is gitignored")
-def test_the_local_deck_embeds_both_clips():
+def test_the_local_deck_embeds_every_clip():
     names = zipfile.ZipFile(LOCAL).namelist()
-    assert len([n for n in names if n.endswith(".mp4")]) == 2
+    assert len([n for n in names if n.endswith(".mp4")]) == 3
     assert LOCAL.stat().st_size < 50_000_000
     a, b = deck(), deck(LOCAL)
     assert len(a.slides) == len(b.slides)
@@ -141,3 +163,21 @@ def test_every_number_in_the_prep_guide_is_in_the_numbers_file_findings_or_talk_
     bad = [x for x in toks if x not in ALLOWED]
     assert not bad, bad
     assert (FINAL / "PREP_GUIDE.pdf").exists()
+
+
+def test_the_effort_band_matches_its_sources():
+    """Slide 3's band (version 3, Nov 26): GPU-hours and GPU jobs from Sol's sacct (method.json), the hand-labelled rows
+    and the models (method.json), the pre-registered rows of the ledger, the freeze's date (the git tag)."""
+    import json
+    import subprocess
+    t = slide_text(main_slides()[2])
+    m = json.loads((ROOT / "cot-disclosure/tools/demo_template/method.json").read_text())
+    g = m["running"]["gpu_total"]["v"]
+    assert f"{round(g['gpu_hours'])} GPU-hours" in t and f"({g['gpu_jobs']} GPU jobs)" in t, t
+    assert f"{m['counts']['hand_labels']['v']} answers labelled by hand" in t
+    assert f"({m['counts']['models']['v']} with the reviewers)" in t
+    ledger = (ROOT / "docs/paper/supplement/PREREGISTRATIONS.md").read_text()
+    assert f"{ledger.count('| pre-registered |')} rules written before the data" in t
+    tag = subprocess.run(["git", "-C", str(ROOT), "log", "-1", "--format=%cd", "--date=format:%b %-d",
+                          "results-freeze-2026-11-18"], capture_output=True, text=True).stdout.strip()
+    assert tag == "Nov 18" and "Nov 18 results frozen" in t

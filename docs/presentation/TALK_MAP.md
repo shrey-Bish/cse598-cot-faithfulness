@@ -103,9 +103,16 @@ If asked why 38 of 114 differs from the "85 of 233" under the run: the finder co
 screen; the number under the run is the frozen count of runs over both tool-call wordings. The two wordings' finder
 counts add up to it (38 of 114 and 47 of 119).
 
-**A narrower pattern (Nov 25, for the final deck's video):** Show me → "named in reasoning only": No fix took the
-wrong hint, named the tool in its reasoning, not in its answer, on 28 of 114 questions. The first in the seeded order is
-mmlupro-11784, the run in the deck's video (and the first where consistency training held).
+**The final deck's videos (version 3, Nov 26).** The final 6:00 talk is `final/Group10_final.pptx` (11 main slides, the
+divider at 12, backups 13 to 26; this map is the progress talk's and is unchanged above). Its video is slide 7, **clip C**
+(about 35 to 40 s, Arsha): Show me → "the fix held", Consistency-trained selected: No fix took the wrong hint and
+Consistency-trained didn't on 26 of 112 questions. The first match in the seeded order is mmlupro-11784, the same
+question as clip A. Clip C's third beat is another question (the fine-tuned model's hand-labelled answer; cut first if
+the clip runs long). Clip A is backup 25 (with its stills on backup 21) and clip B backup 24.
+
+**A narrower pattern (Nov 25, clip A):** Show me → "named in reasoning only": No fix took the wrong hint, named the
+tool in its reasoning, not in its answer, on 28 of 114 questions. The first in the seeded order is mmlupro-11784, the run
+in clip A (backup 25), and also the first where consistency training held (clip C, slide 7).
 
 **Keys.**
 - Anywhere: **1** the scratch pad, **2** the map, **3** the test bench, **4** the result sheets; **← →** step;

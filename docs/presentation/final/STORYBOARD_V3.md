@@ -153,3 +153,32 @@ only". Stills in `docs/presentation/final/storyboard/video_beats/clipC/` (with `
    Ritik 1–3 (1:35), Arsha 4–7 (2:35), Shrey 8–11 (1:50).
 6. **The effort band:** keep 479 (all rows labelled, the notes say L3's agreement was below the bar), and "5 trained
    versions" (derived; the notes list them).
+
+## 7. Phase B (Nov 26): what was built
+
+Ritik's answers to §6:
+1. The pooled measure, worded "wrong-hint following" (42% → 12%); right hints are tool-only (92% → 76%); no new
+   per-channel readings.
+2. Chart B, two panels.
+3. Slide 8's title as drafted.
+4. Clip C keeps beat 3, captioned "another question", and cut first if the clip runs long; the §4 fixes applied.
+5. Contiguous speakers: Ritik 1–3 (0:00–1:35), Arsha 4–7 (1:35–4:10), Shrey 8–11 (4:10–6:00).
+6. The effort band as drafted, with the caveats in the notes.
+
+All of §3's corrections were accepted.
+
+**The build:**
+- `tools/deck/build_deck.py` builds both decks: 11 main slides in 6:00, the divider, and 14 backups (13–26).
+- `slides_v3.py` builds slides 3–9 and the full fix table (backup 26). `draft_v3.py` was renamed to it; run alone, it
+  still renders the drafts.
+- Clip A moves to backup 25. Clip B stays at backup 24.
+- The v2 backups already hold the content of Ritik's Nov 26 native charts (the ten settings, reasoning against
+  answer, the trade-off, the reviewers), so those charts are not repeated.
+- 02_NUMBERS gains N151 (no fix against consistency training as rates: 42%, 12%, 92%, 76%) and N152–N163 (the six
+  reviewers' corrections, each record checked against its summary).
+
+**The tests** (`test_final_deck.py`):
+- Counts written "k/n", including the charts' category labels, are checked as "k of n".
+- Every percent on a main slide must be in 02_NUMBERS or FINDINGS.
+- The effort band is checked against `method.json`, the ledger and the freeze tag.
+- The main slides are found by the divider; the local deck must embed three clips.

@@ -1,93 +1,123 @@
-# Session log: the final deck, version 3, Phase A (the storyboard) (2026-11-26 13:33 MST)
+# Session log: the final deck, version 3, Phase B (the build and clip C) (2026-11-26 14:24 MST)
 
-**By:** Ritik. Branch `trackA-nosol`, from `c1e7734` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
-level). The day's first session. The daily: [DAILY_2026-11-26](2026-11-26/DAILY_2026-11-26.md). The previous session: Nov 25,
-[10:56](2026-11-25/2026-11-25_1056_ALL_deck-fixes-prep.md). The results are frozen: the tag
-`results-freeze-2026-11-18` on `7e1fdc0`. Two helpers: the number check (read-only); clip C's stills. They did not
-commit.
+**By:** Ritik. Branch `trackA-nosol`, from `b7f8153` (main, `trackA-nosol`, `origin/main` and `origin/trackA-nosol`
+level). The day's second session. The time in the name is the session's first `date` (the prompt arrived about 14:17).
+The daily: [DAILY_2026-11-26](2026-11-26/DAILY_2026-11-26.md). The previous session: Nov 26,
+[13:33](2026-11-26/2026-11-26_1333_ALL_deck-v3-storyboard.md). The results are frozen: the tag `results-freeze-2026-11-18` on
+`7e1fdc0`. Two helpers: clip C (the same helper as the stills); TALK_MAP and the prep guide. They did not commit.
 
 ## 0. Input
 
-A pasted note, acted on as Ritik's. The current deck tells a measurement study. Version 3 leads with what we built
-(inside the model, trained fixes, the multi-agent check), gives the cross-model testing one slide, and adds a video of
-training and the layers.
-- **The brief:** `~/Downloads/DECK_V3.md`, read in full. Its rules are DECK_BRIEF's, plus "lead with what we built".
-- **The deck:** Ritik's latest, `~/Downloads/Group10_final_with_video.pptx`, becomes the local deck first.
-- **Scope:** Phase A only: the storyboard, draft renders of slides 3–6 and 8, and clip C's stills. Then stop.
-- **Rules:** presentation work after the freeze; no number changes; a dated note in today's log; at most 2 helpers.
-
-## 1. What was done (13:33–13:50)
-
-**Dated note (Nov 26, 13:33): presentation work after the freeze. No frozen number, figure or verdict changed.** The
-drafts plot numbers read from tracked summaries or FINDINGS' own k of n. Where the brief's wording didn't match its
-source, the drafts follow the source, and the storyboard lists each case.
-
-**The local deck:**
-- Ritik's Nov 26 deck is now `docs/presentation/final/local/Group10_final_with_video.pptx`. It is gitignored; its
-  sha256 starts `412922c9892f019f`, the same as the copy in Downloads.
-- Ours from Nov 25 stays beside it as `Group10_final_with_video_v2_2026-11-25.pptx`.
-- What Ritik changed: native charts with Wilson error bars (tool vs user, reasoning vs answer, the trade-off, the
-  review team), ten main slides and twelve backups. Their style is kept.
-
-**The drafts** (`cot-disclosure/tools/deck/`, mine):
-- **`charts.py`:** native bar charts with custom error bars from absolute bounds, and per-bar colours.
-  - A fixed plot area, so rows and columns sit where the slide expects; names and counts are drawn as text beside
-    the rows, because LibreOffice drops crowded category labels.
-  - Helpers that give each row's or column's position.
-- **`draft_v3.py`:** slides 3, 4, 5, 6 (two versions) and 8 on the ASU template. Every count is read from a
-  summary; each Wilson interval is computed and checked against the stored or printed bounds.
-  - The .pptx is local (`storyboard/draft_v3.pptx`).
-  - Renders: `docs/presentation/final/storyboard/v3/` (numbers only).
-  - Every render was looked at; fixes were made for crowded labels, a title wrapping into the next line, a block
-    overflowing, and one bottom line reaching the reserved strip.
-
-**The number check** (helper 1, read-only): about 60 numbers, about 50 exact matches. Six items differ from the
-brief, and the drafts follow the sources:
-- the 42% → 12% pools the user's guess with both tool channels (82 + 130 + 85 = 297 of 703; checked in `a40_e2.json`);
-- "within 4 points" fails for consistency + instruction (−4.3);
-- "no less than the instruction" should be "no difference detected";
-- +0.68 and "layers 0–14" are two results;
-- only two reviewers had all four views;
-- only the two Olmo reviewers defer.
-
-The effort band's sources were found and checked here: `method.json` 352.47 GPU-hours, 271 GPU jobs, 479 labels and
-12 models; the ledger, 31 pre-registered; the tag dated Nov 18, 21:03.
-
-**Clip C** (helper 2; `tools/demo_video/record_c.py`, no model text):
-- **The question,** chosen by the page: Show me → "the fix held" with Consistency-trained selected, first in the
-  seeded order. That is mmlupro-11784, and the page shows 26 of 112.
-- **The stills:** 8, plus a contact sheet and a manifest, in `storyboard/video_beats/clipC/` (gitignored).
-- **C3** is a hand-labelled Fine-tuned run on another question (mmlupro-4588, pasted tool output; in F45's sample).
-
-**The storyboard:** `docs/presentation/final/STORYBOARD_V3.md`:
-- the 11 titles in 6:00;
-- the renders;
-- what the check changed;
-- the effort band's sources;
-- clip C's beats with zoom targets and captions;
-- what Phase B must fix on the stills;
-- six decisions.
-
-## 2. Waiting for Ritik (STORYBOARD_V3 §6)
-
-1. Slide 6's measure: "wrong-hint" (pooled, recommended) or the two tool channels charted separately.
-2. Slide 6's chart: A (as briefed) or B (two panels, recommended).
+A pasted note with Ritik's answers to STORYBOARD_V3 §6, acted on as Ritik's: "Phase B of DECK_V3".
+1. Slide 6 uses the pooled measure, worded "wrong-hint following" (42% → 12%), with right hints tool-only (92% →
+   76%). No new per-channel readings.
+2. Slide 6 is chart B, the two panels.
 3. Slide 8's title: "Two of six reviewers defer to the tool; a checker doesn't".
-4. Clip C's beat 3: keep it on another question, captioned so, or cut it.
-5. The speakers: the brief's split (2:55, 1:15, 1:50) or contiguous (1:35, 2:35, 1:50).
-6. The effort band: keep 479 and 5 as worded.
+4. Clip C keeps beat 3, captioned "another question", and that beat is cut first if the clip runs long. The
+   storyboard's fixes apply.
+5. Contiguous speakers: Ritik 1–3, Arsha 4–7, Shrey 8–11. The notes and TALK_MAP match.
+6. The effort band as drafted.
 
-Then Phase B: the deck from Ritik's local version, clip C, the checks, and TALK_MAP and PREP_GUIDE.
+All of §3's corrections are accepted. Then build, run every check, and rebuild both decks (local with clips A, B and C;
+committed with placeholders), so the local-vs-committed test passes again. Update TALK_MAP and PREP_GUIDE, push, and
+stop for the playback check.
 
-## 3. Checks and push
+## 1. What was done (14:17–14:55)
 
-- Tests (the deck, figures, pack, hygiene, links, Gantt, make_deck, submission): 158 passed, **1 failed, expected**.
-  - The failure is `test_the_local_deck_embeds_both_clips`: the local deck is now Ritik's (23 slides), and the
-    tracked deck is still ours from Nov 25 (21 slides).
-  - The test is unchanged. Phase B rebuilds both decks from the local version, and it passes again then.
-  - It runs only where the gitignored local deck exists.
-- `make_supplement.py --check` and `export_summaries.py --check`: pass.
-- `tools/check_links.py`: 0 broken links.
-- Privacy: no email, Sol username, key or model text in tracked files. The stills, the draft .pptx and both local
-  decks are gitignored.
+**Dated note (Nov 26, 14:24): presentation work after the freeze. No frozen number, figure or verdict changed.**
+02_NUMBERS only gains rows (N151–N163): each is a FINDINGS k of n rounded to a percent, or a summary record checked
+exactly.
+
+**The deck** (`cot-disclosure/tools/deck/`, mine): `build_deck.py` builds both decks.
+
+| part | slides | what |
+|---|---|---|
+| main | 1–11, 6:00 | 1 title; 2 the scenario with the why line; 3 what we built; 4 the failure; 5 inside the model; 6 training (two panels); 7 clip C; 8 the review team and the checker; 9 what we'd tell a team; 10 limits; 11 thank you |
+| divider | 12 | |
+| backups | 13–26 | the twelve from version 2; 25 clip A; 26 every fix on the 120 with its intervals |
+
+- **Where the slides come from:** `draft_v3.py` was renamed to `slides_v3.py`, which builds slides 3–9 and backup 26;
+  run alone, it still renders the drafts.
+- **Speakers and times:** Ritik 0:00–1:35, Arsha 1:35–4:10, Shrey 4:10–6:00. Each slide's notes carry its time,
+  finding ids and hand-off. Slide 3's notes give the effort band's caveats.
+- **Ritik's Nov 26 native charts** (reasoning against answer, the trade-off, the reviewers, the ten settings): the
+  version 2 backups already hold the same content, so they are not repeated.
+- **Backup 26's table:** six fixes with Wilson intervals (F41, F43 and F44's tables). Each interval was checked as the
+  Wilson of its k of n. One draft cell was wrong, consistency + instruction's no-hint accuracy [58, 68%]; it is now
+  FINDINGS' [55, 68%].
+- **Rendered and looked at:** all eleven main slides and backups 21, 25 and 26. Fixes made: slide 9's first row
+  overlapped the second; backup 26's note overlapped the table.
+
+**The decks:**
+- Tracked: `Group10_final.pptx` (4.42 MB, placeholders, no video or still) and its PDF.
+- Local: `local/Group10_final_with_video.pptx` (42.1 MB; clips A, B and C embedded), for Canvas.
+- Ritik's Nov 26 file is kept as `local/Group10_final_with_video_ritik_2026-11-26.pptx`, and ours from Nov 25 beside
+  it.
+
+**02_NUMBERS** (`tools/make_pack_numbers.py`), rows appended so no id moves:
+- **N151:** no fix against consistency training, as rates: 297 of 703 (42%) vs 84 of 694 (12%); 439 of 476 (92%) vs
+  347 of 459 (76%).
+- **N152–N163:** the six reviewers, seeing the answer only and the tool's log. Each is one summary record, checked
+  exactly (k, n, Wilson).
+
+**The tests** (`tests/test_final_deck.py`):
+- The main slides are found by the divider, not assumed to be eight.
+- Counts written "k/n", including the charts' category labels, are checked as "k of n".
+- Every percent on a main slide must be in 02 or FINDINGS.
+- The effort band is checked against `method.json` (GPU-hours, GPU jobs, hand labels, models), the ledger (31
+  pre-registered) and the freeze tag (Nov 18).
+- The local deck must embed three clips (the test is renamed `test_the_local_deck_embeds_every_clip`).
+
+**Clip C** (helper 1; `tools/demo_video/record_c.py --frames`, `compose_c.py`, README):
+- **The file:** 36.0 s, 11.1 MB, H.264 yuv420p, 1920 × 1080, 30 fps.
+- **The question:** mmlupro-11784, the finder's first "the fix held" match. The count is on screen in the split:
+  "No fix took the wrong hint and Consistency-trained didn't on 26 of 112 questions."
+- **Beat 3:** hand-labelled answer 1 of 42 (mmlupro-4588, says_changed), its label line scrolled into view and
+  captioned "another question".
+- **Step 8:** zoomed to the "What we read" notes.
+- **The end card** says "wrong hints" and is the poster.
+- **Checks:** the lowest mean luma is 37.1 of 255, the end card itself; no transition goes dark. I looked at 12 frames
+  myself; the count reads "26 of 112" in full once C2's pan settles.
+
+**TALK_MAP and the prep guide** (helper 2):
+- **TALK_MAP:** the final deck's video section (slide 7 is clip C; clip A is backup 25, clip B backup 24).
+- **PREP_GUIDE.md:**
+  - the 11-slide run of show with the contiguous speakers;
+  - words a speaker (about 205, 300 and 230);
+  - a new cut order: clip C's beat 3 first;
+  - eight new "don't say" rows from §3's corrections;
+  - a 14th concept (the multi-agent check);
+  - every slide and backup reference remapped;
+  - Q31–Q37 on training, the layers and the labels.
+- **PREP_GUIDE.pdf:** 23 phone-sized pages.
+- **My review:** "+2 [−2, +6]" is FINDINGS' own row for fine-tuning minus the instruction ("no difference
+  detected"), so it stays. One older "don't say" row still said "no less than the instruction"; it now says "no
+  difference detected".
+
+## 2. What didn't match its source
+
+- **The brief's wording** (fixed in Phase A and kept):
+  - 42% → 12% counts wrong hints from the user or a tool, not tool hints only;
+  - "within 4 points" is now "within 5";
+  - "no less than" is now "no difference detected";
+  - +0.68 and "layers 0–14" are two results;
+  - "4 views" is now "up to 4";
+  - only two of the six reviewers defer.
+- **The backup table's one wrong interval**, caught by its own check before the build: [58, 68%] corrected to
+  [55, 68%].
+- No number on a slide is outside 02_NUMBERS, FINDINGS or TALK_MAP (tested).
+
+## 3. Waiting for Ritik
+
+1. The playback check in PowerPoint (`final/local/Group10_final_with_video.pptx`; slide 7 is clip C, backups 24 and
+   25 are clips B and A), on Windows too if possible.
+2. A timed rehearsal per speaker (PREP_GUIDE §2 and §7).
+3. The upload to Canvas by Nov 30.
+
+## 4. Checks and push
+
+- The full suite: 1,485 passed, 1 skipped (23 min 54 s), including the local-vs-committed deck test.
+- `tools/check_links.py`: 0 broken links. `make_supplement.py --check` and `export_summaries.py --check`: pass.
+- Privacy: no email, Sol username, key or model text in tracked files; the clips, stills, raw frames and local decks
+  are gitignored.
 - STATUS and the Gantt; the pre-push check; the push: `git push origin trackA-nosol:main trackA-nosol:trackA-nosol`.
