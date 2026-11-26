@@ -81,7 +81,7 @@ def slide3(prs, effort=EFFORT):
     blocks = [
         ("The test harness", ["Same question, same wrong letter; only the source changes (the user, a stronger claim, "
                               "pasted tool output, its own tool call).",
-                              "8 open models (12 with the reviewers), thinking on and off; on ASU's Sol and Voyager."]),
+                              "8 open models (12 with the reviewers), thinking on and off; on Sol and Voyager."]),
         ("Inside the model", ["Activation patching: swap one layer's activations between a hinted and an unhinted run, "
                               "across all 32 layers of Olmo 3 7B Think.",
                               "Then the same test in a second model."]),
@@ -91,25 +91,25 @@ def slide3(prs, effort=EFFORT):
         ("The multi-agent check", ["Solver with the tool → reviewer (6 models, up to 4 views of the solver's work) → "
                                    "checker that re-solves without the tool."]),
     ]
-    x0, y0, gapw, h = 0.37, 0.95, 0.26, 2.5
+    x0, y0, gapw, h = 0.37, 0.93, 0.26, 2.66
     w = (9.26 - 3 * gapw) / 4
     for i, (head, facts) in enumerate(blocks):
         x = x0 + i * (w + gapw)
         rect(s, x, y0, w, h, fill=RGB_LIGHT, name=f"deck block {i + 1}")
-        badge(s, x + 0.1, y0 + 0.1, str(i + 1))
-        text(s, x + 0.52, y0 + 0.1, w - 0.6, 0.36, [([R(head, 13, True, MAROON)], 0)], anchor=MSO_ANCHOR.MIDDLE,
+        badge(s, x + 0.1, y0 + 0.14, str(i + 1))
+        text(s, x + 0.52, y0 + 0.06, w - 0.58, 0.56, [([R(head, 16, True, MAROON)], 0)], anchor=MSO_ANCHOR.MIDDLE,
              name="deck block head")
-        text(s, x + 0.12, y0 + 0.56, w - 0.22, h - 0.62, [([R(f, 11)], 4) for f in facts], name="deck block text")
+        text(s, x + 0.12, y0 + 0.7, w - 0.22, h - 0.74, [([R(f, 11)], 3) for f in facts], name="deck block text")
         if i < 3:
             arrow_right(s, x + w + 0.02, y0 + h / 2 - 0.13)
     # the effort band
-    yb, hb = 3.57, 1.12
+    yb, hb = 3.68, 1.0
     rect(s, 0.37, yb, 9.26, hb, fill=INK, name="deck effort band")
     cw = 9.26 / len(effort)
     for i, (num, lab) in enumerate(effort):
-        text(s, 0.37 + i * cw, yb + 0.1, cw, 0.5, [([R(num, 24, True, GOLD)], 0)], align=PP_ALIGN.CENTER,
+        text(s, 0.37 + i * cw, yb + 0.06, cw, 0.46, [([R(num, 24, True, GOLD)], 0)], align=PP_ALIGN.CENTER,
              name="deck effort number")
-        text(s, 0.37 + i * cw + 0.05, yb + 0.6, cw - 0.1, 0.48, [([R(ln, 12, False, WHITE)], 0) for ln in lab.split("\n")],
+        text(s, 0.37 + i * cw + 0.05, yb + 0.52, cw - 0.1, 0.44, [([R(ln, 12, False, WHITE)], 0) for ln in lab.split("\n")],
              align=PP_ALIGN.CENTER, name="deck effort label")
     notes(s, "Speaker: Ritik. Time: 0:55 (0:40-1:35).\n"
              "- Four things we built, left to right: the test harness (only the source of the same wrong letter changes); "
@@ -488,19 +488,31 @@ def slide7(prs, with_video):
 def slide9(prs):
     s = B.white(prs, "What we'd tell a team deploying a tool-using model")
     recs = [("Don't read the final answer as a record of why",
-             "Log the tool's provenance outside the model: after a tool call, Qwen3 8B's answer named the tool in 0 of "
-             "143 runs; its reasoning, in 141 of 145."),
+             "Log provenance outside the model: Qwen3 8B's answer named the tool in 0 of 143 runs."),
             ("A label or a prompt line won't fix it",
              "An \"unverified\" label on the tool's turn: −1 [−7, +4] points, no effect."),
             ("If you train, pick by how often your tool is right",
              "Consistency training: wrong hints followed 42% → 12%; right tool hints taken 92% → 76%."),
             ("Put an independent check before acting",
-             "A checker that re-solves without the tool stopped 53 of 53 wrong answers, for one more model call.")]
-    y = 0.98
+             "Re-solving without the tool stopped 53 of 53 wrong answers, for one more model call.")]
+    y = 0.95
     for i, (h, body) in enumerate(recs):
-        badge(s, 0.37, y + 0.04, str(i + 1), size=0.42)
-        text(s, 0.98, y, 8.6, 0.88, [([R(h, 16, True)], 2), ([R(body, 14)], 0)], name="deck rec")
-        y += 0.94
+        badge(s, 0.37, y + 0.06, str(i + 1), size=0.42)
+        text(s, 0.98, y, 8.65, 0.66, [([R(h, 18, True)], 1), ([R(body, 14)], 0)], name="deck rec")
+        y += 0.74
+    # where each safeguard sits, native
+    steps = [("Tool", "can be wrong", B.GRAY, INK), ("Model", "2, 3: a prompt line, training", B.GRAY, INK),
+             ("Log provenance", "1: outside the model", MAROON, WHITE),
+             ("Checker", "4: re-solves without the tool", MAROON, WHITE), ("User", "acts on the answer", INK, WHITE)]
+    gap, yd, hd = 0.3, 4.03, 0.64
+    bw = (9.26 - 4 * gap) / 5
+    for k, (t1, t2, fill, fg) in enumerate(steps):
+        bx = 0.37 + k * (bw + gap)
+        rect(s, bx, yd, bw, hd, fill=fill, name="deck safeguard step")
+        text(s, bx + 0.05, yd + 0.05, bw - 0.1, hd - 0.1, [([R(t1, 12, True, fg)], 0), ([R(t2, 11, False, fg)], 0)],
+             align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, name="deck safeguard text")
+        if k < 4:
+            arrow_right(s, bx + bw + 0.04, yd + hd / 2 - 0.13)
     notes(s, "Speaker: Shrey. Time: 0:40 (4:55-5:35).\n"
              "- 1 (F29): 0 of 143 [0, 3%] vs 141 of 145 [93, 99%], keyword counts; not universal, Gemma 4 127 of 162 (FB1).\n"
              "- 2 (F44): the 'unverified' label alone, -1 [-7, +4] on the inserted tool turn; asking for sources names the "
@@ -509,6 +521,8 @@ def slide9(prs):
              "the instruction -21 [-26, -16] and -15 [-20, -10]; exploratory crossover 0.36 [0.22, 0.50].\n"
              "- 4 (F24): 53 of 53 [93, 100%] on 100 fresh items; 7 of 45 false alarms [8, 29%]; tested where the solver "
              "can solve the question alone.\n"
+             "- The strip: where each sits. 1 is a log kept outside the model; 2 and 3 act on the model; 4 is a second "
+             "call that never sees the tool.\n"
              "- Hand-off: 'Where this holds, and what we don't know.'")
     return s
 

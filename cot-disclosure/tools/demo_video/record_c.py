@@ -38,13 +38,23 @@ LABEL_JS = """() => { const el = document.querySelector('.bover .bobody'); const
   const i = node.nodeValue.indexOf('\\u2014 Hand label'); if (i < 0) return null;
   const r = document.createRange(); r.setStart(node, i); r.setEnd(node, node.nodeValue.length);
   return [...r.getClientRects()].filter(q => q.width > 2).map(q => [q.left, q.top, q.width, q.height]); }"""
+WORDS_JS = """() => { const out = []; const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
+  while ((n = tw.nextNode())) { const par = n.parentElement; if (!par || /^(SCRIPT|STYLE|NOSCRIPT)$/.test(par.tagName)) continue;
+    const t = n.nodeValue; const re = /\\S+/g; let m;
+    while ((m = re.exec(t))) { const r = document.createRange(); r.setStart(n, m.index); r.setEnd(n, m.index + m[0].length);
+      for (const q of r.getClientRects()) { if (q.width < 1 || q.right < 0 || q.bottom < 0 || q.left > 1920 || q.top > 1080) continue;
+        const el = document.elementFromPoint(Math.min(1919, q.left + q.width / 2), Math.min(1079, q.top + q.height / 2));
+        if (!el || !(par.contains(el) || el.contains(par))) continue;
+        out.push([m[0], q.left, q.top, q.width, q.height]); break; } } }
+  return out; }"""
+
 PANELS_JS = """() => [...document.querySelectorAll('.panel')].filter(e => e.getBoundingClientRect().width > 0).map(e => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.width, r.height, e.innerText]; })"""
 
 
 async def frames_main(a):
     import time
     out = ROOT / "docs/presentation/final/video/raw_c"; out.mkdir(parents=True, exist_ok=True)
-    man = {}
+    man = {}; words = {}   # words: every visible word and its box per state, for the internal-code sweep (gitignored, local)
     async with async_playwright() as p:
         b = await p.chromium.launch()
         ctx = await b.new_context(viewport={"width": 1920, "height": 1080}, device_scale_factor=2, color_scheme="light")
@@ -55,7 +65,8 @@ async def frames_main(a):
             await pg.evaluate("document.documentElement.dataset.theme='light'")
 
         async def still(name):
-            await pg.screenshot(path=str(out / f"{name}.png")); return f"{name}.png"
+            await pg.screenshot(path=str(out / f"{name}.png"))
+            words[name] = await pg.evaluate(WORDS_JS); return f"{name}.png"
 
         async def frames(name, seconds):
             t0 = time.perf_counter(); fr = []; i = 0
@@ -135,7 +146,7 @@ async def frames_main(a):
         man["C4c_still"] = await still("C4c")
         pan = await pg.evaluate(PANELS_JS); man["C4c_note"] = [x[:4] for x in pan if "What we read" in x[4]]
         await b.close()
-    (out / "manifest.json").write_text(json.dumps(man, indent=1))
+    (out / "manifest.json").write_text(json.dumps(man, indent=1)); (out / "words.json").write_text(json.dumps(words))
     print({k: (v if not isinstance(v, list) or len(v) < 6 else f"[{len(v)} items]") for k, v in man.items() if k not in ("C1_boxes", "C2_boxes", "C1_sentence")})
 
 
