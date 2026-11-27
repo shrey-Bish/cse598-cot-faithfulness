@@ -2,7 +2,8 @@
 
   ../.venv/bin/python tools/deck/simple_deck.py          # from cot-disclosure/; writes both decks and the PDF
 
-Source: docs/presentation/final/local/Group10_final_simple_ritik_2026-11-26.pptx (Ritik's, gitignored: it embeds clips).
+Source: docs/presentation/final/local/Group10_final_ritik_2026-11-26_1855.pptx (Ritik's, gitignored: it embeds clips;
+his 17:12 simple deck before it).
 Ten main slides (5:30 in the notes, 30 s of slack), the divider and the backups, as Ritik laid them out. This script
 changes only:
 - slide 6's video: the minimal demo, clip D (tools/demo_min/; 3 cards, about 18 s; poster = card 1), and its notes;
@@ -31,7 +32,8 @@ import diagram as D  # noqa: E402
 
 ROOT = HERE.parents[2]
 FINAL = ROOT / "docs" / "presentation" / "final"
-SOURCE = FINAL / "local" / "Group10_final_simple_ritik_2026-11-26.pptx"
+SOURCE = FINAL / "local" / "Group10_final_ritik_2026-11-26_1855.pptx"   # Ritik's 18:55 deck: slide 3's architecture,
+                                                                     # clips D and C in, slides 6 and 16's timing fixed
 V3 = FINAL / "local" / "Group10_final_with_video_v3_2026-11-26.pptx"      # version 3's deck: the backups' notes
 VIDEO = FINAL / "video"
 CLIP_D, POSTER_D = VIDEO / "clip_d.mp4", VIDEO / "poster_d.png"
