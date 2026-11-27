@@ -1,0 +1,1614 @@
+{
+ "made_by": "tools/handbook_part_c.py",
+ "label": "descriptive, post-freeze (Nov 26)",
+ "made_utc": "2026-11-27T03:44:56+00:00",
+ "glance": [
+  {
+   "data": "54 test questions, 3 runs each (Track B)",
+   "measure": "follows the same wrong answer",
+   "compared_with": "the same answer from the user",
+   "systems": "12 open models, thinking on and off",
+   "headline": "Qwen3 30B Instruct: 1 of 162 from the user, 147 of 162 from its own tool call",
+   "finding": "F16",
+   "numbers_rows": "N132"
+  },
+  {
+   "data": "the same questions, after a tool call",
+   "measure": "names the tool (keywords)",
+   "compared_with": "the private reasoning",
+   "systems": "Qwen3 8B, thinking on",
+   "headline": "reasoning 141 of 145; final answer 0 of 143",
+   "finding": "F29",
+   "numbers_rows": "N134, N135"
+  },
+  {
+   "data": "Olmo 3 7B Think's takeovers (19 cuts, 9 questions)",
+   "measure": "share of the hint's effect (activation patching)",
+   "compared_with": "all 32 layers",
+   "systems": "Olmo 3 7B Think",
+   "headline": "layers 15, 19 and 23 carry 0.90 [0.85, 0.96]",
+   "finding": "F11",
+   "numbers_rows": "N92"
+  },
+  {
+   "data": "120 fresh questions (held out)",
+   "measure": "follows a wrong hint; takes a right tool hint",
+   "compared_with": "no fix; the one-line instruction",
+   "systems": "five trained versions",
+   "headline": "consistency training: 297 of 703 \u2192 84 of 694 wrong hints followed; 439 of 476 \u2192 347 of 459 right tool hints taken",
+   "finding": "F41",
+   "numbers_rows": "N151"
+  },
+  {
+   "data": "84 hand-labelled followed answers",
+   "measure": "the final answer says the hint shaped it",
+   "compared_with": "the one-line instruction",
+   "systems": "fine-tuning (LoRA)",
+   "headline": "37 of 42 against 18 of 42",
+   "finding": "F45",
+   "numbers_rows": "N75"
+  },
+  {
+   "data": "Track C's 73 wrong tool answers",
+   "measure": "the reviewer corrects a wrong answer",
+   "compared_with": "the reviewer seeing the answer only",
+   "systems": "Olmo 3.1 32B reviewer",
+   "headline": "59 of 73 alone; 3 of 73 with the tool's reply",
+   "finding": "F18",
+   "numbers_rows": "N48"
+  },
+  {
+   "data": "100 fresh items (Track C)",
+   "measure": "wrong answers stopped",
+   "compared_with": "the reviewer alone",
+   "systems": "the checker (re-solves without the tool)",
+   "headline": "53 of 53",
+   "finding": "F24",
+   "numbers_rows": "N137"
+  },
+  {
+   "data": "the same 100 items, after the freeze",
+   "measure": "wrong answers reaching the user",
+   "compared_with": "the original model as solver",
+   "systems": "consistency-trained solver",
+   "headline": "29 of 55 \u2192 15 of 55 with the solver alone",
+   "finding": "C27",
+   "numbers_rows": "N164, N165"
+  }
+ ],
+ "taxonomy": {
+  "note": "every labelled row followed its hint; no sheet holds a resisted answer",
+  "sets": {
+   "L6": {
+    "source": "results/labels/L6/L6_RA_20261113.csv + key_L6.csv",
+    "rows": 84,
+    "by_group": {
+     "lora": {
+      "no_mention": {
+       "k": 5,
+       "n": 42,
+       "text": "5 of 42",
+       "rate": 0.11904761904761904,
+       "wilson": [
+        0.051938032948927404,
+        0.2500039038715764
+       ]
+      },
+      "mentions_only": {
+       "k": 9,
+       "n": 42,
+       "text": "9 of 42",
+       "rate": 0.21428571428571427,
+       "wilson": [
+        0.11705799819621746,
+        0.3593984544191604
+       ]
+      },
+      "says_changed": {
+       "k": 28,
+       "n": 42,
+       "text": "28 of 42",
+       "rate": 0.6666666666666666,
+       "wilson": [
+        0.5155250725648456,
+        0.7898753300761839
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 42,
+       "text": "0 of 42",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.08379879207691124
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 42,
+       "text": "0 of 42",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.08379879207691124
+       ]
+      }
+     },
+     "prompt_only": {
+      "no_mention": {
+       "k": 23,
+       "n": 42,
+       "text": "23 of 42",
+       "rate": 0.5476190476190477,
+       "wilson": [
+        0.39949118924719623,
+        0.6877660686502409
+       ]
+      },
+      "mentions_only": {
+       "k": 5,
+       "n": 42,
+       "text": "5 of 42",
+       "rate": 0.11904761904761904,
+       "wilson": [
+        0.051938032948927404,
+        0.2500039038715764
+       ]
+      },
+      "says_changed": {
+       "k": 13,
+       "n": 42,
+       "text": "13 of 42",
+       "rate": 0.30952380952380953,
+       "wilson": [
+        0.19071102783099478,
+        0.460259940579257
+       ]
+      },
+      "rejects_hint": {
+       "k": 1,
+       "n": 42,
+       "text": "1 of 42",
+       "rate": 0.023809523809523808,
+       "wilson": [
+        0.004215404087799045,
+        0.12321201693783071
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 42,
+       "text": "0 of 42",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.08379879207691124
+       ]
+      }
+     }
+    },
+    "by_group_channel": {
+     "lora | inserted": {
+      "no_mention": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      },
+      "mentions_only": {
+       "k": 4,
+       "n": 14,
+       "text": "4 of 14",
+       "rate": 0.2857142857142857,
+       "wilson": [
+        0.11721378562701742,
+        0.5464908452599742
+       ]
+      },
+      "says_changed": {
+       "k": 10,
+       "n": 14,
+       "text": "10 of 14",
+       "rate": 0.7142857142857143,
+       "wilson": [
+        0.45350915474002584,
+        0.8827862143729825
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      }
+     },
+     "lora | pasted": {
+      "no_mention": {
+       "k": 3,
+       "n": 14,
+       "text": "3 of 14",
+       "rate": 0.21428571428571427,
+       "wilson": [
+        0.07571386653293533,
+        0.4758923079830535
+       ]
+      },
+      "mentions_only": {
+       "k": 2,
+       "n": 14,
+       "text": "2 of 14",
+       "rate": 0.14285714285714285,
+       "wilson": [
+        0.04009392090764893,
+        0.39941379723733705
+       ]
+      },
+      "says_changed": {
+       "k": 9,
+       "n": 14,
+       "text": "9 of 14",
+       "rate": 0.6428571428571429,
+       "wilson": [
+        0.38764422924295516,
+        0.8365526834990504
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      }
+     },
+     "lora | user": {
+      "no_mention": {
+       "k": 2,
+       "n": 14,
+       "text": "2 of 14",
+       "rate": 0.14285714285714285,
+       "wilson": [
+        0.04009392090764893,
+        0.39941379723733705
+       ]
+      },
+      "mentions_only": {
+       "k": 3,
+       "n": 14,
+       "text": "3 of 14",
+       "rate": 0.21428571428571427,
+       "wilson": [
+        0.07571386653293533,
+        0.4758923079830535
+       ]
+      },
+      "says_changed": {
+       "k": 9,
+       "n": 14,
+       "text": "9 of 14",
+       "rate": 0.6428571428571429,
+       "wilson": [
+        0.38764422924295516,
+        0.8365526834990504
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      }
+     },
+     "prompt_only | inserted": {
+      "no_mention": {
+       "k": 9,
+       "n": 14,
+       "text": "9 of 14",
+       "rate": 0.6428571428571429,
+       "wilson": [
+        0.38764422924295516,
+        0.8365526834990504
+       ]
+      },
+      "mentions_only": {
+       "k": 1,
+       "n": 14,
+       "text": "1 of 14",
+       "rate": 0.07142857142857142,
+       "wilson": [
+        0.012722215106604151,
+        0.31468704666737907
+       ]
+      },
+      "says_changed": {
+       "k": 4,
+       "n": 14,
+       "text": "4 of 14",
+       "rate": 0.2857142857142857,
+       "wilson": [
+        0.11721378562701742,
+        0.5464908452599742
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      }
+     },
+     "prompt_only | pasted": {
+      "no_mention": {
+       "k": 8,
+       "n": 14,
+       "text": "8 of 14",
+       "rate": 0.5714285714285714,
+       "wilson": [
+        0.3259064441752893,
+        0.7861920121957136
+       ]
+      },
+      "mentions_only": {
+       "k": 2,
+       "n": 14,
+       "text": "2 of 14",
+       "rate": 0.14285714285714285,
+       "wilson": [
+        0.04009392090764893,
+        0.39941379723733705
+       ]
+      },
+      "says_changed": {
+       "k": 4,
+       "n": 14,
+       "text": "4 of 14",
+       "rate": 0.2857142857142857,
+       "wilson": [
+        0.11721378562701742,
+        0.5464908452599742
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      }
+     },
+     "prompt_only | user": {
+      "no_mention": {
+       "k": 6,
+       "n": 14,
+       "text": "6 of 14",
+       "rate": 0.42857142857142855,
+       "wilson": [
+        0.21380798780428648,
+        0.6740935558247106
+       ]
+      },
+      "mentions_only": {
+       "k": 2,
+       "n": 14,
+       "text": "2 of 14",
+       "rate": 0.14285714285714285,
+       "wilson": [
+        0.04009392090764893,
+        0.39941379723733705
+       ]
+      },
+      "says_changed": {
+       "k": 5,
+       "n": 14,
+       "text": "5 of 14",
+       "rate": 0.35714285714285715,
+       "wilson": [
+        0.16344731650094954,
+        0.6123557707570447
+       ]
+      },
+      "rejects_hint": {
+       "k": 1,
+       "n": 14,
+       "text": "1 of 14",
+       "rate": 0.07142857142857142,
+       "wilson": [
+        0.012722215106604151,
+        0.31468704666737907
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 14,
+       "text": "0 of 14",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.21531080540298042
+       ]
+      }
+     }
+    }
+   },
+   "L4 part 1": {
+    "source": "results/labels/gate3/L4/L4_part1_RA.csv + key_L4.csv",
+    "rows": 294,
+    "by_group": {
+     "base, matched followed run": {
+      "no_mention": {
+       "k": 62,
+       "n": 74,
+       "text": "62 of 74",
+       "rate": 0.8378378378378378,
+       "wilson": [
+        0.7376018650357048,
+        0.9047293646017984
+       ]
+      },
+      "mentions_only": {
+       "k": 0,
+       "n": 74,
+       "text": "0 of 74",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.04934978013649534
+       ]
+      },
+      "says_changed": {
+       "k": 11,
+       "n": 74,
+       "text": "11 of 74",
+       "rate": 0.14864864864864866,
+       "wilson": [
+        0.08508059511047705,
+        0.2468949260665197
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 74,
+       "text": "0 of 74",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.04934978013649534
+       ]
+      },
+      "unclear": {
+       "k": 1,
+       "n": 74,
+       "text": "1 of 74",
+       "rate": 0.013513513513513514,
+       "wilson": [
+        0.00238946337704473,
+        0.07265356594495076
+       ]
+      }
+     },
+     "lora, keyword candidate": {
+      "no_mention": {
+       "k": 6,
+       "n": 147,
+       "text": "6 of 147",
+       "rate": 0.04081632653061224,
+       "wilson": [
+        0.018838561325457193,
+        0.08618202783340505
+       ]
+      },
+      "mentions_only": {
+       "k": 42,
+       "n": 147,
+       "text": "42 of 147",
+       "rate": 0.2857142857142857,
+       "wilson": [
+        0.21887278477204447,
+        0.36347015683542455
+       ]
+      },
+      "says_changed": {
+       "k": 97,
+       "n": 147,
+       "text": "97 of 147",
+       "rate": 0.6598639455782312,
+       "wilson": [
+        0.5800797843229626,
+        0.7315056401921001
+       ]
+      },
+      "rejects_hint": {
+       "k": 1,
+       "n": 147,
+       "text": "1 of 147",
+       "rate": 0.006802721088435374,
+       "wilson": [
+        0.0012018583383960023,
+        0.03752395964704863
+       ]
+      },
+      "unclear": {
+       "k": 1,
+       "n": 147,
+       "text": "1 of 147",
+       "rate": 0.006802721088435374,
+       "wilson": [
+        0.0012018583383960023,
+        0.03752395964704863
+       ]
+      }
+     },
+     "prompt_only, matched followed run": {
+      "no_mention": {
+       "k": 57,
+       "n": 73,
+       "text": "57 of 73",
+       "rate": 0.7808219178082192,
+       "wilson": [
+        0.6732273379502695,
+        0.8603387941469417
+       ]
+      },
+      "mentions_only": {
+       "k": 4,
+       "n": 73,
+       "text": "4 of 73",
+       "rate": 0.0547945205479452,
+       "wilson": [
+        0.02151249726624227,
+        0.13258997623817909
+       ]
+      },
+      "says_changed": {
+       "k": 12,
+       "n": 73,
+       "text": "12 of 73",
+       "rate": 0.1643835616438356,
+       "wilson": [
+        0.0966129665114514,
+        0.2657104365918816
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 73,
+       "text": "0 of 73",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.04999200870496552
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 73,
+       "text": "0 of 73",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.04999200870496552
+       ]
+      }
+     }
+    },
+    "by_group_channel": {
+     "base, matched followed run | tool_injected": {
+      "no_mention": {
+       "k": 31,
+       "n": 40,
+       "text": "31 of 40",
+       "rate": 0.775,
+       "wilson": [
+        0.6249690312905765,
+        0.8768390873572685
+       ]
+      },
+      "mentions_only": {
+       "k": 0,
+       "n": 40,
+       "text": "0 of 40",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.08762160245846368
+       ]
+      },
+      "says_changed": {
+       "k": 8,
+       "n": 40,
+       "text": "8 of 40",
+       "rate": 0.2,
+       "wilson": [
+        0.1049998967188637,
+        0.3475730647562145
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 40,
+       "text": "0 of 40",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.08762160245846368
+       ]
+      },
+      "unclear": {
+       "k": 1,
+       "n": 40,
+       "text": "1 of 40",
+       "rate": 0.025,
+       "wilson": [
+        0.004426831453704344,
+        0.12881369088183614
+       ]
+      }
+     },
+     "base, matched followed run | tool_pasted": {
+      "no_mention": {
+       "k": 15,
+       "n": 16,
+       "text": "15 of 16",
+       "rate": 0.9375,
+       "wilson": [
+        0.716712622018518,
+        0.9888806553587528
+       ]
+      },
+      "mentions_only": {
+       "k": 0,
+       "n": 16,
+       "text": "0 of 16",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.1936076829974049
+       ]
+      },
+      "says_changed": {
+       "k": 1,
+       "n": 16,
+       "text": "1 of 16",
+       "rate": 0.0625,
+       "wilson": [
+        0.011119344641247308,
+        0.283287377981482
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 16,
+       "text": "0 of 16",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.1936076829974049
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 16,
+       "text": "0 of 16",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.1936076829974049
+       ]
+      }
+     },
+     "base, matched followed run | user": {
+      "no_mention": {
+       "k": 16,
+       "n": 18,
+       "text": "16 of 18",
+       "rate": 0.8888888888888888,
+       "wilson": [
+        0.6720023466389031,
+        0.9689804776352089
+       ]
+      },
+      "mentions_only": {
+       "k": 0,
+       "n": 18,
+       "text": "0 of 18",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.17587922593328437
+       ]
+      },
+      "says_changed": {
+       "k": 2,
+       "n": 18,
+       "text": "2 of 18",
+       "rate": 0.1111111111111111,
+       "wilson": [
+        0.031019522364791025,
+        0.32799765336109676
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 18,
+       "text": "0 of 18",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.17587922593328437
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 18,
+       "text": "0 of 18",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.17587922593328437
+       ]
+      }
+     },
+     "lora, keyword candidate | tool_injected": {
+      "no_mention": {
+       "k": 0,
+       "n": 70,
+       "text": "0 of 70",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.05202306318827402
+       ]
+      },
+      "mentions_only": {
+       "k": 25,
+       "n": 70,
+       "text": "25 of 70",
+       "rate": 0.35714285714285715,
+       "wilson": [
+        0.2550333920046244,
+        0.4741160546205968
+       ]
+      },
+      "says_changed": {
+       "k": 44,
+       "n": 70,
+       "text": "44 of 70",
+       "rate": 0.6285714285714286,
+       "wilson": [
+        0.5114720106556132,
+        0.7322934873816878
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 70,
+       "text": "0 of 70",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.05202306318827402
+       ]
+      },
+      "unclear": {
+       "k": 1,
+       "n": 70,
+       "text": "1 of 70",
+       "rate": 0.014285714285714285,
+       "wilson": [
+        0.002526246429964553,
+        0.07658187209578735
+       ]
+      }
+     },
+     "lora, keyword candidate | tool_pasted": {
+      "no_mention": {
+       "k": 2,
+       "n": 30,
+       "text": "2 of 30",
+       "rate": 0.06666666666666667,
+       "wilson": [
+        0.018477023624516822,
+        0.21323458516874166
+       ]
+      },
+      "mentions_only": {
+       "k": 7,
+       "n": 30,
+       "text": "7 of 30",
+       "rate": 0.23333333333333334,
+       "wilson": [
+        0.11792388080557861,
+        0.40928326306719587
+       ]
+      },
+      "says_changed": {
+       "k": 20,
+       "n": 30,
+       "text": "20 of 30",
+       "rate": 0.6666666666666666,
+       "wilson": [
+        0.4878005150467802,
+        0.8076950200327357
+       ]
+      },
+      "rejects_hint": {
+       "k": 1,
+       "n": 30,
+       "text": "1 of 30",
+       "rate": 0.03333333333333333,
+       "wilson": [
+        0.005908590316197976,
+        0.16670391146115726
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 30,
+       "text": "0 of 30",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.11351339476145204
+       ]
+      }
+     },
+     "lora, keyword candidate | user": {
+      "no_mention": {
+       "k": 4,
+       "n": 47,
+       "text": "4 of 47",
+       "rate": 0.0851063829787234,
+       "wilson": [
+        0.03359412322441163,
+        0.19931537901751437
+       ]
+      },
+      "mentions_only": {
+       "k": 10,
+       "n": 47,
+       "text": "10 of 47",
+       "rate": 0.2127659574468085,
+       "wilson": [
+        0.11989707943203741,
+        0.3490402682739114
+       ]
+      },
+      "says_changed": {
+       "k": 33,
+       "n": 47,
+       "text": "33 of 47",
+       "rate": 0.7021276595744681,
+       "wilson": [
+        0.5602232596499943,
+        0.8134874956680418
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 47,
+       "text": "0 of 47",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.07555760526591085
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 47,
+       "text": "0 of 47",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.07555760526591085
+       ]
+      }
+     },
+     "prompt_only, matched followed run | tool_injected": {
+      "no_mention": {
+       "k": 30,
+       "n": 37,
+       "text": "30 of 37",
+       "rate": 0.8108108108108109,
+       "wilson": [
+        0.6579530293509931,
+        0.9052002132118778
+       ]
+      },
+      "mentions_only": {
+       "k": 3,
+       "n": 37,
+       "text": "3 of 37",
+       "rate": 0.08108108108108109,
+       "wilson": [
+        0.02796057388250915,
+        0.21300679483709983
+       ]
+      },
+      "says_changed": {
+       "k": 4,
+       "n": 37,
+       "text": "4 of 37",
+       "rate": 0.10810810810810811,
+       "wilson": [
+        0.0428518991061209,
+        0.2470853167928681
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 37,
+       "text": "0 of 37",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.09405782718146873
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 37,
+       "text": "0 of 37",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.09405782718146873
+       ]
+      }
+     },
+     "prompt_only, matched followed run | tool_pasted": {
+      "no_mention": {
+       "k": 8,
+       "n": 12,
+       "text": "8 of 12",
+       "rate": 0.6666666666666666,
+       "wilson": [
+        0.3906220869404939,
+        0.86187990987514
+       ]
+      },
+      "mentions_only": {
+       "k": 1,
+       "n": 12,
+       "text": "1 of 12",
+       "rate": 0.08333333333333333,
+       "wilson": [
+        0.014865094239669363,
+        0.35387991372124555
+       ]
+      },
+      "says_changed": {
+       "k": 3,
+       "n": 12,
+       "text": "3 of 12",
+       "rate": 0.25,
+       "wilson": [
+        0.08894166769488562,
+        0.5323053370816633
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 12,
+       "text": "0 of 12",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.2424940095530979
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 12,
+       "text": "0 of 12",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.2424940095530979
+       ]
+      }
+     },
+     "prompt_only, matched followed run | user": {
+      "no_mention": {
+       "k": 19,
+       "n": 24,
+       "text": "19 of 24",
+       "rate": 0.7916666666666666,
+       "wilson": [
+        0.5952954657887158,
+        0.9075517470563429
+       ]
+      },
+      "mentions_only": {
+       "k": 0,
+       "n": 24,
+       "text": "0 of 24",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.13797620655132792
+       ]
+      },
+      "says_changed": {
+       "k": 5,
+       "n": 24,
+       "text": "5 of 24",
+       "rate": 0.20833333333333334,
+       "wilson": [
+        0.0924482529436571,
+        0.40470453421128416
+       ]
+      },
+      "rejects_hint": {
+       "k": 0,
+       "n": 24,
+       "text": "0 of 24",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.13797620655132792
+       ]
+      },
+      "unclear": {
+       "k": 0,
+       "n": 24,
+       "text": "0 of 24",
+       "rate": 0.0,
+       "wilson": [
+        0.0,
+        0.13797620655132792
+       ]
+      }
+     }
+    }
+   }
+  }
+ },
+ "by_subject": {
+  "subjects": {
+   "chemistry": 30,
+   "engineering": 30,
+   "law": 30,
+   "physics": 30
+  },
+  "systems": {
+   "base": {
+    "following": {
+     "chemistry": {
+      "k": 61,
+      "n": 175,
+      "text": "61 of 175",
+      "rate": 0.3485714285714286,
+      "wilson": [
+       0.2819101240398508,
+       0.42173801028241426
+      ],
+      "questions": 30
+     },
+     "engineering": {
+      "k": 73,
+      "n": 173,
+      "text": "73 of 173",
+      "rate": 0.42196531791907516,
+      "wilson": [
+       0.3508507575638598,
+       0.4964701129446581
+      ],
+      "questions": 30
+     },
+     "law": {
+      "k": 107,
+      "n": 180,
+      "text": "107 of 180",
+      "rate": 0.5944444444444444,
+      "wilson": [
+       0.5214682593988653,
+       0.6634737020438655
+      ],
+      "questions": 30
+     },
+     "physics": {
+      "k": 56,
+      "n": 175,
+      "text": "56 of 175",
+      "rate": 0.32,
+      "wilson": [
+       0.2553905898905304,
+       0.39234209807744497
+      ],
+      "questions": 30
+     },
+     "all": {
+      "k": 297,
+      "n": 703,
+      "text": "297 of 703",
+      "rate": 0.422475106685633,
+      "wilson": [
+       0.38647960552756994,
+       0.4593132542001091
+      ],
+      "questions": 120
+     }
+    },
+    "acceptance": {
+     "chemistry": {
+      "k": 113,
+      "n": 118,
+      "text": "113 of 118",
+      "rate": 0.9576271186440678,
+      "wilson": [
+       0.9046306143879841,
+       0.9817671765742775
+      ],
+      "questions": 30
+     },
+     "engineering": {
+      "k": 107,
+      "n": 118,
+      "text": "107 of 118",
+      "rate": 0.9067796610169492,
+      "wilson": [
+       0.8407607480602173,
+       0.9471483994617931
+      ],
+      "questions": 30
+     },
+     "law": {
+      "k": 109,
+      "n": 120,
+      "text": "109 of 120",
+      "rate": 0.9083333333333333,
+      "wilson": [
+       0.8432915296559418,
+       0.9480428173815438
+      ],
+      "questions": 30
+     },
+     "physics": {
+      "k": 110,
+      "n": 120,
+      "text": "110 of 120",
+      "rate": 0.9166666666666666,
+      "wilson": [
+       0.8533776777514769,
+       0.9541063498377941
+      ],
+      "questions": 30
+     },
+     "all": {
+      "k": 439,
+      "n": 476,
+      "text": "439 of 476",
+      "rate": 0.9222689075630253,
+      "wilson": [
+       0.8946944038967054,
+       0.9430823087225507
+      ],
+      "questions": 120
+     }
+    }
+   },
+   "prompt_only": {
+    "following": {
+     "chemistry": {
+      "k": 38,
+      "n": 178,
+      "text": "38 of 178",
+      "rate": 0.21348314606741572,
+      "wilson": [
+       0.15967149287704807,
+       0.2794003193075186
+      ],
+      "questions": 30
+     },
+     "engineering": {
+      "k": 70,
+      "n": 176,
+      "text": "70 of 176",
+      "rate": 0.3977272727272727,
+      "wilson": [
+       0.3283477936671226,
+       0.47147589424144937
+      ],
+      "questions": 30
+     },
+     "law": {
+      "k": 93,
+      "n": 180,
+      "text": "93 of 180",
+      "rate": 0.5166666666666667,
+      "wilson": [
+       0.44408135734394943,
+       0.5885554593812383
+      ],
+      "questions": 30
+     },
+     "physics": {
+      "k": 36,
+      "n": 179,
+      "text": "36 of 179",
+      "rate": 0.2011173184357542,
+      "wilson": [
+       0.14895830599445892,
+       0.2658352498288604
+      ],
+      "questions": 30
+     },
+     "all": {
+      "k": 237,
+      "n": 713,
+      "text": "237 of 713",
+      "rate": 0.332398316970547,
+      "wilson": [
+       0.2988002205743472,
+       0.36779272401763574
+      ],
+      "questions": 120
+     }
+    },
+    "acceptance": {
+     "chemistry": {
+      "k": 113,
+      "n": 120,
+      "text": "113 of 120",
+      "rate": 0.9416666666666667,
+      "wilson": [
+       0.8844740790888672,
+       0.97145899015576
+      ],
+      "questions": 30
+     },
+     "engineering": {
+      "k": 110,
+      "n": 116,
+      "text": "110 of 116",
+      "rate": 0.9482758620689655,
+      "wilson": [
+       0.8917318539535315,
+       0.9760813466769189
+      ],
+      "questions": 30
+     },
+     "law": {
+      "k": 100,
+      "n": 120,
+      "text": "100 of 120",
+      "rate": 0.8333333333333334,
+      "wilson": [
+       0.7565471853891594,
+       0.8894400366822575
+      ],
+      "questions": 30
+     },
+     "physics": {
+      "k": 108,
+      "n": 120,
+      "text": "108 of 120",
+      "rate": 0.9,
+      "wilson": [
+       0.8333182582648719,
+       0.9418664082208283
+      ],
+      "questions": 30
+     },
+     "all": {
+      "k": 431,
+      "n": 476,
+      "text": "431 of 476",
+      "rate": 0.9054621848739496,
+      "wilson": [
+       0.8758376617884034,
+       0.9285947040599369
+      ],
+      "questions": 120
+     }
+    }
+   },
+   "lora": {
+    "following": {
+     "chemistry": {
+      "k": 45,
+      "n": 174,
+      "text": "45 of 174",
+      "rate": 0.25862068965517243,
+      "wilson": [
+       0.1992685605861943,
+       0.3284006312411875
+      ],
+      "questions": 30
+     },
+     "engineering": {
+      "k": 71,
+      "n": 175,
+      "text": "71 of 175",
+      "rate": 0.4057142857142857,
+      "wilson": [
+       0.3357459464569136,
+       0.4797330805739306
+      ],
+      "questions": 30
+     },
+     "law": {
+      "k": 94,
+      "n": 177,
+      "text": "94 of 177",
+      "rate": 0.5310734463276836,
+      "wilson": [
+       0.45767783723415106,
+       0.6031489226695079
+      ],
+      "questions": 30
+     },
+     "physics": {
+      "k": 38,
+      "n": 179,
+      "text": "38 of 179",
+      "rate": 0.2122905027932961,
+      "wilson": [
+       0.1587544960619721,
+       0.2779159361791671
+      ],
+      "questions": 30
+     },
+     "all": {
+      "k": 248,
+      "n": 705,
+      "text": "248 of 705",
+      "rate": 0.3517730496453901,
+      "wilson": [
+       0.3174136831966864,
+       0.38773900308968456
+      ],
+      "questions": 120
+     }
+    },
+    "acceptance": {
+     "chemistry": {
+      "k": 111,
+      "n": 120,
+      "text": "111 of 120",
+      "rate": 0.925,
+      "wilson": [
+       0.8635908233423942,
+       0.9600428847986623
+      ],
+      "questions": 30
+     },
+     "engineering": {
+      "k": 110,
+      "n": 120,
+      "text": "110 of 120",
+      "rate": 0.9166666666666666,
+      "wilson": [
+       0.8533776777514769,
+       0.9541063498377941
+      ],
+      "questions": 30
+     },
+     "law": {
+      "k": 91,
+      "n": 117,
+      "text": "91 of 117",
+      "rate": 0.7777777777777778,
+      "wilson": [
+       0.6942988374053103,
+       0.8435960258456396
+      ],
+      "questions": 30
+     },
+     "physics": {
+      "k": 109,
+      "n": 120,
+      "text": "109 of 120",
+      "rate": 0.9083333333333333,
+      "wilson": [
+       0.8432915296559418,
+       0.9480428173815438
+      ],
+      "questions": 30
+     },
+     "all": {
+      "k": 421,
+      "n": 477,
+      "text": "421 of 477",
+      "rate": 0.8825995807127882,
+      "wilson": [
+       0.850609485950111,
+       0.908476473170786
+      ],
+      "questions": 120
+     }
+    }
+   },
+   "a40": {
+    "following": {
+     "chemistry": {
+      "k": 6,
+      "n": 174,
+      "text": "6 of 174",
+      "rate": 0.034482758620689655,
+      "wilson": [
+       0.015897786748956595,
+       0.07317851177527959
+      ],
+      "questions": 30
+     },
+     "engineering": {
+      "k": 15,
+      "n": 171,
+      "text": "15 of 171",
+      "rate": 0.08771929824561403,
+      "wilson": [
+       0.053879062422053495,
+       0.13967605372618092
+      ],
+      "questions": 30
+     },
+     "law": {
+      "k": 55,
+      "n": 175,
+      "text": "55 of 175",
+      "rate": 0.3142857142857143,
+      "wilson": [
+       0.25012052643392907,
+       0.3864290722631884
+      ],
+      "questions": 30
+     },
+     "physics": {
+      "k": 8,
+      "n": 174,
+      "text": "8 of 174",
+      "rate": 0.04597701149425287,
+      "wilson": [
+       0.023478649574440118,
+       0.08808959219611123
+      ],
+      "questions": 30
+     },
+     "all": {
+      "k": 84,
+      "n": 694,
+      "text": "84 of 694",
+      "rate": 0.12103746397694524,
+      "wilson": [
+       0.09883385080320997,
+       0.14741328268864887
+      ],
+      "questions": 120
+     }
+    },
+    "acceptance": {
+     "chemistry": {
+      "k": 100,
+      "n": 117,
+      "text": "100 of 117",
+      "rate": 0.8547008547008547,
+      "wilson": [
+       0.7795897563210658,
+       0.9072606075224549
+      ],
+      "questions": 30
+     },
+     "engineering": {
+      "k": 79,
+      "n": 111,
+      "text": "79 of 111",
+      "rate": 0.7117117117117117,
+      "wilson": [
+       0.6214831808828685,
+       0.7877766844814402
+      ],
+      "questions": 30
+     },
+     "law": {
+      "k": 71,
+      "n": 112,
+      "text": "71 of 112",
+      "rate": 0.6339285714285714,
+      "wilson": [
+       0.5416508174940494,
+       0.7173238215489665
+      ],
+      "questions": 30
+     },
+     "physics": {
+      "k": 97,
+      "n": 119,
+      "text": "97 of 119",
+      "rate": 0.8151260504201681,
+      "wilson": [
+       0.7359201383330237,
+       0.8746229200368211
+      ],
+      "questions": 30
+     },
+     "all": {
+      "k": 347,
+      "n": 459,
+      "text": "347 of 459",
+      "rate": 0.7559912854030502,
+      "wilson": [
+       0.7146805006744712,
+       0.7930527533170861
+      ],
+      "questions": 120
+     }
+    }
+   }
+  }
+ }
+}

@@ -289,6 +289,81 @@ def addendum(prs, summary=C27_SUMMARY):
     return s
 
 
+# ---------------------------------------------------------------- the handbook's Part C backups (Nov 26)
+PART_C = ROOT / "cot-disclosure" / "results" / "summaries" / "handbook" / "part_c.json"
+SLIDE7_LINE = ("- If asked: in a post-freeze exploratory test with the trained Olmo as solver, fewer wrong answers reached the "
+               "user (15 vs 29 of 55); with the 7B model as its own checker, 5 of 55 still got through. A checker works only "
+               "as well as its model can solve the question alone (backup 31).")
+GLANCE_COLS = ("Data", "Measure", "Compared with", "Headline")
+
+
+def slide7_note(prs):
+    nf = list(prs.slides)[6].notes_slide.notes_text_frame
+    if SLIDE7_LINE not in nf.text:
+        lines = nf.text.splitlines()
+        at = next((i for i, ln in enumerate(lines) if ln.startswith("- Hand-off")), len(lines))
+        nf.text = "\n".join(lines[:at] + [SLIDE7_LINE] + lines[at:])
+
+
+def part_c_slides(prs, summary=PART_C):
+    """Backups 32 and 33 (descriptive, post-freeze): the evaluation at a glance, and the hand labels' categories."""
+    if not summary.exists():
+        return []
+    import charts as CH
+    from pptx.dml.color import RGBColor
+    r = json.loads(summary.read_text())
+    s = B.white(prs, "Datasets, metrics and baselines")
+    rows = [GLANCE_COLS] + [(g["data"], g["measure"], g["compared_with"], g["headline"]) for g in r["glance"]]
+    tbl = s.shapes.add_table(len(rows), 4, Inches(0.37), Inches(0.88), Inches(9.26), Inches(3.5)).table
+    for j, wd in enumerate((2.3, 2.15, 1.95, 2.86)):
+        tbl.columns[j].width = Inches(wd)
+    for i, row in enumerate(rows):
+        for j, v in enumerate(row):
+            cell = tbl.cell(i, j)
+            cell.text = v
+            for side in ("margin_top", "margin_bottom"):
+                setattr(cell, side, Inches(0.02))
+            run = cell.text_frame.paragraphs[0].runs[0]
+            run.font.size, run.font.name, run.font.bold = Pt(9), D.FONT, i == 0
+            run.font.color.rgb = B.WHITE if i == 0 else B.INK
+            cell.fill.solid()
+            cell.fill.fore_color.rgb = B.MAROON if i == 0 else (B.GRAY if i % 2 else B.WHITE)
+    s.shapes[-1].name = "deck table"
+    B.text(s, 0.37, 4.58, 9.26, 0.2, [([B.R("Descriptive, post-freeze (Nov 26): every number as frozen; the last row is "
+                                            "the post-freeze addendum (backup 31).", 9, False, D.MID)], 0)], name="deck text")
+    s.notes_slide.notes_text_frame.text = (
+        "Backup, for questions: the evaluation at a glance (descriptive, post-freeze, Nov 26). Each headline is a row of "
+        "02_NUMBERS: N132 (F16), N134-N135 (F29), N92 (F11), N151 (F41), N75 (F45), N48 (F18), N137 (F24), N164-N165 "
+        "(C27). The handbook's PART_C.md has the same table with its sources.")
+    t = r["taxonomy"]["sets"]["L6"]["by_group"]
+    s2 = B.white(prs, "How the answers fail, by category")
+    order = ["no_mention", "mentions_only", "says_changed", "rejects_hint"]
+    names = {"no_mention": "No mention of the hint", "mentions_only": "Mentions the hint only",
+             "says_changed": "Says the hint changed it", "rejects_hint": "Says it rejected the hint"}
+    cats = [f"{names[c]} ({t['prompt_only'][c]['k']}/{t['prompt_only'][c]['n']} vs {t['lora'][c]['k']}/{t['lora'][c]['n']})"
+            for c in order]
+    series = []
+    for name, sysk, color in (("One-line instruction", "prompt_only", D.GOLD), ("Fine-tuning (LoRA)", "lora", D.MAROON)):
+        series.append({"name": name, "values": [100 * t[sysk][c]["rate"] for c in order],
+                       "low": [100 * t[sysk][c]["wilson"][0] for c in order],
+                       "high": [100 * t[sysk][c]["wilson"][1] for c in order], "color": color})
+    CH.bars(s2, 0.37, 0.95, 6.3, 3.55, cats, series, horizontal=True, name="deck chart",
+            alt="Bar chart: the hand labels' categories for final answers that followed a wrong hint, the one-line "
+                "instruction against fine-tuning (42 sampled answers each); Wilson intervals.")
+    B.text(s2, 6.9, 1.0, 2.75, 3.5, [
+        ([B.R("Descriptive, post-freeze", 13, True, D.MAROON)], 6),
+        ([B.R("Answers that followed a wrong hint on the 120 fresh questions: 42 per system, a seeded sample, "
+              "hand-labelled.", 11)], 6),
+        ([B.R("Fine-tuning moves the answer from silence to saying the hint changed it.", 12, True)], 6),
+        ([B.R("Answers that resisted the hint were never hand-labelled.", 11)], 0)], name="deck text")
+    s2.notes_slide.notes_text_frame.text = (
+        "Backup, for questions: the hand labels' categories (L6, Ritik's final labels; descriptive, post-freeze, Nov 26). "
+        "Says it changed + mentions only = 37 of 42 (fine-tuning) vs 18 of 42 (instruction), F45. Gate 3's labels (L4 part "
+        "1) show the same for the fine-tuned keyword candidates: 97 of 147 say the hint changed it, F28. Every labelled "
+        "answer followed its hint. The handbook's PART_C.md has the tables by channel.")
+    return [s, s2]
+
+
 # ---------------------------------------------------------------- the two decks
 def build(local, out, source=SOURCE):
     prs = Presentation(str(source))
@@ -307,6 +382,8 @@ def build(local, out, source=SOURCE):
     backup_notes(prs)
     fix_notes(prs)
     addendum(prs)
+    part_c_slides(prs)
+    slide7_note(prs)
     if not local:
         for i, s in enumerate(prs.slides, 1):
             for sh in list(s.shapes):

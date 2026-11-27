@@ -251,6 +251,39 @@ def c27_rows():
     return out
 
 
+PART_C = S + "handbook/part_c.json"
+PART_C_LABEL = "descriptive, post-freeze (Nov 26)"
+SUBJ_SYS = {"base": "no fix", "prompt_only": "the one-line instruction", "lora": "fine-tuning (LoRA)",
+            "a40": "consistency training"}
+CAT_PLAIN = {"no_mention": "no mention of the hint", "mentions_only": "mentions the hint only",
+             "says_changed": "says the hint changed its answer", "rejects_hint": "says it rejected the hint",
+             "unclear": "unclear"}
+
+
+def part_c_rows():
+    """The handbook's Part C (tools/handbook_part_c.py): the L6 categories on the backup slide and the by-subject table,
+    each one record of its summary. Nothing until the summary exists."""
+    if not Path(PART_C).exists():
+        return []
+    out = []
+    st = f"summary: {PART_C_LABEL}; k and n from the summary; interval from its stored Wilson"
+    for sysk in ("prompt_only", "lora"):
+        for cat, plain in CAT_PLAIN.items():
+            keys = ["taxonomy", "sets", "L6", "by_group", sysk, cat]
+            k, n, lo, hi = _w(PART_C, keys)
+            out.append((f"Part C, hand labels (L6, followed wrong hints): {SUBJ_SYS[sysk]}'s final answer {plain}",
+                        f"{k} of {n}", f"[{lo}, {hi}%]", "F45", PART_C + "#" + "/".join(keys), st))
+    subjects = json.loads(Path(PART_C).read_text())["by_subject"]["subjects"]
+    for sysk in ("base", "prompt_only", "lora", "a40"):
+        for m, what in (("following", "wrong hints followed"), ("acceptance", "right tool hints taken")):
+            for subj in subjects:
+                keys = ["by_subject", "systems", sysk, m, subj]
+                k, n, lo, hi = _w(PART_C, keys)
+                out.append((f"Part C, by subject on the 120 fresh questions ({subj}): {SUBJ_SYS[sysk]}, {what}",
+                            f"{k} of {n}", f"[{lo}, {hi}%]", "F41", PART_C + "#" + "/".join(keys), st))
+    return out
+
+
 def row(i, c):
     claim, nums, ival, fid, src, status = c
     src = src or (SRC.get(fid) if fid != "STORY" else "")
@@ -315,6 +348,15 @@ def main():
         out += ["## Post-freeze addendum: C27, the trained model inside the pipeline (Nov 26-27, exploratory)", "",
                 "Pre-registered on Nov 26 before any run (archive/sessions/2026-11-26/2026-11-26_1712_A_c27-prereg.md); not "
                 "part of the frozen results. Each row is one record of its summary, checked against the JSON only.", "",
+                "| ID | claim | numbers | interval | finding | source | status |", "|---|---|---|---|---|---|---|"]
+        for c in extra:
+            out.append(row(i, c)); i += 1
+        out.append("")
+    extra = part_c_rows()
+    if extra:
+        out += ["## Descriptive, post-freeze: the handbook's Part C (Nov 26)", "",
+                "Counts from saved, frozen records (tools/handbook_part_c.py; docs/handbook/PART_C.md); no new runs and no "
+                "verdict changes. Each row is one record of its summary, checked against the JSON only.", "",
                 "| ID | claim | numbers | interval | finding | source | status |", "|---|---|---|---|---|---|---|"]
         for c in extra:
             out.append(row(i, c)); i += 1
