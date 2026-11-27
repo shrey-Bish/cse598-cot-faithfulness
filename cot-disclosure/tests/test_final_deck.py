@@ -187,3 +187,19 @@ def test_the_effort_band_matches_its_sources():
     tag = subprocess.run(["git", "-C", str(ROOT), "log", "-1", "--format=%cd", "--date=format:%b %-d",
                           "results-freeze-2026-11-18"], capture_output=True, text=True).stdout.strip()
     assert tag == "Nov 18" and "Nov 18 results frozen" in t
+
+
+@pytest.mark.parametrize("which", ["tracked", "local"])
+def test_every_timing_node_names_a_shape_on_its_slide(which):
+    """Nov 26: a replaced video left <p:timing> naming a deleted shape (spid 4 on slides 6 and 16), so PowerPoint
+    offered a repair. Every spid in a slide's timing must be the id of a shape on that slide."""
+    path = DECK if which == "tracked" else LOCAL
+    if not path.exists():
+        pytest.skip("the local deck is gitignored")
+    bad = []
+    for i, s in enumerate(deck(path).slides, 1):
+        ids = {e.get("id") for e in s._element.xpath(".//p:cNvPr")}
+        spids = {e.get("spid") for e in s._element.xpath(".//p:timing//*[@spid]")}
+        if spids - ids:
+            bad.append((i, sorted(spids - ids)))
+    assert not bad, bad

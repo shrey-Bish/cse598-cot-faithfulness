@@ -104,15 +104,62 @@ def placeholder(slide, sh, label):
     return box
 
 
+def timing_spids(slide):
+    return {e.get("spid") for e in slide._element.xpath(".//p:timing//*[@spid]")}
+
+
+def shape_ids(slide):
+    return {e.get("id") for e in slide._element.xpath(".//p:cNvPr")}
+
+
 def replace_video(slide, clip, poster, alt):
+    """The new clip in the old one's place, with the old shape's id: the slide's play-on-click timing names it by id
+    (Nov 26: a new id left <p:timing> pointing at a deleted shape, and PowerPoint offered a repair)."""
     old = next(sh for sh in slide.shapes if is_video(sh))
     x, y, w, h = geometry(old)
+    old_id = old._element.xpath("./p:nvPicPr/p:cNvPr")[0].get("id")
+    had_timing = old_id in timing_spids(slide)
     remove(slide, old)
     m = slide.shapes.add_movie(str(clip), Inches(x), Inches(y), Inches(w), Inches(h), poster_frame_image=str(poster),
                                mime_type="video/mp4")
+    cnv = m._element.xpath("./p:nvPicPr/p:cNvPr")[0]
+    if had_timing:                       # keep the slide's own timing; drop the media node python-pptx added
+        for node in slide._element.xpath(f'.//p:timing//p:video[.//p:spTgt[@spid="{cnv.get("id")}"]]'):
+            node.getparent().remove(node)
+        cnv.set("id", old_id)
     m.name = "deck video"
-    m._element.xpath("./p:nvPicPr/p:cNvPr")[0].set("descr", alt)
+    cnv.set("descr", alt)
+    assert timing_spids(slide) <= shape_ids(slide), "timing names a shape the slide lacks"
     return m
+
+
+def drop_dead_timing(slide):
+    """The tracked deck: a slide whose timing names only shapes it no longer has (the videos, now placeholders) loses
+    its timing; a timing that also animates other shapes stops the build (none does)."""
+    spids, ids = timing_spids(slide), shape_ids(slide)
+    if spids and not (spids & ids):
+        t = slide._element.xpath("./p:timing")[0]
+        t.getparent().remove(t)
+    assert timing_spids(slide) <= shape_ids(slide), "timing names a shape the slide lacks"
+
+
+def dedupe_media_timing(slide):
+    """One <p:video> media node per video shape (Ritik's 17:12 slide 6 carried two for the same shape)."""
+    seen = set()
+    for node in slide._element.xpath(".//p:timing//p:video"):
+        spid = node.xpath(".//p:spTgt/@spid")
+        if spid and spid[0] in seen:
+            node.getparent().remove(node)
+        seen.update(spid)
+
+
+def same_clip(slide, clip):
+    """True when the slide's video is byte for byte this clip (Ritik's deck may already carry the current build)."""
+    import hashlib
+    for rel in slide.part.rels.values():
+        if rel.reltype.endswith("/media") and not rel.is_external:
+            return hashlib.sha256(rel.target_part.blob).digest() == hashlib.sha256(clip.read_bytes()).digest()
+    return False
 
 
 MEDIA_RELS = ("/video", "/media", "/audio", "/image")
@@ -178,8 +225,8 @@ def fix_notes(prs):
     slides = list(prs.slides)
     for i, old, new in NOTE_FIXES:
         nf = slides[i - 1].notes_slide.notes_text_frame
-        assert nf.text.count(old) == 1, (i, old)
-        nf.text = nf.text.replace(old, new)
+        if old in nf.text:
+            nf.text = nf.text.replace(old, new)
 
 
 def title(s):
@@ -239,14 +286,16 @@ def build(local, out, source=SOURCE):
     prs = Presentation(str(source))
     slides = list(prs.slides)
     if local:
-        replace_video(slides[DEMO_SLIDE - 1], CLIP_D, POSTER_D, DEMO_ALT)
+        if not same_clip(slides[DEMO_SLIDE - 1], CLIP_D):
+            replace_video(slides[DEMO_SLIDE - 1], CLIP_D, POSTER_D, DEMO_ALT)
         c = slides[CLIP_C_SLIDE - 1]
-        old = next(sh for sh in c.shapes if is_video(sh))
-        alt = old._element.xpath(".//p:cNvPr")[0].get("descr")
-        replace_video(c, CLIP_C, POSTER_C, alt)
+        if not same_clip(c, CLIP_C):
+            old = next(sh for sh in c.shapes if is_video(sh))
+            replace_video(c, CLIP_C, POSTER_C, old._element.xpath(".//p:cNvPr")[0].get("descr"))
     nf = slides[DEMO_SLIDE - 1].notes_slide.notes_text_frame
-    first = re.match(r"Speaker: [^.]+\. Time: [^)]+\)\.", nf.text)      # Ritik's speaker and time line, kept
-    nf.text = DEMO_NOTES.format(first=first.group(0) if first else "Speaker: Arsha. Time: 0:25.")
+    if "(19 s)" in nf.text:              # still the earlier video's notes; Ritik's own notes for clip D are kept
+        first = re.match(r"Speaker: [^.]+\. Time: [^)]+\)\.", nf.text)      # his speaker and time line, kept
+        nf.text = DEMO_NOTES.format(first=first.group(0) if first else "Speaker: Arsha. Time: 0:25.")
     backup_notes(prs)
     fix_notes(prs)
     addendum(prs)
@@ -257,7 +306,10 @@ def build(local, out, source=SOURCE):
                     placeholder(s, sh, "Demo video")
                 elif is_still(sh):
                     placeholder(s, sh, "Still of the demo video")
+            drop_dead_timing(s)
         shrink_pngs(prs)
+    for s in prs.slides:
+        dedupe_media_timing(s)
     drop_orphan_media(prs)
     trim_to_strip(prs)
     B._strip_unused_layouts(prs)
