@@ -183,7 +183,8 @@ def test_the_effort_band_matches_its_sources():
     assert f"{m['counts']['hand_labels']['v']} answers labelled by hand" in t
     assert f"({m['counts']['models']['v']} with the reviewers)" in t
     ledger = (ROOT / "docs/paper/supplement/PREREGISTRATIONS.md").read_text()
-    assert f"{ledger.count('| pre-registered |')} rules written before the data" in t
+    frozen = [l for l in ledger.splitlines() if "| pre-registered |" in l and "post-freeze addendum" not in l]
+    assert f"{len(frozen)} rules written before the data" in t        # the frozen results' rules (C27, Nov 26, is after)
     tag = subprocess.run(["git", "-C", str(ROOT), "log", "-1", "--format=%cd", "--date=format:%b %-d",
                           "results-freeze-2026-11-18"], capture_output=True, text=True).stdout.strip()
     assert tag == "Nov 18" and "Nov 18 results frozen" in t
