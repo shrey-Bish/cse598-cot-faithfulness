@@ -314,8 +314,9 @@ def readings(by_system):
         alarms[s] = {it["item_id"]: [int(c["solver"]["letter"] == it["correct"] and c["checker"]["flag"] is True)]
                      for c, it in split[s]["good"]}
     e = diff(lost["a40"], lost["base"])
-    out["4_cost"] = {"correct_lost": {**e, "reading": direction(e).replace("fewer with the trained solver", "fewer lost")
-                                      .replace("more", "more lost")},
+    cost = {"supported (fewer with the trained solver)": "fewer lost with the trained solver",
+            "contradicted (more)": "more lost with the trained solver"}      # no prediction here: the direction only
+    out["4_cost"] = {"correct_lost": {**e, "reading": cost.get(direction(e), direction(e))},
                      "checker_false_alarms": {s: rate({i: x for i, x in alarms[s].items()
                                                        if lost[s][i] == [0]}) for s in split},
                      "checker_false_alarms_a40_minus_base": diff(alarms["a40"], alarms["base"])}

@@ -8,7 +8,7 @@ come first; internal codes (F16, FB1 ...) sit in parentheses so you can look the
 contiguous (Ritik 1 to 3, Arsha 4 to 6, Shrey 7 to 10): swap them if you like, but then swap the time boxes with them.
 The simple deck says it in plain words: the scenario, what we built and how we evaluated it, three findings, one short demo (clip D, slide 6), scope, what a team
 should do. The longer "what we built" slide, the layers, the longer clips and every fix's intervals are backups. One post-freeze addendum (C27, the trained model inside the
-pipeline) is pre-registered and gets a backup slide; see Q38.
+pipeline) was pre-registered, run and read on Nov 26: backup 31; see Q38.
 
 **What the answer is, in one breath.** Tools pull harder than people; after a tool call the answer the user reads goes
 quiet about the tool while the private reasoning names it; a thinking mode helped only in part (mixed); so check the
@@ -384,10 +384,10 @@ marked with a star. Rule for all of them: answer the question in your first sent
 - **Show:** backups 19 and 30.
 
 **Q38 ★ Did you test your trained model inside the multi-agent pipeline?**
-- **Say:** Not in the frozen results. The trained model was tested on its own and the pipeline was tested with an untrained solver; we have a pre-registered follow-up that puts the two together, and it is exploratory.
-- **Evidence:** the planned run (A21) was dropped on Oct 31, because Olmo 3 7B Think never calls the tool itself and the slot fell after the freeze. A post-freeze addendum, C27 (pre-registered Nov 26, before any run), tests it with the inserted tool turn on C15's 100 fresh items (55 bad lookups, 45 good): the base model against the consistency-trained one as the solver, then the checker and two reviewers. The primary reading is wrong answers reaching the user on bad lookups with the solver alone, trained minus base, paired by item. No frozen number changed. [C27: ... to be filled from results/summaries/trackA/c27_summary.json, or "not tested" if not read by 20:00 MST Nov 27]
-- **Unknown:** the result, until it is read; and whatever it shows is one model, one training run, 100 items.
-- **Show:** backup "Addendum: the trained model inside the pipeline"; slide 5; backup 21.
+- **Say:** Not in the frozen results; afterwards, yes, as a pre-registered, exploratory addendum. With the solver alone, the trained model let 15 of 55 wrong tool answers through, against 29 of 55 for the original. With the checker, 5 of 55 for both. And it lost more right answers when the tool was right, 3 of 45 to 11 of 45: the same trade-off as slide 5.
+- **Evidence:** the planned run (A21) was dropped on Oct 31, because Olmo 3 7B Think never calls the tool itself and the slot fell after the freeze. A post-freeze addendum, C27 (pre-registered Nov 26, before any run), tests it with the inserted tool turn on C15's 100 fresh items (55 bad lookups, 45 good): the base model against the consistency-trained one as the solver, then the checker and two reviewers. The primary reading is wrong answers reaching the user on bad lookups with the solver alone, trained minus base, paired by item. No frozen number changed. Read Nov 26: solver alone −25 [−40, −13] (fewer with training); with the checker 5 of 55 and 5 of 55 (it re-solves with the same 7B model, so it misses when that model is wrong too); the Olmo reviewer seeing the tool's reply 32 of 55 and 18 of 55, −25 [−38, −13]; correct answers lost when the tool is right +18 [+4, +31].
+- **Unknown:** one model, one training run, 100 items; done after the freeze, so it is exploratory, not a frozen result.
+- **Show:** backup 31, "Addendum: the trained model inside the pipeline"; slide 5; backup 21.
 
 ---
 
@@ -436,4 +436,4 @@ clip C (backup 16, the first "fix held" match with the map and a fine-tuned answ
 5. **Check clip D plays in PowerPoint's Slide Show mode**, on the file that goes to Canvas (the one with the clips embedded),
    and on a Windows machine if you can borrow one: the classroom PC likely runs Windows. Confirm the click starts clip D, the sound works or the
    clip is fine silent, and clips C, B and A on backups 16, 28 and 29 start too. Run with no internet.
-6. **Before Dec 3:** upload by Nov 30; agree who answers which questions (the owner of the slide answers first); each person reads the "Don't say" table once more; fill in Q38's bracketed line from C27's summary (or write "not tested").
+6. **Before Dec 3:** upload by Nov 30; agree who answers which questions (the owner of the slide answers first); each person reads the "Don't say" table once more; Q38 holds C27's reading (Nov 26).

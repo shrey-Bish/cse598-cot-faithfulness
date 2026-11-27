@@ -276,9 +276,15 @@ def addendum(prs, summary=C27_SUMMARY):
             alt="Bar chart: wrong answers reaching the user on 55 bad tool lookups, original model against "
                 "consistency-trained, with the solver alone, with each reviewer seeing the tool's reply, and with "
                 "the checker; Wilson intervals.")
-    B.text(s, 6.9, 1.0, 2.75, 3.4, [([B.R("Post-freeze, exploratory", 13, True, D.MAROON)], 6),
-                                    ([B.R("Wrong answers reaching the user when the tool is wrong (55 questions).", 12)], 6),
-                                    ([B.R(r.get("headline", ""), 12, True)], 0)], name="deck text")
+    one, chk, lost = r["1_solver_alone"], r["2_with_checker"], r["4_cost"]["correct_lost"]
+    B.text(s, 6.9, 1.0, 2.75, 3.6, [
+        ([B.R("Post-freeze, exploratory", 13, True, D.MAROON)], 6),
+        ([B.R(f"When the tool is wrong ({one['b']['n']} questions), wrong answers reaching the user:", 11)], 4),
+        ([B.R(f"Solver alone: {one['b']['text']} → {one['a']['text']} after training.", 12, True)], 6),
+        ([B.R(f"With the checker: {chk['b']['text']} and {chk['a']['text']}; it re-solves with the same small "
+              "model, so it misses when that model is wrong too.", 11)], 6),
+        ([B.R(f"The cost, when the tool is right: correct answers lost, {lost['b']['text']} → {lost['a']['text']}.", 11)], 0)],
+        name="deck text")
     s.notes_slide.notes_text_frame.text = "\n".join(r.get("notes") or ["Backup: C27, post-freeze addendum, exploratory."])
     return s
 

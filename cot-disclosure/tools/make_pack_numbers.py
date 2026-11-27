@@ -219,6 +219,38 @@ def summary_rows():
     return out
 
 
+C27 = S + "trackA/c27_summary.json"
+C27_LABEL = "post-freeze addendum (Nov 26-27), exploratory"
+
+
+def c27_rows():
+    """C27 (Nov 26-27, post-freeze addendum, exploratory; the 17:12 log's rules): the addendum slide's counts, each one
+    record of its summary (k, n, stored Wilson). Nothing until the summary is read (its "read": true)."""
+    if not Path(C27).exists() or not json.loads(Path(C27).read_text()).get("read"):
+        return []
+    out = []
+    pipes = [("the solver alone", ["1_solver_alone"]), ("with the checker", ["2_with_checker"]),
+             ("with the Olmo 3.1 32B reviewer seeing the tool's reply", ["3_with_reviewer", "olmo3-32b-instruct | plus_tool_log"]),
+             ("with the Qwen3 30B Instruct reviewer seeing the tool's reply", ["3_with_reviewer", "qwen3-30b-a3b-instruct-2507 | plus_tool_log"])]
+    for what, keys in pipes:
+        for side, name in (("b", "original model"), ("a", "consistency-trained model")):
+            k, n, lo, hi = _w(C27, keys + [side])
+            out.append((f"C27 addendum: wrong answers reaching the user on the bad lookups, {what}, the {name} as the solver",
+                        f"{k} of {n}", f"[{lo}, {hi}%]", "C27", C27 + "#" + "/".join(keys + [side]).replace("|", "\\|"),
+                        f"summary: {C27_LABEL}; k and n from the summary; interval from its stored Wilson"))
+    for side, name in (("b", "original model"), ("a", "consistency-trained model")):
+        k, n, lo, hi = _w(C27, ["4_cost", "correct_lost", side])
+        out.append((f"C27 addendum: correct answers lost on the good lookups, the {name} as the solver alone",
+                    f"{k} of {n}", f"[{lo}, {hi}%]", "C27", C27 + "#4_cost/correct_lost/" + side,
+                    f"summary: {C27_LABEL}; k and n from the summary; interval from its stored Wilson"))
+    for sysk, name in (("base", "original model"), ("a40", "consistency-trained model")):
+        k, n, lo, hi = _w(C27, ["4_cost", "checker_false_alarms", sysk])
+        out.append((f"C27 addendum: the checker's false alarms on the good lookups the {name} got right",
+                    f"{k} of {n}", f"[{lo}, {hi}%]", "C27", C27 + "#4_cost/checker_false_alarms/" + sysk,
+                    f"summary: {C27_LABEL}; k and n from the summary; interval from its stored Wilson"))
+    return out
+
+
 def row(i, c):
     claim, nums, ival, fid, src, status = c
     src = src or (SRC.get(fid) if fid != "STORY" else "")
@@ -278,6 +310,15 @@ def main():
     for c in summary_rows():
         out.append(row(i, c)); i += 1
     out.append("")
+    extra = c27_rows()
+    if extra:
+        out += ["## Post-freeze addendum: C27, the trained model inside the pipeline (Nov 26-27, exploratory)", "",
+                "Pre-registered on Nov 26 before any run (archive/sessions/2026-11-26/2026-11-26_1712_A_c27-prereg.md); not "
+                "part of the frozen results. Each row is one record of its summary, checked against the JSON only.", "",
+                "| ID | claim | numbers | interval | finding | source | status |", "|---|---|---|---|---|---|---|"]
+        for c in extra:
+            out.append(row(i, c)); i += 1
+        out.append("")
     out.append("")
     Path("docs/presentation/pack/02_NUMBERS.md").write_text("\n".join(out))
     print("rows", i - 1)

@@ -138,11 +138,22 @@ question as clip A (mmlupro-11784); its third beat is another question (the fine
 tool in its reasoning, not in its answer, on 28 of 114 questions. The first in the seeded order is mmlupro-11784, the run
 in clip A (backup 29), and also the first where consistency training held (clip D on slide 6; clip C, backup 16).
 
-**Post-freeze addendum, C27 (pre-registered Nov 26, exploratory; no frozen number changed).** The trained model (A40)
-inside the multi-agent pipeline, with the inserted tool turn, on C15's 100 fresh items (55 bad lookups, 45 good); rule in
-`archive/sessions/2026-11-26/2026-11-26_1712_A_c27-prereg.md`. Results are due by 20:00 MST Nov 27 in
-`results/summaries/trackA/c27_summary.json`, or it is reported as "not tested". Until read, no C27 number is in the talk.
-It has a backup, "Addendum: the trained model inside the pipeline" (PREP_GUIDE Q38).
+**Post-freeze addendum, C27 (pre-registered and read Nov 26, exploratory; no frozen number changed).** The trained model
+(A40) inside the multi-agent pipeline, with the inserted tool turn, on C15's 100 fresh items (55 bad lookups, 45 good).
+The rule is in `archive/sessions/2026-11-26/2026-11-26_1712_A_c27-prereg.md`; the numbers are in
+`results/summaries/trackA/c27_summary.json` and 02_NUMBERS's C27 rows. Backup 31, "Addendum: the trained model inside the
+pipeline" (PREP_GUIDE Q38).
+- **Solver alone (primary):** wrong answers reaching the user, 29 of 55 with the original model and 15 of 55
+  with the trained one, −25 [−40, −13]: fewer with training (supported).
+- **With the checker:** 5 of 55 and 5 of 55; "near zero for both" is not supported. The checker
+  re-solves with the same 7B model and gave the same wrong letter in 4 and 5 cases (1 more had no letter).
+- **With a reviewer seeing the tool's reply:**
+  - Olmo 3.1 32B: 32 of 55 and 18 of 55, −25 [−38, −13].
+  - Qwen3 30B Instruct: 18 of 55 and 15 of 55, −5 [−18, +5], no difference detected.
+  - C11's rule on the Olmo reviewer: it defers with the original solver, −62 [−79, −45]. With the trained one, deferring
+    isn't detected (−27 [−53, +0], on 15 wrong answers).
+- **The cost, when the tool is right:** correct answers lost, 3 of 45 and 11 of 45, +18 [+4, +31]. The
+  checker's false alarms: 13 of 42 and 9 of 34.
 
 **Keys.**
 - Anywhere: **1** the scratch pad, **2** the map, **3** the test bench, **4** the result sheets; **← →** step;

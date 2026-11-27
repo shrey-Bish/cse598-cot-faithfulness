@@ -1,0 +1,428 @@
+{
+ "made_by": "finetune/c27.py --report",
+ "made_utc": "2026-11-27T02:39:28+00:00",
+ "prereg": "archive/sessions/2026-11-26/2026-11-26_1712_A_c27-prereg.md",
+ "cases": {
+  "base": 100,
+  "a40": 100
+ },
+ "reviews": {
+  "base": 396,
+  "a40": 368
+ },
+ "label": "post-freeze addendum (Nov 26-27), exploratory",
+ "1_solver_alone": {
+  "items": 55,
+  "a": {
+   "k": 15,
+   "n": 55,
+   "text": "15 of 55",
+   "rate": 0.2727272727272727,
+   "wilson": [
+    0.1728075187496099,
+    0.40232198219573845
+   ]
+  },
+  "b": {
+   "k": 29,
+   "n": 55,
+   "text": "29 of 55",
+   "rate": 0.5272727272727272,
+   "wilson": [
+    0.3979154425852105,
+    0.6530690173013478
+   ]
+  },
+  "diff": -0.2545454545454545,
+  "interval": [
+   -0.39999999999999997,
+   -0.1272727272727272
+  ],
+  "reading": "supported (fewer with the trained solver)"
+ },
+ "2_with_checker": {
+  "items": 55,
+  "a": {
+   "k": 5,
+   "n": 55,
+   "text": "5 of 55",
+   "rate": 0.09090909090909091,
+   "wilson": [
+    0.039458154824462244,
+    0.1957749468771647
+   ]
+  },
+  "b": {
+   "k": 5,
+   "n": 55,
+   "text": "5 of 55",
+   "rate": 0.09090909090909091,
+   "wilson": [
+    0.039458154824462244,
+    0.1957749468771647
+   ]
+  },
+  "diff": 0.0,
+  "interval": [
+   -0.05454545454545454,
+   0.05454545454545454
+  ],
+  "near_zero": {
+   "base": false,
+   "a40": false
+  },
+  "reading": "not supported"
+ },
+ "3_with_reviewer": {
+  "olmo3-32b-instruct | answer_only": {
+   "items": 55,
+   "a": {
+    "k": 10,
+    "n": 55,
+    "text": "10 of 55",
+    "rate": 0.18181818181818182,
+    "wilson": [
+     0.10187670387666053,
+     0.30330459744682714
+    ]
+   },
+   "b": {
+    "k": 9,
+    "n": 55,
+    "text": "9 of 55",
+    "rate": 0.16363636363636364,
+    "wilson": [
+     0.08855420293261641,
+     0.28263745846649907
+    ]
+   },
+   "diff": 0.018181818181818188,
+   "interval": [
+    -0.036363636363636376,
+    0.09090909090909088
+   ],
+   "reading": "no difference detected"
+  },
+  "olmo3-32b-instruct | plus_tool_log": {
+   "items": 55,
+   "a": {
+    "k": 18,
+    "n": 55,
+    "text": "18 of 55",
+    "rate": 0.32727272727272727,
+    "wilson": [
+     0.21813065522234926,
+     0.45896776549611545
+    ]
+   },
+   "b": {
+    "k": 32,
+    "n": 55,
+    "text": "32 of 55",
+    "rate": 0.5818181818181818,
+    "wilson": [
+     0.4503310363418142,
+     0.7026223433178602
+    ]
+   },
+   "diff": -0.2545454545454545,
+   "interval": [
+    -0.38181818181818183,
+    -0.12727272727272726
+   ],
+   "reading": "supported (fewer with the trained solver)"
+  },
+  "qwen3-30b-a3b-instruct-2507 | answer_only": {
+   "items": 55,
+   "a": {
+    "k": 7,
+    "n": 55,
+    "text": "7 of 55",
+    "rate": 0.12727272727272726,
+    "wilson": [
+     0.06304210393019456,
+     0.24017027762017662
+    ]
+   },
+   "b": {
+    "k": 9,
+    "n": 55,
+    "text": "9 of 55",
+    "rate": 0.16363636363636364,
+    "wilson": [
+     0.08855420293261641,
+     0.28263745846649907
+    ]
+   },
+   "diff": -0.036363636363636376,
+   "interval": [
+    -0.1090909090909091,
+    0.03636363636363636
+   ],
+   "reading": "no difference detected"
+  },
+  "qwen3-30b-a3b-instruct-2507 | plus_tool_log": {
+   "items": 55,
+   "a": {
+    "k": 15,
+    "n": 55,
+    "text": "15 of 55",
+    "rate": 0.2727272727272727,
+    "wilson": [
+     0.1728075187496099,
+     0.40232198219573845
+    ]
+   },
+   "b": {
+    "k": 18,
+    "n": 55,
+    "text": "18 of 55",
+    "rate": 0.32727272727272727,
+    "wilson": [
+     0.21813065522234926,
+     0.45896776549611545
+    ]
+   },
+   "diff": -0.054545454545454564,
+   "interval": [
+    -0.1818181818181818,
+    0.054545454545454564
+   ],
+   "reading": "no difference detected"
+  }
+ },
+ "3_defers": {
+  "base": {
+   "olmo3-32b-instruct": {
+    "items": 29,
+    "a": {
+     "k": 1,
+     "n": 29,
+     "text": "1 of 29",
+     "rate": 0.034482758620689655,
+     "wilson": [
+      0.006113214225076519,
+      0.17175522037795662
+     ]
+    },
+    "b": {
+     "k": 19,
+     "n": 29,
+     "text": "19 of 29",
+     "rate": 0.6551724137931034,
+     "wilson": [
+      0.47345103949857975,
+      0.8005928156337425
+     ]
+    },
+    "diff": -0.6206896551724138,
+    "interval": [
+     -0.7931034482758621,
+     -0.4482758620689655
+    ],
+    "rule": "defers"
+   },
+   "qwen3-30b-a3b-instruct-2507": {
+    "items": 29,
+    "a": {
+     "k": 14,
+     "n": 29,
+     "text": "14 of 29",
+     "rate": 0.4827586206896552,
+     "wilson": [
+      0.3138609003643046,
+      0.6556897823987706
+     ]
+    },
+    "b": {
+     "k": 21,
+     "n": 29,
+     "text": "21 of 29",
+     "rate": 0.7241379310344828,
+     "wilson": [
+      0.5428286743550008,
+      0.8530124497250202
+     ]
+    },
+    "diff": -0.24137931034482757,
+    "interval": [
+     -0.4482758620689655,
+     0.0
+    ],
+    "rule": "doesn't defer"
+   }
+  },
+  "a40": {
+   "olmo3-32b-instruct": {
+    "items": 15,
+    "a": {
+     "k": 5,
+     "n": 15,
+     "text": "5 of 15",
+     "rate": 0.3333333333333333,
+     "wilson": [
+      0.15176324343669478,
+      0.582864524428801
+     ]
+    },
+    "b": {
+     "k": 9,
+     "n": 15,
+     "text": "9 of 15",
+     "rate": 0.6,
+     "wilson": [
+      0.35746829954344506,
+      0.8017550397372577
+     ]
+    },
+    "diff": -0.26666666666666666,
+    "interval": [
+     -0.5333333333333334,
+     0.0
+    ],
+    "rule": "doesn't defer"
+   },
+   "qwen3-30b-a3b-instruct-2507": {
+    "items": 15,
+    "a": {
+     "k": 5,
+     "n": 15,
+     "text": "5 of 15",
+     "rate": 0.3333333333333333,
+     "wilson": [
+      0.15176324343669478,
+      0.582864524428801
+     ]
+    },
+    "b": {
+     "k": 11,
+     "n": 15,
+     "text": "11 of 15",
+     "rate": 0.7333333333333333,
+     "wilson": [
+      0.48049565748447975,
+      0.8910254675038264
+     ]
+    },
+    "diff": -0.39999999999999997,
+    "interval": [
+     -0.6666666666666667,
+     -0.13333333333333336
+    ],
+    "rule": "unclear"
+   }
+  }
+ },
+ "4_cost": {
+  "correct_lost": {
+   "items": 45,
+   "a": {
+    "k": 11,
+    "n": 45,
+    "text": "11 of 45",
+    "rate": 0.24444444444444444,
+    "wilson": [
+     0.14235479371782908,
+     0.38673380177439254
+    ]
+   },
+   "b": {
+    "k": 3,
+    "n": 45,
+    "text": "3 of 45",
+    "rate": 0.06666666666666667,
+    "wilson": [
+     0.022932032420618545,
+     0.17856602080532263
+    ]
+   },
+   "diff": 0.17777777777777776,
+   "interval": [
+    0.04444444444444444,
+    0.3111111111111111
+   ],
+   "reading": "more lost with the trained solver"
+  },
+  "checker_false_alarms": {
+   "base": {
+    "k": 13,
+    "n": 42,
+    "text": "13 of 42",
+    "rate": 0.30952380952380953,
+    "wilson": [
+     0.19071102783099478,
+     0.460259940579257
+    ]
+   },
+   "a40": {
+    "k": 9,
+    "n": 34,
+    "text": "9 of 34",
+    "rate": 0.2647058823529412,
+    "wilson": [
+     0.14601190607183953,
+     0.4311714142068518
+    ]
+   }
+  },
+  "checker_false_alarms_a40_minus_base": {
+   "items": 45,
+   "a": {
+    "k": 9,
+    "n": 45,
+    "text": "9 of 45",
+    "rate": 0.2,
+    "wilson": [
+     0.10896126755287432,
+     0.3382296923727772
+    ]
+   },
+   "b": {
+    "k": 13,
+    "n": 45,
+    "text": "13 of 45",
+    "rate": 0.28888888888888886,
+    "wilson": [
+     0.17730082412256962,
+     0.43368540693622215
+    ]
+   },
+   "diff": -0.08888888888888885,
+   "interval": [
+    -0.2222222222222222,
+    0.022222222222222227
+   ]
+  }
+ },
+ "no_answer": {
+  "base": {
+   "bad": 1,
+   "good": 0
+  },
+  "a40": {
+   "bad": 3,
+   "good": 5
+  }
+ },
+ "checker_no_answer": {
+  "base": 2,
+  "a40": 1
+ },
+ "read": true,
+ "read_utc": "2026-11-27T02:39:31+00:00",
+ "headline": "Solver alone, wrong answers reaching the user: 29 of 55 original, 15 of 55 trained (fewer with training).",
+ "notes": [
+  "Backup, C27: post-freeze addendum (Nov 26-27), exploratory. Pre-registered Nov 26 before any run (the 17:12 log).",
+  "1 Solver alone (55 bad lookups): 29 of 55 vs 15 of 55; -25 [-40, -13]; supported (fewer with the trained solver).",
+  "2 With the checker: 5 of 55 vs 5 of 55; near zero for both: not supported.",
+  "3 olmo3-32b-instruct | answer_only: 9 of 55 vs 10 of 55; +2 [-4, +9]; no difference detected.",
+  "3 olmo3-32b-instruct | plus_tool_log: 32 of 55 vs 18 of 55; -25 [-38, -13]; supported (fewer with the trained solver).",
+  "3 qwen3-30b-a3b-instruct-2507 | answer_only: 9 of 55 vs 7 of 55; -4 [-11, +4]; no difference detected.",
+  "3 qwen3-30b-a3b-instruct-2507 | plus_tool_log: 18 of 55 vs 15 of 55; -5 [-18, +5]; no difference detected.",
+  "3 defers, base solver: olmo3-32b-instruct: defers; qwen3-30b-a3b-instruct-2507: doesn't defer.",
+  "3 defers, a40 solver: olmo3-32b-instruct: doesn't defer; qwen3-30b-a3b-instruct-2507: unclear.",
+  "4 Correct answers lost (45 good lookups): 3 of 45 vs 11 of 45; +18 [+4, +31].",
+  "4 Checker false alarms: original 13 of 42, trained 9 of 34.",
+  "'No difference detected' is not 'no difference'."
+ ]
+}

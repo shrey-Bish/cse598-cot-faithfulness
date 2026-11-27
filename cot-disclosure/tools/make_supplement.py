@@ -1064,6 +1064,20 @@ PREREG = [
                 "[0.220, 0.499] of the tool's answers are correct; LoRA is behind at every p; disclosure when following "
                 "(keyword) minus the instruction: LoRA +40.9 [+30.2, +51.4], A40 +21.6 [+6.9, +35.5]",
      "verdict_check": ["0.361 [0.220, 0.499]", "+40.9 [+30.2, +51.4]", "+21.6 [+6.9, +35.5]"]},
+    {"id": "c27", "track": "A", "experiment": "C27 (post-freeze addendum, exploratory): the trained model inside the "
+                                              "pipeline, base against A40 as the solver with the inserted tool turn on "
+                                              "C15's 100 items, the checker and C15's two reviewers", "kind": "pre",
+     "rule": "pre-registered Nov 26 before any run: wrong answers reaching the user on the 55 bad lookups with the solver "
+             "alone, A40 minus base, paired by item (primary: fewer); with the checker (near zero for both: each Wilson "
+             "upper bound under 10%); with each reviewer and view, and C11's rule per solver; the cost on the 45 good lookups",
+     "rule_log": "2026-11-26_1712_A_c27-prereg.md",
+     "rule_check": ["Post-freeze addendum (Nov 26–27), exploratory", "Hard stop: if the full results aren't read by 20:00 MST Nov 27"],
+     "result_glob": ["*1745_ALL_demo-min-simple-deck*"],
+     "verdict": "post-freeze addendum, exploratory: solver alone 29 of 55 vs 15 of 55, −25 [−40, −13], fewer with the "
+                "trained solver; with the checker 5 of 55 for both, near zero not supported; correct answers lost "
+                "3 of 45 vs 11 of 45, +18 [+4, +31]",
+     "verdict_check": ["supported: fewer with the trained solver", "−25 [−40, −13]", "near zero for both: not supported",
+                       "+18 [+4, +31]"]},
     {"id": "l6", "track": "labels", "experiment": "L6: a hand-label check of disclosure when following on E2 (LoRA "
                                                   "against the instruction; base and A40 dropped Nov 8)", "kind": "pre",
      "rule": "14 followed runs per system and channel, 168 rows, blind, by seed L6-20261107; L4's guide and labels; "

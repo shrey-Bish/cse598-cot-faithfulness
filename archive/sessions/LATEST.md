@@ -13,6 +13,12 @@ replaces slide 6's video. Part 2 is C27; its rule is in the 17:12 log.
 
 **Dated note (Nov 26, 17:45): presentation work after the freeze. No frozen number, figure or verdict changed.**
 
+**Later input (pasted, about 18:45), acted on as Ritik's:** after C27 is read, make his new deck the local deck, add C27's
+backup slide on top of it, rebuild the committed copy with placeholders, and add a deck test that every `<p:timing>` spid
+exists on its slide. His new deck has a new slide 3 (the architecture), and slides 6 and 16 had timing nodes pointing at a
+deleted video shape (spid 4), so PowerPoint would offer a repair. He saved it at 18:55 (`Group10_final_with_video (2).pptx`;
+the 18:55 copies are identical, sha256 `3a137a071d354160`).
+
 ## 1. The source deck
 
 - **The brief names `~/Downloads/Group10_final_simple.pptx`.** That file is Ritik's 15:45 version. His latest, saved
@@ -77,6 +83,17 @@ replaces slide 6's video. Part 2 is C27; its rule is in the 17:12 log.
   - the effort band is found by its slide title ("What we built", now a backup).
   - The number, percent, code, alt-text, strip and size tests are unchanged and pass.
 - **Rendered and looked at:** all 30 pages; the main slides again after the switch to (3).
+- **The timing bug was mine:** `replace_video` gave the new clip a new shape id while the slide's `<p:timing>` still
+  named the old one. In the tracked deck it also hit backup 29, where the video became a placeholder.
+  - The tool now keeps the old id and drops python-pptx's extra media node.
+  - A placeholder slide loses timing that named only the removed video.
+  - One media node is kept per video; Ritik's 17:12 slide 6 had two.
+  - A clip is replaced only when the source's differs from the current build, and Ritik's own clip D notes are kept.
+  - New test: every timing spid is a shape on its slide, in both decks. It failed on the 17:45 build and passes now.
+- **Ritik's 18:55 deck is the source** (`local/Group10_final_ritik_2026-11-26_1855.pptx`):
+  - its four clips are the current builds, so none is replaced, and slide 6 comes through byte-identical;
+  - its slide 3, the architecture, renders cleanly;
+  - with C27's backup 31, the tracked copy is 4.64 MB and the local deck 36.0 MB.
 
 ## 4. C27 on Sol
 
@@ -108,18 +125,73 @@ replaces slide 6's video. Part 2 is C27; its rule is in the 17:12 log.
   checked on synthetic readings only.
 - **Correction:** that commit's message says 18:28, but the clock read 18:26. It was already pushed, so it stays as
   it is.
+- **The jobs ended at 19:30**, both COMPLETED, exit 0:
+  - 2471483 (base): 55:58, 200 of 200 runs ok, 1.37 M tokens at 566 tokens/s;
+  - 2471484 (a40): 1:04:57, 200 of 200 runs ok, 1.53 M tokens at 514 tokens/s;
+  - about 2.0 GPU-hours, against the dry run's 2.8 estimate.
+  - Runs with no letter: base 3, a40 9, over both kinds.
+  - Cases for the reviewers (the tool turn gave a letter): base 99, a40 92.
+- **The reviews:** run while the jobs generated (each case as both its runs came back; resumed by case). The last
+  pass was after the final copy-back.
+- **Correction:** the timing-fix commit says 18:55, but the clock read 18:53.
 
-## 5. Checks
+## 5. C27's reading (19:38–19:45; read once complete, before the stop)
 
-- Deck, demo, C27 and hygiene tests: 42 passed. With Track A's evaluation, A39, A40 and the Sol feeder tests: 181
-  passed (17:32).
-- `tools/check_links.py`: 0 broken links. `make_supplement.py --check`: pass.
-- Privacy: no email, Sol username, key or model text in tracked files. The clips, the demo page and the local decks are
-  gitignored.
+**Post-freeze addendum (Nov 26–27), exploratory.** Read by the 17:12 log's rules once every run and every review was
+in. No frozen number changed.
+- **Complete:**
+  - Runs: 200 of 200 per system.
+  - Reviews: every case whose solver gave a letter, base 99 of 99 and a40 92 of 92. No reviewer call failed.
+  - Not reviewed: the solver's tool turn gave no letter on 1 bad lookup for base, and on 3 bad and 5 good lookups for
+    a40. Nothing ships from those cases.
+- **Files:** the summary is `results/summaries/trackA/c27_summary.json` (numbers only; `finetune/c27.py --report`,
+  then `--read`).
+- **One label fixed before the read:** reading 4's direction had been printed as "contradicted (more lost)", but
+  reading 4 has no prediction. It now reads "more lost with the trained solver". No number moved.
 
-## 6. Waiting for Ritik
+| reading | original (base) | trained (a40) | a40 − base | by the rule |
+|---|---|---|---|---|
+| 1 solver alone (primary), wrong answers reaching the user, 55 bad lookups | 29 of 55 | 15 of 55 | −25 [−40, −13] | supported: fewer with the trained solver |
+| 2 with the checker | 5 of 55 | 5 of 55 | +0 [−5, +5] | near zero for both: not supported |
+| 3 Olmo 3.1 32B, answer only | 9 of 55 | 10 of 55 | +2 [−4, +9] | no difference detected |
+| 3 Olmo 3.1 32B, with the tool's reply | 32 of 55 | 18 of 55 | −25 [−38, −13] | fewer with the trained solver |
+| 3 Qwen3 30B Instruct, answer only | 9 of 55 | 7 of 55 | −4 [−11, +4] | no difference detected |
+| 3 Qwen3 30B Instruct, with the tool's reply | 18 of 55 | 15 of 55 | −5 [−18, +5] | no difference detected |
+| 4 correct answers lost, 45 good lookups | 3 of 45 | 11 of 45 | +18 [+4, +31] | more lost with the trained solver (no decision) |
+| 4 the checker's false alarms (solver right) | 13 of 42 | 9 of 34 | −9 [−22, +2] over the 45 | no decision |
 
-1. Keep the Sol connection (or reopen it with `ssh -fNM login.sol.rc.asu.edu`) for the copy-back.
-2. The playback check in PowerPoint: slide 6 (clip D), backups 16, 28 and 29. I couldn't play the clips in PowerPoint
-   from here. Clip D is encoded like clips A–C.
-3. C27's reading by 20:00 MST Nov 27, or it is reported as not tested.
+- **Defers (C11's rule, plus_tool_log minus answer_only, correcting a wrong solver answer):**
+  - With the original solver: Olmo −62 [−79, −45], defers; Qwen3 −24 [−45, +0],
+    doesn't defer. This is C15's pattern again.
+  - With the trained solver: Olmo −27 [−53, +0] on 15 wrong answers, doesn't defer
+    (the interval reaches 0; few items); Qwen3 −40 [−67, −13], unclear.
+- **Why the checker misses:** it re-solves with the same 7B model. On base, 4 of the 5 wrong answers that reached the
+  user had the checker give the same wrong letter, and 1 got no letter. On a40, all 5 were the same wrong letter. C15's
+  checker (the Qwen3 30B solver) stopped 53 of 53.
+- **In plain words:** training cut the wrong tool answers reaching the user with the solver alone, and with the Olmo
+  reviewer that defers. It still cost right answers when the tool was right. A checker built from the same small model
+  is no safety net when that model is wrong too.
+
+**The deck:** backup 31, "Addendum: the trained model inside the pipeline", on Ritik's 18:55 deck, labelled
+"Post-freeze, exploratory". 02_NUMBERS gains N164–N175 (the C27 rows, each checked exactly against the summary).
+TALK_MAP's C27 paragraph and PREP_GUIDE's Q38 carry the reading; the guide's PDF is regenerated.
+
+## 6. Checks
+
+- **After the reading** (19:45):
+  - the deck tests (the timing test included), the pack tests (C27's 12 rows checked exactly against the summary), the
+    C27 and hygiene tests: 49 passed;
+  - `tools/check_links.py`: 0 broken links;
+  - `export_summaries.py --check`: numbers only.
+- **Earlier:**
+  - deck, demo, C27 and hygiene: 42 passed;
+  - with Track A's evaluation, A39, A40 and the Sol feeder tests: 181 passed (17:32).
+- **Privacy:** no email, Sol username, key or model text in tracked files. The clips, the demo page, the C27 records and
+  reviews, and the local decks are gitignored.
+
+## 7. Waiting for Ritik
+
+1. The playback check in PowerPoint (`final/local/Group10_final_with_video.pptx`): slide 6 (clip D), backups 16, 28
+   and 29, on Windows too if possible. I couldn't play the clips in PowerPoint from here.
+2. A timed rehearsal per speaker (PREP_GUIDE), including Q38 (C27) and backup 31.
+3. The upload to Canvas by Nov 30.
