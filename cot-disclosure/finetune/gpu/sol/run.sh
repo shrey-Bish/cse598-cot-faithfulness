@@ -22,6 +22,7 @@
 #   cot-disclosure/finetune/gpu/sol/run.sh b20 --model M [--smoke]   # B20: a new family, thinking on and off, our vLLM (progress/sol_b20.py)
 #   cot-disclosure/finetune/gpu/sol/run.sh get_b20 --model M         # its snapshot (no GPU; online)
 #   cot-disclosure/finetune/gpu/sol/run.sh a39 SYSTEM QSET [K/N] [args] # A39: one system on e2 or mmlupro_30 (A39_GPUS, default 4)
+#   cot-disclosure/finetune/gpu/sol/run.sh c27 base|a40               # C27 (Nov 26): C15's 100 items, one GPU (finetune/c27.py)
 # Output: $TRACKA_OUT/<step>/ (/scratch/$USER/trackA/<step>/), plus a log of the console there.
 # Every step starts with the import check (finetune/gpu/import_check.py): a broken environment stops the
 # job in seconds, before any model loads.
@@ -31,7 +32,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/env.sh" || exit 1
 set -euo pipefail
 tracka_require_job
 
-step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|val_loss|trackb_qwen8b|get_qwen8b|provenance_forced|provenance_gen|provenance_bench|c13|get_c13|qwen8b_step3|qwen8b_step10|b17|get_gptoss|a18|b20|get_b20|a39 [args]}
+step=${1:?usage: run.sh smoke|step8|step9|step10|timing|vllm_check|train|eval|val_loss|trackb_qwen8b|get_qwen8b|provenance_forced|provenance_gen|provenance_bench|c13|get_c13|qwen8b_step3|qwen8b_step10|b17|get_gptoss|a18|b20|get_b20|a39|c27 [args]}
 shift
 args=("$@")
 case "$step" in
@@ -92,7 +93,10 @@ case "$step" in
             qset=${2:?usage: run.sh a39 SYSTEM e2|mmlupro_30 [K/N] [args]}
             args=(--engine vllm --gpus "${A39_GPUS:-4}" --design a39 --qset "$qset" --system "$system" --out "$TRACKA_OUT/a39")
             if [ $# -ge 3 ] && [[ "$3" == */* ]]; then args+=(--part "$3" "${@:4}"); else args+=("${@:3}"); fi ;;
-    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, val_loss, trackb_qwen8b, get_qwen8b, provenance_forced, provenance_gen, provenance_bench, c13, get_c13, qwen8b_step3, qwen8b_step10, b17, get_gptoss, a18, b20, get_b20, a39)" >&2; exit 2 ;;
+    c27)    script=finetune/gpu/eval_job.py                       # C27 (Nov 26, post-freeze addendum): C15's 100 items, one GPU
+            system=${1:?usage: run.sh c27 base|a40}
+            args=(--engine vllm --gpus 1 --design c27 --qset c15 --system "$system" --out "$TRACKA_OUT/c27" "${@:2}") ;;
+    *) echo "unknown step: $step (smoke, step8, step9, step10, timing, vllm_check, train, eval, val_loss, trackb_qwen8b, get_qwen8b, provenance_forced, provenance_gen, provenance_bench, c13, get_c13, qwen8b_step3, qwen8b_step10, b17, get_gptoss, a18, b20, get_b20, a39, c27)" >&2; exit 2 ;;
 esac
 mkdir -p "$TRACKA_OUT/$step"
 log="$TRACKA_OUT/$step/console_$(date +%Y%m%d_%H%M%S)_${SLURM_JOB_ID}.log"

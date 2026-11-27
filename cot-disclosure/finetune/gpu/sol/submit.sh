@@ -86,6 +86,7 @@ case "$job" in
     train) want="$versions $gates a40" ;;                                              # a40: A40 (Nov 5), lora's settings
     eval)  want="base prompt_only $versions" ;;
     a39|a39_1gpu) want="base prompt_only lora lora_note wrap wrap_note lora_wrap a40 a40_note" ;;   # A39_SYSTEMS (Nov 3); a40 (Nov 5); a40_note (A42, Nov 6)
+    c27)   want="base a40" ;;                                                       # C27 (Nov 26): base and A40 only
     *)     want="" ;;
 esac
 if [ -n "$want" ] && ! printf '%s\n' $want | grep -qx -- "${jobargs[0]:-}"; then
@@ -234,6 +235,7 @@ depends_on() {          # the job kinds each job may wait for (plain case: works
         a18) echo "a18" ;;                                           # A18: Step 10, the swap, Step 9 after Step 3 (Oct 31)
         b20) echo "get_b20 b20" ;;                                   # B20: after its snapshot, or its smoke job (Nov 3)
         a39|a39_1gpu) echo "setup_vllm vllm_check a39 a39_1gpu" ;;     # A39: after vLLM's setup, or the bench (Nov 3)
+        c27) echo "setup_vllm vllm_check a39 a39_1gpu c27" ;;            # C27 (Nov 26): like A39's
         get_*) echo "get_b20 get_c13 get_gptoss get_qwen8b" ;;       # a download after another (one slot at most; Nov 3)
     esac
 }

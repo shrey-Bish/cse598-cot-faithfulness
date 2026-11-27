@@ -1418,6 +1418,11 @@ DEVIATIONS = [
      "left this account, and A40 now stands ahead of the 30; this session's ruling, not one of Ritik's decisions, "
      "confirmed by Ritik on Nov 5 (13:38 session), before the rule acts", [log_rel("2026-11-03_1130_A_e2-a39-prereg.md")],
      ["This session's ruling", "Confirmed by Ritik, Nov 5"]),
+    ("2026-11-26 17:12", "C27, the trained model inside the pipeline", "A21 (dropped Oct 31) reopened after the freeze "
+     "as a post-freeze addendum, exploratory: base and A40 as the solver with the inserted tool turn on C15's 100 items, "
+     "C15's two reviewers and the checker; pre-registered before any run, its own summary, no frozen number changed; "
+     "stopped and reported as not tested if not read by 20:00 MST Nov 27", [log_rel("2026-11-26_1712_A_c27-prereg.md")],
+     ["Post-freeze addendum (Nov 26–27), exploratory", "Hard stop: if the full results aren't read by 20:00 MST Nov 27"]),
 ]
 DEV_WORDS = re.compile(r"\bCorrected\b|\b[Cc]orrected (?:Oct|\d{1,2}:\d{2})|\bCorrection\b|\b[Rr]efuted\b|"
                        r"\b[Ss]uperseded\b|\b[Dd]ropped\b|\bnot supported\b|\b[Rr]estated\b|\b[Rr]evises\b|"

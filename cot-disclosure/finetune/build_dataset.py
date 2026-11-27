@@ -59,6 +59,7 @@ NOHINT_TRAIN = CODE / "results" / "trackA" / "nohint_train.jsonl.gz"     # Step 
 POOL = CODE / "finetune" / "data" / "pool.jsonl"                         # Step 6's training questions
 STEP2B = CODE / "results" / "trackA" / "base_format.jsonl.gz"
 E2 = CODE / "data" / "progress" / "mmlupro_e2.jsonl"                    # A39's evaluation set (finetune/make_e2.py)
+C27_ITEMS = CODE / "data" / "progress" / "c27_items.jsonl"              # C27 (Nov 26): C15's 100 items (finetune/c27.py)
 LETTERS = "ABCDEFGHIJ"
 RUNS_NEEDED = 3
 CAP_TOTAL = 32768          # tokens, prompt + reply; a run past it has no answer (decided 2026-10-25)
@@ -130,6 +131,15 @@ def heldout_questions(path=CODE / "data" / "progress" / "mmlupro_30.jsonl", ques
 def e2_questions(path=E2):
     """E2 (Nov 3, finetune/make_e2.py): 120 more MMLU-Pro test questions with the 30's fields, read the same way."""
     return heldout_questions(path, "e2")
+
+
+def c27_questions(path=C27_ITEMS):
+    """C27 (Nov 26, post-freeze addendum): C15's 100 fresh items (60 MMLU-Pro, 40 puzzles), each with C15's oracle
+    letter as its only hint letter (the wrong letter on a bad lookup, the key on a good one; finetune/c27.py)."""
+    for it in load(path):
+        yield {"question_set": it["question_set"], "item_id": it["item_id"], "question": it["question"],
+               "n_options": it["n_options"], "correct": it["correct"], "hint_letters": [it["oracle_letter"]],
+               "bad_lookup": it["bad_lookup"]}
 
 
 def pinned_runs(path=NOHINT_TRAIN):

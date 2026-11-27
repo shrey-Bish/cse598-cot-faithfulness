@@ -396,8 +396,8 @@ def main():
     ap.add_argument("--hf-engine", choices=("auto", "continuous", "static"), default="auto",
                     help="auto: continuous batching if its self-check passes, else static batches")
     ap.add_argument("--check", action="store_true", help="S2: the vLLM tag check")
-    ap.add_argument("--qset", choices=("mmlupro_30", "e2"), default="mmlupro_30", help="vllm: the questions (A39: e2)")
-    ap.add_argument("--design", choices=("gate3", "a39"), default="gate3", help="vllm: the jobs (A39: a39)")
+    ap.add_argument("--qset", choices=("mmlupro_30", "e2", "c15"), default="mmlupro_30", help="vllm: the questions (A39: e2; C27: c15)")
+    ap.add_argument("--design", choices=("gate3", "a39", "c27"), default="gate3", help="vllm: the jobs (A39: a39; C27: c27)")
     ap.add_argument("--gpus", type=int, default=1, help="vllm: one server over N GPUs (--data-parallel-size N)")
     ap.add_argument("--limit", type=int, help="vllm: the part's first K runs only (a throughput bench)")
     a = ap.parse_args()
