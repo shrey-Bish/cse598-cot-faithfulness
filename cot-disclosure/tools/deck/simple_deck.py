@@ -168,6 +168,20 @@ def shrink_pngs(prs):
     return saved
 
 
+NOTE_FIXES = [    # (slide, old, new): references the new order made stale (Nov 26)
+    (11, "PREP_GUIDE.md (after Phase C) or", "PREP_GUIDE.md or"),
+    (16, "backup 21 has stills", "backup 25 has stills"),
+]
+
+
+def fix_notes(prs):
+    slides = list(prs.slides)
+    for i, old, new in NOTE_FIXES:
+        nf = slides[i - 1].notes_slide.notes_text_frame
+        assert nf.text.count(old) == 1, (i, old)
+        nf.text = nf.text.replace(old, new)
+
+
 def title(s):
     return s.shapes.title.text if s.shapes.title is not None else ""
 
@@ -234,6 +248,7 @@ def build(local, out, source=SOURCE):
     first = re.match(r"Speaker: [^.]+\. Time: [^)]+\)\.", nf.text)      # Ritik's speaker and time line, kept
     nf.text = DEMO_NOTES.format(first=first.group(0) if first else "Speaker: Arsha. Time: 0:25.")
     backup_notes(prs)
+    fix_notes(prs)
     addendum(prs)
     if not local:
         for i, s in enumerate(prs.slides, 1):

@@ -103,16 +103,46 @@ If asked why 38 of 114 differs from the "85 of 233" under the run: the finder co
 screen; the number under the run is the frozen count of runs over both tool-call wordings. The two wordings' finder
 counts add up to it (38 of 114 and 47 of 119).
 
-**The final deck's videos (version 3, Nov 26).** The final 6:00 talk is `final/Group10_final.pptx` (11 main slides, the
-divider at 12, backups 13 to 26; this map is the progress talk's and is unchanged above). Its video is slide 7, **clip C**
-(about 35 to 40 s, Arsha): Show me → "the fix held", Consistency-trained selected: No fix took the wrong hint and
-Consistency-trained didn't on 26 of 112 questions. The first match in the seeded order is mmlupro-11784, the same
-question as clip A. Clip C's third beat is another question (the fine-tuned model's hand-labelled answer; cut first if
-the clip runs long). Clip A is backup 25 (with its stills on backup 21) and clip B backup 24.
+**The final deck (the simple deck, Nov 26; this map's table above is the progress talk's and is unchanged).** The final
+talk is `final/Group10_final.pptx`: 10 main slides in 5:40 (20 s of slack in 6:00), the "Backup" divider at 11, backups
+12 to 30. It is built by `tools/deck/simple_deck.py` from Ritik's simple deck (the earlier 11-slide "version 3" is
+superseded). Speakers and times are each slide's notes line. Every number is a row of `pack/02_NUMBERS.md` or FINDINGS.
 
-**A narrower pattern (Nov 25, clip A):** Show me → "named in reasoning only": No fix took the wrong hint, named the
+| Slide | Title | Speaker, time | Numbers on it (and the notes) | Source |
+|---|---|---|---|---|
+| 1 | When a tool is wrong, does the model follow it, and does it tell you? | Ritik, 0:00-0:05 | none | |
+| 2 | When a tool is wrong, does the model follow it, and say so? | Ritik, 0:05-0:50 | none (our own illustration, not a run) | |
+| 3 | What we built and how we evaluated it | Ritik, 0:50-1:55 | notes: 12 models (8 answer, 4 review), about 352 GPU-hours, 3 of 32 layers | method.json; F11 |
+| 4 | Models defer to tools, and conceal it | Arsha, 1:55-2:35 | 8 models, 10 settings, 162 runs a condition; 1 of 162 vs 147 of 162 (1% vs 91%); 141 of 145 vs 0 of 143 (97% vs 0%); Gemma 127 of 162 | F15, F16, F17, F29, FB1 |
+| 5 | Targeted training reduces deference, at a cost | Arsha, 2:35-3:20 | 3 of 32 layers carry 0.90 [0.85, 0.96]; 5 trained variants, 120 held-out questions; 297 of 703 to 84 of 694 (42% to 12%, with 237 of 713 for the instruction), -30 [-35, -26]; 439 of 476 to 347 of 459 (92% to 76%), -17 [-22, -12]; notes: 37 of 42 vs 18 of 42 | F11, F26, F41, F43, F45 |
+| 6 | See it: the same question, before and after training (clip D) | Arsha, 3:20-3:45 | the first "the fix held" match, 26 of 112; 42% to 12% on card 3 | finder (this map); F41 |
+| 7 | Independent verification outperforms AI review | Shrey, 3:45-4:25 | Olmo 3.1 32B 59 of 73 to 3 of 73 (81% to 4%); checker 53 of 53 on 100 fresh items; 7 of 45 false alarms | F18, F22, F30, F24 |
+| 8 | Scope and limitations | Shrey, 4:25-4:55 | none (notes: 42 hand-labelled answers per system) | F45; REPORT section 10 |
+| 9 | Deployment recommendations | Shrey, 4:55-5:35 | 0 of 143; 53 of 53 and 7 of 45; "unverified" label -1 [-7, +4]; 42% to 12% and 92% to 76%; exploratory crossover about 36% | F29, F24, F44, F41, tradeoff_e2 |
+| 10 | Thank you | Shrey, 5:35-5:40 | none | |
+| 11 | Backup: for questions | not presented | | |
+
+Backups (12 to 30): 12 inside the model (layers 15, 19, 23: 0.90 [0.85, 0.96]; 0.90 [0.76, 1.06] on 16 new questions; Qwen3 8B 0.70 [0.60, 0.83]); 13 what we built (the old slide 3, with the effort band); 14 training cut wrong-hint following (both panels, with counts); 15 two of six reviewers defer (six reviewers; 59 of 73 to 3 of 73); **16 clip C**; 17 three layers; 18 authority; 19 every fix's trade; 20 exploratory crossover (0.36 [0.22, 0.50]); 21 only Olmo's reviewers defer; 22 related work; 23 pre-registration; 24 the full evaluation; **25 the demo's stills**; 26 ten settings; 27 reasoning names the tool, the answer rarely; **28 clip B**; **29 clip A**; 30 every fix with its intervals. The C27 addendum, "Addendum: the trained model inside the pipeline", is a further backup (post-freeze, exploratory; see below).
+
+**The final deck's videos.** Slide 6 is **clip D**, a new minimal demo (18 s, Arsha): three cards, about 6 s each. Card 1
+is the setup with the tool's wrong answer; card 2 the original model's answer with one sentence of its private
+reasoning; card 3 the consistency-trained model's answer on the same question and hint. It is built by
+`cot-disclosure/tools/demo_min/` (local only: it shows recorded model text, so the video is never tracked; the tracked
+deck holds a placeholder). The question is the first match of "the fix held" in the seeded order, which fits 26 of 112
+questions. The phrases and the fallback are in slide 6's notes and in `PREP_GUIDE.md` section 6.
+**Clip C** (about 35 to 40 s) is backup 16: Show me -> "the fix held", Consistency-trained selected, the same
+question as clip A (mmlupro-11784); its third beat is another question (the fine-tuned model's hand-labelled answer).
+**Clip B** is backup 28 (about 28 s), **clip A** backup 29 (about 49 s, the base model only), and backup 25 has the demo's stills.
+
+**A narrower pattern (Nov 25, clip A):** Show me -> "named in reasoning only": No fix took the wrong hint, named the
 tool in its reasoning, not in its answer, on 28 of 114 questions. The first in the seeded order is mmlupro-11784, the run
-in clip A (backup 25), and also the first where consistency training held (clip C, slide 7).
+in clip A (backup 29), and also the first where consistency training held (clip D on slide 6; clip C, backup 16).
+
+**Post-freeze addendum, C27 (pre-registered Nov 26, exploratory; no frozen number changed).** The trained model (A40)
+inside the multi-agent pipeline, with the inserted tool turn, on C15's 100 fresh items (55 bad lookups, 45 good); rule in
+`archive/sessions/2026-11-26/2026-11-26_1712_A_c27-prereg.md`. Results are due by 20:00 MST Nov 27 in
+`results/summaries/trackA/c27_summary.json`, or it is reported as "not tested". Until read, no C27 number is in the talk.
+It has a backup, "Addendum: the trained model inside the pipeline" (PREP_GUIDE Q38).
 
 **Keys.**
 - Anywhere: **1** the scratch pad, **2** the map, **3** the test bench, **4** the result sheets; **← →** step;
