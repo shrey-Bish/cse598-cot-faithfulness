@@ -84,7 +84,23 @@ replaces slide 6's video. Part 2 is C27; its rule is in the 17:12 log.
   pass.
 - **Sol was unreachable from 17:28:** `login.sol.rc.asu.edu` doesn't resolve on this network (public DNS only), which
   means the ASU VPN is off. Ritik was asked to connect it. A watch waits for the name to resolve.
-- (The pull and the submission are recorded below when they happen.)
+- **18:20:** the VPN came up. Sol asks for a password before Duo, so Ritik opened the shared connection himself
+  (`ssh -fNM`), and this session's commands reuse it.
+- **Before the pull (read-only):**
+  - the clone was clean at `97c0628` (Nov 8);
+  - nothing was running; the feeder's periodic job was pending on its start time, with nothing left in its queue;
+  - A40's `chosen.json` says epoch 1, and `models/a40_merged` exists.
+- **The safety diff** (`97c0628..8deb56c` over the Sol kit, the feeder and configs) lists:
+  - `run.sh` and `submit.sh`, each gaining a `c27` case;
+  - the new `c27.sbatch`;
+  - `configs/README.md`.
+  - The feeder's code and queue files are unchanged.
+  - The changes are additive and needed for the submission Ritik authorized, so the pull went ahead.
+- **Pulled** to `8deb56c`. Sol's Python builds the same 200 jobs per system (100 no-tool).
+- **Submitted at 18:24** through `submit.sh c27 --estimate 1.7` (limit 2:30; `--check` first: 150 GPU-minutes each of
+  960 free):
+  - **2471483** (base) and **2471484** (a40);
+  - both pending on priority, with no start time estimated yet.
 
 ## 5. Checks
 
@@ -96,7 +112,7 @@ replaces slide 6's video. Part 2 is C27; its rule is in the 17:12 log.
 
 ## 6. Waiting for Ritik
 
-1. Connect the ASU VPN (and approve the Duo push) so C27 can be pulled and submitted on Sol.
+1. Keep the Sol connection (or reopen it with `ssh -fNM login.sol.rc.asu.edu`) for the copy-back.
 2. The playback check in PowerPoint: slide 6 (clip D), backups 16, 28 and 29. I couldn't play the clips in PowerPoint
    from here. Clip D is encoded like clips A–C.
 3. C27's reading by 20:00 MST Nov 27, or it is reported as not tested.
