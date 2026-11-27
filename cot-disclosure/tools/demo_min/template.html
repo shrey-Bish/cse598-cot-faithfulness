@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tool hint demo</title>
+<style>
+:root{--ink:#191919;--maroon:#8C1D40;--gold:#FFC627}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff;color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:26px;line-height:1.4}
+.col{position:relative;width:min(960px,100% - 32px);height:100%;margin:0 auto}
+.step{position:absolute;left:0;right:0;top:12px;bottom:92px;display:flex;flex-direction:column;justify-content:center;opacity:0;visibility:hidden;transition:opacity 150ms linear,visibility 0s linear 150ms}
+.step.on{opacity:1;visibility:visible;transition:opacity 150ms linear}
+h1{margin:0 0 28px;font-size:34px;color:var(--maroon);font-weight:700;border-bottom:4px solid var(--gold);padding-bottom:12px}
+.lab{font-size:22px;font-weight:700;color:var(--maroon);margin:26px 0 6px}
+.q{margin:0 0 18px}
+.opt{margin:0 0 10px}.opt b{color:var(--maroon)}
+.chips{display:flex;gap:28px;align-items:center;margin-top:34px;flex-wrap:wrap}
+.chip{background:var(--gold);color:var(--ink);font-weight:700;font-size:36px;padding:10px 26px;border-radius:999px}
+.small{font-size:24px}
+.big{display:flex;align-items:baseline;gap:32px;margin:6px 0 10px;flex-wrap:wrap}
+.big .l{font-size:128px;font-weight:700;color:var(--maroon);line-height:1}
+.big .t{font-size:32px;font-weight:700}
+blockquote{margin:0;padding:6px 0 6px 24px;border-left:6px solid var(--gold);font-size:28px}
+mark{background:var(--gold);color:var(--ink);padding:0 3px}
+.note{margin-top:30px;font-size:30px;font-weight:700}
+footer{position:fixed;left:0;right:0;bottom:0;height:76px;display:flex;align-items:center;justify-content:center;font-size:22px;border-top:3px solid var(--gold);background:#fff}
+</style></head><body>
+<div class="col">
+<section class="step on" id="s1" aria-label="Step 1">
+<h1>The setup</h1>
+<div class="lab">Question</div>
+<p class="q">{{STEM}}</p>
+<p class="opt"><b>(G)</b> {{OPT_HINT}}</p>
+<p class="opt"><b>(I)</b> {{OPT_KEY}}</p>
+<div class="chips"><span class="chip">Tool returned: ({{HINT}})</span><span class="small">Correct answer: ({{KEY}})</span></div>
+</section>
+<section class="step" id="s2" aria-label="Step 2">
+<h1>Original model (Olmo 3 7B Think)</h1>
+<div class="big"><span class="l">({{BASE_L}})</span><span class="t">followed the tool&rsquo;s wrong answer</span></div>
+<div class="lab">From its private reasoning</div>
+<blockquote>{{QUOTE_HTML}}</blockquote>
+<p class="note">Its final answer never mentions the tool.</p>
+</section>
+<section class="step" id="s3" aria-label="Step 3">
+<h1>After training (consistency-trained)</h1>
+<div class="big"><span class="l">({{FT_L}})</span><span class="t">kept its own answer</span></div>
+<p class="small">Same question, same tool hint.</p>
+</section>
+</div>
+<footer>Real recorded runs. Question chosen by a fixed rule, not by hand.</footer>
+<script>
+const S=[...document.querySelectorAll('.step')];let i=0;
+function go(n){n=Math.max(0,Math.min(S.length-1,n));if(n===i)return;S[i].classList.remove('on');i=n;S[i].classList.add('on');}
+addEventListener('keydown',e=>{if(['ArrowRight','PageDown'].includes(e.key)){e.preventDefault();go(i+1)}
+ else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(i-1)}});
+</script></body></html>

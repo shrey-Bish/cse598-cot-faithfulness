@@ -123,7 +123,7 @@ def test_the_notes_time_the_main_slides_to_six_minutes():
         m = re.search(r"Time: (\d+):(\d\d)", s.notes_slide.notes_text_frame.text)
         assert m, s.notes_slide.notes_text_frame.text[:80]
         total += int(m.group(1)) * 60 + int(m.group(2))
-    assert total == 360
+    assert 300 <= total <= 360          # Ritik's simple deck (Nov 26): 5:30 in the notes, 30 s of slack
     assert all(s.has_notes_slide and s.notes_slide.notes_text_frame.text.strip() for s in slides)
 
 
@@ -143,8 +143,14 @@ def test_the_tracked_deck_holds_no_video_and_stays_small():
 
 @pytest.mark.skipif(not LOCAL.exists(), reason="the local deck with the clips is gitignored")
 def test_the_local_deck_embeds_every_clip():
-    names = zipfile.ZipFile(LOCAL).namelist()
-    assert len([n for n in names if n.endswith(".mp4")]) == 3
+    z = zipfile.ZipFile(LOCAL)
+    clips = [n for n in z.namelist() if n.endswith(".mp4")]
+    assert len(clips) == 4                  # D (slide 6), C (backup 16), B and A (Nov 26, the simple deck)
+    current = list((FINAL / "video").glob("clip_*.mp4"))
+    if current:                             # each embedded clip is the current build of one of them, not a stale copy
+        import hashlib
+        h = {hashlib.sha256(p.read_bytes()).hexdigest() for p in current}
+        assert all(hashlib.sha256(z.read(n)).hexdigest() in h for n in clips)
     assert LOCAL.stat().st_size < 50_000_000
     a, b = deck(), deck(LOCAL)
     assert len(a.slides) == len(b.slides)
@@ -166,11 +172,11 @@ def test_every_number_in_the_prep_guide_is_in_the_numbers_file_findings_or_talk_
 
 
 def test_the_effort_band_matches_its_sources():
-    """Slide 3's band (version 3, Nov 26): GPU-hours and GPU jobs from Sol's sacct (method.json), the hand-labelled rows
+    """The "What we built" slide's band (version 3, Nov 26; a backup in the simple deck): GPU-hours and GPU jobs from Sol's sacct (method.json), the hand-labelled rows
     and the models (method.json), the pre-registered rows of the ledger, the freeze's date (the git tag)."""
     import json
     import subprocess
-    t = slide_text(main_slides()[2])
+    t = slide_text(next(s for s in deck().slides if s.shapes.title is not None and s.shapes.title.text == "What we built"))
     m = json.loads((ROOT / "cot-disclosure/tools/demo_template/method.json").read_text())
     g = m["running"]["gpu_total"]["v"]
     assert f"{round(g['gpu_hours'])} GPU-hours" in t and f"({g['gpu_jobs']} GPU jobs)" in t, t
