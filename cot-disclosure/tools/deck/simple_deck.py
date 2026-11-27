@@ -230,7 +230,7 @@ def addendum(prs, summary=C27_SUMMARY):
     B.text(s, 6.9, 1.0, 2.75, 3.4, [([B.R("Post-freeze, exploratory", 13, True, D.MAROON)], 6),
                                     ([B.R("Wrong answers reaching the user when the tool is wrong (55 questions).", 12)], 6),
                                     ([B.R(r.get("headline", ""), 12, True)], 0)], name="deck text")
-    s.notes_slide.notes_text_frame.text = r.get("notes", "Backup: C27, post-freeze addendum, exploratory.")
+    s.notes_slide.notes_text_frame.text = "\n".join(r.get("notes") or ["Backup: C27, post-freeze addendum, exploratory."])
     return s
 
 

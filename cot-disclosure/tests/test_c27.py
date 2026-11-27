@@ -179,3 +179,12 @@ def test_near_zero_on_55_bad_lookups(k, want):
     one = synthetic(55, 0, lambda i, bad: "B", lambda i, bad, s: "A" if i >= k else s, lambda i, m, v, s: "A")
     r = c27.readings({"base": one, "a40": one})
     assert r["2_with_checker"]["b"]["text"] == f"{k} of 55" and r["2_with_checker"]["reading"] == want
+
+
+def test_the_read_out_is_short_and_names_the_rule():
+    base = synthetic(55, 45, lambda i, bad: "B" if bad and i < 40 else "A", lambda i, bad, s: "A", lambda i, m, v, s: s)
+    a40 = synthetic(55, 45, lambda i, bad: "B" if bad and i < 12 else "A", lambda i, bad, s: "A", lambda i, m, v, s: "A")
+    head, notes = c27.read_out(c27.readings({"base": base, "a40": a40}))
+    assert "40 of 55 original, 12 of 55 trained (fewer with training)" in head
+    assert all(len(x) <= 200 for x in [head, *notes])          # export_summaries refuses longer strings
+    assert notes[0].startswith(f"Backup, C27: {c27.LABEL}")

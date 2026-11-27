@@ -11,6 +11,7 @@ inserted tool turn, so the model needn't call the tool.
   python finetune/c27.py --fetch              # both systems' records from Sol by stdin -> results/trackA/c27/ (gitignored)
   python finetune/c27.py --review [--dry-run] # the two reviewers on Voyager -> results/trackA/c27/reviews_<system>.jsonl
   python finetune/c27.py --report             # -> results/summaries/trackA/c27_summary.json (numbers only)
+  python finetune/c27.py --read               # the headline and notes by the rules; read=true (the backup slide)
 
 Design (the pre-registration's):
 - Items: C15's 100 fresh items (60 MMLU-Pro, 40 puzzles) with C15's oracle (agents/solver.ToolOracle, wrong_rate 0.5,
@@ -336,6 +337,41 @@ def report(out=OUT, summary=SUMMARY):
     return res
 
 
+def pct(e):
+    return "—" if e["diff"] is None else f"{100 * e['diff']:+.0f} [{100 * e['interval'][0]:+.0f}, {100 * e['interval'][1]:+.0f}]"
+
+
+PLAIN = {"supported (fewer with the trained solver)": "fewer with training", "contradicted (more)": "more with training"}
+
+
+def read_out(r):
+    """The headline and the slide's notes from the readings (short strings: the export takes none over 200)."""
+    one, two, cost = r["1_solver_alone"], r["2_with_checker"], r["4_cost"]
+    head = (f"Solver alone, wrong answers reaching the user: {one['b']['text']} original, {one['a']['text']} trained "
+            f"({PLAIN.get(one['reading'], one['reading'])}).")
+    notes = [f"Backup, C27: {LABEL}. Pre-registered Nov 26 before any run (the 17:12 log).",
+             f"1 Solver alone (55 bad lookups): {one['b']['text']} vs {one['a']['text']}; {pct(one)}; {one['reading']}.",
+             f"2 With the checker: {two['b']['text']} vs {two['a']['text']}; near zero for both: {two['reading']}."]
+    for key, e in r["3_with_reviewer"].items():
+        notes.append(f"3 {key}: {e['b']['text']} vs {e['a']['text']}; {pct(e)}; {e['reading']}.")
+    for system, d in r["3_defers"].items():
+        notes.append(f"3 defers, {system} solver: " + "; ".join(f"{m}: {v['rule']}" for m, v in d.items()) + ".")
+    fa = cost["checker_false_alarms"]
+    notes.append(f"4 Correct answers lost (45 good lookups): {cost['correct_lost']['b']['text']} vs "
+                 f"{cost['correct_lost']['a']['text']}; {pct(cost['correct_lost'])}.")
+    notes.append(f"4 Checker false alarms: original {fa['base']['text']}, trained {fa['a40']['text']}.")
+    notes.append("'No difference detected' is not 'no difference'.")
+    return head, notes
+
+
+def mark_read(summary=SUMMARY):
+    r = json.loads(summary.read_text())
+    head, notes = read_out(r)
+    r.update(read=True, read_utc=datetime.now(timezone.utc).isoformat(timespec="seconds"), headline=head, notes=notes)
+    summary.write_text(json.dumps(r, indent=1) + "\n")
+    return r
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     g = ap.add_mutually_exclusive_group(required=True)
@@ -344,6 +380,7 @@ def main():
     g.add_argument("--fetch", action="store_true")
     g.add_argument("--review", action="store_true")
     g.add_argument("--report", action="store_true")
+    g.add_argument("--read", action="store_true", help="after --report, by the rules: the headline and notes, read=true")
     ap.add_argument("--system", choices=SYSTEMS, help="--review: one system (default both)")
     ap.add_argument("--plan", action="store_true", help="--review: the cases and calls only")
     a = ap.parse_args()
@@ -365,6 +402,10 @@ def main():
             print(json.dumps(r) if a.plan else f"{s}: exit {r}")
             rc = max(rc, 0 if a.plan else r)
         return rc
+    elif a.read:
+        r = mark_read()
+        print(r["headline"])
+        print("\n".join(r["notes"]))
     else:
         res = report()
         print(json.dumps({k: res[k] for k in ("cases", "reviews")}, indent=1))
