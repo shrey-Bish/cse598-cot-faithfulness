@@ -27,4 +27,4 @@ finetune/data/
 *[Gg][Pp][Qq][Aa]*.csv
 *[Gg][Pp][Qq][Aa]*.parquet
 # the handbook dossier (Nov 26): some files quote model text, so local only; zipped for Ritik
-results/handbook_dossier/
+results/handbook_dossier*
