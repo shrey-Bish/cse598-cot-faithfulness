@@ -101,6 +101,13 @@ replaces slide 6's video. Part 2 is C27; its rule is in the 17:12 log.
   960 free):
   - **2471483** (base) and **2471484** (a40);
   - both pending on priority, with no start time estimated yet.
+- **Running from about 18:25** (base on sg004, a40 on sg008). By 18:39 both were generating, with every run ok: base
+  16 runs (6 tool turns, 10 no-tool), a40 14 (6 and 8).
+- **Prepared before any result** (`finetune/c27.py --read`; the addendum slide in `simple_deck.py`): the headline and
+  notes come from the pre-registered readings, and the slide appears only once the summary is marked read. It was
+  checked on synthetic readings only.
+- **Correction:** that commit's message says 18:28, but the clock read 18:26. It was already pushed, so it stays as
+  it is.
 
 ## 5. Checks
 
